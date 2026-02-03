@@ -10,7 +10,7 @@ use es_entity::*;
 use super::chart_node::*;
 use crate::{
     chart_of_accounts::ledger::ClosingTxParentIdsAndDetails,
-    primitives::{AccountCategory, AccountingBaseConfig, *},
+    primitives::{AccountCategory, AccountInfo, AccountingBaseConfig, *},
 };
 
 use super::{bulk_import::*, error::*, tree};
@@ -348,6 +348,13 @@ impl Chart {
 
     pub fn chart(&self) -> tree::ChartTree {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
+    }
+
+    pub fn account_sets_under_code(&self, code: &AccountCode) -> Vec<AccountInfo> {
+        self.chart()
+            .find_node_by_code(code)
+            .map(|node| node.descendant_account_sets())
+            .unwrap_or_default()
     }
 
     pub fn accounting_base_config(&self) -> Option<AccountingBaseConfig> {

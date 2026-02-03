@@ -2,7 +2,10 @@ use async_graphql::*;
 
 use crate::{graphql::accounting::AccountCode, primitives::*};
 
-use lana_app::accounting::Chart as DomainChart;
+use lana_app::accounting::{
+    AccountCategory as DomainAccountCategory, AccountInfo as DomainAccountInfo,
+    Chart as DomainChart,
+};
 use lana_app::primitives::{AccountingBaseConfig, DebitOrCredit};
 
 #[derive(SimpleObject, Clone)]
@@ -172,3 +175,43 @@ pub struct ChartOfAccountsCsvImportInput {
 }
 
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
+
+#[derive(SimpleObject, Clone)]
+pub struct AccountInfo {
+    pub account_set_id: UUID,
+    pub code: AccountCode,
+    pub name: String,
+}
+
+impl From<DomainAccountInfo> for AccountInfo {
+    fn from(member: DomainAccountInfo) -> Self {
+        Self {
+            account_set_id: UUID::from(member.account_set_id),
+            code: AccountCode::from(&member.code),
+            name: member.name.to_string(),
+        }
+    }
+}
+
+#[derive(Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AccountCategory {
+    Asset,
+    Liability,
+    Equity,
+    Revenue,
+    CostOfRevenue,
+    Expenses,
+}
+
+impl From<AccountCategory> for DomainAccountCategory {
+    fn from(category: AccountCategory) -> Self {
+        match category {
+            AccountCategory::Asset => DomainAccountCategory::Asset,
+            AccountCategory::Liability => DomainAccountCategory::Liability,
+            AccountCategory::Equity => DomainAccountCategory::Equity,
+            AccountCategory::Revenue => DomainAccountCategory::Revenue,
+            AccountCategory::CostOfRevenue => DomainAccountCategory::CostOfRevenue,
+            AccountCategory::Expenses => DomainAccountCategory::Expenses,
+        }
+    }
+}

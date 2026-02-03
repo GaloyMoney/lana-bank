@@ -128,6 +128,50 @@ teardown_file() {
   [[ "$retained_earnings_loss_code" == "32.02" ]] || exit 1
 }
 
+@test "accounting: can query account sets by category" {
+  # Test ASSET category
+  exec_admin_graphql 'account-sets-by-category' '{"category": "ASSET"}'
+  count=$(graphql_output '.data.accountSetsByCategory | length')
+  [[ "$count" -gt 0 ]] || exit 1
+  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  [[ "$first_code" =~ ^1 ]] || exit 1
+
+  # Test LIABILITY category
+  exec_admin_graphql 'account-sets-by-category' '{"category": "LIABILITY"}'
+  count=$(graphql_output '.data.accountSetsByCategory | length')
+  [[ "$count" -gt 0 ]] || exit 1
+  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  [[ "$first_code" =~ ^2 ]] || exit 1
+
+  # Test EQUITY category
+  exec_admin_graphql 'account-sets-by-category' '{"category": "EQUITY"}'
+  count=$(graphql_output '.data.accountSetsByCategory | length')
+  [[ "$count" -gt 0 ]] || exit 1
+  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  [[ "$first_code" =~ ^3 ]] || exit 1
+
+  # Test REVENUE category
+  exec_admin_graphql 'account-sets-by-category' '{"category": "REVENUE"}'
+  count=$(graphql_output '.data.accountSetsByCategory | length')
+  [[ "$count" -gt 0 ]] || exit 1
+  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  [[ "$first_code" =~ ^4 ]] || exit 1
+
+  # Test COST_OF_REVENUE category
+  exec_admin_graphql 'account-sets-by-category' '{"category": "COST_OF_REVENUE"}'
+  count=$(graphql_output '.data.accountSetsByCategory | length')
+  [[ "$count" -gt 0 ]] || exit 1
+  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  [[ "$first_code" =~ ^5 ]] || exit 1
+
+  # Test EXPENSES category
+  exec_admin_graphql 'account-sets-by-category' '{"category": "EXPENSES"}'
+  count=$(graphql_output '.data.accountSetsByCategory | length')
+  [[ "$count" -gt 0 ]] || exit 1
+  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  [[ "$first_code" =~ ^6 ]] || exit 1
+}
+
 @test "accounting: can import CSV file into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')

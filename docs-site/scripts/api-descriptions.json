@@ -55,6 +55,7 @@
       "journalEntries": "Returns a paginated list of all journal entries",
       "trialBalance": "Generates a trial balance report for the specified date range",
       "chartOfAccounts": "Returns the chart of accounts structure",
+      "accountSetsByCategory": "Returns account sets (non-leaf accounts) under a specified accounting category (asset, liability, equity, revenue, cost of revenue, or expenses)",
       "fiscalYear": "Fetches a specific fiscal year by its unique identifier",
       "fiscalYearByYear": "Fetches a fiscal year by its year string (e.g., '2024')",
       "fiscalYears": "Returns a paginated list of all fiscal years",

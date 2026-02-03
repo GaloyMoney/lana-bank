@@ -1,4 +1,19 @@
+enum AccountCategory {
+	ASSET
+	LIABILITY
+	EQUITY
+	REVENUE
+	COST_OF_REVENUE
+	EXPENSES
+}
+
 scalar AccountCode
+
+type AccountInfo {
+	accountSetId: UUID!
+	code: AccountCode!
+	name: String!
+}
 
 input AccountingBaseConfigInput {
 	assetsCode: String!
@@ -2191,6 +2206,7 @@ type Query {
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
+	accountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
 	fiscalYear(fiscalYearId: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!
