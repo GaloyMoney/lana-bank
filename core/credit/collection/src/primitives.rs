@@ -236,7 +236,7 @@ impl CoreCreditCollectionAction {
         CoreCreditCollectionActionDiscriminants::VARIANTS
             .iter()
             .flat_map(|&discriminant| match discriminant {
-                Obligation => map_action!(collection, Obligation, ObligationAction),
+                Obligation => map_action!(credit_collection, Obligation, ObligationAction),
             })
             .collect()
     }
