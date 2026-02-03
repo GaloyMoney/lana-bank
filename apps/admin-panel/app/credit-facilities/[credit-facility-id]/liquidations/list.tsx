@@ -72,7 +72,6 @@ export const CreditFacilityLiquidations: React.FC<CreditFacilityLiquidationsProp
         data={creditFacility.liquidations}
         columns={columns}
         emptyMessage={t("messages.emptyTable")}
-        navigateTo={(liquidation) => `/liquidations/${liquidation.liquidationId}`}
       />
     </CardWrapper>
   )
