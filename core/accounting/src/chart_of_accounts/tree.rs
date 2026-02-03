@@ -5,7 +5,9 @@ use std::{
 };
 
 use super::chart_node::ChartNode;
-use crate::primitives::{AccountCode, AccountName, AccountSpec, CalaAccountSetId, ChartId};
+use crate::primitives::{
+    AccountCode, AccountInfo, AccountName, AccountSpec, CalaAccountSetId, ChartId,
+};
 
 #[derive(Debug)]
 pub struct ChartTree {
@@ -55,14 +57,18 @@ impl TreeNode {
     }
 
     /// Returns all descendant account sets (non-leaf nodes) with their details
-    pub fn descendant_account_sets(&self) -> Vec<(CalaAccountSetId, AccountCode, AccountName)> {
+    pub fn descendant_account_sets(&self) -> Vec<AccountInfo> {
         let mut result = Vec::new();
         let mut stack: Vec<&TreeNode> = self.children.iter().rev().collect();
 
         while let Some(node) = stack.pop() {
             // Only include nodes that have children (account sets, not leaf accounts)
             if !node.children.is_empty() {
-                result.push((node.id, node.code.clone(), node.name.clone()));
+                result.push(AccountInfo {
+                    account_set_id: node.id,
+                    code: node.code.clone(),
+                    name: node.name.clone(),
+                });
             }
             for child in node.children.iter().rev() {
                 stack.push(child);

@@ -353,16 +353,7 @@ impl Chart {
     pub fn account_sets_under_code(&self, code: &AccountCode) -> Vec<AccountInfo> {
         self.chart()
             .find_node_by_code(code)
-            .map(|node| {
-                node.descendant_account_sets()
-                    .into_iter()
-                    .map(|(id, code, name)| AccountInfo {
-                        account_set_id: id,
-                        code,
-                        name,
-                    })
-                    .collect()
-            })
+            .map(|node| node.descendant_account_sets())
             .unwrap_or_default()
     }
 

@@ -9,7 +9,7 @@ enum AccountCategory {
 
 scalar AccountCode
 
-type AccountSetMember {
+type AccountInfo {
 	accountSetId: UUID!
 	code: AccountCode!
 	name: String!
@@ -2206,7 +2206,7 @@ type Query {
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
-	accountSetsByCategory(category: AccountCategory!): [AccountSetMember!]!
+	accountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
 	fiscalYear(fiscalYearId: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!

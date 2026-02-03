@@ -829,14 +829,14 @@ impl Query {
         &self,
         ctx: &Context<'_>,
         category: AccountCategory,
-    ) -> async_graphql::Result<Vec<AccountSetMember>> {
+    ) -> async_graphql::Result<Vec<AccountInfo>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let members = app
             .accounting()
             .chart_of_accounts()
             .account_sets_by_category(sub, CHART_REF.0, category.into())
             .await?;
-        Ok(members.into_iter().map(AccountSetMember::from).collect())
+        Ok(members.into_iter().map(AccountInfo::from).collect())
     }
 
     async fn fiscal_year(

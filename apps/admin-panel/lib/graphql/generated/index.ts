@@ -49,8 +49,8 @@ export enum AccountCategory {
   Revenue = 'REVENUE'
 }
 
-export type AccountSetMember = {
-  __typename?: 'AccountSetMember';
+export type AccountInfo = {
+  __typename?: 'AccountInfo';
   accountSetId: Scalars['UUID']['output'];
   code: Scalars['AccountCode']['output'];
   name: Scalars['String']['output'];
@@ -2430,7 +2430,7 @@ export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer
 export type Query = {
   __typename?: 'Query';
   accountEntryCsv?: Maybe<AccountingCsvDocument>;
-  accountSetsByCategory: Array<AccountSetMember>;
+  accountSetsByCategory: Array<AccountInfo>;
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;

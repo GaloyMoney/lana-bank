@@ -177,13 +177,13 @@ pub struct ChartOfAccountsCsvImportInput {
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(SimpleObject, Clone)]
-pub struct AccountSetMember {
+pub struct AccountInfo {
     pub account_set_id: UUID,
     pub code: AccountCode,
     pub name: String,
 }
 
-impl From<DomainAccountInfo> for AccountSetMember {
+impl From<DomainAccountInfo> for AccountInfo {
     fn from(member: DomainAccountInfo) -> Self {
         Self {
             account_set_id: UUID::from(member.account_set_id),
