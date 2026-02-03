@@ -127,11 +127,11 @@ where
         db: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        use CoreCreditEvent::*;
+        use CoreCreditCollectionEvent::*;
 
         if let Some(
-            event @ FacilityPaymentReceived {
-                credit_facility_id,
+            event @ PaymentReceived {
+                beneficiary_id,
                 payment_id,
                 ..
             },
@@ -140,6 +140,8 @@ where
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
+            let credit_facility_id: crate::primitives::CreditFacilityId =
+                (*beneficiary_id).into();
             Span::current().record(
                 "credit_facility_id",
                 tracing::field::display(credit_facility_id),
