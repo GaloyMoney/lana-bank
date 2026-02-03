@@ -14,7 +14,7 @@ use super::{entity::*, error::*};
     err = "UserError",
     columns(email(ty = "String", list_by),),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub(crate) struct UserRepo<E>
 where
@@ -38,13 +38,15 @@ where
         }
     }
 
-    async fn publish(
+    async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &User,
         new_events: es_entity::LastPersisted<'_, UserEvent>,
     ) -> Result<(), UserError> {
-        self.publisher.publish_user(op, entity, new_events).await
+        self.publisher
+            .publish_user_in_op(op, entity, new_events)
+            .await
     }
 }
 

@@ -77,14 +77,14 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 &mut op,
                 CoreAccountingObject::all_balance_sheet(),
                 CoreAccountingAction::BALANCE_SHEET_CREATE,
             )
             .await?;
 
-        match self.balance_sheet_ledger.create(&mut op, &name).await {
+        match self.balance_sheet_ledger.create_in_op(&mut op, &name).await {
             Ok(_) => {
                 op.commit().await?;
                 Ok(())

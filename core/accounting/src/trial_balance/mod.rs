@@ -59,14 +59,18 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 &mut op,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_CREATE,
             )
             .await?;
 
-        match self.trial_balance_ledger.create(&mut op, &reference).await {
+        match self
+            .trial_balance_ledger
+            .create_in_op(&mut op, &reference)
+            .await
+        {
             Ok(_) => {
                 op.commit().await?;
                 Ok(())
@@ -92,7 +96,7 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 &mut op,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_UPDATE,
@@ -100,7 +104,7 @@ where
             .await?;
 
         self.trial_balance_ledger
-            .add_members(&mut op, trial_balance_id, new_chart_account_set_ids.iter())
+            .add_members_in_op(&mut op, trial_balance_id, new_chart_account_set_ids.iter())
             .await?;
 
         op.commit().await?;
@@ -122,7 +126,7 @@ where
             .await?;
 
         self.trial_balance_ledger
-            .add_members(op, trial_balance_id, new_chart_account_set_ids.iter())
+            .add_members_in_op(op, trial_balance_id, new_chart_account_set_ids.iter())
             .await?;
 
         Ok(())

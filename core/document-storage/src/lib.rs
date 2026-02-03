@@ -62,11 +62,11 @@ impl DocumentStorage {
     #[instrument(name = "document_storage.create_in_op", skip(self, db))]
     pub async fn create_in_op(
         &self,
+        db: &mut es_entity::DbOp<'_>,
         filename: impl Into<String> + std::fmt::Debug,
         content_type: impl Into<String> + std::fmt::Debug,
         reference_id: impl Into<ReferenceId> + std::fmt::Debug,
         document_type: impl Into<DocumentType> + std::fmt::Debug,
-        db: &mut es_entity::DbOp<'_>,
     ) -> Result<Document, DocumentStorageError> {
         let document_id = DocumentId::new();
         let document_type = document_type.into();
@@ -93,13 +93,13 @@ impl DocumentStorage {
     #[record_error_severity]
     #[instrument(
         name = "document_storage.upload_in_op",
-        skip(self, content, document, db)
+        skip(self, db, content, document)
     )]
     pub async fn upload_in_op(
         &self,
+        db: &mut es_entity::DbOp<'_>,
         content: Vec<u8>,
         document: &mut Document,
-        db: &mut es_entity::DbOp<'_>,
     ) -> Result<(), DocumentStorageError> {
         self.storage
             .upload(content, &document.path_in_storage, &document.content_type)
@@ -121,7 +121,7 @@ impl DocumentStorage {
         document: &mut Document,
     ) -> Result<(), DocumentStorageError> {
         let mut db = self.begin_op().await?;
-        self.upload_in_op(content, document, &mut db).await?;
+        self.upload_in_op(&mut db, content, document).await?;
         db.commit().await?;
         Ok(())
     }
@@ -157,7 +157,7 @@ impl DocumentStorage {
         let mut db = self.begin_op().await?;
         let mut document = self.repo.create_in_op(&mut db, new_document).await?;
 
-        self.upload_in_op(content, &mut document, &mut db).await?;
+        self.upload_in_op(&mut db, content, &mut document).await?;
 
         db.commit().await?;
 

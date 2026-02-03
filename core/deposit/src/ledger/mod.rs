@@ -475,11 +475,11 @@ impl DepositLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "deposit_ledger.record_deposit",
+        name = "deposit_ledger.record_deposit_in_op",
         skip_all,
         fields(entity_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn record_deposit(
+    pub async fn record_deposit_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: DepositId,
@@ -513,11 +513,11 @@ impl DepositLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "deposit_ledger.initiate_withdrawal",
+        name = "deposit_ledger.initiate_withdrawal_in_op",
         skip_all,
         fields(entity_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn initiate_withdrawal(
+    pub async fn initiate_withdrawal_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
@@ -553,11 +553,11 @@ impl DepositLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "deposit_ledger.deny_withdrawal",
+        name = "deposit_ledger.deny_withdrawal_in_op",
         skip_all,
         fields(entity_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn deny_withdrawal(
+    pub async fn deny_withdrawal_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
@@ -594,8 +594,8 @@ impl DepositLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "deposit_ledger.revert_withdrawal", skip(self, op))]
-    pub async fn revert_withdrawal(
+    #[instrument(name = "deposit_ledger.revert_withdrawal_in_op", skip(self, op))]
+    pub async fn revert_withdrawal_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reversal_data: WithdrawalReversalData,
@@ -627,8 +627,8 @@ impl DepositLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "deposit_ledger.revert_deposit", skip_all)]
-    pub async fn revert_deposit(
+    #[instrument(name = "deposit_ledger.revert_deposit_in_op", skip_all)]
+    pub async fn revert_deposit_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reversal_data: DepositReversalData,
@@ -756,8 +756,8 @@ impl DepositLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "deposit_ledger.lock_account", skip(self, op))]
-    pub async fn lock_account(
+    #[instrument(name = "deposit_ledger.lock_account_in_op", skip(self, op))]
+    pub async fn lock_account_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         account_id: AccountId,
@@ -769,11 +769,11 @@ impl DepositLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "deposit_ledger.confirm_withdrawal",
+        name = "deposit_ledger.confirm_withdrawal_in_op",
         skip_all,
         fields(entity_id = tracing::field::Empty, tx_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn confirm_withdrawal(
+    pub async fn confirm_withdrawal_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
@@ -814,11 +814,11 @@ impl DepositLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "deposit_ledger.cancel_withdrawal",
+        name = "deposit_ledger.cancel_withdrawal_in_op",
         skip_all,
         fields(entity_id = tracing::field::Empty, tx_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
     )]
-    pub async fn cancel_withdrawal(
+    pub async fn cancel_withdrawal_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
@@ -879,8 +879,8 @@ impl DepositLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "deposit_ledger.create_deposit_accounts", skip_all)]
-    pub async fn create_deposit_accounts(
+    #[instrument(name = "deposit_ledger.create_deposit_accounts_in_op", skip_all)]
+    pub async fn create_deposit_accounts_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         account: &DepositAccount,
@@ -902,7 +902,8 @@ impl DepositLedger {
         )
         .await?;
 
-        self.add_deposit_control_to_account(op, account.id).await?;
+        self.add_deposit_control_to_account_in_op(op, account.id)
+            .await?;
 
         let frozen_deposit_account_name = format!("Frozen Deposit Account {holder_id}");
         self.create_account_in_op(
@@ -1023,11 +1024,11 @@ impl DepositLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "deposit_ledger.add_deposit_control_to_account",
+        name = "deposit_ledger.add_deposit_control_to_account_in_op",
         skip_all,
         fields(account_id = tracing::field::Empty)
     )]
-    pub async fn add_deposit_control_to_account(
+    pub async fn add_deposit_control_to_account_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         account_id: impl Into<AccountId>,
@@ -1048,8 +1049,8 @@ impl DepositLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "deposit_ledger.attach_charts_account_set", skip_all)]
-    async fn attach_charts_account_set(
+    #[instrument(name = "deposit_ledger.attach_charts_account_set_in_op", skip_all)]
+    async fn attach_charts_account_set_in_op(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
         internal_account_set_id: CalaAccountSetId,
@@ -1100,7 +1101,7 @@ impl DepositLedger {
             frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
         } = &new_integration_config;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.deposit_omnibus_account_ids.account_set_id,
             *omnibus_parent_account_set_id,
@@ -1108,7 +1109,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.deposit_account_sets.individual.id,
             *individual_deposit_accounts_parent_account_set_id,
@@ -1117,7 +1118,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.deposit_account_sets.government_entity.id,
             *government_entity_deposit_accounts_parent_account_set_id,
@@ -1126,7 +1127,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.deposit_account_sets.private_company.id,
             *private_company_deposit_accounts_parent_account_set_id,
@@ -1135,7 +1136,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.deposit_account_sets.bank.id,
             *bank_deposit_accounts_parent_account_set_id,
@@ -1143,7 +1144,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.deposit_account_sets.financial_institution.id,
             *financial_institution_deposit_accounts_parent_account_set_id,
@@ -1152,7 +1153,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.deposit_account_sets.non_domiciled_individual.id,
             *non_domiciled_individual_deposit_accounts_parent_account_set_id,
@@ -1162,7 +1163,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.frozen_deposit_account_sets.individual.id,
             *frozen_individual_deposit_accounts_parent_account_set_id,
@@ -1171,7 +1172,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.frozen_deposit_account_sets.government_entity.id,
             *frozen_government_entity_deposit_accounts_parent_account_set_id,
@@ -1181,7 +1182,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.frozen_deposit_account_sets.private_company.id,
             *frozen_private_company_deposit_accounts_parent_account_set_id,
@@ -1190,7 +1191,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.frozen_deposit_account_sets.bank.id,
             *frozen_bank_deposit_accounts_parent_account_set_id,
@@ -1199,7 +1200,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.frozen_deposit_account_sets.financial_institution.id,
             *frozen_financial_institution_deposit_accounts_parent_account_set_id,
@@ -1209,7 +1210,7 @@ impl DepositLedger {
         )
         .await?;
 
-        self.attach_charts_account_set(
+        self.attach_charts_account_set_in_op(
             op,
             self.frozen_deposit_account_sets.non_domiciled_individual.id,
             *frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,

@@ -263,7 +263,7 @@ where
             .await?;
 
         self.ledger
-            .record_interest_accrual(
+            .record_interest_accrual_in_op(
                 &mut db,
                 interest_accrual,
                 core_accounting::LedgerTransactionInitiator::System,
@@ -310,7 +310,7 @@ where
     ) -> Result<ConfirmedAccrual, CreditFacilityError> {
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 op,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
@@ -392,7 +392,7 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 &mut op,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
@@ -403,14 +403,14 @@ where
             facility_accrual_cycle_data,
             new_cycle_data,
         } = self
-            .complete_interest_cycle_and_maybe_start_new_cycle(
+            .complete_interest_cycle_and_maybe_start_new_cycle_in_op(
                 &mut op,
                 self.config.credit_facility_id,
             )
             .await?;
 
         self.ledger
-            .record_interest_accrual_cycle(
+            .record_interest_accrual_cycle_in_op(
                 &mut op,
                 facility_accrual_cycle_data,
                 core_accounting::LedgerTransactionInitiator::System,
@@ -453,11 +453,11 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "credit.facility.complete_interest_cycle_and_maybe_start_new_cycle",
+        name = "credit.facility.complete_interest_cycle_and_maybe_start_new_cycle_in_op",
         skip(self, db)
         fields(credit_facility_id = %credit_facility_id),
     )]
-    pub(super) async fn complete_interest_cycle_and_maybe_start_new_cycle(
+    pub(super) async fn complete_interest_cycle_and_maybe_start_new_cycle_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,

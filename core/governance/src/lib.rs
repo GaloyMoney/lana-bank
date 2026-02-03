@@ -91,7 +91,7 @@ where
         let mut db = self.policy_repo.begin_op().await?;
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 &mut db,
                 GovernanceObject::all_policies(),
                 GovernanceAction::POLICY_CREATE,
@@ -211,8 +211,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "governance.start_process", skip(self, db))]
-    pub async fn start_process(
+    #[instrument(name = "governance.start_process_in_op", skip(self, db))]
+    pub async fn start_process_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: impl Into<ApprovalProcessId> + std::fmt::Debug,
@@ -231,7 +231,7 @@ where
         let mut process = self.process_repo.create_in_op(db, new_process).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
         if self
-            .maybe_fire_concluded_event(db, eligible, &mut process)
+            .maybe_fire_concluded_event_in_op(db, eligible, &mut process)
             .await?
         {
             self.process_repo.update_in_op(db, &mut process).await?;
@@ -265,7 +265,7 @@ where
 
         if process.approve(&eligible, member_id).did_execute() {
             let mut db = self.policy_repo.begin_op().await?;
-            self.maybe_fire_concluded_event(&mut db, eligible, &mut process)
+            self.maybe_fire_concluded_event_in_op(&mut db, eligible, &mut process)
                 .await?;
             self.process_repo
                 .update_in_op(&mut db, &mut process)
@@ -309,7 +309,7 @@ where
         };
         if process.deny(&eligible, member_id, reason).did_execute() {
             let mut db = self.policy_repo.begin_op().await?;
-            self.maybe_fire_concluded_event(&mut db, eligible, &mut process)
+            self.maybe_fire_concluded_event_in_op(&mut db, eligible, &mut process)
                 .await?;
             self.process_repo
                 .update_in_op(&mut db, &mut process)
@@ -350,7 +350,7 @@ where
         Ok(committee)
     }
 
-    async fn maybe_fire_concluded_event(
+    async fn maybe_fire_concluded_event_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         eligible: HashSet<CommitteeMemberId>,
@@ -358,7 +358,7 @@ where
     ) -> Result<bool, GovernanceError> {
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 op,
                 GovernanceObject::approval_process(process.id),
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
