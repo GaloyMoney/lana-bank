@@ -9,16 +9,11 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::AccountId as CalaAccountId;
 use core_custody::CoreCustodyEvent;
-use core_money::{Satoshis, UsdCents};
 use governance::GovernanceEvent;
 use obix::out::OutboxEventMarker;
 
-use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
-    FacilityProceedsFromLiquidationAccountId, LiquidationId,
-};
+use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId};
 pub use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
@@ -147,14 +142,4 @@ where
             .list_by_id(query, es_entity::ListDirection::Descending)
             .await
     }
-}
-
-#[derive(Clone, Debug)]
-pub struct RecordProceedsFromLiquidationData {
-    pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
-    pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
-    pub amount_received: UsdCents,
-    pub collateral_in_liquidation_account_id: CalaAccountId,
-    pub liquidated_collateral_account_id: CalaAccountId,
-    pub amount_liquidated: Satoshis,
 }

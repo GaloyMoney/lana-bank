@@ -4,7 +4,7 @@ pub mod error;
 use cala_ledger::AccountId as CalaAccountId;
 use core_money::{Satoshis, UsdCents};
 
-pub use entity::{Liquidation, LiquidationEvent};
+pub use entity::{Liquidation, LiquidationEvent, NewLiquidation, NewLiquidationBuilder};
 pub use error::LiquidationError;
 
 use crate::ledger::FacilityProceedsFromLiquidationAccountId;

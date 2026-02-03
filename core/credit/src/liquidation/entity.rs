@@ -6,12 +6,12 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 use es_entity::*;
 
-use crate::primitives::*;
-
-use super::{
-    FacilityProceedsFromLiquidationAccountId, RecordProceedsFromLiquidationData,
-    error::LiquidationError,
+use crate::{
+    collateral::RecordProceedsFromLiquidationData,
+    ledger::FacilityProceedsFromLiquidationAccountId, primitives::*,
 };
+
+use super::error::LiquidationError;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

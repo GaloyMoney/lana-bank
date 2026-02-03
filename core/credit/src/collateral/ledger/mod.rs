@@ -11,10 +11,11 @@ use es_entity::clock::ClockHandle;
 
 pub use error::CollateralLedgerError;
 
-use crate::liquidation::RecordProceedsFromLiquidationData;
 use crate::primitives::{
     CalaAccountId, CollateralDirection, CollateralUpdate, LedgerOmnibusAccountIds,
 };
+
+use super::RecordProceedsFromLiquidationData;
 
 #[derive(Clone)]
 pub struct CollateralLedger {

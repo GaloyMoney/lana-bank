@@ -31,11 +31,11 @@ use crate::{
 
 use ledger::CollateralLedger;
 
-pub use entity::Collateral;
 pub(super) use entity::*;
 use jobs::{
     credit_facility_liquidations, liquidation_payment, partial_liquidation, wallet_collateral_sync,
 };
+pub use {entity::Collateral, liquidation::RecordProceedsFromLiquidationData};
 
 #[cfg(feature = "json-schema")]
 pub use entity::CollateralEvent;
@@ -144,7 +144,6 @@ where
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(
             credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
-                liquidation_repo.clone(),
                 repo_arc.clone(),
                 proceeds_omnibus_account_ids,
                 partial_liquidation_job_spawner,

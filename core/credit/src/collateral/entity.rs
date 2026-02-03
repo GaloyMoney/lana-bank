@@ -12,7 +12,11 @@ use crate::primitives::{
     LedgerTxId, LiquidationId, PendingCreditFacilityId, Satoshis,
 };
 
-use super::{CollateralUpdate, liquidation::Liquidation};
+use super::{
+    CollateralUpdate,
+    error::CollateralError,
+    liquidation::{Liquidation, NewLiquidation},
+};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -191,17 +195,28 @@ impl Collateral {
         active
     }
 
-    pub fn record_liquidation_started(&mut self, liquidation_id: LiquidationId) -> Idempotent<()> {
+    pub fn record_liquidation_started(
+        &mut self,
+        new_liquidation @ NewLiquidation {
+            id: liquidation_id, ..
+        }: NewLiquidation,
+    ) -> Result<Idempotent<LiquidationId>, CollateralError> {
         idempotency_guard!(
             self.events.iter_all(),
             CollateralEvent::LiquidationStarted { liquidation_id: id }
-                if *id == liquidation_id
+                if *id == liquidation_id,
         );
+
+        if let Some(id) = self.active_liquidation_id() {
+            return Err(CollateralError::ActiveLiquidationExists(id));
+        }
+
+        self.liquidations.add_new(new_liquidation);
 
         self.events
             .push(CollateralEvent::LiquidationStarted { liquidation_id });
 
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(liquidation_id))
     }
 
     pub fn record_liquidation_completed(
