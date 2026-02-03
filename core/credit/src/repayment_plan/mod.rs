@@ -339,7 +339,7 @@ where
         authz: Arc<Perms>,
     ) -> Result<Self, CreditFacilityRepaymentPlanError>
     where
-        E: OutboxEventMarker<CoreCreditEvent>,
+        E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<crate::CoreCreditCollectionEvent>,
     {
         let repo = Arc::new(RepaymentPlanRepo::new(pool));
 

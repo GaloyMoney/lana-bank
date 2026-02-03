@@ -5,7 +5,9 @@ use tokio::select;
 use tracing::{Span, instrument};
 
 use job::*;
-use lana_events::{CoreAccessEvent, CoreCreditEvent, CoreDepositEvent, LanaEvent};
+use lana_events::{
+    CoreAccessEvent, CoreCreditCollectionEvent, CoreCreditEvent, CoreDepositEvent, LanaEvent,
+};
 use obix::out::{Outbox, PersistentOutboxEvent};
 
 use crate::email::EmailNotification;
@@ -137,10 +139,10 @@ where
         message: &PersistentOutboxEvent<LanaEvent>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(LanaEvent::Credit(
-                credit_event @ CoreCreditEvent::ObligationOverdue {
+            Some(LanaEvent::CreditCollection(
+                credit_event @ CoreCreditCollectionEvent::ObligationOverdue {
                     id,
-                    credit_facility_id,
+                    beneficiary_id,
                     amount,
                 },
             )) => {
@@ -148,8 +150,9 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", credit_event.as_ref());
 
+                let credit_facility_id: core_credit::CreditFacilityId = (*beneficiary_id).into();
                 self.email_notification
-                    .send_obligation_overdue_notification_in_op(op, id, credit_facility_id, amount)
+                    .send_obligation_overdue_notification_in_op(op, id, &credit_facility_id, amount)
                     .await?;
             }
             Some(LanaEvent::Credit(

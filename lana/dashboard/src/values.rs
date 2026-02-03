@@ -34,7 +34,7 @@ impl DashboardValues {
                 self.total_disbursed += *amount;
                 true
             }
-            LanaEvent::Credit(CoreCreditEvent::FacilityPaymentAllocated {
+            LanaEvent::CreditCollection(CoreCreditCollectionEvent::PaymentAllocated {
                 obligation_type: ObligationType::Disbursal,
                 amount,
                 ..

@@ -10,7 +10,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{event::CoreCreditEvent, repayment_plan::*};
+use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, repayment_plan::*};
 
 #[derive(Serialize, Deserialize)]
 pub struct RepaymentPlanProjectionConfig<E> {
@@ -25,14 +25,16 @@ impl<E> Clone for RepaymentPlanProjectionConfig<E> {
     }
 }
 
-pub struct RepaymentPlanProjectionInit<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct RepaymentPlanProjectionInit<
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+> {
     outbox: Outbox<E>,
     repo: Arc<RepaymentPlanRepo>,
 }
 
 impl<E> RepaymentPlanProjectionInit<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     pub fn new(outbox: &Outbox<E>, repo: Arc<RepaymentPlanRepo>) -> Self {
         Self {
@@ -46,7 +48,7 @@ const REPAYMENT_PLAN_PROJECTION: JobType =
     JobType::new("outbox.credit-facility-repayment-plan-projection");
 impl<E> JobInitializer for RepaymentPlanProjectionInit<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     type Config = RepaymentPlanProjectionConfig<E>;
     fn job_type(&self) -> JobType {
@@ -77,14 +79,16 @@ struct RepaymentPlanProjectionJobData {
     sequence: EventSequence,
 }
 
-pub struct RepaymentPlanProjectionJobRunner<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct RepaymentPlanProjectionJobRunner<
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+> {
     outbox: Outbox<E>,
     repo: Arc<RepaymentPlanRepo>,
 }
 
 impl<E> RepaymentPlanProjectionJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     #[instrument(name = "outbox.core_credit.repayment_plan_projection_job.process_message", parent = None, skip(self, message, db, sequence, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
@@ -118,12 +122,6 @@ where
             Some(event @ FacilityActivated { id, .. })
             | Some(event @ FacilityCompleted { id, .. })
             | Some(
-                event @ FacilityPaymentAllocated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
                 event @ FacilityCollateralUpdated {
                     credit_facility_id: id,
                     ..
@@ -138,36 +136,6 @@ where
             )
             | Some(
                 event @ AccrualPosted {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationCreated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationDue {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationOverdue {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationDefaulted {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationCompleted {
                     credit_facility_id: id,
                     ..
                 },
@@ -194,6 +162,114 @@ where
             }
             _ => {}
         }
+
+        if let Some(collection_event) = message.as_event::<CoreCreditCollectionEvent>() {
+            let credit_event = match collection_event {
+                CoreCreditCollectionEvent::PaymentAllocated {
+                    beneficiary_id,
+                    obligation_id,
+                    obligation_type,
+                    allocation_id,
+                    amount,
+                    recorded_at,
+                    effective,
+                } => Some((
+                    CoreCreditEvent::FacilityPaymentAllocated {
+                        credit_facility_id: (*beneficiary_id).into(),
+                        obligation_id: *obligation_id,
+                        obligation_type: *obligation_type,
+                        allocation_id: *allocation_id,
+                        amount: *amount,
+                        recorded_at: *recorded_at,
+                        effective: *effective,
+                    },
+                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
+                )),
+                CoreCreditCollectionEvent::ObligationCreated {
+                    id,
+                    obligation_type,
+                    beneficiary_id,
+                    amount,
+                    due_at,
+                    overdue_at,
+                    defaulted_at,
+                    recorded_at,
+                    effective,
+                } => Some((
+                    CoreCreditEvent::ObligationCreated {
+                        id: *id,
+                        obligation_type: *obligation_type,
+                        credit_facility_id: (*beneficiary_id).into(),
+                        amount: *amount,
+                        due_at: *due_at,
+                        overdue_at: *overdue_at,
+                        defaulted_at: *defaulted_at,
+                        recorded_at: *recorded_at,
+                        effective: *effective,
+                    },
+                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
+                )),
+                CoreCreditCollectionEvent::ObligationDue {
+                    id,
+                    beneficiary_id,
+                    obligation_type,
+                    amount,
+                } => Some((
+                    CoreCreditEvent::ObligationDue {
+                        id: *id,
+                        credit_facility_id: (*beneficiary_id).into(),
+                        obligation_type: *obligation_type,
+                        amount: *amount,
+                    },
+                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
+                )),
+                CoreCreditCollectionEvent::ObligationOverdue {
+                    id,
+                    beneficiary_id,
+                    amount,
+                } => Some((
+                    CoreCreditEvent::ObligationOverdue {
+                        id: *id,
+                        credit_facility_id: (*beneficiary_id).into(),
+                        amount: *amount,
+                    },
+                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
+                )),
+                CoreCreditCollectionEvent::ObligationDefaulted {
+                    id,
+                    beneficiary_id,
+                    amount,
+                } => Some((
+                    CoreCreditEvent::ObligationDefaulted {
+                        id: *id,
+                        credit_facility_id: (*beneficiary_id).into(),
+                        amount: *amount,
+                    },
+                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
+                )),
+                CoreCreditCollectionEvent::ObligationCompleted { id, beneficiary_id } => Some((
+                    CoreCreditEvent::ObligationCompleted {
+                        id: *id,
+                        credit_facility_id: (*beneficiary_id).into(),
+                    },
+                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
+                )),
+                _ => None,
+            };
+
+            if let Some((event, facility_id)) = credit_event {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", collection_event.as_ref());
+
+                let mut repayment_plan = self.repo.load(facility_id).await?;
+                repayment_plan.process_event(sequence, &event, clock.now());
+                self.repo
+                    .persist_in_tx(db, facility_id, repayment_plan)
+                    .await?;
+            }
+        }
+
         Ok(())
     }
 }
@@ -201,7 +277,7 @@ where
 #[async_trait::async_trait]
 impl<E> JobRunner for RepaymentPlanProjectionJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     async fn run(
         &self,

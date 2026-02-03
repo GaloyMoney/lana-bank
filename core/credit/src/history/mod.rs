@@ -235,7 +235,7 @@ where
         authz: Arc<Perms>,
     ) -> Result<Self, error::CreditFacilityHistoryError>
     where
-        E: OutboxEventMarker<CoreCreditEvent>,
+        E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<crate::CoreCreditCollectionEvent>,
     {
         let repo = Arc::new(HistoryRepo::new(pool));
 

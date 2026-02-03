@@ -23,14 +23,6 @@ use crate::{
     },
 };
 
-
-use core_credit_collection::{
-    obligation::{Obligation, ObligationEvent, error::ObligationError},
-    payment_allocation::{
-        PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
-    },
-};
-
 pub struct CreditFacilityPublisher<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
@@ -319,103 +311,6 @@ where
                     effective: *effective,
                 }),
 
-                _ => None,
-            })
-            .collect::<Vec<_>>();
-        self.outbox
-            .publish_all_persisted(op, publish_events)
-            .await?;
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_payment_allocation_in_op", skip_all)]
-    pub async fn publish_payment_allocation_in_op(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        entity: &PaymentAllocation,
-        new_events: es_entity::LastPersisted<'_, PaymentAllocationEvent>,
-    ) -> Result<(), PaymentAllocationError> {
-        use PaymentAllocationEvent::*;
-        let publish_events = new_events
-            .map(|event| match &event.event {
-                Initialized {
-                    id,
-                    obligation_id,
-                    obligation_type,
-                    amount,
-                    effective,
-                    ..
-                } => CoreCreditEvent::FacilityPaymentAllocated {
-                    credit_facility_id: entity.beneficiary_id.into(),
-                    obligation_id: *obligation_id,
-                    obligation_type: *obligation_type,
-                    allocation_id: *id,
-                    amount: *amount,
-                    recorded_at: event.recorded_at,
-                    effective: *effective,
-                },
-            })
-            .collect::<Vec<_>>();
-        self.outbox
-            .publish_all_persisted(op, publish_events)
-            .await?;
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_obligation_in_op", skip_all)]
-    pub async fn publish_obligation_in_op(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        entity: &Obligation,
-        new_events: es_entity::LastPersisted<'_, ObligationEvent>,
-    ) -> Result<(), ObligationError> {
-        use ObligationEvent::*;
-
-        let dates = entity.lifecycle_dates();
-        let publish_events = new_events
-            .filter_map(|event| match &event.event {
-                Initialized { effective, .. } => Some(CoreCreditEvent::ObligationCreated {
-                    id: entity.id,
-                    obligation_type: entity.obligation_type,
-                    credit_facility_id: entity.beneficiary_id.into(),
-                    amount: entity.initial_amount,
-
-                    due_at: dates.due,
-                    overdue_at: dates.overdue,
-                    defaulted_at: dates.defaulted,
-                    recorded_at: event.recorded_at,
-                    effective: *effective,
-                }),
-                DueRecorded {
-                    due_amount: amount, ..
-                } => Some(CoreCreditEvent::ObligationDue {
-                    id: entity.id,
-                    credit_facility_id: entity.beneficiary_id.into(),
-                    obligation_type: entity.obligation_type,
-                    amount: *amount,
-                }),
-                OverdueRecorded {
-                    overdue_amount: amount,
-                    ..
-                } => Some(CoreCreditEvent::ObligationOverdue {
-                    id: entity.id,
-                    credit_facility_id: entity.beneficiary_id.into(),
-                    amount: *amount,
-                }),
-                DefaultedRecorded {
-                    defaulted_amount: amount,
-                    ..
-                } => Some(CoreCreditEvent::ObligationDefaulted {
-                    id: entity.id,
-                    credit_facility_id: entity.beneficiary_id.into(),
-                    amount: *amount,
-                }),
-                Completed { .. } => Some(CoreCreditEvent::ObligationCompleted {
-                    id: entity.id,
-                    credit_facility_id: entity.beneficiary_id.into(),
-                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

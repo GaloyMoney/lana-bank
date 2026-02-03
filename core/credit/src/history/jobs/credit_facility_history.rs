@@ -9,7 +9,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{event::CoreCreditEvent, primitives::CreditFacilityId};
+use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, primitives::CreditFacilityId};
 
 use super::super::repo::HistoryRepo;
 
@@ -18,14 +18,16 @@ struct HistoryProjectionJobData {
     sequence: EventSequence,
 }
 
-pub struct HistoryProjectionJobRunner<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct HistoryProjectionJobRunner<
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+> {
     outbox: Outbox<E>,
     repo: Arc<HistoryRepo>,
 }
 
 impl<E> HistoryProjectionJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     #[instrument(name = "outbox.core_credit.history_projection_job.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
@@ -52,12 +54,6 @@ where
             Some(event @ FacilityActivated { id, .. })
             | Some(event @ FacilityCompleted { id, .. })
             | Some(
-                event @ FacilityPaymentAllocated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
                 event @ FacilityCollateralUpdated {
                     credit_facility_id: id,
                     ..
@@ -72,36 +68,6 @@ where
             )
             | Some(
                 event @ AccrualPosted {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationCreated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationDue {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationOverdue {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationDefaulted {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationCompleted {
                     credit_facility_id: id,
                     ..
                 },
@@ -134,6 +100,30 @@ where
             }
             _ => {}
         }
+
+        if let Some(CoreCreditCollectionEvent::PaymentAllocated {
+            beneficiary_id,
+            obligation_id,
+            obligation_type,
+            allocation_id,
+            amount,
+            recorded_at,
+            effective,
+        }) = message.as_event()
+        {
+            let id: CreditFacilityId = (*beneficiary_id).into();
+            let credit_event = CoreCreditEvent::FacilityPaymentAllocated {
+                credit_facility_id: id,
+                obligation_id: *obligation_id,
+                obligation_type: *obligation_type,
+                allocation_id: *allocation_id,
+                amount: *amount,
+                recorded_at: *recorded_at,
+                effective: *effective,
+            };
+            self.handle_event(db, message, &credit_event, id).await?;
+        }
+
         Ok(())
     }
 
@@ -158,7 +148,7 @@ where
 #[async_trait::async_trait]
 impl<E> JobRunner for HistoryProjectionJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     async fn run(
         &self,
@@ -203,14 +193,16 @@ where
     }
 }
 
-pub struct HistoryProjectionInit<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct HistoryProjectionInit<
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+> {
     outbox: Outbox<E>,
     repo: Arc<HistoryRepo>,
 }
 
 impl<E> HistoryProjectionInit<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     pub fn new(outbox: &Outbox<E>, repo: Arc<HistoryRepo>) -> Self {
         Self {
@@ -237,7 +229,7 @@ impl<E> Clone for HistoryProjectionConfig<E> {
 
 impl<E> JobInitializer for HistoryProjectionInit<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     type Config = HistoryProjectionConfig<E>;
 
