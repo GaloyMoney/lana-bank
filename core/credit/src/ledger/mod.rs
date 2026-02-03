@@ -28,7 +28,7 @@ use crate::{
         CalaAccountId, CalaAccountSetId, CollateralId, CreditFacilityId, CustomerType, DisbursalId,
         DisbursedReceivableAccountCategory, DisbursedReceivableAccountType, FacilityDurationType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId,
-        PendingCreditFacilityId, Satoshis, UsdCents,
+        PendingCreditFacilityId, Satoshis, UsdCents, account_sets,
     },
 };
 
@@ -44,6 +44,7 @@ use error::*;
 pub struct InternalAccountSetDetails {
     id: CalaAccountSetId,
     normal_balance_type: DebitOrCredit,
+    account_category: account_sets::CreditAccountCategory,
 }
 
 impl InternalAccountSetDetails {
@@ -53,6 +54,10 @@ impl InternalAccountSetDetails {
 
     pub fn normal_balance_type(&self) -> DebitOrCredit {
         self.normal_balance_type
+    }
+
+    pub fn account_category(&self) -> account_sets::CreditAccountCategory {
+        self.account_category
     }
 }
 
@@ -67,11 +72,55 @@ pub struct DisbursedReceivableAccountSets {
     non_domiciled_company: InternalAccountSetDetails,
 }
 
+impl DisbursedReceivableAccountSets {
+    pub(crate) fn individual(&self) -> InternalAccountSetDetails {
+        self.individual
+    }
+
+    pub(crate) fn government_entity(&self) -> InternalAccountSetDetails {
+        self.government_entity
+    }
+
+    pub(crate) fn private_company(&self) -> InternalAccountSetDetails {
+        self.private_company
+    }
+
+    pub(crate) fn bank(&self) -> InternalAccountSetDetails {
+        self.bank
+    }
+
+    pub(crate) fn financial_institution(&self) -> InternalAccountSetDetails {
+        self.financial_institution
+    }
+
+    pub(crate) fn foreign_agency_or_subsidiary(&self) -> InternalAccountSetDetails {
+        self.foreign_agency_or_subsidiary
+    }
+
+    pub(crate) fn non_domiciled_company(&self) -> InternalAccountSetDetails {
+        self.non_domiciled_company
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct DisbursedReceivable {
     short_term: DisbursedReceivableAccountSets,
     long_term: DisbursedReceivableAccountSets,
     overdue: DisbursedReceivableAccountSets,
+}
+
+impl DisbursedReceivable {
+    pub(crate) fn short_term(&self) -> DisbursedReceivableAccountSets {
+        self.short_term
+    }
+
+    pub(crate) fn long_term(&self) -> DisbursedReceivableAccountSets {
+        self.long_term
+    }
+
+    pub(crate) fn overdue(&self) -> DisbursedReceivableAccountSets {
+        self.overdue
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -85,10 +134,50 @@ pub struct InterestReceivableAccountSets {
     non_domiciled_company: InternalAccountSetDetails,
 }
 
+impl InterestReceivableAccountSets {
+    pub(crate) fn individual(&self) -> InternalAccountSetDetails {
+        self.individual
+    }
+
+    pub(crate) fn government_entity(&self) -> InternalAccountSetDetails {
+        self.government_entity
+    }
+
+    pub(crate) fn private_company(&self) -> InternalAccountSetDetails {
+        self.private_company
+    }
+
+    pub(crate) fn bank(&self) -> InternalAccountSetDetails {
+        self.bank
+    }
+
+    pub(crate) fn financial_institution(&self) -> InternalAccountSetDetails {
+        self.financial_institution
+    }
+
+    pub(crate) fn foreign_agency_or_subsidiary(&self) -> InternalAccountSetDetails {
+        self.foreign_agency_or_subsidiary
+    }
+
+    pub(crate) fn non_domiciled_company(&self) -> InternalAccountSetDetails {
+        self.non_domiciled_company
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct InterestReceivable {
     short_term: InterestReceivableAccountSets,
     long_term: InterestReceivableAccountSets,
+}
+
+impl InterestReceivable {
+    pub(crate) fn short_term(&self) -> InterestReceivableAccountSets {
+        self.short_term
+    }
+
+    pub(crate) fn long_term(&self) -> InterestReceivableAccountSets {
+        self.long_term
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -156,14 +245,23 @@ impl CreditLedger {
         templates::CreateCreditFacilityProposal::init(cala).await?;
         templates::InitialDisbursal::init(cala).await?;
 
+        let catalog = account_sets::CreditAccountSetCatalog::default();
+
         let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_REF}"),
-            format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_REF}"),
-            CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_COLLATERAL_OMNIBUS.account_set_ref
+            ),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_COLLATERAL_OMNIBUS.account_ref
+            ),
+            account_sets::CREDIT_COLLATERAL_OMNIBUS.name.to_string(),
             collateral_omnibus_normal_balance_type,
+            catalog.omnibus().credit_collateral_omnibus.account_category,
         )
         .await?;
 
@@ -173,11 +271,21 @@ impl CreditLedger {
                 cala,
                 journal_id,
                 format!(
-                    "{journal_id}:{CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_SET_REF}"
+                    "{journal_id}:{}",
+                    account_sets::CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS.account_set_ref
                 ),
-                format!("{journal_id}:{CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_REF}"),
-                CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS.account_ref
+                ),
+                account_sets::CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS
+                    .name
+                    .to_string(),
                 interest_added_to_obligations_omnibus_normal_balance_type,
+                catalog
+                    .omnibus()
+                    .credit_interest_added_to_obligations_omnibus
+                    .account_category,
             )
             .await?;
 
@@ -185,10 +293,20 @@ impl CreditLedger {
         let payments_made_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_SET_REF}"),
-            format!("{journal_id}:{CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_REF}"),
-            CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_PAYMENTS_MADE_OMNIBUS.account_set_ref
+            ),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_PAYMENTS_MADE_OMNIBUS.account_ref
+            ),
+            account_sets::CREDIT_PAYMENTS_MADE_OMNIBUS.name.to_string(),
             payments_made_omnibus_normal_balance_type,
+            catalog
+                .omnibus()
+                .credit_payments_made_omnibus
+                .account_category,
         )
         .await?;
 
@@ -196,10 +314,17 @@ impl CreditLedger {
         let facility_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_REF}"),
-            format!("{journal_id}:{CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF}"),
-            CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_FACILITY_OMNIBUS.account_set_ref
+            ),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_FACILITY_OMNIBUS.account_ref
+            ),
+            account_sets::CREDIT_FACILITY_OMNIBUS.name.to_string(),
             facility_omnibus_normal_balance_type,
+            catalog.omnibus().credit_facility_omnibus.account_category,
         )
         .await?;
 
@@ -207,10 +332,22 @@ impl CreditLedger {
         let liquidation_proceeds_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_SET_REF}"),
-            format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_REF}"),
-            CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS.account_set_ref
+            ),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS.account_ref
+            ),
+            account_sets::CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS
+                .name
+                .to_string(),
             liquidation_proceeds_omnibus_normal_balance_type,
+            catalog
+                .omnibus()
+                .credit_facility_liquidation_proceeds_omnibus
+                .account_category,
         )
         .await?;
 
@@ -218,8 +355,11 @@ impl CreditLedger {
         let facility_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_FACILITY_REMAINING_ACCOUNT_SET_REF}"),
-            CREDIT_FACILITY_REMAINING_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_FACILITY_REMAINING.external_ref
+            ),
+            account_sets::CREDIT_FACILITY_REMAINING.name.to_string(),
             facility_normal_balance_type,
         )
         .await?;
@@ -228,8 +368,11 @@ impl CreditLedger {
         let collateral_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_COLLATERAL_ACCOUNT_SET_REF}"),
-            CREDIT_COLLATERAL_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_COLLATERAL.external_ref
+            ),
+            account_sets::CREDIT_COLLATERAL.name.to_string(),
             collateral_normal_balance_type,
         )
         .await?;
@@ -238,8 +381,13 @@ impl CreditLedger {
         let collateral_in_liquidation_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_ACCOUNT_SET_REF}"),
-            CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION.external_ref
+            ),
+            account_sets::CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION
+                .name
+                .to_string(),
             collateral_in_liquidation_normal_balance_type,
         )
         .await?;
@@ -248,8 +396,13 @@ impl CreditLedger {
         let liquidated_collateral_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_REF}"),
-            CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_FACILITY_LIQUIDATED_COLLATERAL.external_ref
+            ),
+            account_sets::CREDIT_FACILITY_LIQUIDATED_COLLATERAL
+                .name
+                .to_string(),
             liquidated_collateral_normal_balance_type,
         )
         .await?;
@@ -258,8 +411,13 @@ impl CreditLedger {
         let proceeds_from_liquidation_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_ACCOUNT_SET_REF}"),
-            CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION.external_ref
+            ),
+            account_sets::CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION
+                .name
+                .to_string(),
             proceeds_from_liquidation_normal_balance_type,
         )
         .await?;
@@ -270,9 +428,12 @@ impl CreditLedger {
                 cala,
                 journal_id,
                 format!(
-                "{journal_id}:{SHORT_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"
-            ),
-                SHORT_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
             .await?;
@@ -281,26 +442,39 @@ impl CreditLedger {
                 cala,
                 journal_id,
                 format!(
-                    "{journal_id}:{SHORT_TERM_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE.external_ref
                 ),
-                SHORT_TERM_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME
+                account_sets::SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE
+                    .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
             .await?;
-        let short_term_private_company_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{SHORT_TERM_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            SHORT_TERM_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            disbursed_receivable_normal_balance_type,
-        )
-        .await?;
+        let short_term_private_company_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
         let short_term_bank_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{SHORT_TERM_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            SHORT_TERM_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::SHORT_TERM_BANK_DISBURSED_RECEIVABLE.external_ref
+            ),
+            account_sets::SHORT_TERM_BANK_DISBURSED_RECEIVABLE
+                .name
+                .to_string(),
             disbursed_receivable_normal_balance_type,
         )
         .await?;
@@ -308,8 +482,14 @@ impl CreditLedger {
             Self::find_or_create_account_set(
                 cala,
                 journal_id,
-                format!("{journal_id}:{SHORT_TERM_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-                SHORT_TERM_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                        .external_ref
+                ),
+                account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
             .await?;
@@ -317,8 +497,13 @@ impl CreditLedger {
             Self::find_or_create_account_set(
                 cala,
                 journal_id,
-                format!("{journal_id}:{SHORT_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-                SHORT_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                        .external_ref
+                ),
+                account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                    .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
@@ -327,77 +512,128 @@ impl CreditLedger {
             Self::find_or_create_account_set(
                 cala,
                 journal_id,
-                format!("{journal_id}:{SHORT_TERM_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-                SHORT_TERM_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                        .external_ref
+                ),
+                account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
             .await?;
 
-        let long_term_individual_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            disbursed_receivable_normal_balance_type,
-        )
-        .await?;
-        let long_term_government_entity_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            disbursed_receivable_normal_balance_type,
-        )
-        .await?;
-        let long_term_private_company_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            disbursed_receivable_normal_balance_type,
-        )
-        .await?;
+        let long_term_individual_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
+        let long_term_government_entity_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
+        let long_term_private_company_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
         let long_term_bank_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::LONG_TERM_BANK_DISBURSED_RECEIVABLE.external_ref
+            ),
+            account_sets::LONG_TERM_BANK_DISBURSED_RECEIVABLE
+                .name
+                .to_string(),
             disbursed_receivable_normal_balance_type,
         )
         .await?;
-        let long_term_financial_institution_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            disbursed_receivable_normal_balance_type,
-        )
-        .await?;
-        let long_term_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            disbursed_receivable_normal_balance_type,
-        )
-        .await?;
-        let long_term_non_domiciled_company_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            disbursed_receivable_normal_balance_type,
-        )
-        .await?;
+        let long_term_financial_institution_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
+        let long_term_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                        .external_ref
+                ),
+                account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
+        let long_term_non_domiciled_company_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
 
         let overdue_individual_disbursed_receivable_account_set_id =
             Self::find_or_create_account_set(
                 cala,
                 journal_id,
                 format!(
-                    "{journal_id}:{OVERDUE_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"
+                    "{journal_id}:{}",
+                    account_sets::OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE.external_ref
                 ),
-                OVERDUE_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                account_sets::OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
             .await?;
@@ -406,26 +642,39 @@ impl CreditLedger {
                 cala,
                 journal_id,
                 format!(
-                    "{journal_id}:{OVERDUE_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"
+                    "{journal_id}:{}",
+                    account_sets::OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE.external_ref
                 ),
-                OVERDUE_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME
+                account_sets::OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE
+                    .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
             .await?;
-        let overdue_private_company_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{OVERDUE_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            OVERDUE_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            disbursed_receivable_normal_balance_type,
-        )
-        .await?;
+        let overdue_private_company_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
         let overdue_bank_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{OVERDUE_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-            OVERDUE_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::OVERDUE_BANK_DISBURSED_RECEIVABLE.external_ref
+            ),
+            account_sets::OVERDUE_BANK_DISBURSED_RECEIVABLE
+                .name
+                .to_string(),
             disbursed_receivable_normal_balance_type,
         )
         .await?;
@@ -433,8 +682,13 @@ impl CreditLedger {
             Self::find_or_create_account_set(
                 cala,
                 journal_id,
-                format!("{journal_id}:{OVERDUE_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-                OVERDUE_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
             .await?;
@@ -442,8 +696,13 @@ impl CreditLedger {
             Self::find_or_create_account_set(
                 cala,
                 journal_id,
-                format!("{journal_id}:{OVERDUE_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-                OVERDUE_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                        .external_ref
+                ),
+                account_sets::OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                    .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
@@ -452,8 +711,13 @@ impl CreditLedger {
             Self::find_or_create_account_set(
                 cala,
                 journal_id,
-                format!("{journal_id}:{OVERDUE_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
-                OVERDUE_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                ),
+                account_sets::OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                    .name
+                    .to_string(),
                 disbursed_receivable_normal_balance_type,
             )
             .await?;
@@ -461,137 +725,235 @@ impl CreditLedger {
         let disbursed_defaulted_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_DISBURSED_DEFAULTED_ACCOUNT_SET_REF}"),
-            CREDIT_DISBURSED_DEFAULTED_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_DISBURSED_DEFAULTED.external_ref
+            ),
+            account_sets::CREDIT_DISBURSED_DEFAULTED.name.to_string(),
             disbursed_receivable_normal_balance_type,
         )
         .await?;
 
         let interest_receivable_normal_balance_type = DebitOrCredit::Debit;
 
-        let short_term_individual_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{SHORT_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            SHORT_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let short_term_individual_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE.external_ref
+                ),
+                account_sets::SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
-        let short_term_government_entity_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{SHORT_TERM_CREDIT_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            SHORT_TERM_CREDIT_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let short_term_government_entity_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE.external_ref
+                ),
+                account_sets::SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
-        let short_term_private_company_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{SHORT_TERM_CREDIT_PRIVATE_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            SHORT_TERM_CREDIT_PRIVATE_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let short_term_private_company_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE.external_ref
+                ),
+                account_sets::SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
         let short_term_bank_interest_receivable_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{SHORT_TERM_CREDIT_BANK_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            SHORT_TERM_CREDIT_BANK_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::SHORT_TERM_BANK_INTEREST_RECEIVABLE.external_ref
+            ),
+            account_sets::SHORT_TERM_BANK_INTEREST_RECEIVABLE
+                .name
+                .to_string(),
             interest_receivable_normal_balance_type,
         )
         .await?;
 
-        let short_term_financial_institution_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{SHORT_TERM_CREDIT_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            SHORT_TERM_CREDIT_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let short_term_financial_institution_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE.external_ref
+                ),
+                account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
-        let short_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{SHORT_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            SHORT_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let short_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                        .external_ref
+                ),
+                account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
-        let short_term_non_domiciled_company_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{SHORT_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            SHORT_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let short_term_non_domiciled_company_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE.external_ref
+                ),
+                account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
         let long_term_individual_interest_receivable_account_set_id =
             Self::find_or_create_account_set(
                 cala,
                 journal_id,
                 format!(
-                    "{journal_id}:{LONG_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE.external_ref
                 ),
-                LONG_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                account_sets::LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
                 interest_receivable_normal_balance_type,
             )
             .await?;
 
-        let long_term_government_entity_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let long_term_government_entity_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE.external_ref
+                ),
+                account_sets::LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
-        let long_term_private_company_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_PRIVATE_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_PRIVATE_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let long_term_private_company_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE.external_ref
+                ),
+                account_sets::LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
         let long_term_bank_interest_receivable_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_BANK_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_BANK_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::LONG_TERM_BANK_INTEREST_RECEIVABLE.external_ref
+            ),
+            account_sets::LONG_TERM_BANK_INTEREST_RECEIVABLE
+                .name
+                .to_string(),
             interest_receivable_normal_balance_type,
         )
         .await?;
 
-        let long_term_financial_institution_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let long_term_financial_institution_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE.external_ref
+                ),
+                account_sets::LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
-        let long_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let long_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                        .external_ref
+                ),
+                account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
-        let long_term_non_domiciled_company_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let long_term_non_domiciled_company_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    account_sets::LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE.external_ref
+                ),
+                account_sets::LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE
+                    .name
+                    .to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
         let interest_defaulted_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_INTEREST_DEFAULTED_ACCOUNT_SET_REF}"),
-            CREDIT_INTEREST_DEFAULTED_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_INTEREST_DEFAULTED.external_ref
+            ),
+            account_sets::CREDIT_INTEREST_DEFAULTED.name.to_string(),
             interest_receivable_normal_balance_type,
         )
         .await?;
@@ -600,8 +962,11 @@ impl CreditLedger {
         let interest_income_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_INTEREST_INCOME_ACCOUNT_SET_REF}"),
-            CREDIT_INTEREST_INCOME_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_INTEREST_INCOME.external_ref
+            ),
+            account_sets::CREDIT_INTEREST_INCOME.name.to_string(),
             interest_income_normal_balance_type,
         )
         .await?;
@@ -610,8 +975,11 @@ impl CreditLedger {
         let fee_income_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_FEE_INCOME_ACCOUNT_SET_REF}"),
-            CREDIT_FEE_INCOME_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_FEE_INCOME.external_ref
+            ),
+            account_sets::CREDIT_FEE_INCOME.name.to_string(),
             fee_income_normal_balance_type,
         )
         .await?;
@@ -620,8 +988,11 @@ impl CreditLedger {
         let uncovered_outstanding_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_UNCOVERED_OUTSTANDING_ACCOUNT_SET_REF}"),
-            CREDIT_UNCOVERED_OUTSTANDING_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_UNCOVERED_OUTSTANDING.external_ref
+            ),
+            account_sets::CREDIT_UNCOVERED_OUTSTANDING.name.to_string(),
             uncovered_outstanding_normal_balance_type,
         )
         .await?;
@@ -630,8 +1001,11 @@ impl CreditLedger {
         let payment_holding_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_REF}"),
-            CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                account_sets::CREDIT_PAYMENT_HOLDING.external_ref
+            ),
+            account_sets::CREDIT_PAYMENT_HOLDING.name.to_string(),
             payment_holding_normal_balance_type,
         )
         .await?;
@@ -641,90 +1015,174 @@ impl CreditLedger {
                 individual: InternalAccountSetDetails {
                     id: short_term_individual_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_individual_disbursed_receivable
+                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: short_term_government_entity_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_government_entity_disbursed_receivable
+                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: short_term_private_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_private_company_disbursed_receivable
+                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: short_term_bank_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_bank_disbursed_receivable
+                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: short_term_financial_institution_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_financial_institution_disbursed_receivable
+                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: short_term_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_foreign_agency_or_subsidiary_disbursed_receivable
+                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: short_term_non_domiciled_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_non_domiciled_company_disbursed_receivable
+                        .account_category,
                 },
             },
             long_term: DisbursedReceivableAccountSets {
                 individual: InternalAccountSetDetails {
                     id: long_term_individual_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_individual_disbursed_receivable
+                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: long_term_government_entity_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_government_entity_disbursed_receivable
+                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: long_term_private_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_private_company_disbursed_receivable
+                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: long_term_bank_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_bank_disbursed_receivable
+                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: long_term_financial_institution_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_financial_institution_disbursed_receivable
+                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: long_term_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_foreign_agency_or_subsidiary_disbursed_receivable
+                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: long_term_non_domiciled_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_non_domiciled_company_disbursed_receivable
+                        .account_category,
                 },
             },
             overdue: DisbursedReceivableAccountSets {
                 individual: InternalAccountSetDetails {
                     id: overdue_individual_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .overdue_individual_disbursed_receivable
+                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: overdue_government_entity_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .overdue_government_entity_disbursed_receivable
+                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: overdue_private_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .overdue_private_company_disbursed_receivable
+                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: overdue_bank_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .overdue_bank_disbursed_receivable
+                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: overdue_financial_institution_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .overdue_financial_institution_disbursed_receivable
+                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: overdue_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .overdue_foreign_agency_or_subsidiary_disbursed_receivable
+                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: overdue_non_domiciled_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .overdue_non_domiciled_company_disbursed_receivable
+                        .account_category,
                 },
             },
         };
@@ -734,60 +1192,116 @@ impl CreditLedger {
                 individual: InternalAccountSetDetails {
                     id: short_term_individual_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_individual_interest_receivable
+                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: short_term_government_entity_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_government_entity_interest_receivable
+                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: short_term_private_company_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_private_company_interest_receivable
+                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: short_term_bank_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_bank_interest_receivable
+                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: short_term_financial_institution_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_financial_institution_interest_receivable
+                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: short_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_foreign_agency_or_subsidiary_interest_receivable
+                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: short_term_non_domiciled_company_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .short_term_non_domiciled_company_interest_receivable
+                        .account_category,
                 },
             },
             long_term: InterestReceivableAccountSets {
                 individual: InternalAccountSetDetails {
                     id: long_term_individual_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_individual_interest_receivable
+                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: long_term_government_entity_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_government_entity_interest_receivable
+                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: long_term_private_company_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_private_company_interest_receivable
+                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: long_term_bank_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_bank_interest_receivable
+                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: long_term_financial_institution_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_financial_institution_interest_receivable
+                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: long_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_foreign_agency_or_subsidiary_interest_receivable
+                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: long_term_non_domiciled_company_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
+                    account_category: catalog
+                        .summary()
+                        .long_term_non_domiciled_company_interest_receivable
+                        .account_category,
                 },
             },
         };
@@ -796,14 +1310,26 @@ impl CreditLedger {
             collateral_in_liquidation: InternalAccountSetDetails {
                 id: collateral_in_liquidation_account_set_id,
                 normal_balance_type: collateral_in_liquidation_normal_balance_type,
+                account_category: catalog
+                    .summary()
+                    .credit_facility_collateral_in_liquidation
+                    .account_category,
             },
             liquidated_collateral: InternalAccountSetDetails {
                 id: liquidated_collateral_account_set_id,
                 normal_balance_type: liquidated_collateral_normal_balance_type,
+                account_category: catalog
+                    .summary()
+                    .credit_facility_liquidated_collateral
+                    .account_category,
             },
             proceeds_from_liquidation: InternalAccountSetDetails {
                 id: proceeds_from_liquidation_account_set_id,
                 normal_balance_type: proceeds_from_liquidation_normal_balance_type,
+                account_category: catalog
+                    .summary()
+                    .credit_facility_proceeds_from_liquidation
+                    .account_category,
             },
         };
 
@@ -811,37 +1337,51 @@ impl CreditLedger {
             facility: InternalAccountSetDetails {
                 id: facility_account_set_id,
                 normal_balance_type: facility_normal_balance_type,
+                account_category: catalog.summary().credit_facility_remaining.account_category,
             },
             collateral: InternalAccountSetDetails {
                 id: collateral_account_set_id,
                 normal_balance_type: collateral_normal_balance_type,
+                account_category: catalog.summary().credit_collateral.account_category,
             },
             liquidation: liquidation_account_sets,
             disbursed_receivable,
             disbursed_defaulted: InternalAccountSetDetails {
                 id: disbursed_defaulted_account_set_id,
                 normal_balance_type: disbursed_receivable_normal_balance_type,
+                account_category: catalog
+                    .summary()
+                    .credit_disbursed_defaulted
+                    .account_category,
             },
             interest_receivable,
             interest_defaulted: InternalAccountSetDetails {
                 id: interest_defaulted_account_set_id,
                 normal_balance_type: disbursed_receivable_normal_balance_type,
+                account_category: catalog.summary().credit_interest_defaulted.account_category,
             },
             interest_income: InternalAccountSetDetails {
                 id: interest_income_account_set_id,
                 normal_balance_type: interest_income_normal_balance_type,
+                account_category: catalog.summary().credit_interest_income.account_category,
             },
             fee_income: InternalAccountSetDetails {
                 id: fee_income_account_set_id,
                 normal_balance_type: fee_income_normal_balance_type,
+                account_category: catalog.summary().credit_fee_income.account_category,
             },
             uncovered_outstanding: InternalAccountSetDetails {
                 id: uncovered_outstanding_account_set_id,
                 normal_balance_type: uncovered_outstanding_normal_balance_type,
+                account_category: catalog
+                    .summary()
+                    .credit_uncovered_outstanding
+                    .account_category,
             },
             payment_holding: InternalAccountSetDetails {
                 id: payment_holding_account_set_id,
                 normal_balance_type: payment_holding_normal_balance_type,
+                account_category: catalog.summary().credit_payment_holding.account_category,
             },
         };
 
@@ -947,6 +1487,7 @@ impl CreditLedger {
         reference: String,
         name: String,
         normal_balance_type: DebitOrCredit,
+        account_category: account_sets::CreditAccountCategory,
     ) -> Result<LedgerOmnibusAccountIds, CreditLedgerError> {
         let account_set_id = Self::find_or_create_account_set(
             cala,
@@ -968,6 +1509,7 @@ impl CreditLedger {
                     return Ok(LedgerOmnibusAccountIds {
                         account_set_id,
                         account_id: id,
+                        account_category,
                     });
                 }
                 AccountSetMemberId::AccountSet(_) => {
@@ -1014,6 +1556,7 @@ impl CreditLedger {
         Ok(LedgerOmnibusAccountIds {
             account_set_id,
             account_id,
+            account_category,
         })
     }
 
@@ -2757,6 +3300,18 @@ impl CreditLedger {
 
     pub fn payments_made_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
         &self.payments_made_omnibus_account_ids
+    }
+
+    pub fn facility_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
+        &self.facility_omnibus_account_ids
+    }
+
+    pub fn interest_added_to_obligations_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
+        &self.interest_added_to_obligations_omnibus_account_ids
+    }
+
+    pub fn internal_account_sets(&self) -> CreditFacilityInternalAccountSets {
+        self.internal_account_sets
     }
 
     pub fn liquidation_account_sets(&self) -> LiquidationAccountSets {
