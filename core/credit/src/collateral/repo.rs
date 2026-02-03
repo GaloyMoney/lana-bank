@@ -63,6 +63,47 @@ where
             .publish_collateral_in_op(op, entity, new_events)
             .await
     }
+
+    pub async fn list_liquidations_for_credit_facility_id(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Vec<Liquidation>, LiquidationError> {
+        Ok(self
+            .liquidations
+            .list_for_credit_facility_id_by_created_at(
+                credit_facility_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
+    }
+
+    pub async fn find_liquidation_by_id(
+        &self,
+        liquidation_id: LiquidationId,
+    ) -> Result<Option<Liquidation>, LiquidationError> {
+        self.liquidations.maybe_find_by_id(liquidation_id).await
+    }
+
+    pub async fn list_liquidations(
+        &self,
+        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByIdCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsByIdCursor>,
+        LiquidationError,
+    > {
+        self.liquidations
+            .list_by_id(query, es_entity::ListDirection::Descending)
+            .await
+    }
+
+    pub async fn find_all_liquidations<T: From<Liquidation>>(
+        &self,
+        ids: &[LiquidationId],
+    ) -> Result<std::collections::HashMap<LiquidationId, T>, LiquidationError> {
+        self.liquidations.find_all(ids).await
+    }
 }
 
 impl<E> Clone for CollateralRepo<E>
