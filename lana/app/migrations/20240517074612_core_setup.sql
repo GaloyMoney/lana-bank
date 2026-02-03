@@ -374,6 +374,7 @@ CREATE TABLE core_obligation_events (
 CREATE TABLE core_liquidations (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
   completed BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL
 );

@@ -4,7 +4,6 @@ mod repo;
 
 use std::sync::Arc;
 
-use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -17,13 +16,13 @@ use governance::GovernanceEvent;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,
-    PaymentSourceAccountId,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
+    FacilityProceedsFromLiquidationAccountId, LiquidationId,
 };
 pub use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
-pub(crate) use repo::LiquidationRepo;
+pub(crate) use repo::OldLiquidationRepo;
 pub use repo::liquidation_cursor;
 
 pub struct Liquidations<Perms, E>
@@ -33,7 +32,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    repo: Arc<LiquidationRepo<E>>,
+    repo: Arc<OldLiquidationRepo<E>>,
     authz: Arc<Perms>,
 }
 
@@ -67,7 +66,7 @@ where
         publisher: &crate::CreditFacilityPublisher<E>,
         clock: es_entity::clock::ClockHandle,
     ) -> Self {
-        let repo = Arc::new(LiquidationRepo::new(pool, publisher, clock));
+        let repo = Arc::new(OldLiquidationRepo::new(pool, publisher, clock));
         Self { repo, authz }
     }
 
@@ -158,37 +157,4 @@ pub struct RecordProceedsFromLiquidationData {
     pub collateral_in_liquidation_account_id: CalaAccountId,
     pub liquidated_collateral_account_id: CalaAccountId,
     pub amount_liquidated: Satoshis,
-}
-
-#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(transparent)]
-pub struct FacilityProceedsFromLiquidationAccountId(CalaAccountId);
-
-impl FacilityProceedsFromLiquidationAccountId {
-    pub fn new() -> Self {
-        Self(CalaAccountId::new())
-    }
-
-    pub const fn into_inner(self) -> CalaAccountId {
-        self.0
-    }
-}
-
-impl Default for FacilityProceedsFromLiquidationAccountId {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl From<&FacilityProceedsFromLiquidationAccountId> for PaymentSourceAccountId {
-    fn from(account: &FacilityProceedsFromLiquidationAccountId) -> Self {
-        Self::new(account.0)
-    }
-}
-
-impl From<FacilityProceedsFromLiquidationAccountId> for CalaAccountId {
-    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
-        account.0
-    }
 }

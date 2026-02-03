@@ -6,12 +6,9 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 use es_entity::*;
 
-use crate::primitives::*;
+use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::*};
 
-use super::{
-    FacilityProceedsFromLiquidationAccountId, RecordProceedsFromLiquidationData,
-    error::LiquidationError,
-};
+use super::{RecordProceedsFromLiquidationData, error::LiquidationError};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -124,7 +121,10 @@ impl Liquidation {
     ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
-            LiquidationEvent::ProceedsFromLiquidationReceived { .. }
+            LiquidationEvent::ProceedsFromLiquidationReceived {
+                payment_id: existing_payment_id,
+                ..
+            } if *existing_payment_id == payment_id,
         );
 
         self.amount_received = amount_received;

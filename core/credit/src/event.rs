@@ -4,11 +4,11 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
+use core_credit_terms::{InterestPeriod, TermValues, collateralization::CollateralizationState};
 use core_money::{Satoshis, UsdCents};
 
 use crate::{
-    CollateralizationState, CreditFacilityReceivable, FacilityProceedsFromLiquidationAccountId,
-    InterestPeriod, TermValues,
+    credit_facility::CreditFacilityReceivable, ledger::FacilityProceedsFromLiquidationAccountId,
 };
 
 use super::primitives::*;

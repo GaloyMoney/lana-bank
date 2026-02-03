@@ -12,7 +12,7 @@ use crate::primitives::{
     LedgerTxId, LiquidationId, PendingCreditFacilityId, Satoshis,
 };
 
-use super::CollateralUpdate;
+use super::{CollateralUpdate, liquidation::Liquidation};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -61,6 +61,10 @@ pub struct Collateral {
     pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
+
+    #[es_entity(nested)]
+    #[builder(default)]
+    liquidations: Nested<Liquidation>,
 
     events: EntityEvents<CollateralEvent>,
 }
@@ -167,7 +171,7 @@ impl Collateral {
         })
     }
 
-    pub fn active_liquidation(&self) -> Option<LiquidationId> {
+    pub fn active_liquidation_id(&self) -> Option<LiquidationId> {
         let mut active: Option<LiquidationId> = None;
 
         for event in self.events.iter_all() {
@@ -272,12 +276,8 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 } => {
                     builder = builder.amount(*new_value);
                 }
-                CollateralEvent::LiquidationStarted { .. } => {
-                    // No state changes needed - active_liquidation() computes from events
-                }
-                CollateralEvent::LiquidationCompleted { .. } => {
-                    // No state changes needed - active_liquidation() computes from events
-                }
+                CollateralEvent::LiquidationStarted { .. } => {}
+                CollateralEvent::LiquidationCompleted { .. } => {}
             }
         }
         builder.events(events).build()
