@@ -3,9 +3,9 @@ name: Deploy docs on release
 on:
   push:
     tags:
-      # Match only minor release tags (X.Y.0)
-      # This excludes RC tags (e.g., 0.39.0-rc.1) and patch releases (e.g., 0.39.1)
-      - "[0-9]+.[0-9]+.0"
+      # Match all final release tags (X.Y.Z)
+      # RC tags (e.g., 0.39.0-rc.1) won't match because the glob ends after the third digit group
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
   contents: read
@@ -41,13 +41,26 @@ jobs:
           docker-images: true
           swap-storage: true
 
+      - name: Install dependencies
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm ci"
+
+      - name: Generate API docs (current version)
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run generate-api-docs"
+
+      - name: Generate API docs (versioned)
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run generate-versioned-api-docs"
+
       - name: Build docs site
-        run: nix build .#docs-site
+        run: |
+          nix develop -c bash -lc "cd docs-site && npx docusaurus build"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./result
+          path: ./docs-site/build
 
       - name: Deploy to GitHub Pages
         id: deployment
