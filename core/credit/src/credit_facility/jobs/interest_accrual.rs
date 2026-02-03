@@ -328,9 +328,15 @@ where
 
             let accrual = credit_facility
                 .interest_accrual_cycle_in_progress_mut()
+                .unwrap()
                 .expect("Accrual in progress should exist for scheduled job");
 
-            let interest_accrual = accrual.record_accrual(balances.disbursed_outstanding());
+            let interest_accrual = match accrual.record_accrual(balances.disbursed_outstanding()) {
+                es_entity::Idempotent::Executed(data) => data,
+                es_entity::Idempotent::AlreadyApplied => {
+                    panic!("record_accrual returned AlreadyApplied - job called at wrong time")
+                }
+            };
 
             ConfirmedAccrual {
                 accrual: (interest_accrual, account_ids).into(),
@@ -484,7 +490,13 @@ where
                 .await?;
         };
 
-        let res = credit_facility.start_interest_accrual_cycle()?;
+        let es_entity::Idempotent::Executed(res) =
+            credit_facility.start_interest_accrual_cycle()?
+        else {
+            unreachable!(
+                "start_interest_accrual_cycle should always execute during cycle completion"
+            )
+        };
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;

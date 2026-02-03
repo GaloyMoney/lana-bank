@@ -219,9 +219,12 @@ where
 
         let mut credit_facility = self.repo.create_in_op(&mut db, new_credit_facility).await?;
 
-        let periods = credit_facility
-            .start_interest_accrual_cycle()?
-            .expect("first accrual");
+        let es_entity::Idempotent::Executed(periods) =
+            credit_facility.start_interest_accrual_cycle()?
+        else {
+            unreachable!("first accrual should always execute")
+        };
+        let periods = periods.expect("first accrual");
 
         self.repo
             .update_in_op(&mut db, &mut credit_facility)

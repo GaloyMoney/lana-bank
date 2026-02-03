@@ -71,7 +71,7 @@ impl From<Decimal> for OneTimeFeeRatePct {
         OneTimeFeeRatePct(value)
     }
 }
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum FacilityDuration {
@@ -107,7 +107,7 @@ impl FacilityDuration {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ObligationDuration {
@@ -217,7 +217,7 @@ pub enum DisbursalPolicy {
     MultipleDisbursal,
 }
 
-#[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[builder(build_fn(validate = "Self::validate", error = "TermsError"))]
 pub struct TermValues {

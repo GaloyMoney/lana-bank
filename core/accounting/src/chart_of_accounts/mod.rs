@@ -214,11 +214,14 @@ where
 
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;
-        let bulk_import::BulkImportResult {
+        let es_entity::Idempotent::Executed(bulk_import::BulkImportResult {
             new_account_sets,
             new_account_set_ids,
             new_connections,
-        } = chart.import_accounts(account_specs, self.journal_id);
+        }) = chart.import_accounts(account_specs, self.journal_id)
+        else {
+            return Ok((chart, None));
+        };
 
         if new_account_sets.is_empty() {
             return Ok((chart, None));
@@ -498,9 +501,12 @@ where
             )
             .await?;
 
-        let manual_transaction_account_id = match chart
-            .manual_transaction_account(account_id_or_code)?
-        {
+        let es_entity::Idempotent::Executed(manual_result) =
+            chart.manual_transaction_account(account_id_or_code)?
+        else {
+            unreachable!("manual_transaction_account always returns Executed")
+        };
+        let manual_transaction_account_id = match manual_result {
             ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => id,
             ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
                 let mut op = self.repo.begin_op().await?;

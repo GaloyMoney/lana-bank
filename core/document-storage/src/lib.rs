@@ -219,16 +219,18 @@ impl DocumentStorage {
 
         let mut document = self.repo.find_by_id(document_id).await?;
 
-        let document_location = document.download_link_generated();
+        let did_execute = document.download_link_generated().did_execute();
 
         let link = self
             .storage
             .generate_download_link(cloud_storage::LocationInStorage {
-                path: document_location,
+                path: &document.path_in_storage,
             })
             .await?;
 
-        self.repo.update(&mut document).await?;
+        if did_execute {
+            self.repo.update(&mut document).await?;
+        }
 
         Ok(GeneratedDocumentDownloadLink { document_id, link })
     }

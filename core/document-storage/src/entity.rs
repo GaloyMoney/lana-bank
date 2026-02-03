@@ -80,17 +80,25 @@ impl Document {
         Idempotent::Executed(())
     }
 
-    pub fn upload_failed(&mut self, error: String) {
+    pub fn upload_failed(&mut self, error: String) -> Idempotent<()> {
+        idempotency_guard!(self.events.iter_all(), DocumentEvent::UploadFailed { .. });
+
         self.events.push(DocumentEvent::UploadFailed { error });
+        Idempotent::Executed(())
     }
 
     pub fn storage_path(&self) -> &str {
         &self.path_in_storage
     }
 
-    pub fn download_link_generated(&mut self) -> &str {
+    pub fn download_link_generated(&mut self) -> Idempotent<&str> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            DocumentEvent::DownloadLinkGenerated { .. }
+        );
+
         self.events.push(DocumentEvent::DownloadLinkGenerated {});
-        &self.path_in_storage
+        Idempotent::Executed(&self.path_in_storage)
     }
 
     pub fn path_for_removal(&self) -> &str {

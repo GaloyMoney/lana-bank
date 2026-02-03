@@ -180,10 +180,11 @@ impl InterestAccrualCycle {
         untruncated_period.truncate(self.accrual_cycle_ends_at().end_of_day())
     }
 
-    pub(crate) fn record_accrual(&mut self, amount: UsdCents) -> InterestAccrualData {
-        let accrual_period = self
-            .next_accrual_period()
-            .expect("Accrual period should exist inside this function");
+    pub(crate) fn record_accrual(&mut self, amount: UsdCents) -> Idempotent<InterestAccrualData> {
+        let accrual_period = match self.next_accrual_period() {
+            Some(period) => period,
+            None => return Idempotent::AlreadyApplied,
+        };
 
         let days_in_interest_period = accrual_period.days();
         let interest_for_period = self
@@ -207,7 +208,7 @@ impl InterestAccrualCycle {
                 accrued_at: interest_accrual.period.end,
             });
 
-        interest_accrual
+        Idempotent::Executed(interest_accrual)
     }
 
     pub(crate) fn accrual_cycle_data(&self) -> Option<InterestAccrualCycleData> {
@@ -580,9 +581,12 @@ mod test {
     #[test]
     fn zero_amount_accrual() {
         let mut accrual = accrual_from(initial_events());
-        let InterestAccrualData {
+        let es_entity::Idempotent::Executed(InterestAccrualData {
             interest, period, ..
-        } = accrual.record_accrual(UsdCents::ZERO);
+        }) = accrual.record_accrual(UsdCents::ZERO)
+        else {
+            panic!("Expected Executed")
+        };
         assert_eq!(interest, UsdCents::ZERO);
         let start = default_started_at();
         assert_eq!(period.start, start);
@@ -610,9 +614,12 @@ mod test {
         for _ in start_day..(end_day + 1) {
             assert!(accrual_cycle_data.is_none());
 
-            let InterestAccrualData {
+            let es_entity::Idempotent::Executed(InterestAccrualData {
                 interest, period, ..
-            } = accrual.record_accrual(UsdCents::ZERO);
+            }) = accrual.record_accrual(UsdCents::ZERO)
+            else {
+                panic!("Expected Executed")
+            };
             assert_eq!(interest, UsdCents::ZERO);
             assert_eq!(period.end, expected_end_of_day);
 
@@ -642,7 +649,11 @@ mod test {
             .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
             .unwrap();
         for _ in start_day..(end_day + 1) {
-            let InterestAccrualData { period, .. } = accrual.record_accrual(UsdCents::ONE);
+            let es_entity::Idempotent::Executed(InterestAccrualData { period, .. }) =
+                accrual.record_accrual(UsdCents::ONE)
+            else {
+                panic!("Expected Executed")
+            };
             assert_eq!(period.end, expected_end_of_day);
 
             expected_end_of_day += chrono::Duration::days(1);
@@ -662,7 +673,7 @@ mod test {
         for _ in start_day..(end_day + 1) {
             assert!(accrual_cycle_data.is_none());
 
-            accrual.record_accrual(UsdCents::ONE);
+            let _ = accrual.record_accrual(UsdCents::ONE);
 
             accrual_cycle_data = accrual.accrual_cycle_data();
         }
@@ -684,8 +695,11 @@ mod test {
         let end_day = end.day();
 
         for _ in start_day..(end_day + 1) {
-            let InterestAccrualData { interest, .. } =
-                accrual.record_accrual(disbursed_outstanding_amount);
+            let es_entity::Idempotent::Executed(InterestAccrualData { interest, .. }) =
+                accrual.record_accrual(disbursed_outstanding_amount)
+            else {
+                panic!("Expected Executed")
+            };
             assert_eq!(interest, expected_daily_interest);
         }
 

@@ -106,7 +106,11 @@ impl ReportRun {
         state: ReportRunState,
         run_type: ReportRunType,
         start_time: Option<DateTime<Utc>>,
-    ) {
+    ) -> Idempotent<()> {
+        if self.state == state && self.run_type == run_type && self.start_time == start_time {
+            return Idempotent::AlreadyApplied;
+        }
+
         self.state = state;
         self.run_type = run_type;
         self.start_time = start_time;
@@ -116,6 +120,7 @@ impl ReportRun {
             run_type,
             start_time,
         });
+        Idempotent::Executed(())
     }
 }
 

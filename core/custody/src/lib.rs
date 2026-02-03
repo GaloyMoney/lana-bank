@@ -382,7 +382,7 @@ where
             .await?;
         let mut custodian = self.custodians.find_by_id(id).await?;
 
-        custodian.update_custodian_config(config, &self.config.encryption.key);
+        let _ = custodian.update_custodian_config(config, &self.config.encryption.key);
 
         let mut op = self.custodians.begin_op().await?;
         self.custodians
@@ -410,7 +410,7 @@ where
         let mut op = self.custodians.begin_op().await?;
 
         for custodian in custodians.iter_mut() {
-            custodian
+            let _ = custodian
                 .rotate_encryption_key(&self.config.encryption.key, deprecated_encryption_key)?;
 
             self.custodians

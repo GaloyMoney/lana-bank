@@ -39,22 +39,23 @@ impl Committee {
     pub(crate) fn add_member(
         &mut self,
         member_id: CommitteeMemberId,
-    ) -> Result<(), CommitteeError> {
+    ) -> Result<Idempotent<()>, CommitteeError> {
         if self.members().contains(&member_id) {
-            return Err(CommitteeError::MemberAlreadyAdded(member_id));
+            return Ok(Idempotent::AlreadyApplied);
         }
 
         self.events.push(CommitteeEvent::MemberAdded { member_id });
 
-        Ok(())
+        Ok(Idempotent::Executed(()))
     }
 
-    pub(crate) fn remove_member(&mut self, member_id: CommitteeMemberId) {
+    pub(crate) fn remove_member(&mut self, member_id: CommitteeMemberId) -> Idempotent<()> {
         if !self.members().contains(&member_id) {
-            return;
+            return Idempotent::AlreadyApplied;
         }
         self.events
             .push(CommitteeEvent::MemberRemoved { member_id });
+        Idempotent::Executed(())
     }
 
     pub fn n_members(&self) -> usize {

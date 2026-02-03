@@ -93,7 +93,7 @@ impl Withdrawal {
             .expect("No events for deposit")
     }
 
-    pub fn confirm(&mut self) -> Result<CalaTransactionId, WithdrawalError> {
+    pub fn confirm(&mut self) -> Result<Idempotent<CalaTransactionId>, WithdrawalError> {
         match self.is_approved_or_denied() {
             Some(false) => return Err(WithdrawalError::NotApproved(self.id)),
             None => return Err(WithdrawalError::NotApproved(self.id)),
@@ -101,7 +101,7 @@ impl Withdrawal {
         }
 
         if self.is_confirmed() {
-            return Err(WithdrawalError::AlreadyConfirmed(self.id));
+            return Ok(Idempotent::AlreadyApplied);
         }
 
         if self.is_cancelled() {
@@ -114,7 +114,7 @@ impl Withdrawal {
             status: WithdrawalStatus::Confirmed,
         });
 
-        Ok(ledger_tx_id)
+        Ok(Idempotent::Executed(ledger_tx_id))
     }
 
     fn is_reverted(&self) -> bool {
@@ -149,13 +149,13 @@ impl Withdrawal {
         }))
     }
 
-    pub fn cancel(&mut self) -> Result<CalaTransactionId, WithdrawalError> {
+    pub fn cancel(&mut self) -> Result<Idempotent<CalaTransactionId>, WithdrawalError> {
         if self.is_confirmed() {
             return Err(WithdrawalError::AlreadyConfirmed(self.id));
         }
 
         if self.is_cancelled() {
-            return Err(WithdrawalError::AlreadyCancelled(self.id));
+            return Ok(Idempotent::AlreadyApplied);
         }
 
         let ledger_tx_id = CalaTransactionId::new();
@@ -165,7 +165,7 @@ impl Withdrawal {
         });
         self.cancelled_tx_id = Some(ledger_tx_id);
 
-        Ok(ledger_tx_id)
+        Ok(Idempotent::Executed(ledger_tx_id))
     }
 
     fn is_confirmed(&self) -> bool {
@@ -407,7 +407,7 @@ mod test {
 
         let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
         withdrawal.approval_process_concluded(true).unwrap();
-        withdrawal.confirm().unwrap();
+        withdrawal.confirm().unwrap().unwrap();
         withdrawal
     }
 
@@ -436,7 +436,7 @@ mod test {
 
         let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
         withdrawal.approval_process_concluded(true).unwrap();
-        withdrawal.cancel().unwrap();
+        withdrawal.cancel().unwrap().unwrap();
 
         let result = withdrawal.revert().unwrap();
         assert!(result.was_already_applied());

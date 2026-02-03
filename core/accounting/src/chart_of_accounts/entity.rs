@@ -163,8 +163,8 @@ impl Chart {
         &mut self,
         account_specs: Vec<AccountSpec>,
         journal_id: CalaJournalId,
-    ) -> BulkImportResult {
-        BulkAccountImport::new(self, journal_id).import(account_specs)
+    ) -> Idempotent<BulkImportResult> {
+        Idempotent::Executed(BulkAccountImport::new(self, journal_id).import(account_specs))
     }
 
     pub(super) fn create_child_node(
@@ -303,7 +303,7 @@ impl Chart {
     pub fn manual_transaction_account(
         &mut self,
         account_id_or_code: AccountIdOrCode,
-    ) -> Result<ManualAccountFromChart, ChartOfAccountsError> {
+    ) -> Result<Idempotent<ManualAccountFromChart>, ChartOfAccountsError> {
         match account_id_or_code {
             AccountIdOrCode::Id(id) => {
                 let res = match self
@@ -324,7 +324,7 @@ impl Chart {
                     None => ManualAccountFromChart::NonChartId(id),
                 };
 
-                Ok(res)
+                Ok(Idempotent::Executed(res))
             }
             AccountIdOrCode::Code(code) => {
                 let node = self
@@ -333,14 +333,15 @@ impl Chart {
                     .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
 
                 match node.assign_manual_transaction_account()? {
-                    Idempotent::Executed(new_account) => Ok(ManualAccountFromChart::NewAccount((
-                        node.account_set_id,
-                        new_account,
-                    ))),
-                    Idempotent::AlreadyApplied => Ok(ManualAccountFromChart::IdInChart(
-                        node.manual_transaction_account_id
-                            .expect("Manual transaction account id should be set"),
+                    Idempotent::Executed(new_account) => Ok(Idempotent::Executed(
+                        ManualAccountFromChart::NewAccount((node.account_set_id, new_account)),
                     )),
+                    Idempotent::AlreadyApplied => {
+                        Ok(Idempotent::Executed(ManualAccountFromChart::IdInChart(
+                            node.manual_transaction_account_id
+                                .expect("Manual transaction account id should be set"),
+                        )))
+                    }
                 }
             }
         }
@@ -833,10 +834,13 @@ mod test {
         let mut chart = chart_from(initial_events());
         let random_id = LedgerAccountId::new();
 
-        let id = match chart
+        let es_entity::Idempotent::Executed(result) = chart
             .manual_transaction_account(AccountIdOrCode::Id(random_id))
             .unwrap()
-        {
+        else {
+            panic!("Expected Executed")
+        };
+        let id = match result {
             ManualAccountFromChart::NonChartId(id) => id,
             _ => panic!("expected NonChartId"),
         };
@@ -848,10 +852,13 @@ mod test {
         let (mut chart, (_l1, _l2, level_3_set_id)) = default_chart();
         let acct_code = code("1.1.1");
 
-        let (account_set_id, new_account) = match chart
+        let es_entity::Idempotent::Executed(result) = chart
             .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
             .unwrap()
-        {
+        else {
+            panic!("Expected Executed")
+        };
+        let (account_set_id, new_account) = match result {
             ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
                 (account_set_id, new_account)
             }
@@ -878,17 +885,23 @@ mod test {
         let (mut chart, _) = default_chart();
         let acct_code = code("1.1.1");
 
-        let first = chart
+        let es_entity::Idempotent::Executed(first) = chart
             .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
-            .unwrap();
+            .unwrap()
+        else {
+            panic!("Expected Executed")
+        };
         let ledger_id = match first {
             ManualAccountFromChart::NewAccount((_, new_account)) => new_account.id,
             _ => panic!("expected NewAccount"),
         };
 
-        let second = chart
+        let es_entity::Idempotent::Executed(second) = chart
             .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
-            .unwrap();
+            .unwrap()
+        else {
+            panic!("Expected Executed")
+        };
         match second {
             ManualAccountFromChart::IdInChart(id) => assert_eq!(id, ledger_id.into()),
             other => panic!("expected IdInChart, got {other:?}"),
@@ -900,18 +913,22 @@ mod test {
         let (mut chart, _) = default_chart();
         let acct_code = code("1.1.1");
 
-        let ManualAccountFromChart::NewAccount((_, new_account)) = chart
-            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
-            .unwrap()
+        let es_entity::Idempotent::Executed(ManualAccountFromChart::NewAccount((_, new_account))) =
+            chart
+                .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
+                .unwrap()
         else {
             panic!("expected NewAccount");
         };
 
         let ledger_id = LedgerAccountId::from(new_account.id);
-        let id = match chart
+        let es_entity::Idempotent::Executed(result) = chart
             .manual_transaction_account(AccountIdOrCode::Id(ledger_id))
             .unwrap()
-        {
+        else {
+            panic!("Expected Executed")
+        };
+        let id = match result {
             ManualAccountFromChart::IdInChart(id) => id,
             _ => panic!("expected IdInChart"),
         };
@@ -923,9 +940,10 @@ mod test {
         let mut chart = chart_from(initial_events());
         let bad_code = code("9.9.9");
 
-        let err = chart
-            .manual_transaction_account(AccountIdOrCode::Code(bad_code.clone()))
-            .unwrap_err();
+        let err = match chart.manual_transaction_account(AccountIdOrCode::Code(bad_code.clone())) {
+            Err(e) => e,
+            Ok(_) => panic!("expected error"),
+        };
 
         match err {
             ChartOfAccountsError::CodeNotFoundInChart(c) => assert_eq!(c, bad_code),
@@ -1288,7 +1306,11 @@ mod test {
                 },
             ];
 
-            let bulk_import = chart.import_accounts(added_account_specs, journal_id);
+            let es_entity::Idempotent::Executed(bulk_import) =
+                chart.import_accounts(added_account_specs, journal_id)
+            else {
+                panic!("Expected Executed")
+            };
 
             assert_eq!(bulk_import.new_account_sets.len(), 2);
             assert_eq!(bulk_import.new_connections.len(), 2);

@@ -433,14 +433,14 @@ impl CreditFacility {
 
     pub(crate) fn start_interest_accrual_cycle(
         &mut self,
-    ) -> Result<Option<NewAccrualPeriods>, CreditFacilityError> {
+    ) -> Result<Idempotent<Option<NewAccrualPeriods>>, CreditFacilityError> {
         if !self.is_in_progress_interest_cycle_completed() {
             return Err(CreditFacilityError::InProgressInterestAccrualCycleNotCompletedYet);
         }
 
         let accrual_cycle_period = match self.next_interest_accrual_cycle_period()? {
             Some(period) => period,
-            None => return Ok(None),
+            None => return Ok(Idempotent::Executed(None)),
         };
 
         if let Some(last_cycle) = self.last_started_accrual_cycle()
@@ -468,12 +468,12 @@ impl CreditFacility {
             .terms(self.terms)
             .build()
             .expect("could not build new interest accrual");
-        Ok(Some(NewAccrualPeriods {
+        Ok(Idempotent::Executed(Some(NewAccrualPeriods {
             accrual: self
                 .interest_accruals
                 .add_new(new_accrual)
                 .first_accrual_cycle_period(),
-        }))
+        })))
     }
 
     pub(crate) fn record_interest_accrual_cycle(
@@ -489,6 +489,7 @@ impl CreditFacility {
         let (idx, new_obligation) = {
             let accrual = self
                 .interest_accrual_cycle_in_progress_mut()
+                .unwrap()
                 .expect("accrual not found");
 
             (
@@ -520,12 +521,14 @@ impl CreditFacility {
         })
     }
 
-    pub fn interest_accrual_cycle_in_progress_mut(&mut self) -> Option<&mut InterestAccrualCycle> {
-        self.in_progress_accrual_cycle_id().map(|cycle_id| {
+    pub(crate) fn interest_accrual_cycle_in_progress_mut(
+        &mut self,
+    ) -> Idempotent<Option<&mut InterestAccrualCycle>> {
+        Idempotent::Executed(self.in_progress_accrual_cycle_id().map(|cycle_id| {
             self.interest_accruals
                 .get_persisted_mut(&cycle_id)
                 .expect("Interest accrual not found")
-        })
+        }))
     }
 
     pub fn last_collateralization_state(&self) -> CollateralizationState {
@@ -861,9 +864,10 @@ mod test {
     fn iterate_in_progress_accrual_cycle_to_completion(credit_facility: &mut CreditFacility) {
         let accrual = credit_facility
             .interest_accrual_cycle_in_progress_mut()
+            .unwrap()
             .unwrap();
         while accrual.next_accrual_period().is_some() {
-            accrual.record_accrual(UsdCents::ONE);
+            let _ = accrual.record_accrual(UsdCents::ONE);
         }
         let _ = accrual.record_accrual_cycle(accrual.accrual_cycle_data().unwrap());
     }
