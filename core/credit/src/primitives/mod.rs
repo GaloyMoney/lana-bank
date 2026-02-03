@@ -1,6 +1,5 @@
 mod liquidation_payment;
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "json-schema")]
@@ -31,6 +30,18 @@ pub use core_credit_terms::{
     },
 };
 
+pub use core_credit_collection::{
+    BeneficiaryId, CoreCreditCollectionAction, CoreCreditCollectionEvent,
+    CoreCreditCollectionObject, ObligationAction, ObligationId, PaymentAllocationId, PaymentId,
+    obligation::Obligations,
+    payment::{Payment, Payments},
+    payment_allocation::PaymentAllocation,
+    primitives::{
+        BalanceUpdateData, BalanceUpdatedSource, ObligationAllOrOne, ObligationStatus,
+        ObligationType, ObligationsAmounts, PaymentDetailsForAllocation, PaymentSourceAccountId,
+    },
+};
+
 impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {
     fn from(duration_type: FacilityDurationType) -> Self {
         match duration_type {
@@ -47,11 +58,8 @@ es_entity::entity_id! {
     PendingCreditFacilityId,
     CreditFacilityId,
     DisbursalId,
-    PaymentId,
-    PaymentAllocationId,
     ChartOfAccountsIntegrationConfigId,
     CollateralId,
-    ObligationId,
     LiquidationId,
     InterestAccrualCycleId,
     FiscalYearId;
@@ -67,32 +75,13 @@ es_entity::entity_id! {
 
     CreditFacilityId => job::JobId,
     InterestAccrualCycleId => job::JobId,
-    ObligationId => job::JobId,
 
     DisbursalId => LedgerTxId,
-    PaymentId => LedgerTxId,
-    PaymentAllocationId => LedgerTxId,
 
     CreditFacilityId => public_id::PublicIdTargetId,
     DisbursalId => public_id::PublicIdTargetId,
 
-    CreditFacilityId => core_credit_collections::BeneficiaryId,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ObligationStatus {
-    NotYetDue,
-    Due,
-    Overdue,
-    Defaulted,
-    Paid,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum ObligationType {
-    Disbursal,
-    Interest,
+    CreditFacilityId => core_credit_collection::BeneficiaryId,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
@@ -109,35 +98,6 @@ impl From<ObligationType> for BalanceUpdatedType {
             ObligationType::Interest => Self::InterestAccrual,
         }
     }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum BalanceUpdatedSource {
-    Obligation(ObligationId),
-    PaymentAllocation(PaymentAllocationId),
-}
-
-impl From<ObligationId> for BalanceUpdatedSource {
-    fn from(obligation_id: ObligationId) -> Self {
-        Self::Obligation(obligation_id)
-    }
-}
-
-impl From<PaymentAllocationId> for BalanceUpdatedSource {
-    fn from(allocation_id: PaymentAllocationId) -> Self {
-        Self::PaymentAllocation(allocation_id)
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct BalanceUpdateData {
-    pub source_id: BalanceUpdatedSource,
-    pub ledger_tx_id: LedgerTxId,
-    pub balance_type: ObligationType,
-    pub amount: UsdCents,
-    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone)]
@@ -160,8 +120,6 @@ pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsInte
 pub type CollateralAllOrOne = AllOrOne<CollateralId>;
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
-pub type ObligationAllOrOne = AllOrOne<ObligationId>;
-
 pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
 pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
 pub const PERMISSION_SET_CREDIT_PAYMENT_DATE: &str = "credit_payment_date";
@@ -529,25 +487,6 @@ impl From<ChartOfAccountsIntegrationConfigAction> for CoreCreditAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
-#[strum(serialize_all = "kebab-case")]
-pub enum ObligationAction {
-    Read,
-    UpdateStatus,
-    RecordPaymentAllocation,
-    RecordPaymentAllocationWithDate,
-}
-
-impl ActionPermission for ObligationAction {
-    fn permission_set(&self) -> &'static str {
-        match self {
-            Self::Read => PERMISSION_SET_CREDIT_VIEWER,
-            Self::UpdateStatus | Self::RecordPaymentAllocation => PERMISSION_SET_CREDIT_WRITER,
-            Self::RecordPaymentAllocationWithDate => PERMISSION_SET_CREDIT_PAYMENT_DATE,
-        }
-    }
-}
-
 impl From<ObligationAction> for CoreCreditAction {
     fn from(action: ObligationAction) -> Self {
         Self::Obligation(action)
@@ -657,15 +596,6 @@ pub struct CollateralUpdate {
     pub tx_id: LedgerTxId,
     pub abs_diff: Satoshis,
     pub direction: CollateralDirection,
-    pub effective: chrono::NaiveDate,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct PaymentDetailsForAllocation {
-    pub payment_id: PaymentId,
-    pub amount: UsdCents,
-    pub credit_facility_id: CreditFacilityId,
-    pub facility_payment_holding_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
 }
 

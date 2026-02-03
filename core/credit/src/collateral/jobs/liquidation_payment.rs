@@ -12,12 +12,13 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
+use core_credit_collection::CollectionLedger;
+use core_credit_collection::payment::{NewPayment, PaymentLedgerAccountIds, PaymentRepo};
+
 use crate::{
+    CoreCreditCollectionEvent,
     credit_facility::CreditFacilityRepo,
     event::CoreCreditEvent,
-    ledger::CreditLedger,
-    payment::PaymentRepo,
-    payment::{NewPayment, PaymentLedgerAccountIds},
     primitives::{CreditFacilityId, LiquidationId, PaymentId},
 };
 
@@ -45,29 +46,29 @@ impl<E> Clone for LiquidationPaymentJobConfig<E> {
 
 pub struct LiquidationPaymentInit<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     outbox: Outbox<E>,
     payment_repo: Arc<PaymentRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    ledger: Arc<CreditLedger>,
+    collections_ledger: Arc<CollectionLedger>,
 }
 
 impl<E> LiquidationPaymentInit<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
         payment_repo: Arc<PaymentRepo<E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-        ledger: Arc<CreditLedger>,
+        collections_ledger: Arc<CollectionLedger>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             payment_repo,
             credit_facility_repo,
-            ledger,
+            collections_ledger,
         }
     }
 }
@@ -76,7 +77,7 @@ const LIQUIDATION_PAYMENT_JOB: JobType = JobType::new("outbox.liquidation-paymen
 
 impl<E> JobInitializer for LiquidationPaymentInit<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     type Config = LiquidationPaymentJobConfig<E>;
     fn job_type(&self) -> JobType {
@@ -93,25 +94,25 @@ where
             outbox: self.outbox.clone(),
             payment_repo: self.payment_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
-            ledger: self.ledger.clone(),
+            collections_ledger: self.collections_ledger.clone(),
         }))
     }
 }
 
 pub struct LiquidationPaymentJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     config: LiquidationPaymentJobConfig<E>,
     outbox: Outbox<E>,
     payment_repo: Arc<PaymentRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    ledger: Arc<CreditLedger>,
+    collections_ledger: Arc<CollectionLedger>,
 }
 
 impl<E> LiquidationPaymentJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     #[instrument(
         name = "outbox.core_credit.partial_liquidation.acknowledge_payment_in_credit_facility_in_op",
@@ -146,7 +147,7 @@ where
         credit_facility_id: CreditFacilityId,
         payment_ledger_account_ids: PaymentLedgerAccountIds,
         clock: &es_entity::clock::ClockHandle,
-    ) -> Result<Option<crate::payment::Payment>, Box<dyn std::error::Error>> {
+    ) -> Result<Option<core_credit_collection::payment::Payment>, Box<dyn std::error::Error>> {
         if self
             .payment_repo
             .maybe_find_by_id_in_op(&mut *db, payment_id)
@@ -167,8 +168,8 @@ where
             .expect("could not build new payment");
 
         let payment = self.payment_repo.create_in_op(db, new_payment).await?;
-        self.ledger
-            .record_payment_in_op(db, &payment, LedgerTransactionInitiator::System)
+        self.collections_ledger
+            .record_payment(db, &payment, LedgerTransactionInitiator::System)
             .await?;
 
         Ok(Some(payment))
@@ -245,7 +246,7 @@ where
 #[async_trait]
 impl<E> JobRunner for LiquidationPaymentJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     async fn run(
         &self,

@@ -5,6 +5,7 @@ use contract_creation::ContractModuleObject;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
+use core_credit_collection::CoreCreditCollectionObject;
 use core_credit_terms::CoreCreditTermsObject;
 use core_custody::CoreCustodyObject;
 use core_customer::CustomerObject;
@@ -26,6 +27,7 @@ pub enum LanaObject {
     Accounting(CoreAccountingObject),
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
+    CreditCollection(CoreCreditCollectionObject),
     Terms(CoreCreditTermsObject),
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
@@ -84,6 +86,12 @@ impl From<CoreCreditObject> for LanaObject {
     }
 }
 
+impl From<CoreCreditCollectionObject> for LanaObject {
+    fn from(object: CoreCreditCollectionObject) -> Self {
+        LanaObject::CreditCollection(object)
+    }
+}
+
 impl From<CoreCreditTermsObject> for LanaObject {
     fn from(object: CoreCreditTermsObject) -> Self {
         LanaObject::Terms(object)
@@ -115,6 +123,7 @@ impl Display for LanaObject {
             Accounting(object) => object.fmt(f),
             Deposit(object) => object.fmt(f),
             Credit(object) => object.fmt(f),
+            CreditCollection(object) => object.fmt(f),
             Terms(object) => object.fmt(f),
             Custody(object) => object.fmt(f),
             Dashboard(object) => object.fmt(f),
@@ -139,6 +148,7 @@ impl FromStr for LanaObject {
             Accounting => LanaObject::from(object.parse::<CoreAccountingObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Credit => LanaObject::from(object.parse::<CoreCreditObject>()?),
+            CreditCollection => LanaObject::from(object.parse::<CoreCreditCollectionObject>()?),
             Terms => LanaObject::from(object.parse::<core_credit_terms::CoreCreditTermsObject>()?),
             Custody => LanaObject::from(object.parse::<CoreCustodyObject>()?),
             Dashboard => LanaObject::from(

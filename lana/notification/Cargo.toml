@@ -13,6 +13,7 @@ job = { workspace = true }
 lana-events = { workspace = true }
 core-access = { workspace = true }
 core-credit = { workspace = true }
+core-credit-collection = { workspace = true }
 core-customer = { workspace = true }
 core-deposit = { workspace = true }
 audit = { workspace = true }

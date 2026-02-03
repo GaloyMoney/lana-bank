@@ -45,15 +45,17 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 
 use crate::{
-    CompletedAccrualCycle, ConfirmedAccrual, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
+    CompletedAccrualCycle, ConfirmedAccrual, CoreCreditAction, CoreCreditCollectionAction,
+    CoreCreditCollectionEvent, CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
     CreditFacilityId,
     credit_facility::{
         CreditFacilityRepo, error::CreditFacilityError,
         interest_accrual_cycle::NewInterestAccrualCycleData,
     },
     ledger::*,
-    obligation::Obligations,
 };
+
+use core_credit_collection::obligation::Obligations;
 
 /// State machine states for the interest accrual job.
 ///
@@ -103,6 +105,7 @@ pub struct InterestAccrualJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -116,11 +119,16 @@ where
 impl<Perms, E> InterestAccrualJobInit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<CoreCreditCollectionAction>
+        + From<GovernanceAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<CoreCreditCollectionObject>
+        + From<GovernanceObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -145,11 +153,16 @@ const INTEREST_ACCRUAL_JOB: JobType = JobType::new("task.interest-accrual");
 impl<Perms, E> JobInitializer for InterestAccrualJobInit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<CoreCreditCollectionAction>
+        + From<GovernanceAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<CoreCreditCollectionObject>
+        + From<GovernanceObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -179,6 +192,7 @@ struct InterestAccrualJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -195,11 +209,16 @@ where
 impl<Perms, E> JobRunner for InterestAccrualJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<CoreCreditCollectionAction>
+        + From<GovernanceAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<CoreCreditCollectionObject>
+        + From<GovernanceObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -232,11 +251,16 @@ where
 impl<Perms, E> InterestAccrualJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<CoreCreditCollectionAction>
+        + From<GovernanceAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<CoreCreditCollectionObject>
+        + From<GovernanceObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -360,7 +384,7 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let obligations_synced = self
             .obligations
-            .check_facility_obligations_status_updated(self.config.credit_facility_id)
+            .check_beneficiary_obligations_status_updated(self.config.credit_facility_id.into())
             .await?;
 
         if !obligations_synced {

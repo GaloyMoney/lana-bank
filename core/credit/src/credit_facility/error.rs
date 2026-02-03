@@ -67,13 +67,15 @@ pub enum CreditFacilityError {
     #[error("CreditFacilityError - PriceError: {0}")]
     PriceError(#[from] core_price::error::PriceError),
     #[error("CreditFacilityError - ObligationError: {0}")]
-    ObligationError(#[from] crate::obligation::error::ObligationError),
+    ObligationError(#[from] core_credit_collection::obligation::error::ObligationError),
     #[error("CreditFacilityError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CreditFacilityError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("CreditFacilityError - PaymentAllocationError: {0}")]
-    PaymentAllocationError(#[from] crate::payment_allocation::error::PaymentAllocationError),
+    PaymentAllocationError(
+        #[from] core_credit_collection::payment_allocation::error::PaymentAllocationError,
+    ),
     #[error("CreditFacilityError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CreditFacilityError - CreditFacilityProposalError: {0}")]

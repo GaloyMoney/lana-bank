@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{
-    ledger::InterestAccrualCycleLedgerAccountIds, obligation::NewObligation, primitives::*,
-};
+use crate::{ledger::InterestAccrualCycleLedgerAccountIds, primitives::*};
+
+use core_credit_collection::obligation::NewObligation;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -292,7 +292,7 @@ impl InterestAccrualCycle {
             .push(InterestAccrualCycleEvent::InterestAccrualsPosted {
                 ledger_tx_id: tx_id,
                 tx_ref: tx_ref.to_string(),
-                obligation_id: Some(new_obligation.id),
+                obligation_id: Some(new_obligation.id()),
                 total: interest,
                 effective,
             });

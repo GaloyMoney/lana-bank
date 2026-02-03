@@ -12,7 +12,10 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
+use crate::{
+    CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
+    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
+};
 
 use super::AllocateCreditFacilityPayment;
 
@@ -39,7 +42,7 @@ impl<Perms, E> AllocateCreditFacilityPaymentJobConfig<Perms, E> {
 pub struct AllocateCreditFacilityPaymentInit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     outbox: Outbox<E>,
     process: AllocateCreditFacilityPayment<Perms, E>,
@@ -48,9 +51,11 @@ where
 impl<Perms, E> AllocateCreditFacilityPaymentInit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     pub fn new(outbox: &Outbox<E>, process: &AllocateCreditFacilityPayment<Perms, E>) -> Self {
         Self {
@@ -66,9 +71,11 @@ const ALLOCATE_CREDIT_FACILITY_PAYMENT: JobType =
 impl<Perms, E> JobInitializer for AllocateCreditFacilityPaymentInit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     type Config = AllocateCreditFacilityPaymentJobConfig<Perms, E>;
     fn job_type(&self) -> JobType {
@@ -99,7 +106,7 @@ struct AllocateCreditFacilityPaymentJobData {
 pub struct AllocateCreditFacilityPaymentJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     outbox: Outbox<E>,
     process: AllocateCreditFacilityPayment<Perms, E>,
@@ -108,9 +115,11 @@ where
 impl<Perms, E> AllocateCreditFacilityPaymentJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     #[instrument(name = "core_credit.allocate_credit_facility_payment_job.process_message_in_op", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
     async fn process_message_in_op(
@@ -149,9 +158,11 @@ where
 impl<Perms, E> JobRunner for AllocateCreditFacilityPaymentJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     async fn run(
         &self,

@@ -9,10 +9,13 @@ use core_price::CorePriceEvent;
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
 
+use core_credit_collection::payment_allocation::PaymentAllocation;
+
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -31,11 +34,16 @@ where
 impl<'a, Perms, E> CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<CoreCreditCollectionAction>
+        + From<GovernanceAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<CoreCreditCollectionObject>
+        + From<GovernanceObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -233,7 +241,8 @@ where
         let allocation = self
             .obligations
             .find_allocation_by_id_without_audit(payment_id.into())
-            .await?;
+            .await
+            .map_err(core_credit_collection::CoreCreditCollectionError::from)?;
 
         let credit_facility = self
             .credit_facilities

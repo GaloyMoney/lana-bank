@@ -145,6 +145,7 @@ where
 pub mod action {
     use core_accounting::CoreAccountingAction;
     use core_credit::CoreCreditAction;
+    use core_credit::CoreCreditCollectionAction;
     use core_custody::CoreCustodyAction;
     use core_customer::CoreCustomerAction;
     use core_deposit::CoreDepositAction;
@@ -156,6 +157,12 @@ pub mod action {
 
     impl From<CoreCreditAction> for DummyAction {
         fn from(_: CoreCreditAction) -> Self {
+            Self
+        }
+    }
+
+    impl From<CoreCreditCollectionAction> for DummyAction {
+        fn from(_: CoreCreditCollectionAction) -> Self {
             Self
         }
     }
@@ -214,6 +221,7 @@ pub mod action {
 
 pub mod object {
     use core_accounting::CoreAccountingObject;
+    use core_credit::CoreCreditCollectionObject;
     use core_credit::CoreCreditObject;
     use core_custody::CoreCustodyObject;
     use core_customer::CustomerObject;
@@ -226,6 +234,11 @@ pub mod object {
 
     impl From<CoreCreditObject> for DummyObject {
         fn from(_: CoreCreditObject) -> Self {
+            Self
+        }
+    }
+    impl From<CoreCreditCollectionObject> for DummyObject {
+        fn from(_: CoreCreditCollectionObject) -> Self {
             Self
         }
     }
@@ -286,6 +299,7 @@ pub mod event {
 
     use core_access::CoreAccessEvent;
     use core_accounting::CoreAccountingEvent;
+    use core_credit::CoreCreditCollectionEvent;
     use core_credit::CoreCreditEvent;
     use core_custody::CoreCustodyEvent;
     use core_customer::CoreCustomerEvent;
@@ -299,6 +313,7 @@ pub mod event {
         CoreAccess(CoreAccessEvent),
         CoreAccounting(CoreAccountingEvent),
         CoreCredit(CoreCreditEvent),
+        CoreCreditCollection(CoreCreditCollectionEvent),
         CoreCustody(CoreCustodyEvent),
         CoreCustomer(CoreCustomerEvent),
         CoreDeposit(CoreDepositEvent),

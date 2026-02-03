@@ -12,7 +12,9 @@ use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 
-use crate::{Obligation, Obligations, event::CoreCreditEvent, primitives::*};
+use crate::{event::CoreCreditEvent, primitives::*};
+
+use core_credit_collection::obligation::{Obligation, Obligations};
 
 pub(super) use entity::*;
 use error::DisbursalError;
@@ -27,7 +29,9 @@ pub use entity::DisbursalEvent;
 pub struct Disbursals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     repo: Arc<DisbursalRepo<E>>,
     authz: Arc<Perms>,
@@ -38,7 +42,9 @@ where
 impl<Perms, E> Clone for Disbursals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -60,10 +66,12 @@ impl<Perms, E> Disbursals<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<CoreCreditCollectionAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreCreditObject> + From<CoreCreditCollectionObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,

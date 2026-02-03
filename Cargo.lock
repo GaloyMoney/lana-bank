@@ -1334,7 +1334,7 @@ dependencies = [
  "cloud-storage",
  "core-access",
  "core-accounting",
- "core-credit-collections",
+ "core-credit-collection",
  "core-credit-terms",
  "core-custody",
  "core-customer",
@@ -1370,10 +1370,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "core-credit-collections"
+name = "core-credit-collection"
 version = "0.0.0"
 dependencies = [
- "async-graphql",
  "async-trait",
  "audit",
  "authz",
@@ -3563,6 +3562,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-credit-collection",
  "core-custody",
  "core-customer",
  "core-deposit",
@@ -3855,6 +3855,7 @@ dependencies = [
  "chrono",
  "core-access",
  "core-credit",
+ "core-credit-collection",
  "core-custody",
  "core-customer",
  "core-deposit",
@@ -4836,6 +4837,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-credit-collection",
  "core-credit-terms",
  "core-custody",
  "core-customer",

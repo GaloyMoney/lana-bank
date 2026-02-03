@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{ledger::DisbursalLedgerAccountIds, obligation::NewObligation, primitives::*};
+use crate::{ledger::DisbursalLedgerAccountIds, primitives::*};
+
+use core_credit_collection::obligation::NewObligation;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

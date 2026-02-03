@@ -13,9 +13,6 @@ mod for_subject;
 mod history;
 pub mod ledger;
 mod liquidation;
-mod obligation;
-mod payment;
-mod payment_allocation;
 mod pending_credit_facility;
 mod primitives;
 mod processes;
@@ -60,9 +57,6 @@ use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
 pub use ledger::*;
 pub use liquidation::{liquidation_cursor::*, *};
-pub use obligation::{error::*, obligation_cursor::*, *};
-pub use payment::{error::*, *};
-pub use payment_allocation::*;
 pub use pending_credit_facility::*;
 pub use primitives::*;
 pub use processes::{
@@ -72,15 +66,19 @@ pub use processes::{
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 
+use core_credit_collection::payment::PaymentLedgerAccountIds;
+
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::{
         collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
         interest_accrual_cycle::InterestAccrualCycleEvent, liquidation::LiquidationEvent,
+        pending_credit_facility::PendingCreditFacilityEvent,
+    };
+    pub use core_credit_collection::{
         obligation::ObligationEvent, payment::PaymentEvent,
         payment_allocation::PaymentAllocationEvent,
-        pending_credit_facility::PendingCreditFacilityEvent,
     };
 }
 
@@ -88,6 +86,7 @@ pub struct CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
@@ -126,6 +125,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
@@ -166,15 +166,18 @@ impl<Perms, E> CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustomerAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CustomerObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
@@ -212,6 +215,7 @@ where
         let internal_domain_configs_arc = Arc::new(internal_domain_configs.clone());
 
         let publisher = CreditFacilityPublisher::new(outbox);
+        let collections_publisher = core_credit_collection::CollectionPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
@@ -224,15 +228,32 @@ where
         .await?;
         let collateral_ledger_arc = Arc::new(collateral_ledger);
 
+        let collections_ledger = core_credit_collection::CollectionLedger::init(
+            cala,
+            journal_id,
+            ledger_arc.payments_made_omnibus_account_ids().account_id,
+        )
+        .await?;
+        let collections_ledger_arc = Arc::new(collections_ledger);
+
         let obligations = Obligations::new(
             pool,
             authz_arc.clone(),
-            ledger_arc.clone(),
+            collections_ledger_arc.clone(),
             jobs,
-            &publisher,
+            &collections_publisher,
             clock.clone(),
         );
         let obligations_arc = Arc::new(obligations);
+
+        let payments = Payments::new(
+            pool,
+            authz_arc.clone(),
+            collections_ledger_arc.clone(),
+            clock.clone(),
+            &collections_publisher,
+        );
+        let payments_arc = Arc::new(payments);
 
         let liquidations = Liquidations::init(pool, authz_arc.clone(), &publisher, clock.clone());
         let liquidations_arc = Arc::new(liquidations);
@@ -255,7 +276,7 @@ where
             outbox,
             jobs,
             ledger_arc.liquidation_proceeds_omnibus_account_ids(),
-            ledger_arc.clone(),
+            collections_ledger_arc.clone(),
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);
@@ -305,15 +326,6 @@ where
         )
         .await?;
         let facilities_arc = Arc::new(credit_facilities);
-
-        let payments = Payments::new(
-            pool,
-            authz_arc.clone(),
-            ledger_arc.clone(),
-            clock.clone(),
-            &publisher,
-        );
-        let payments_arc = Arc::new(payments);
 
         let histories_arc = Arc::new(Histories::init(pool, outbox, jobs, authz_arc.clone()).await?);
 
@@ -862,7 +874,7 @@ where
         self.payments
             .record(
                 payment_id,
-                credit_facility_id,
+                credit_facility_id.into(),
                 PaymentLedgerAccountIds {
                     facility_payment_holding_account_id: credit_facility
                         .payment_holding_account_id(),
@@ -874,7 +886,8 @@ where
                 effective,
                 initiated_by,
             )
-            .await?;
+            .await
+            .map_err(core_credit_collection::CoreCreditCollectionError::from)?;
 
         Ok(credit_facility)
     }
@@ -923,7 +936,7 @@ where
         self.payments
             .record(
                 payment_id,
-                credit_facility_id,
+                credit_facility_id.into(),
                 PaymentLedgerAccountIds {
                     facility_payment_holding_account_id: credit_facility
                         .payment_holding_account_id(),
@@ -935,7 +948,8 @@ where
                 effective.into(),
                 initiated_by,
             )
-            .await?;
+            .await
+            .map_err(core_credit_collection::CoreCreditCollectionError::from)?;
 
         Ok(credit_facility)
     }
