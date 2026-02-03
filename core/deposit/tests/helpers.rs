@@ -3,7 +3,8 @@
 use cala_ledger::CalaLedger;
 use core_accounting::{AccountingBaseConfig, CoreAccounting};
 use domain_config::{
-    ExposedDomainConfigs, ExposedDomainConfigsReadOnly, RequireVerifiedCustomerForAccount,
+    ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
+    RequireVerifiedCustomerForAccount,
 };
 use rand::Rng;
 
@@ -13,7 +14,7 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     Ok(pool)
 }
 
-pub async fn init_domain_configs(
+pub async fn init_read_only_exposed_domain_configs(
     pool: &sqlx::PgPool,
     authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
 ) -> anyhow::Result<ExposedDomainConfigsReadOnly> {
@@ -25,6 +26,38 @@ pub async fn init_domain_configs(
         .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
         .await;
     Ok(ExposedDomainConfigsReadOnly::new(pool))
+}
+
+pub async fn init_internal_domain_configs(
+    pool: &sqlx::PgPool,
+) -> anyhow::Result<InternalDomainConfigs> {
+    let internal_configs = InternalDomainConfigs::new(pool);
+    internal_configs.seed_registered().await?;
+    Ok(internal_configs)
+}
+
+pub async fn clear_internal_domain_config(pool: &sqlx::PgPool, key: &str) -> anyhow::Result<()> {
+    // Use a CTE to perform all deletes atomically in dependency order.
+    // This prevents race conditions when tests run in parallel.
+    sqlx::query(
+        "WITH config_ids AS (
+            SELECT id FROM core_domain_configs WHERE key = $1 FOR UPDATE
+        ),
+        deleted_rollup AS (
+            DELETE FROM core_domain_config_events_rollup
+            WHERE id IN (SELECT id FROM config_ids)
+        ),
+        deleted_events AS (
+            DELETE FROM core_domain_config_events
+            WHERE id IN (SELECT id FROM config_ids)
+        )
+        DELETE FROM core_domain_configs WHERE id IN (SELECT id FROM config_ids)",
+    )
+    .bind(key)
+    .execute(pool)
+    .await?;
+
+    Ok(())
 }
 
 pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {

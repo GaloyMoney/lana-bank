@@ -967,7 +967,8 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
             .deposits()
-            .get_chart_of_accounts_integration_config(sub)
+            .chart_of_accounts_integrations()
+            .get_config(sub)
             .await?;
         Ok(config.map(DepositModuleConfig::from))
     }
@@ -1371,7 +1372,8 @@ impl Mutation {
 
         let config = app
             .deposits()
-            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
+            .chart_of_accounts_integrations()
+            .set_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(DepositModuleConfigurePayload::from(
             DepositModuleConfig::from(config),

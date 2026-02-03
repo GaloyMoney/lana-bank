@@ -78,6 +78,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let price = core_price::Price::init(&mut jobs, &outbox).await?;
     let exposed_domain_configs =
         helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
+    // Required to prevent the case there is an attempt to remove an account set member from
+    // an account set that no longer exists.
+    helpers::clear_internal_domain_config(&pool, "credit-chart-of-accounts-integration").await?;
     let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
     let credit = CoreCredit::init(
         &pool,

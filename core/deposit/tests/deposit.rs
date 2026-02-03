@@ -66,7 +66,9 @@ async fn setup() -> anyhow::Result<(
         clock.clone(),
     );
 
-    let domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
+    let exposed_domain_configs =
+        helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
+    let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -78,7 +80,8 @@ async fn setup() -> anyhow::Result<(
         journal_id,
         &public_ids,
         &customers,
-        &domain_configs,
+        &exposed_domain_configs,
+        &internal_domain_configs,
     )
     .await?;
 

@@ -15,15 +15,17 @@ pub mod public;
 mod publisher;
 mod withdrawal;
 
+use std::sync::Arc;
+
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use core_accounting::{Chart, LedgerTransactionInitiator};
+use core_accounting::LedgerTransactionInitiator;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
-use domain_config::ExposedDomainConfigsReadOnly;
+use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -31,7 +33,10 @@ use public_id::PublicIds;
 
 use account::*;
 pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor, error::DepositAccountError};
-pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+use chart_of_accounts_integration::ChartOfAccountsIntegrations;
+pub use chart_of_accounts_integration::{
+    ChartOfAccountsIntegrationConfig, error::ChartOfAccountsIntegrationError,
+};
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
@@ -66,13 +71,14 @@ where
     deposits: DepositRepo<E>,
     withdrawals: WithdrawalRepo<E>,
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
-    ledger: DepositLedger,
+    ledger: Arc<DepositLedger>,
     cala: CalaLedger,
-    authz: Perms,
+    authz: Arc<Perms>,
     governance: Governance<Perms, E>,
     outbox: Outbox<E>,
     public_ids: PublicIds,
     customers: Customers<Perms, E>,
+    chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
     domain_configs: ExposedDomainConfigsReadOnly,
 }
 
@@ -96,6 +102,7 @@ where
             outbox: self.outbox.clone(),
             public_ids: self.public_ids.clone(),
             customers: self.customers.clone(),
+            chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             domain_configs: self.domain_configs.clone(),
         }
     }
@@ -125,17 +132,22 @@ where
         public_ids: &PublicIds,
         customers: &Customers<Perms, E>,
         domain_configs: &ExposedDomainConfigsReadOnly,
+        internal_domain_configs: &InternalDomainConfigs,
     ) -> Result<Self, CoreDepositError> {
         let clock = jobs.clock().clone();
+
+        let authz_arc = Arc::new(authz.clone());
 
         let publisher = DepositPublisher::new(outbox);
         let accounts = DepositAccountRepo::new(pool, &publisher, clock.clone());
         let deposits = DepositRepo::new(pool, &publisher, clock.clone());
         let withdrawals = WithdrawalRepo::new(pool, &publisher, clock.clone());
         let ledger = DepositLedger::init(cala, journal_id, clock.clone()).await?;
+        let ledger_arc = Arc::new(ledger);
+        let internal_domain_configs_arc = Arc::new(internal_domain_configs.clone());
 
         let approve_withdrawal =
-            ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, &ledger);
+            ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, ledger_arc.as_ref());
 
         let approve_withdrawal_job_spawner =
             jobs.add_initializer(WithdrawApprovalInit::new(outbox, &approve_withdrawal));
@@ -149,21 +161,33 @@ where
 
         governance.init_policy(APPROVE_WITHDRAWAL_PROCESS).await?;
 
+        let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(
+            authz_arc.clone(),
+            ledger_arc.clone(),
+            internal_domain_configs_arc.clone(),
+        );
+        let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
+
         let res = Self {
             deposit_accounts: accounts,
             deposits,
             withdrawals,
-            authz: authz.clone(),
+            authz: authz_arc,
             outbox: outbox.clone(),
             governance: governance.clone(),
             cala: cala.clone(),
             approve_withdrawal,
-            ledger,
+            ledger: ledger_arc,
             public_ids: public_ids.clone(),
             customers: customers.clone(),
+            chart_of_accounts_integrations: chart_of_accounts_integrations_arc.clone(),
             domain_configs: domain_configs.clone(),
         };
         Ok(res)
+    }
+
+    pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms> {
+        self.chart_of_accounts_integrations.as_ref()
     }
 
     pub fn for_subject<'s>(
@@ -1063,131 +1087,6 @@ where
             .deposit_accounts
             .find_by_account_holder_id(account_holder_id)
             .await?)
-    }
-
-    pub async fn get_chart_of_accounts_integration_config(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, CoreDepositError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreDepositObject::chart_of_accounts_integration(),
-                CoreDepositAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
-            )
-            .await?;
-        Ok(self
-            .ledger
-            .get_chart_of_accounts_integration_config()
-            .await?)
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "deposit.set_chart_of_accounts_integration_config",
-        skip(self, chart)
-    )]
-    pub async fn set_chart_of_accounts_integration_config(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart: &Chart,
-        config: ChartOfAccountsIntegrationConfig,
-    ) -> Result<ChartOfAccountsIntegrationConfig, CoreDepositError> {
-        if chart.id != config.chart_of_accounts_id {
-            return Err(CoreDepositError::ChartIdMismatch);
-        }
-
-        if self
-            .ledger
-            .get_chart_of_accounts_integration_config()
-            .await?
-            .is_some()
-        {
-            return Err(CoreDepositError::DepositConfigAlreadyExists);
-        }
-
-        let individual_deposit_accounts_parent_account_set_id = chart.account_set_id_from_code(
-            &config.chart_of_accounts_individual_deposit_accounts_parent_code,
-        )?;
-        let government_entity_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_accounts_government_entity_deposit_accounts_parent_code,
-            )?;
-        let private_company_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_private_company_deposit_accounts_parent_code,
-            )?;
-        let bank_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(&config.chart_of_account_bank_deposit_accounts_parent_code)?;
-        let financial_institution_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_financial_institution_deposit_accounts_parent_code,
-            )?;
-        let non_domiciled_individual_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_non_domiciled_individual_deposit_accounts_parent_code,
-            )?;
-
-        let frozen_individual_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_accounts_frozen_individual_deposit_accounts_parent_code,
-            )?;
-        let frozen_government_entity_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code,
-            )?;
-        let frozen_private_company_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_frozen_private_company_deposit_accounts_parent_code,
-            )?;
-        let frozen_bank_deposit_accounts_parent_account_set_id = chart.account_set_id_from_code(
-            &config.chart_of_account_frozen_bank_deposit_accounts_parent_code,
-        )?;
-        let frozen_financial_institution_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_frozen_financial_institution_deposit_accounts_parent_code,
-            )?;
-        let frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config
-                    .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code,
-            )?;
-
-        let omnibus_parent_account_set_id =
-            chart.account_set_id_from_code(&config.chart_of_accounts_omnibus_parent_code)?;
-
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreDepositObject::chart_of_accounts_integration(),
-                CoreDepositAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
-            )
-            .await?;
-
-        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
-            audit_info,
-            config: config.clone(),
-            omnibus_parent_account_set_id,
-            individual_deposit_accounts_parent_account_set_id,
-            government_entity_deposit_accounts_parent_account_set_id,
-            private_company_deposit_accounts_parent_account_set_id,
-            bank_deposit_accounts_parent_account_set_id,
-            financial_institution_deposit_accounts_parent_account_set_id,
-            non_domiciled_individual_deposit_accounts_parent_account_set_id,
-            frozen_individual_deposit_accounts_parent_account_set_id,
-            frozen_government_entity_deposit_accounts_parent_account_set_id,
-            frozen_private_company_deposit_accounts_parent_account_set_id,
-            frozen_bank_deposit_accounts_parent_account_set_id,
-            frozen_financial_institution_deposit_accounts_parent_account_set_id,
-            frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
-        };
-
-        self.ledger
-            .attach_chart_of_accounts_account_sets(charts_integration_meta)
-            .await?;
-
-        Ok(config)
     }
 
     async fn check_account_active(
