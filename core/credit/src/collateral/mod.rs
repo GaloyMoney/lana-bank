@@ -43,6 +43,8 @@ pub use {
 #[cfg(feature = "json-schema")]
 pub use entity::CollateralEvent;
 use error::CollateralError;
+#[cfg(feature = "json-schema")]
+pub use liquidation::LiquidationEvent;
 use repo::CollateralRepo;
 
 pub struct Collaterals<Perms, E>

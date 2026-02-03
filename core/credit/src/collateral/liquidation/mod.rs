@@ -13,9 +13,6 @@ pub use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 pub use error::LiquidationError;
 
-#[cfg(feature = "json-schema")]
-pub use entity::LiquidationEvent;
-
 #[derive(Clone, Debug)]
 pub struct RecordProceedsFromLiquidationData {
     pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
