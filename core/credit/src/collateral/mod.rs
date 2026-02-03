@@ -127,12 +127,9 @@ where
             clock.clone(),
         ));
 
-        let partial_liquidation_job_spawner =
-            jobs.add_initializer(partial_liquidation::PartialLiquidationInit::new(
-                outbox,
-                liquidation_repo.clone(),
-                repo_arc.clone(),
-            ));
+        let partial_liquidation_job_spawner = jobs.add_initializer(
+            partial_liquidation::PartialLiquidationInit::new(outbox, repo_arc.clone()),
+        );
 
         let liquidation_payment_job_spawner =
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(

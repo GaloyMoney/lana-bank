@@ -195,6 +195,11 @@ impl Collateral {
         active
     }
 
+    fn active_liquidation(&mut self) -> Option<&mut Liquidation> {
+        self.active_liquidation_id()
+            .and_then(|id| self.liquidations.get_persisted_mut(&id))
+    }
+
     pub fn record_liquidation_started(
         &mut self,
         new_liquidation @ NewLiquidation {
@@ -222,17 +227,25 @@ impl Collateral {
     pub fn record_liquidation_completed(
         &mut self,
         liquidation_id: LiquidationId,
-    ) -> Idempotent<()> {
+    ) -> Result<Idempotent<()>, CollateralError> {
         idempotency_guard!(
             self.events.iter_all(),
             CollateralEvent::LiquidationCompleted { liquidation_id: id }
                 if *id == liquidation_id
         );
 
+        let liquidation = match self.active_liquidation() {
+            Some(l) => l,
+            None => return Err(CollateralError::NoActiveLiquidation),
+        };
+        if liquidation.complete().was_already_applied() {
+            return Ok(Idempotent::AlreadyApplied);
+        }
+
         self.events
             .push(CollateralEvent::LiquidationCompleted { liquidation_id });
 
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 }
 
