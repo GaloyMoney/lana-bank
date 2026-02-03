@@ -7,10 +7,10 @@ const config = {
   tagline: "Technical documentation for the Lana Bank system",
   favicon: "img/favicon.ico",
 
-  url: "https://lana-bank.github.io",
-  baseUrl: "/",
+  url: "https://galoymoney.github.io",
+  baseUrl: "/lana-bank/",
 
-  organizationName: "lana-bank",
+  organizationName: "galoymoney",
   projectName: "lana-bank",
 
   onBrokenLinks: "throw",
