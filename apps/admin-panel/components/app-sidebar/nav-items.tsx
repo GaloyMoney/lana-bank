@@ -53,7 +53,6 @@ export function useNavItems() {
     },
     { title: t("creditFacilities"), url: "/credit-facilities", icon: Building2 },
     { title: t("disbursals"), url: "/disbursals", icon: ClipboardList },
-    { title: t("liquidations"), url: "/liquidations", icon: TriangleAlert },
     { title: t("termTemplates"), url: "/terms-templates", icon: LayoutTemplate },
   ]
 
