@@ -14,7 +14,7 @@ use core_accounting::LedgerTransactionInitiator;
 pub use error::CollectionLedgerError;
 
 use crate::{
-    obligation::primitives::{
+    obligation::{
         ObligationDefaultedReallocationData, ObligationDueReallocationData,
         ObligationOverdueReallocationData,
     },

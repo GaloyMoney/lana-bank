@@ -78,8 +78,10 @@ where
 impl<Perms, E> Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -119,11 +121,13 @@ where
             clock.clone(),
         ));
         let collections_publisher = core_credit_collection::CollectionPublisher::new(outbox);
-        let payment_repo = Arc::new(core_credit_collection::payment::PaymentRepo::new(
+        let payments = core_credit_collection::payment::Payments::new(
             pool,
-            &collections_publisher,
+            authz.clone(),
+            collections_ledger,
             clock.clone(),
-        ));
+            &collections_publisher,
+        );
         let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
             pool,
             publisher,
@@ -140,9 +144,8 @@ where
         let liquidation_payment_job_spawner =
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
-                payment_repo,
+                payments,
                 credit_facility_repo,
-                collections_ledger,
             ));
 
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(

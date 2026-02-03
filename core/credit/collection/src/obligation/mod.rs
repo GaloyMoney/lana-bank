@@ -1,7 +1,6 @@
 mod entity;
 pub mod error;
 mod jobs;
-pub(crate) mod primitives;
 mod repo;
 
 use std::sync::Arc;
@@ -27,9 +26,11 @@ pub use entity::Obligation;
 use jobs::{obligation_defaulted, obligation_due, obligation_overdue};
 
 pub use entity::NewObligation;
+pub use entity::ObligationDefaultedReallocationData;
+pub use entity::ObligationDueReallocationData;
 pub use entity::ObligationEvent;
+pub use entity::ObligationOverdueReallocationData;
 use error::ObligationError;
-pub use primitives::*;
 pub(crate) use repo::ObligationRepo;
 pub use repo::obligation_cursor;
 
