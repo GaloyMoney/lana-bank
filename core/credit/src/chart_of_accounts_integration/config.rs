@@ -1,13 +1,16 @@
 use serde::{Deserialize, Serialize};
 
-use core_accounting::{AccountCategory, AccountCode, CalaAccountSetId, Chart, ChartId};
+use core_accounting::{AccountCode, CalaAccountSetId, Chart, ChartId};
 use domain_config::define_internal_config;
 
 use super::error::ChartOfAccountsIntegrationError;
-use crate::ledger::{
-    LongTermDisbursedIntegrationMeta, LongTermInterestIntegrationMeta,
-    OverdueDisbursedIntegrationMeta, ShortTermDisbursedIntegrationMeta,
-    ShortTermInterestIntegrationMeta,
+use crate::{
+    ledger::{
+        LongTermDisbursedIntegrationMeta, LongTermInterestIntegrationMeta,
+        OverdueDisbursedIntegrationMeta, ShortTermDisbursedIntegrationMeta,
+        ShortTermInterestIntegrationMeta,
+    },
+    primitives::account_sets,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -180,80 +183,55 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
             chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
         } = &config;
-
-        let off_balance_sheet_account_set_member_parent_id = |code: &AccountCode| -> Result<
-            CalaAccountSetId,
-            ChartOfAccountsIntegrationError,
-        > {
-            chart
-                    .find_account_set_id_in_category(code, AccountCategory::OffBalanceSheet)
+        let category_account_set_member_parent_id =
+            |code: &AccountCode,
+             category: account_sets::CreditAccountCategory|
+             -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
+                chart
+                    .find_account_set_id_in_category(code, category.into())
                     .ok_or_else(|| {
                         core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
                             code: code.clone(),
-                            category: AccountCategory::OffBalanceSheet,
+                            category: category.into(),
                         }
                         .into()
                     })
-        };
+            };
 
-        let revenue_account_set_member_parent_id = |code: &AccountCode| -> Result<
-            CalaAccountSetId,
-            ChartOfAccountsIntegrationError,
-        > {
-            chart
-                    .find_account_set_id_in_category(code, AccountCategory::Revenue)
-                    .ok_or_else(|| {
-                        core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
-                            code: code.clone(),
-                            category: AccountCategory::Revenue,
-                        }
-                        .into()
-                    })
-        };
-
-        let asset_account_set_member_parent_id = |code: &AccountCode| -> Result<
-            CalaAccountSetId,
-            ChartOfAccountsIntegrationError,
-        > {
-            chart
-                    .find_account_set_id_in_category(code, AccountCategory::Asset)
-                    .ok_or_else(|| {
-                        core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
-                            code: code.clone(),
-                            category: AccountCategory::Asset,
-                        }
-                        .into()
-                    })
-        };
-
-        let facility_omnibus_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(
-                chart_of_account_facility_omnibus_parent_code,
-            )?;
-        let collateral_omnibus_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(
-                chart_of_account_collateral_omnibus_parent_code,
-            )?;
-        let liquidation_proceeds_omnibus_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(
-                chart_of_account_liquidation_proceeds_omnibus_parent_code,
-            )?;
-        let payments_made_omnibus_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(
-                chart_of_account_payments_made_omnibus_parent_code,
-            )?;
+        let facility_omnibus_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_facility_omnibus_parent_code,
+            account_sets::CREDIT_FACILITY_OMNIBUS.account_category,
+        )?;
+        let payments_made_omnibus_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_payments_made_omnibus_parent_code,
+            account_sets::CREDIT_PAYMENTS_MADE_OMNIBUS.account_category,
+        )?;
         let interest_added_to_obligations_omnibus_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(
+            category_account_set_member_parent_id(
                 chart_of_account_interest_added_to_obligations_omnibus_parent_code,
+                account_sets::CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS.account_category,
             )?;
-        let facility_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(chart_of_account_facility_parent_code)?;
-        let collateral_parent_account_set_id = off_balance_sheet_account_set_member_parent_id(
+        let collateral_omnibus_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_collateral_omnibus_parent_code,
+            account_sets::CREDIT_COLLATERAL_OMNIBUS.account_category,
+        )?;
+        let liquidation_proceeds_omnibus_parent_account_set_id =
+            category_account_set_member_parent_id(
+                chart_of_account_liquidation_proceeds_omnibus_parent_code,
+                account_sets::CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS.account_category,
+            )?;
+        let facility_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_facility_parent_code,
+            account_sets::CREDIT_FACILITY_REMAINING.account_category,
+        )?;
+        let collateral_parent_account_set_id = category_account_set_member_parent_id(
             chart_of_account_collateral_parent_code,
+            account_sets::CREDIT_COLLATERAL.account_category,
         )?;
         let collateral_in_liquidation_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(
+            category_account_set_member_parent_id(
                 chart_of_account_collateral_in_liquidation_parent_code,
+                account_sets::CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION.account_category,
             )?;
         let liquidated_collateral_parent_account_set_id =
             off_balance_sheet_account_set_member_parent_id(
@@ -264,16 +242,22 @@ impl ResolvedChartOfAccountsIntegrationConfig {
                 chart_of_account_proceeds_from_liquidation_parent_code,
             )?;
 
-        let interest_income_parent_account_set_id =
-            revenue_account_set_member_parent_id(chart_of_account_interest_income_parent_code)?;
-        let fee_income_parent_account_set_id =
-            revenue_account_set_member_parent_id(chart_of_account_fee_income_parent_code)?;
-        let payment_holding_parent_account_set_id =
-            asset_account_set_member_parent_id(chart_of_account_payment_holding_parent_code)?;
-        let uncovered_outstanding_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(
-                chart_of_account_uncovered_outstanding_parent_code,
-            )?;
+        let interest_income_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_interest_income_parent_code,
+            account_sets::CREDIT_INTEREST_INCOME.account_category,
+        )?;
+        let fee_income_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_fee_income_parent_code,
+            account_sets::CREDIT_FEE_INCOME.account_category,
+        )?;
+        let payment_holding_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_payment_holding_parent_code,
+            account_sets::CREDIT_PAYMENT_HOLDING.account_category,
+        )?;
+        let uncovered_outstanding_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_uncovered_outstanding_parent_code,
+            account_sets::CREDIT_UNCOVERED_OUTSTANDING.account_category,
+        )?;
 
         let disbursed_defaulted_parent_account_set_id =
             asset_account_set_member_parent_id(chart_of_account_disbursed_defaulted_parent_code)?;
@@ -282,156 +266,208 @@ impl ResolvedChartOfAccountsIntegrationConfig {
 
         let short_term_disbursed_integration_meta = ShortTermDisbursedIntegrationMeta {
             short_term_individual_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_individual_disbursed_receivable_parent_code,
+                    account_sets::SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE.account_category,
                 )?,
             short_term_government_entity_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_government_entity_disbursed_receivable_parent_code,
+                    account_sets::SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
             short_term_private_company_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_private_company_disbursed_receivable_parent_code,
+                    account_sets::SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
             short_term_bank_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_bank_disbursed_receivable_parent_code,
+                    account_sets::SHORT_TERM_BANK_DISBURSED_RECEIVABLE.account_category,
                 )?,
             short_term_financial_institution_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code,
+                    account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
             short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+                    account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
             short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code,
+                    account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
         };
 
         let long_term_disbursed_integration_meta = LongTermDisbursedIntegrationMeta {
             long_term_individual_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_individual_disbursed_receivable_parent_code,
+                    account_sets::LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE.account_category,
                 )?,
             long_term_government_entity_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_government_entity_disbursed_receivable_parent_code,
+                    account_sets::LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE.account_category,
                 )?,
             long_term_private_company_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_private_company_disbursed_receivable_parent_code,
+                    account_sets::LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE.account_category,
                 )?,
             long_term_bank_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_bank_disbursed_receivable_parent_code,
+                    account_sets::LONG_TERM_BANK_DISBURSED_RECEIVABLE.account_category,
                 )?,
             long_term_financial_institution_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code,
+                    account_sets::LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
             long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+                    account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
             long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code,
+                    account_sets::LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
         };
 
         let short_term_interest_integration_meta = ShortTermInterestIntegrationMeta {
             short_term_individual_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_individual_interest_receivable_parent_code,
+                    account_sets::SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE.account_category,
                 )?,
             short_term_government_entity_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_government_entity_interest_receivable_parent_code,
+                    account_sets::SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE
+                        .account_category,
                 )?,
             short_term_private_company_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_private_company_interest_receivable_parent_code,
+                    account_sets::SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE.account_category,
                 )?,
             short_term_bank_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_bank_interest_receivable_parent_code,
+                    account_sets::SHORT_TERM_BANK_INTEREST_RECEIVABLE.account_category,
                 )?,
             short_term_financial_institution_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_financial_institution_interest_receivable_parent_code,
+                    account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE
+                        .account_category,
                 )?,
             short_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
+                    account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                        .account_category,
                 )?,
             short_term_non_domiciled_company_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code,
+                    account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE
+                        .account_category,
                 )?,
         };
 
         let long_term_interest_integration_meta = LongTermInterestIntegrationMeta {
             long_term_individual_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_individual_interest_receivable_parent_code,
+                    account_sets::LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE.account_category,
                 )?,
             long_term_government_entity_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_government_entity_interest_receivable_parent_code,
+                    account_sets::LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE.account_category,
                 )?,
             long_term_private_company_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_private_company_interest_receivable_parent_code,
+                    account_sets::LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE.account_category,
                 )?,
             long_term_bank_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_bank_interest_receivable_parent_code,
+                    account_sets::LONG_TERM_BANK_INTEREST_RECEIVABLE.account_category,
                 )?,
             long_term_financial_institution_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_financial_institution_interest_receivable_parent_code,
+                    account_sets::LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE
+                        .account_category,
                 )?,
             long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
+                    account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                        .account_category,
                 )?,
             long_term_non_domiciled_company_interest_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code,
+                    account_sets::LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE
+                        .account_category,
                 )?,
         };
 
         let overdue_disbursed_integration_meta = OverdueDisbursedIntegrationMeta {
             overdue_individual_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_overdue_individual_disbursed_receivable_parent_code,
+                    account_sets::OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE.account_category,
                 )?,
             overdue_government_entity_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_overdue_government_entity_disbursed_receivable_parent_code,
+                    account_sets::OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE.account_category,
                 )?,
             overdue_private_company_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_overdue_private_company_disbursed_receivable_parent_code,
+                    account_sets::OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE.account_category,
                 )?,
             overdue_bank_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_overdue_bank_disbursed_receivable_parent_code,
+                    account_sets::OVERDUE_BANK_DISBURSED_RECEIVABLE.account_category,
                 )?,
             overdue_financial_institution_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code,
+                    account_sets::OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
             overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+                    account_sets::OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                        .account_category,
                 )?,
             overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id:
-                asset_account_set_member_parent_id(
+                category_account_set_member_parent_id(
                     chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
+                    account_sets::OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE.account_category,
                 )?,
         };
 
