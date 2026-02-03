@@ -152,7 +152,7 @@ rust_decimal_macros = "1.40.0"
 rust_decimal = "1.40.0"
 rusty-money = { version = "0.4", features = ["iso", "crypto"] }
 base64 = { version = "0.22.1" }
-jsonwebtoken = { version = "10.2.0", default-features = false, features = ["aws_lc_rs"] }
+jsonwebtoken = { version = "10.3.0", default-features = false, features = ["aws_lc_rs"] }
 hex = "0.4.3"
 hmac = "0.12.1"
 sha2 = "0.10.8"
