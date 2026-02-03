@@ -2,7 +2,7 @@ mod entity;
 pub mod error;
 mod jobs;
 pub mod ledger;
-pub(super) mod liquidation;
+pub mod liquidation;
 mod repo;
 
 use std::collections::HashMap;
@@ -15,6 +15,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
+use core_money::UsdCents;
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -23,14 +24,7 @@ use crate::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject};
 
 use es_entity::Idempotent;
 
-use crate::{
-    CreditFacilityPublisher, UsdCents,
-    event::CoreCreditEvent,
-    liquidation::{Liquidation, error::LiquidationError},
-    primitives::*,
-};
-
-use repo::liquidation_cursor;
+use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
 use ledger::CollateralLedger;
 
@@ -38,7 +32,11 @@ pub(super) use entity::*;
 use jobs::{
     credit_facility_liquidations, liquidation_payment, partial_liquidation, wallet_collateral_sync,
 };
-pub use {entity::Collateral, liquidation::RecordProceedsFromLiquidationData};
+pub use {
+    entity::Collateral,
+    liquidation::{Liquidation, LiquidationError, RecordProceedsFromLiquidationData},
+    repo::liquidation_cursor,
+};
 
 #[cfg(feature = "json-schema")]
 pub use entity::CollateralEvent;
