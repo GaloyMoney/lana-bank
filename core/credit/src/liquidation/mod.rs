@@ -23,7 +23,7 @@ use crate::{
 pub use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
-pub(crate) use repo::LiquidationRepo;
+pub(crate) use repo::OldLiquidationRepo;
 pub use repo::liquidation_cursor;
 
 pub struct Liquidations<Perms, E>
@@ -33,7 +33,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    repo: Arc<LiquidationRepo<E>>,
+    repo: Arc<OldLiquidationRepo<E>>,
     authz: Arc<Perms>,
 }
 
@@ -67,7 +67,7 @@ where
         publisher: &crate::CreditFacilityPublisher<E>,
         clock: es_entity::clock::ClockHandle,
     ) -> Self {
-        let repo = Arc::new(LiquidationRepo::new(pool, publisher, clock));
+        let repo = Arc::new(OldLiquidationRepo::new(pool, publisher, clock));
         Self { repo, authz }
     }
 

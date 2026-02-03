@@ -2,6 +2,7 @@ mod entity;
 pub mod error;
 mod jobs;
 pub mod ledger;
+pub(super) mod liquidation;
 mod repo;
 
 use std::collections::HashMap;
@@ -25,7 +26,7 @@ use es_entity::Idempotent;
 
 use crate::{
     CreditFacilityPublisher, PaymentId, UsdCents, event::CoreCreditEvent,
-    liquidation::LiquidationRepo, primitives::*,
+    liquidation::OldLiquidationRepo, primitives::*,
 };
 
 use ledger::CollateralLedger;
@@ -52,7 +53,7 @@ where
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
-    liquidation_repo: Arc<LiquidationRepo<E>>,
+    liquidation_repo: Arc<OldLiquidationRepo<E>>,
     clock: ClockHandle,
 }
 
@@ -115,7 +116,7 @@ where
             )
             .await?;
 
-        let liquidation_repo = Arc::new(crate::liquidation::LiquidationRepo::new(
+        let liquidation_repo = Arc::new(crate::liquidation::OldLiquidationRepo::new(
             pool,
             publisher,
             clock.clone(),
@@ -254,7 +255,7 @@ where
         let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
 
         let liquidation_id = collateral
-            .active_liquidation()
+            .active_liquidation_id()
             .ok_or(CollateralError::NoActiveLiquidation)?;
 
         let mut liquidation = self
@@ -309,7 +310,7 @@ where
         let collateral = self.repo.find_by_id(collateral_id).await?;
 
         let liquidation_id = collateral
-            .active_liquidation()
+            .active_liquidation_id()
             .ok_or(CollateralError::NoActiveLiquidation)?;
 
         self.authz

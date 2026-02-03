@@ -7,11 +7,15 @@ use tracing_macros::record_error_severity;
 
 use crate::{
     event::CoreCreditEvent,
-    primitives::{CollateralId, CustodyWalletId},
+    primitives::{CollateralId, CreditFacilityId, CustodyWalletId, LiquidationId},
     publisher::CreditFacilityPublisher,
 };
 
-use super::{entity::*, error::*};
+use super::{
+    entity::*,
+    error::*,
+    liquidation::{Liquidation, LiquidationError, LiquidationEvent},
+};
 
 #[derive(EsRepo)]
 #[es_repo(
@@ -28,6 +32,9 @@ where
     pool: PgPool,
     publisher: CreditFacilityPublisher<E>,
     clock: ClockHandle,
+
+    #[es_repo(nested)]
+    liquidations: LiquidationRepo,
 }
 
 impl<E> CollateralRepo<E>
@@ -35,10 +42,12 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
+        let liquidations = LiquidationRepo::new(pool, clock.clone());
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
             clock,
+            liquidations,
         }
     }
 
@@ -65,6 +74,45 @@ where
             pool: self.pool.clone(),
             publisher: self.publisher.clone(),
             clock: self.clock.clone(),
+            liquidations: self.liquidations.clone(),
+        }
+    }
+}
+
+#[derive(EsRepo)]
+#[es_repo(
+    entity = "Liquidation",
+    err = "LiquidationError",
+    columns(
+        collateral_id(ty = "CollateralId", list_for, parent, update(persist = false)),
+        credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
+        completed(
+            ty = "bool",
+            create(persist = false),
+            update(accessor = "is_completed()")
+        )
+    ),
+    tbl_prefix = "core"
+)]
+pub(super) struct LiquidationRepo {
+    pool: PgPool,
+    clock: ClockHandle,
+}
+
+impl Clone for LiquidationRepo {
+    fn clone(&self) -> Self {
+        Self {
+            pool: self.pool.clone(),
+            clock: self.clock.clone(),
+        }
+    }
+}
+
+impl LiquidationRepo {
+    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+        Self {
+            pool: pool.clone(),
+            clock,
         }
     }
 }

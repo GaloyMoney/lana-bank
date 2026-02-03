@@ -14,7 +14,7 @@ use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use super::super::repo::CollateralRepo;
-use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId, liquidation::LiquidationRepo};
+use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId, liquidation::OldLiquidationRepo};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct PartialLiquidationJobData {
@@ -45,7 +45,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
-    liquidation_repo: Arc<LiquidationRepo<E>>,
+    liquidation_repo: Arc<OldLiquidationRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
 }
 
@@ -57,7 +57,7 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        liquidation_repo: Arc<LiquidationRepo<E>>,
+        liquidation_repo: Arc<OldLiquidationRepo<E>>,
         collateral_repo: Arc<CollateralRepo<E>>,
     ) -> Self {
         Self {
@@ -105,7 +105,7 @@ where
 {
     config: PartialLiquidationJobConfig<E>,
     outbox: Outbox<E>,
-    liquidation_repo: Arc<LiquidationRepo<E>>,
+    liquidation_repo: Arc<OldLiquidationRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
 }
 

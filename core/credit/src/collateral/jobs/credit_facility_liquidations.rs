@@ -21,7 +21,7 @@ use super::{
 use crate::{
     CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds,
     collateral::error::CollateralError,
-    liquidation::{LiquidationRepo, NewLiquidation, NewLiquidationBuilder},
+    liquidation::{NewLiquidation, NewLiquidationBuilder, OldLiquidationRepo},
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -41,7 +41,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
-    repo: Arc<LiquidationRepo<E>>,
+    repo: Arc<OldLiquidationRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
@@ -56,7 +56,7 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        liquidation_repo: Arc<LiquidationRepo<E>>,
+        liquidation_repo: Arc<OldLiquidationRepo<E>>,
         collateral_repo: Arc<CollateralRepo<E>>,
         proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
@@ -109,7 +109,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
-    repo: Arc<LiquidationRepo<E>>,
+    repo: Arc<OldLiquidationRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,

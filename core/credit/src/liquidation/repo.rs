@@ -24,7 +24,7 @@ use super::{entity::*, error::*};
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub struct LiquidationRepo<E>
+pub struct OldLiquidationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -33,7 +33,7 @@ where
     clock: ClockHandle,
 }
 
-impl<E> Clone for LiquidationRepo<E>
+impl<E> Clone for OldLiquidationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<E> LiquidationRepo<E>
+impl<E> OldLiquidationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
