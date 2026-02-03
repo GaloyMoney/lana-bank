@@ -41,10 +41,7 @@ fn run() -> Result<(Vec<Violation>, String)> {
     // Run workspace-level rules
     let workspace_rules: Vec<Box<dyn WorkspaceRule>> = vec![Box::new(DependencyDagRule::new())];
 
-    summary_lines.push(format!(
-        "\n  Workspace Rules ({}):",
-        workspace_rules.len()
-    ));
+    summary_lines.push(format!("\n  Workspace Rules ({}):", workspace_rules.len()));
     for rule in &workspace_rules {
         summary_lines.push(format!("    [{}] {}", rule.name(), rule.description()));
         let violations = rule.check_workspace(&workspace_root)?;

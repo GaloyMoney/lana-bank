@@ -857,7 +857,7 @@ mod test {
     }
 
     fn start_interest_accrual_cycle(credit_facility: &mut CreditFacility) {
-        credit_facility.start_interest_accrual_cycle().unwrap();
+        let _ = credit_facility.start_interest_accrual_cycle().unwrap();
         hydrate_accruals_in_facility(credit_facility);
     }
 
@@ -996,21 +996,21 @@ mod test {
                 .unwrap()
                 .is_some()
             {
-                assert!(
-                    credit_facility
-                        .start_interest_accrual_cycle()
-                        .unwrap()
-                        .is_some(),
-                );
+                let es_entity::Idempotent::Executed(result) =
+                    credit_facility.start_interest_accrual_cycle().unwrap()
+                else {
+                    panic!("Expected Executed")
+                };
+                assert!(result.is_some());
                 hydrate_accruals_in_facility(&mut credit_facility);
                 iterate_in_progress_accrual_cycle_to_completion(&mut credit_facility);
             }
-            assert!(
-                credit_facility
-                    .start_interest_accrual_cycle()
-                    .unwrap()
-                    .is_none()
-            );
+            let es_entity::Idempotent::Executed(result) =
+                credit_facility.start_interest_accrual_cycle().unwrap()
+            else {
+                panic!("Expected Executed")
+            };
+            assert!(result.is_none());
         }
     }
 
