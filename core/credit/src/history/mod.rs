@@ -13,7 +13,8 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    CoreCreditAction, CoreCreditObject, event::CoreCreditEvent, primitives::CreditFacilityId,
+    CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject, event::CoreCreditEvent,
+    primitives::CreditFacilityId,
 };
 pub use entry::*;
 use error::CreditFacilityHistoryError;
@@ -35,7 +36,7 @@ impl IntoIterator for CreditFacilityHistory {
 }
 
 impl CreditFacilityHistory {
-    pub fn process_event(&mut self, event: &CoreCreditEvent) {
+    pub fn process_credit_event(&mut self, event: &CoreCreditEvent) {
         use CoreCreditEvent::*;
 
         match event {
@@ -95,21 +96,6 @@ impl CreditFacilityHistory {
                         },
                     ));
             }
-            FacilityPaymentAllocated {
-                allocation_id,
-                amount,
-                recorded_at,
-                effective,
-                ..
-            } => {
-                self.entries
-                    .push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                        cents: *amount,
-                        payment_id: *allocation_id,
-                    }));
-            }
             DisbursalSettled {
                 amount,
                 recorded_at,
@@ -163,10 +149,6 @@ impl CreditFacilityHistory {
             ),
             PendingCreditFacilityCompleted { .. } => {}
             FacilityCompleted { .. } => {}
-            ObligationCreated { .. } => {}
-            ObligationDue { .. } => {}
-            ObligationOverdue { .. } => {}
-            ObligationDefaulted { .. } => {}
             PartialLiquidationInitiated { .. } => {}
             PartialLiquidationCollateralSentOut {
                 amount,
@@ -197,7 +179,25 @@ impl CreditFacilityHistory {
                 },
             )),
             PartialLiquidationCompleted { .. } => {}
-            ObligationCompleted { .. } => {}
+        }
+    }
+
+    pub fn process_collection_event(&mut self, event: &CoreCreditCollectionEvent) {
+        if let CoreCreditCollectionEvent::PaymentAllocated {
+            allocation_id,
+            amount,
+            recorded_at,
+            effective,
+            ..
+        } = event
+        {
+            self.entries
+                .push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
+                    recorded_at: *recorded_at,
+                    effective: *effective,
+                    cents: *amount,
+                    payment_id: *allocation_id,
+                }));
         }
     }
 }

@@ -140,10 +140,9 @@ where
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
-            let credit_facility_id: crate::primitives::CreditFacilityId = (*beneficiary_id).into();
             Span::current().record(
                 "credit_facility_id",
-                tracing::field::display(credit_facility_id),
+                tracing::field::display(beneficiary_id),
             );
 
             let initiated_by = LedgerTransactionInitiator::System;

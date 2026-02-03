@@ -46,10 +46,10 @@ where
                     status: crate::primitives::CreditFacilityProposalStatus::Approved,
                 },
             ) => {
-                self.handle_event(db, message, event, *id).await?;
+                self.handle_credit_event(db, message, event, *id).await?;
             }
             Some(event @ PendingCreditFacilityCollateralizationChanged { id, .. }) => {
-                self.handle_event(db, message, event, *id).await?;
+                self.handle_credit_event(db, message, event, *id).await?;
             }
             Some(event @ FacilityActivated { id, .. })
             | Some(event @ FacilityCompleted { id, .. })
@@ -96,38 +96,22 @@ where
                     ..
                 },
             ) => {
-                self.handle_event(db, message, event, *id).await?;
+                self.handle_credit_event(db, message, event, *id).await?;
             }
             _ => {}
         }
 
-        if let Some(CoreCreditCollectionEvent::PaymentAllocated {
-            beneficiary_id,
-            obligation_id,
-            obligation_type,
-            allocation_id,
-            amount,
-            recorded_at,
-            effective,
-        }) = message.as_event()
+        if let Some(event @ CoreCreditCollectionEvent::PaymentAllocated { beneficiary_id, .. }) =
+            message.as_event()
         {
             let id: CreditFacilityId = (*beneficiary_id).into();
-            let credit_event = CoreCreditEvent::FacilityPaymentAllocated {
-                credit_facility_id: id,
-                obligation_id: *obligation_id,
-                obligation_type: *obligation_type,
-                allocation_id: *allocation_id,
-                amount: *amount,
-                recorded_at: *recorded_at,
-                effective: *effective,
-            };
-            self.handle_event(db, message, &credit_event, id).await?;
+            self.handle_collection_event(db, message, event, id).await?;
         }
 
         Ok(())
     }
 
-    async fn handle_event(
+    async fn handle_credit_event(
         &self,
         db: &mut sqlx::PgTransaction<'_>,
         message: &PersistentOutboxEvent<E>,
@@ -139,7 +123,24 @@ where
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
         let mut history = self.repo.load(id).await?;
-        history.process_event(event);
+        history.process_credit_event(event);
+        self.repo.persist_in_tx(db, id, history).await?;
+        Ok(())
+    }
+
+    async fn handle_collection_event(
+        &self,
+        db: &mut sqlx::PgTransaction<'_>,
+        message: &PersistentOutboxEvent<E>,
+        event: &CoreCreditCollectionEvent,
+        id: impl Into<CreditFacilityId>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let id = id.into();
+        message.inject_trace_parent();
+        Span::current().record("handled", true);
+        Span::current().record("event_type", event.as_ref());
+        let mut history = self.repo.load(id).await?;
+        history.process_collection_event(event);
         self.repo.persist_in_tx(db, id, history).await?;
         Ok(())
     }

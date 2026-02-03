@@ -165,28 +165,26 @@ where
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        match message.as_event() {
-            Some(
-                event @ CoreCreditEvent::FacilityCollateralUpdated {
-                    credit_facility_id: id,
-                    ..
-                },
-            ) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-                Span::current().record("credit_facility_id", tracing::field::display(id));
+        if let Some(
+            event @ CoreCreditEvent::FacilityCollateralUpdated {
+                credit_facility_id: id,
+                ..
+            },
+        ) = message.as_event()
+        {
+            message.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", event.as_ref());
+            Span::current().record("credit_facility_id", tracing::field::display(id));
 
-                self.update_collateralization_from_events(*id).await?;
-            }
-            _ => {}
+            self.update_collateralization_from_events(*id).await?;
         }
 
         match message.as_event() {
             Some(event @ CoreCreditCollectionEvent::ObligationCreated { beneficiary_id, .. })
             | Some(event @ CoreCreditCollectionEvent::PaymentAllocated { beneficiary_id, .. }) => {
                 message.inject_trace_parent();
-                let id: CreditFacilityId = (*beneficiary_id).into();
+                let id = (*beneficiary_id).into();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("credit_facility_id", tracing::field::display(id));

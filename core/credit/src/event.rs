@@ -50,15 +50,6 @@ pub enum CoreCreditEvent {
         id: CreditFacilityId,
         completed_at: DateTime<Utc>,
     },
-    FacilityPaymentAllocated {
-        credit_facility_id: CreditFacilityId,
-        obligation_id: ObligationId,
-        obligation_type: ObligationType,
-        allocation_id: PaymentAllocationId,
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
-    },
     FacilityCollateralUpdated {
         credit_facility_id: CreditFacilityId,
         pending_credit_facility_id: PendingCreditFacilityId,
@@ -94,38 +85,6 @@ pub enum CoreCreditEvent {
         due_at: EffectiveDate,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
-    },
-    ObligationCreated {
-        id: ObligationId,
-        obligation_type: ObligationType,
-        credit_facility_id: CreditFacilityId,
-        amount: UsdCents,
-
-        due_at: EffectiveDate,
-        overdue_at: Option<EffectiveDate>,
-        defaulted_at: Option<EffectiveDate>,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
-    },
-    ObligationDue {
-        id: ObligationId,
-        credit_facility_id: CreditFacilityId,
-        obligation_type: ObligationType,
-        amount: UsdCents,
-    },
-    ObligationOverdue {
-        id: ObligationId,
-        credit_facility_id: CreditFacilityId,
-        amount: UsdCents,
-    },
-    ObligationDefaulted {
-        id: ObligationId,
-        credit_facility_id: CreditFacilityId,
-        amount: UsdCents,
-    },
-    ObligationCompleted {
-        id: ObligationId,
-        credit_facility_id: CreditFacilityId,
     },
     PartialLiquidationInitiated {
         liquidation_id: LiquidationId,

@@ -114,7 +114,7 @@ where
 
                 let facility_id: crate::primitives::CreditFacilityId = (*id).into();
                 let mut repayment_plan = self.repo.load(facility_id).await?;
-                repayment_plan.process_event(sequence, event, clock.now());
+                repayment_plan.process_credit_event(sequence, event, clock.now());
                 self.repo
                     .persist_in_tx(db, facility_id, repayment_plan)
                     .await?;
@@ -157,113 +157,32 @@ where
                 Span::current().record("event_type", event.as_ref());
 
                 let mut repayment_plan = self.repo.load(*id).await?;
-                repayment_plan.process_event(sequence, event, clock.now());
+                repayment_plan.process_credit_event(sequence, event, clock.now());
                 self.repo.persist_in_tx(db, *id, repayment_plan).await?;
             }
             _ => {}
         }
 
         if let Some(collection_event) = message.as_event::<CoreCreditCollectionEvent>() {
-            let credit_event = match collection_event {
-                CoreCreditCollectionEvent::PaymentAllocated {
-                    beneficiary_id,
-                    obligation_id,
-                    obligation_type,
-                    allocation_id,
-                    amount,
-                    recorded_at,
-                    effective,
-                } => Some((
-                    CoreCreditEvent::FacilityPaymentAllocated {
-                        credit_facility_id: (*beneficiary_id).into(),
-                        obligation_id: *obligation_id,
-                        obligation_type: *obligation_type,
-                        allocation_id: *allocation_id,
-                        amount: *amount,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                    },
-                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
-                )),
-                CoreCreditCollectionEvent::ObligationCreated {
-                    id,
-                    obligation_type,
-                    beneficiary_id,
-                    amount,
-                    due_at,
-                    overdue_at,
-                    defaulted_at,
-                    recorded_at,
-                    effective,
-                } => Some((
-                    CoreCreditEvent::ObligationCreated {
-                        id: *id,
-                        obligation_type: *obligation_type,
-                        credit_facility_id: (*beneficiary_id).into(),
-                        amount: *amount,
-                        due_at: *due_at,
-                        overdue_at: *overdue_at,
-                        defaulted_at: *defaulted_at,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                    },
-                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
-                )),
-                CoreCreditCollectionEvent::ObligationDue {
-                    id,
-                    beneficiary_id,
-                    obligation_type,
-                    amount,
-                } => Some((
-                    CoreCreditEvent::ObligationDue {
-                        id: *id,
-                        credit_facility_id: (*beneficiary_id).into(),
-                        obligation_type: *obligation_type,
-                        amount: *amount,
-                    },
-                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
-                )),
-                CoreCreditCollectionEvent::ObligationOverdue {
-                    id,
-                    beneficiary_id,
-                    amount,
-                } => Some((
-                    CoreCreditEvent::ObligationOverdue {
-                        id: *id,
-                        credit_facility_id: (*beneficiary_id).into(),
-                        amount: *amount,
-                    },
-                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
-                )),
-                CoreCreditCollectionEvent::ObligationDefaulted {
-                    id,
-                    beneficiary_id,
-                    amount,
-                } => Some((
-                    CoreCreditEvent::ObligationDefaulted {
-                        id: *id,
-                        credit_facility_id: (*beneficiary_id).into(),
-                        amount: *amount,
-                    },
-                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
-                )),
-                CoreCreditCollectionEvent::ObligationCompleted { id, beneficiary_id } => Some((
-                    CoreCreditEvent::ObligationCompleted {
-                        id: *id,
-                        credit_facility_id: (*beneficiary_id).into(),
-                    },
-                    crate::primitives::CreditFacilityId::from(*beneficiary_id),
-                )),
+            let facility_id = match collection_event {
+                CoreCreditCollectionEvent::PaymentAllocated { beneficiary_id, .. }
+                | CoreCreditCollectionEvent::ObligationCreated { beneficiary_id, .. }
+                | CoreCreditCollectionEvent::ObligationDue { beneficiary_id, .. }
+                | CoreCreditCollectionEvent::ObligationOverdue { beneficiary_id, .. }
+                | CoreCreditCollectionEvent::ObligationDefaulted { beneficiary_id, .. }
+                | CoreCreditCollectionEvent::ObligationCompleted { beneficiary_id, .. } => {
+                    Some(crate::primitives::CreditFacilityId::from(*beneficiary_id))
+                }
                 _ => None,
             };
 
-            if let Some((event, facility_id)) = credit_event {
+            if let Some(facility_id) = facility_id {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", collection_event.as_ref());
 
                 let mut repayment_plan = self.repo.load(facility_id).await?;
-                repayment_plan.process_event(sequence, &event, clock.now());
+                repayment_plan.process_collection_event(sequence, collection_event, clock.now());
                 self.repo
                     .persist_in_tx(db, facility_id, repayment_plan)
                     .await?;
