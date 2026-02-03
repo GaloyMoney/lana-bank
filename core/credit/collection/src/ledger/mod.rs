@@ -57,8 +57,11 @@ impl CollectionLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection.ledger.record_payment", skip(self, op, payment))]
-    pub async fn record_payment(
+    #[instrument(
+        name = "collection.ledger.record_payment_in_op",
+        skip(self, op, payment)
+    )]
+    pub async fn record_payment_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         payment @ Payment {
@@ -105,10 +108,10 @@ impl CollectionLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "collection.ledger.record_payment_allocations",
+        name = "collection.ledger.record_payment_allocations_in_op",
         skip(self, op, payments)
     )]
-    pub async fn record_payment_allocations(
+    pub async fn record_payment_allocations_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         payments: Vec<PaymentAllocation>,
@@ -122,8 +125,8 @@ impl CollectionLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection.ledger.record_obligation_due", skip(self, op))]
-    pub async fn record_obligation_due(
+    #[instrument(name = "collection.ledger.record_obligation_due_in_op", skip(self, op))]
+    pub async fn record_obligation_due_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         ObligationDueReallocationData {
@@ -155,8 +158,11 @@ impl CollectionLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection.ledger.record_obligation_overdue", skip(self, op))]
-    pub async fn record_obligation_overdue(
+    #[instrument(
+        name = "collection.ledger.record_obligation_overdue_in_op",
+        skip(self, op)
+    )]
+    pub async fn record_obligation_overdue_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         ObligationOverdueReallocationData {
@@ -188,8 +194,11 @@ impl CollectionLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection.ledger.record_obligation_defaulted", skip(self, op))]
-    pub async fn record_obligation_defaulted(
+    #[instrument(
+        name = "collection.ledger.record_obligation_defaulted_in_op",
+        skip(self, op)
+    )]
+    pub async fn record_obligation_defaulted_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         ObligationDefaultedReallocationData {

@@ -40,8 +40,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection.publisher.publish_payment", skip_all)]
-    pub async fn publish_payment(
+    #[instrument(name = "collection.publisher.publish_payment_in_op", skip_all)]
+    pub async fn publish_payment_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         _entity: &Payment,
@@ -72,8 +72,11 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection.publisher.publish_payment_allocation", skip_all)]
-    pub async fn publish_payment_allocation(
+    #[instrument(
+        name = "collection.publisher.publish_payment_allocation_in_op",
+        skip_all
+    )]
+    pub async fn publish_payment_allocation_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &PaymentAllocation,
@@ -107,8 +110,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection.publisher.publish_obligation", skip_all)]
-    pub async fn publish_obligation(
+    #[instrument(name = "collection.publisher.publish_obligation_in_op", skip_all)]
+    pub async fn publish_obligation_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Obligation,
