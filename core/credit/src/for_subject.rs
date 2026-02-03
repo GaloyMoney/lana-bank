@@ -9,7 +9,7 @@ use core_price::CorePriceEvent;
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
 
-use core_credit_collection::payment_allocation::PaymentAllocation;
+use core_credit_collection::{CoreCreditCollection, payment_allocation::PaymentAllocation};
 
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
@@ -24,7 +24,7 @@ where
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilities<Perms, E>,
-    obligations: &'a Obligations<Perms, E>,
+    collections: &'a CoreCreditCollection<Perms, E>,
     disbursals: &'a Disbursals<Perms, E>,
     histories: &'a Histories<Perms>,
     repayment_plans: &'a RepaymentPlans<Perms>,
@@ -53,7 +53,7 @@ where
         customer_id: CustomerId,
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilities<Perms, E>,
-        obligations: &'a Obligations<Perms, E>,
+        collections: &'a CoreCreditCollection<Perms, E>,
         disbursals: &'a Disbursals<Perms, E>,
         history: &'a Histories<Perms>,
         repayment_plans: &'a RepaymentPlans<Perms>,
@@ -64,7 +64,7 @@ where
             subject,
             authz,
             credit_facilities,
-            obligations,
+            collections,
             disbursals,
             histories: history,
             repayment_plans,
@@ -239,7 +239,8 @@ where
         payment_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
     ) -> Result<PaymentAllocation, CoreCreditError> {
         let allocation = self
-            .obligations
+            .collections
+            .obligations()
             .find_allocation_by_id_without_audit(payment_id.into())
             .await
             .map_err(core_credit_collection::CoreCreditCollectionError::from)?;

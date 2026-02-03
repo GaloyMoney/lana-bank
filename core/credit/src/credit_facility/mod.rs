@@ -25,7 +25,7 @@ use crate::{
     primitives::*,
 };
 
-use core_credit_collection::obligation::Obligations;
+use core_credit_collection::CoreCreditCollection;
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
@@ -52,7 +52,7 @@ where
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
-    obligations: Arc<Obligations<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
@@ -76,7 +76,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
-            obligations: self.obligations.clone(),
+            collections: self.collections.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             disbursals: self.disbursals.clone(),
             authz: self.authz.clone(),
@@ -115,7 +115,7 @@ where
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
-        obligations: Arc<Obligations<Perms, E>>,
+        collections: Arc<CoreCreditCollection<Perms, E>>,
         pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
         disbursals: Arc<Disbursals<Perms, E>>,
         ledger: Arc<CreditLedger>,
@@ -159,7 +159,7 @@ where
         let interest_accrual_job_spawner = jobs.add_initializer(
             jobs::interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
                 ledger.clone(),
-                obligations.clone(),
+                collections.clone(),
                 repo_arc.clone(),
                 authz.clone(),
             ),
@@ -167,7 +167,7 @@ where
 
         Ok(Self {
             repo: repo_arc,
-            obligations,
+            collections,
             pending_credit_facilities,
             disbursals,
             authz,

@@ -66,7 +66,7 @@ pub use processes::{
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 
-use core_credit_collection::payment::PaymentLedgerAccountIds;
+use core_credit_collection::{CoreCreditCollection, payment::PaymentLedgerAccountIds};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -97,7 +97,7 @@ where
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     facilities: Arc<CreditFacilities<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
-    payments: Arc<Payments<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     repayment_plans: Arc<RepaymentPlans<Perms>>,
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
@@ -110,7 +110,6 @@ where
     approve_proposal: Arc<ApproveCreditFacilityProposal<Perms, E>>,
     cala: Arc<CalaLedger>,
     activate_credit_facility: Arc<ActivateCreditFacility<Perms, E>>,
-    obligations: Arc<Obligations<Perms, E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
     custody: Arc<CoreCustody<Perms, E>>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
@@ -137,11 +136,10 @@ where
             credit_facility_proposals: self.credit_facility_proposals.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             facilities: self.facilities.clone(),
-            obligations: self.obligations.clone(),
+            collections: self.collections.clone(),
             collaterals: self.collaterals.clone(),
             custody: self.custody.clone(),
             disbursals: self.disbursals.clone(),
-            payments: self.payments.clone(),
             histories: self.histories.clone(),
             repayment_plans: self.repayment_plans.clone(),
             governance: self.governance.clone(),
@@ -228,32 +226,18 @@ where
         .await?;
         let collateral_ledger_arc = Arc::new(collateral_ledger);
 
-        let collections_ledger = core_credit_collection::CollectionLedger::init(
+        let collections = CoreCreditCollection::init(
+            pool,
+            authz_arc.clone(),
             cala,
             journal_id,
             ledger_arc.payments_made_omnibus_account_ids().account_id,
-        )
-        .await?;
-        let collections_ledger_arc = Arc::new(collections_ledger);
-
-        let obligations = Obligations::new(
-            pool,
-            authz_arc.clone(),
-            collections_ledger_arc.clone(),
             jobs,
             &collections_publisher,
             clock.clone(),
-        );
-        let obligations_arc = Arc::new(obligations);
-
-        let payments = Payments::new(
-            pool,
-            authz_arc.clone(),
-            collections_ledger_arc.clone(),
-            clock.clone(),
-            &collections_publisher,
-        );
-        let payments_arc = Arc::new(payments);
+        )
+        .await?;
+        let collections_arc = Arc::new(collections);
 
         let liquidations = Liquidations::init(pool, authz_arc.clone(), &publisher, clock.clone());
         let liquidations_arc = Arc::new(liquidations);
@@ -276,7 +260,7 @@ where
             outbox,
             jobs,
             ledger_arc.liquidation_proceeds_omnibus_account_ids(),
-            collections_ledger_arc.clone(),
+            collections_arc.clone(),
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);
@@ -302,7 +286,7 @@ where
             pool,
             authz_arc.clone(),
             &publisher,
-            obligations_arc.clone(),
+            collections_arc.clone(),
             governance_arc.clone(),
             clock.clone(),
         )
@@ -312,7 +296,7 @@ where
         let credit_facilities = CreditFacilities::init(
             pool,
             authz_arc.clone(),
-            obligations_arc.clone(),
+            collections_arc.clone(),
             pending_credit_facilities_arc.clone(),
             disbursals_arc.clone(),
             ledger_arc.clone(),
@@ -361,7 +345,7 @@ where
         let activate_credit_facility_arc = Arc::new(activate_credit_facility);
 
         let allocate_credit_facility_payment =
-            AllocateCreditFacilityPayment::new(payments_arc.clone(), obligations_arc.clone());
+            AllocateCreditFacilityPayment::new(collections_arc.clone());
         let allocate_credit_facility_payment_arc = Arc::new(allocate_credit_facility_payment);
 
         let allocate_payment_job_spawner =
@@ -421,11 +405,10 @@ where
             credit_facility_proposals: proposals_arc,
             pending_credit_facilities: pending_credit_facilities_arc,
             facilities: facilities_arc,
-            obligations: obligations_arc,
+            collections: collections_arc,
             collaterals: collaterals_arc,
             custody: custody_arc,
             disbursals: disbursals_arc,
-            payments: payments_arc,
             histories: histories_arc,
             repayment_plans: repayment_plans_arc,
             governance: governance_arc,
@@ -445,7 +428,11 @@ where
     }
 
     pub fn obligations(&self) -> &Obligations<Perms, E> {
-        self.obligations.as_ref()
+        self.collections.obligations()
+    }
+
+    pub fn collections(&self) -> &CoreCreditCollection<Perms, E> {
+        self.collections.as_ref()
     }
 
     pub fn collaterals(&self) -> &Collaterals<Perms, E> {
@@ -473,7 +460,7 @@ where
     }
 
     pub fn payments(&self) -> &Payments<Perms, E> {
-        self.payments.as_ref()
+        self.collections.payments()
     }
 
     pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms> {
@@ -518,7 +505,7 @@ where
             customer_id,
             &self.authz,
             &self.facilities,
-            &self.obligations,
+            &self.collections,
             &self.disbursals,
             &self.histories,
             &self.repayment_plans,
@@ -871,7 +858,8 @@ where
         let payment_id = PaymentId::new();
         let effective = self.clock.today();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
-        self.payments
+        self.collections
+            .payments()
             .record(
                 payment_id,
                 credit_facility_id.into(),
@@ -933,7 +921,8 @@ where
 
         let payment_id = PaymentId::new();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
-        self.payments
+        self.collections
+            .payments()
             .record(
                 payment_id,
                 credit_facility_id.into(),

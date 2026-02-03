@@ -14,8 +14,6 @@ pub enum CoreCreditError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreCreditError - CreditError: {0}")]
     CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
-    #[error("CoreCreditError - CollectionLedgerError: {0}")]
-    CollectionLedgerError(#[from] core_credit_collection::ledger::CollectionLedgerError),
     #[error("CoreCreditError - CoreCreditCollectionError: {0}")]
     CoreCreditCollectionError(#[from] core_credit_collection::CoreCreditCollectionError),
     #[error("CoreCreditError - ChartOfAccountsIntegrationError: {0}")]
@@ -82,7 +80,6 @@ impl ErrorSeverity for CoreCreditError {
             Self::CustomerError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::CreditLedgerError(e) => e.severity(),
-            Self::CollectionLedgerError(e) => e.severity(),
             Self::CoreCreditCollectionError(e) => e.severity(),
             Self::ChartOfAccountsIntegrationError(e) => e.severity(),
             Self::LedgerTransactionInitiatorParseError(e) => e.severity(),

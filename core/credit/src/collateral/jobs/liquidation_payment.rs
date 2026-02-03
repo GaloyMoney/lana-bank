@@ -13,7 +13,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use core_credit_collection::payment::{PaymentLedgerAccountIds, Payments};
+use core_credit_collection::{CoreCreditCollection, payment::PaymentLedgerAccountIds};
 
 use crate::{
     CoreCreditCollectionEvent,
@@ -50,7 +50,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     outbox: Outbox<E>,
-    payments: Payments<Perms, E>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
 }
 
@@ -61,12 +61,12 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        payments: Payments<Perms, E>,
+        collections: Arc<CoreCreditCollection<Perms, E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            payments,
+            collections,
             credit_facility_repo,
         }
     }
@@ -96,7 +96,7 @@ where
         Ok(Box::new(LiquidationPaymentJobRunner {
             config: job.config()?,
             outbox: self.outbox.clone(),
-            payments: self.payments.clone(),
+            collections: self.collections.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
         }))
     }
@@ -109,7 +109,7 @@ where
 {
     config: LiquidationPaymentJobConfig<E>,
     outbox: Outbox<E>,
-    payments: Payments<Perms, E>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
 }
 
@@ -181,7 +181,8 @@ where
                     payment_source_account_id: facility_proceeds_from_liquidation_account_id.into(),
                 };
 
-                self.payments
+                self.collections
+                    .payments()
                     .record_in_op(
                         db,
                         *payment_id,

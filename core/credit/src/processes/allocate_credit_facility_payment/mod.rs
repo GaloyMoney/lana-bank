@@ -7,12 +7,13 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
+use core_credit_collection::CoreCreditCollection;
 use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
-    CoreCreditCollectionObject, CoreCreditObject, Obligations, Payments, error::CoreCreditError,
-    event::CoreCreditEvent, primitives::PaymentId,
+    CoreCreditCollectionObject, CoreCreditObject, error::CoreCreditError, event::CoreCreditEvent,
+    primitives::PaymentId,
 };
 
 pub use job::*;
@@ -22,8 +23,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    payments: Arc<Payments<Perms, E>>,
-    obligations: Arc<Obligations<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
 }
 
 impl<Perms, E> Clone for AllocateCreditFacilityPayment<Perms, E>
@@ -33,8 +33,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            payments: self.payments.clone(),
-            obligations: self.obligations.clone(),
+            collections: self.collections.clone(),
         }
     }
 }
@@ -48,11 +47,8 @@ where
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub fn new(payments: Arc<Payments<Perms, E>>, obligations: Arc<Obligations<Perms, E>>) -> Self {
-        Self {
-            payments,
-            obligations,
-        }
+    pub fn new(collections: Arc<CoreCreditCollection<Perms, E>>) -> Self {
+        Self { collections }
     }
 
     #[instrument(
@@ -66,12 +62,14 @@ where
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CoreCreditError> {
         if let Some(payment) = self
-            .payments
+            .collections
+            .payments()
             .find_by_id(payment_id)
             .await
             .map_err(core_credit_collection::CoreCreditCollectionError::from)?
         {
-            self.obligations
+            self.collections
+                .obligations()
                 .allocate_payment_in_op(db, payment.into(), initiated_by)
                 .await
                 .map_err(core_credit_collection::CoreCreditCollectionError::from)?;

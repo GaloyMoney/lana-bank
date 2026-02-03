@@ -55,7 +55,7 @@ use crate::{
     ledger::*,
 };
 
-use core_credit_collection::obligation::Obligations;
+use core_credit_collection::CoreCreditCollection;
 
 /// State machine states for the interest accrual job.
 ///
@@ -111,7 +111,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     ledger: Arc<CreditLedger>,
-    obligations: Arc<Obligations<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     authz: Arc<Perms>,
 }
@@ -135,13 +135,13 @@ where
 {
     pub fn new(
         ledger: Arc<CreditLedger>,
-        obligations: Arc<Obligations<Perms, E>>,
+        collections: Arc<CoreCreditCollection<Perms, E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         authz: Arc<Perms>,
     ) -> Self {
         Self {
             ledger,
-            obligations,
+            collections,
             credit_facility_repo,
             authz,
         }
@@ -179,7 +179,7 @@ where
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(InterestAccrualJobRunner::<Perms, E> {
             config: job.config()?,
-            obligations: self.obligations.clone(),
+            collections: self.collections.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
             spawner,
@@ -198,7 +198,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     config: InterestAccrualJobConfig<Perms, E>,
-    obligations: Arc<Obligations<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ledger: Arc<CreditLedger>,
     spawner: InterestAccrualJobSpawner<Perms, E>,
@@ -383,7 +383,8 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let obligations_synced = self
-            .obligations
+            .collections
+            .obligations()
             .check_beneficiary_obligations_status_updated(self.config.credit_facility_id.into())
             .await?;
 
@@ -503,7 +504,8 @@ where
         };
 
         if let Some(new_obligation) = new_obligation {
-            self.obligations
+            self.collections
+                .obligations()
                 .create_with_jobs_in_op(db, new_obligation)
                 .await?;
         };

@@ -14,7 +14,7 @@ use obix::out::OutboxEventMarker;
 
 use crate::{event::CoreCreditEvent, primitives::*};
 
-use core_credit_collection::obligation::{Obligation, Obligations};
+use core_credit_collection::{CoreCreditCollection, Obligation};
 
 pub(super) use entity::*;
 use error::DisbursalError;
@@ -35,7 +35,7 @@ where
 {
     repo: Arc<DisbursalRepo<E>>,
     authz: Arc<Perms>,
-    obligations: Arc<Obligations<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     governance: Arc<Governance<Perms, E>>,
 }
 
@@ -51,7 +51,7 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
-            obligations: self.obligations.clone(),
+            collections: self.collections.clone(),
         }
     }
 }
@@ -77,7 +77,7 @@ where
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
-        obligations: Arc<Obligations<Perms, E>>,
+        collections: Arc<CoreCreditCollection<Perms, E>>,
         governance: Arc<Governance<Perms, E>>,
         clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, DisbursalError> {
@@ -88,7 +88,7 @@ where
         Ok(Self {
             repo: Arc::new(DisbursalRepo::new(pool, publisher, clock)),
             authz,
-            obligations,
+            collections,
             governance,
         })
     }
@@ -132,7 +132,8 @@ where
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
-        self.obligations
+        self.collections
+            .obligations()
             .create_with_jobs_in_op(db, new_obligation)
             .await?;
 
@@ -230,7 +231,8 @@ where
             }
             es_entity::Idempotent::Executed(Some(new_obligation)) => {
                 let obligation = self
-                    .obligations
+                    .collections
+                    .obligations()
                     .create_with_jobs_in_op(op, new_obligation)
                     .await?;
                 self.repo.update_in_op(op, &mut disbursal).await?;

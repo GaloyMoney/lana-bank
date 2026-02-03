@@ -96,7 +96,7 @@ where
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
         proceeds_omnibus_account_ids: &crate::LedgerOmnibusAccountIds,
-        collections_ledger: Arc<core_credit_collection::CollectionLedger>,
+        collections: Arc<core_credit_collection::CoreCreditCollection<Perms, E>>,
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
         let repo_arc = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
@@ -120,14 +120,6 @@ where
             publisher,
             clock.clone(),
         ));
-        let collections_publisher = core_credit_collection::CollectionPublisher::new(outbox);
-        let payments = core_credit_collection::payment::Payments::new(
-            pool,
-            authz.clone(),
-            collections_ledger,
-            clock.clone(),
-            &collections_publisher,
-        );
         let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
             pool,
             publisher,
@@ -144,7 +136,7 @@ where
         let liquidation_payment_job_spawner =
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
-                payments,
+                collections,
                 credit_facility_repo,
             ));
 
