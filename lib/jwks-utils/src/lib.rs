@@ -117,7 +117,7 @@ impl RemoteJwksDecoder {
             }
         }
 
-        Err(err.unwrap())
+        Err(err.expect("error should be set after all retries failed"))
     }
 
     async fn refresh_keys_once(&self) -> Result<(), JwksError> {
@@ -129,7 +129,7 @@ impl RemoteJwksDecoder {
             .json::<JwkSet>()
             .await?;
 
-        let mut jwks_cache = self.keys_cache.write().unwrap();
+        let mut jwks_cache = self.keys_cache.write().expect("JWKS cache RwLock poisoned");
         *jwks_cache = jwks
             .keys
             .iter()
@@ -174,7 +174,7 @@ where
         let header = jsonwebtoken::decode_header(token)?;
         let target_kid = header.kid;
 
-        let jwks_cache = self.keys_cache.read().unwrap();
+        let jwks_cache = self.keys_cache.read().expect("JWKS cache RwLock poisoned");
 
         // Try to find the key in the cache by kid
         let jwk = jwks_cache.iter().find(|(kid, _)| kid == &target_kid);

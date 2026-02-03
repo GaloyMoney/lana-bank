@@ -489,7 +489,7 @@ impl CreditFacility {
         let (idx, new_obligation) = {
             let accrual = self
                 .interest_accrual_cycle_in_progress_mut()
-                .unwrap()
+                .expect("interest_accrual_cycle_in_progress_mut returned None - no accrual cycle exists")
                 .expect("accrual not found");
 
             (

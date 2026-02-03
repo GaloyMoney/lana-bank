@@ -145,7 +145,11 @@ where
         for (name, sets) in predefined_roles {
             let sets = sets
                 .iter()
-                .map(|set| all_permission_sets.get(*set).unwrap())
+                .map(|set| {
+                    all_permission_sets
+                        .get(*set)
+                        .expect("predefined permission set should exist")
+                })
                 .copied()
                 .collect::<HashSet<_>>();
 

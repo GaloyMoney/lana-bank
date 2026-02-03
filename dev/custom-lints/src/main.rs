@@ -7,6 +7,7 @@ use walkdir::WalkDir;
 
 use custom_lints::rules::{
     DbOpConventionRule, DependencyDagRule, EntityMutateIdempotentRule, TransactionCommitRule,
+    UnwrapUsageRule,
 };
 use custom_lints::{LintRule, Violation, WorkspaceRule};
 
@@ -53,6 +54,7 @@ fn run() -> Result<(Vec<Violation>, String)> {
         Box::new(TransactionCommitRule::new()),
         Box::new(DbOpConventionRule::new()),
         Box::new(EntityMutateIdempotentRule::new()),
+        Box::new(UnwrapUsageRule::new()),
     ];
 
     if !file_rules.is_empty() {

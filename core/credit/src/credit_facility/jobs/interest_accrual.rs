@@ -328,7 +328,7 @@ where
 
             let accrual = credit_facility
                 .interest_accrual_cycle_in_progress_mut()
-                .unwrap()
+                .expect("interest_accrual_cycle_in_progress_mut returned None - no accrual cycle exists")
                 .expect("Accrual in progress should exist for scheduled job");
 
             let interest_accrual = match accrual.record_accrual(balances.disbursed_outstanding()) {

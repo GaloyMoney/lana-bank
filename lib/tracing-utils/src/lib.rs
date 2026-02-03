@@ -97,9 +97,13 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     // Build separate filter for OTEL that excludes tokio/runtime
     let otel_filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info,sqlx=debug"))
-        .unwrap()
-        .add_directive("tokio=off".parse().unwrap())
-        .add_directive("runtime=off".parse().unwrap());
+        .expect("default EnvFilter should be valid")
+        .add_directive("tokio=off".parse().expect("tokio=off directive is valid"))
+        .add_directive(
+            "runtime=off"
+                .parse()
+                .expect("runtime=off directive is valid"),
+        );
 
     let telemetry = tracing_opentelemetry::layer()
         .with_tracer(tracer)
@@ -108,17 +112,21 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     // Build separate filter for fmt_layer that excludes tokio/runtime/sqlx from stdout
     let fmt_filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info"))
-        .unwrap()
-        .add_directive("tokio=off".parse().unwrap())
-        .add_directive("runtime=off".parse().unwrap())
-        .add_directive("sqlx=off".parse().unwrap());
+        .expect("default EnvFilter should be valid")
+        .add_directive("tokio=off".parse().expect("tokio=off directive is valid"))
+        .add_directive(
+            "runtime=off"
+                .parse()
+                .expect("runtime=off directive is valid"),
+        )
+        .add_directive("sqlx=off".parse().expect("sqlx=off directive is valid"));
 
     let fmt_layer = fmt::layer().compact().with_filter(fmt_filter);
 
     #[cfg_attr(not(tokio_unstable), allow(unused_mut))]
     let mut base_filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info,sqlx=debug"))
-        .unwrap();
+        .expect("default EnvFilter should be valid");
 
     // If tokio-console is enabled AND tokio_unstable is available,
     // ensure tokio and runtime traces are at TRACE level
@@ -126,8 +134,16 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     #[cfg(tokio_unstable)]
     if enable_tokio_console {
         base_filter = base_filter
-            .add_directive("tokio=trace".parse().unwrap())
-            .add_directive("runtime=trace".parse().unwrap());
+            .add_directive(
+                "tokio=trace"
+                    .parse()
+                    .expect("tokio=trace directive is valid"),
+            )
+            .add_directive(
+                "runtime=trace"
+                    .parse()
+                    .expect("runtime=trace directive is valid"),
+            );
     }
 
     let registry = tracing_subscriber::registry()
