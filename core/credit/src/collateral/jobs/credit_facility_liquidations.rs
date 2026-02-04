@@ -20,10 +20,8 @@ use super::{
 };
 use crate::{
     CoreCreditEvent, LedgerOmnibusAccountIds,
-    collateral::{
-        LiquidationProceedsAccountIds, error::CollateralError, liquidation::NewLiquidation,
-    },
-    primitives::CreditFacilityId,
+    collateral::{LiquidationProceedsAccountIds, error::CollateralError},
+    primitives::*,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -180,7 +178,6 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(
             event @ CoreCreditEvent::PartialLiquidationInitiated {
-                liquidation_id,
                 credit_facility_id,
                 collateral_id,
                 trigger_price,
@@ -196,15 +193,6 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
-            let new_liquidation = NewLiquidation::builder()
-                .id(*liquidation_id)
-                .collateral_id(*collateral_id)
-                .trigger_price(*trigger_price)
-                .initially_expected_to_receive(*initially_expected_to_receive)
-                .initially_estimated_to_liquidate(*initially_estimated_to_liquidate)
-                .build()
-                .expect("Could not build new liquidation");
-
             let account_ids = LiquidationProceedsAccountIds {
                 liquidation_proceeds_omnibus_account_id: self
                     .proceeds_omnibus_account_ids
@@ -214,32 +202,45 @@ where
                 liquidated_collateral_account_id: *liquidated_collateral_account_id,
             };
 
-            self.create_if_not_exist_in_op(db, new_liquidation, account_ids, *credit_facility_id)
-                .await?;
+            self.create_if_not_exist_in_op(
+                db,
+                *collateral_id,
+                *trigger_price,
+                *initially_expected_to_receive,
+                *initially_estimated_to_liquidate,
+                account_ids,
+                *credit_facility_id,
+            )
+            .await?;
         }
         Ok(())
     }
 
     #[instrument(
         name = "credit.liquidation.create_if_not_exist_in_op",
-        skip(self, db, new_liquidation, account_ids),
+        skip(self, db, account_ids),
         fields(existing_liquidation_found),
         err
     )]
     pub async fn create_if_not_exist_in_op(
         &self,
         db: &mut DbOp<'_>,
-        new_liquidation: NewLiquidation,
+        collateral_id: CollateralId,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
         account_ids: LiquidationProceedsAccountIds,
         credit_facility_id: CreditFacilityId,
     ) -> Result<(), CollateralError> {
-        let collateral_id = new_liquidation.collateral_id;
-
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
-        let liquidation_id = if let Idempotent::Executed(id) =
-            collateral.record_liquidation_started(new_liquidation, account_ids)?
-        {
+        let liquidation_id = if let Idempotent::Executed(id) = collateral
+            .record_liquidation_started(
+                trigger_price,
+                initially_expected_to_receive,
+                initially_estimated_to_liquidate,
+                account_ids,
+            ) {
             id
         } else {
             return Ok(());
