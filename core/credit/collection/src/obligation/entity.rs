@@ -11,7 +11,7 @@ use crate::{payment_allocation::NewPaymentAllocation, primitives::*};
 
 use super::error::ObligationError;
 
-pub struct ObligationDueReallocationData {
+pub(crate) struct ObligationDueReallocationData {
     pub tx_id: LedgerTxId,
     pub amount: UsdCents,
     pub not_yet_due_account_id: CalaAccountId,
@@ -19,7 +19,7 @@ pub struct ObligationDueReallocationData {
     pub effective: chrono::NaiveDate,
 }
 
-pub struct ObligationOverdueReallocationData {
+pub(crate) struct ObligationOverdueReallocationData {
     pub tx_id: LedgerTxId,
     pub amount: UsdCents,
     pub due_account_id: CalaAccountId,
@@ -27,7 +27,7 @@ pub struct ObligationOverdueReallocationData {
     pub effective: chrono::NaiveDate,
 }
 
-pub struct ObligationDefaultedReallocationData {
+pub(crate) struct ObligationDefaultedReallocationData {
     pub tx_id: LedgerTxId,
     pub amount: UsdCents,
     pub receivable_account_id: CalaAccountId,

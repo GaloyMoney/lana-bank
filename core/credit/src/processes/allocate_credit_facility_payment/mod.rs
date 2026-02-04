@@ -61,18 +61,11 @@ where
         payment_id: PaymentId,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CoreCreditError> {
-        if let Some(payment) = self
-            .collections
-            .payments()
-            .find_by_id(payment_id)
-            .await
-            .map_err(core_credit_collection::CoreCreditCollectionError::from)?
-        {
+        if let Some(payment) = self.collections.payments().find_by_id(payment_id).await? {
             self.collections
                 .obligations()
                 .allocate_payment_in_op(db, payment.into(), initiated_by)
-                .await
-                .map_err(core_credit_collection::CoreCreditCollectionError::from)?;
+                .await?;
         }
         Ok(())
     }

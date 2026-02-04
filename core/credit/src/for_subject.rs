@@ -242,8 +242,7 @@ where
             .collections
             .obligations()
             .find_allocation_by_id_without_audit(payment_id.into())
-            .await
-            .map_err(core_credit_collection::CoreCreditCollectionError::from)?;
+            .await?;
 
         let credit_facility = self
             .credit_facilities

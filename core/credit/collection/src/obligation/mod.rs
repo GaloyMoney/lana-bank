@@ -26,10 +26,10 @@ pub use entity::Obligation;
 use jobs::{obligation_defaulted, obligation_due, obligation_overdue};
 
 pub use entity::NewObligation;
-pub use entity::ObligationDefaultedReallocationData;
-pub use entity::ObligationDueReallocationData;
+pub(crate) use entity::ObligationDefaultedReallocationData;
+pub(crate) use entity::ObligationDueReallocationData;
 pub use entity::ObligationEvent;
-pub use entity::ObligationOverdueReallocationData;
+pub(crate) use entity::ObligationOverdueReallocationData;
 use error::ObligationError;
 pub(crate) use repo::ObligationRepo;
 pub use repo::obligation_cursor;

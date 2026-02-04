@@ -9,6 +9,9 @@ pub mod payment_allocation;
 pub mod primitives;
 pub mod publisher;
 
+#[cfg(feature = "json-schema")]
+pub use obligation::ObligationEvent;
+
 use std::sync::Arc;
 
 use audit::AuditSvc;
@@ -103,6 +106,3 @@ where
         self.payments.as_ref()
     }
 }
-
-#[cfg(feature = "json-schema")]
-pub use obligation::ObligationEvent;

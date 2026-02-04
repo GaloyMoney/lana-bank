@@ -13,7 +13,10 @@ use core_price::CorePriceEvent;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject};
+use crate::{
+    CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
+    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
+};
 
 use super::ApproveDisbursal;
 
@@ -57,11 +60,11 @@ impl<Perms, E> DisbursalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
+        + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
+        + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
@@ -83,11 +86,11 @@ impl<Perms, E> JobInitializer for DisbursalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
+        + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
+        + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
@@ -139,11 +142,11 @@ impl<Perms, E> DisbursalApprovalJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
+        + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
+        + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
@@ -180,11 +183,11 @@ impl<Perms, E> JobRunner for DisbursalApprovalJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
+        + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
+        + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>

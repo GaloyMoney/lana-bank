@@ -16,6 +16,14 @@ pub enum CoreCreditError {
     CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
     #[error("CoreCreditError - CoreCreditCollectionError: {0}")]
     CoreCreditCollectionError(#[from] core_credit_collection::CoreCreditCollectionError),
+    #[error("CoreCreditError - ObligationError: {0}")]
+    ObligationError(#[from] core_credit_collection::obligation::error::ObligationError),
+    #[error("CoreCreditError - PaymentError: {0}")]
+    PaymentError(#[from] core_credit_collection::payment::error::PaymentError),
+    #[error("CoreCreditError - PaymentAllocationError: {0}")]
+    PaymentAllocationError(
+        #[from] core_credit_collection::payment_allocation::error::PaymentAllocationError,
+    ),
     #[error("CoreCreditError - ChartOfAccountsIntegrationError: {0}")]
     ChartOfAccountsIntegrationError(
         #[from] super::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,
@@ -81,6 +89,9 @@ impl ErrorSeverity for CoreCreditError {
             Self::AuthorizationError(e) => e.severity(),
             Self::CreditLedgerError(e) => e.severity(),
             Self::CoreCreditCollectionError(e) => e.severity(),
+            Self::ObligationError(e) => e.severity(),
+            Self::PaymentError(e) => e.severity(),
+            Self::PaymentAllocationError(e) => e.severity(),
             Self::ChartOfAccountsIntegrationError(e) => e.severity(),
             Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
             Self::CreditFacilityProposalError(e) => e.severity(),

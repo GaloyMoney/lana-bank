@@ -9,7 +9,7 @@ use cala_ledger::{
 
 use crate::primitives::CalaAccountId;
 
-use super::super::error::CollectionLedgerError;
+use crate::ledger::error::CollectionLedgerError;
 
 pub const RECORD_PAYMENT_ALLOCATION_CODE: &str = "RECORD_PAYMENT_ALLOCATION";
 

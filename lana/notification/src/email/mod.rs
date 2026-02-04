@@ -89,6 +89,7 @@ where
     ) -> Result<(), EmailError> {
         let obligation = self
             .credit
+            .collections()
             .obligations()
             .find_by_id_without_audit(*obligation_id)
             .await?;

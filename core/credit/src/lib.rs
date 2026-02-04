@@ -69,16 +69,18 @@ pub use repayment_plan::*;
 use core_credit_collection::{CoreCreditCollection, payment::PaymentLedgerAccountIds};
 
 #[cfg(feature = "json-schema")]
+pub use core_credit_collection::{
+    obligation::ObligationEvent, payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
+};
+
+#[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::{
-        collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
+        ObligationEvent, PaymentAllocationEvent, PaymentEvent, collateral::CollateralEvent,
+        credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
         interest_accrual_cycle::InterestAccrualCycleEvent, liquidation::LiquidationEvent,
         pending_credit_facility::PendingCreditFacilityEvent,
-    };
-    pub use core_credit_collection::{
-        obligation::ObligationEvent, payment::PaymentEvent,
-        payment_allocation::PaymentAllocationEvent,
     };
 }
 
@@ -427,10 +429,6 @@ where
         })
     }
 
-    pub fn obligations(&self) -> &Obligations<Perms, E> {
-        self.collections.obligations()
-    }
-
     pub fn collections(&self) -> &CoreCreditCollection<Perms, E> {
         self.collections.as_ref()
     }
@@ -457,10 +455,6 @@ where
 
     pub fn facilities(&self) -> &CreditFacilities<Perms, E> {
         self.facilities.as_ref()
-    }
-
-    pub fn payments(&self) -> &Payments<Perms, E> {
-        self.collections.payments()
     }
 
     pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms> {
@@ -874,8 +868,7 @@ where
                 effective,
                 initiated_by,
             )
-            .await
-            .map_err(core_credit_collection::CoreCreditCollectionError::from)?;
+            .await?;
 
         Ok(credit_facility)
     }
@@ -937,8 +930,7 @@ where
                 effective.into(),
                 initiated_by,
             )
-            .await
-            .map_err(core_credit_collection::CoreCreditCollectionError::from)?;
+            .await?;
 
         Ok(credit_facility)
     }
