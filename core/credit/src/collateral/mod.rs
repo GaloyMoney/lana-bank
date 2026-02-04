@@ -133,13 +133,14 @@ where
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
                 collections,
-                credit_facility_repo,
+                credit_facility_repo.clone(),
             ));
 
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(
             credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
+                credit_facility_repo,
                 proceeds_omnibus_account_ids,
                 partial_liquidation_job_spawner,
                 liquidation_payment_job_spawner,

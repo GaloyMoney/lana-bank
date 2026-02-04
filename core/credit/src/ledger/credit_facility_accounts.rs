@@ -23,14 +23,6 @@ pub struct CreditFacilityLedgerAccountIds {
     /// Holds BTC collateral for this credit facility.
     pub collateral_account_id: CalaAccountId,
 
-    /// Holds BTC collateral for this credit facility, that is being
-    /// liquidated.
-    pub collateral_in_liquidation_account_id: CalaAccountId,
-
-    /// Holds BTC collateral for this credit facility, that has
-    /// already been liquidated.
-    pub liquidated_collateral_account_id: CalaAccountId,
-
     /// Holds funds received from liquidation.
     pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
 
@@ -59,8 +51,6 @@ impl CreditFacilityLedgerAccountIds {
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
             disbursed_defaulted_account_id: CalaAccountId::new(),
             collateral_account_id: CalaAccountId::new(),
-            collateral_in_liquidation_account_id: CalaAccountId::new(),
-            liquidated_collateral_account_id: CalaAccountId::new(),
             proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId::new(),
             interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
             interest_receivable_due_account_id: CalaAccountId::new(),
@@ -95,8 +85,6 @@ impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
             disbursed_defaulted_account_id: CalaAccountId::new(),
-            collateral_in_liquidation_account_id: CalaAccountId::new(),
-            liquidated_collateral_account_id: CalaAccountId::new(),
             interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
             interest_receivable_due_account_id: CalaAccountId::new(),
             interest_receivable_overdue_account_id: CalaAccountId::new(),

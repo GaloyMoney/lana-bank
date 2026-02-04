@@ -20,10 +20,9 @@ use super::{
 };
 use crate::{
     CoreCreditEvent, LedgerOmnibusAccountIds,
-    collateral::{
-        error::CollateralError,
-        liquidation::{NewLiquidation, NewLiquidationBuilder},
-    },
+    collateral::{error::CollateralError, liquidation::NewLiquidation},
+    credit_facility::CreditFacilityRepo,
+    primitives::LiquidationId,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -44,6 +43,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
+    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
@@ -58,6 +58,7 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         repo: Arc<CollateralRepo<E>>,
+        credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
@@ -65,6 +66,7 @@ where
         Self {
             outbox: outbox.clone(),
             repo,
+            credit_facility_repo,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
             partial_liquidation_job_spawner,
             liquidation_payment_job_spawner,
@@ -93,6 +95,7 @@ where
         Ok(Box::new(CreditFacilityLiquidationsJobRunner::<E> {
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
+            credit_facility_repo: self.credit_facility_repo.clone(),
             proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
             partial_liquidation_job_spawner: self.partial_liquidation_job_spawner.clone(),
             liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
@@ -108,6 +111,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
+    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
@@ -180,18 +184,11 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(
             event @ CoreCreditEvent::PartialLiquidationInitiated {
-                liquidation_id,
                 credit_facility_id,
                 collateral_id,
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
-                collateral_account_id,
-                collateral_in_liquidation_account_id,
-                liquidated_collateral_account_id,
-                proceeds_from_liquidation_account_id,
-                payment_holding_account_id,
-                uncovered_outstanding_account_id,
                 ..
             },
         ) = message.as_event()
@@ -199,48 +196,66 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
-            self.create_if_not_exist_in_op(
-                db,
-                NewLiquidation::builder()
-                    .id(*liquidation_id)
-                    .credit_facility_id(*credit_facility_id)
-                    .collateral_id(*collateral_id)
-                    .facility_proceeds_from_liquidation_account_id(
-                        *proceeds_from_liquidation_account_id,
-                    )
-                    .facility_payment_holding_account_id(*payment_holding_account_id)
-                    .collateral_account_id(*collateral_account_id)
-                    .facility_uncovered_outstanding_account_id(*uncovered_outstanding_account_id)
-                    .collateral_in_liquidation_account_id(*collateral_in_liquidation_account_id)
-                    .liquidated_collateral_account_id(*liquidated_collateral_account_id)
-                    .trigger_price(*trigger_price)
-                    .initially_expected_to_receive(*initially_expected_to_receive)
-                    .initially_estimated_to_liquidate(*initially_estimated_to_liquidate),
-            )
-            .await?;
+            // Fetch Collateral to get account IDs
+            let collateral = self.repo.find_by_id_in_op(&mut *db, *collateral_id).await?;
+            let collateral_account_id = collateral.account_ids.collateral_account_id;
+            let collateral_in_liquidation_account_id =
+                collateral.account_ids.collateral_in_liquidation_account_id;
+            let liquidated_collateral_account_id =
+                collateral.account_ids.liquidated_collateral_account_id;
+
+            // Fetch CreditFacility to get facility account IDs
+            let credit_facility = self
+                .credit_facility_repo
+                .find_by_id_in_op(&mut *db, *credit_facility_id)
+                .await?;
+            let proceeds_from_liquidation_account_id = credit_facility
+                .account_ids
+                .proceeds_from_liquidation_account_id;
+            let payment_holding_account_id = credit_facility.account_ids.payment_holding_account_id;
+            let uncovered_outstanding_account_id =
+                credit_facility.account_ids.uncovered_outstanding_account_id;
+
+            // Generate a new liquidation ID
+            let liquidation_id = LiquidationId::new();
+
+            let new_liquidation = NewLiquidation::builder()
+                .id(liquidation_id)
+                .credit_facility_id(*credit_facility_id)
+                .collateral_id(*collateral_id)
+                .facility_proceeds_from_liquidation_account_id(proceeds_from_liquidation_account_id)
+                .facility_payment_holding_account_id(payment_holding_account_id)
+                .collateral_account_id(collateral_account_id)
+                .facility_uncovered_outstanding_account_id(uncovered_outstanding_account_id)
+                .collateral_in_liquidation_account_id(collateral_in_liquidation_account_id)
+                .liquidated_collateral_account_id(liquidated_collateral_account_id)
+                .trigger_price(*trigger_price)
+                .initially_expected_to_receive(*initially_expected_to_receive)
+                .initially_estimated_to_liquidate(*initially_estimated_to_liquidate)
+                .liquidation_proceeds_omnibus_account_id(
+                    self.proceeds_omnibus_account_ids.account_id,
+                )
+                .build()
+                .expect("Could not build new liquidation");
+
+            self.create_if_not_exist_in_op(db, new_liquidation).await?;
         }
         Ok(())
     }
 
     #[instrument(
         name = "credit.liquidation.create_if_not_exist_in_op",
-        skip(self, db, new_liquidation_builder),
+        skip(self, db, new_liquidation),
         fields(existing_liquidation_found),
         err
     )]
     pub async fn create_if_not_exist_in_op(
         &self,
         db: &mut DbOp<'_>,
-        new_liquidation_builder: &mut NewLiquidationBuilder,
+        new_liquidation: NewLiquidation,
     ) -> Result<(), CollateralError> {
-        let new_liquidation @ NewLiquidation {
-            collateral_id,
-            credit_facility_id,
-            ..
-        } = new_liquidation_builder
-            .liquidation_proceeds_omnibus_account_id(self.proceeds_omnibus_account_ids.account_id)
-            .build()
-            .expect("Could not build new liquidation");
+        let collateral_id = new_liquidation.collateral_id;
+        let credit_facility_id = new_liquidation.credit_facility_id;
 
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 

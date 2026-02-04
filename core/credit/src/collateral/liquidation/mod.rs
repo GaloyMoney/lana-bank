@@ -9,7 +9,6 @@ use core_money::{Satoshis, UsdCents};
 
 use crate::primitives::LedgerTxId;
 
-pub use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 pub use error::LiquidationError;
 
