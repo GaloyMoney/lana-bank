@@ -183,7 +183,7 @@ impl FromStr for LanaAction {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::AuditEntityAction;
+    use crate::AuditEntryAction;
 
     fn test_to_and_from_string(action: LanaAction, result: &str) -> anyhow::Result<()> {
         let action_str = action.to_string();
@@ -198,7 +198,7 @@ mod test {
     #[test]
     fn action_serialization() -> anyhow::Result<()> {
         test_to_and_from_string(
-            LanaAction::Audit(AuditAction::from(AuditEntityAction::List)),
+            LanaAction::Audit(AuditAction::from(AuditEntryAction::List)),
             "audit:audit:list",
         )?;
 

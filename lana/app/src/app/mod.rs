@@ -8,7 +8,7 @@ use tracing_macros::record_error_severity;
 
 use authz::PermissionCheck;
 
-use rbac_types::{AuditAction, AuditEntityAction, AuditObject};
+use rbac_types::{AuditAction, AuditEntryAction, AuditObject};
 
 use crate::{
     access::Access,
@@ -336,7 +336,7 @@ impl LanaApp {
             .enforce_permission(
                 sub,
                 AuditObject::all_audits(),
-                AuditAction::from(AuditEntityAction::List),
+                AuditAction::from(AuditEntryAction::List),
             )
             .await?;
 
@@ -364,7 +364,7 @@ impl LanaApp {
             .enforce_permission(
                 sub,
                 AuditObject::all_audits(),
-                AuditAction::from(AuditEntityAction::List),
+                AuditAction::from(AuditEntryAction::List),
             )
             .await?;
 
