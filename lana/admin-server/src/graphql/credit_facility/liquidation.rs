@@ -10,6 +10,7 @@ use super::Collateral;
 pub struct Liquidation {
     id: ID,
     liquidation_id: UUID,
+    collateral_id: UUID,
     expected_to_receive: UsdCents,
     sent_total: Satoshis,
     amount_received: UsdCents,
@@ -25,6 +26,7 @@ impl From<DomainLiquidation> for Liquidation {
         Self {
             id: liquidation.id.to_global_id(),
             liquidation_id: UUID::from(liquidation.id),
+            collateral_id: UUID::from(liquidation.collateral_id),
             expected_to_receive: liquidation.expected_to_receive,
             sent_total: liquidation.sent_total,
             amount_received: liquidation.amount_received,
