@@ -40,7 +40,9 @@ impl DomainConfig {
     where
         C: ConfigSpec,
     {
-        self.ensure::<C>().ok()?;
+        if !self.is_compatible::<C>() {
+            return None;
+        }
         let value = self.current_json_value();
         if value.is_null() {
             return None;
@@ -55,7 +57,23 @@ impl DomainConfig {
     where
         C: ConfigSpec,
     {
-        self.ensure::<C>()?;
+        if !self.is_compatible::<C>() {
+            let expected_type = <C::Kind as ValueKind>::TYPE;
+            if self.config_type != expected_type {
+                return Err(DomainConfigError::InvalidType(format!(
+                    "Invalid config type for {key}: expected {expected}, found {found}",
+                    key = self.key,
+                    expected = expected_type,
+                    found = self.config_type
+                )));
+            }
+            return Err(DomainConfigError::InvalidType(format!(
+                "Invalid visibility for {key}: expected {expected}, found {found}",
+                key = self.key,
+                expected = C::VISIBILITY,
+                found = self.visibility
+            )));
+        }
         C::validate(&new_value)?;
 
         let value_json = <C::Kind as ValueKind>::encode(&new_value)?;
@@ -145,27 +163,17 @@ impl DomainConfig {
         value.unwrap_or(&NULL_JSON_VALUE)
     }
 
-    pub(super) fn ensure<C: ConfigSpec>(&self) -> Result<(), DomainConfigError> {
+    pub(super) fn is_compatible<C: ConfigSpec>(&self) -> bool {
         let expected_type = <C::Kind as ValueKind>::TYPE;
         if self.config_type != expected_type {
-            return Err(DomainConfigError::InvalidType(format!(
-                "Invalid config type for {key}: expected {expected}, found {found}",
-                key = self.key,
-                expected = expected_type,
-                found = self.config_type
-            )));
+            return false;
         }
 
         if self.visibility != C::VISIBILITY {
-            return Err(DomainConfigError::InvalidType(format!(
-                "Invalid visibility for {key}: expected {expected}, found {found}",
-                key = self.key,
-                expected = C::VISIBILITY,
-                found = self.visibility
-            )));
+            return false;
         }
 
-        Ok(())
+        true
     }
 }
 
