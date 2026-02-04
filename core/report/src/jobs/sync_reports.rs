@@ -183,9 +183,10 @@ where
 
         let run_id = match existing {
             Ok(mut report_run) => {
-                if report_run.state != state {
-                    report_run.update_state(state, run_type, run_result.start_time);
-
+                if report_run
+                    .update_state(state, run_type, run_result.start_time)
+                    .did_execute()
+                {
                     let mut db = self.report_runs.begin_op().await?;
                     self.report_runs
                         .update_in_op(&mut db, &mut report_run)
