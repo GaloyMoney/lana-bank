@@ -319,3 +319,121 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
+
+    fn default_new_liquidation() -> NewLiquidation {
+        NewLiquidation::builder()
+            .id(LiquidationId::new())
+            .credit_facility_id(CreditFacilityId::new())
+            .collateral_id(CollateralId::new())
+            .liquidation_proceeds_omnibus_account_id(CalaAccountId::new())
+            .facility_proceeds_from_liquidation_account_id(
+                FacilityProceedsFromLiquidationAccountId::new(),
+            )
+            .facility_payment_holding_account_id(CalaAccountId::new())
+            .facility_uncovered_outstanding_account_id(CalaAccountId::new())
+            .collateral_account_id(CalaAccountId::new())
+            .collateral_in_liquidation_account_id(CalaAccountId::new())
+            .liquidated_collateral_account_id(CalaAccountId::new())
+            .trigger_price(PriceOfOneBTC::new(UsdCents::from(5000000)))
+            .initially_expected_to_receive(UsdCents::from(1000))
+            .initially_estimated_to_liquidate(Satoshis::from(100000))
+            .build()
+            .unwrap()
+    }
+
+    fn liquidation_from(new_liquidation: NewLiquidation) -> Liquidation {
+        Liquidation::try_from_events(new_liquidation.into_events()).unwrap()
+    }
+
+    #[test]
+    fn record_collateral_sent_out_updates_sent_total() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+        assert_eq!(liquidation.sent_total, Satoshis::ZERO);
+
+        let amount = Satoshis::from(50000);
+        let result = liquidation.record_collateral_sent_out(amount);
+        assert!(result.is_ok());
+        assert!(result.unwrap().did_execute());
+        assert_eq!(liquidation.sent_total, amount);
+
+        let amount2 = Satoshis::from(30000);
+        liquidation.record_collateral_sent_out(amount2).unwrap();
+        assert_eq!(liquidation.sent_total, amount + amount2);
+    }
+
+    #[test]
+    fn collateral_sent_out_returns_correct_list() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+
+        let amount1 = Satoshis::from(50000);
+        let amount2 = Satoshis::from(30000);
+        liquidation.record_collateral_sent_out(amount1).unwrap();
+        liquidation.record_collateral_sent_out(amount2).unwrap();
+
+        let sent_out = liquidation.collateral_sent_out();
+        assert_eq!(sent_out.len(), 2);
+        assert_eq!(sent_out[0].0, amount1);
+        assert_eq!(sent_out[1].0, amount2);
+    }
+
+    #[test]
+    fn record_proceeds_from_liquidation_is_idempotent() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+
+        let amount = UsdCents::from(500);
+        let payment_id = PaymentId::new();
+        let result = liquidation.record_proceeds_from_liquidation(amount, payment_id);
+        assert!(result.is_ok());
+        assert!(result.unwrap().did_execute());
+        assert_eq!(liquidation.amount_received, amount);
+
+        let result2 = liquidation.record_proceeds_from_liquidation(amount, payment_id);
+        assert!(result2.is_ok());
+        assert!(result2.unwrap().was_already_applied());
+        assert_eq!(liquidation.amount_received, amount);
+    }
+
+    #[test]
+    fn proceeds_received_returns_correct_list() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+
+        let amount1 = UsdCents::from(500);
+        let amount2 = UsdCents::from(300);
+        liquidation
+            .record_proceeds_from_liquidation(amount1, PaymentId::new())
+            .unwrap();
+        liquidation
+            .record_proceeds_from_liquidation(amount2, PaymentId::new())
+            .unwrap();
+
+        let received = liquidation.proceeds_received();
+        assert_eq!(received.len(), 2);
+        assert_eq!(received[0].0, amount1);
+        assert_eq!(received[1].0, amount2);
+    }
+
+    #[test]
+    fn complete_is_idempotent() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+        assert!(!liquidation.is_completed());
+
+        let result = liquidation.complete();
+        assert!(result.did_execute());
+        assert!(liquidation.is_completed());
+
+        let result2 = liquidation.complete();
+        assert!(result2.was_already_applied());
+        assert!(liquidation.is_completed());
+    }
+
+    #[test]
+    fn is_completed_returns_false_for_new_liquidation() {
+        let liquidation = liquidation_from(default_new_liquidation());
+        assert!(!liquidation.is_completed());
+    }
+}
