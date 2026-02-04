@@ -199,6 +199,10 @@ impl LintRule for DbOpConventionRule {
         "db-op-convention"
     }
 
+    fn description(&self) -> &'static str {
+        "Enforces _in_op suffix for functions taking DbOp parameters"
+    }
+
     fn check_file(&self, file: &syn::File, path: &Path) -> Vec<Violation> {
         let mut visitor = FunctionVisitor::new(path);
         visitor.visit_file(file);

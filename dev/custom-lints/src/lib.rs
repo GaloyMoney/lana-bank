@@ -49,6 +49,9 @@ pub trait LintRule: Send + Sync {
     /// Returns the name of this rule
     fn name(&self) -> &'static str;
 
+    /// Returns a short description of what this rule checks
+    fn description(&self) -> &'static str;
+
     /// Check a parsed Rust file for violations
     fn check_file(&self, file: &syn::File, path: &Path) -> Vec<Violation>;
 }
@@ -57,6 +60,9 @@ pub trait LintRule: Send + Sync {
 pub trait WorkspaceRule: Send + Sync {
     /// Returns the name of this rule
     fn name(&self) -> &'static str;
+
+    /// Returns a short description of what this rule checks
+    fn description(&self) -> &'static str;
 
     /// Check the workspace for violations
     fn check_workspace(&self, workspace_root: &Path) -> anyhow::Result<Vec<Violation>>;

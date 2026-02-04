@@ -223,6 +223,10 @@ impl LintRule for TransactionCommitRule {
         "transaction-commit"
     }
 
+    fn description(&self) -> &'static str {
+        "Ensures database transactions are committed where they begin"
+    }
+
     fn check_file(&self, file: &syn::File, path: &Path) -> Vec<Violation> {
         let mut visitor = FunctionVisitor::new(path);
         visitor.visit_file(file);

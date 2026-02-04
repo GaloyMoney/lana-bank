@@ -94,7 +94,7 @@ pub fn std_terms() -> TermValues {
         .one_time_fee_rate(dec!(0.01))
         .disbursal_policy(DisbursalPolicy::SingleDisbursal)
         .build()
-        .unwrap()
+        .expect("std_terms builder should be valid")
 }
 
 pub fn std_terms_with_liquidation() -> TermValues {
@@ -112,7 +112,7 @@ pub fn std_terms_with_liquidation() -> TermValues {
         .one_time_fee_rate(dec!(0.01))
         .disbursal_policy(DisbursalPolicy::SingleDisbursal)
         .build()
-        .unwrap()
+        .expect("std_terms_with_liquidation builder should be valid")
 }
 
 pub fn std_terms_12m() -> TermValues {
@@ -130,5 +130,5 @@ pub fn std_terms_12m() -> TermValues {
         .one_time_fee_rate(dec!(0.01))
         .disbursal_policy(DisbursalPolicy::MultipleDisbursal)
         .build()
-        .unwrap()
+        .expect("std_terms_12m builder should be valid")
 }
