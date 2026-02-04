@@ -20,7 +20,7 @@ LANA follows hexagonal architecture and DDD principles. This architectural choic
 Write unit tests **directly in entity and value object files**, not in use cases or service layers.
 
 - Entity tests: In `entity.rs` within a `#[cfg(test)] mod tests` block
-- Value object tests: In `primitives.rs` within a `#[cfg(test)] mod tests` block
+- Value object tests: In the same file where the value object is defined, within a `#[cfg(test)] mod tests` block (often `primitives.rs`, but value objects can live in other files too)
 
 Do NOT write unit tests for:
 - Use cases (these are thin wrappers)
@@ -110,7 +110,7 @@ These tests live in `/core/<module>/tests/` directories.
 When writing tests, use subagents to explore existing patterns:
 
 1. **For entity tests**: Explore `/core/*/src/*/entity.rs` files to see event rehydration patterns
-2. **For value object tests**: Look at `/core/*/src/*/primitives.rs` test modules
+2. **For value object tests**: Search for `#[cfg(test)]` modules in files containing value objects (commonly in `primitives.rs`, but value objects may be defined in other files as well)
 3. **For BATS tests**: Review existing tests in `/bats/` and helpers in `/bats/helpers/`
 4. **For integration tests**: Check `/core/*/tests/` directories
 
