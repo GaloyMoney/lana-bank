@@ -43,9 +43,15 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 #[derive(Debug, Clone, Copy)]
 pub struct TestSubject(UserId);
 
+impl Default for TestSubject {
+    fn default() -> Self {
+        TestSubject(UserId::new())
+    }
+}
+
 impl TestSubject {
     pub fn new() -> Self {
-        TestSubject(UserId::new())
+        Self::default()
     }
 }
 
