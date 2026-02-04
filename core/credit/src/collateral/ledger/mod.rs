@@ -1,18 +1,26 @@
+mod accounts;
 mod error;
 pub mod templates;
 
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use cala_ledger::{CalaLedger, Currency, JournalId, TransactionId as CalaTransactionId};
-use core_accounting::LedgerTransactionInitiator;
+use cala_ledger::{
+    CalaLedger, Currency, JournalId, TransactionId as CalaTransactionId, account::NewAccount,
+};
+use core_accounting::{EntityRef, LedgerTransactionInitiator};
 use es_entity::clock::ClockHandle;
 use money::Satoshis;
 
+pub use accounts::CollateralLedgerAccountIds;
 pub use error::CollateralLedgerError;
 
-use crate::primitives::{
-    CalaAccountId, CollateralDirection, CollateralUpdate, LedgerOmnibusAccountIds,
+use crate::{
+    LiquidationAccountSets,
+    primitives::{
+        COLLATERAL_ENTITY_TYPE, CalaAccountId, CollateralDirection, CollateralId, CollateralUpdate,
+        LedgerOmnibusAccountIds,
+    },
 };
 
 use super::RecordProceedsFromLiquidationData;
@@ -23,6 +31,7 @@ pub struct CollateralLedger {
     journal_id: JournalId,
     clock: ClockHandle,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
+    liquidation_account_sets: LiquidationAccountSets,
     btc: Currency,
 }
 
@@ -34,6 +43,7 @@ impl CollateralLedger {
         journal_id: JournalId,
         clock: ClockHandle,
         collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
+        liquidation_account_sets: LiquidationAccountSets,
     ) -> Result<Self, CollateralLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
@@ -45,8 +55,99 @@ impl CollateralLedger {
             journal_id,
             clock,
             collateral_omnibus_account_ids,
+            liquidation_account_sets,
             btc: Currency::BTC,
         })
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_credit.collateral.ledger.create_collateral_accounts_in_op",
+        skip(self, op)
+    )]
+    pub async fn create_collateral_accounts_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        collateral_id: CollateralId,
+        CollateralLedgerAccountIds {
+            collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id,
+
+            collateral_account_id: _,
+            liquidation_proceeds_omnibus_account_id: _,
+            facility_proceeds_from_liquidation_account_id: _,
+            facility_uncovered_outstanding_account_id: _,
+            facility_payment_holding_account_id: _,
+        }: CollateralLedgerAccountIds,
+    ) -> Result<(), CollateralLedgerError> {
+        let entity_ref = EntityRef::new(COLLATERAL_ENTITY_TYPE, collateral_id);
+
+        let collateral_in_liquidation_reference =
+            &format!("collateral-in-liquidation:{collateral_id}");
+        let collateral_in_liquidation_name =
+            &format!("Collateral in Liquidation Account for Collateral {collateral_id}");
+        self.create_account_in_op(
+            op,
+            collateral_in_liquidation_account_id,
+            self.liquidation_account_sets.collateral_in_liquidation,
+            collateral_in_liquidation_reference,
+            collateral_in_liquidation_name,
+            collateral_in_liquidation_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let liquidated_collateral_reference = &format!("liquidated-collateral:{collateral_id}");
+        let liquidated_collateral_name =
+            &format!("Liquidated Collateral Account for Collateral {collateral_id}");
+        self.create_account_in_op(
+            op,
+            liquidated_collateral_account_id,
+            self.liquidation_account_sets.liquidated_collateral,
+            liquidated_collateral_reference,
+            liquidated_collateral_name,
+            liquidated_collateral_name,
+            entity_ref,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    async fn create_account_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: impl Into<CalaAccountId>,
+        parent_account_set: crate::InternalAccountSetDetails,
+        reference: &str,
+        name: &str,
+        description: &str,
+        entity_ref: EntityRef,
+    ) -> Result<(), CollateralLedgerError> {
+        let id = id.into();
+
+        let new_ledger_account = NewAccount::builder()
+            .id(id)
+            .external_id(reference)
+            .name(name)
+            .description(description)
+            .code(id.to_string())
+            .normal_balance_type(parent_account_set.normal_balance_type())
+            .metadata(serde_json::json!({"entity_ref": entity_ref}))
+            .expect("Could not add metadata")
+            .build()
+            .expect("Could not build new account");
+        let ledger_account = self
+            .cala
+            .accounts()
+            .create_in_op(op, new_ledger_account)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(op, parent_account_set.id(), ledger_account.id)
+            .await?;
+
+        Ok(())
     }
 
     #[record_error_severity]
