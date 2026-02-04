@@ -1086,9 +1086,7 @@ impl CreditLedger {
             fee_income_account_id: _,
             interest_income_account_id: _,
             uncovered_outstanding_account_id: _,
-            collateral_in_liquidation_account_id: _,
             proceeds_from_liquidation_account_id: _,
-            liquidated_collateral_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
@@ -1918,8 +1916,6 @@ impl CreditLedger {
             interest_defaulted_account_id,
             interest_income_account_id,
             fee_income_account_id,
-            collateral_in_liquidation_account_id,
-            liquidated_collateral_account_id,
 
             // these accounts are created during proposal creation
             collateral_account_id: _collateral_account_id,
@@ -2084,38 +2080,6 @@ impl CreditLedger {
             fee_income_name,
             fee_income_name,
             entity_ref.clone(),
-        )
-        .await?;
-
-        let collateral_in_liquidation_reference =
-            &format!("credit-facility-collateral-in-liquidation:{credit_facility_id}");
-        let collateral_in_liquidation_name =
-            &format!("Collateral in Liquidation Account for Credit Facility {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            collateral_in_liquidation_account_id,
-            self.internal_account_sets
-                .liquidation
-                .collateral_in_liquidation,
-            collateral_in_liquidation_reference,
-            collateral_in_liquidation_name,
-            collateral_in_liquidation_name,
-            entity_ref.clone(),
-        )
-        .await?;
-
-        let liquidated_collateral_reference =
-            &format!("credit-facility-liquidated-collateral:{credit_facility_id}");
-        let liquidated_collateral_name =
-            &format!("Liquidated Collateral Account for Credit Facility {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            liquidated_collateral_account_id,
-            self.internal_account_sets.liquidation.liquidated_collateral,
-            liquidated_collateral_reference,
-            liquidated_collateral_name,
-            liquidated_collateral_name,
-            entity_ref,
         )
         .await?;
 

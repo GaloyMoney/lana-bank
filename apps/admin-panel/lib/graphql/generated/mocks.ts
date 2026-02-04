@@ -891,8 +891,6 @@ export const mockCreditFacilityLedgerAccounts = (overrides?: Partial<CreditFacil
         __typename: 'CreditFacilityLedgerAccounts',
         collateralAccount: overrides && overrides.hasOwnProperty('collateralAccount') ? overrides.collateralAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         collateralAccountId: overrides && overrides.hasOwnProperty('collateralAccountId') ? overrides.collateralAccountId! : generateMockValue.uuid(),
-        collateralInLiquidationAccount: overrides && overrides.hasOwnProperty('collateralInLiquidationAccount') ? overrides.collateralInLiquidationAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
-        collateralInLiquidationAccountId: overrides && overrides.hasOwnProperty('collateralInLiquidationAccountId') ? overrides.collateralInLiquidationAccountId! : generateMockValue.uuid(),
         disbursedDefaultedAccount: overrides && overrides.hasOwnProperty('disbursedDefaultedAccount') ? overrides.disbursedDefaultedAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         disbursedDefaultedAccountId: overrides && overrides.hasOwnProperty('disbursedDefaultedAccountId') ? overrides.disbursedDefaultedAccountId! : generateMockValue.uuid(),
         disbursedReceivableDueAccount: overrides && overrides.hasOwnProperty('disbursedReceivableDueAccount') ? overrides.disbursedReceivableDueAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
