@@ -820,10 +820,14 @@ type CreditModuleConfig {
 	chartOfAccountFacilityParentCode: String
 	chartOfAccountCollateralParentCode: String
 	chartOfAccountCollateralInLiquidationParentCode: String
+	chartOfAccountLiquidatedCollateralParentCode: String
+	chartOfAccountProceedsFromLiquidationParentCode: String
 	chartOfAccountInterestIncomeParentCode: String
 	chartOfAccountFeeIncomeParentCode: String
 	chartOfAccountPaymentHoldingParentCode: String
 	chartOfAccountUncoveredOutstandingParentCode: String
+	chartOfAccountDisbursedDefaultedParentCode: String
+	chartOfAccountInterestDefaultedParentCode: String
 	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String
 	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String
 	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String
@@ -870,10 +874,14 @@ input CreditModuleConfigureInput {
 	chartOfAccountFacilityParentCode: String!
 	chartOfAccountCollateralParentCode: String!
 	chartOfAccountCollateralInLiquidationParentCode: String!
+	chartOfAccountLiquidatedCollateralParentCode: String!
+	chartOfAccountProceedsFromLiquidationParentCode: String!
 	chartOfAccountInterestIncomeParentCode: String!
 	chartOfAccountFeeIncomeParentCode: String!
 	chartOfAccountPaymentHoldingParentCode: String!
 	chartOfAccountUncoveredOutstandingParentCode: String!
+	chartOfAccountDisbursedDefaultedParentCode: String!
+	chartOfAccountInterestDefaultedParentCode: String!
 	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String!
 	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String!
 	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String!
