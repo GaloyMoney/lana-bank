@@ -395,8 +395,9 @@ where
             .await?;
 
         let mut committee = self.committee_repo.find_by_id(committee_id).await?;
-        committee.add_member(member_id.into())?;
-        self.committee_repo.update(&mut committee).await?;
+        if committee.add_member(member_id.into()).did_execute() {
+            self.committee_repo.update(&mut committee).await?;
+        }
 
         Ok(committee)
     }
@@ -419,8 +420,9 @@ where
             .await?;
 
         let mut committee = self.committee_repo.find_by_id(committee_id).await?;
-        committee.remove_member(member_id.into());
-        self.committee_repo.update(&mut committee).await?;
+        if committee.remove_member(member_id.into()).did_execute() {
+            self.committee_repo.update(&mut committee).await?;
+        }
 
         Ok(committee)
     }
