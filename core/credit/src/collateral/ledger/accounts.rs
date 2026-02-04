@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    ledger::FacilityProceedsFromLiquidationAccountId, ledger::PendingCreditFacilityAccountIds,
-    primitives::CalaAccountId,
-};
+use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::CalaAccountId};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
