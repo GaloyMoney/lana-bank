@@ -632,6 +632,13 @@ impl ClosingTxDetails {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct AccountInfo {
+    pub account_set_id: CalaAccountSetId,
+    pub code: AccountCode,
+    pub name: AccountName,
+}
+
 pub type ChartAllOrOne = AllOrOne<ChartId>;
 pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
 pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
