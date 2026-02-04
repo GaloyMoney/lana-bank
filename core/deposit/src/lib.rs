@@ -600,7 +600,9 @@ where
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
         let mut op = self.withdrawals.begin_op().await?;
-        let tx_id = withdrawal.confirm()?;
+        let es_entity::Idempotent::Executed(tx_id) = withdrawal.confirm()? else {
+            return Ok(withdrawal);
+        };
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
             .await?;
@@ -643,7 +645,9 @@ where
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
         let mut op = self.withdrawals.begin_op().await?;
-        let tx_id = withdrawal.cancel()?;
+        let es_entity::Idempotent::Executed(tx_id) = withdrawal.cancel()? else {
+            return Ok(withdrawal);
+        };
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
             .await?;

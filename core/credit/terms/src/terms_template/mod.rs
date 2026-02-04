@@ -107,9 +107,9 @@ where
             .expect("audit info missing");
 
         let mut terms_template = self.repo.find_by_id(id).await?;
-        terms_template.update_values(values);
-
-        self.repo.update(&mut terms_template).await?;
+        if terms_template.update_values(values).did_execute() {
+            self.repo.update(&mut terms_template).await?;
+        }
 
         Ok(terms_template)
     }

@@ -105,6 +105,14 @@ pub(crate) struct NewAccrualPeriods {
     pub(crate) accrual: InterestPeriod,
 }
 
+#[derive(Debug)]
+pub(crate) struct RecordedAccrualOnCycle {
+    pub(crate) accrual_data: InterestAccrualData,
+    pub(crate) next_period: Option<InterestPeriod>,
+    pub(crate) accrual_idx: InterestAccrualCycleIdx,
+    pub(crate) accrued_count: usize,
+}
+
 struct InterestAccrualCycleInCreditFacility {
     idx: InterestAccrualCycleIdx,
     period: InterestPeriod,
@@ -431,14 +439,14 @@ impl CreditFacility {
 
     pub(crate) fn start_interest_accrual_cycle(
         &mut self,
-    ) -> Result<Option<NewAccrualPeriods>, CreditFacilityError> {
+    ) -> Result<Idempotent<Option<NewAccrualPeriods>>, CreditFacilityError> {
         if !self.is_in_progress_interest_cycle_completed() {
             return Err(CreditFacilityError::InProgressInterestAccrualCycleNotCompletedYet);
         }
 
         let accrual_cycle_period = match self.next_interest_accrual_cycle_period()? {
             Some(period) => period,
-            None => return Ok(None),
+            None => return Ok(Idempotent::Executed(None)),
         };
 
         if let Some(last_cycle) = self.last_started_accrual_cycle()
@@ -466,12 +474,12 @@ impl CreditFacility {
             .terms(self.terms)
             .build()
             .expect("could not build new interest accrual");
-        Ok(Some(NewAccrualPeriods {
+        Ok(Idempotent::Executed(Some(NewAccrualPeriods {
             accrual: self
                 .interest_accruals
                 .add_new(new_accrual)
                 .first_accrual_cycle_period(),
-        }))
+        })))
     }
 
     pub(crate) fn record_interest_accrual_cycle(
@@ -518,12 +526,32 @@ impl CreditFacility {
         })
     }
 
-    pub fn interest_accrual_cycle_in_progress_mut(&mut self) -> Option<&mut InterestAccrualCycle> {
+    fn interest_accrual_cycle_in_progress_mut(&mut self) -> Option<&mut InterestAccrualCycle> {
         self.in_progress_accrual_cycle_id().map(|cycle_id| {
             self.interest_accruals
                 .get_persisted_mut(&cycle_id)
                 .expect("Interest accrual not found")
         })
+    }
+
+    pub(crate) fn record_accrual_on_in_progress_cycle(
+        &mut self,
+        amount: UsdCents,
+    ) -> Result<Idempotent<RecordedAccrualOnCycle>, CreditFacilityError> {
+        let accrual = self
+            .interest_accrual_cycle_in_progress_mut()
+            .expect("Accrual in progress should exist");
+
+        let accrual_data = accrual
+            .record_accrual(amount)?
+            .expect("record_accrual always returns Executed when next_accrual_period is available");
+
+        Ok(Idempotent::Executed(RecordedAccrualOnCycle {
+            accrual_data,
+            next_period: accrual.next_accrual_period(),
+            accrual_idx: accrual.idx,
+            accrued_count: accrual.count_accrued(),
+        }))
     }
 
     pub fn last_collateralization_state(&self) -> CollateralizationState {
@@ -850,7 +878,7 @@ mod test {
     }
 
     fn start_interest_accrual_cycle(credit_facility: &mut CreditFacility) {
-        credit_facility.start_interest_accrual_cycle().unwrap();
+        let _ = credit_facility.start_interest_accrual_cycle().unwrap();
         hydrate_accruals_in_facility(credit_facility);
     }
 
@@ -859,7 +887,7 @@ mod test {
             .interest_accrual_cycle_in_progress_mut()
             .unwrap();
         while accrual.next_accrual_period().is_some() {
-            accrual.record_accrual(UsdCents::ONE);
+            let _ = accrual.record_accrual(UsdCents::ONE);
         }
         let _ = accrual.record_accrual_cycle(accrual.accrual_cycle_data().unwrap());
     }
@@ -955,10 +983,11 @@ mod test {
                 .unwrap();
             assert_eq!(start, activated_at());
 
-            credit_facility
+            let res = credit_facility
                 .start_interest_accrual_cycle()
                 .unwrap()
-                .unwrap();
+                .expect("expected Executed");
+            res.unwrap();
             let second_accrual_period = credit_facility
                 .next_interest_accrual_cycle_period()
                 .unwrap()
@@ -988,21 +1017,19 @@ mod test {
                 .unwrap()
                 .is_some()
             {
-                assert!(
-                    credit_facility
-                        .start_interest_accrual_cycle()
-                        .unwrap()
-                        .is_some(),
-                );
+                let res = credit_facility
+                    .start_interest_accrual_cycle()
+                    .unwrap()
+                    .expect("expected Executed");
+                assert!(res.is_some());
                 hydrate_accruals_in_facility(&mut credit_facility);
                 iterate_in_progress_accrual_cycle_to_completion(&mut credit_facility);
             }
-            assert!(
-                credit_facility
-                    .start_interest_accrual_cycle()
-                    .unwrap()
-                    .is_none()
-            );
+            let res = credit_facility
+                .start_interest_accrual_cycle()
+                .unwrap()
+                .expect("expected Executed");
+            assert!(res.is_none());
         }
     }
 

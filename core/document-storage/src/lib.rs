@@ -219,7 +219,8 @@ impl DocumentStorage {
 
         let mut document = self.repo.find_by_id(document_id).await?;
 
-        let document_location = document.download_link_generated();
+        let _ = document.download_link_generated();
+        let document_location = document.storage_path();
 
         let link = self
             .storage

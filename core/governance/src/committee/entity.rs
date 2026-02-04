@@ -9,8 +9,6 @@ use es_entity::*;
 
 use crate::primitives::{CommitteeId, CommitteeMemberId};
 
-use super::error::CommitteeError;
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -36,25 +34,23 @@ impl Committee {
             .expect("No events for committee")
     }
 
-    pub(crate) fn add_member(
-        &mut self,
-        member_id: CommitteeMemberId,
-    ) -> Result<(), CommitteeError> {
+    pub(crate) fn add_member(&mut self, member_id: CommitteeMemberId) -> Idempotent<()> {
         if self.members().contains(&member_id) {
-            return Err(CommitteeError::MemberAlreadyAdded(member_id));
+            return Idempotent::AlreadyApplied;
         }
 
         self.events.push(CommitteeEvent::MemberAdded { member_id });
 
-        Ok(())
+        Idempotent::Executed(())
     }
 
-    pub(crate) fn remove_member(&mut self, member_id: CommitteeMemberId) {
+    pub(crate) fn remove_member(&mut self, member_id: CommitteeMemberId) -> Idempotent<()> {
         if !self.members().contains(&member_id) {
-            return;
+            return Idempotent::AlreadyApplied;
         }
         self.events
             .push(CommitteeEvent::MemberRemoved { member_id });
+        Idempotent::Executed(())
     }
 
     pub fn n_members(&self) -> usize {

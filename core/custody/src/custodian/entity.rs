@@ -44,13 +44,25 @@ impl Custodian {
             .expect("No events for Custodian")
     }
 
-    pub fn update_custodian_config(&mut self, config: CustodianConfig, secret: &EncryptionKey) {
+    pub fn update_custodian_config(
+        &mut self,
+        config: CustodianConfig,
+        secret: &EncryptionKey,
+    ) -> Idempotent<()> {
+        let (current_cypher, current_nonce) = &self.encrypted_custodian_config;
+        let current_config = CustodianConfig::decrypt(secret, current_cypher, current_nonce);
+        if current_config == config {
+            return Idempotent::AlreadyApplied;
+        }
+
         let encrypted_config = config.encrypt(secret);
         self.encrypted_custodian_config = encrypted_config.clone();
 
         self.events.push(CustodianEvent::ConfigUpdated {
             encrypted_custodian_config: Some(encrypted_config),
         });
+
+        Idempotent::Executed(())
     }
 
     #[allow(dead_code)]
@@ -63,7 +75,12 @@ impl Custodian {
         &mut self,
         encryption_key: &EncryptionKey,
         deprecated_encryption_key: &DeprecatedEncryptionKey,
-    ) -> Result<(), CustodianError> {
+    ) -> Result<Idempotent<()>, CustodianError> {
+        let (current_cypher, current_nonce) = &self.encrypted_custodian_config;
+        if CustodianConfig::try_decrypt(encryption_key, current_cypher, current_nonce).is_some() {
+            return Ok(Idempotent::AlreadyApplied);
+        }
+
         let encrypted_config = CustodianConfig::rotate_encryption_key(
             encryption_key,
             &self.encrypted_custodian_config,
@@ -75,7 +92,7 @@ impl Custodian {
             encrypted_custodian_config: Some(encrypted_config),
         });
 
-        Ok(())
+        Ok(Idempotent::Executed(()))
     }
 
     #[record_error_severity]

@@ -107,18 +107,25 @@ impl CustodianConfig {
         (ConfigCypher(encrypted_config), Nonce(nonce.to_vec()))
     }
 
+    pub(super) fn try_decrypt(
+        key: &EncryptionKey,
+        encrypted_config: &ConfigCypher,
+        nonce: &Nonce,
+    ) -> Option<Self> {
+        let cipher = ChaCha20Poly1305::new(key);
+        let decrypted_config = cipher
+            .decrypt(nonce.0.as_slice().into(), encrypted_config.0.as_slice())
+            .ok()?;
+        serde_json::from_slice(decrypted_config.as_slice()).ok()
+    }
+
     pub(super) fn decrypt(
         key: &EncryptionKey,
         encrypted_config: &ConfigCypher,
         nonce: &Nonce,
     ) -> Self {
-        let cipher = ChaCha20Poly1305::new(key);
-        let decrypted_config = cipher
-            .decrypt(nonce.0.as_slice().into(), encrypted_config.0.as_slice())
-            .expect("should always decrypt");
-        let config: CustodianConfig = serde_json::from_slice(decrypted_config.as_slice())
-            .expect("should be able to deserialize config");
-        config
+        Self::try_decrypt(key, encrypted_config, nonce)
+            .expect("should always decrypt and deserialize config")
     }
 
     pub(super) fn rotate_encryption_key(

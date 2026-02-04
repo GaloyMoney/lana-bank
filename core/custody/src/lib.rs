@@ -382,13 +382,16 @@ where
             .await?;
         let mut custodian = self.custodians.find_by_id(id).await?;
 
-        custodian.update_custodian_config(config, &self.config.encryption.key);
-
-        let mut op = self.custodians.begin_op().await?;
-        self.custodians
-            .update_config_in_op(&mut op, &mut custodian)
-            .await?;
-        op.commit().await?;
+        if custodian
+            .update_custodian_config(config, &self.config.encryption.key)
+            .did_execute()
+        {
+            let mut op = self.custodians.begin_op().await?;
+            self.custodians
+                .update_config_in_op(&mut op, &mut custodian)
+                .await?;
+            op.commit().await?;
+        }
 
         Ok(custodian)
     }
@@ -410,12 +413,14 @@ where
         let mut op = self.custodians.begin_op().await?;
 
         for custodian in custodians.iter_mut() {
-            custodian
-                .rotate_encryption_key(&self.config.encryption.key, deprecated_encryption_key)?;
-
-            self.custodians
-                .update_config_in_op(&mut op, custodian)
-                .await?;
+            if custodian
+                .rotate_encryption_key(&self.config.encryption.key, deprecated_encryption_key)?
+                .did_execute()
+            {
+                self.custodians
+                    .update_config_in_op(&mut op, custodian)
+                    .await?;
+            }
         }
 
         op.commit().await?;

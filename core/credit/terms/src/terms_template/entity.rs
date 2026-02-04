@@ -39,10 +39,15 @@ impl TermsTemplate {
             .expect("TermsTemplate has never been persisted")
     }
 
-    pub fn update_values(&mut self, new_values: TermValues) {
+    pub fn update_values(&mut self, new_values: TermValues) -> Idempotent<()> {
+        if self.values == new_values {
+            return Idempotent::AlreadyApplied;
+        }
+
         self.events
             .push(TermsTemplateEvent::TermValuesUpdated { values: new_values });
         self.values = new_values;
+        Idempotent::Executed(())
     }
 }
 

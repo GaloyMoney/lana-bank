@@ -350,17 +350,15 @@ where
             let account_ids = credit_facility.account_ids;
             let balances = self.ledger.get_credit_facility_balance(account_ids).await?;
 
-            let accrual = credit_facility
-                .interest_accrual_cycle_in_progress_mut()
-                .expect("Accrual in progress should exist for scheduled job");
-
-            let interest_accrual = accrual.record_accrual(balances.disbursed_outstanding());
+            let recorded = credit_facility
+                .record_accrual_on_in_progress_cycle(balances.disbursed_outstanding())?
+                .expect("record_accrual always returns Executed");
 
             ConfirmedAccrual {
-                accrual: (interest_accrual, account_ids).into(),
-                next_period: accrual.next_accrual_period(),
-                accrual_idx: accrual.idx,
-                accrued_count: accrual.count_accrued(),
+                accrual: (recorded.accrual_data, account_ids).into(),
+                next_period: recorded.next_period,
+                accrual_idx: recorded.accrual_idx,
+                accrued_count: recorded.accrued_count,
             }
         };
 
@@ -492,16 +490,9 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
-        let (accrual_cycle_data, new_obligation) = if let es_entity::Idempotent::Executed(res) =
-            credit_facility.record_interest_accrual_cycle()?
-        {
-            res
-        } else {
-            unreachable!(
-                "record_interest_accrual_cycle returned Idempotent::AlreadyApplied, \
-                 but this should only execute when there is an accrual cycle to record"
-            );
-        };
+        let (accrual_cycle_data, new_obligation) = credit_facility
+            .record_interest_accrual_cycle()?
+            .expect("record_interest_accrual_cycle should execute when there is an accrual cycle to record");
 
         if let Some(new_obligation) = new_obligation {
             self.collections
@@ -510,7 +501,9 @@ where
                 .await?;
         };
 
-        let res = credit_facility.start_interest_accrual_cycle()?;
+        let res = credit_facility
+            .start_interest_accrual_cycle()?
+            .expect("start_interest_accrual_cycle always returns Executed");
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;

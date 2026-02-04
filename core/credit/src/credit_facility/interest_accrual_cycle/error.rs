@@ -16,6 +16,8 @@ pub enum InterestAccrualCycleError {
     AccrualsAlreadyPosted,
     #[error("InterestAccrualCycleError - InterestPeriodStartDatePastAccrualCycleDate")]
     InterestPeriodStartDatePastAccrualCycleDate,
+    #[error("InterestAccrualCycleError - NoNextAccrualPeriod")]
+    NoNextAccrualPeriod,
 }
 
 impl ErrorSeverity for InterestAccrualCycleError {
@@ -27,6 +29,7 @@ impl ErrorSeverity for InterestAccrualCycleError {
             Self::JobError(_) => Level::ERROR,
             Self::AccrualsAlreadyPosted => Level::WARN,
             Self::InterestPeriodStartDatePastAccrualCycleDate => Level::ERROR,
+            Self::NoNextAccrualPeriod => Level::ERROR,
         }
     }
 }
