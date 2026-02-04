@@ -6,6 +6,8 @@ use tracing_utils::ErrorSeverity;
 pub enum ObligationError {
     #[error("ObligationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("ObligationError - AuditError: {0}")]
+    AuditError(#[from] audit::error::AuditError),
     #[error("ObligationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
     #[error("ObligationError - EsEntityError: {0}")]
@@ -28,6 +30,7 @@ impl ErrorSeverity for ObligationError {
     fn severity(&self) -> Level {
         match self {
             Self::AuthorizationError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,

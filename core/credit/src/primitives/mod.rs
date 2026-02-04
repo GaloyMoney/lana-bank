@@ -31,15 +31,13 @@ pub use core_credit_terms::{
 };
 
 pub use core_credit_collection::{
-    BeneficiaryId, CoreCreditCollectionAction, CoreCreditCollectionEvent,
-    CoreCreditCollectionObject, ObligationAction, ObligationId, PaymentAllocationId, PaymentId,
+    BalanceUpdateData, BalanceUpdatedSource, BeneficiaryId, CoreCreditCollectionAction,
+    CoreCreditCollectionEvent, CoreCreditCollectionObject, ObligationAction, ObligationAllOrOne,
+    ObligationId, ObligationStatus, ObligationType, ObligationsAmounts, PaymentAllocationId,
+    PaymentDetailsForAllocation, PaymentId, PaymentSourceAccountId,
     obligation::Obligations,
     payment::{Payment, Payments},
     payment_allocation::PaymentAllocation,
-    primitives::{
-        BalanceUpdateData, BalanceUpdatedSource, ObligationAllOrOne, ObligationStatus,
-        ObligationType, ObligationsAmounts, PaymentDetailsForAllocation, PaymentSourceAccountId,
-    },
 };
 
 impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {

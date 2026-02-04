@@ -7,7 +7,7 @@ use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use rust_decimal_macros::dec;
 
 use core_credit::*;
-use core_credit_collection::{ledger::CollectionLedgerError, payment::error::PaymentError};
+use core_credit_collection::{CollectionLedgerError, payment::error::PaymentError};
 use core_deposit::DepositAccountId;
 use document_storage::DocumentStorage;
 use helpers::{action, event, object};

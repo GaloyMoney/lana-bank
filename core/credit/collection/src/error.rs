@@ -10,6 +10,8 @@ pub enum CoreCreditCollectionError {
     PaymentError(#[from] crate::payment::error::PaymentError),
     #[error("CoreCreditCollectionError - PaymentAllocationError: {0}")]
     PaymentAllocationError(#[from] crate::payment_allocation::error::PaymentAllocationError),
+    #[error("CoreCreditCollectionError - CollectionLedgerError: {0}")]
+    CollectionLedgerError(#[from] crate::ledger::error::CollectionLedgerError),
 }
 
 impl ErrorSeverity for CoreCreditCollectionError {
@@ -18,6 +20,7 @@ impl ErrorSeverity for CoreCreditCollectionError {
             Self::ObligationError(e) => e.severity(),
             Self::PaymentError(e) => e.severity(),
             Self::PaymentAllocationError(e) => e.severity(),
+            Self::CollectionLedgerError(e) => e.severity(),
         }
     }
 }

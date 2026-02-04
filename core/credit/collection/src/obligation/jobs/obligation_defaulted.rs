@@ -142,8 +142,7 @@ where
                 CoreCreditCollectionObject::obligation(id),
                 CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
             )
-            .await
-            .map_err(authz::error::AuthorizationError::from)?;
+            .await?;
 
         if let es_entity::Idempotent::Executed(defaulted) =
             obligation.record_defaulted(effective)?

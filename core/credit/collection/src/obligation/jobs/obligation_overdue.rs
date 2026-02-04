@@ -150,8 +150,7 @@ where
                 CoreCreditCollectionObject::obligation(id),
                 CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
             )
-            .await
-            .map_err(authz::error::AuthorizationError::from)?;
+            .await?;
 
         if let es_entity::Idempotent::Executed(data) = obligation.record_overdue(effective)? {
             self.repo.update_in_op(&mut op, &mut obligation).await?;
