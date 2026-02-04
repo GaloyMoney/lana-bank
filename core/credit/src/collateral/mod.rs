@@ -176,14 +176,18 @@ where
         collateral_id: CollateralId,
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
-        account_id: CalaAccountId,
+        account_ids: ledger::CollateralLedgerAccountIds,
     ) -> Result<Collateral, CollateralError> {
+        self.ledger
+            .create_liquidation_accounts_in_op(db, collateral_id, account_ids)
+            .await?;
+
         let new_collateral = NewCollateral::builder()
             .id(collateral_id)
             .credit_facility_id(pending_credit_facility_id)
             .pending_credit_facility_id(pending_credit_facility_id)
-            .account_id(account_id)
             .custody_wallet_id(custody_wallet_id)
+            .account_ids(account_ids)
             .build()
             .expect("all fields for new collateral provided");
 
@@ -256,8 +260,8 @@ where
                     &mut db,
                     data.tx_id,
                     amount_sent,
-                    collateral.account_id,
-                    collateral.collateral_in_liquidation_account_id()?,
+                    collateral.account_ids.collateral_account_id,
+                    collateral.collateral_in_liquidation_account_id(),
                     initiated_by,
                 )
                 .await?;

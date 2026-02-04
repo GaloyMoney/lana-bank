@@ -16,6 +16,7 @@ use crate::primitives::{
 use super::{
     CollateralUpdate,
     error::CollateralError,
+    ledger::CollateralLedgerAccountIds,
     liquidation::{Liquidation, NewLiquidation, RecordProceedsFromLiquidationData},
 };
 
@@ -26,8 +27,8 @@ use super::{
 pub enum CollateralEvent {
     Initialized {
         id: CollateralId,
-        account_id: CalaAccountId,
         credit_facility_id: CreditFacilityId,
+        account_ids: CollateralLedgerAccountIds,
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
     },
@@ -61,8 +62,8 @@ pub enum CollateralEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Collateral {
     pub id: CollateralId,
-    pub account_id: CalaAccountId,
     pub credit_facility_id: CreditFacilityId,
+    pub account_ids: CollateralLedgerAccountIds,
     pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
@@ -199,21 +200,8 @@ impl Collateral {
         Ok(liquidation.record_proceeds_from_liquidation(amount_received, PaymentId::new())?)
     }
 
-    pub(super) fn collateral_in_liquidation_account_id(
-        &mut self,
-    ) -> Result<CalaAccountId, CollateralError> {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                CollateralEvent::LiquidationStarted { liquidation_id } => Some(*liquidation_id),
-                _ => None,
-            })
-            .and_then(|liquidation_id| {
-                self.liquidations
-                    .get_persisted(&liquidation_id)
-                    .map(|l| l.collateral_in_liquidation_account_id)
-            })
-            .ok_or(CollateralError::NoLiquidationsFound)
+    pub(super) fn collateral_in_liquidation_account_id(&self) -> CalaAccountId {
+        self.account_ids.collateral_in_liquidation_account_id
     }
 
     fn active_liquidation_id(&self) -> Option<LiquidationId> {
@@ -295,13 +283,12 @@ pub struct NewCollateral {
     #[builder(setter(into))]
     pub(super) id: CollateralId,
     #[builder(setter(into))]
-    pub(super) account_id: CalaAccountId,
-    #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     #[builder(setter(into))]
     pub(super) pending_credit_facility_id: PendingCreditFacilityId,
     #[builder(default)]
     pub(super) custody_wallet_id: Option<CustodyWalletId>,
+    pub(super) account_ids: CollateralLedgerAccountIds,
 }
 
 impl NewCollateral {
@@ -320,12 +307,11 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     credit_facility_id,
                     pending_credit_facility_id,
                     custody_wallet_id,
-                    account_id,
-                    ..
+                    account_ids,
                 } => {
                     builder = builder
                         .id(*id)
-                        .account_id(*account_id)
+                        .account_ids(*account_ids)
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
                         .credit_facility_id(*credit_facility_id)
@@ -359,8 +345,8 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
             self.id,
             [CollateralEvent::Initialized {
                 id: self.id,
-                account_id: self.account_id,
                 credit_facility_id: self.credit_facility_id,
+                account_ids: self.account_ids,
                 pending_credit_facility_id: self.pending_credit_facility_id,
                 custody_wallet_id: self.custody_wallet_id,
             }],
@@ -372,12 +358,20 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
 mod tests {
     use super::*;
     use crate::collateral::liquidation::FacilityProceedsFromLiquidationAccountId;
+    use crate::ledger::PendingCreditFacilityAccountIds;
     use crate::primitives::{PriceOfOneBTC, UsdCents};
+
+    fn default_account_ids() -> CollateralLedgerAccountIds {
+        CollateralLedgerAccountIds::new(
+            PendingCreditFacilityAccountIds::new(),
+            CalaAccountId::new(),
+        )
+    }
 
     fn default_new_collateral() -> NewCollateral {
         NewCollateral::builder()
             .id(CollateralId::new())
-            .account_id(CalaAccountId::new())
+            .account_ids(default_account_ids())
             .credit_facility_id(CreditFacilityId::new())
             .pending_credit_facility_id(PendingCreditFacilityId::new())
             .build()
