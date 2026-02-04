@@ -7,6 +7,52 @@
       ],
       "type": "string"
     },
+    "CollateralLedgerAccountIds": {
+      "properties": {
+        "collateral_account_id": {
+          "description": "Holds BTC collateral for this credit facility.",
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_in_liquidation_account_id": {
+          "description": "Holds BTC collateral for this credit facility, that is being\nliquidated.",
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_payment_holding_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_proceeds_from_liquidation_account_id": {
+          "description": "Holds proceeds received from liquidator for the connected\nfacility.",
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_uncovered_outstanding_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "liquidated_collateral_account_id": {
+          "description": "Holds BTC collateral for this credit facility, that has\nalready been liquidated.",
+          "format": "uuid",
+          "type": "string"
+        },
+        "liquidation_proceeds_omnibus_account_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "collateral_account_id",
+        "liquidated_collateral_account_id",
+        "collateral_in_liquidation_account_id",
+        "liquidation_proceeds_omnibus_account_id",
+        "facility_proceeds_from_liquidation_account_id",
+        "facility_uncovered_outstanding_account_id",
+        "facility_payment_holding_account_id"
+      ],
+      "type": "object"
+    },
     "LiquidationProceedsAccountIds": {
       "description": "Account IDs needed for recording proceeds from liquidation.\nThese come from the credit facility and collateral accounts.",
       "properties": {
@@ -45,9 +91,8 @@
   "oneOf": [
     {
       "properties": {
-        "account_id": {
-          "format": "uuid",
-          "type": "string"
+        "account_ids": {
+          "$ref": "#/$defs/CollateralLedgerAccountIds"
         },
         "credit_facility_id": {
           "format": "uuid",
@@ -76,8 +121,8 @@
       "required": [
         "type",
         "id",
-        "account_id",
         "credit_facility_id",
+        "account_ids",
         "pending_credit_facility_id"
       ],
       "type": "object"

@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::CalaAccountId};
+use crate::{
+    ledger::{FacilityProceedsFromLiquidationAccountId, PendingCreditFacilityAccountIds},
+    primitives::CalaAccountId,
+};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
@@ -26,4 +29,23 @@ pub struct CollateralLedgerAccountIds {
     pub(crate) facility_uncovered_outstanding_account_id: CalaAccountId,
 
     pub(crate) facility_payment_holding_account_id: CalaAccountId,
+}
+
+impl CollateralLedgerAccountIds {
+    pub(crate) fn new(
+        pending_ids: PendingCreditFacilityAccountIds,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
+    ) -> Self {
+        Self {
+            collateral_account_id: pending_ids.collateral_account_id,
+            liquidated_collateral_account_id: CalaAccountId::new(),
+            collateral_in_liquidation_account_id: CalaAccountId::new(),
+            liquidation_proceeds_omnibus_account_id,
+            facility_proceeds_from_liquidation_account_id: pending_ids
+                .facility_proceeds_from_liquidation_account_id,
+            facility_uncovered_outstanding_account_id: pending_ids
+                .facility_uncovered_outstanding_account_id,
+            facility_payment_holding_account_id: pending_ids.facility_payment_holding_account_id,
+        }
+    }
 }
