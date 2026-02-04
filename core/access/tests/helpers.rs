@@ -6,7 +6,32 @@ use audit::{
     AuditCursor, AuditEntry, AuditInfo, AuditSvc, PaginatedQueryArgs, PaginatedQueryRet,
     error::AuditError,
 };
-use core_access::{CoreAccessAction, CoreAccessEvent, CoreAccessObject, UserId};
+use core_access::{
+    AuthRoleToken, CoreAccess, CoreAccessAction, CoreAccessEvent, CoreAccessObject, UserId,
+    config::AccessConfig,
+};
+
+pub const ROLE_NAME_ADMIN: &str = "admin";
+pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
+pub const ROLE_NAME_ACCOUNTANT: &str = "accountant";
+
+pub const PREDEFINED_ROLES: &[(&str, &[&str])] = &[
+    (
+        ROLE_NAME_ADMIN,
+        &[
+            core_access::PERMISSION_SET_ACCESS_VIEWER,
+            core_access::PERMISSION_SET_ACCESS_WRITER,
+        ],
+    ),
+    (
+        ROLE_NAME_BANK_MANAGER,
+        &[core_access::PERMISSION_SET_ACCESS_VIEWER],
+    ),
+    (
+        ROLE_NAME_ACCOUNTANT,
+        &[core_access::PERMISSION_SET_ACCESS_VIEWER],
+    ),
+];
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON")?;
@@ -14,13 +39,19 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     Ok(pool)
 }
 
-/// A test subject that can be converted from UserId (required by CoreAccess)
+/// A test subject that wraps a unique UserId, so Casbin can distinguish subjects.
 #[derive(Debug, Clone, Copy)]
-pub struct TestSubject;
+pub struct TestSubject(UserId);
+
+impl TestSubject {
+    pub fn new() -> Self {
+        TestSubject(UserId::new())
+    }
+}
 
 impl fmt::Display for TestSubject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "test-subject")
+        write!(f, "test-subject:{}", self.0)
     }
 }
 
@@ -28,19 +59,19 @@ impl std::str::FromStr for TestSubject {
     type Err = std::convert::Infallible;
 
     fn from_str(_: &str) -> Result<Self, Self::Err> {
-        Ok(TestSubject)
+        Ok(TestSubject::new())
     }
 }
 
 impl From<UserId> for TestSubject {
-    fn from(_: UserId) -> Self {
-        TestSubject
+    fn from(id: UserId) -> Self {
+        TestSubject(id)
     }
 }
 
 impl audit::SystemSubject for TestSubject {
     fn system() -> Self {
-        TestSubject
+        TestSubject(UserId::new())
     }
 }
 
@@ -134,4 +165,44 @@ pub mod event {
     }
 
     pub use obix::test_utils::expect_event;
+}
+
+pub async fn init_access(
+    pool: &sqlx::PgPool,
+) -> anyhow::Result<(
+    CoreAccess<TestAudit, event::DummyEvent>,
+    TestSubject,
+)> {
+    let superuser_email = "superuser@test.io".to_string();
+    let outbox =
+        obix::Outbox::<event::DummyEvent>::init(pool, obix::MailboxConfig::builder().build()?)
+            .await?;
+
+    let audit = TestAudit;
+    let authz =
+        authz::Authorization::<TestAudit, AuthRoleToken>::init(pool, &audit).await?;
+
+    let config = AccessConfig {
+        superuser_email: Some(superuser_email.clone()),
+    };
+
+    let clock = es_entity::clock::ClockHandle::realtime();
+    let access = CoreAccess::init(
+        pool,
+        config,
+        CoreAccessAction::actions(),
+        PREDEFINED_ROLES,
+        &authz,
+        &outbox,
+        clock,
+    )
+    .await?;
+
+    let superuser = access
+        .users()
+        .find_by_email(None, &superuser_email)
+        .await?
+        .expect("Superuser not found");
+
+    Ok((access, TestSubject::from(superuser.id)))
 }

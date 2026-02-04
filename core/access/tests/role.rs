@@ -25,6 +25,8 @@ async fn create_role_publishes_event() -> anyhow::Result<()> {
     let audit = TestAudit;
     let authz: Authorization<TestAudit, AuthRoleToken> = Authorization::init(&pool, &audit).await?;
 
+    let subject = TestSubject::new();
+
     // Add permission for role creation
     let test_role_id = RoleId::new();
     authz
@@ -35,7 +37,7 @@ async fn create_role_publishes_event() -> anyhow::Result<()> {
         )
         .await?;
     authz
-        .assign_role_to_subject(TestSubject, test_role_id)
+        .assign_role_to_subject(subject, test_role_id)
         .await?;
 
     let config = AccessConfig {
@@ -60,7 +62,7 @@ async fn create_role_publishes_event() -> anyhow::Result<()> {
         &outbox,
         || {
             access.create_role(
-                &TestSubject,
+                &subject,
                 role_name.clone(),
                 Vec::<PermissionSetId>::new(),
             )
