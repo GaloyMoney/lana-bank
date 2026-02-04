@@ -222,4 +222,23 @@ mod tests {
         assert_eq!(Some(&specs[2].code), specs[4].parent.as_ref());
         assert_eq!(&specs[4].code.to_string(), "11.01.0102");
     }
+
+    #[test]
+    fn parse_identifies_top_level_child_nodes() {
+        let data = r#"
+        1,,,Assets ,Debit,
+        ,,,,,
+        11,,,Current Assets,,
+        ,,,,,
+        "#;
+        let parser = CsvParser::new(data.to_string());
+        let specs = parser.account_specs().unwrap();
+
+        let current_assets_spec = &specs[1];
+        assert_eq!(Some(&specs[0].code), current_assets_spec.parent.as_ref());
+        assert_eq!(
+            current_assets_spec.normal_balance_type,
+            DebitOrCredit::Debit
+        );
+    }
 }
