@@ -33,7 +33,7 @@ use ledger::CollateralLedger;
 
 pub(super) use entity::*;
 use jobs::{
-    credit_facility_liquidations, liquidation_payment, partial_liquidation, wallet_collateral_sync,
+    collateral_liquidations, liquidation_payment, partial_liquidation, wallet_collateral_sync,
 };
 pub use {
     entity::Collateral,
@@ -136,8 +136,8 @@ where
                 credit_facility_repo,
             ));
 
-        let credit_facility_liquidations_job_spawner = jobs.add_initializer(
-            credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
+        let collateral_liquidations_job_spawner = jobs.add_initializer(
+            collateral_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
                 partial_liquidation_job_spawner,
@@ -145,12 +145,10 @@ where
             ),
         );
 
-        credit_facility_liquidations_job_spawner
+        collateral_liquidations_job_spawner
             .spawn_unique(
                 job::JobId::new(),
-                credit_facility_liquidations::CreditFacilityLiquidationsJobConfig {
-                    _phantom: std::marker::PhantomData,
-                },
+                collateral_liquidations::CreditFacilityLiquidationsJobConfig,
             )
             .await?;
 
