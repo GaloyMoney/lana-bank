@@ -270,38 +270,23 @@ impl Chart {
             })
     }
 
-    pub fn account_set_id_from_code(
-        &self,
-        code: &AccountCode,
-    ) -> Result<CalaAccountSetId, ChartOfAccountsError> {
-        self.find_node_details_by_code(code)
-            .map(|details| details.account_set_id)
-            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
-    }
-
     pub fn maybe_account_set_id_from_code(&self, code: &AccountCode) -> Option<CalaAccountSetId> {
         self.find_node_details_by_code(code)
             .map(|details| details.account_set_id)
     }
 
-    pub fn accounting_validated_account_set_id(
+    pub fn find_account_set_id_in_category(
         &self,
         code: &AccountCode,
         category: AccountCategory,
-    ) -> Result<CalaAccountSetId, ChartOfAccountsError> {
-        let id = self.account_set_id_from_code(code)?;
-        let base_config = self
-            .base_config
-            .as_ref()
-            .ok_or(ChartOfAccountsError::BaseConfigNotInitialized)?;
+    ) -> Option<CalaAccountSetId> {
+        let id = self.maybe_account_set_id_from_code(code)?;
+        let base_config = self.base_config.as_ref()?;
 
         if !base_config.is_account_in_category(code, category) {
-            return Err(ChartOfAccountsError::InvalidAccountCategory {
-                code: code.clone(),
-                category,
-            });
+            return None;
         }
-        Ok(id)
+        Some(id)
     }
 
     pub fn find_manual_transaction_account(
@@ -489,14 +474,16 @@ impl Chart {
         &self,
         account_codes: ClosingAccountCodes,
     ) -> Result<ClosingAccountSetIds, ChartOfAccountsError> {
+        let lookup = |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsError> {
+            self.maybe_account_set_id_from_code(code)
+                .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
+        };
         Ok(ClosingAccountSetIds {
-            revenue: self.account_set_id_from_code(&account_codes.revenue)?,
-            cost_of_revenue: self.account_set_id_from_code(&account_codes.cost_of_revenue)?,
-            expenses: self.account_set_id_from_code(&account_codes.expenses)?,
-            equity_retained_earnings: self
-                .account_set_id_from_code(&account_codes.equity_retained_earnings)?,
-            equity_retained_losses: self
-                .account_set_id_from_code(&account_codes.equity_retained_losses)?,
+            revenue: lookup(&account_codes.revenue)?,
+            cost_of_revenue: lookup(&account_codes.cost_of_revenue)?,
+            expenses: lookup(&account_codes.expenses)?,
+            equity_retained_earnings: lookup(&account_codes.equity_retained_earnings)?,
+            equity_retained_losses: lookup(&account_codes.equity_retained_losses)?,
         })
     }
 
@@ -1103,7 +1090,7 @@ mod test {
         }
     }
 
-    mod accounting_validated_account_set_id {
+    mod find_account_set_id_in_category {
         use super::*;
 
         fn chart_with_base_config_and_asset_members() -> Chart {
@@ -1198,12 +1185,12 @@ mod test {
             let chart = chart_with_base_config_and_asset_members();
 
             let result =
-                chart.accounting_validated_account_set_id(&code("1"), AccountCategory::Asset);
-            assert!(result.is_ok());
+                chart.find_account_set_id_in_category(&code("1"), AccountCategory::Asset);
+            assert!(result.is_some());
 
             let result =
-                chart.accounting_validated_account_set_id(&code("1.1"), AccountCategory::Asset);
-            assert!(result.is_ok());
+                chart.find_account_set_id_in_category(&code("1.1"), AccountCategory::Asset);
+            assert!(result.is_some());
         }
 
         #[test]
@@ -1211,8 +1198,8 @@ mod test {
             let chart = chart_with_base_config_and_asset_members();
 
             let result = chart
-                .accounting_validated_account_set_id(&code("9"), AccountCategory::OffBalanceSheet);
-            assert!(result.is_ok());
+                .find_account_set_id_in_category(&code("9"), AccountCategory::OffBalanceSheet);
+            assert!(result.is_some());
         }
 
         #[test]
@@ -1220,52 +1207,40 @@ mod test {
             let chart = chart_with_base_config_and_asset_members();
 
             let result =
-                chart.accounting_validated_account_set_id(&code("4"), AccountCategory::Revenue);
-            assert!(result.is_ok());
+                chart.find_account_set_id_in_category(&code("4"), AccountCategory::Revenue);
+            assert!(result.is_some());
         }
 
         #[test]
-        fn errors_when_category_mismatch() {
+        fn returns_none_when_category_mismatch() {
             let chart = chart_with_base_config_and_asset_members();
 
             let result =
-                chart.accounting_validated_account_set_id(&code("1"), AccountCategory::Revenue);
-            assert!(matches!(
-                result,
-                Err(ChartOfAccountsError::InvalidAccountCategory { .. })
-            ));
+                chart.find_account_set_id_in_category(&code("1"), AccountCategory::Revenue);
+            assert!(result.is_none());
 
             let result = chart
-                .accounting_validated_account_set_id(&code("4"), AccountCategory::OffBalanceSheet);
-            assert!(matches!(
-                result,
-                Err(ChartOfAccountsError::InvalidAccountCategory { .. })
-            ));
+                .find_account_set_id_in_category(&code("4"), AccountCategory::OffBalanceSheet);
+            assert!(result.is_none());
         }
 
         #[test]
-        fn errors_when_code_not_found() {
+        fn returns_none_when_code_not_found() {
             let chart = chart_with_base_config_and_asset_members();
 
             let result =
-                chart.accounting_validated_account_set_id(&code("99"), AccountCategory::Asset);
-            assert!(matches!(
-                result,
-                Err(ChartOfAccountsError::CodeNotFoundInChart(_))
-            ));
+                chart.find_account_set_id_in_category(&code("99"), AccountCategory::Asset);
+            assert!(result.is_none());
         }
 
         #[test]
-        fn errors_when_base_config_not_initialized() {
+        fn returns_none_when_base_config_not_initialized() {
             // Use default_chart which has accounts but no base_config
             let (chart, _) = default_chart();
 
             let result =
-                chart.accounting_validated_account_set_id(&code("1"), AccountCategory::Asset);
-            assert!(matches!(
-                result,
-                Err(ChartOfAccountsError::BaseConfigNotInitialized)
-            ));
+                chart.find_account_set_id_in_category(&code("1"), AccountCategory::Asset);
+            assert!(result.is_none());
         }
     }
 
@@ -1523,7 +1498,7 @@ mod test {
 
             let accounting_config = chart.accounting_base_config().unwrap();
             let assets_parent_account_set_id = chart
-                .account_set_id_from_code(&accounting_config.assets_code)
+                .maybe_account_set_id_from_code(&accounting_config.assets_code)
                 .unwrap();
 
             let added_account_specs = vec![

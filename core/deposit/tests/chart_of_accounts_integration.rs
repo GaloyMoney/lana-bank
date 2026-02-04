@@ -119,7 +119,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let code = "1".parse::<core_accounting::AccountCode>().unwrap();
     let account_set_id = cala
         .account_sets()
-        .find(chart.account_set_id_from_code(&code).unwrap())
+        .find(chart.maybe_account_set_id_from_code(&code).unwrap())
         .await?
         .id;
 
