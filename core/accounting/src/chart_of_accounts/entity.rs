@@ -1476,6 +1476,50 @@ mod test {
             assert!(codes.iter().any(|c| c.to_string() == "9"));
             assert!(!codes.iter().any(|c| c.to_string() == "9.1"));
         }
+
+        #[test]
+        fn returns_empty_when_all_top_level_accounts_are_in_base_config() {
+            let (mut chart, _journal_id) = default_configured_chart();
+            hydrate_chart_of_accounts(&mut chart);
+
+            let codes = chart.off_balance_sheet_category_codes();
+
+            assert!(codes.is_empty());
+        }
+
+        #[test]
+        fn excludes_all_statement_category_codes() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let mut specs = account_specs_for_base_config();
+            specs.push(AccountSpec {
+                name: "Off Balance Sheet".parse().unwrap(),
+                parent: None,
+                code: code("9"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+
+            let _ = chart
+                .configure_with_initial_accounts(specs, base_config(), journal_id)
+                .unwrap();
+            hydrate_chart_of_accounts(&mut chart);
+
+            let codes = chart.off_balance_sheet_category_codes();
+
+            // Should only contain code "9", not any of the base_config codes
+            assert_eq!(codes.len(), 1);
+            assert!(codes.iter().any(|c| c.to_string() == "9"));
+
+            // Verify all statement codes are excluded
+            let code_strings: Vec<String> = codes.iter().map(|c| c.to_string()).collect();
+            assert!(!code_strings.contains(&"1".to_string())); // assets
+            assert!(!code_strings.contains(&"2".to_string())); // liabilities
+            assert!(!code_strings.contains(&"3".to_string())); // equity
+            assert!(!code_strings.contains(&"4".to_string())); // revenue
+            assert!(!code_strings.contains(&"5".to_string())); // cost_of_revenue
+            assert!(!code_strings.contains(&"6".to_string())); // expenses
+        }
     }
 
     mod import_accounts {
