@@ -229,6 +229,7 @@ where
 
         let periods = credit_facility
             .start_interest_accrual_cycle()?
+            .expect("start_interest_accrual_cycle always returns Executed")
             .expect("first accrual");
 
         self.repo
