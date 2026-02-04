@@ -46,7 +46,7 @@ LANA uses event sourcing for entities. Testing entities requires understanding t
 3. The entity is rehydrated using `TryFromEvents::try_from_events`
 4. Commands can then be executed on the rehydrated entity
 
-**IMPORTANT**: Do not copy example code. Use subagents to explore existing entity tests in `/core/*/src/*/entity.rs` files to understand the specific patterns used in this codebase.
+Use subagents to explore existing entity tests in `/core/*/src/*/entity.rs` files to understand the specific patterns used in this codebase. These patterns can be mimicked when writing new tests.
 
 ### Builder Patterns for Test Data
 
@@ -55,12 +55,21 @@ Tests use builder patterns to construct test data. Look for existing builders in
 - Sensible defaults for optional fields
 - Clear, readable test setup
 
-### Idempotency Testing
+### Comprehensive Test Planning
 
-Entities use `Idempotent<T>` to indicate whether operations created new state or matched existing state. Tests should verify both cases:
+Before writing tests, create a plan to ensure thorough coverage:
 
-- First execution returns the new state
-- Repeated execution returns that the operation was already applied
+1. **Examine existing tests** - Use subagents to find tests already covering the object/method being tested
+2. **Identify all possible outcomes** - List every success case, error case, and edge case the method can produce
+3. **Determine what's missing** - Compare existing coverage against the full outcome list
+4. **Update or extend tests** - Modify existing tests or add new ones to achieve holistic coverage
+
+Existing tests may need updates when:
+- New functionality is added to a method
+- Edge cases were previously untested
+- Test setup can be shared across multiple scenarios
+
+The goal is a complete, maintainable test suite - not just adding new tests in isolation.
 
 ## BATS Integration Tests
 
