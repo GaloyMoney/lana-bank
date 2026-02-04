@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tracing::{Span, instrument};
 use tracing_macros::record_error_severity;
 
-use audit::{AuditSvc, SystemActor};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
 use es_entity::clock::ClockHandle;
