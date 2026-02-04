@@ -185,8 +185,7 @@ pub async fn init_access(
     .await?;
 
     let audit = TestAudit;
-    let authz =
-        authz::Authorization::<TestAudit, AuthRoleToken>::init(pool, &audit).await?;
+    let authz = authz::Authorization::<TestAudit, AuthRoleToken>::init(pool, &audit).await?;
 
     let config = AccessConfig {
         superuser_email: Some(superuser_email.clone()),

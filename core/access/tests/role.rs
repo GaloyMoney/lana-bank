@@ -16,13 +16,7 @@ async fn create_role_publishes_event() -> anyhow::Result<()> {
     // Execute use case and wait for the expected event
     let (role, recorded) = event::expect_event(
         &outbox,
-        || {
-            access.create_role(
-                &subject,
-                role_name.clone(),
-                Vec::<PermissionSetId>::new(),
-            )
-        },
+        || access.create_role(&subject, role_name.clone(), Vec::<PermissionSetId>::new()),
         |result, e| match e {
             CoreAccessEvent::RoleCreated { entity } if entity.id == result.id => {
                 Some(entity.clone())
