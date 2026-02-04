@@ -100,9 +100,17 @@
       "label": "Editor de crédito",
       "description": "Puede crear y gestionar líneas de crédito, actualizar garantías, iniciar y liquidar desembolsos, registrar intereses y procesar obligaciones"
     },
-    "credit_payment_date": {
+    "collection_payment_date": {
       "label": "Creación de pago con fecha",
       "description": "Puede crear pagos para líneas de crédito con fechas de vigencia personalizadas"
+    },
+    "collection_viewer": {
+      "label": "Visualizador de colecciones",
+      "description": "Puede ver información de colecciones"
+    },
+    "collection_writer": {
+      "label": "Escritor de colecciones",
+      "description": "Puede gestionar colecciones y operaciones relacionadas"
     },
     "credit_term_templates_viewer": {
       "label": "Visualizador de plantillas de términos",

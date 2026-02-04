@@ -12,7 +12,9 @@ use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 
-use crate::{Obligation, Obligations, event::CoreCreditEvent, primitives::*};
+use crate::{event::CoreCreditEvent, primitives::*};
+
+use core_credit_collection::{CoreCreditCollection, Obligation};
 
 pub(super) use entity::*;
 use error::DisbursalError;
@@ -27,25 +29,29 @@ pub use entity::DisbursalEvent;
 pub struct Disbursals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     repo: Arc<DisbursalRepo<E>>,
     authz: Arc<Perms>,
-    obligations: Arc<Obligations<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     governance: Arc<Governance<Perms, E>>,
 }
 
 impl<Perms, E> Clone for Disbursals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
-            obligations: self.obligations.clone(),
+            collections: self.collections.clone(),
         }
     }
 }
@@ -60,16 +66,18 @@ impl<Perms, E> Disbursals<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<CoreCreditCollectionAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreCreditObject> + From<CoreCreditCollectionObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
-        obligations: Arc<Obligations<Perms, E>>,
+        collections: Arc<CoreCreditCollection<Perms, E>>,
         governance: Arc<Governance<Perms, E>>,
         clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, DisbursalError> {
@@ -80,7 +88,7 @@ where
         Ok(Self {
             repo: Arc::new(DisbursalRepo::new(pool, publisher, clock)),
             authz,
-            obligations,
+            collections,
             governance,
         })
     }
@@ -124,7 +132,8 @@ where
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
-        self.obligations
+        self.collections
+            .obligations()
             .create_with_jobs_in_op(db, new_obligation)
             .await?;
 
@@ -222,7 +231,8 @@ where
             }
             es_entity::Idempotent::Executed(Some(new_obligation)) => {
                 let obligation = self
-                    .obligations
+                    .collections
+                    .obligations()
                     .create_with_jobs_in_op(op, new_obligation)
                     .await?;
                 self.repo.update_in_op(op, &mut disbursal).await?;

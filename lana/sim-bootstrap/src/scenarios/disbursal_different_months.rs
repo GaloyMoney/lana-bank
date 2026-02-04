@@ -4,7 +4,7 @@ use es_entity::clock::{ClockController, ClockHandle};
 use es_entity::prelude::chrono;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
-use lana_events::{CoreCreditEvent, LanaEvent};
+use lana_events::{CoreCreditCollectionEvent, CoreCreditEvent, LanaEvent};
 use rust_decimal_macros::dec;
 use tracing::{event, instrument};
 
@@ -118,12 +118,12 @@ pub async fn disbursal_different_months_scenario(
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
-                if let Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
-                    credit_facility_id,
+                if let Some(LanaEvent::CreditCollection(CoreCreditCollectionEvent::ObligationDue {
+                    beneficiary_id,
                     amount,
                     ..
                 })) = &msg.payload
-                    && *credit_facility_id == cf_id
+                    && CreditFacilityId::from(*beneficiary_id) == cf_id
                     && *amount > UsdCents::ZERO
                 {
                     msg.inject_trace_parent();

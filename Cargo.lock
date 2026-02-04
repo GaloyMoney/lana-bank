@@ -739,9 +739,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.11.0"
+version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b35204fbdc0b3f4446b89fc1ac2cf84a8a68971995d0bf2e925ec7cd960f9cb3"
+checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 dependencies = [
  "serde",
 ]
@@ -1334,6 +1334,7 @@ dependencies = [
  "cloud-storage",
  "core-access",
  "core-accounting",
+ "core-credit-collection",
  "core-credit-terms",
  "core-custody",
  "core-customer",
@@ -1361,6 +1362,36 @@ dependencies = [
  "strum",
  "thiserror 2.0.18",
  "tokio",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
+ "uuid",
+ "workspace-hack",
+]
+
+[[package]]
+name = "core-credit-collection"
+version = "0.0.0"
+dependencies = [
+ "async-trait",
+ "audit",
+ "authz",
+ "cala-ledger",
+ "chrono",
+ "core-accounting",
+ "core-credit-terms",
+ "core-money",
+ "derive_builder",
+ "es-entity",
+ "job",
+ "obix",
+ "rust_decimal",
+ "schemars 1.2.0",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.18",
  "tracing",
  "tracing-macros",
  "tracing-utils",
@@ -3531,6 +3562,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-credit-collection",
  "core-custody",
  "core-customer",
  "core-deposit",
@@ -3823,6 +3855,7 @@ dependencies = [
  "chrono",
  "core-access",
  "core-credit",
+ "core-credit-collection",
  "core-custody",
  "core-customer",
  "core-deposit",
@@ -4804,6 +4837,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-credit-collection",
  "core-credit-terms",
  "core-custody",
  "core-customer",

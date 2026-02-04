@@ -6,11 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{
-    ledger::*,
-    obligation::{NewObligation, ObligationsAmounts},
-    primitives::*,
-};
+use crate::{ledger::*, primitives::*};
+
+use core_credit_collection::obligation::NewObligation;
 
 use super::{error::CreditFacilityError, interest_accrual_cycle::*};
 
@@ -505,7 +503,7 @@ impl CreditFacility {
         self.events
             .push(CreditFacilityEvent::InterestAccrualCycleConcluded {
                 interest_accrual_cycle_idx: idx,
-                obligation_id: new_obligation.as_ref().map(|o| o.id),
+                obligation_id: new_obligation.as_ref().map(|o| o.id()),
                 ledger_tx_id: accrual_cycle_data.tx_id,
             });
 
@@ -769,8 +767,6 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
 #[cfg(test)]
 mod test {
     use rust_decimal_macros::dec;
-
-    use crate::*;
 
     use super::*;
 

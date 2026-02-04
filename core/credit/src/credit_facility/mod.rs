@@ -21,10 +21,11 @@ use crate::{
     disbursal::Disbursals,
     event::CoreCreditEvent,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
-    obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
     primitives::*,
 };
+
+use core_credit_collection::CoreCreditCollection;
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
@@ -44,13 +45,14 @@ pub struct CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
-    obligations: Arc<Obligations<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
@@ -66,6 +68,7 @@ impl<Perms, E> Clone for CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -73,7 +76,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
-            obligations: self.obligations.clone(),
+            collections: self.collections.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             disbursals: self.disbursals.clone(),
             authz: self.authz.clone(),
@@ -95,11 +98,16 @@ pub(super) enum CompletionOutcome {
 impl<Perms, E> CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<CoreCreditCollectionAction>
+        + From<GovernanceAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<CoreCreditCollectionObject>
+        + From<GovernanceObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -107,7 +115,7 @@ where
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
-        obligations: Arc<Obligations<Perms, E>>,
+        collections: Arc<CoreCreditCollection<Perms, E>>,
         pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
         disbursals: Arc<Disbursals<Perms, E>>,
         ledger: Arc<CreditLedger>,
@@ -151,7 +159,7 @@ where
         let interest_accrual_job_spawner = jobs.add_initializer(
             jobs::interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
                 ledger.clone(),
-                obligations.clone(),
+                collections.clone(),
                 repo_arc.clone(),
                 authz.clone(),
             ),
@@ -159,7 +167,7 @@ where
 
         Ok(Self {
             repo: repo_arc,
-            obligations,
+            collections,
             pending_credit_facilities,
             disbursals,
             authz,

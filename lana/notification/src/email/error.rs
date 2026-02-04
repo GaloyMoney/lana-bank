@@ -22,7 +22,7 @@ pub enum EmailError {
     #[error("EmailError - Customer: {0}")]
     Customer(#[from] core_customer::error::CustomerError),
     #[error("EmailError - Obligation: {0}")]
-    Obligation(#[from] core_credit::ObligationError),
+    Obligation(#[from] core_credit_collection::obligation::error::ObligationError),
     #[error("EmailError - CreditFacility: {0}")]
     CreditFacility(#[from] core_credit::CreditFacilityError),
 }

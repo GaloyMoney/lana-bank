@@ -149,6 +149,7 @@ impl PaymentEntry {
 
         let payment = app
             .credit()
+            .collections()
             .obligations()
             .find_allocation_by_id(sub, self.tx_id)
             .await?;

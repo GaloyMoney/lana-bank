@@ -39,6 +39,16 @@ impl From<DisbursalLedgerAccountIds> for ObligationReceivableAccountIds {
     }
 }
 
+impl From<DisbursalLedgerAccountIds> for core_credit_collection::ObligationReceivableAccountIds {
+    fn from(account_ids: DisbursalLedgerAccountIds) -> Self {
+        Self {
+            not_yet_due: account_ids.receivable_not_yet_due_account_id,
+            due: account_ids.receivable_due_account_id,
+            overdue: account_ids.receivable_overdue_account_id,
+        }
+    }
+}
+
 impl DisbursalLedgerAccountIds {
     pub fn defaulted_account_id(&self) -> CalaAccountId {
         self.defaulted_account_id

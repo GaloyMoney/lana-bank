@@ -14,6 +14,7 @@ json-schema = [
     "core-custody/json-schema",
     "core-customer/json-schema",
     "core-credit/json-schema",
+    "core-credit-collection/json-schema",
     "core-deposit/json-schema",
     "core-report/json-schema",
     "core-price/json-schema",
@@ -27,6 +28,7 @@ core-accounting = { workspace = true }
 core-custody = { workspace = true }
 core-customer = { workspace = true }
 core-credit = { workspace = true }
+core-credit-collection = { workspace = true }
 core-deposit = { workspace = true }
 core-report = { workspace = true }
 core-price = { workspace = true }

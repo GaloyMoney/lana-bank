@@ -71,8 +71,12 @@ checksums:
     Permissions/credit_viewer/description: 5691969095c092d6b600fcb3fbf84bde
     Permissions/credit_writer/label: 1c68d14fb5d28661dc717870fa30bee5
     Permissions/credit_writer/description: 647246b89757ec4c25a52d2134517e20
-    Permissions/credit_payment_date/label: 5637108827d4a83a76a27f841080e36b
-    Permissions/credit_payment_date/description: bc28ab098de7c4acedef7bd81d19a2e5
+    Permissions/collection_payment_date/label: 5637108827d4a83a76a27f841080e36b
+    Permissions/collection_payment_date/description: bc28ab098de7c4acedef7bd81d19a2e5
+    Permissions/collection_viewer/label: f886a0418e4e2d934bb712f5e37a81d1
+    Permissions/collection_viewer/description: b0c8adc66daa0f2f89687ed0b201f209
+    Permissions/collection_writer/label: 9047749e7b0d5384f1db9fbd5039697a
+    Permissions/collection_writer/description: 8c6e59ecf3db0a949db09712631a1f05
     Permissions/credit_term_templates_viewer/label: 6a1782416c42342ccef456afc91ea31f
     Permissions/credit_term_templates_viewer/description: bbff0b33010940b6ff4ec616347904d7
     Permissions/credit_term_templates_writer/label: 8b0fe1e931e93042e237b150d380f127

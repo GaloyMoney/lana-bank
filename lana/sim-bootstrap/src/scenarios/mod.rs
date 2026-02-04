@@ -117,24 +117,29 @@ async fn process_facility_message(
                 .initiate_disbursal(sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
                 .await?;
         }
-        Some(LanaEvent::Credit(
-            event @ CoreCreditEvent::ObligationDue {
-                credit_facility_id: id,
+        Some(LanaEvent::CreditCollection(
+            event @ CoreCreditCollectionEvent::ObligationDue {
+                beneficiary_id,
                 amount,
                 ..
             },
-        )) if { *id == cf_proposal.id.into() && amount > &UsdCents::ZERO } => {
+        )) if {
+            let id: CreditFacilityId = (*beneficiary_id).into();
+            id == cf_proposal.id.into() && amount > &UsdCents::ZERO
+        } =>
+        {
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
+            let id: CreditFacilityId = (*beneficiary_id).into();
             let _ = app
-                .record_payment_with_date(sub, *id, *amount, clock.today())
+                .record_payment_with_date(sub, id, *amount, clock.today())
                 .await;
             let facility = app
                 .credit()
                 .facilities()
-                .find_by_id(sub, *id)
+                .find_by_id(sub, id)
                 .await?
                 .expect("cf exists");
             if facility.interest_accrual_cycle_in_progress().is_none() {

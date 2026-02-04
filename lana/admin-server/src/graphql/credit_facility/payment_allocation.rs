@@ -39,7 +39,7 @@ impl CreditFacilityPaymentAllocation {
         let cf = app
             .credit()
             .for_subject(sub)?
-            .find_by_id(self.entity.credit_facility_id)
+            .find_by_id(self.entity.beneficiary_id)
             .await?
             .expect("facility should exist for a payment");
         Ok(super::CreditFacility::from(cf))

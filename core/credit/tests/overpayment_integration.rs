@@ -6,7 +6,8 @@ use cloud_storage::{Storage, config::StorageConfig};
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use rust_decimal_macros::dec;
 
-use core_credit::{ledger::error::CreditLedgerError, *};
+use core_credit::*;
+use core_credit_collection::{CollectionLedgerError, payment::error::PaymentError};
 use core_deposit::DepositAccountId;
 use document_storage::DocumentStorage;
 use helpers::{action, event, object};
@@ -277,8 +278,8 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         matches!(
             result,
             Err(CoreCreditError::PaymentError(
-                PaymentError::CreditLedgerError(
-                    CreditLedgerError::PaymentAmountGreaterThanOutstandingObligations,
+                PaymentError::CollectionLedgerError(
+                    CollectionLedgerError::PaymentAmountGreaterThanOutstandingObligations,
                 )
             )),
         ),

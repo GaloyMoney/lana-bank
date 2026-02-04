@@ -42,12 +42,14 @@ impl<AuthzType> Notification<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>

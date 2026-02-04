@@ -14,6 +14,16 @@ pub enum CoreCreditError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreCreditError - CreditError: {0}")]
     CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
+    #[error("CoreCreditError - CoreCreditCollectionError: {0}")]
+    CoreCreditCollectionError(#[from] core_credit_collection::CoreCreditCollectionError),
+    #[error("CoreCreditError - ObligationError: {0}")]
+    ObligationError(#[from] core_credit_collection::obligation::error::ObligationError),
+    #[error("CoreCreditError - PaymentError: {0}")]
+    PaymentError(#[from] core_credit_collection::payment::error::PaymentError),
+    #[error("CoreCreditError - PaymentAllocationError: {0}")]
+    PaymentAllocationError(
+        #[from] core_credit_collection::payment_allocation::error::PaymentAllocationError,
+    ),
     #[error("CoreCreditError - ChartOfAccountsIntegrationError: {0}")]
     ChartOfAccountsIntegrationError(
         #[from] super::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,
@@ -42,16 +52,10 @@ pub enum CoreCreditError {
     CollateralLedgerError(#[from] super::collateral::ledger::CollateralLedgerError),
     #[error("CoreCreditError - CoreCustodyError: {0}")]
     CustodyError(#[from] core_custody::error::CoreCustodyError),
-    #[error("CoreCreditError - PaymentError: {0}")]
-    PaymentError(#[from] super::payment::error::PaymentError),
-    #[error("CoreCreditError - PaymentAllocationError: {0}")]
-    PaymentAllocationError(#[from] super::payment_allocation::error::PaymentAllocationError),
     #[error("CoreCreditError - DisbursalError: {0}")]
     DisbursalError(#[from] super::disbursal::error::DisbursalError),
     #[error("CoreCreditError - LiquidationError: {0}")]
     LiquidationError(#[from] super::liquidation::error::LiquidationError),
-    #[error("CoreCreditError - ObligationError: {0}")]
-    ObligationError(#[from] super::obligation::error::ObligationError),
     #[error("CoreCreditError - InterestAccrualCycleError: {0}")]
     InterestAccrualCycleError(
         #[from] super::interest_accrual_cycle::error::InterestAccrualCycleError,
@@ -84,6 +88,10 @@ impl ErrorSeverity for CoreCreditError {
             Self::CustomerError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::CreditLedgerError(e) => e.severity(),
+            Self::CoreCreditCollectionError(e) => e.severity(),
+            Self::ObligationError(e) => e.severity(),
+            Self::PaymentError(e) => e.severity(),
+            Self::PaymentAllocationError(e) => e.severity(),
             Self::ChartOfAccountsIntegrationError(e) => e.severity(),
             Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
             Self::CreditFacilityProposalError(e) => e.severity(),
@@ -94,11 +102,8 @@ impl ErrorSeverity for CoreCreditError {
             Self::CollateralError(e) => e.severity(),
             Self::CollateralLedgerError(e) => e.severity(),
             Self::CustodyError(e) => e.severity(),
-            Self::PaymentError(e) => e.severity(),
-            Self::PaymentAllocationError(e) => e.severity(),
             Self::DisbursalError(e) => e.severity(),
             Self::LiquidationError(e) => e.severity(),
-            Self::ObligationError(e) => e.severity(),
             Self::InterestAccrualCycleError(e) => e.severity(),
             Self::PriceError(e) => e.severity(),
             Self::GovernanceError(e) => e.severity(),

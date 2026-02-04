@@ -17,24 +17,13 @@ use cala_ledger::{
     CalaLedger, Currency, DebitOrCredit, JournalId,
     account::NewAccount,
     account_set::{AccountSetMemberId, NewAccountSet},
-    error::LedgerError,
-    velocity::{
-        NewVelocityControl, VelocityControlId,
-        error::{LimitExceededError, VelocityError},
-    },
+    velocity::{NewVelocityControl, VelocityControlId},
 };
 use tracing_macros::record_error_severity;
 
 use crate::{
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
     collateral::ledger::templates as collateral_templates,
-    ledger::velocity::UNCOVERED_OUTSTANDING_LIMIT_ID,
-    obligation::{
-        Obligation, ObligationDefaultedReallocationData, ObligationDueReallocationData,
-        ObligationOverdueReallocationData,
-    },
-    payment::Payment,
-    payment_allocation::PaymentAllocation,
     primitives::{
         COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE,
         CalaAccountId, CalaAccountSetId, CollateralId, CreditFacilityId, CustomerType, DisbursalId,
@@ -43,6 +32,8 @@ use crate::{
         PendingCreditFacilityId, Satoshis, UsdCents,
     },
 };
+
+use core_credit_collection::obligation::Obligation;
 
 pub use balance::*;
 use constants::*;
@@ -149,11 +140,6 @@ impl CreditLedger {
     ) -> Result<Self, CreditLedgerError> {
         templates::AddStructuringFee::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
-        templates::RecordPaymentAllocation::init(cala).await?;
-        templates::RecordObligationDueBalance::init(cala).await?;
-        templates::RecordObligationOverdueBalance::init(cala).await?;
-        templates::RecordPayment::init(cala).await?;
-        templates::RecordObligationDefaultedBalance::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
         templates::CreditFacilityPostAccruedInterest::init(cala).await?;
         templates::InitiateDisbursal::init(cala).await?;
@@ -1245,191 +1231,6 @@ impl CreditLedger {
 
             payments_unapplied,
         })
-    }
-
-    async fn record_obligation_repayment_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        allocation @ PaymentAllocation {
-            ledger_tx_id,
-            amount,
-            payment_holding_account_id,
-            receivable_account_id,
-            effective,
-            ..
-        }: PaymentAllocation,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> Result<(), CreditLedgerError> {
-        let params = templates::RecordPaymentAllocationParams {
-            journal_id: self.journal_id,
-            currency: self.usd,
-            amount: amount.to_usd(),
-            receivable_account_id,
-            payment_holding_account_id,
-            tx_ref: allocation.tx_ref(),
-            effective,
-            initiated_by,
-        };
-        self.cala
-            .post_transaction_in_op(
-                op,
-                ledger_tx_id,
-                templates::RECORD_PAYMENT_ALLOCATION_CODE,
-                params,
-            )
-            .await?;
-
-        Ok(())
-    }
-
-    pub async fn record_payment_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        payment @ Payment {
-            ledger_tx_id,
-            facility_payment_holding_account_id,
-            facility_uncovered_outstanding_account_id,
-            payment_source_account_id,
-            amount,
-            effective,
-            ..
-        }: &Payment,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> Result<(), CreditLedgerError> {
-        let params = templates::RecordPaymentParams {
-            journal_id: self.journal_id,
-            currency: self.usd,
-            amount: amount.to_usd(),
-            payment_source_account_id: *payment_source_account_id,
-            payment_holding_account_id: *facility_payment_holding_account_id,
-            uncovered_outstanding_account_id: *facility_uncovered_outstanding_account_id,
-            payments_made_omnibus_account_id: self.payments_made_omnibus_account_ids.account_id,
-            tx_ref: payment.tx_ref(),
-            effective: *effective,
-            initiated_by,
-        };
-
-        match self
-            .cala
-            .post_transaction_in_op(op, *ledger_tx_id, templates::RECORD_PAYMENT_CODE, params)
-            .await
-        {
-            Err(LedgerError::VelocityError(VelocityError::Enforcement(LimitExceededError {
-                limit_id,
-                ..
-            }))) if limit_id == UNCOVERED_OUTSTANDING_LIMIT_ID.into() => {
-                return Err(CreditLedgerError::PaymentAmountGreaterThanOutstandingObligations);
-            }
-            Err(e) => return Err(e.into()),
-            _ => (),
-        };
-
-        Ok(())
-    }
-    pub async fn record_payment_allocations_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        payments: Vec<PaymentAllocation>,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> Result<(), CreditLedgerError> {
-        for payment in payments {
-            self.record_obligation_repayment_in_op(op, payment, initiated_by)
-                .await?;
-        }
-        Ok(())
-    }
-
-    pub async fn record_obligation_due_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        ObligationDueReallocationData {
-            tx_id,
-            amount: outstanding_amount,
-            not_yet_due_account_id,
-            due_account_id,
-            effective,
-            ..
-        }: ObligationDueReallocationData,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> Result<(), CreditLedgerError> {
-        self.cala
-            .post_transaction_in_op(
-                op,
-                tx_id,
-                templates::RECORD_OBLIGATION_DUE_BALANCE_CODE,
-                templates::RecordObligationDueBalanceParams {
-                    journal_id: self.journal_id,
-                    amount: outstanding_amount.to_usd(),
-                    receivable_not_yet_due_account_id: not_yet_due_account_id,
-                    receivable_due_account_id: due_account_id,
-                    effective,
-                    initiated_by,
-                },
-            )
-            .await?;
-        Ok(())
-    }
-
-    pub async fn record_obligation_overdue_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        ObligationOverdueReallocationData {
-            tx_id,
-            amount: outstanding_amount,
-            due_account_id,
-            overdue_account_id,
-            effective,
-            ..
-        }: ObligationOverdueReallocationData,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> Result<(), CreditLedgerError> {
-        self.cala
-            .post_transaction_in_op(
-                op,
-                tx_id,
-                templates::RECORD_OBLIGATION_OVERDUE_BALANCE_CODE,
-                templates::RecordObligationOverdueBalanceParams {
-                    journal_id: self.journal_id,
-                    amount: outstanding_amount.to_usd(),
-                    receivable_due_account_id: due_account_id,
-                    receivable_overdue_account_id: overdue_account_id,
-                    effective,
-                    initiated_by,
-                },
-            )
-            .await?;
-        Ok(())
-    }
-
-    pub async fn record_obligation_defaulted_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        ObligationDefaultedReallocationData {
-            tx_id,
-            amount: outstanding_amount,
-            receivable_account_id,
-            defaulted_account_id,
-            effective,
-            ..
-        }: ObligationDefaultedReallocationData,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> Result<(), CreditLedgerError> {
-        self.cala
-            .post_transaction_in_op(
-                op,
-                tx_id,
-                templates::RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE,
-                templates::RecordObligationDefaultedBalanceParams {
-                    journal_id: self.journal_id,
-                    amount: outstanding_amount.to_usd(),
-                    receivable_account_id,
-                    defaulted_account_id,
-                    effective,
-                    initiated_by,
-                },
-            )
-            .await?;
-        Ok(())
     }
 
     pub async fn complete_credit_facility_in_op(
@@ -2908,6 +2709,10 @@ impl CreditLedger {
 
     pub fn collateral_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
         &self.collateral_omnibus_account_ids
+    }
+
+    pub fn payments_made_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
+        &self.payments_made_omnibus_account_ids
     }
 }
 

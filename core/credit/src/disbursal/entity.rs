@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{ledger::DisbursalLedgerAccountIds, obligation::NewObligation, primitives::*};
+use crate::{ledger::DisbursalLedgerAccountIds, primitives::*};
+
+use core_credit_collection::obligation::NewObligation;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -224,7 +226,7 @@ impl Disbursal {
         Idempotent::Executed(
             NewObligation::builder()
                 .id(obligation_id)
-                .credit_facility_id(self.facility_id)
+                .beneficiary_id(self.facility_id)
                 .obligation_type(ObligationType::Disbursal)
                 .reference(tx_ref.to_string())
                 .amount(self.amount)

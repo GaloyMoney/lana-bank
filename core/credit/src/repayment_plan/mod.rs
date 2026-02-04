@@ -12,7 +12,7 @@ use std::sync::Arc;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{event::CoreCreditEvent, primitives::*};
+use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, primitives::*};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use error::CreditFacilityRepaymentPlanError;
@@ -152,7 +152,7 @@ impl CreditFacilityRepaymentPlan {
         planned_interest_entries
     }
 
-    pub(crate) fn process_event(
+    pub(crate) fn process_credit_event(
         &mut self,
         sequence: EventSequence,
         event: &CoreCreditEvent,
@@ -169,46 +169,6 @@ impl CreditFacilityRepaymentPlan {
             }
             CoreCreditEvent::FacilityActivated { activated_at, .. } => {
                 self.activated_at = Some(*activated_at);
-            }
-            CoreCreditEvent::ObligationCreated {
-                id,
-                obligation_type,
-                amount,
-                due_at,
-                overdue_at,
-                defaulted_at,
-                recorded_at,
-                effective,
-                ..
-            } => {
-                // Skip if already processed (idempotent for replay)
-                if existing_obligations
-                    .iter()
-                    .any(|e| e.obligation_id == Some(*id))
-                {
-                    return false;
-                }
-
-                let entry = CreditFacilityRepaymentPlanEntry {
-                    repayment_type: obligation_type.into(),
-                    obligation_id: Some(*id),
-                    status: RepaymentStatus::NotYetDue,
-
-                    initial: *amount,
-                    outstanding: *amount,
-
-                    due_at: *due_at,
-                    overdue_at: overdue_at.map(EffectiveDate::from),
-                    defaulted_at: defaulted_at.map(EffectiveDate::from),
-                    recorded_at: *recorded_at,
-                    effective: *effective,
-                };
-                if *obligation_type == ObligationType::Interest {
-                    let effective = EffectiveDate::from(*effective);
-                    self.last_interest_accrual_at = Some(effective.end_of_day());
-                }
-
-                existing_obligations.push(entry);
             }
             CoreCreditEvent::AccrualPosted {
                 ledger_tx_id,
@@ -243,7 +203,64 @@ impl CreditFacilityRepaymentPlan {
 
                 existing_obligations.push(entry);
             }
-            CoreCreditEvent::FacilityPaymentAllocated {
+            _ => return false,
+        };
+
+        self.rebuild_entries(existing_obligations, now);
+        true
+    }
+
+    pub(crate) fn process_collection_event(
+        &mut self,
+        sequence: EventSequence,
+        event: &CoreCreditCollectionEvent,
+        now: DateTime<Utc>,
+    ) -> bool {
+        self.last_updated_on_sequence = sequence;
+
+        let mut existing_obligations = self.existing_obligations();
+
+        match event {
+            CoreCreditCollectionEvent::ObligationCreated {
+                id,
+                obligation_type,
+                amount,
+                due_at,
+                overdue_at,
+                defaulted_at,
+                recorded_at,
+                effective,
+                ..
+            } => {
+                if existing_obligations
+                    .iter()
+                    .any(|e| e.obligation_id == Some(*id))
+                {
+                    return false;
+                }
+
+                let entry = CreditFacilityRepaymentPlanEntry {
+                    repayment_type: obligation_type.into(),
+                    obligation_id: Some(*id),
+                    status: RepaymentStatus::NotYetDue,
+
+                    initial: *amount,
+                    outstanding: *amount,
+
+                    due_at: *due_at,
+                    overdue_at: overdue_at.map(EffectiveDate::from),
+                    defaulted_at: defaulted_at.map(EffectiveDate::from),
+                    recorded_at: *recorded_at,
+                    effective: *effective,
+                };
+                if *obligation_type == ObligationType::Interest {
+                    let effective = EffectiveDate::from(*effective);
+                    self.last_interest_accrual_at = Some(effective.end_of_day());
+                }
+
+                existing_obligations.push(entry);
+            }
+            CoreCreditCollectionEvent::PaymentAllocated {
                 obligation_id,
                 allocation_id,
                 amount,
@@ -261,36 +278,50 @@ impl CreditFacilityRepaymentPlan {
                     return false;
                 }
             }
-            CoreCreditEvent::ObligationDue {
+            CoreCreditCollectionEvent::ObligationDue {
                 id: obligation_id, ..
             }
-            | CoreCreditEvent::ObligationOverdue {
+            | CoreCreditCollectionEvent::ObligationOverdue {
                 id: obligation_id, ..
             }
-            | CoreCreditEvent::ObligationDefaulted {
+            | CoreCreditCollectionEvent::ObligationDefaulted {
                 id: obligation_id, ..
             }
-            | CoreCreditEvent::ObligationCompleted {
+            | CoreCreditCollectionEvent::ObligationCompleted {
                 id: obligation_id, ..
             } => {
                 if let Some(entry) = existing_obligations.iter_mut().find_map(|entry| {
                     (entry.obligation_id == Some(*obligation_id)).then_some(entry)
                 }) {
                     entry.status = match event {
-                        CoreCreditEvent::ObligationDue { .. } => RepaymentStatus::Due,
-                        CoreCreditEvent::ObligationOverdue { .. } => RepaymentStatus::Overdue,
-                        CoreCreditEvent::ObligationDefaulted { .. } => RepaymentStatus::Defaulted,
-                        CoreCreditEvent::ObligationCompleted { .. } => RepaymentStatus::Paid,
+                        CoreCreditCollectionEvent::ObligationDue { .. } => RepaymentStatus::Due,
+                        CoreCreditCollectionEvent::ObligationOverdue { .. } => {
+                            RepaymentStatus::Overdue
+                        }
+                        CoreCreditCollectionEvent::ObligationDefaulted { .. } => {
+                            RepaymentStatus::Defaulted
+                        }
+                        CoreCreditCollectionEvent::ObligationCompleted { .. } => {
+                            RepaymentStatus::Paid
+                        }
                         _ => unreachable!(),
                     };
                 } else {
                     return false;
                 }
             }
-
             _ => return false,
         };
 
+        self.rebuild_entries(existing_obligations, now);
+        true
+    }
+
+    fn rebuild_entries(
+        &mut self,
+        existing_obligations: Vec<CreditFacilityRepaymentPlanEntry>,
+        now: DateTime<Utc>,
+    ) {
         let updated_entries = if !existing_obligations.is_empty() {
             existing_obligations
         } else {
@@ -304,8 +335,6 @@ impl CreditFacilityRepaymentPlan {
             .chain(planned_interest_entries)
             .collect();
         self.entries.sort();
-
-        true
     }
 }
 
@@ -339,7 +368,7 @@ where
         authz: Arc<Perms>,
     ) -> Result<Self, CreditFacilityRepaymentPlanError>
     where
-        E: OutboxEventMarker<CoreCreditEvent>,
+        E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<crate::CoreCreditCollectionEvent>,
     {
         let repo = Arc::new(RepaymentPlanRepo::new(pool));
 
@@ -445,7 +474,7 @@ mod tests {
 
     fn plan(terms: TermValues) -> CreditFacilityRepaymentPlan {
         let mut plan = CreditFacilityRepaymentPlan::default();
-        plan.process_event(
+        plan.process_credit_event(
             Default::default(),
             &CoreCreditEvent::FacilityProposalCreated {
                 id: CreditFacilityProposalId::new(),
@@ -467,9 +496,27 @@ mod tests {
         plan(terms(0))
     }
 
-    fn process_events(plan: &mut CreditFacilityRepaymentPlan, events: Vec<CoreCreditEvent>) {
+    fn process_credit_events(plan: &mut CreditFacilityRepaymentPlan, events: Vec<CoreCreditEvent>) {
         for event in events {
-            plan.process_event(Default::default(), &event, default_start_date());
+            plan.process_credit_event(Default::default(), &event, default_start_date());
+        }
+    }
+
+    enum TestEvent {
+        Credit(CoreCreditEvent),
+        Collection(CoreCreditCollectionEvent),
+    }
+
+    fn process_test_events(plan: &mut CreditFacilityRepaymentPlan, events: Vec<TestEvent>) {
+        for event in events {
+            match &event {
+                TestEvent::Credit(e) => {
+                    plan.process_credit_event(Default::default(), e, default_start_date());
+                }
+                TestEvent::Collection(e) => {
+                    plan.process_collection_event(Default::default(), e, default_start_date());
+                }
+            }
         }
     }
 
@@ -539,7 +586,7 @@ mod tests {
             activated_at: default_start_date(),
             amount: default_facility_amount(),
         }];
-        process_events(&mut plan, events);
+        process_credit_events(&mut plan, events);
 
         let counts = count_entries(&plan);
         assert_eq!(
@@ -577,7 +624,7 @@ mod tests {
                 effective: period.end.date_naive(),
             },
         ];
-        process_events(&mut plan, events);
+        process_credit_events(&mut plan, events);
 
         let counts = count_entries(&plan);
         assert_eq!(
@@ -625,7 +672,7 @@ mod tests {
                 effective: period_2.end.date_naive(),
             },
         ];
-        process_events(&mut plan, events);
+        process_credit_events(&mut plan, events);
 
         let counts = count_entries(&plan);
         assert_eq!(
@@ -647,25 +694,25 @@ mod tests {
 
         let recorded_at = default_start_date();
         let events = vec![
-            CoreCreditEvent::FacilityActivated {
+            TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Disbursal,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(100_000_00),
                 due_at: EffectiveDate::from(default_start_date()),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at,
                 effective: recorded_at.date_naive(),
-            },
+            }),
         ];
-        process_events(&mut plan, events);
+        process_test_events(&mut plan, events);
 
         let counts = count_entries(&plan);
         assert_eq!(
@@ -688,36 +735,36 @@ mod tests {
         let disbursal_recorded_at = default_start_date();
         let interest_recorded_at = default_start_date_with_days(30);
         let events = vec![
-            CoreCreditEvent::FacilityActivated {
+            TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Disbursal,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(100_000_00),
                 due_at: EffectiveDate::from(disbursal_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: disbursal_recorded_at,
                 effective: disbursal_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(1_000_00),
                 due_at: EffectiveDate::from(interest_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
-            },
+            }),
         ];
-        process_events(&mut plan, events);
+        process_test_events(&mut plan, events);
 
         let counts = count_entries(&plan);
         assert_eq!(
@@ -742,45 +789,45 @@ mod tests {
         let disbursal_recorded_at = default_start_date();
         let interest_recorded_at = default_start_date_with_days(30);
         let events = vec![
-            CoreCreditEvent::FacilityActivated {
+            TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Disbursal,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(100_000_00),
                 due_at: EffectiveDate::from(disbursal_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: disbursal_recorded_at,
                 effective: disbursal_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: interest_obligation_id,
                 obligation_type: ObligationType::Interest,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(1_000_00),
                 due_at: EffectiveDate::from(interest_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::FacilityPaymentAllocated {
-                credit_facility_id: CreditFacilityId::new(),
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::PaymentAllocated {
+                beneficiary_id: CreditFacilityId::new().into(),
                 obligation_id: interest_obligation_id,
                 obligation_type: ObligationType::Interest,
                 allocation_id: PaymentAllocationId::new(),
                 amount: UsdCents::from(400_00),
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
-            },
+            }),
         ];
-        process_events(&mut plan, events);
+        process_test_events(&mut plan, events);
 
         let counts = count_entries(&plan);
         assert_eq!(
@@ -820,45 +867,45 @@ mod tests {
         let disbursal_recorded_at = default_start_date();
         let interest_recorded_at = default_start_date_with_days(30);
         let events = vec![
-            CoreCreditEvent::FacilityActivated {
+            TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Disbursal,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(100_000_00),
                 due_at: EffectiveDate::from(disbursal_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: disbursal_recorded_at,
                 effective: disbursal_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: interest_obligation_id,
                 obligation_type: ObligationType::Interest,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(1_000_00),
                 due_at: EffectiveDate::from(interest_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::FacilityPaymentAllocated {
-                credit_facility_id: CreditFacilityId::new(),
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::PaymentAllocated {
+                beneficiary_id: CreditFacilityId::new().into(),
                 obligation_id: interest_obligation_id,
                 obligation_type: ObligationType::Interest,
                 allocation_id: PaymentAllocationId::new(),
                 amount: UsdCents::from(1_000_00),
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
-            },
+            }),
         ];
-        process_events(&mut plan, events);
+        process_test_events(&mut plan, events);
 
         let counts = count_entries(&plan);
         assert_eq!(
@@ -890,11 +937,11 @@ mod tests {
         assert_eq!(*outstanding, UsdCents::ZERO);
         assert_ne!(*status, RepaymentStatus::Paid);
 
-        plan.process_event(
+        plan.process_collection_event(
             Default::default(),
-            &CoreCreditEvent::ObligationCompleted {
+            &CoreCreditCollectionEvent::ObligationCompleted {
                 id: interest_obligation_id,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
             },
             default_start_date(),
         );
@@ -924,69 +971,69 @@ mod tests {
         let interest_3_recorded_at = default_start_date_with_days(30 + 28 + 31);
         let interest_4_recorded_at = default_start_date_with_days(30 + 28 + 31 + 1);
         let events = vec![
-            CoreCreditEvent::FacilityActivated {
+            TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Disbursal,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(100_000_00),
                 due_at: EffectiveDate::from(disbursal_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: disbursal_recorded_at,
                 effective: disbursal_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(1_000_00),
                 due_at: EffectiveDate::from(interest_1_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_1_recorded_at,
                 effective: interest_1_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(1_000_00),
                 due_at: EffectiveDate::from(interest_2_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_2_recorded_at,
                 effective: interest_2_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(1_000_00),
                 due_at: EffectiveDate::from(interest_3_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_3_recorded_at,
                 effective: interest_3_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(33_00),
                 due_at: EffectiveDate::from(interest_4_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_4_recorded_at,
                 effective: interest_4_recorded_at.date_naive(),
-            },
+            }),
         ];
-        process_events(&mut plan, events);
+        process_test_events(&mut plan, events);
 
         let counts = count_entries(&plan);
         assert_eq!(
@@ -1013,39 +1060,39 @@ mod tests {
         let interest_recorded_at = default_start_date_with_days(30);
 
         let events = vec![
-            CoreCreditEvent::FacilityActivated {
+            TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Disbursal,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(100_000_00),
                 due_at: EffectiveDate::from(disbursal_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: disbursal_recorded_at,
                 effective: disbursal_recorded_at.date_naive(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: interest_obligation_id,
                 obligation_type: ObligationType::Interest,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(1_000_00),
                 due_at: EffectiveDate::from(interest_recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
-            },
+            }),
         ];
-        process_events(&mut plan, events);
+        process_test_events(&mut plan, events);
 
-        let payment_event = CoreCreditEvent::FacilityPaymentAllocated {
-            credit_facility_id: CreditFacilityId::new(),
+        let payment_event = CoreCreditCollectionEvent::PaymentAllocated {
+            beneficiary_id: CreditFacilityId::new().into(),
             obligation_id: interest_obligation_id,
             obligation_type: ObligationType::Interest,
             allocation_id,
@@ -1056,7 +1103,7 @@ mod tests {
 
         // First processing should apply the payment
         let first_result =
-            plan.process_event(Default::default(), &payment_event, default_start_date());
+            plan.process_collection_event(Default::default(), &payment_event, default_start_date());
         assert!(first_result);
 
         let outstanding_after_first = plan
@@ -1076,7 +1123,7 @@ mod tests {
 
         // Second processing (replay) should be idempotent - no overflow, no change
         let second_result =
-            plan.process_event(Default::default(), &payment_event, default_start_date());
+            plan.process_collection_event(Default::default(), &payment_event, default_start_date());
         assert!(!second_result);
 
         let outstanding_after_second = plan
@@ -1109,12 +1156,12 @@ mod tests {
             activated_at: default_start_date(),
             amount: default_facility_amount(),
         };
-        plan.process_event(Default::default(), &activate_event, default_start_date());
+        plan.process_credit_event(Default::default(), &activate_event, default_start_date());
 
-        let obligation_event = CoreCreditEvent::ObligationCreated {
+        let obligation_event = CoreCreditCollectionEvent::ObligationCreated {
             id: obligation_id,
             obligation_type: ObligationType::Disbursal,
-            credit_facility_id: CreditFacilityId::new(),
+            beneficiary_id: CreditFacilityId::new().into(),
             amount: UsdCents::from(100_000_00),
             due_at: EffectiveDate::from(recorded_at),
             overdue_at: None,
@@ -1124,8 +1171,11 @@ mod tests {
         };
 
         // First processing should create the obligation entry
-        let first_result =
-            plan.process_event(Default::default(), &obligation_event, default_start_date());
+        let first_result = plan.process_collection_event(
+            Default::default(),
+            &obligation_event,
+            default_start_date(),
+        );
         assert!(first_result);
 
         let count_after_first = plan
@@ -1136,8 +1186,11 @@ mod tests {
         assert_eq!(count_after_first, 1);
 
         // Second processing (replay) should be idempotent - no duplicate entry
-        let second_result =
-            plan.process_event(Default::default(), &obligation_event, default_start_date());
+        let second_result = plan.process_collection_event(
+            Default::default(),
+            &obligation_event,
+            default_start_date(),
+        );
         assert!(!second_result);
 
         let count_after_second = plan
@@ -1158,7 +1211,7 @@ mod tests {
             activated_at: default_start_date(),
             amount: default_facility_amount(),
         };
-        plan.process_event(Default::default(), &activate_event, default_start_date());
+        plan.process_credit_event(Default::default(), &activate_event, default_start_date());
 
         let period = InterestInterval::EndOfMonth.period_from(default_start_date());
         let accrual_event = CoreCreditEvent::AccrualPosted {
@@ -1173,7 +1226,7 @@ mod tests {
 
         // First processing should create the accrual entry
         let first_result =
-            plan.process_event(Default::default(), &accrual_event, default_start_date());
+            plan.process_credit_event(Default::default(), &accrual_event, default_start_date());
         assert!(first_result);
 
         let count_after_first = plan
@@ -1189,7 +1242,7 @@ mod tests {
 
         // Second processing (replay) should be idempotent - no duplicate entry
         let second_result =
-            plan.process_event(Default::default(), &accrual_event, default_start_date());
+            plan.process_credit_event(Default::default(), &accrual_event, default_start_date());
         assert!(!second_result);
 
         let count_after_second = plan
@@ -1217,13 +1270,13 @@ mod tests {
 
         // First processing
         let first_result =
-            plan.process_event(Default::default(), &proposal_event, default_start_date());
+            plan.process_credit_event(Default::default(), &proposal_event, default_start_date());
         assert!(first_result);
         assert_eq!(plan.facility_amount, UsdCents::from(100_000_00));
 
         // Second processing (replay) - naturally idempotent, sets same values
         let second_result =
-            plan.process_event(Default::default(), &proposal_event, default_start_date());
+            plan.process_credit_event(Default::default(), &proposal_event, default_start_date());
         assert!(second_result);
         assert_eq!(plan.facility_amount, UsdCents::from(100_000_00));
     }
@@ -1242,13 +1295,13 @@ mod tests {
 
         // First processing
         let first_result =
-            plan.process_event(Default::default(), &activate_event, default_start_date());
+            plan.process_credit_event(Default::default(), &activate_event, default_start_date());
         assert!(first_result);
         assert_eq!(plan.activated_at, Some(activated_at));
 
         // Second processing (replay) - naturally idempotent, sets same value
         let second_result =
-            plan.process_event(Default::default(), &activate_event, default_start_date());
+            plan.process_credit_event(Default::default(), &activate_event, default_start_date());
         assert!(second_result);
         assert_eq!(plan.activated_at, Some(activated_at));
     }
@@ -1261,34 +1314,34 @@ mod tests {
 
         // Setup: activate and create obligation
         let events = vec![
-            CoreCreditEvent::FacilityActivated {
+            TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
-            },
-            CoreCreditEvent::ObligationCreated {
+            }),
+            TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 id: obligation_id,
                 obligation_type: ObligationType::Disbursal,
-                credit_facility_id: CreditFacilityId::new(),
+                beneficiary_id: CreditFacilityId::new().into(),
                 amount: UsdCents::from(100_000_00),
                 due_at: EffectiveDate::from(recorded_at),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at,
                 effective: recorded_at.date_naive(),
-            },
+            }),
         ];
-        process_events(&mut plan, events);
+        process_test_events(&mut plan, events);
 
         // Test ObligationDue replay
-        let due_event = CoreCreditEvent::ObligationDue {
+        let due_event = CoreCreditCollectionEvent::ObligationDue {
             id: obligation_id,
-            credit_facility_id: CreditFacilityId::new(),
+            beneficiary_id: CreditFacilityId::new().into(),
             obligation_type: ObligationType::Disbursal,
             amount: UsdCents::from(100_000_00),
         };
-        plan.process_event(Default::default(), &due_event, default_start_date());
+        plan.process_collection_event(Default::default(), &due_event, default_start_date());
         let status_after_first = plan
             .entries
             .iter()
@@ -1298,7 +1351,7 @@ mod tests {
         assert_eq!(status_after_first, RepaymentStatus::Due);
 
         // Replay - naturally idempotent
-        plan.process_event(Default::default(), &due_event, default_start_date());
+        plan.process_collection_event(Default::default(), &due_event, default_start_date());
         let status_after_second = plan
             .entries
             .iter()
@@ -1308,13 +1361,13 @@ mod tests {
         assert_eq!(status_after_second, RepaymentStatus::Due);
 
         // Test ObligationOverdue replay
-        let overdue_event = CoreCreditEvent::ObligationOverdue {
+        let overdue_event = CoreCreditCollectionEvent::ObligationOverdue {
             id: obligation_id,
-            credit_facility_id: CreditFacilityId::new(),
+            beneficiary_id: CreditFacilityId::new().into(),
             amount: UsdCents::from(100_000_00),
         };
-        plan.process_event(Default::default(), &overdue_event, default_start_date());
-        plan.process_event(Default::default(), &overdue_event, default_start_date());
+        plan.process_collection_event(Default::default(), &overdue_event, default_start_date());
+        plan.process_collection_event(Default::default(), &overdue_event, default_start_date());
         let status = plan
             .entries
             .iter()
@@ -1324,13 +1377,13 @@ mod tests {
         assert_eq!(status, RepaymentStatus::Overdue);
 
         // Test ObligationDefaulted replay
-        let defaulted_event = CoreCreditEvent::ObligationDefaulted {
+        let defaulted_event = CoreCreditCollectionEvent::ObligationDefaulted {
             id: obligation_id,
-            credit_facility_id: CreditFacilityId::new(),
+            beneficiary_id: CreditFacilityId::new().into(),
             amount: UsdCents::from(100_000_00),
         };
-        plan.process_event(Default::default(), &defaulted_event, default_start_date());
-        plan.process_event(Default::default(), &defaulted_event, default_start_date());
+        plan.process_collection_event(Default::default(), &defaulted_event, default_start_date());
+        plan.process_collection_event(Default::default(), &defaulted_event, default_start_date());
         let status = plan
             .entries
             .iter()
@@ -1340,12 +1393,12 @@ mod tests {
         assert_eq!(status, RepaymentStatus::Defaulted);
 
         // Test ObligationCompleted replay
-        let completed_event = CoreCreditEvent::ObligationCompleted {
+        let completed_event = CoreCreditCollectionEvent::ObligationCompleted {
             id: obligation_id,
-            credit_facility_id: CreditFacilityId::new(),
+            beneficiary_id: CreditFacilityId::new().into(),
         };
-        plan.process_event(Default::default(), &completed_event, default_start_date());
-        plan.process_event(Default::default(), &completed_event, default_start_date());
+        plan.process_collection_event(Default::default(), &completed_event, default_start_date());
+        plan.process_collection_event(Default::default(), &completed_event, default_start_date());
         let status = plan
             .entries
             .iter()

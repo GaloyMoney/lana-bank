@@ -30,10 +30,12 @@ pub enum PermissionSetName {
     AccessWriter,
     AccountingViewer,
     AccountingWriter,
+    CollectionViewer,
+    CollectionWriter,
+    CollectionPaymentDate,
     ContractCreation,
     CreditViewer,
     CreditWriter,
-    CreditPaymentDate,
     CreditTermTemplatesViewer,
     CreditTermTemplatesWriter,
     CustomerViewer,
@@ -68,7 +70,9 @@ impl std::str::FromStr for PermissionSetName {
 
             core_credit::PERMISSION_SET_CREDIT_VIEWER => Ok(CreditViewer),
             core_credit::PERMISSION_SET_CREDIT_WRITER => Ok(CreditWriter),
-            core_credit::PERMISSION_SET_CREDIT_PAYMENT_DATE => Ok(CreditPaymentDate),
+            core_credit::PERMISSION_SET_COLLECTION_VIEWER => Ok(CollectionViewer),
+            core_credit::PERMISSION_SET_COLLECTION_WRITER => Ok(CollectionWriter),
+            core_credit::PERMISSION_SET_COLLECTION_PAYMENT_DATE => Ok(CollectionPaymentDate),
             core_credit_terms::PERMISSION_SET_CREDIT_TERM_TEMPLATES_VIEWER => {
                 Ok(CreditTermTemplatesViewer)
             }

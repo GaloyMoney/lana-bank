@@ -9,10 +9,13 @@ use core_price::CorePriceEvent;
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
 
+use core_credit_collection::{CoreCreditCollection, payment_allocation::PaymentAllocation};
+
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -21,7 +24,7 @@ where
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilities<Perms, E>,
-    obligations: &'a Obligations<Perms, E>,
+    collections: &'a CoreCreditCollection<Perms, E>,
     disbursals: &'a Disbursals<Perms, E>,
     histories: &'a Histories<Perms>,
     repayment_plans: &'a RepaymentPlans<Perms>,
@@ -31,11 +34,16 @@ where
 impl<'a, Perms, E> CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<CoreCreditCollectionAction>
+        + From<GovernanceAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<CoreCreditCollectionObject>
+        + From<GovernanceObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -45,7 +53,7 @@ where
         customer_id: CustomerId,
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilities<Perms, E>,
-        obligations: &'a Obligations<Perms, E>,
+        collections: &'a CoreCreditCollection<Perms, E>,
         disbursals: &'a Disbursals<Perms, E>,
         history: &'a Histories<Perms>,
         repayment_plans: &'a RepaymentPlans<Perms>,
@@ -56,7 +64,7 @@ where
             subject,
             authz,
             credit_facilities,
-            obligations,
+            collections,
             disbursals,
             histories: history,
             repayment_plans,
@@ -231,13 +239,14 @@ where
         payment_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
     ) -> Result<PaymentAllocation, CoreCreditError> {
         let allocation = self
-            .obligations
+            .collections
+            .obligations()
             .find_allocation_by_id_without_audit(payment_id.into())
             .await?;
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id_without_audit(allocation.credit_facility_id)
+            .find_by_id_without_audit(allocation.beneficiary_id)
             .await?;
 
         self.ensure_credit_facility_access(

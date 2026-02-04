@@ -19,6 +19,7 @@ use core_custody::CoreCustodyEvent;
 use core_price::{CorePriceEvent, Price};
 
 use crate::{
+    CoreCreditCollectionEvent,
     credit_facility::{
         CreditFacilitiesByCollateralizationRatioCursor, CreditFacilityRepo, CreditFacilityStatus,
     },
@@ -44,6 +45,7 @@ pub struct CreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -59,6 +61,7 @@ impl<Perms, E> CreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -89,6 +92,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -133,6 +137,7 @@ pub struct CreditFacilityCollateralizationFromEventsRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -150,6 +155,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -159,34 +165,35 @@ where
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(
+            event @ CoreCreditEvent::FacilityCollateralUpdated {
+                credit_facility_id: id,
+                ..
+            },
+        ) = message.as_event()
+        {
+            message.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", event.as_ref());
+            Span::current().record("credit_facility_id", tracing::field::display(id));
+
+            self.update_collateralization_from_events(*id).await?;
+        }
+
         match message.as_event() {
-            Some(
-                event @ CoreCreditEvent::FacilityCollateralUpdated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ CoreCreditEvent::ObligationCreated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ CoreCreditEvent::FacilityPaymentAllocated {
-                    credit_facility_id: id,
-                    ..
-                },
-            ) => {
+            Some(event @ CoreCreditCollectionEvent::ObligationCreated { beneficiary_id, .. })
+            | Some(event @ CoreCreditCollectionEvent::PaymentAllocated { beneficiary_id, .. }) => {
                 message.inject_trace_parent();
+                let id = (*beneficiary_id).into();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("credit_facility_id", tracing::field::display(id));
 
-                self.update_collateralization_from_events(*id).await?;
+                self.update_collateralization_from_events(id).await?;
             }
             _ => {}
         }
+
         Ok(())
     }
 
@@ -335,6 +342,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,

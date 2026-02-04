@@ -9,7 +9,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{event::CoreCreditEvent, primitives::CreditFacilityId};
+use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, primitives::CreditFacilityId};
 
 use super::super::repo::HistoryRepo;
 
@@ -18,14 +18,16 @@ struct HistoryProjectionJobData {
     sequence: EventSequence,
 }
 
-pub struct HistoryProjectionJobRunner<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct HistoryProjectionJobRunner<
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+> {
     outbox: Outbox<E>,
     repo: Arc<HistoryRepo>,
 }
 
 impl<E> HistoryProjectionJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     #[instrument(name = "outbox.core_credit.history_projection_job.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
@@ -44,19 +46,13 @@ where
                     status: crate::primitives::CreditFacilityProposalStatus::Approved,
                 },
             ) => {
-                self.handle_event(db, message, event, *id).await?;
+                self.handle_credit_event(db, message, event, *id).await?;
             }
             Some(event @ PendingCreditFacilityCollateralizationChanged { id, .. }) => {
-                self.handle_event(db, message, event, *id).await?;
+                self.handle_credit_event(db, message, event, *id).await?;
             }
             Some(event @ FacilityActivated { id, .. })
             | Some(event @ FacilityCompleted { id, .. })
-            | Some(
-                event @ FacilityPaymentAllocated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
             | Some(
                 event @ FacilityCollateralUpdated {
                     credit_facility_id: id,
@@ -72,36 +68,6 @@ where
             )
             | Some(
                 event @ AccrualPosted {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationCreated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationDue {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationOverdue {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationDefaulted {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ ObligationCompleted {
                     credit_facility_id: id,
                     ..
                 },
@@ -130,14 +96,22 @@ where
                     ..
                 },
             ) => {
-                self.handle_event(db, message, event, *id).await?;
+                self.handle_credit_event(db, message, event, *id).await?;
             }
             _ => {}
         }
+
+        if let Some(event @ CoreCreditCollectionEvent::PaymentAllocated { beneficiary_id, .. }) =
+            message.as_event()
+        {
+            let id: CreditFacilityId = (*beneficiary_id).into();
+            self.handle_collection_event(db, message, event, id).await?;
+        }
+
         Ok(())
     }
 
-    async fn handle_event(
+    async fn handle_credit_event(
         &self,
         db: &mut sqlx::PgTransaction<'_>,
         message: &PersistentOutboxEvent<E>,
@@ -149,7 +123,24 @@ where
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
         let mut history = self.repo.load(id).await?;
-        history.process_event(event);
+        history.process_credit_event(event);
+        self.repo.persist_in_tx(db, id, history).await?;
+        Ok(())
+    }
+
+    async fn handle_collection_event(
+        &self,
+        db: &mut sqlx::PgTransaction<'_>,
+        message: &PersistentOutboxEvent<E>,
+        event: &CoreCreditCollectionEvent,
+        id: impl Into<CreditFacilityId>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let id = id.into();
+        message.inject_trace_parent();
+        Span::current().record("handled", true);
+        Span::current().record("event_type", event.as_ref());
+        let mut history = self.repo.load(id).await?;
+        history.process_collection_event(event);
         self.repo.persist_in_tx(db, id, history).await?;
         Ok(())
     }
@@ -158,7 +149,7 @@ where
 #[async_trait::async_trait]
 impl<E> JobRunner for HistoryProjectionJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     async fn run(
         &self,
@@ -203,14 +194,16 @@ where
     }
 }
 
-pub struct HistoryProjectionInit<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct HistoryProjectionInit<
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+> {
     outbox: Outbox<E>,
     repo: Arc<HistoryRepo>,
 }
 
 impl<E> HistoryProjectionInit<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     pub fn new(outbox: &Outbox<E>, repo: Arc<HistoryRepo>) -> Self {
         Self {
@@ -237,7 +230,7 @@ impl<E> Clone for HistoryProjectionConfig<E> {
 
 impl<E> JobInitializer for HistoryProjectionInit<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     type Config = HistoryProjectionConfig<E>;
 

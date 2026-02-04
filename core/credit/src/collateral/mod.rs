@@ -18,7 +18,7 @@ use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{CoreCreditAction, CoreCreditObject};
+use crate::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject};
 
 use cala_ledger::TransactionId as CalaTransactionId;
 use es_entity::Idempotent;
@@ -45,6 +45,7 @@ pub struct Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
@@ -59,6 +60,7 @@ impl<Perms, E> Clone for Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
@@ -76,9 +78,12 @@ where
 impl<Perms, E> Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
@@ -91,7 +96,7 @@ where
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
         proceeds_omnibus_account_ids: &crate::LedgerOmnibusAccountIds,
-        credit_ledger: Arc<crate::CreditLedger>,
+        collections: Arc<core_credit_collection::CoreCreditCollection<Perms, E>>,
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
         let repo_arc = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
@@ -115,11 +120,6 @@ where
             publisher,
             clock.clone(),
         ));
-        let payment_repo = Arc::new(crate::payment::PaymentRepo::new(
-            pool,
-            publisher,
-            clock.clone(),
-        ));
         let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
             pool,
             publisher,
@@ -136,9 +136,8 @@ where
         let liquidation_payment_job_spawner =
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
-                payment_repo,
+                collections,
                 credit_facility_repo,
-                credit_ledger,
             ));
 
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(
@@ -155,7 +154,7 @@ where
         credit_facility_liquidations_job_spawner
             .spawn_unique(
                 job::JobId::new(),
-                credit_facility_liquidations::CreditFacilityLiquidationsJobConfig {
+                credit_facility_liquidations::CreditFacilityLiquidationsJobConfig::<E> {
                     _phantom: std::marker::PhantomData,
                 },
             )

@@ -5,7 +5,9 @@ use tokio::select;
 use tracing::{Span, instrument};
 
 use job::*;
-use lana_events::{CoreAccessEvent, CoreCreditEvent, CoreDepositEvent, LanaEvent};
+use lana_events::{
+    CoreAccessEvent, CoreCreditCollectionEvent, CoreCreditEvent, CoreDepositEvent, LanaEvent,
+};
 use obix::out::{Outbox, PersistentOutboxEvent};
 
 use crate::email::EmailNotification;
@@ -31,12 +33,14 @@ impl<Perms> EmailEventListenerInit<Perms>
 where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
@@ -58,12 +62,14 @@ impl<Perms> JobInitializer for EmailEventListenerInit<Perms>
 where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
@@ -110,12 +116,14 @@ impl<Perms> EmailEventListenerRunner<Perms>
 where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
@@ -131,10 +139,10 @@ where
         message: &PersistentOutboxEvent<LanaEvent>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(LanaEvent::Credit(
-                credit_event @ CoreCreditEvent::ObligationOverdue {
+            Some(LanaEvent::CreditCollection(
+                credit_event @ CoreCreditCollectionEvent::ObligationOverdue {
                     id,
-                    credit_facility_id,
+                    beneficiary_id,
                     amount,
                 },
             )) => {
@@ -142,8 +150,9 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", credit_event.as_ref());
 
+                let credit_facility_id: core_credit::CreditFacilityId = (*beneficiary_id).into();
                 self.email_notification
-                    .send_obligation_overdue_notification_in_op(op, id, credit_facility_id, amount)
+                    .send_obligation_overdue_notification_in_op(op, id, &credit_facility_id, amount)
                     .await?;
             }
             Some(LanaEvent::Credit(
@@ -235,12 +244,14 @@ impl<Perms> JobRunner for EmailEventListenerRunner<Perms>
 where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>

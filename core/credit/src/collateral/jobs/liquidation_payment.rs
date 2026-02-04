@@ -6,19 +6,20 @@ use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
-use core_money::UsdCents;
 use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
+use core_credit_collection::{CoreCreditCollection, payment::PaymentLedgerAccountIds};
+
 use crate::{
+    CoreCreditCollectionEvent,
     credit_facility::CreditFacilityRepo,
     event::CoreCreditEvent,
-    ledger::CreditLedger,
-    payment::PaymentRepo,
-    payment::{NewPayment, PaymentLedgerAccountIds},
-    primitives::{CreditFacilityId, LiquidationId, PaymentId},
+    primitives::{CreditFacilityId, LiquidationId},
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -43,40 +44,44 @@ impl<E> Clone for LiquidationPaymentJobConfig<E> {
     }
 }
 
-pub struct LiquidationPaymentInit<E>
+pub struct LiquidationPaymentInit<Perms, E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     outbox: Outbox<E>,
-    payment_repo: Arc<PaymentRepo<E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    ledger: Arc<CreditLedger>,
 }
 
-impl<E> LiquidationPaymentInit<E>
+impl<Perms, E> LiquidationPaymentInit<Perms, E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
-        payment_repo: Arc<PaymentRepo<E>>,
+        collections: Arc<CoreCreditCollection<Perms, E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-        ledger: Arc<CreditLedger>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            payment_repo,
+            collections,
             credit_facility_repo,
-            ledger,
         }
     }
 }
 
 const LIQUIDATION_PAYMENT_JOB: JobType = JobType::new("outbox.liquidation-payment");
 
-impl<E> JobInitializer for LiquidationPaymentInit<E>
+impl<Perms, E> JobInitializer for LiquidationPaymentInit<Perms, E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<core_credit_collection::CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     type Config = LiquidationPaymentJobConfig<E>;
     fn job_type(&self) -> JobType {
@@ -91,27 +96,31 @@ where
         Ok(Box::new(LiquidationPaymentJobRunner {
             config: job.config()?,
             outbox: self.outbox.clone(),
-            payment_repo: self.payment_repo.clone(),
+            collections: self.collections.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
-            ledger: self.ledger.clone(),
         }))
     }
 }
 
-pub struct LiquidationPaymentJobRunner<E>
+pub struct LiquidationPaymentJobRunner<Perms, E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     config: LiquidationPaymentJobConfig<E>,
     outbox: Outbox<E>,
-    payment_repo: Arc<PaymentRepo<E>>,
+    collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    ledger: Arc<CreditLedger>,
 }
 
-impl<E> LiquidationPaymentJobRunner<E>
+impl<Perms, E> LiquidationPaymentJobRunner<Perms, E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<core_credit_collection::CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     #[instrument(
         name = "outbox.core_credit.partial_liquidation.acknowledge_payment_in_credit_facility_in_op",
@@ -136,42 +145,6 @@ where
         }
 
         Ok(())
-    }
-
-    async fn record_payment_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        payment_id: PaymentId,
-        amount: UsdCents,
-        credit_facility_id: CreditFacilityId,
-        payment_ledger_account_ids: PaymentLedgerAccountIds,
-        clock: &es_entity::clock::ClockHandle,
-    ) -> Result<Option<crate::payment::Payment>, Box<dyn std::error::Error>> {
-        if self
-            .payment_repo
-            .maybe_find_by_id_in_op(&mut *db, payment_id)
-            .await?
-            .is_some()
-        {
-            return Ok(None);
-        }
-
-        let new_payment = NewPayment::builder()
-            .id(payment_id)
-            .ledger_tx_id(payment_id)
-            .amount(amount)
-            .credit_facility_id(credit_facility_id)
-            .payment_ledger_account_ids(payment_ledger_account_ids)
-            .effective(clock.today())
-            .build()
-            .expect("could not build new payment");
-
-        let payment = self.payment_repo.create_in_op(db, new_payment).await?;
-        self.ledger
-            .record_payment_in_op(db, &payment, LedgerTransactionInitiator::System)
-            .await?;
-
-        Ok(Some(payment))
     }
 
     #[instrument(name = "outbox.core_credit.liquidation_payment.process_message_in_op", parent = None, skip(self, message, db), fields(payment_id, seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
@@ -208,15 +181,18 @@ where
                     payment_source_account_id: facility_proceeds_from_liquidation_account_id.into(),
                 };
 
-                self.record_payment_in_op(
-                    db,
-                    *payment_id,
-                    *amount,
-                    *credit_facility_id,
-                    payment_ledger_account_ids,
-                    clock,
-                )
-                .await?;
+                self.collections
+                    .payments()
+                    .record_in_op(
+                        db,
+                        *payment_id,
+                        (*credit_facility_id).into(),
+                        payment_ledger_account_ids,
+                        *amount,
+                        clock.today(),
+                        LedgerTransactionInitiator::System,
+                    )
+                    .await?;
 
                 self.acknowledge_payment_in_credit_facility_in_op(db)
                     .await?;
@@ -243,9 +219,14 @@ where
 }
 
 #[async_trait]
-impl<E> JobRunner for LiquidationPaymentJobRunner<E>
+impl<Perms, E> JobRunner for LiquidationPaymentJobRunner<Perms, E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<core_credit_collection::CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     async fn run(
         &self,
@@ -274,7 +255,7 @@ where
                     match message {
                         Some(message) => {
                             let mut db = self
-                                .payment_repo
+                                .credit_facility_repo
                                 .begin_op()
                                 .await?;
 

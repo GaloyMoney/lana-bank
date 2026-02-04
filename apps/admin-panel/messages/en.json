@@ -100,9 +100,17 @@
       "label": "Credit Writer",
       "description": "Can create and manage credit facilities, update collateral, initiate and settle disbursals, record interest, and process obligations"
     },
-    "credit_payment_date": {
+    "collection_payment_date": {
       "label": "Dated Payment Creation",
       "description": "Can create payments for credit facilities with custom effective dates"
+    },
+    "collection_viewer": {
+      "label": "Collection Viewer",
+      "description": "Can view collection information"
+    },
+    "collection_writer": {
+      "label": "Collection Writer",
+      "description": "Can manage collections and related operations"
     },
     "credit_term_templates_viewer": {
       "label": "Term Templates Viewer",
