@@ -10,28 +10,26 @@ const getLocale = () =>
     ? document.documentElement.lang || navigator.language || "en-US"
     : "en-US";
 
+// Shared pattern for date-only strings (YYYY-MM-DD)
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
 const isDateOnlyString = (input: unknown): input is string =>
-  typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input);
+  typeof input === "string" && ISO_DATE_PATTERN.test(input);
 
 export const formatDate = (
   dateInput: string | number | Date,
   options: { includeTime: boolean } = { includeTime: true }
 ): string => {
-  const locale = getLocale();
-
   // Date-only strings (e.g., "2028-06-17") should be formatted in UTC
+  // to avoid timezone shifts that could change the displayed date
   if (isDateOnlyString(dateInput)) {
-    const date = new Date(`${dateInput}T00:00:00Z`);
-    if (Number.isNaN(date.getTime())) return "Invalid date";
-    return new Intl.DateTimeFormat(locale, {
-      dateStyle: "medium",
-      timeZone: "UTC",
-    }).format(date);
+    return formatUTCDateOnly(dateInput) ?? "Invalid date";
   }
 
   const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
   if (Number.isNaN(date.getTime())) return "Invalid date";
 
+  const locale = getLocale();
   const base: Intl.DateTimeFormatOptions = {
     dateStyle: "medium",
   };
@@ -42,48 +40,13 @@ export const formatDate = (
   return new Intl.DateTimeFormat(locale, opts).format(date);
 };
 
-// Formatter: always 4-digit year, 2-digit month, 2-digit day  → 2025-12-07
-const isoLike = new Intl.DateTimeFormat("en-CA", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
-/** Convert a Date → "YYYY-MM-DD" (UTC, no time part). */
-export const toISODateString = (date: Date): string => isoLike.format(date);
-
-/**
- * Convert "YYYY-MM-DD" → Date at 00:00:00 UTC.
- * Throws if the string doesn’t match the exact pattern or
- * the calendar values are out of range.
- */
-export const fromISODateString = (dateString: string): Date => {
-  // Strictly require 4-2-2 digits with hyphens.
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
-  if (!match) {
-    throw new Error(`Invalid ISO-like date: ${dateString}`);
-  }
-
-  const [, yearStr, monthStr, dayStr] = match;
-  const year = Number(yearStr);
-  const month = Number(monthStr);
-  const day = Number(dayStr);
-
-  if (month < 1 || month > 12 || day < 1 || day > 31) {
-    throw new Error(`Invalid calendar date: ${dateString}`);
-  }
-
-  // Months are 0-based in JavaScript Dates.
-  return new Date(Date.UTC(year, month - 1, day));
-};
-
 export const formatSpacedSentenceCaseFromSnakeCase = (str: string): string => {
   return str
     .replace(/_/g, " ") // Replace underscores with spaces
     .replace(/(?<!\S)\p{L}/gu, (char) => char.toUpperCase()); // Capitalize the first letter of each word
 };
 
-// Date-only helpers (UTC-safe).
+// Date-only helpers (UTC-safe)
 type DateInput = string | null | undefined;
 
 const normalizeDateInputToUTC = (value: string) =>
