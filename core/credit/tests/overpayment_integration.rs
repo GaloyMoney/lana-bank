@@ -277,11 +277,9 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     assert!(
         matches!(
             result,
-            Err(CoreCreditError::CoreCreditCollectionError(
-                core_credit_collection::CoreCreditCollectionError::PaymentError(
-                    PaymentError::CollectionLedgerError(
-                        CollectionLedgerError::PaymentAmountGreaterThanOutstandingObligations,
-                    )
+            Err(CoreCreditError::PaymentError(
+                PaymentError::CollectionLedgerError(
+                    CollectionLedgerError::PaymentAmountGreaterThanOutstandingObligations,
                 )
             )),
         ),
