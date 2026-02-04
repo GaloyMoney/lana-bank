@@ -93,15 +93,16 @@ impl Withdrawal {
             .expect("No events for deposit")
     }
 
-    pub fn confirm(&mut self) -> Result<CalaTransactionId, WithdrawalError> {
+    pub fn confirm(&mut self) -> Result<Idempotent<CalaTransactionId>, WithdrawalError> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            WithdrawalEvent::Confirmed { .. }
+        );
+
         match self.is_approved_or_denied() {
             Some(false) => return Err(WithdrawalError::NotApproved(self.id)),
             None => return Err(WithdrawalError::NotApproved(self.id)),
             _ => (),
-        }
-
-        if self.is_confirmed() {
-            return Err(WithdrawalError::AlreadyConfirmed(self.id));
         }
 
         if self.is_cancelled() {
@@ -114,18 +115,17 @@ impl Withdrawal {
             status: WithdrawalStatus::Confirmed,
         });
 
-        Ok(ledger_tx_id)
-    }
-
-    fn is_reverted(&self) -> bool {
-        self.events
-            .iter_all()
-            .any(|e| matches!(e, WithdrawalEvent::Reverted { .. }))
+        Ok(Idempotent::Executed(ledger_tx_id))
     }
 
     pub fn revert(&mut self) -> Result<Idempotent<WithdrawalReversalData>, WithdrawalError> {
-        if self.is_reverted() || self.is_cancelled() {
-            return Ok(Idempotent::AlreadyApplied);
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            WithdrawalEvent::Reverted { .. }
+        );
+
+        if self.is_cancelled() {
+            return Err(WithdrawalError::AlreadyCancelled(self.id));
         }
 
         if !self.is_confirmed() {
@@ -149,13 +149,14 @@ impl Withdrawal {
         }))
     }
 
-    pub fn cancel(&mut self) -> Result<CalaTransactionId, WithdrawalError> {
+    pub fn cancel(&mut self) -> Result<Idempotent<CalaTransactionId>, WithdrawalError> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            WithdrawalEvent::Cancelled { .. }
+        );
+
         if self.is_confirmed() {
             return Err(WithdrawalError::AlreadyConfirmed(self.id));
-        }
-
-        if self.is_cancelled() {
-            return Err(WithdrawalError::AlreadyCancelled(self.id));
         }
 
         let ledger_tx_id = CalaTransactionId::new();
@@ -165,7 +166,7 @@ impl Withdrawal {
         });
         self.cancelled_tx_id = Some(ledger_tx_id);
 
-        Ok(ledger_tx_id)
+        Ok(Idempotent::Executed(ledger_tx_id))
     }
 
     fn is_confirmed(&self) -> bool {
@@ -407,7 +408,7 @@ mod test {
 
         let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
         withdrawal.approval_process_concluded(true).unwrap();
-        withdrawal.confirm().unwrap();
+        let _ = withdrawal.confirm().unwrap();
         withdrawal
     }
 
@@ -418,12 +419,11 @@ mod test {
         let result = withdrawal.revert();
 
         assert!(result.is_ok());
-        assert!(withdrawal.is_reverted());
         assert_eq!(withdrawal.status(), WithdrawalStatus::Reverted);
     }
 
     #[test]
-    fn cancelled_withdrawal_is_ignored_on_revert() {
+    fn cancelled_withdrawal_errors_on_revert() {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
@@ -436,10 +436,10 @@ mod test {
 
         let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
         withdrawal.approval_process_concluded(true).unwrap();
-        withdrawal.cancel().unwrap();
+        let _ = withdrawal.cancel().unwrap();
 
-        let result = withdrawal.revert().unwrap();
-        assert!(result.was_already_applied());
+        let result = withdrawal.revert();
+        assert!(matches!(result, Err(WithdrawalError::AlreadyCancelled(_))));
     }
 
     #[test]
