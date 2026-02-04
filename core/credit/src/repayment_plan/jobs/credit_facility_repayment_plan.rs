@@ -10,6 +10,8 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
+use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
+
 use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, repayment_plan::*};
 
 #[derive(Serialize, Deserialize)]
@@ -165,14 +167,24 @@ where
 
         if let Some(collection_event) = message.as_event::<CoreCreditCollectionEvent>() {
             let facility_id = match collection_event {
-                CoreCreditCollectionEvent::PaymentAllocated { beneficiary_id, .. }
-                | CoreCreditCollectionEvent::ObligationCreated { beneficiary_id, .. }
-                | CoreCreditCollectionEvent::ObligationDue { beneficiary_id, .. }
-                | CoreCreditCollectionEvent::ObligationOverdue { beneficiary_id, .. }
-                | CoreCreditCollectionEvent::ObligationDefaulted { beneficiary_id, .. }
-                | CoreCreditCollectionEvent::ObligationCompleted { beneficiary_id, .. } => {
-                    Some(crate::primitives::CreditFacilityId::from(*beneficiary_id))
+                CoreCreditCollectionEvent::PaymentAllocated {
+                    entity: PublicPaymentAllocation { beneficiary_id, .. },
                 }
+                | CoreCreditCollectionEvent::ObligationCreated {
+                    entity: PublicObligation { beneficiary_id, .. },
+                }
+                | CoreCreditCollectionEvent::ObligationDue {
+                    entity: PublicObligation { beneficiary_id, .. },
+                }
+                | CoreCreditCollectionEvent::ObligationOverdue {
+                    entity: PublicObligation { beneficiary_id, .. },
+                }
+                | CoreCreditCollectionEvent::ObligationDefaulted {
+                    entity: PublicObligation { beneficiary_id, .. },
+                }
+                | CoreCreditCollectionEvent::ObligationCompleted {
+                    entity: PublicObligation { beneficiary_id, .. },
+                } => Some(crate::primitives::CreditFacilityId::from(*beneficiary_id)),
                 _ => None,
             };
 

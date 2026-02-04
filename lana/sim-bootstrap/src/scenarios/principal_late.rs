@@ -114,16 +114,13 @@ pub async fn principal_late_scenario(
         tokio::select! {
             Some(msg) = stream.next() => {
                 if let Some(LanaEvent::CreditCollection(CoreCreditCollectionEvent::ObligationDue {
-                    beneficiary_id,
-                    amount,
-                    obligation_type,
-                    ..
+                    entity,
                 })) = &msg.payload
-                    && CreditFacilityId::from(*beneficiary_id) == cf_id
-                    && *amount > UsdCents::ZERO
+                    && CreditFacilityId::from(entity.beneficiary_id) == cf_id
+                    && entity.outstanding_amount > UsdCents::ZERO
                 {
                     msg.inject_trace_parent();
-                    obligation_queue.push_back((*obligation_type, *amount));
+                    obligation_queue.push_back((entity.obligation_type, entity.outstanding_amount));
                 }
 
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) = &msg.payload

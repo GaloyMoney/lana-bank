@@ -15,10 +15,10 @@ use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    event::CoreCreditCollectionEvent,
     ledger::CollectionLedger,
     payment_allocation::{PaymentAllocation, PaymentAllocationRepo},
     primitives::*,
+    public::CoreCreditCollectionEvent,
     publisher::CollectionPublisher,
 };
 

@@ -221,78 +221,56 @@ impl CreditFacilityRepaymentPlan {
         let mut existing_obligations = self.existing_obligations();
 
         match event {
-            CoreCreditCollectionEvent::ObligationCreated {
-                id,
-                obligation_type,
-                amount,
-                due_at,
-                overdue_at,
-                defaulted_at,
-                recorded_at,
-                effective,
-                ..
-            } => {
+            CoreCreditCollectionEvent::ObligationCreated { entity } => {
                 if existing_obligations
                     .iter()
-                    .any(|e| e.obligation_id == Some(*id))
+                    .any(|e| e.obligation_id == Some(entity.id))
                 {
                     return false;
                 }
 
                 let entry = CreditFacilityRepaymentPlanEntry {
-                    repayment_type: obligation_type.into(),
-                    obligation_id: Some(*id),
+                    repayment_type: (&entity.obligation_type).into(),
+                    obligation_id: Some(entity.id),
                     status: RepaymentStatus::NotYetDue,
 
-                    initial: *amount,
-                    outstanding: *amount,
+                    initial: entity.initial_amount,
+                    outstanding: entity.outstanding_amount,
 
-                    due_at: *due_at,
-                    overdue_at: overdue_at.map(EffectiveDate::from),
-                    defaulted_at: defaulted_at.map(EffectiveDate::from),
-                    recorded_at: *recorded_at,
-                    effective: *effective,
+                    due_at: entity.due_at,
+                    overdue_at: entity.overdue_at,
+                    defaulted_at: entity.defaulted_at,
+                    recorded_at: entity.recorded_at,
+                    effective: entity.effective,
                 };
-                if *obligation_type == ObligationType::Interest {
-                    let effective = EffectiveDate::from(*effective);
+                if entity.obligation_type == ObligationType::Interest {
+                    let effective = EffectiveDate::from(entity.effective);
                     self.last_interest_accrual_at = Some(effective.end_of_day());
                 }
 
                 existing_obligations.push(entry);
             }
-            CoreCreditCollectionEvent::PaymentAllocated {
-                obligation_id,
-                allocation_id,
-                amount,
-                ..
-            } => {
-                if !self.applied_allocations.insert(*allocation_id) {
+            CoreCreditCollectionEvent::PaymentAllocated { entity } => {
+                if !self.applied_allocations.insert(entity.id) {
                     return false;
                 }
 
                 if let Some(entry) = existing_obligations.iter_mut().find_map(|entry| {
-                    (entry.obligation_id == Some(*obligation_id)).then_some(entry)
+                    (entry.obligation_id == Some(entity.obligation_id)).then_some(entry)
                 }) {
-                    entry.outstanding -= *amount;
+                    entry.outstanding -= entity.amount;
                 } else {
                     return false;
                 }
             }
-            CoreCreditCollectionEvent::ObligationDue {
-                id: obligation_id, ..
-            }
-            | CoreCreditCollectionEvent::ObligationOverdue {
-                id: obligation_id, ..
-            }
-            | CoreCreditCollectionEvent::ObligationDefaulted {
-                id: obligation_id, ..
-            }
-            | CoreCreditCollectionEvent::ObligationCompleted {
-                id: obligation_id, ..
-            } => {
-                if let Some(entry) = existing_obligations.iter_mut().find_map(|entry| {
-                    (entry.obligation_id == Some(*obligation_id)).then_some(entry)
-                }) {
+            CoreCreditCollectionEvent::ObligationDue { entity }
+            | CoreCreditCollectionEvent::ObligationOverdue { entity }
+            | CoreCreditCollectionEvent::ObligationDefaulted { entity }
+            | CoreCreditCollectionEvent::ObligationCompleted { entity } => {
+                if let Some(entry) = existing_obligations
+                    .iter_mut()
+                    .find_map(|entry| (entry.obligation_id == Some(entity.id)).then_some(entry))
+                {
                     entry.status = match event {
                         CoreCreditCollectionEvent::ObligationDue { .. } => RepaymentStatus::Due,
                         CoreCreditCollectionEvent::ObligationOverdue { .. } => {
@@ -428,6 +406,7 @@ mod tests {
     use crate::{
         DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct,
     };
+    use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 
     use super::*;
 
@@ -701,15 +680,18 @@ mod tests {
                 amount: default_facility_amount(),
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Disbursal,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(100_000_00),
-                due_at: EffectiveDate::from(default_start_date()),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at,
-                effective: recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Disbursal,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(100_000_00),
+                    outstanding_amount: UsdCents::from(100_000_00),
+                    due_at: EffectiveDate::from(default_start_date()),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at,
+                    effective: recorded_at.date_naive(),
+                },
             }),
         ];
         process_test_events(&mut plan, events);
@@ -742,26 +724,32 @@ mod tests {
                 amount: default_facility_amount(),
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Disbursal,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(100_000_00),
-                due_at: EffectiveDate::from(disbursal_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: disbursal_recorded_at,
-                effective: disbursal_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Disbursal,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(100_000_00),
+                    outstanding_amount: UsdCents::from(100_000_00),
+                    due_at: EffectiveDate::from(disbursal_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: disbursal_recorded_at,
+                    effective: disbursal_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Interest,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(1_000_00),
-                due_at: EffectiveDate::from(interest_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: interest_recorded_at,
-                effective: interest_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(1_000_00),
+                    outstanding_amount: UsdCents::from(1_000_00),
+                    due_at: EffectiveDate::from(interest_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: interest_recorded_at,
+                    effective: interest_recorded_at.date_naive(),
+                },
             }),
         ];
         process_test_events(&mut plan, events);
@@ -796,35 +784,43 @@ mod tests {
                 amount: default_facility_amount(),
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Disbursal,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(100_000_00),
-                due_at: EffectiveDate::from(disbursal_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: disbursal_recorded_at,
-                effective: disbursal_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Disbursal,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(100_000_00),
+                    outstanding_amount: UsdCents::from(100_000_00),
+                    due_at: EffectiveDate::from(disbursal_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: disbursal_recorded_at,
+                    effective: disbursal_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: interest_obligation_id,
-                obligation_type: ObligationType::Interest,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(1_000_00),
-                due_at: EffectiveDate::from(interest_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: interest_recorded_at,
-                effective: interest_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: interest_obligation_id,
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(1_000_00),
+                    outstanding_amount: UsdCents::from(1_000_00),
+                    due_at: EffectiveDate::from(interest_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: interest_recorded_at,
+                    effective: interest_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::PaymentAllocated {
-                beneficiary_id: CreditFacilityId::new().into(),
-                obligation_id: interest_obligation_id,
-                obligation_type: ObligationType::Interest,
-                allocation_id: PaymentAllocationId::new(),
-                amount: UsdCents::from(400_00),
-                recorded_at: interest_recorded_at,
-                effective: interest_recorded_at.date_naive(),
+                entity: PublicPaymentAllocation {
+                    id: PaymentAllocationId::new(),
+                    obligation_id: interest_obligation_id,
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    amount: UsdCents::from(400_00),
+                    recorded_at: interest_recorded_at,
+                    effective: interest_recorded_at.date_naive(),
+                },
             }),
         ];
         process_test_events(&mut plan, events);
@@ -874,35 +870,43 @@ mod tests {
                 amount: default_facility_amount(),
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Disbursal,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(100_000_00),
-                due_at: EffectiveDate::from(disbursal_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: disbursal_recorded_at,
-                effective: disbursal_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Disbursal,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(100_000_00),
+                    outstanding_amount: UsdCents::from(100_000_00),
+                    due_at: EffectiveDate::from(disbursal_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: disbursal_recorded_at,
+                    effective: disbursal_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: interest_obligation_id,
-                obligation_type: ObligationType::Interest,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(1_000_00),
-                due_at: EffectiveDate::from(interest_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: interest_recorded_at,
-                effective: interest_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: interest_obligation_id,
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(1_000_00),
+                    outstanding_amount: UsdCents::from(1_000_00),
+                    due_at: EffectiveDate::from(interest_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: interest_recorded_at,
+                    effective: interest_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::PaymentAllocated {
-                beneficiary_id: CreditFacilityId::new().into(),
-                obligation_id: interest_obligation_id,
-                obligation_type: ObligationType::Interest,
-                allocation_id: PaymentAllocationId::new(),
-                amount: UsdCents::from(1_000_00),
-                recorded_at: interest_recorded_at,
-                effective: interest_recorded_at.date_naive(),
+                entity: PublicPaymentAllocation {
+                    id: PaymentAllocationId::new(),
+                    obligation_id: interest_obligation_id,
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    amount: UsdCents::from(1_000_00),
+                    recorded_at: interest_recorded_at,
+                    effective: interest_recorded_at.date_naive(),
+                },
             }),
         ];
         process_test_events(&mut plan, events);
@@ -940,8 +944,18 @@ mod tests {
         plan.process_collection_event(
             Default::default(),
             &CoreCreditCollectionEvent::ObligationCompleted {
-                id: interest_obligation_id,
-                beneficiary_id: CreditFacilityId::new().into(),
+                entity: PublicObligation {
+                    id: interest_obligation_id,
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(1_000_00),
+                    outstanding_amount: UsdCents::ZERO,
+                    due_at: EffectiveDate::from(interest_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: interest_recorded_at,
+                    effective: interest_recorded_at.date_naive(),
+                },
             },
             default_start_date(),
         );
@@ -978,59 +992,74 @@ mod tests {
                 amount: default_facility_amount(),
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Disbursal,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(100_000_00),
-                due_at: EffectiveDate::from(disbursal_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: disbursal_recorded_at,
-                effective: disbursal_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Disbursal,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(100_000_00),
+                    outstanding_amount: UsdCents::from(100_000_00),
+                    due_at: EffectiveDate::from(disbursal_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: disbursal_recorded_at,
+                    effective: disbursal_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Interest,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(1_000_00),
-                due_at: EffectiveDate::from(interest_1_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: interest_1_recorded_at,
-                effective: interest_1_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(1_000_00),
+                    outstanding_amount: UsdCents::from(1_000_00),
+                    due_at: EffectiveDate::from(interest_1_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: interest_1_recorded_at,
+                    effective: interest_1_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Interest,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(1_000_00),
-                due_at: EffectiveDate::from(interest_2_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: interest_2_recorded_at,
-                effective: interest_2_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(1_000_00),
+                    outstanding_amount: UsdCents::from(1_000_00),
+                    due_at: EffectiveDate::from(interest_2_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: interest_2_recorded_at,
+                    effective: interest_2_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Interest,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(1_000_00),
-                due_at: EffectiveDate::from(interest_3_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: interest_3_recorded_at,
-                effective: interest_3_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(1_000_00),
+                    outstanding_amount: UsdCents::from(1_000_00),
+                    due_at: EffectiveDate::from(interest_3_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: interest_3_recorded_at,
+                    effective: interest_3_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Interest,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(33_00),
-                due_at: EffectiveDate::from(interest_4_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: interest_4_recorded_at,
-                effective: interest_4_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(33_00),
+                    outstanding_amount: UsdCents::from(33_00),
+                    due_at: EffectiveDate::from(interest_4_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: interest_4_recorded_at,
+                    effective: interest_4_recorded_at.date_naive(),
+                },
             }),
         ];
         process_test_events(&mut plan, events);
@@ -1067,38 +1096,46 @@ mod tests {
                 amount: default_facility_amount(),
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Disbursal,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(100_000_00),
-                due_at: EffectiveDate::from(disbursal_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: disbursal_recorded_at,
-                effective: disbursal_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: ObligationId::new(),
+                    obligation_type: ObligationType::Disbursal,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(100_000_00),
+                    outstanding_amount: UsdCents::from(100_000_00),
+                    due_at: EffectiveDate::from(disbursal_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: disbursal_recorded_at,
+                    effective: disbursal_recorded_at.date_naive(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: interest_obligation_id,
-                obligation_type: ObligationType::Interest,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(1_000_00),
-                due_at: EffectiveDate::from(interest_recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: interest_recorded_at,
-                effective: interest_recorded_at.date_naive(),
+                entity: PublicObligation {
+                    id: interest_obligation_id,
+                    obligation_type: ObligationType::Interest,
+                    beneficiary_id: CreditFacilityId::new().into(),
+                    initial_amount: UsdCents::from(1_000_00),
+                    outstanding_amount: UsdCents::from(1_000_00),
+                    due_at: EffectiveDate::from(interest_recorded_at),
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: interest_recorded_at,
+                    effective: interest_recorded_at.date_naive(),
+                },
             }),
         ];
         process_test_events(&mut plan, events);
 
         let payment_event = CoreCreditCollectionEvent::PaymentAllocated {
-            beneficiary_id: CreditFacilityId::new().into(),
-            obligation_id: interest_obligation_id,
-            obligation_type: ObligationType::Interest,
-            allocation_id,
-            amount: UsdCents::from(1_000_00),
-            recorded_at: interest_recorded_at,
-            effective: interest_recorded_at.date_naive(),
+            entity: PublicPaymentAllocation {
+                id: allocation_id,
+                obligation_id: interest_obligation_id,
+                obligation_type: ObligationType::Interest,
+                beneficiary_id: CreditFacilityId::new().into(),
+                amount: UsdCents::from(1_000_00),
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
+            },
         };
 
         // First processing should apply the payment
@@ -1159,15 +1196,18 @@ mod tests {
         plan.process_credit_event(Default::default(), &activate_event, default_start_date());
 
         let obligation_event = CoreCreditCollectionEvent::ObligationCreated {
-            id: obligation_id,
-            obligation_type: ObligationType::Disbursal,
-            beneficiary_id: CreditFacilityId::new().into(),
-            amount: UsdCents::from(100_000_00),
-            due_at: EffectiveDate::from(recorded_at),
-            overdue_at: None,
-            defaulted_at: None,
-            recorded_at,
-            effective: recorded_at.date_naive(),
+            entity: PublicObligation {
+                id: obligation_id,
+                obligation_type: ObligationType::Disbursal,
+                beneficiary_id: CreditFacilityId::new().into(),
+                initial_amount: UsdCents::from(100_000_00),
+                outstanding_amount: UsdCents::from(100_000_00),
+                due_at: EffectiveDate::from(recorded_at),
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at,
+                effective: recorded_at.date_naive(),
+            },
         };
 
         // First processing should create the obligation entry
@@ -1311,6 +1351,18 @@ mod tests {
         let obligation_id = ObligationId::new();
         let mut plan = initial_plan();
         let recorded_at = default_start_date();
+        let obligation_entity = PublicObligation {
+            id: obligation_id,
+            obligation_type: ObligationType::Disbursal,
+            beneficiary_id: CreditFacilityId::new().into(),
+            initial_amount: UsdCents::from(100_000_00),
+            outstanding_amount: UsdCents::from(100_000_00),
+            due_at: EffectiveDate::from(recorded_at),
+            overdue_at: None,
+            defaulted_at: None,
+            recorded_at,
+            effective: recorded_at.date_naive(),
+        };
 
         // Setup: activate and create obligation
         let events = vec![
@@ -1321,25 +1373,14 @@ mod tests {
                 amount: default_facility_amount(),
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
-                id: obligation_id,
-                obligation_type: ObligationType::Disbursal,
-                beneficiary_id: CreditFacilityId::new().into(),
-                amount: UsdCents::from(100_000_00),
-                due_at: EffectiveDate::from(recorded_at),
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at,
-                effective: recorded_at.date_naive(),
+                entity: obligation_entity.clone(),
             }),
         ];
         process_test_events(&mut plan, events);
 
         // Test ObligationDue replay
         let due_event = CoreCreditCollectionEvent::ObligationDue {
-            id: obligation_id,
-            beneficiary_id: CreditFacilityId::new().into(),
-            obligation_type: ObligationType::Disbursal,
-            amount: UsdCents::from(100_000_00),
+            entity: obligation_entity.clone(),
         };
         plan.process_collection_event(Default::default(), &due_event, default_start_date());
         let status_after_first = plan
@@ -1362,9 +1403,7 @@ mod tests {
 
         // Test ObligationOverdue replay
         let overdue_event = CoreCreditCollectionEvent::ObligationOverdue {
-            id: obligation_id,
-            beneficiary_id: CreditFacilityId::new().into(),
-            amount: UsdCents::from(100_000_00),
+            entity: obligation_entity.clone(),
         };
         plan.process_collection_event(Default::default(), &overdue_event, default_start_date());
         plan.process_collection_event(Default::default(), &overdue_event, default_start_date());
@@ -1378,9 +1417,7 @@ mod tests {
 
         // Test ObligationDefaulted replay
         let defaulted_event = CoreCreditCollectionEvent::ObligationDefaulted {
-            id: obligation_id,
-            beneficiary_id: CreditFacilityId::new().into(),
-            amount: UsdCents::from(100_000_00),
+            entity: obligation_entity.clone(),
         };
         plan.process_collection_event(Default::default(), &defaulted_event, default_start_date());
         plan.process_collection_event(Default::default(), &defaulted_event, default_start_date());
@@ -1394,8 +1431,7 @@ mod tests {
 
         // Test ObligationCompleted replay
         let completed_event = CoreCreditCollectionEvent::ObligationCompleted {
-            id: obligation_id,
-            beneficiary_id: CreditFacilityId::new().into(),
+            entity: obligation_entity,
         };
         plan.process_collection_event(Default::default(), &completed_event, default_start_date());
         plan.process_collection_event(Default::default(), &completed_event, default_start_date());

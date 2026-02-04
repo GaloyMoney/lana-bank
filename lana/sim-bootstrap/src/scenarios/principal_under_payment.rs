@@ -120,20 +120,19 @@ pub async fn principal_under_payment_scenario(
         tokio::select! {
             Some(msg) = stream.next() => {
                 if let Some(LanaEvent::CreditCollection(CoreCreditCollectionEvent::ObligationDue {
-                    beneficiary_id,
-                    amount,
-                    obligation_type,
-                    ..
+                    entity,
                 })) = &msg.payload
-                    && CreditFacilityId::from(*beneficiary_id) == cf_id
-                    && *amount > UsdCents::ZERO
+                    && CreditFacilityId::from(entity.beneficiary_id) == cf_id
+                    && entity.outstanding_amount > UsdCents::ZERO
                 {
                     msg.inject_trace_parent();
 
-                    if *obligation_type == ObligationType::Interest {
-                        let _ = app.record_payment_with_date(&sub, cf_id, *amount, clock.today()).await;
+                    if entity.obligation_type == ObligationType::Interest {
+                        let _ =
+                            app.record_payment_with_date(&sub, cf_id, entity.outstanding_amount, clock.today())
+                                .await;
                     } else {
-                        principal_remaining += *amount;
+                        principal_remaining += entity.outstanding_amount;
                     }
                 }
             }

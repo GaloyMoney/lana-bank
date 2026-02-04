@@ -118,23 +118,19 @@ async fn process_facility_message(
                 .await?;
         }
         Some(LanaEvent::CreditCollection(
-            event @ CoreCreditCollectionEvent::ObligationDue {
-                beneficiary_id,
-                amount,
-                ..
-            },
+            event @ CoreCreditCollectionEvent::ObligationDue { entity },
         )) if {
-            let id: CreditFacilityId = (*beneficiary_id).into();
-            id == cf_proposal.id.into() && amount > &UsdCents::ZERO
+            let id: CreditFacilityId = entity.beneficiary_id.into();
+            id == cf_proposal.id.into() && entity.outstanding_amount > UsdCents::ZERO
         } =>
         {
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
-            let id: CreditFacilityId = (*beneficiary_id).into();
+            let id: CreditFacilityId = entity.beneficiary_id.into();
             let _ = app
-                .record_payment_with_date(sub, id, *amount, clock.today())
+                .record_payment_with_date(sub, id, entity.outstanding_amount, clock.today())
                 .await;
             let facility = app
                 .credit()

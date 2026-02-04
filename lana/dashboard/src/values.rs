@@ -34,12 +34,10 @@ impl DashboardValues {
                 self.total_disbursed += *amount;
                 true
             }
-            LanaEvent::CreditCollection(CoreCreditCollectionEvent::PaymentAllocated {
-                obligation_type: ObligationType::Disbursal,
-                amount,
-                ..
-            }) => {
-                self.total_disbursed -= *amount;
+            LanaEvent::CreditCollection(CoreCreditCollectionEvent::PaymentAllocated { entity })
+                if entity.obligation_type == ObligationType::Disbursal =>
+            {
+                self.total_disbursed -= entity.amount;
                 true
             }
             LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {

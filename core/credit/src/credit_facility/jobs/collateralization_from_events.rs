@@ -15,6 +15,7 @@ use obix::out::{
     EphemeralOutboxEvent, Outbox, OutboxEvent, OutboxEventMarker, PersistentOutboxEvent,
 };
 
+use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 use core_custody::CoreCustodyEvent;
 use core_price::{CorePriceEvent, Price};
 
@@ -180,18 +181,22 @@ where
             self.update_collateralization_from_events(*id).await?;
         }
 
-        match message.as_event() {
-            Some(event @ CoreCreditCollectionEvent::ObligationCreated { beneficiary_id, .. })
-            | Some(event @ CoreCreditCollectionEvent::PaymentAllocated { beneficiary_id, .. }) => {
-                message.inject_trace_parent();
-                let id = (*beneficiary_id).into();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-                Span::current().record("credit_facility_id", tracing::field::display(id));
-
-                self.update_collateralization_from_events(id).await?;
+        if let Some(
+            event @ (CoreCreditCollectionEvent::ObligationCreated {
+                entity: PublicObligation { beneficiary_id, .. },
             }
-            _ => {}
+            | CoreCreditCollectionEvent::PaymentAllocated {
+                entity: PublicPaymentAllocation { beneficiary_id, .. },
+            }),
+        ) = message.as_event()
+        {
+            message.inject_trace_parent();
+            let id = (*beneficiary_id).into();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", event.as_ref());
+            Span::current().record("credit_facility_id", tracing::field::display(id));
+
+            self.update_collateralization_from_events(id).await?;
         }
 
         Ok(())
