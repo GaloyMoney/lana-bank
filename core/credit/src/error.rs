@@ -17,13 +17,11 @@ pub enum CoreCreditError {
     #[error("CoreCreditError - CoreCreditCollectionError: {0}")]
     CoreCreditCollectionError(#[from] core_credit_collection::CoreCreditCollectionError),
     #[error("CoreCreditError - ObligationError: {0}")]
-    ObligationError(#[from] core_credit_collection::obligation::error::ObligationError),
+    ObligationError(#[from] core_credit_collection::ObligationError),
     #[error("CoreCreditError - PaymentError: {0}")]
-    PaymentError(#[from] core_credit_collection::payment::error::PaymentError),
+    PaymentError(#[from] core_credit_collection::PaymentError),
     #[error("CoreCreditError - PaymentAllocationError: {0}")]
-    PaymentAllocationError(
-        #[from] core_credit_collection::payment_allocation::error::PaymentAllocationError,
-    ),
+    PaymentAllocationError(#[from] core_credit_collection::PaymentAllocationError),
     #[error("CoreCreditError - ChartOfAccountsIntegrationError: {0}")]
     ChartOfAccountsIntegrationError(
         #[from] super::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,

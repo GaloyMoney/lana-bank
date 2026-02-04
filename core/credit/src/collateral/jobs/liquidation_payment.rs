@@ -13,7 +13,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use core_credit_collection::{CoreCreditCollection, payment::PaymentLedgerAccountIds};
+use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
 
 use crate::{
     CoreCreditCollectionEvent,

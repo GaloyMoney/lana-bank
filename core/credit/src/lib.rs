@@ -66,12 +66,10 @@ pub use processes::{
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 
-use core_credit_collection::{CoreCreditCollection, payment::PaymentLedgerAccountIds};
+use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
 
 #[cfg(feature = "json-schema")]
-pub use core_credit_collection::{
-    obligation::ObligationEvent, payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
-};
+pub use core_credit_collection::{ObligationEvent, PaymentAllocationEvent, PaymentEvent};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {

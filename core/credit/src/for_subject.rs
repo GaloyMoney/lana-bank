@@ -9,7 +9,7 @@ use core_price::CorePriceEvent;
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
 
-use core_credit_collection::{CoreCreditCollection, payment_allocation::PaymentAllocation};
+use core_credit_collection::{CoreCreditCollection, PaymentAllocation};
 
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
