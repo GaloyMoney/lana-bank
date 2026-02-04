@@ -1,17 +1,11 @@
 mod helpers;
 
-use authz::Authorization;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use rand::distr::{Alphanumeric, SampleString};
 use serial_test::file_serial;
 
-use core_access::{
-    AuthRoleToken, CoreAccess, CoreAccessAction, CoreAccessEvent, CoreAccessObject,
-    PermissionSetId, RoleId, config::AccessConfig,
-};
-use helpers::{
-    ROLE_NAME_ACCOUNTANT, ROLE_NAME_ADMIN, ROLE_NAME_BANK_MANAGER, TestAudit, TestSubject, event,
-};
+use core_access::{CoreAccessEvent, PermissionSetId};
+use helpers::{ROLE_NAME_ACCOUNTANT, ROLE_NAME_ADMIN, ROLE_NAME_BANK_MANAGER, event};
 
 fn generate_random_email() -> String {
     let random_string: String = Alphanumeric.sample_string(&mut rand::rng(), 32);
@@ -22,54 +16,7 @@ fn generate_random_email() -> String {
 async fn create_user_publishes_event() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
-
-    let outbox = obix::Outbox::<event::DummyEvent>::init(
-        &pool,
-        obix::MailboxConfig::builder()
-            .clock(clock.clone())
-            .build()?,
-    )
-    .await?;
-
-    let audit = TestAudit;
-    let authz: Authorization<TestAudit, AuthRoleToken> = Authorization::init(&pool, &audit).await?;
-
-    let subject = TestSubject::new();
-
-    // Add all necessary permissions for TestSubject directly
-    let test_role_id = RoleId::new();
-    authz
-        .add_permission_to_role(
-            &test_role_id,
-            &CoreAccessObject::all_roles(),
-            &CoreAccessAction::ROLE_CREATE,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &test_role_id,
-            &CoreAccessObject::all_users(),
-            &CoreAccessAction::USER_CREATE,
-        )
-        .await?;
-    authz
-        .assign_role_to_subject(subject, test_role_id)
-        .await?;
-
-    let config = AccessConfig {
-        superuser_email: None,
-    };
-
-    let access = CoreAccess::init(
-        &pool,
-        config,
-        CoreAccessAction::actions(),
-        &[],
-        &authz,
-        &outbox,
-        clock,
-    )
-    .await?;
+    let (access, subject, outbox) = helpers::init_access(&pool, clock).await?;
 
     // Create a role first (needed for user creation)
     let role = access
@@ -106,7 +53,8 @@ async fn create_user_publishes_event() -> anyhow::Result<()> {
 #[file_serial]
 async fn user_lifecycle() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-    let (access, superuser_subject) = helpers::init_access(&pool).await?;
+    let clock = ClockHandle::realtime();
+    let (access, superuser_subject, _outbox) = helpers::init_access(&pool, clock).await?;
 
     let user_email = generate_random_email();
 

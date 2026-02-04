@@ -169,14 +169,20 @@ pub mod event {
 
 pub async fn init_access(
     pool: &sqlx::PgPool,
+    clock: es_entity::clock::ClockHandle,
 ) -> anyhow::Result<(
     CoreAccess<TestAudit, event::DummyEvent>,
     TestSubject,
+    obix::Outbox<event::DummyEvent>,
 )> {
     let superuser_email = "superuser@test.io".to_string();
-    let outbox =
-        obix::Outbox::<event::DummyEvent>::init(pool, obix::MailboxConfig::builder().build()?)
-            .await?;
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
 
     let audit = TestAudit;
     let authz =
@@ -186,7 +192,6 @@ pub async fn init_access(
         superuser_email: Some(superuser_email.clone()),
     };
 
-    let clock = es_entity::clock::ClockHandle::realtime();
     let access = CoreAccess::init(
         pool,
         config,
@@ -204,5 +209,5 @@ pub async fn init_access(
         .await?
         .expect("Superuser not found");
 
-    Ok((access, TestSubject::from(superuser.id)))
+    Ok((access, TestSubject::from(superuser.id), outbox))
 }
