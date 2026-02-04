@@ -5,17 +5,20 @@ use anyhow::Result;
 use rayon::prelude::*;
 use walkdir::WalkDir;
 
-use custom_lints::rules::{DbOpConventionRule, DependencyDagRule, TransactionCommitRule};
+use custom_lints::rules::{
+    DbOpConventionRule, DependencyDagRule, TransactionCommitRule, UnwrapUsageRule,
+};
 use custom_lints::{LintRule, Violation, WorkspaceRule};
 
 fn main() -> ExitCode {
     match run() {
-        Ok(violations) => {
+        Ok((violations, summary)) => {
+            println!("\n{}", summary);
             if violations.is_empty() {
-                println!("All custom lint checks passed!");
+                println!("\nAll custom lint checks passed!");
                 ExitCode::SUCCESS
             } else {
-                println!("Custom lint violations found:\n");
+                println!("\nCustom lint violations found:\n");
                 for violation in &violations {
                     println!("  - {}", violation);
                 }
@@ -30,15 +33,17 @@ fn main() -> ExitCode {
     }
 }
 
-fn run() -> Result<Vec<Violation>> {
+fn run() -> Result<(Vec<Violation>, String)> {
     let workspace_root = find_workspace_root()?;
     let mut all_violations = Vec::new();
+    let mut summary_lines = vec!["Lint Rules Executed:".to_string()];
 
     // Run workspace-level rules
     let workspace_rules: Vec<Box<dyn WorkspaceRule>> = vec![Box::new(DependencyDagRule::new())];
 
+    summary_lines.push(format!("\n  Workspace Rules ({}):", workspace_rules.len()));
     for rule in &workspace_rules {
-        println!("Running workspace rule: {}", rule.name());
+        summary_lines.push(format!("    [{}] {}", rule.name(), rule.description()));
         let violations = rule.check_workspace(&workspace_root)?;
         all_violations.extend(violations);
     }
@@ -47,17 +52,21 @@ fn run() -> Result<Vec<Violation>> {
     let file_rules: Vec<Box<dyn LintRule>> = vec![
         Box::new(TransactionCommitRule::new()),
         Box::new(DbOpConventionRule::new()),
+        Box::new(UnwrapUsageRule::new()),
     ];
 
     if !file_rules.is_empty() {
         let dirs_to_check = vec!["core", "lana", "lib"];
         let rust_files = collect_rust_files(&workspace_root, &dirs_to_check);
 
-        println!(
-            "Running {} file rules on {} files...",
+        summary_lines.push(format!(
+            "\n  File Rules ({}) - checked {} files:",
             file_rules.len(),
             rust_files.len()
-        );
+        ));
+        for rule in &file_rules {
+            summary_lines.push(format!("    [{}] {}", rule.name(), rule.description()));
+        }
 
         let file_violations: Vec<Violation> = rust_files
             .par_iter()
@@ -67,7 +76,7 @@ fn run() -> Result<Vec<Violation>> {
         all_violations.extend(file_violations);
     }
 
-    Ok(all_violations)
+    Ok((all_violations, summary_lines.join("\n")))
 }
 
 fn find_workspace_root() -> Result<PathBuf> {

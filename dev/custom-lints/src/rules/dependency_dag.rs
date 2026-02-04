@@ -60,6 +60,10 @@ impl WorkspaceRule for DependencyDagRule {
         "dependency-dag"
     }
 
+    fn description(&self) -> &'static str {
+        "Enforces layered architecture: lib <- core <- lana dependency order"
+    }
+
     fn check_workspace(&self, workspace_root: &Path) -> Result<Vec<Violation>> {
         let manifest_path = workspace_root.join("Cargo.toml");
         let metadata = MetadataCommand::new()
