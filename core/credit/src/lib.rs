@@ -256,7 +256,6 @@ where
             collateral_ledger_arc.clone(),
             outbox,
             jobs,
-            ledger_arc.liquidation_proceeds_omnibus_account_ids(),
             collections_arc.clone(),
         )
         .await?;
