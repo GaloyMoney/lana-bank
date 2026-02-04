@@ -197,7 +197,6 @@ where
     #[instrument(
         name = "credit.liquidation.create_if_not_exist_in_op",
         skip(self, db),
-        fields(existing_liquidation_found),
         err
     )]
     pub async fn create_if_not_exist_in_op(
