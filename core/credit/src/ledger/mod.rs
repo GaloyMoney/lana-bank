@@ -33,7 +33,7 @@ use crate::{
     },
 };
 
-use core_credit_collection::obligation::Obligation;
+use core_credit_collection::Obligation;
 
 pub use balance::*;
 use constants::*;

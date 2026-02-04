@@ -8,7 +8,7 @@ use es_entity::*;
 
 use crate::{ledger::DisbursalLedgerAccountIds, primitives::*};
 
-use core_credit_collection::obligation::NewObligation;
+use core_credit_collection::NewObligation;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

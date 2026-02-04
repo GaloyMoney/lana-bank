@@ -17,7 +17,7 @@ pub enum DisbursalError {
     #[error("DisbursalError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("DisbursalError - ObligationError: {0}")]
-    ObligationError(#[from] core_credit_collection::obligation::error::ObligationError),
+    ObligationError(#[from] core_credit_collection::ObligationError),
     #[error("CreditFacilityError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
 }

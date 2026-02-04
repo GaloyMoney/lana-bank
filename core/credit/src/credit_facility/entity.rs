@@ -8,7 +8,7 @@ use es_entity::*;
 
 use crate::{ledger::*, primitives::*};
 
-use core_credit_collection::obligation::NewObligation;
+use core_credit_collection::NewObligation;
 
 use super::{error::CreditFacilityError, interest_accrual_cycle::*};
 

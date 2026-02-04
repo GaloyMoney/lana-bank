@@ -1,17 +1,14 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-pub mod obligation;
-pub mod payment;
-pub mod payment_allocation;
+mod obligation;
+mod payment;
+mod payment_allocation;
 
 mod error;
 mod event;
 mod ledger;
 mod primitives;
 mod publisher;
-
-#[cfg(feature = "json-schema")]
-pub use obligation::ObligationEvent;
 
 use std::sync::Arc;
 
@@ -22,9 +19,14 @@ use obix::out::OutboxEventMarker;
 
 pub use error::CoreCreditCollectionError;
 pub use event::CoreCreditCollectionEvent;
-pub use obligation::{Obligation, Obligations, error::ObligationError, obligation_cursor};
-pub use payment::{Payment, Payments, error::PaymentError};
-pub use payment_allocation::{PaymentAllocation, error::PaymentAllocationError};
+pub use obligation::{
+    NewObligation, Obligation, ObligationEvent, Obligations, error::ObligationError,
+    obligation_cursor,
+};
+pub use payment::{Payment, PaymentEvent, PaymentLedgerAccountIds, Payments, error::PaymentError};
+pub use payment_allocation::{
+    PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
+};
 pub use primitives::{
     BalanceUpdateData, BalanceUpdatedSource, BeneficiaryId, CalaAccountId,
     CoreCreditCollectionAction, CoreCreditCollectionObject, ObligationAction, ObligationAllOrOne,

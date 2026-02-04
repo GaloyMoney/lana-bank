@@ -16,7 +16,6 @@ use crate::{
     publisher::CollectionPublisher,
 };
 
-pub use super::primitives::PaymentSourceAccountId;
 pub use entity::Payment;
 
 pub use entity::NewPayment;
