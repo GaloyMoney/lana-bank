@@ -35,8 +35,8 @@ pub use primitives::{
 };
 pub use publisher::CollectionPublisher;
 
-pub use ledger::error::CollectionLedgerError;
 use ledger::CollectionLedger;
+pub use ledger::error::CollectionLedgerError;
 
 pub struct CoreCreditCollection<Perms, E>
 where
@@ -77,8 +77,8 @@ where
         publisher: &CollectionPublisher<E>,
         clock: ClockHandle,
     ) -> Result<Self, CoreCreditCollectionError> {
-        let ledger = CollectionLedger::init(cala, journal_id, payments_made_omnibus_account_id)
-            .await?;
+        let ledger =
+            CollectionLedger::init(cala, journal_id, payments_made_omnibus_account_id).await?;
         let ledger_arc = Arc::new(ledger);
 
         let obligations = Obligations::new(

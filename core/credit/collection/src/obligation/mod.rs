@@ -137,62 +137,6 @@ where
         Ok(obligation)
     }
 
-    pub async fn record_overdue_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        id: ObligationId,
-        effective: chrono::NaiveDate,
-    ) -> Result<(Obligation, Option<ObligationOverdueReallocationData>), ObligationError> {
-        let mut obligation = self.repo.find_by_id(id).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_op(
-                op,
-                CoreCreditCollectionObject::obligation(id),
-                CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
-            )
-            .await?;
-
-        let data = if let es_entity::Idempotent::Executed(overdue) =
-            obligation.record_overdue(effective)?
-        {
-            self.repo.update_in_op(op, &mut obligation).await?;
-            Some(overdue)
-        } else {
-            None
-        };
-
-        Ok((obligation, data))
-    }
-
-    pub async fn record_due_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        id: ObligationId,
-        effective: chrono::NaiveDate,
-    ) -> Result<(Obligation, Option<ObligationDueReallocationData>), ObligationError> {
-        let mut obligation = self.repo.find_by_id_in_op(&mut *op, id).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_op(
-                op,
-                CoreCreditCollectionObject::obligation(id),
-                CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
-            )
-            .await?;
-
-        let data = if let es_entity::Idempotent::Executed(due) = obligation.record_due(effective) {
-            self.repo.update_in_op(op, &mut obligation).await?;
-            Some(due)
-        } else {
-            None
-        };
-
-        Ok((obligation, data))
-    }
-
     pub async fn find_by_id_without_audit(
         &self,
         id: ObligationId,
