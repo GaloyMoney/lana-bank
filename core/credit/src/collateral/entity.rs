@@ -16,7 +16,10 @@ use crate::primitives::{
 use super::{
     CollateralUpdate,
     error::CollateralError,
-    liquidation::{Liquidation, NewLiquidation, RecordProceedsFromLiquidationData},
+    liquidation::{
+        Liquidation, LiquidationProceedsAccountIds, NewLiquidation,
+        RecordProceedsFromLiquidationData,
+    },
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -51,6 +54,7 @@ pub enum CollateralEvent {
     },
     LiquidationStarted {
         liquidation_id: LiquidationId,
+        account_ids: LiquidationProceedsAccountIds,
     },
     LiquidationCompleted {
         liquidation_id: LiquidationId,
@@ -66,6 +70,11 @@ pub struct Collateral {
     pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
+
+    /// Account IDs for the current active liquidation (if any).
+    /// Temporary storage until CollateralLedgerAccountIds is implemented.
+    #[builder(default)]
+    pub(super) active_liquidation_account_ids: Option<LiquidationProceedsAccountIds>,
 
     #[es_entity(nested)]
     #[builder(default)]
@@ -196,25 +205,32 @@ impl Collateral {
         &mut self,
         amount_received: UsdCents,
     ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, CollateralError> {
+        let account_ids = self
+            .active_liquidation_account_ids
+            .ok_or(CollateralError::NoActiveLiquidation)?;
+
         let liquidation = self
             .active_liquidation()
             .ok_or(CollateralError::NoActiveLiquidation)?;
 
-        Ok(liquidation.record_proceeds_from_liquidation(amount_received)?)
-    }
+        let ledger_tx_id = if let Idempotent::Executed(id) =
+            liquidation.record_proceeds_from_liquidation(amount_received)?
+        {
+            id
+        } else {
+            return Ok(Idempotent::AlreadyApplied);
+        };
 
-    pub(super) fn collateral_in_liquidation_account_id(&self) -> Option<CalaAccountId> {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                CollateralEvent::LiquidationStarted { liquidation_id } => Some(*liquidation_id),
-                _ => None,
-            })
-            .and_then(|liquidation_id| {
-                self.liquidations
-                    .get_persisted(&liquidation_id)
-                    .map(|l| l.collateral_in_liquidation_account_id)
-            })
+        Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
+            liquidation_proceeds_omnibus_account_id: account_ids
+                .liquidation_proceeds_omnibus_account_id,
+            proceeds_from_liquidation_account_id: account_ids.proceeds_from_liquidation_account_id,
+            collateral_in_liquidation_account_id: account_ids.collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id: account_ids.liquidated_collateral_account_id,
+            amount_received,
+            amount_liquidated: liquidation.sent_total,
+            ledger_tx_id,
+        }))
     }
 
     fn active_liquidation_id(&self) -> Option<LiquidationId> {
@@ -222,7 +238,7 @@ impl Collateral {
 
         for event in self.events.iter_all() {
             match event {
-                CollateralEvent::LiquidationStarted { liquidation_id } => {
+                CollateralEvent::LiquidationStarted { liquidation_id, .. } => {
                     active = Some(*liquidation_id);
                 }
                 CollateralEvent::LiquidationCompleted { liquidation_id } => {
@@ -247,10 +263,11 @@ impl Collateral {
         new_liquidation @ NewLiquidation {
             id: liquidation_id, ..
         }: NewLiquidation,
+        account_ids: LiquidationProceedsAccountIds,
     ) -> Result<Idempotent<LiquidationId>, CollateralError> {
         idempotency_guard!(
             self.events.iter_all(),
-            CollateralEvent::LiquidationStarted { liquidation_id: id }
+            CollateralEvent::LiquidationStarted { liquidation_id: id, .. }
                 if *id == liquidation_id,
         );
 
@@ -258,10 +275,13 @@ impl Collateral {
             return Err(CollateralError::ActiveLiquidationExists(id));
         }
 
+        self.active_liquidation_account_ids = Some(account_ids);
         self.liquidations.add_new(new_liquidation);
 
-        self.events
-            .push(CollateralEvent::LiquidationStarted { liquidation_id });
+        self.events.push(CollateralEvent::LiquidationStarted {
+            liquidation_id,
+            account_ids,
+        });
 
         Ok(Idempotent::Executed(liquidation_id))
     }
@@ -284,6 +304,7 @@ impl Collateral {
             return Ok(Idempotent::AlreadyApplied);
         }
 
+        self.active_liquidation_account_ids = None;
         self.events
             .push(CollateralEvent::LiquidationCompleted { liquidation_id });
 
@@ -314,6 +335,8 @@ impl NewCollateral {
 impl TryFromEvents<CollateralEvent> for Collateral {
     fn try_from_events(events: EntityEvents<CollateralEvent>) -> Result<Self, EsEntityError> {
         let mut builder = CollateralBuilder::default();
+        let mut active_liquidation_account_ids: Option<LiquidationProceedsAccountIds> = None;
+
         for event in events.iter_all() {
             match event {
                 CollateralEvent::Initialized {
@@ -346,11 +369,18 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 } => {
                     builder = builder.amount(*new_value);
                 }
-                CollateralEvent::LiquidationStarted { .. } => {}
-                CollateralEvent::LiquidationCompleted { .. } => {}
+                CollateralEvent::LiquidationStarted { account_ids, .. } => {
+                    active_liquidation_account_ids = Some(*account_ids);
+                }
+                CollateralEvent::LiquidationCompleted { .. } => {
+                    active_liquidation_account_ids = None;
+                }
             }
         }
-        builder.events(events).build()
+        builder
+            .active_liquidation_account_ids(active_liquidation_account_ids)
+            .events(events)
+            .build()
     }
 }
 
@@ -392,22 +422,21 @@ mod tests {
     fn default_new_liquidation(collateral_id: CollateralId) -> NewLiquidation {
         NewLiquidation::builder()
             .id(LiquidationId::new())
-            .credit_facility_id(CreditFacilityId::new())
             .collateral_id(collateral_id)
-            .liquidation_proceeds_omnibus_account_id(CalaAccountId::new())
-            .facility_proceeds_from_liquidation_account_id(
-                FacilityProceedsFromLiquidationAccountId::new(),
-            )
-            .facility_payment_holding_account_id(CalaAccountId::new())
-            .facility_uncovered_outstanding_account_id(CalaAccountId::new())
-            .collateral_account_id(CalaAccountId::new())
-            .collateral_in_liquidation_account_id(CalaAccountId::new())
-            .liquidated_collateral_account_id(CalaAccountId::new())
             .trigger_price(PriceOfOneBTC::new(UsdCents::from(5000000)))
             .initially_expected_to_receive(UsdCents::from(1000))
             .initially_estimated_to_liquidate(Satoshis::from(100000))
             .build()
             .unwrap()
+    }
+
+    fn default_account_ids() -> LiquidationProceedsAccountIds {
+        LiquidationProceedsAccountIds {
+            liquidation_proceeds_omnibus_account_id: CalaAccountId::new(),
+            proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId::new(),
+            collateral_in_liquidation_account_id: CalaAccountId::new(),
+            liquidated_collateral_account_id: CalaAccountId::new(),
+        }
     }
 
     fn hydrate_liquidations_in_collateral(collateral: &mut Collateral) {
@@ -418,6 +447,14 @@ mod tests {
             .map(|new| Liquidation::try_from_events(new.into_events()).expect("hydrate failed"))
             .collect::<Vec<_>>();
         collateral.liquidations.load(new_entities);
+    }
+
+    fn start_liquidation(collateral: &mut Collateral) {
+        let new_liquidation = default_new_liquidation(collateral.id);
+        let _ = collateral
+            .record_liquidation_started(new_liquidation, default_account_ids())
+            .unwrap();
+        hydrate_liquidations_in_collateral(collateral);
     }
 
     mod record_liquidation_started {
@@ -431,7 +468,8 @@ mod tests {
 
             let new_liquidation = default_new_liquidation(collateral_id);
             let liquidation_id = new_liquidation.id;
-            let result = collateral.record_liquidation_started(new_liquidation);
+            let result =
+                collateral.record_liquidation_started(new_liquidation, default_account_ids());
             assert!(result.is_ok());
             assert!(result.unwrap().did_execute());
 
@@ -448,30 +486,21 @@ mod tests {
             let new_liquidation = default_new_liquidation(collateral_id);
             let liquidation_id = new_liquidation.id;
             let _ = collateral
-                .record_liquidation_started(new_liquidation)
+                .record_liquidation_started(new_liquidation, default_account_ids())
                 .unwrap();
             hydrate_liquidations_in_collateral(&mut collateral);
 
             let duplicate_liquidation = NewLiquidation::builder()
                 .id(liquidation_id)
-                .credit_facility_id(CreditFacilityId::new())
                 .collateral_id(collateral_id)
-                .liquidation_proceeds_omnibus_account_id(CalaAccountId::new())
-                .facility_proceeds_from_liquidation_account_id(
-                    FacilityProceedsFromLiquidationAccountId::new(),
-                )
-                .facility_payment_holding_account_id(CalaAccountId::new())
-                .facility_uncovered_outstanding_account_id(CalaAccountId::new())
-                .collateral_account_id(CalaAccountId::new())
-                .collateral_in_liquidation_account_id(CalaAccountId::new())
-                .liquidated_collateral_account_id(CalaAccountId::new())
                 .trigger_price(PriceOfOneBTC::new(UsdCents::from(5000000)))
                 .initially_expected_to_receive(UsdCents::from(1000))
                 .initially_estimated_to_liquidate(Satoshis::from(100000))
                 .build()
                 .unwrap();
 
-            let result = collateral.record_liquidation_started(duplicate_liquidation);
+            let result =
+                collateral.record_liquidation_started(duplicate_liquidation, default_account_ids());
             assert!(result.is_ok());
             assert!(result.unwrap().was_already_applied());
         }
@@ -484,12 +513,13 @@ mod tests {
 
             let new_liquidation = default_new_liquidation(collateral_id);
             let _ = collateral
-                .record_liquidation_started(new_liquidation)
+                .record_liquidation_started(new_liquidation, default_account_ids())
                 .unwrap();
             hydrate_liquidations_in_collateral(&mut collateral);
 
             let another_liquidation = default_new_liquidation(collateral_id);
-            let result = collateral.record_liquidation_started(another_liquidation);
+            let result =
+                collateral.record_liquidation_started(another_liquidation, default_account_ids());
             assert!(matches!(
                 result,
                 Err(CollateralError::ActiveLiquidationExists(_))
@@ -509,7 +539,7 @@ mod tests {
             let new_liquidation = default_new_liquidation(collateral_id);
             let liquidation_id = new_liquidation.id;
             let _ = collateral
-                .record_liquidation_started(new_liquidation)
+                .record_liquidation_started(new_liquidation, default_account_ids())
                 .unwrap();
             hydrate_liquidations_in_collateral(&mut collateral);
 
@@ -528,7 +558,7 @@ mod tests {
             let new_liquidation = default_new_liquidation(collateral_id);
             let liquidation_id = new_liquidation.id;
             let _ = collateral
-                .record_liquidation_started(new_liquidation)
+                .record_liquidation_started(new_liquidation, default_account_ids())
                 .unwrap();
             hydrate_liquidations_in_collateral(&mut collateral);
 
@@ -571,7 +601,7 @@ mod tests {
             // Start a liquidation
             let new_liquidation = default_new_liquidation(collateral_id);
             let _ = collateral
-                .record_liquidation_started(new_liquidation)
+                .record_liquidation_started(new_liquidation, default_account_ids())
                 .unwrap();
             hydrate_liquidations_in_collateral(&mut collateral);
 
@@ -594,7 +624,7 @@ mod tests {
 
             let new_liquidation = default_new_liquidation(collateral_id);
             let _ = collateral
-                .record_liquidation_started(new_liquidation)
+                .record_liquidation_started(new_liquidation, default_account_ids())
                 .unwrap();
             hydrate_liquidations_in_collateral(&mut collateral);
 
@@ -633,14 +663,9 @@ mod tests {
         #[test]
         fn records_proceeds() {
             let new_collateral = default_new_collateral();
-            let collateral_id = new_collateral.id;
             let mut collateral = collateral_from(new_collateral);
 
-            let new_liquidation = default_new_liquidation(collateral_id);
-            let _ = collateral
-                .record_liquidation_started(new_liquidation)
-                .unwrap();
-            hydrate_liquidations_in_collateral(&mut collateral);
+            start_liquidation(&mut collateral);
 
             let amount = UsdCents::from(500);
             let result = collateral.record_liquidation_proceeds_received(amount);

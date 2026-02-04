@@ -21,9 +21,9 @@ use super::{
 use crate::{
     CoreCreditEvent, LedgerOmnibusAccountIds,
     collateral::{
-        error::CollateralError,
-        liquidation::{NewLiquidation, NewLiquidationBuilder},
+        LiquidationProceedsAccountIds, error::CollateralError, liquidation::NewLiquidation,
     },
+    primitives::CreditFacilityId,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -186,12 +186,9 @@ where
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
-                collateral_account_id,
                 collateral_in_liquidation_account_id,
                 liquidated_collateral_account_id,
                 proceeds_from_liquidation_account_id,
-                payment_holding_account_id,
-                uncovered_outstanding_account_id,
                 ..
             },
         ) = message.as_event()
@@ -199,53 +196,49 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
-            self.create_if_not_exist_in_op(
-                db,
-                NewLiquidation::builder()
-                    .id(*liquidation_id)
-                    .credit_facility_id(*credit_facility_id)
-                    .collateral_id(*collateral_id)
-                    .facility_proceeds_from_liquidation_account_id(
-                        *proceeds_from_liquidation_account_id,
-                    )
-                    .facility_payment_holding_account_id(*payment_holding_account_id)
-                    .collateral_account_id(*collateral_account_id)
-                    .facility_uncovered_outstanding_account_id(*uncovered_outstanding_account_id)
-                    .collateral_in_liquidation_account_id(*collateral_in_liquidation_account_id)
-                    .liquidated_collateral_account_id(*liquidated_collateral_account_id)
-                    .trigger_price(*trigger_price)
-                    .initially_expected_to_receive(*initially_expected_to_receive)
-                    .initially_estimated_to_liquidate(*initially_estimated_to_liquidate),
-            )
-            .await?;
+            let new_liquidation = NewLiquidation::builder()
+                .id(*liquidation_id)
+                .collateral_id(*collateral_id)
+                .trigger_price(*trigger_price)
+                .initially_expected_to_receive(*initially_expected_to_receive)
+                .initially_estimated_to_liquidate(*initially_estimated_to_liquidate)
+                .build()
+                .expect("Could not build new liquidation");
+
+            let account_ids = LiquidationProceedsAccountIds {
+                liquidation_proceeds_omnibus_account_id: self
+                    .proceeds_omnibus_account_ids
+                    .account_id,
+                proceeds_from_liquidation_account_id: *proceeds_from_liquidation_account_id,
+                collateral_in_liquidation_account_id: *collateral_in_liquidation_account_id,
+                liquidated_collateral_account_id: *liquidated_collateral_account_id,
+            };
+
+            self.create_if_not_exist_in_op(db, new_liquidation, account_ids, *credit_facility_id)
+                .await?;
         }
         Ok(())
     }
 
     #[instrument(
         name = "credit.liquidation.create_if_not_exist_in_op",
-        skip(self, db, new_liquidation_builder),
+        skip(self, db, new_liquidation, account_ids),
         fields(existing_liquidation_found),
         err
     )]
     pub async fn create_if_not_exist_in_op(
         &self,
         db: &mut DbOp<'_>,
-        new_liquidation_builder: &mut NewLiquidationBuilder,
+        new_liquidation: NewLiquidation,
+        account_ids: LiquidationProceedsAccountIds,
+        credit_facility_id: CreditFacilityId,
     ) -> Result<(), CollateralError> {
-        let new_liquidation @ NewLiquidation {
-            collateral_id,
-            credit_facility_id,
-            ..
-        } = new_liquidation_builder
-            .liquidation_proceeds_omnibus_account_id(self.proceeds_omnibus_account_ids.account_id)
-            .build()
-            .expect("Could not build new liquidation");
+        let collateral_id = new_liquidation.collateral_id;
 
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
         let liquidation_id = if let Idempotent::Executed(id) =
-            collateral.record_liquidation_started(new_liquidation)?
+            collateral.record_liquidation_started(new_liquidation, account_ids)?
         {
             id
         } else {

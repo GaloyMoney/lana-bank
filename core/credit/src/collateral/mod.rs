@@ -34,7 +34,10 @@ use jobs::{
 };
 pub use {
     entity::Collateral,
-    liquidation::{Liquidation, LiquidationError, RecordProceedsFromLiquidationData},
+    liquidation::{
+        Liquidation, LiquidationError, LiquidationProceedsAccountIds,
+        RecordProceedsFromLiquidationData,
+    },
     repo::liquidation_cursor,
 };
 
@@ -244,6 +247,11 @@ where
         if let es_entity::Idempotent::Executed(data) =
             collateral.record_collateral_update_via_liquidation(amount_sent, effective)?
         {
+            let collateral_in_liquidation_account_id = collateral
+                .active_liquidation_account_ids
+                .ok_or(CollateralError::NoActiveLiquidation)?
+                .collateral_in_liquidation_account_id;
+
             self.repo.update_in_op(&mut db, &mut collateral).await?;
 
             self.ledger
@@ -252,9 +260,7 @@ where
                     data.tx_id,
                     amount_sent,
                     collateral.account_id,
-                    collateral
-                        .collateral_in_liquidation_account_id()
-                        .expect("No liquidations found"),
+                    collateral_in_liquidation_account_id,
                     initiated_by,
                 )
                 .await?;
@@ -309,13 +315,13 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "collateral.list_liquidations_for_facility_by_created_at",
+        name = "collateral.list_liquidations_for_collateral_by_created_at",
         skip(self, sub)
     )]
-    pub async fn list_liquidations_for_facility_by_created_at(
+    pub async fn list_liquidations_for_collateral_by_created_at(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: CreditFacilityId,
+        collateral_id: CollateralId,
     ) -> Result<Vec<Liquidation>, LiquidationError> {
         self.authz
             .enforce_permission(
@@ -326,7 +332,7 @@ where
             .await?;
 
         self.repo
-            .list_liquidations_for_credit_facility_id(credit_facility_id)
+            .list_liquidations_for_collateral_id(collateral_id)
             .await
     }
 
