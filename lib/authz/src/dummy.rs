@@ -124,9 +124,7 @@ where
     }
 
     async fn list_subjects(&self) -> Result<Vec<String>, AuditError> {
-        unimplemented!(
-            "DummyAudit::list_subjects should not be called - this is a test-only implementation"
-        )
+        unimplemented!("DummyAudit::list_subjects - test-only implementation")
     }
 }
 
