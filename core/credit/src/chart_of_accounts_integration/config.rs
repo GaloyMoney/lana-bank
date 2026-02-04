@@ -90,6 +90,8 @@ define_internal_config! {
         pub(crate) facility_omnibus_parent_account_set_id: CalaAccountSetId,
         pub(crate) collateral_omnibus_parent_account_set_id: CalaAccountSetId,
         pub(crate) liquidation_proceeds_omnibus_parent_account_set_id: CalaAccountSetId,
+        pub(crate) payments_made_omnibus_parent_account_set_id: CalaAccountSetId,
+        pub(crate) interest_added_to_obligations_omnibus_parent_account_set_id: CalaAccountSetId,
 
         pub(crate) facility_parent_account_set_id: CalaAccountSetId,
         pub(crate) collateral_parent_account_set_id: CalaAccountSetId,
@@ -97,6 +99,7 @@ define_internal_config! {
         pub(crate) interest_income_parent_account_set_id: CalaAccountSetId,
         pub(crate) fee_income_parent_account_set_id: CalaAccountSetId,
         pub(crate) payment_holding_parent_account_set_id: CalaAccountSetId,
+        pub(crate) uncovered_outstanding_parent_account_set_id: CalaAccountSetId,
 
         pub(crate) short_term_disbursed_integration_meta: ShortTermDisbursedIntegrationMeta,
         pub(crate) long_term_disbursed_integration_meta: LongTermDisbursedIntegrationMeta,
@@ -172,6 +175,14 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             off_balance_sheet_account_set_member_parent_id(
                 &config.chart_of_account_liquidation_proceeds_omnibus_parent_code,
             )?;
+        let payments_made_omnibus_parent_account_set_id =
+            off_balance_sheet_account_set_member_parent_id(
+                &config.chart_of_account_payments_made_omnibus_parent_code,
+            )?;
+        let interest_added_to_obligations_omnibus_parent_account_set_id =
+            off_balance_sheet_account_set_member_parent_id(
+                &config.chart_of_account_interest_added_to_obligations_omnibus_parent_code,
+            )?;
         let facility_parent_account_set_id = off_balance_sheet_account_set_member_parent_id(
             &config.chart_of_account_facility_parent_code,
         )?;
@@ -191,6 +202,10 @@ impl ResolvedChartOfAccountsIntegrationConfig {
         let payment_holding_parent_account_set_id = asset_account_set_member_parent_id(
             &config.chart_of_account_payment_holding_parent_code,
         )?;
+        let uncovered_outstanding_parent_account_set_id =
+            off_balance_sheet_account_set_member_parent_id(
+                &config.chart_of_account_uncovered_outstanding_parent_code,
+            )?;
 
         let short_term_disbursed_integration_meta = ShortTermDisbursedIntegrationMeta {
             short_term_individual_disbursed_receivable_parent_account_set_id:
@@ -377,12 +392,15 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             facility_omnibus_parent_account_set_id,
             collateral_omnibus_parent_account_set_id,
             liquidation_proceeds_omnibus_parent_account_set_id,
+            payments_made_omnibus_parent_account_set_id,
+            interest_added_to_obligations_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
             collateral_in_liquidation_parent_account_set_id,
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
             payment_holding_parent_account_set_id,
+            uncovered_outstanding_parent_account_set_id,
 
             short_term_disbursed_integration_meta,
             long_term_disbursed_integration_meta,
