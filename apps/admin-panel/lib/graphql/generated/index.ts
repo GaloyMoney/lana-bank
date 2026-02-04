@@ -40,6 +40,13 @@ export type Scalars = {
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
 
+export type AccountInfo = {
+  __typename?: 'AccountInfo';
+  accountSetId: Scalars['UUID']['output'];
+  code: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type AccountingBaseConfigInput = {
   assetsCode: Scalars['String']['input'];
   costOfRevenueCode: Scalars['String']['input'];
@@ -2457,6 +2464,7 @@ export type Query = {
   liquidations: LiquidationConnection;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
+  offBalanceSheetAccountSets: Array<AccountInfo>;
   pendingCreditFacilities: PendingCreditFacilityConnection;
   pendingCreditFacility?: Maybe<PendingCreditFacility>;
   permissionSets: PermissionSetConnection;
