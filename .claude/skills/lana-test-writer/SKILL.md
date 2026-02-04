@@ -48,13 +48,6 @@ LANA uses event sourcing for entities. Testing entities requires understanding t
 
 Use subagents to explore existing entity tests in `/core/*/src/*/entity.rs` files to understand the specific patterns used in this codebase. These patterns can be mimicked when writing new tests.
 
-### Builder Patterns for Test Data
-
-Tests use builder patterns to construct test data. Look for existing builders in the test modules before creating new ones. This provides:
-- Consistent test data construction
-- Sensible defaults for optional fields
-- Clear, readable test setup
-
 ### Comprehensive Test Planning
 
 Before writing tests, create a plan to ensure thorough coverage:
@@ -97,6 +90,21 @@ BATS tests use helper functions for common operations:
 - Balance verification functions
 
 Use subagents to explore `/bats/helpers/` to understand available test utilities before writing new tests.
+
+### Shared Database State
+
+All BATS tests run against a **single shared database instance**. This has important implications:
+
+- **Tests are not isolated**: Each test inherits state from all previous tests
+- **Sequential dependencies**: Tests are sometimes intentionally written as sequences where each builds on prior state
+- **Pre-existing data**: When writing new tests, assume the database already contains data from other tests - it will not be a clean slate
+- **Execution order matters**: Be aware that test files execute in a specific order, and tests within a file run sequentially
+
+When writing new BATS tests:
+1. Consider what state the database will be in when your test runs
+2. Use unique identifiers or timestamps to avoid conflicts with existing test data
+3. If your test relies on specific state, ensure earlier tests create that state or create it yourself
+4. Do not assume any table is empty
 
 ## Module Integration Tests
 
