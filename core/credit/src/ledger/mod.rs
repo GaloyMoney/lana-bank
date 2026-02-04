@@ -48,6 +48,16 @@ pub struct InternalAccountSetDetails {
     normal_balance_type: DebitOrCredit,
 }
 
+impl InternalAccountSetDetails {
+    pub fn id(&self) -> CalaAccountSetId {
+        self.id
+    }
+
+    pub fn normal_balance_type(&self) -> DebitOrCredit {
+        self.normal_balance_type
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct DisbursedReceivableAccountSets {
     individual: InternalAccountSetDetails,
@@ -1014,6 +1024,7 @@ impl CreditLedger {
         PendingCreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
+            ..
         }: PendingCreditFacilityAccountIds,
     ) -> Result<PendingCreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
@@ -1806,6 +1817,9 @@ impl CreditLedger {
         let PendingCreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
+            facility_proceeds_from_liquidation_account_id,
+            facility_uncovered_outstanding_account_id,
+            facility_payment_holding_account_id,
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, credit_facility_id);
@@ -1833,6 +1847,53 @@ impl CreditLedger {
             facility_reference,
             facility_name,
             facility_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let uncovered_outstanding_reference =
+            &format!("credit-facility-uncovered-outstanding:{credit_facility_id}");
+        let uncovered_outstanding_name =
+            &format!("Uncovered Outstanding Account for Credit Facility {credit_facility_id}");
+        self.create_account_in_op(
+            op,
+            facility_uncovered_outstanding_account_id,
+            self.internal_account_sets.uncovered_outstanding,
+            uncovered_outstanding_reference,
+            uncovered_outstanding_name,
+            uncovered_outstanding_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let payment_holding_reference =
+            &format!("credit-facility-payment-holding:{credit_facility_id}");
+        let payment_holding_name =
+            &format!("Payment Holding Account for Credit Facility {credit_facility_id}");
+        self.create_account_in_op(
+            op,
+            facility_payment_holding_account_id,
+            self.internal_account_sets.payment_holding,
+            payment_holding_reference,
+            payment_holding_name,
+            payment_holding_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let proceeds_from_liquidation_reference =
+            &format!("credit-facility-proceeds-from-liquidation:{credit_facility_id}");
+        let proceeds_from_liquidation_name =
+            &format!("Proceeds From Liquidation Account for Credit Facility {credit_facility_id}");
+        self.create_account_in_op(
+            op,
+            facility_proceeds_from_liquidation_account_id,
+            self.internal_account_sets
+                .liquidation
+                .proceeds_from_liquidation,
+            proceeds_from_liquidation_reference,
+            proceeds_from_liquidation_name,
+            proceeds_from_liquidation_name,
             entity_ref,
         )
         .await?;
@@ -1859,15 +1920,15 @@ impl CreditLedger {
             interest_defaulted_account_id,
             interest_income_account_id,
             fee_income_account_id,
-            uncovered_outstanding_account_id,
-            payment_holding_account_id,
-            proceeds_from_liquidation_account_id,
             collateral_in_liquidation_account_id,
             liquidated_collateral_account_id,
 
             // these accounts are created during proposal creation
             collateral_account_id: _collateral_account_id,
             facility_account_id: _facility_account_id,
+            uncovered_outstanding_account_id: _uncovered_outstanding_account_id,
+            payment_holding_account_id: _payment_holding_account_id,
+            proceeds_from_liquidation_account_id: _proceeds_from_liquidation_account_id,
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_ENTITY_TYPE, credit_facility_id);
@@ -2028,36 +2089,6 @@ impl CreditLedger {
         )
         .await?;
 
-        let uncovered_outstanding_reference =
-            &format!("credit-facility-uncovered-outstanding:{credit_facility_id}");
-        let uncovered_outstanding_name =
-            &format!("Uncovered Outstanding Account for Credit Facility {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            uncovered_outstanding_account_id,
-            self.internal_account_sets.uncovered_outstanding,
-            uncovered_outstanding_reference,
-            uncovered_outstanding_name,
-            uncovered_outstanding_name,
-            entity_ref.clone(),
-        )
-        .await?;
-
-        let payment_holding_reference =
-            &format!("credit-facility-payment-holding:{credit_facility_id}");
-        let payment_holding_name =
-            &format!("Payment Holding Account for Credit Facility {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            payment_holding_account_id,
-            self.internal_account_sets.payment_holding,
-            payment_holding_reference,
-            payment_holding_name,
-            payment_holding_name,
-            entity_ref.clone(),
-        )
-        .await?;
-
         let collateral_in_liquidation_reference =
             &format!("credit-facility-collateral-in-liquidation:{credit_facility_id}");
         let collateral_in_liquidation_name =
@@ -2086,23 +2117,6 @@ impl CreditLedger {
             liquidated_collateral_reference,
             liquidated_collateral_name,
             liquidated_collateral_name,
-            entity_ref.clone(),
-        )
-        .await?;
-
-        let proceeds_from_liquidation_reference =
-            &format!("credit-facility-proceeds-from-liquidation:{credit_facility_id}");
-        let proceeds_from_liquidation_name =
-            &format!("Proceeds From Liquidation Account for Credit Facility {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            proceeds_from_liquidation_account_id,
-            self.internal_account_sets
-                .liquidation
-                .proceeds_from_liquidation,
-            proceeds_from_liquidation_reference,
-            proceeds_from_liquidation_name,
-            proceeds_from_liquidation_name,
             entity_ref,
         )
         .await?;
@@ -2713,6 +2727,10 @@ impl CreditLedger {
 
     pub fn payments_made_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
         &self.payments_made_omnibus_account_ids
+    }
+
+    pub fn liquidation_account_sets(&self) -> LiquidationAccountSets {
+        self.internal_account_sets.liquidation
     }
 }
 

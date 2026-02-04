@@ -223,6 +223,7 @@ where
             journal_id,
             clock.clone(),
             ledger_arc.collateral_omnibus_account_ids().clone(),
+            ledger_arc.liquidation_account_sets(),
         )
         .await?;
         let collateral_ledger_arc = Arc::new(collateral_ledger);
