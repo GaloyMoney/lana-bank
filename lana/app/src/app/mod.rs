@@ -368,10 +368,7 @@ impl LanaApp {
             )
             .await?;
 
-        self.audit
-            .list_subjects()
-            .await
-            .map_err(ApplicationError::from)
+        Ok(self.audit.list_subjects().await?)
     }
 
     pub fn accounting(&self) -> &Accounting {
