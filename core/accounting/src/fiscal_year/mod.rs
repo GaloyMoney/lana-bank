@@ -134,7 +134,13 @@ where
         let now = self.clock.now();
 
         let fiscal_year = self.repo.find_by_id(id).await?;
-        let new_fiscal_year = fiscal_year.next(now)?;
+        let new_fiscal_year = fiscal_year.next(now).ok_or_else(|| {
+            let next_year_opened_as_of = fiscal_year
+                .closes_as_of()
+                .checked_add_days(chrono::Days::new(1))
+                .expect("Failed to compute start of next fiscal year");
+            FiscalYearError::FiscalYearWithInvalidOpenedAsOf(next_year_opened_as_of)
+        })?;
         let next_fiscal_year = self.repo.create(new_fiscal_year).await?;
         Ok(next_fiscal_year)
     }
