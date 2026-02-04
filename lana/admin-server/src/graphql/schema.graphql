@@ -1744,6 +1744,7 @@ union LedgerTransactionInitiator = User | System
 type Liquidation {
 	id: ID!
 	liquidationId: UUID!
+	collateralId: UUID!
 	expectedToReceive: UsdCents!
 	sentTotal: Satoshis!
 	amountReceived: UsdCents!
