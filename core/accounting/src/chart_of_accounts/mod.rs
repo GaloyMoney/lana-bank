@@ -214,15 +214,14 @@ where
 
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;
-        let bulk_import::BulkImportResult {
+        let es_entity::Idempotent::Executed(bulk_import::BulkImportResult {
             new_account_sets,
             new_account_set_ids,
             new_connections,
-        } = chart.import_accounts(account_specs, self.journal_id);
-
-        if new_account_sets.is_empty() {
+        }) = chart.import_accounts(account_specs, self.journal_id)
+        else {
             return Ok((chart, None));
-        }
+        };
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
@@ -498,36 +497,34 @@ where
             )
             .await?;
 
-        let manual_transaction_account_id = match chart
-            .manual_transaction_account(account_id_or_code)?
-        {
-            ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => id,
-            ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
-                let mut op = self.repo.begin_op().await?;
-                self.repo.update_in_op(&mut op, &mut chart).await?;
+        if let Some(id) = chart.find_manual_transaction_account(&account_id_or_code) {
+            return Ok(id);
+        }
 
-                let mut op = op.with_db_time().await?;
-                let Account {
-                    id: manual_transaction_account_id,
-                    ..
-                } = self
-                    .cala
-                    .accounts()
-                    .create_in_op(&mut op, new_account)
-                    .await?;
+        let (account_set_id, new_account) = chart
+            .create_manual_transaction_account(&account_id_or_code)?
+            .expect("create should execute when find returned None");
 
-                self.cala
-                    .account_sets()
-                    .add_member_in_op(&mut op, account_set_id, manual_transaction_account_id)
-                    .await?;
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
 
-                op.commit().await?;
+        let Account {
+            id: manual_transaction_account_id,
+            ..
+        } = self
+            .cala
+            .accounts()
+            .create_in_op(&mut op, new_account)
+            .await?;
 
-                manual_transaction_account_id.into()
-            }
-        };
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, account_set_id, manual_transaction_account_id)
+            .await?;
 
-        Ok(manual_transaction_account_id)
+        op.commit().await?;
+
+        Ok(manual_transaction_account_id.into())
     }
 
     #[instrument(

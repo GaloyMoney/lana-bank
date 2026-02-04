@@ -163,8 +163,12 @@ impl Chart {
         &mut self,
         account_specs: Vec<AccountSpec>,
         journal_id: CalaJournalId,
-    ) -> BulkImportResult {
-        BulkAccountImport::new(self, journal_id).import(account_specs)
+    ) -> Idempotent<BulkImportResult> {
+        let result = BulkAccountImport::new(self, journal_id).import(account_specs);
+        if result.new_account_sets.is_empty() {
+            return Idempotent::AlreadyApplied;
+        }
+        Idempotent::Executed(result)
     }
 
     pub(super) fn create_child_node(
@@ -300,49 +304,62 @@ impl Chart {
         Ok(id)
     }
 
-    pub fn manual_transaction_account(
-        &mut self,
-        account_id_or_code: AccountIdOrCode,
-    ) -> Result<ManualAccountFromChart, ChartOfAccountsError> {
+    pub fn find_manual_transaction_account(
+        &self,
+        account_id_or_code: &AccountIdOrCode,
+    ) -> Option<LedgerAccountId> {
         match account_id_or_code {
             AccountIdOrCode::Id(id) => {
-                let res = match self
+                match self
                     .chart_nodes
-                    .find_persisted(|node| node.manual_transaction_account_id == Some(id))
+                    .find_persisted(|node| node.manual_transaction_account_id == Some(*id))
                 {
-                    Some(node) => {
-                        // Need to re-check eligibility because
-                        // incase it now has children but didn't previously
-                        if node.can_have_manual_transactions() {
-                            ManualAccountFromChart::IdInChart(id)
-                        } else {
-                            return Err(ChartOfAccountsError::NonLeafAccount(
-                                node.spec.code.to_string(),
-                            ));
-                        }
-                    }
-                    None => ManualAccountFromChart::NonChartId(id),
-                };
-
-                Ok(res)
+                    Some(node) if node.can_have_manual_transactions() => Some(*id),
+                    Some(_) => None,
+                    None => Some(*id),
+                }
             }
             AccountIdOrCode::Code(code) => {
                 let node = self
                     .chart_nodes
-                    .find_persisted_mut(|node| node.spec.code == code)
-                    .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+                    .find_persisted(|node| node.spec.code == *code)?;
 
-                match node.assign_manual_transaction_account()? {
-                    Idempotent::Executed(new_account) => Ok(ManualAccountFromChart::NewAccount((
-                        node.account_set_id,
-                        new_account,
-                    ))),
-                    Idempotent::AlreadyApplied => Ok(ManualAccountFromChart::IdInChart(
-                        node.manual_transaction_account_id
-                            .expect("Manual transaction account id should be set"),
-                    )),
+                if !node.can_have_manual_transactions() {
+                    return None;
                 }
+
+                node.manual_transaction_account_id
             }
+        }
+    }
+
+    pub fn create_manual_transaction_account(
+        &mut self,
+        account_id_or_code: &AccountIdOrCode,
+    ) -> Result<Idempotent<(CalaAccountSetId, NewAccount)>, ChartOfAccountsError> {
+        let code = match account_id_or_code {
+            AccountIdOrCode::Code(code) => code,
+            AccountIdOrCode::Id(id) => {
+                let code = self
+                    .chart_nodes
+                    .find_persisted(|node| node.manual_transaction_account_id == Some(*id))
+                    .map(|node| node.spec.code.to_string())
+                    .unwrap_or_else(|| id.to_string());
+                return Err(ChartOfAccountsError::NonLeafAccount(code));
+            }
+        };
+
+        let node = self
+            .chart_nodes
+            .find_persisted_mut(|node| node.spec.code == *code)
+            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+
+        let account_set_id = node.account_set_id;
+        match node.assign_manual_transaction_account()? {
+            Idempotent::Executed(new_account) => {
+                Ok(Idempotent::Executed((account_set_id, new_account)))
+            }
+            Idempotent::AlreadyApplied => Ok(Idempotent::AlreadyApplied),
         }
     }
 
@@ -566,13 +583,6 @@ impl IntoEvents<ChartEvent> for NewChart {
             }],
         )
     }
-}
-
-#[derive(Debug)]
-pub enum ManualAccountFromChart {
-    IdInChart(LedgerAccountId),
-    NonChartId(LedgerAccountId),
-    NewAccount((CalaAccountSetId, NewAccount)),
 }
 
 pub struct NewChartAccountDetails {
@@ -851,34 +861,27 @@ mod test {
     }
 
     #[test]
-    fn manual_transaction_account_by_id_non_chart_id() {
-        let mut chart = chart_from(initial_events());
+    fn find_manual_transaction_account_by_id_non_chart_id() {
+        let chart = chart_from(initial_events());
         let random_id = LedgerAccountId::new();
 
-        let id = match chart
-            .manual_transaction_account(AccountIdOrCode::Id(random_id))
-            .unwrap()
-        {
-            ManualAccountFromChart::NonChartId(id) => id,
-            _ => panic!("expected NonChartId"),
-        };
-        assert_eq!(id, random_id);
+        let result = chart.find_manual_transaction_account(&AccountIdOrCode::Id(random_id));
+        assert_eq!(result, Some(random_id));
     }
 
     #[test]
-    fn manual_transaction_account_by_code_new_account() {
+    fn create_manual_transaction_account_by_code() {
         let (mut chart, (_l1, _l2, level_3_set_id)) = default_chart();
         let acct_code = code("1.1.1");
 
-        let (account_set_id, new_account) = match chart
-            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
+        let find_result =
+            chart.find_manual_transaction_account(&AccountIdOrCode::Code(acct_code.clone()));
+        assert_eq!(find_result, None);
+
+        let (account_set_id, new_account) = chart
+            .create_manual_transaction_account(&AccountIdOrCode::Code(acct_code.clone()))
             .unwrap()
-        {
-            ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
-                (account_set_id, new_account)
-            }
-            _ => panic!("expected NewAccount"),
-        };
+            .expect("expected Executed");
 
         assert_eq!(account_set_id, level_3_set_id);
 
@@ -896,76 +899,58 @@ mod test {
     }
 
     #[test]
-    fn manual_transaction_account_by_code_existing_account() {
+    fn find_manual_transaction_account_by_code_existing_account() {
         let (mut chart, _) = default_chart();
         let acct_code = code("1.1.1");
 
-        let first = chart
-            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
-            .unwrap();
-        let ledger_id = match first {
-            ManualAccountFromChart::NewAccount((_, new_account)) => new_account.id,
-            _ => panic!("expected NewAccount"),
-        };
+        let (_, new_account) = chart
+            .create_manual_transaction_account(&AccountIdOrCode::Code(acct_code.clone()))
+            .unwrap()
+            .expect("expected Executed");
 
-        let second = chart
-            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
-            .unwrap();
-        match second {
-            ManualAccountFromChart::IdInChart(id) => assert_eq!(id, ledger_id.into()),
-            other => panic!("expected IdInChart, got {other:?}"),
-        }
+        let found = chart.find_manual_transaction_account(&AccountIdOrCode::Code(acct_code));
+        assert_eq!(found, Some(new_account.id.into()));
     }
 
     #[test]
-    fn manual_transaction_account_by_id_in_chart() {
+    fn find_manual_transaction_account_by_id_in_chart() {
         let (mut chart, _) = default_chart();
         let acct_code = code("1.1.1");
 
-        let ManualAccountFromChart::NewAccount((_, new_account)) = chart
-            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
+        let (_, new_account) = chart
+            .create_manual_transaction_account(&AccountIdOrCode::Code(acct_code.clone()))
             .unwrap()
-        else {
-            panic!("expected NewAccount");
-        };
+            .expect("expected Executed");
 
         let ledger_id = LedgerAccountId::from(new_account.id);
-        let id = match chart
-            .manual_transaction_account(AccountIdOrCode::Id(ledger_id))
-            .unwrap()
-        {
-            ManualAccountFromChart::IdInChart(id) => id,
-            _ => panic!("expected IdInChart"),
-        };
-        assert_eq!(id, ledger_id)
+        let found = chart.find_manual_transaction_account(&AccountIdOrCode::Id(ledger_id));
+        assert_eq!(found, Some(ledger_id));
     }
 
     #[test]
-    fn manual_transaction_account_code_not_found() {
-        let mut chart = chart_from(initial_events());
+    fn find_manual_transaction_account_code_not_found() {
+        let chart = chart_from(initial_events());
         let bad_code = code("9.9.9");
 
-        let err = chart
-            .manual_transaction_account(AccountIdOrCode::Code(bad_code.clone()))
-            .unwrap_err();
-
-        match err {
-            ChartOfAccountsError::CodeNotFoundInChart(c) => assert_eq!(c, bad_code),
-            other => panic!("expected CodeNotFoundInChart, got {other:?}"),
-        }
+        let res = chart.find_manual_transaction_account(&AccountIdOrCode::Code(bad_code));
+        assert_eq!(res, None);
     }
 
     #[test]
-    fn manual_transaction_non_leaf_code() {
+    fn create_manual_transaction_non_leaf_code() {
         let (mut chart, _) = default_chart();
         let acct_code = code("1.1");
 
-        let res = chart.manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()));
+        assert_eq!(
+            chart.find_manual_transaction_account(&AccountIdOrCode::Code(acct_code.clone())),
+            None
+        );
+        let res = chart.create_manual_transaction_account(&AccountIdOrCode::Code(acct_code));
         assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
     }
 
     #[test]
-    fn manual_transaction_non_leaf_account_id_in_chart() {
+    fn find_manual_transaction_non_leaf_account_id_in_chart() {
         let (mut chart, _) = default_chart();
         let random_id = LedgerAccountId::new();
         chart
@@ -974,8 +959,8 @@ mod test {
             .unwrap()
             .manual_transaction_account_id = Some(random_id);
 
-        let res = chart.manual_transaction_account(AccountIdOrCode::Id(random_id));
-        assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
+        let res = chart.find_manual_transaction_account(&AccountIdOrCode::Id(random_id));
+        assert_eq!(res, None);
     }
 
     #[test]
@@ -1556,7 +1541,11 @@ mod test {
                 },
             ];
 
-            let bulk_import = chart.import_accounts(added_account_specs, journal_id);
+            let es_entity::Idempotent::Executed(bulk_import) =
+                chart.import_accounts(added_account_specs, journal_id)
+            else {
+                panic!("Expected Executed");
+            };
 
             assert_eq!(bulk_import.new_account_sets.len(), 2);
             assert_eq!(bulk_import.new_connections.len(), 2);
