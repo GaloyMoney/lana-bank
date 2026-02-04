@@ -4,6 +4,14 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { formatDate } from "@lana/web/utils"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@lana/web/ui/select"
+import { Input } from "@lana/web/ui/input"
 
 import {
   AuditEntry,
@@ -136,51 +144,65 @@ const AuditLogsList = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <div className="flex gap-2 mb-4">
-        <select
-          className="border rounded px-2 py-1 text-sm"
-          value={subjectFilter ?? ""}
-          onChange={(e) => setSubjectFilter(e.target.value || undefined)}
+        <Select
+          value={subjectFilter ?? "all"}
+          onValueChange={(val) => setSubjectFilter(val === "all" ? undefined : val)}
         >
-          <option value="">{t("filters.allSubjects")}</option>
-          {subjectsData?.auditSubjects.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <select
-          className="border rounded px-2 py-1 text-sm"
-          value={authorizedFilter === undefined ? "" : String(authorizedFilter)}
-          onChange={(e) => {
-            const val = e.target.value
-            setAuthorizedFilter(val === "" ? undefined : val === "true")
-          }}
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder={t("filters.allSubjects")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("filters.allSubjects")}</SelectItem>
+            {subjectsData?.auditSubjects.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={authorizedFilter === undefined ? "all" : String(authorizedFilter)}
+          onValueChange={(val) =>
+            setAuthorizedFilter(val === "all" ? undefined : val === "true")
+          }
         >
-          <option value="">{t("filters.allAuthorized")}</option>
-          <option value="true">{t("filters.authorizedOnly")}</option>
-          <option value="false">{t("filters.unauthorizedOnly")}</option>
-        </select>
-        <input
-          type="text"
-          className="border rounded px-2 py-1 text-sm"
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder={t("filters.allAuthorized")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("filters.allAuthorized")}</SelectItem>
+            <SelectItem value="true">{t("filters.authorizedOnly")}</SelectItem>
+            <SelectItem value="false">{t("filters.unauthorizedOnly")}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
           placeholder={t("filters.objectPlaceholder")}
           value={objectFilter ?? ""}
           onChange={(e) => setObjectFilter(e.target.value || undefined)}
         />
-        <input
-          type="text"
-          className="border rounded px-2 py-1 text-sm"
+        <Input
           placeholder={t("filters.actionPlaceholder")}
           value={actionFilter ?? ""}
           onChange={(e) => setActionFilter(e.target.value || undefined)}
         />
       </div>
       <PaginatedTable<AuditEntry>
+        key={`${subjectFilter}-${authorizedFilter}-${objectFilter}-${actionFilter}`}
         columns={columns}
         data={data?.audit as PaginatedData<AuditEntry>}
         loading={loading}
         pageSize={DEFAULT_PAGESIZE}
-        fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+        fetchMore={async (cursor) =>
+          fetchMore({
+            variables: {
+              after: cursor,
+              subject: subjectFilter ?? null,
+              authorized: authorizedFilter ?? null,
+              object: objectFilter ?? null,
+              action: actionFilter ?? null,
+            },
+          })
+        }
       />
     </div>
   )
