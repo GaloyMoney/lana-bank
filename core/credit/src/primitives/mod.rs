@@ -33,8 +33,10 @@ pub use core_credit_terms::{
 pub use core_credit_collection::{
     BalanceUpdateData, BalanceUpdatedSource, BeneficiaryId, CoreCreditCollectionAction,
     CoreCreditCollectionEvent, CoreCreditCollectionObject, ObligationAction, ObligationAllOrOne,
-    ObligationId, ObligationStatus, ObligationType, ObligationsAmounts, PaymentAllocationId,
-    PaymentDetailsForAllocation, PaymentId, PaymentSourceAccountId,
+    ObligationId, ObligationStatus, ObligationType, ObligationsAmounts,
+    PERMISSION_SET_COLLECTION_PAYMENT_DATE, PERMISSION_SET_COLLECTION_VIEWER,
+    PERMISSION_SET_COLLECTION_WRITER, PaymentAllocationId, PaymentDetailsForAllocation, PaymentId,
+    PaymentSourceAccountId,
     obligation::Obligations,
     payment::{Payment, Payments},
     payment_allocation::PaymentAllocation,
@@ -120,7 +122,6 @@ pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
 pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
 pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
-pub const PERMISSION_SET_CREDIT_PAYMENT_DATE: &str = "credit_payment_date";
 
 pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("credit_facility");
