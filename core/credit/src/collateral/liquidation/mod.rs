@@ -1,19 +1,15 @@
 mod entity;
 pub mod error;
 
-#[cfg(feature = "json-schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
 use money::{Satoshis, UsdCents};
 
-use crate::primitives::LedgerTxId;
+use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::LedgerTxId};
 
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 pub use error::LiquidationError;
-
-pub use crate::ledger::FacilityProceedsFromLiquidationAccountId;
 
 #[derive(Clone, Debug)]
 pub struct RecordProceedsFromLiquidationData {
@@ -31,7 +27,7 @@ pub struct RecordProceedsFromLiquidationData {
 /// Account IDs needed for recording proceeds from liquidation.
 /// These come from the credit facility and collateral accounts.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct LiquidationProceedsAccountIds {
     pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
     pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
