@@ -10,14 +10,27 @@ const getLocale = () =>
     ? document.documentElement.lang || navigator.language || "en-US"
     : "en-US";
 
+const isDateOnlyString = (input: unknown): input is string =>
+  typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input);
+
 export const formatDate = (
   dateInput: string | number | Date,
   options: { includeTime: boolean } = { includeTime: true }
 ): string => {
-  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
-
-  if (Number.isNaN(date.getTime())) return "Invalid date";
   const locale = getLocale();
+
+  // Date-only strings (e.g., "2028-06-17") should be formatted in UTC
+  if (isDateOnlyString(dateInput)) {
+    const date = new Date(`${dateInput}T00:00:00Z`);
+    if (Number.isNaN(date.getTime())) return "Invalid date";
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeZone: "UTC",
+    }).format(date);
+  }
+
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  if (Number.isNaN(date.getTime())) return "Invalid date";
 
   const base: Intl.DateTimeFormatOptions = {
     dateStyle: "medium",
