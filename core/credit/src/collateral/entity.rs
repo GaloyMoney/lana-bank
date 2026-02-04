@@ -367,3 +367,289 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::collateral::liquidation::FacilityProceedsFromLiquidationAccountId;
+    use crate::primitives::{PriceOfOneBTC, UsdCents};
+
+    fn default_new_collateral() -> NewCollateral {
+        NewCollateral::builder()
+            .id(CollateralId::new())
+            .account_id(CalaAccountId::new())
+            .credit_facility_id(CreditFacilityId::new())
+            .pending_credit_facility_id(PendingCreditFacilityId::new())
+            .build()
+            .unwrap()
+    }
+
+    fn collateral_from(new_collateral: NewCollateral) -> Collateral {
+        Collateral::try_from_events(new_collateral.into_events()).unwrap()
+    }
+
+    fn default_new_liquidation(collateral_id: CollateralId) -> NewLiquidation {
+        NewLiquidation::builder()
+            .id(LiquidationId::new())
+            .credit_facility_id(CreditFacilityId::new())
+            .collateral_id(collateral_id)
+            .liquidation_proceeds_omnibus_account_id(CalaAccountId::new())
+            .facility_proceeds_from_liquidation_account_id(
+                FacilityProceedsFromLiquidationAccountId::new(),
+            )
+            .facility_payment_holding_account_id(CalaAccountId::new())
+            .facility_uncovered_outstanding_account_id(CalaAccountId::new())
+            .collateral_account_id(CalaAccountId::new())
+            .collateral_in_liquidation_account_id(CalaAccountId::new())
+            .liquidated_collateral_account_id(CalaAccountId::new())
+            .trigger_price(PriceOfOneBTC::new(UsdCents::from(5000000)))
+            .initially_expected_to_receive(UsdCents::from(1000))
+            .initially_estimated_to_liquidate(Satoshis::from(100000))
+            .build()
+            .unwrap()
+    }
+
+    fn hydrate_liquidations_in_collateral(collateral: &mut Collateral) {
+        let new_entities = collateral
+            .liquidations
+            .new_entities_mut()
+            .drain(..)
+            .map(|new| Liquidation::try_from_events(new.into_events()).expect("hydrate failed"))
+            .collect::<Vec<_>>();
+        collateral.liquidations.load(new_entities);
+    }
+
+    mod record_liquidation_started {
+        use super::*;
+
+        #[test]
+        fn creates_liquidation() {
+            let new_collateral = default_new_collateral();
+            let collateral_id = new_collateral.id;
+            let mut collateral = collateral_from(new_collateral);
+
+            let new_liquidation = default_new_liquidation(collateral_id);
+            let liquidation_id = new_liquidation.id;
+            let result = collateral.record_liquidation_started(new_liquidation);
+            assert!(result.is_ok());
+            assert!(result.unwrap().did_execute());
+
+            hydrate_liquidations_in_collateral(&mut collateral);
+            assert_eq!(collateral.active_liquidation_id(), Some(liquidation_id));
+        }
+
+        #[test]
+        fn is_idempotent() {
+            let new_collateral = default_new_collateral();
+            let collateral_id = new_collateral.id;
+            let mut collateral = collateral_from(new_collateral);
+
+            let new_liquidation = default_new_liquidation(collateral_id);
+            let liquidation_id = new_liquidation.id;
+            collateral
+                .record_liquidation_started(new_liquidation)
+                .unwrap();
+            hydrate_liquidations_in_collateral(&mut collateral);
+
+            let duplicate_liquidation = NewLiquidation::builder()
+                .id(liquidation_id)
+                .credit_facility_id(CreditFacilityId::new())
+                .collateral_id(collateral_id)
+                .liquidation_proceeds_omnibus_account_id(CalaAccountId::new())
+                .facility_proceeds_from_liquidation_account_id(
+                    FacilityProceedsFromLiquidationAccountId::new(),
+                )
+                .facility_payment_holding_account_id(CalaAccountId::new())
+                .facility_uncovered_outstanding_account_id(CalaAccountId::new())
+                .collateral_account_id(CalaAccountId::new())
+                .collateral_in_liquidation_account_id(CalaAccountId::new())
+                .liquidated_collateral_account_id(CalaAccountId::new())
+                .trigger_price(PriceOfOneBTC::new(UsdCents::from(5000000)))
+                .initially_expected_to_receive(UsdCents::from(1000))
+                .initially_estimated_to_liquidate(Satoshis::from(100000))
+                .build()
+                .unwrap();
+
+            let result = collateral.record_liquidation_started(duplicate_liquidation);
+            assert!(result.is_ok());
+            assert!(result.unwrap().was_already_applied());
+        }
+
+        #[test]
+        fn fails_if_active_liquidation_exists() {
+            let new_collateral = default_new_collateral();
+            let collateral_id = new_collateral.id;
+            let mut collateral = collateral_from(new_collateral);
+
+            let new_liquidation = default_new_liquidation(collateral_id);
+            collateral
+                .record_liquidation_started(new_liquidation)
+                .unwrap();
+            hydrate_liquidations_in_collateral(&mut collateral);
+
+            let another_liquidation = default_new_liquidation(collateral_id);
+            let result = collateral.record_liquidation_started(another_liquidation);
+            assert!(matches!(
+                result,
+                Err(CollateralError::ActiveLiquidationExists(_))
+            ));
+        }
+    }
+
+    mod record_liquidation_completed {
+        use super::*;
+
+        #[test]
+        fn completes_liquidation() {
+            let new_collateral = default_new_collateral();
+            let collateral_id = new_collateral.id;
+            let mut collateral = collateral_from(new_collateral);
+
+            let new_liquidation = default_new_liquidation(collateral_id);
+            let liquidation_id = new_liquidation.id;
+            collateral
+                .record_liquidation_started(new_liquidation)
+                .unwrap();
+            hydrate_liquidations_in_collateral(&mut collateral);
+
+            let result = collateral.record_liquidation_completed(liquidation_id);
+            assert!(result.is_ok());
+            assert!(result.unwrap().did_execute());
+            assert!(collateral.active_liquidation_id().is_none());
+        }
+
+        #[test]
+        fn is_idempotent() {
+            let new_collateral = default_new_collateral();
+            let collateral_id = new_collateral.id;
+            let mut collateral = collateral_from(new_collateral);
+
+            let new_liquidation = default_new_liquidation(collateral_id);
+            let liquidation_id = new_liquidation.id;
+            collateral
+                .record_liquidation_started(new_liquidation)
+                .unwrap();
+            hydrate_liquidations_in_collateral(&mut collateral);
+
+            collateral
+                .record_liquidation_completed(liquidation_id)
+                .unwrap();
+            let result = collateral.record_liquidation_completed(liquidation_id);
+            assert!(result.is_ok());
+            assert!(result.unwrap().was_already_applied());
+        }
+
+        #[test]
+        fn fails_if_no_active_liquidation() {
+            let new_collateral = default_new_collateral();
+            let mut collateral = collateral_from(new_collateral);
+
+            let result = collateral.record_liquidation_completed(LiquidationId::new());
+            assert!(matches!(result, Err(CollateralError::NoActiveLiquidation)));
+        }
+    }
+
+    mod record_collateral_update_via_liquidation {
+        use super::*;
+
+        #[test]
+        fn updates_via_active_liquidation() {
+            let new_collateral = default_new_collateral();
+            let collateral_id = new_collateral.id;
+            let mut collateral = collateral_from(new_collateral);
+
+            // First add some collateral
+            let initial_amount = Satoshis::from(100000);
+            collateral.record_collateral_update_via_manual_input(
+                initial_amount,
+                chrono::Utc::now().date_naive(),
+            );
+
+            // Start a liquidation
+            let new_liquidation = default_new_liquidation(collateral_id);
+            collateral
+                .record_liquidation_started(new_liquidation)
+                .unwrap();
+            hydrate_liquidations_in_collateral(&mut collateral);
+
+            // Update collateral via liquidation
+            let amount_to_remove = Satoshis::from(50000);
+            let result = collateral.record_collateral_update_via_liquidation(
+                amount_to_remove,
+                chrono::Utc::now().date_naive(),
+            );
+            assert!(result.is_ok());
+            assert!(result.unwrap().did_execute());
+            assert_eq!(collateral.amount, initial_amount - amount_to_remove);
+        }
+
+        #[test]
+        fn returns_already_applied_for_zero_amount() {
+            let new_collateral = default_new_collateral();
+            let collateral_id = new_collateral.id;
+            let mut collateral = collateral_from(new_collateral);
+
+            let new_liquidation = default_new_liquidation(collateral_id);
+            collateral
+                .record_liquidation_started(new_liquidation)
+                .unwrap();
+            hydrate_liquidations_in_collateral(&mut collateral);
+
+            let result = collateral.record_collateral_update_via_liquidation(
+                Satoshis::ZERO,
+                chrono::Utc::now().date_naive(),
+            );
+            assert!(result.is_ok());
+            assert!(result.unwrap().was_already_applied());
+        }
+
+        #[test]
+        fn fails_if_no_active_liquidation() {
+            let new_collateral = default_new_collateral();
+            let mut collateral = collateral_from(new_collateral);
+
+            // Add some collateral first to avoid arithmetic overflow
+            let _ = collateral.record_collateral_update_via_manual_input(
+                Satoshis::from(100000),
+                chrono::Utc::now().date_naive(),
+            );
+
+            let result = collateral.record_collateral_update_via_liquidation(
+                Satoshis::from(50000),
+                chrono::Utc::now().date_naive(),
+            );
+            assert!(matches!(result, Err(CollateralError::NoActiveLiquidation)));
+        }
+    }
+
+    mod record_liquidation_proceeds_received {
+        use super::*;
+
+        #[test]
+        fn records_proceeds() {
+            let new_collateral = default_new_collateral();
+            let collateral_id = new_collateral.id;
+            let mut collateral = collateral_from(new_collateral);
+
+            let new_liquidation = default_new_liquidation(collateral_id);
+            collateral
+                .record_liquidation_started(new_liquidation)
+                .unwrap();
+            hydrate_liquidations_in_collateral(&mut collateral);
+
+            let amount = UsdCents::from(500);
+            let result = collateral.record_liquidation_proceeds_received(amount);
+            assert!(result.is_ok());
+            assert!(result.unwrap().did_execute());
+        }
+
+        #[test]
+        fn fails_if_no_active_liquidation() {
+            let new_collateral = default_new_collateral();
+            let mut collateral = collateral_from(new_collateral);
+
+            let result = collateral.record_liquidation_proceeds_received(UsdCents::from(500));
+            assert!(matches!(result, Err(CollateralError::NoActiveLiquidation)));
+        }
+    }
+}
