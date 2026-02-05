@@ -46,7 +46,7 @@ LANA uses event sourcing for entities. Testing entities requires understanding t
 3. The entity is rehydrated using `TryFromEvents::try_from_events`
 4. Commands can then be executed on the rehydrated entity
 
-Use subagents to explore existing entity tests in `/core/*/src/*/entity.rs` files to understand the specific patterns used in this codebase. These patterns can be mimicked when writing new tests.
+Use subagents to explore existing entity tests via `Glob("**/core/*/src/**/entity.rs")` to understand the specific patterns used in this codebase. These patterns can be mimicked when writing new tests.
 
 ## Comprehensive Test Planning
 
