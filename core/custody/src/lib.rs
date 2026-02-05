@@ -95,6 +95,14 @@ where
     }
 }
 
+fn system_actor_for_provider(provider: &str) -> SystemActor {
+    match provider {
+        "bitgo" => SystemActor::BitGo,
+        "komainu" => SystemActor::Komainu,
+        _ => SystemActor::Unknown,
+    }
+}
+
 impl<Perms, E> CustodianWebhookHandler<Perms, E>
 where
     Perms: PermissionCheck,
@@ -130,6 +138,7 @@ where
             ..
         }: WebhookPayload,
     ) -> Result<(), CoreCustodyError> {
+        let actor = system_actor_for_provider(&provider);
         let custodian = self.custodians.find_by_provider(provider).await;
 
         let header_map: http::HeaderMap = headers
@@ -149,7 +158,7 @@ where
                     new_balance,
                     changed_at,
                 } => {
-                    self.update_wallet_balance(external_wallet_id, new_balance, changed_at)
+                    self.update_wallet_balance(actor, external_wallet_id, new_balance, changed_at)
                         .await?;
                 }
             }
@@ -162,6 +171,7 @@ where
     #[instrument(name = "custody.update_wallet_balance", skip(self))]
     async fn update_wallet_balance(
         &self,
+        actor: SystemActor,
         external_wallet_id: String,
         new_balance: Satoshis,
         update_time: DateTime<Utc>,
@@ -177,7 +187,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
-                SystemActor::CustodyWebhook,
+                actor,
                 CoreCustodyObject::wallet(wallet.id),
                 CoreCustodyAction::WALLET_UPDATE,
             )
