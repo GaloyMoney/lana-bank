@@ -77,7 +77,7 @@ pub async fn run() -> anyhow::Result<()> {
             return Ok(());
         }
         Commands::Run => {
-            let config = Config::init(
+            let config = Config::try_new(
                 cli.config,
                 EnvSecrets {
                     pg_con: cli.pg_con,
