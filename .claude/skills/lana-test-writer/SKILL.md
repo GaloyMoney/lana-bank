@@ -102,7 +102,7 @@ BATS tests verify end-to-end behavior through the GraphQL API. They exist in `/b
 
 BATS tests use helper functions for common operations:
 - GraphQL execution helpers
-- State caching and polling utilities
+- State caching utilities
 - Balance verification functions
 
 Use subagents to explore `/bats/helpers/` to understand available test utilities before writing new tests.
