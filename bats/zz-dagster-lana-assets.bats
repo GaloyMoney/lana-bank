@@ -214,8 +214,8 @@ EOF
 
   echo "Launched materialization job for $total assets with run ID: $run_id"
 
-  # Allow longer timeout for multiple assets (10 min = 300 attempts * 2 sec)
-  dagster_poll_run_status "$run_id" 300 2 || return 1
+  # Allow longer timeout for multiple assets (20 min = 600 attempts * 2 sec)
+  dagster_poll_run_status "$run_id" 600 2 || return 1
 
   echo "All $total source assets materialized successfully"
 }
@@ -280,8 +280,8 @@ EOF
 
   echo "Launched dbt_seeds_job with run ID: $seed_run_id"
 
-  # Wait for seeds to complete (8 min timeout)
-  dagster_poll_run_status "$seed_run_id" 240 2 || return 1
+  # Wait for seeds to complete (20 min timeout)
+  dagster_poll_run_status "$seed_run_id" 600 2 || return 1
 
   echo "dbt_seeds_job completed successfully"
 
@@ -329,8 +329,8 @@ EOF
 
   echo "Launched dbt models materialization with run ID: $dbt_run_id"
 
-  # Wait for dbt run to complete (15 min timeout for all models)
-  dagster_poll_run_status "$dbt_run_id" 450 2 || return 1
+  # Wait for dbt run to complete (20 min timeout for all models)
+  dagster_poll_run_status "$dbt_run_id" 600 2 || return 1
 
   echo ""
   echo "=== dbt seed + dbt run completed successfully ==="
