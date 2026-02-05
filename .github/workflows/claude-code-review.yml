@@ -23,6 +23,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.base_ref }}
+
       - name: Run LANA Code Review
         id: lana-review
         uses: anthropics/claude-code-action@v1
