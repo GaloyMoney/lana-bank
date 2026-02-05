@@ -537,7 +537,11 @@ mod tests {
             "Only inherent impl should be checked: {:?}",
             violations
         );
-        assert!(violations[0].message.contains("`new` must not return `Result`"));
+        assert!(
+            violations[0]
+                .message
+                .contains("`new` must not return `Result`")
+        );
     }
 
     #[test]
