@@ -78,6 +78,7 @@
           "rust-src"
           "rustfmt"
           "clippy"
+          "llvm-tools"
         ];
       };
       craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
@@ -232,6 +233,7 @@
           cargo-deny
           cargo-machete
           cargo-hakari
+          cargo-llvm-cov
           cocogitto
           bacon
           typos

@@ -220,6 +220,9 @@ test-in-ci: start-deps setup-db
 test-in-ci-cargo: start-deps setup-db
 	cargo nextest run --verbose --locked
 
+check-entity-coverage: start-deps setup-db
+	./dev/bin/check-entity-coverage.sh
+
 build-x86_64-unknown-linux-musl-release:
 	SQLX_OFFLINE=true cargo build --release --all-features --locked --bin lana-cli --target x86_64-unknown-linux-musl
 
