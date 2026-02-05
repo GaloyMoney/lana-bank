@@ -14,7 +14,7 @@ pub struct TypedDomainConfig<C: ConfigSpec> {
 
 impl<C: ConfigSpec> TypedDomainConfig<C> {
     pub(crate) fn new(entity: DomainConfig) -> Result<Self, DomainConfigError> {
-        entity.ensure::<C>()?;
+        DomainConfig::assert_compatible::<C>(&entity)?;
         Ok(Self {
             entity,
             _marker: PhantomData,

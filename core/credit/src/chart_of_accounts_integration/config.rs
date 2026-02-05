@@ -115,21 +115,50 @@ impl ResolvedChartOfAccountsIntegrationConfig {
         config: ChartOfAccountsIntegrationConfig,
         chart: &Chart,
     ) -> Result<Self, ChartOfAccountsIntegrationError> {
-        let off_balance_sheet_account_set_member_parent_id =
-            |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
-                Ok(chart
-                    .accounting_validated_account_set_id(code, AccountCategory::OffBalanceSheet)?)
-            };
+        let off_balance_sheet_account_set_member_parent_id = |code: &AccountCode| -> Result<
+            CalaAccountSetId,
+            ChartOfAccountsIntegrationError,
+        > {
+            chart
+                    .find_account_set_id_in_category(code, AccountCategory::OffBalanceSheet)
+                    .ok_or_else(|| {
+                        core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
+                            code: code.clone(),
+                            category: AccountCategory::OffBalanceSheet,
+                        }
+                        .into()
+                    })
+        };
 
-        let revenue_account_set_member_parent_id =
-            |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
-                Ok(chart.accounting_validated_account_set_id(code, AccountCategory::Revenue)?)
-            };
+        let revenue_account_set_member_parent_id = |code: &AccountCode| -> Result<
+            CalaAccountSetId,
+            ChartOfAccountsIntegrationError,
+        > {
+            chart
+                    .find_account_set_id_in_category(code, AccountCategory::Revenue)
+                    .ok_or_else(|| {
+                        core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
+                            code: code.clone(),
+                            category: AccountCategory::Revenue,
+                        }
+                        .into()
+                    })
+        };
 
-        let asset_account_set_member_parent_id =
-            |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
-                Ok(chart.accounting_validated_account_set_id(code, AccountCategory::Asset)?)
-            };
+        let asset_account_set_member_parent_id = |code: &AccountCode| -> Result<
+            CalaAccountSetId,
+            ChartOfAccountsIntegrationError,
+        > {
+            chart
+                    .find_account_set_id_in_category(code, AccountCategory::Asset)
+                    .ok_or_else(|| {
+                        core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
+                            code: code.clone(),
+                            category: AccountCategory::Asset,
+                        }
+                        .into()
+                    })
+        };
 
         let facility_omnibus_parent_account_set_id =
             off_balance_sheet_account_set_member_parent_id(

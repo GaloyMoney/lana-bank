@@ -57,14 +57,34 @@ impl ResolvedChartOfAccountsIntegrationConfig {
         config: ChartOfAccountsIntegrationConfig,
         chart: &Chart,
     ) -> Result<Self, ChartOfAccountsIntegrationError> {
-        let asset_account_set_member_parent_id =
-            |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
-                Ok(chart.accounting_validated_account_set_id(code, AccountCategory::Asset)?)
-            };
-        let liabilities_account_set_member_parent_id =
-            |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
-                Ok(chart.accounting_validated_account_set_id(code, AccountCategory::Liability)?)
-            };
+        let asset_account_set_member_parent_id = |code: &AccountCode| -> Result<
+            CalaAccountSetId,
+            ChartOfAccountsIntegrationError,
+        > {
+            chart
+                    .find_account_set_id_in_category(code, AccountCategory::Asset)
+                    .ok_or_else(|| {
+                        core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
+                            code: code.clone(),
+                            category: AccountCategory::Asset,
+                        }
+                        .into()
+                    })
+        };
+        let liabilities_account_set_member_parent_id = |code: &AccountCode| -> Result<
+            CalaAccountSetId,
+            ChartOfAccountsIntegrationError,
+        > {
+            chart
+                    .find_account_set_id_in_category(code, AccountCategory::Liability)
+                    .ok_or_else(|| {
+                        core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
+                            code: code.clone(),
+                            category: AccountCategory::Liability,
+                        }
+                        .into()
+                    })
+        };
 
         let individual_deposit_accounts_parent_account_set_id =
             liabilities_account_set_member_parent_id(

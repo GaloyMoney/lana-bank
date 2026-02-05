@@ -330,7 +330,7 @@ impl Test {
             .account_sets()
             .add_member(
                 self.chart
-                    .account_set_id_from_code(&parent.parse().unwrap())
+                    .maybe_account_set_id_from_code(&parent.parse().unwrap())
                     .unwrap(),
                 account_id,
             )

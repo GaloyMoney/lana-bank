@@ -65,7 +65,9 @@ Note: GraphQL APIs must be accessed through Oathkeeper (port 4455) which handles
 - Uses `es-entity` crate for event-driven architecture
 - Entity files define events and state transitions
 - Events are immutable, state rebuilt from event stream
-- Command methods take `&mut self`, queries take `&self`
+- EsEntity structs follow DDD with two method types:
+  - **Commands** (`&mut self`): mutate state, return `Idempotent<T>` or `Result<Idempotent<T>, E>`
+  - **Queries** (`&self`): read state, return direct values or `Option<T>`, never `Result`
 
 ### Idempotent Entity Mutations (lint: `entity-mutate-idempotent`)
 All public `&mut self` methods on `#[derive(EsEntity)]` structs must return `Idempotent<T>` or `Result<Idempotent<T>, E>`. This is enforced by the `entity-mutate-idempotent` custom lint. Private methods (`fn`, no `pub`) are exempt.
@@ -116,6 +118,13 @@ if result.did_execute() {
     repo.update(&mut entity).await?;
 }
 ```
+
+### Infallible Entity Queries (lint: `entity-query-infallible`)
+All public `&self` methods on `#[derive(EsEntity)]` structs must NOT return `Result`. This is enforced by the `entity-query-infallible` custom lint. Private methods (`fn`, no `pub`) are exempt.
+
+- Queries return direct values or `Option<T>`, never `Result`
+- If validation is needed, move it to the caller (use-case layer) or a constructor/wrapper type
+- Example: instead of `fn check(&self) -> Result<Data, Error>`, use `fn find(&self) -> Option<Data>` and let the caller construct the appropriate error
 
 ## Database
 - Migrations location: `/lana/app/migrations/`
