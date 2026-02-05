@@ -26,6 +26,7 @@ impl Default for ConstructorNamingRule {
 struct ImplVisitor<'a> {
     violations: Vec<Violation>,
     path: &'a Path,
+    in_trait_impl: bool,
 }
 
 impl<'a> ImplVisitor<'a> {
@@ -33,6 +34,7 @@ impl<'a> ImplVisitor<'a> {
         Self {
             violations: Vec::new(),
             path,
+            in_trait_impl: false,
         }
     }
 
@@ -115,8 +117,17 @@ impl<'a> ImplVisitor<'a> {
 }
 
 impl<'a> Visit<'a> for ImplVisitor<'a> {
+    fn visit_item_impl(&mut self, node: &'a syn::ItemImpl) {
+        let prev = self.in_trait_impl;
+        self.in_trait_impl = node.trait_.is_some();
+        syn::visit::visit_item_impl(self, node);
+        self.in_trait_impl = prev;
+    }
+
     fn visit_impl_item_fn(&mut self, node: &'a syn::ImplItemFn) {
-        self.check_method(node);
+        if !self.in_trait_impl {
+            self.check_method(node);
+        }
         syn::visit::visit_impl_item_fn(self, node);
     }
 }
@@ -189,7 +200,11 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert!(violations.is_empty(), "Expected no violations: {:?}", violations);
+        assert!(
+            violations.is_empty(),
+            "Expected no violations: {:?}",
+            violations
+        );
     }
 
     #[test]
@@ -202,7 +217,11 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert!(violations.is_empty(), "Expected no violations: {:?}", violations);
+        assert!(
+            violations.is_empty(),
+            "Expected no violations: {:?}",
+            violations
+        );
     }
 
     #[test]
@@ -215,7 +234,11 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert!(violations.is_empty(), "Expected no violations: {:?}", violations);
+        assert!(
+            violations.is_empty(),
+            "Expected no violations: {:?}",
+            violations
+        );
     }
 
     // === Violation cases ===
@@ -230,8 +253,17 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 1, "Expected 1 violation: {:?}", violations);
-        assert!(violations[0].message.contains("`new` must not return `Result`"));
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
+        assert!(
+            violations[0]
+                .message
+                .contains("`new` must not return `Result`")
+        );
     }
 
     #[test]
@@ -244,7 +276,12 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 1, "Expected 1 violation: {:?}", violations);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
         assert!(violations[0].message.contains("`new` must not be async"));
     }
 
@@ -258,7 +295,12 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 2, "Expected 2 violations: {:?}", violations);
+        assert_eq!(
+            violations.len(),
+            2,
+            "Expected 2 violations: {:?}",
+            violations
+        );
     }
 
     #[test]
@@ -271,8 +313,17 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 1, "Expected 1 violation: {:?}", violations);
-        assert!(violations[0].message.contains("`try_new` must return `Result`"));
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
+        assert!(
+            violations[0]
+                .message
+                .contains("`try_new` must return `Result`")
+        );
     }
 
     #[test]
@@ -285,8 +336,17 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 1, "Expected 1 violation: {:?}", violations);
-        assert!(violations[0].message.contains("`try_new` must not be async"));
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
+        assert!(
+            violations[0]
+                .message
+                .contains("`try_new` must not be async")
+        );
     }
 
     #[test]
@@ -299,7 +359,12 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 1, "Expected 1 violation: {:?}", violations);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
         assert!(violations[0].message.contains("`init` must be async"));
     }
 
@@ -313,8 +378,17 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 1, "Expected 1 violation: {:?}", violations);
-        assert!(violations[0].message.contains("`init` must return `Result`"));
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
+        assert!(
+            violations[0]
+                .message
+                .contains("`init` must return `Result`")
+        );
     }
 
     #[test]
@@ -327,7 +401,12 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 2, "Expected 2 violations: {:?}", violations);
+        assert_eq!(
+            violations.len(),
+            2,
+            "Expected 2 violations: {:?}",
+            violations
+        );
     }
 
     // === Private methods are still checked ===
@@ -342,7 +421,12 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 1, "Private methods should also be checked: {:?}", violations);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Private methods should also be checked: {:?}",
+            violations
+        );
     }
 
     #[test]
@@ -355,7 +439,12 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert_eq!(violations.len(), 1, "pub(crate) methods should be checked: {:?}", violations);
+        assert_eq!(
+            violations.len(),
+            1,
+            "pub(crate) methods should be checked: {:?}",
+            violations
+        );
     }
 
     // === Non-constructor names ignored ===
@@ -383,6 +472,72 @@ mod tests {
             "Non-constructor names should be ignored: {:?}",
             violations
         );
+    }
+
+    // === Trait impls are ignored ===
+
+    #[test]
+    fn test_trait_impl_ignored() {
+        let code = r#"
+            impl JobInitializer for FooInit {
+                type Config = FooConfig;
+                fn init(
+                    &self,
+                    job: &Job,
+                    _: JobSpawner<Self::Config>,
+                ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+                    Ok(Box::new(FooRunner {}))
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert!(
+            violations.is_empty(),
+            "Trait impl methods should be ignored: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn test_trait_impl_new_ignored() {
+        let code = r#"
+            impl Default for Foo {
+                fn new() -> Result<Self, Error> {
+                    Ok(Self {})
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert!(
+            violations.is_empty(),
+            "Trait impl methods should be ignored: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn test_inherent_impl_still_checked_alongside_trait_impl() {
+        let code = r#"
+            impl Foo {
+                pub fn new() -> Result<Self, Error> {
+                    Ok(Self {})
+                }
+            }
+
+            impl JobInitializer for FooInit {
+                fn init(&self) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+                    Ok(Box::new(FooRunner {}))
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Only inherent impl should be checked: {:?}",
+            violations
+        );
+        assert!(violations[0].message.contains("`new` must not return `Result`"));
     }
 
     #[test]
@@ -413,6 +568,10 @@ mod tests {
             "Only Bar::new should violate: {:?}",
             violations
         );
-        assert!(violations[0].message.contains("`new` must not return `Result`"));
+        assert!(
+            violations[0]
+                .message
+                .contains("`new` must not return `Result`")
+        );
     }
 }
