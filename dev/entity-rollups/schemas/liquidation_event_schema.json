@@ -85,7 +85,7 @@
           "type": "string"
         },
         "type": {
-          "const": "proceeds_from_liquidation_received",
+          "const": "proceeds_received_and_liquidation_completed",
           "type": "string"
         }
       },

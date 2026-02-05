@@ -2093,7 +2093,7 @@ impl Mutation {
             ctx,
             app.credit()
                 .collaterals()
-                .record_liquidation_proceeds_received(
+                .record_proceeds_received_and_liquidation_completed(
                     sub,
                     input.collateral_id.into(),
                     input.amount

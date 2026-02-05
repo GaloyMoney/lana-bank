@@ -7,8 +7,6 @@ use es_entity::*;
 
 use crate::primitives::*;
 
-use super::LiquidationError;
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -25,7 +23,7 @@ pub enum LiquidationEvent {
         amount: Satoshis,
         ledger_tx_id: LedgerTxId,
     },
-    ProceedsFromLiquidationReceived {
+    ProceedsReceivedAndLiquidationCompleted {
         amount: UsdCents,
         payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
@@ -64,41 +62,26 @@ impl Liquidation {
         Idempotent::Executed(ledger_tx_id)
     }
 
-    pub fn record_proceeds_from_liquidation(
+    pub fn record_proceeds_from_liquidation_and_complete(
         &mut self,
         amount_received: UsdCents,
-    ) -> Result<Idempotent<LedgerTxId>, LiquidationError> {
+    ) -> Idempotent<LedgerTxId> {
         idempotency_guard!(
             self.events.iter_all(),
-            LiquidationEvent::ProceedsFromLiquidationReceived { .. },
+            LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { .. },
         );
-
-        if self.is_completed() {
-            return Err(LiquidationError::AlreadyCompleted);
-        }
 
         self.amount_received = amount_received;
 
         let ledger_tx_id = LedgerTxId::new();
         self.events
-            .push(LiquidationEvent::ProceedsFromLiquidationReceived {
+            .push(LiquidationEvent::ProceedsReceivedAndLiquidationCompleted {
                 amount: amount_received,
                 payment_id: PaymentId::new(),
                 ledger_tx_id,
             });
 
-        Ok(Idempotent::Executed(ledger_tx_id))
-    }
-
-    pub fn complete(&mut self) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            LiquidationEvent::Completed { .. }
-        );
-
-        self.events.push(LiquidationEvent::Completed {});
-
-        Idempotent::Executed(())
+        Idempotent::Executed(ledger_tx_id)
     }
 
     pub fn is_completed(&self) -> bool {
@@ -125,7 +108,7 @@ impl Liquidation {
         self.events
             .iter_all()
             .filter_map(|e| match e {
-                LiquidationEvent::ProceedsFromLiquidationReceived {
+                LiquidationEvent::ProceedsReceivedAndLiquidationCompleted {
                     amount,
                     ledger_tx_id,
                     ..
@@ -159,7 +142,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::CollateralSentOut { amount, .. } => {
                     amount_sent += *amount;
                 }
-                LiquidationEvent::ProceedsFromLiquidationReceived { amount, .. } => {
+                LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { amount, .. } => {
                     amount_received = *amount;
                 }
                 LiquidationEvent::Completed { .. } => {}
@@ -260,41 +243,13 @@ mod tests {
         let mut liquidation = liquidation_from(default_new_liquidation());
 
         let amount = UsdCents::from(500);
-        let result = liquidation
-            .record_proceeds_from_liquidation(amount)
-            .unwrap();
+        let result = liquidation.record_proceeds_from_liquidation_and_complete(amount);
         assert!(result.did_execute());
         assert_eq!(liquidation.amount_received, amount);
 
-        let result2 = liquidation
-            .record_proceeds_from_liquidation(amount)
-            .unwrap();
+        let result2 = liquidation.record_proceeds_from_liquidation_and_complete(amount);
         assert!(result2.was_already_applied());
         assert_eq!(liquidation.amount_received, amount);
-    }
-
-    #[test]
-    fn record_proceeds_from_liquidation_fails_if_completed() {
-        let mut liquidation = liquidation_from(default_new_liquidation());
-
-        liquidation.complete().expect("completed");
-
-        let result = liquidation.record_proceeds_from_liquidation(UsdCents::from(500));
-        assert!(matches!(result, Err(LiquidationError::AlreadyCompleted)));
-    }
-
-    #[test]
-    fn complete_is_idempotent() {
-        let mut liquidation = liquidation_from(default_new_liquidation());
-        assert!(!liquidation.is_completed());
-
-        let result = liquidation.complete();
-        assert!(result.did_execute());
-        assert!(liquidation.is_completed());
-
-        let result2 = liquidation.complete();
-        assert!(result2.was_already_applied());
-        assert!(liquidation.is_completed());
     }
 
     #[test]

@@ -268,11 +268,11 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "collateral.record_liquidation_proceeds_received",
+        name = "collateral.record_proceeds_received_and_liquidation_completed",
         skip(self, sub),
         err
     )]
-    pub async fn record_liquidation_proceeds_received(
+    pub async fn record_proceeds_received_and_liquidation_completed(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
@@ -291,7 +291,7 @@ where
         let mut db = self.repo.begin_op().await?;
 
         if let Idempotent::Executed(data) =
-            collateral.record_liquidation_proceeds_received(amount_received)?
+            collateral.record_proceeds_received_and_liquidation_completed(amount_received)?
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
             self.ledger
