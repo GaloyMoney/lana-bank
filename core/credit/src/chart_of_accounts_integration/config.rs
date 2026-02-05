@@ -233,13 +233,14 @@ impl ResolvedChartOfAccountsIntegrationConfig {
                 chart_of_account_collateral_in_liquidation_parent_code,
                 account_sets::CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION.account_category,
             )?;
-        let liquidated_collateral_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(
-                chart_of_account_liquidated_collateral_parent_code,
-            )?;
+        let liquidated_collateral_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_liquidated_collateral_parent_code,
+            account_sets::CREDIT_FACILITY_LIQUIDATED_COLLATERAL.account_category,
+        )?;
         let proceeds_from_liquidation_parent_account_set_id =
-            off_balance_sheet_account_set_member_parent_id(
+            category_account_set_member_parent_id(
                 chart_of_account_proceeds_from_liquidation_parent_code,
+                account_sets::CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION.account_category,
             )?;
 
         let interest_income_parent_account_set_id = category_account_set_member_parent_id(
@@ -258,11 +259,14 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             chart_of_account_uncovered_outstanding_parent_code,
             account_sets::CREDIT_UNCOVERED_OUTSTANDING.account_category,
         )?;
-
-        let disbursed_defaulted_parent_account_set_id =
-            asset_account_set_member_parent_id(chart_of_account_disbursed_defaulted_parent_code)?;
-        let interest_defaulted_parent_account_set_id =
-            asset_account_set_member_parent_id(chart_of_account_interest_defaulted_parent_code)?;
+        let disbursed_defaulted_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_disbursed_defaulted_parent_code,
+            account_sets::CREDIT_DISBURSED_DEFAULTED.account_category,
+        )?;
+        let interest_defaulted_parent_account_set_id = category_account_set_member_parent_id(
+            chart_of_account_interest_defaulted_parent_code,
+            account_sets::CREDIT_INTEREST_DEFAULTED.account_category,
+        )?;
 
         let short_term_disbursed_integration_meta = ShortTermDisbursedIntegrationMeta {
             short_term_individual_disbursed_receivable_parent_account_set_id:

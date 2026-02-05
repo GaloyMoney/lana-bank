@@ -37,119 +37,266 @@ type CreditConfigUpdateDialogProps = {
   creditModuleConfig?: CreditModuleConfig
 }
 
-const initialFormData: CreditModuleConfigureInput = {
-  chartOfAccountFacilityOmnibusParentCode: "",
-  chartOfAccountCollateralOmnibusParentCode: "",
-  chartOfAccountLiquidationProceedsOmnibusParentCode: "",
-  chartOfAccountPaymentsMadeOmnibusParentCode: "",
-  chartOfAccountInterestAddedToObligationsOmnibusParentCode: "",
-  chartOfAccountFacilityParentCode: "",
-  chartOfAccountCollateralParentCode: "",
-  chartOfAccountCollateralInLiquidationParentCode: "",
-  chartOfAccountLiquidatedCollateralParentCode: "",
-  chartOfAccountProceedsFromLiquidationParentCode: "",
-  chartOfAccountInterestIncomeParentCode: "",
-  chartOfAccountFeeIncomeParentCode: "",
-  chartOfAccountPaymentHoldingParentCode: "",
-  chartOfAccountUncoveredOutstandingParentCode: "",
-  chartOfAccountDisbursedDefaultedParentCode: "",
-  chartOfAccountInterestDefaultedParentCode: "",
-  chartOfAccountShortTermIndividualDisbursedReceivableParentCode: "",
-  chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: "",
-  chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: "",
-  chartOfAccountShortTermBankDisbursedReceivableParentCode: "",
-  chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: "",
-  chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: "",
-  chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: "",
-  chartOfAccountLongTermIndividualDisbursedReceivableParentCode: "",
-  chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: "",
-  chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: "",
-  chartOfAccountLongTermBankDisbursedReceivableParentCode: "",
-  chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: "",
-  chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: "",
-  chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: "",
-  chartOfAccountShortTermIndividualInterestReceivableParentCode: "",
-  chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: "",
-  chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: "",
-  chartOfAccountShortTermBankInterestReceivableParentCode: "",
-  chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: "",
-  chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: "",
-  chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: "",
-  chartOfAccountLongTermIndividualInterestReceivableParentCode: "",
-  chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: "",
-  chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: "",
-  chartOfAccountLongTermBankInterestReceivableParentCode: "",
-  chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: "",
-  chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: "",
-  chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: "",
-  chartOfAccountOverdueIndividualDisbursedReceivableParentCode: "",
-  chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: "",
-  chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: "",
-  chartOfAccountOverdueBankDisbursedReceivableParentCode: "",
-  chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: "",
-  chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: "",
-  chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: "",
+type CreditAccountCategoryKey =
+  | "offBalanceSheet"
+  | "asset"
+  | "liability"
+  | "equity"
+  | "revenue"
+  | "costOfRevenue"
+  | "expenses"
+
+type CreditConfigField = {
+  key: keyof CreditModuleConfigureInput
+  defaultCode: string
+  category: CreditAccountCategoryKey
 }
 
-const creditModuleCodes = {
-  chartOfAccountFacilityOmnibusParentCode: "9110.02.0201",
-  chartOfAccountCollateralOmnibusParentCode: "9220.08.0201",
-  chartOfAccountLiquidationProceedsOmnibusParentCode: "9170.00.0001",
-  chartOfAccountPaymentsMadeOmnibusParentCode: "9110.02.0201",
-  chartOfAccountInterestAddedToObligationsOmnibusParentCode: "9110.02.0201",
-  chartOfAccountFacilityParentCode: "9110.02.0201",
-  chartOfAccountCollateralParentCode: "9220.08.0201",
-  chartOfAccountCollateralInLiquidationParentCode: "9220.08.0201",
-  chartOfAccountLiquidatedCollateralParentCode: "9220.08.0201",
-  chartOfAccountProceedsFromLiquidationParentCode: "9220.08.0201",
-  chartOfAccountInterestIncomeParentCode: "6110.01.0100",
-  chartOfAccountFeeIncomeParentCode: "6110.01.0300",
-  chartOfAccountPaymentHoldingParentCode: "1141.99.0201",
-  chartOfAccountUncoveredOutstandingParentCode: "9110.02.0201",
-  chartOfAccountDisbursedDefaultedParentCode: "1148.04.0101",
-  chartOfAccountInterestDefaultedParentCode: "1148.04.0101",
-  chartOfAccountShortTermIndividualInterestReceivableParentCode: "1141.04.9901",
-  chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: "1141.02.9901",
-  chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: "1141.03.9901",
-  chartOfAccountShortTermBankInterestReceivableParentCode: "1141.05.9901",
-  chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: "1141.06.9901",
-  chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode:
-    "1141.07.9901",
-  chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: "1141.08.9901",
-  chartOfAccountLongTermIndividualInterestReceivableParentCode: "1142.04.9901",
-  chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: "1142.02.9901",
-  chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: "1142.03.9901",
-  chartOfAccountLongTermBankInterestReceivableParentCode: "1142.05.9901",
-  chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: "1142.06.9901",
-  chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode:
-    "1142.07.9901",
-  chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: "1142.08.9901",
-  chartOfAccountShortTermIndividualDisbursedReceivableParentCode: "1141.04.0101",
-  chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: "1141.02.0101",
-  chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: "1141.03.0101",
-  chartOfAccountShortTermBankDisbursedReceivableParentCode: "1141.05.0401",
-  chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode:
-    "1141.06.0101",
-  chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode:
-    "1141.07.0101",
-  chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: "1141.08.0101",
-  chartOfAccountLongTermIndividualDisbursedReceivableParentCode: "1142.04.0101",
-  chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: "1142.02.0101",
-  chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: "1142.03.0101",
-  chartOfAccountLongTermBankDisbursedReceivableParentCode: "1142.05.0401",
-  chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: "1142.06.0101",
-  chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode:
-    "1142.07.0101",
-  chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: "1142.08.0101",
-  chartOfAccountOverdueIndividualDisbursedReceivableParentCode: "1148.04.0101",
-  chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: "1148.02.0101",
-  chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: "1148.03.0101",
-  chartOfAccountOverdueBankDisbursedReceivableParentCode: "1148.05.0401",
-  chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: "1148.06.0101",
-  chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode:
-    "1148.07.0101",
-  chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: "1148.08.0101",
-}
+const CREDIT_CONFIG_FIELDS: CreditConfigField[] = [
+  {
+    key: "chartOfAccountFacilityOmnibusParentCode",
+    defaultCode: "9110.02.0201",
+    category: "offBalanceSheet",
+  },
+  {
+    key: "chartOfAccountCollateralOmnibusParentCode",
+    defaultCode: "9220.08.0201",
+    category: "offBalanceSheet",
+  },
+  {
+    key: "chartOfAccountLiquidationProceedsOmnibusParentCode",
+    defaultCode: "9170.00.0001",
+    category: "revenue",
+  },
+  {
+    key: "chartOfAccountPaymentsMadeOmnibusParentCode",
+    defaultCode: "9110",
+    category: "offBalanceSheet",
+  },
+  {
+    key: "chartOfAccountInterestAddedToObligationsOmnibusParentCode",
+    defaultCode: "9110",
+    category: "offBalanceSheet",
+  },
+  {
+    key: "chartOfAccountFacilityParentCode",
+    defaultCode: "9110.02.0201",
+    category: "offBalanceSheet",
+  },
+  {
+    key: "chartOfAccountCollateralParentCode",
+    defaultCode: "9220.08.0201",
+    category: "offBalanceSheet",
+  },
+  {
+    key: "chartOfAccountCollateralInLiquidationParentCode",
+    defaultCode: "9220.08.0201",
+    category: "offBalanceSheet",
+  },
+  {
+    key: "chartOfAccountInterestIncomeParentCode",
+    defaultCode: "6110.01.0100",
+    category: "revenue",
+  },
+  {
+    key: "chartOfAccountFeeIncomeParentCode",
+    defaultCode: "6110.01.0300",
+    category: "revenue",
+  },
+  {
+    key: "chartOfAccountPaymentHoldingParentCode",
+    defaultCode: "1141.99.0201",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountUncoveredOutstandingParentCode",
+    defaultCode: "9110",
+    category: "offBalanceSheet",
+  },
+  {
+    key: "chartOfAccountShortTermIndividualDisbursedReceivableParentCode",
+    defaultCode: "1141.04.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode",
+    defaultCode: "1141.02.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode",
+    defaultCode: "1141.03.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermBankDisbursedReceivableParentCode",
+    defaultCode: "1141.05.0401",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode",
+    defaultCode: "1141.06.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode",
+    defaultCode: "1141.07.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode",
+    defaultCode: "1141.08.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermIndividualDisbursedReceivableParentCode",
+    defaultCode: "1142.04.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode",
+    defaultCode: "1142.02.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode",
+    defaultCode: "1142.03.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermBankDisbursedReceivableParentCode",
+    defaultCode: "1142.05.0401",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode",
+    defaultCode: "1142.06.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode",
+    defaultCode: "1142.07.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode",
+    defaultCode: "1142.08.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermIndividualInterestReceivableParentCode",
+    defaultCode: "1141.04.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode",
+    defaultCode: "1141.02.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode",
+    defaultCode: "1141.03.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermBankInterestReceivableParentCode",
+    defaultCode: "1141.05.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode",
+    defaultCode: "1141.06.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode",
+    defaultCode: "1141.07.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode",
+    defaultCode: "1141.08.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermIndividualInterestReceivableParentCode",
+    defaultCode: "1142.04.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode",
+    defaultCode: "1142.02.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode",
+    defaultCode: "1142.03.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermBankInterestReceivableParentCode",
+    defaultCode: "1142.05.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode",
+    defaultCode: "1142.06.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode",
+    defaultCode: "1142.07.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode",
+    defaultCode: "1142.08.9901",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountOverdueIndividualDisbursedReceivableParentCode",
+    defaultCode: "1148.04.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode",
+    defaultCode: "1148.02.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode",
+    defaultCode: "1148.03.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountOverdueBankDisbursedReceivableParentCode",
+    defaultCode: "1148.05.0401",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode",
+    defaultCode: "1148.06.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode",
+    defaultCode: "1148.07.0101",
+    category: "asset",
+  },
+  {
+    key: "chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode",
+    defaultCode: "1148.08.0101",
+    category: "asset",
+  },
+]
+
+const defaultFormData = CREDIT_CONFIG_FIELDS.reduce(
+  (acc, field) => {
+    acc[field.key] = field.defaultCode
+    return acc
+  },
+  {} as CreditModuleConfigureInput,
+)
 
 export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> = ({
   open,
@@ -163,29 +310,31 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
     useCreditModuleConfigureMutation({
       refetchQueries: [CreditConfigDocument],
     })
-  const [formData, setFormData] = useState<CreditModuleConfigureInput>(initialFormData)
+  const [formData, setFormData] =
+    useState<CreditModuleConfigureInput>(defaultFormData)
 
   const close = () => {
     reset()
     setOpen(false)
-    setFormData(initialFormData)
+    setFormData({ ...defaultFormData })
   }
 
   useEffect(() => {
-    if (creditModuleConfig) {
-      const updatedFormData = { ...initialFormData }
-      Object.keys(initialFormData).forEach((key) => {
-        if (creditModuleConfig[key as keyof CreditModuleConfig]) {
-          updatedFormData[key as keyof CreditModuleConfigureInput] = creditModuleConfig[
-            key as keyof CreditModuleConfig
-          ] as string
-        }
-      })
-      if (Object.values(updatedFormData).some((value) => value !== "")) {
-        setFormData(updatedFormData)
-      }
+    if (!open) return
+    if (!creditModuleConfig) {
+      setFormData({ ...defaultFormData })
+      return
     }
-  }, [creditModuleConfig])
+
+    const updatedFormData = { ...defaultFormData }
+    CREDIT_CONFIG_FIELDS.forEach((field) => {
+      const value = creditModuleConfig[field.key as keyof CreditModuleConfig]
+      if (value) {
+        updatedFormData[field.key] = value as string
+      }
+    })
+    setFormData(updatedFormData)
+  }, [creditModuleConfig, open])
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -194,24 +343,36 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
   }
 
   const autoPopulate = () => {
-    setFormData(creditModuleCodes)
+    setFormData({ ...defaultFormData })
   }
 
   return (
-    <Dialog open={open} onOpenChange={close}>
-      <DialogContent>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) close()
+      }}
+    >
+      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("credit.setTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={submit}>
           <div className="flex flex-col space-y-2 w-full">
-            {Object.entries(formData).map(([key, value]) => (
-              <div key={key}>
-                <Label htmlFor={key}>{t(`credit.${key}`)}</Label>
+            {CREDIT_CONFIG_FIELDS.map((field) => (
+              <div key={field.key}>
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor={field.key}>{t(`credit.${field.key}`)}</Label>
+                  <span className="text-xs text-muted-foreground">
+                    {t(`accountCategories.${field.category}`)}
+                  </span>
+                </div>
                 <Input
-                  id={key}
-                  value={value}
-                  onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                  id={field.key}
+                  value={formData[field.key]}
+                  onChange={(e) =>
+                    setFormData({ ...formData, [field.key]: e.target.value })
+                  }
                   required={true}
                 />
               </div>
