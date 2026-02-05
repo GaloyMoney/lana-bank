@@ -20,7 +20,7 @@ LANA follows hexagonal architecture and DDD principles. This architectural choic
 Write unit tests **directly in entity and value object files**, not in use cases or service layers.
 
 - Entity tests: In `entity.rs` within a `#[cfg(test)] mod tests` block
-- Value object tests: In the same file where the value object is defined, within a `#[cfg(test)] mod tests` block (often `primitives.rs`, but value objects can live in other files too)
+- Value object tests: In the same file where the value object is defined, within a `#[cfg(test)] mod tests` block (often `primitives.rs`, but value objects can live in other files too). Use subagents to search for `#[cfg(test)]` modules in files containing value objects to see patterns.
 
 Do NOT write unit tests for:
 - Use cases (these are thin wrappers)
@@ -73,7 +73,7 @@ Some functionality requires actual database interaction for testing:
 - Repository behavior verification
 - Multi-step workflows involving persistence
 
-These tests live in `/core/<module>/tests/` directories.
+These tests live in `/{core,lib}/<module>/tests/` directories. Use subagents with `Glob("**/{core,lib}/**/tests/")` to explore existing patterns.
 
 **This is the exception, not the rule.** Only use database-backed tests when:
 1. Testing outbox/event publication workflows
@@ -121,17 +121,6 @@ When writing new BATS tests:
 2. Use unique identifiers or timestamps to avoid conflicts with existing test data
 3. If your test relies on specific state, ensure earlier tests create that state or create it yourself
 4. Do not assume any table is empty
-
-# Gathering Context
-
-When writing tests, use subagents to explore existing patterns:
-
-1. **For entity tests**: Explore `/core/*/src/*/entity.rs` files to see event rehydration patterns
-2. **For value object tests**: Search for `#[cfg(test)]` modules in files containing value objects (commonly in `primitives.rs`, but value objects may be defined in other files as well)
-3. **For BATS tests**: Review existing tests in `/bats/` and helpers in `/bats/helpers/`
-4. **For integration tests**: Check `/core/*/tests/` directories
-
-Do not guess at patterns - let the existing codebase guide your approach.
 
 # Test Writing Checklist
 
