@@ -1,0 +1,16 @@
+mutation($sensorSelector: SensorSelector!) {
+  stopSensor(sensorSelector: $sensorSelector) {
+    __typename
+    ... on Sensor {
+      sensorState {
+        status
+      }
+    }
+    ... on SensorNotFoundError {
+      message
+    }
+    ... on UnauthorizedError {
+      message
+    }
+  }
+}
