@@ -11,7 +11,7 @@ with
                 collateral_amount_btc having max collateral_modified_at
             ) as most_recent_collateral_deposit_amount_btc
         from {{ ref("int_core_collateral_events_rollup") }}
-        where action = "Add"
+        where direction = "Add"
         group by credit_facility_id
     ),
 

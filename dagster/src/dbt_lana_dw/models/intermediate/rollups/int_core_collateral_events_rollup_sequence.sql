@@ -13,7 +13,7 @@ with
             collateral_id,
             credit_facility_id,
 
-            action,
+            direction,
             cast(abs_diff as numeric) as abs_diff_sats,
             cast(abs_diff as numeric) / {{ var("sats_per_bitcoin") }} as abs_diff_btc,
             cast(collateral_amount as numeric) as collateral_amount_sats,
@@ -26,7 +26,7 @@ with
             * except (
                 collateral_id,
                 credit_facility_id,
-                action,
+                direction,
                 abs_diff,
                 collateral_amount,
                 account_id,
