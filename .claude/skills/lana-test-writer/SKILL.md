@@ -137,7 +137,7 @@ Do not guess at patterns - let the existing codebase guide your approach.
 
 Before writing a test, answer these questions:
 
-- [ ] **Where does the logic live?** If in an entity or VO, write a unit test there
+- [ ] **Where does the logic live?** If in an entity or VO, write a unit test
 - [ ] **Am I testing a happy path through the API?** Consider a BATS test
 - [ ] **Am I testing an edge case or validation?** This is a unit test
 - [ ] **Do I need database interaction?** Only use `/core/<module>/tests/` if absolutely necessary
