@@ -986,7 +986,10 @@ impl Query {
         .await
     }
 
-    async fn audit_subjects(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditSubjectId>> {
+    async fn audit_subjects(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<AuditSubjectId>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         Ok(app
             .list_audit_subjects(sub)
