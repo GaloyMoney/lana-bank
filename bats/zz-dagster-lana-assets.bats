@@ -8,6 +8,11 @@ has_bigquery_credentials() {
   [[ -n "${SA_CREDS_BASE64:-}" ]]
 }
 
+# Helper to check if Sumsub credentials are available
+has_sumsub_credentials() {
+  [[ -n "${SUMSUB_KEY:-}" && -n "${SUMSUB_SECRET:-}" ]]
+}
+
 # Lana source assets
 LANA_ASSETS=(
   "inbox_events"
@@ -142,14 +147,20 @@ verify_materializations() {
   dagster_validate_json || return 1
 
   local failed=0
+  local total=$((${#LANA_ASSETS[@]} + ${#BITFINEX_ASSETS[@]}))
 
   verify_assets_exist "lana" "${LANA_ASSETS[@]}" || failed=1
   verify_assets_exist "bitfinex" "${BITFINEX_ASSETS[@]}" || failed=1
-  verify_assets_exist "sumsub" "${SUMSUB_ASSETS[@]}" || failed=1
+
+  if has_sumsub_credentials; then
+    verify_assets_exist "sumsub" "${SUMSUB_ASSETS[@]}" || failed=1
+    total=$((total + ${#SUMSUB_ASSETS[@]}))
+  else
+    echo "Skipping sumsub assets verification (SUMSUB_KEY or SUMSUB_SECRET not set)"
+  fi
 
   [ $failed -eq 0 ] || return 1
 
-  total=$((${#LANA_ASSETS[@]} + ${#BITFINEX_ASSETS[@]} + ${#SUMSUB_ASSETS[@]}))
   echo "All $total source assets verified to exist"
 }
 
@@ -164,9 +175,17 @@ verify_materializations() {
   # Build combined asset selection from all groups
   local lana_selection=$(build_asset_selection "lana" "${LANA_ASSETS[@]}")
   local bitfinex_selection=$(build_asset_selection "bitfinex" "${BITFINEX_ASSETS[@]}")
-  local sumsub_selection=$(build_asset_selection "sumsub" "${SUMSUB_ASSETS[@]}")
 
-  local asset_selection="${lana_selection},${bitfinex_selection},${sumsub_selection}"
+  local asset_selection="${lana_selection},${bitfinex_selection}"
+  local total=$((${#LANA_ASSETS[@]} + ${#BITFINEX_ASSETS[@]}))
+
+  if has_sumsub_credentials; then
+    local sumsub_selection=$(build_asset_selection "sumsub" "${SUMSUB_ASSETS[@]}")
+    asset_selection="${asset_selection},${sumsub_selection}"
+    total=$((total + ${#SUMSUB_ASSETS[@]}))
+  else
+    echo "Skipping sumsub assets materialization (SUMSUB_KEY or SUMSUB_SECRET not set)"
+  fi
 
   variables=$(cat <<EOF
 {
@@ -193,11 +212,10 @@ EOF
     return 1
   fi
 
-  total=$((${#LANA_ASSETS[@]} + ${#BITFINEX_ASSETS[@]} + ${#SUMSUB_ASSETS[@]}))
   echo "Launched materialization job for $total assets with run ID: $run_id"
 
-  # Allow longer timeout for multiple assets (16 min = 480 attempts * 2 sec)
-  dagster_poll_run_status "$run_id" 480 2 || return 1
+  # Allow longer timeout for multiple assets (10 min = 300 attempts * 2 sec)
+  dagster_poll_run_status "$run_id" 300 2 || return 1
 
   echo "All $total source assets materialized successfully"
 }
@@ -211,14 +229,20 @@ EOF
   fi
 
   local failed=0
+  local total=$((${#LANA_ASSETS[@]} + ${#BITFINEX_ASSETS[@]}))
 
   verify_materializations "lana" "${LANA_ASSETS[@]}" || failed=1
   verify_materializations "bitfinex" "${BITFINEX_ASSETS[@]}" || failed=1
-  verify_materializations "sumsub" "${SUMSUB_ASSETS[@]}" || failed=1
+
+  if has_sumsub_credentials; then
+    verify_materializations "sumsub" "${SUMSUB_ASSETS[@]}" || failed=1
+    total=$((total + ${#SUMSUB_ASSETS[@]}))
+  else
+    echo "Skipping sumsub assets verification (SUMSUB_KEY or SUMSUB_SECRET not set)"
+  fi
 
   [ $failed -eq 0 ] || return 1
 
-  total=$((${#LANA_ASSETS[@]} + ${#BITFINEX_ASSETS[@]} + ${#SUMSUB_ASSETS[@]}))
   echo "All $total source assets have successful materializations"
 }
 
@@ -256,8 +280,8 @@ EOF
 
   echo "Launched dbt_seeds_job with run ID: $seed_run_id"
 
-  # Wait for seeds to complete (16 min timeout)
-  dagster_poll_run_status "$seed_run_id" 480 2 || return 1
+  # Wait for seeds to complete (8 min timeout)
+  dagster_poll_run_status "$seed_run_id" 240 2 || return 1
 
   echo "dbt_seeds_job completed successfully"
 
@@ -305,8 +329,8 @@ EOF
 
   echo "Launched dbt models materialization with run ID: $dbt_run_id"
 
-  # Wait for dbt run to complete (16 min timeout for all models)
-  dagster_poll_run_status "$dbt_run_id" 480 2 || return 1
+  # Wait for dbt run to complete (15 min timeout for all models)
+  dagster_poll_run_status "$dbt_run_id" 450 2 || return 1
 
   echo ""
   echo "=== dbt seed + dbt run completed successfully ==="
