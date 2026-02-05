@@ -135,6 +135,5 @@ Before writing a test, answer these questions:
 - [ ] **Where does the logic live?** If in an entity or VO, write a unit test
 - [ ] **Am I testing a happy path through the API?** Consider a BATS test
 - [ ] **Am I testing an edge case or validation?** This is a unit test
-- [ ] **Do I need database interaction?** Only use `/core/<module>/tests/` if absolutely necessary
 - [ ] **Am I tempted to mock?** Reconsider - the logic might be in the wrong place
 - [ ] **Have I checked existing patterns?** Use subagents to explore before inventing
