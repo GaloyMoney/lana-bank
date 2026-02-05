@@ -172,6 +172,20 @@ teardown_file() {
   [[ "$first_code" =~ ^6 ]] || exit 1
 }
 
+@test "accounting: can query off-balance sheet account sets" {
+  exec_admin_graphql 'off-balance-sheet-account-sets'
+  count=$(graphql_output '.data.offBalanceSheetAccountSets | length')
+  # The test chart has off-balance sheet accounts under codes 7 and 8
+  [[ "$count" -gt 0 ]] || exit 1
+
+  # Verify that returned account sets are not from the main statement categories (1-6)
+  codes=$(graphql_output '.data.offBalanceSheetAccountSets[].code')
+  for code in $codes; do
+    # Check that code doesn't start with 1-6 (main statement categories)
+    [[ ! "$code" =~ ^[1-6] ]] || exit 1
+  done
+}
+
 @test "accounting: can import CSV file into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')

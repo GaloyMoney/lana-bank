@@ -553,4 +553,29 @@ where
             .ok_or(ChartOfAccountsError::AccountCategoryNotSupported(category))?;
         Ok(chart.account_sets_under_code(code))
     }
+
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.off_balance_sheet_account_sets",
+        skip(self)
+    )]
+    pub async fn off_balance_sheet_account_sets(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+    ) -> Result<Vec<AccountInfo>, ChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_LIST,
+            )
+            .await?;
+        let chart = self.find_by_reference(chart_ref).await?;
+        let codes = chart.off_balance_sheet_category_codes();
+        let account_sets = codes
+            .iter()
+            .flat_map(|code| chart.account_sets_under_code(code))
+            .collect();
+        Ok(account_sets)
+    }
 }

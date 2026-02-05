@@ -1,6 +1,6 @@
 pub use core_access::{PermissionSetId, RoleId, UserId};
 pub use core_accounting::{
-    AccountSpec, AccountingBaseConfig, BalanceRange, Chart, ChartId, FiscalYearId,
+    AccountInfo, AccountSpec, AccountingBaseConfig, BalanceRange, Chart, ChartId, FiscalYearId,
     LedgerTransactionId, ManualTransactionId,
 };
 pub use core_credit::{
