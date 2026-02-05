@@ -6,8 +6,8 @@ use rayon::prelude::*;
 use walkdir::WalkDir;
 
 use custom_lints::rules::{
-    DbOpConventionRule, DependencyDagRule, EntityMutateIdempotentRule, EntityQueryInfallibleRule,
-    TransactionCommitRule, UnwrapUsageRule,
+    ConstructorNamingRule, DbOpConventionRule, DependencyDagRule, EntityMutateIdempotentRule,
+    EntityQueryInfallibleRule, TransactionCommitRule, UnwrapUsageRule,
 };
 use custom_lints::{LintRule, Violation, WorkspaceRule};
 
@@ -51,6 +51,7 @@ fn run() -> Result<(Vec<Violation>, String)> {
 
     // Run file-level rules
     let file_rules: Vec<Box<dyn LintRule>> = vec![
+        Box::new(ConstructorNamingRule::new()),
         Box::new(TransactionCommitRule::new()),
         Box::new(DbOpConventionRule::new()),
         Box::new(EntityMutateIdempotentRule::new()),
