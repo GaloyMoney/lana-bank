@@ -23,7 +23,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@lana/web/ui/tooltip"
 import { cn } from "@lana/web/utils"
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { FormEvent, useEffect, useMemo, useState } from "react"
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import {
   CreditConfigDocument,
@@ -122,6 +123,18 @@ const CREDIT_CONFIG_FIELDS: CreditConfigField[] = [
     group: "summary",
   },
   {
+    key: "chartOfAccountLiquidatedCollateralParentCode",
+    defaultCode: "9220.08.0201",
+    category: "offBalanceSheet",
+    group: "summary",
+  },
+  {
+    key: "chartOfAccountProceedsFromLiquidationParentCode",
+    defaultCode: "9220.08.0201",
+    category: "offBalanceSheet",
+    group: "summary",
+  },
+  {
     key: "chartOfAccountInterestIncomeParentCode",
     defaultCode: "6110.01.0100",
     category: "revenue",
@@ -143,6 +156,18 @@ const CREDIT_CONFIG_FIELDS: CreditConfigField[] = [
     key: "chartOfAccountUncoveredOutstandingParentCode",
     defaultCode: "9110",
     category: "offBalanceSheet",
+    group: "summary",
+  },
+  {
+    key: "chartOfAccountDisbursedDefaultedParentCode",
+    defaultCode: "11.02.0203",
+    category: "asset",
+    group: "summary",
+  },
+  {
+    key: "chartOfAccountInterestDefaultedParentCode",
+    defaultCode: "11.02.0203",
+    category: "asset",
     group: "summary",
   },
   {
@@ -381,6 +406,12 @@ const emptyFormData = CREDIT_CONFIG_FIELDS.reduce(
   {} as CreditModuleConfigureInput,
 )
 
+type ChangeItem = {
+  field: CreditConfigField
+  from: string
+  to: string
+}
+
 type AccountSetComboboxProps = {
   id?: string
   value: string
@@ -440,7 +471,7 @@ const AccountSetCombobox = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[calc(var(--radix-popover-trigger-width)*1.5)] max-w-[90vw] min-w-[--radix-popover-trigger-width] p-0"
+        className="w-[calc(var(--radix-popover-trigger-width)*0.7)] min-w-[calc(var(--radix-popover-trigger-width)*0.5)] max-w-[calc(var(--radix-popover-trigger-width)*0.75)] p-0"
         align="start"
       >
         <Command>
@@ -485,6 +516,41 @@ const AccountSetCombobox = ({
   )
 }
 
+const buildFormDataFromConfig = (
+  creditModuleConfig?: CreditModuleConfig,
+): CreditModuleConfigureInput => {
+  const updatedFormData = { ...emptyFormData }
+  if (!creditModuleConfig) return updatedFormData
+
+  CREDIT_CONFIG_FIELDS.forEach((field) => {
+    const value = creditModuleConfig[field.key as keyof CreditModuleConfig]
+    if (value) {
+      updatedFormData[field.key] = value as string
+    }
+  })
+
+  return updatedFormData
+}
+
+const buildChanges = (
+  baseline: CreditModuleConfigureInput,
+  current: CreditModuleConfigureInput,
+): ChangeItem[] =>
+  CREDIT_CONFIG_FIELDS.flatMap((field) => {
+    const from = baseline[field.key] ?? ""
+    const to = current[field.key] ?? ""
+    if (from === to) return []
+    return [{ field, from, to }]
+  })
+
+const formatOptionValue = (value: string, options: AccountSetOption[]) => {
+  if (!value) return ""
+  const match = options.find((option) => option.code === value)
+  if (!match) return value
+  const secondary = match.ref ?? match.code
+  return `${match.name} - ${secondary}`.trim()
+}
+
 export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> = ({
   open,
   setOpen,
@@ -498,8 +564,13 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
     useCreditModuleConfigureMutation({
       refetchQueries: [CreditConfigDocument],
     })
+  const [step, setStep] = useState<"edit" | "confirm">("edit")
+  const [confirmationChanges, setConfirmationChanges] = useState<ChangeItem[]>([])
+  const [baselineFormData, setBaselineFormData] =
+    useState<CreditModuleConfigureInput>(emptyFormData)
   const [formData, setFormData] =
     useState<CreditModuleConfigureInput>(emptyFormData)
+  const prevOpenRef = useRef(false)
   const accountSetOptionsByCategory = useMemo(() => {
     const grouped: Record<CreditAccountCategoryKey, AccountSetOption[]> = {
       offBalanceSheet: [],
@@ -517,38 +588,56 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
 
     return grouped
   }, [accountSetOptions])
+  const editChanges = useMemo(
+    () => buildChanges(baselineFormData, formData),
+    [baselineFormData, formData],
+  )
+  const hasChanges = editChanges.length > 0
 
   const close = () => {
     reset()
     setOpen(false)
     setFormData({ ...emptyFormData })
+    setBaselineFormData({ ...emptyFormData })
+    setConfirmationChanges([])
+    setStep("edit")
   }
 
   useEffect(() => {
-    if (!open) return
-    if (!creditModuleConfig) {
-      setFormData({ ...emptyFormData })
-      return
+    if (open && !prevOpenRef.current) {
+      const updatedFormData = buildFormDataFromConfig(creditModuleConfig)
+      setBaselineFormData(updatedFormData)
+      setFormData(updatedFormData)
+      setConfirmationChanges([])
+      setStep("edit")
     }
-
-    const updatedFormData = { ...emptyFormData }
-    CREDIT_CONFIG_FIELDS.forEach((field) => {
-      const value = creditModuleConfig[field.key as keyof CreditModuleConfig]
-      if (value) {
-        updatedFormData[field.key] = value as string
-      }
-    })
-    setFormData(updatedFormData)
+    prevOpenRef.current = open
   }, [creditModuleConfig, open])
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    await updateCreditConfig({ variables: { input: formData } })
-    setOpen(false)
+    const changes = buildChanges(baselineFormData, formData)
+    reset()
+    setConfirmationChanges(changes)
+    setStep("confirm")
   }
 
   const autoPopulate = () => {
     setFormData({ ...defaultFormData })
+  }
+
+  const handleDone = async () => {
+    try {
+      await updateCreditConfig({ variables: { input: formData } })
+      toast.success(t("credit.updateSuccess"))
+      close()
+    } catch {
+      // error is rendered inline in confirmation view
+    }
+  }
+
+  const handleBack = () => {
+    setStep("edit")
   }
 
   return (
@@ -560,75 +649,154 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
     >
       <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>{t("credit.setTitle")}</DialogTitle>
+          <DialogTitle>
+            {step === "confirm" ? t("credit.confirmationTitle") : t("credit.setTitle")}
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={submit}>
-          <div className="flex flex-col space-y-6 w-full">
-            {FIELD_GROUPS.map((group) => {
-              const fields = CREDIT_CONFIG_FIELDS.filter(
-                (field) => field.group === group.key,
-              )
+        {step === "confirm" ? (
+          <>
+            <p className="text-sm text-muted-foreground">
+              {t("credit.confirmationDescription")}
+            </p>
+            {confirmationChanges.length === 0 ? (
+              <div className="mt-4 rounded-md border border-dashed border-border p-3 text-sm text-muted-foreground">
+                {t("credit.confirmationNoChanges")}
+              </div>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {confirmationChanges.map(({ field, from, to }) => {
+                  const optionsForCategory = accountSetOptionsByCategory[field.category]
+                  const previousLabel = formatOptionValue(from, optionsForCategory)
+                  const updatedLabel = formatOptionValue(to, optionsForCategory)
+                  const previousEmpty = !from
+                  const updatedEmpty = !to
 
-              return (
-                <div
-                  key={group.key}
-                  className="space-y-3 rounded-lg border border-border bg-muted/30 p-4"
-                >
-                  <div className="text-sm font-semibold">
-                    {t(`credit.groups.${group.titleKey}`)}
-                  </div>
-                  <div className="flex flex-col space-y-2 w-full">
-                    {fields.map((field) => {
-                      const optionsForCategory = accountSetOptionsByCategory[field.category]
-                      const isDisabled = optionsForCategory.length === 0
-                      const handleChange = (nextValue: string) => {
-                        setFormData({ ...formData, [field.key]: nextValue })
-                      }
-
-                      return (
-                        <div key={field.key}>
-                          <div className="flex items-center justify-between gap-2">
-                            <Label htmlFor={field.key}>{t(`credit.${field.key}`)}</Label>
-                            <span className="text-xs text-muted-foreground">
-                              {t(`accountCategories.${field.category}`)}
-                            </span>
+                  return (
+                    <div
+                      key={field.key}
+                      className="space-y-2 rounded-lg border border-border p-3"
+                    >
+                      <div className="text-sm font-medium">
+                        {t(`credit.${field.key}`)}
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1">
+                          <div className="text-xs text-muted-foreground">
+                            {t("credit.confirmationPrevious")}
                           </div>
-                          <AccountSetCombobox
-                            id={field.key}
-                            value={formData[field.key]}
-                            options={optionsForCategory}
-                            onChange={handleChange}
-                            disabled={isDisabled}
-                            placeholder={t("credit.accountSetSelectPlaceholder")}
-                            searchPlaceholder={t("credit.accountSetSearchPlaceholder")}
-                            emptyLabel={t("credit.accountSetEmpty")}
-                          />
+                          <div
+                            className={cn(
+                              "min-h-[2rem] rounded-md border px-2 py-1 text-sm",
+                              previousEmpty
+                                ? "border-amber-400/70 text-amber-700"
+                                : "border-border",
+                            )}
+                          >
+                            {previousEmpty ? "\u00A0" : previousLabel}
+                          </div>
                         </div>
-                      )
-                    })}
+                        <div className="space-y-1">
+                          <div className="text-xs text-muted-foreground">
+                            {t("credit.confirmationUpdated")}
+                          </div>
+                          <div
+                            className={cn(
+                              "min-h-[2rem] rounded-md border px-2 py-1 text-sm",
+                              updatedEmpty
+                                ? "border-amber-400/70 text-amber-700"
+                                : "border-border",
+                            )}
+                          >
+                            {updatedEmpty ? "\u00A0" : updatedLabel}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            {error && <div className="text-destructive">{error.message}</div>}
+            <DialogFooter className="mt-4">
+              <Button variant="outline" type="button" onClick={handleBack}>
+                {tCommon("back")}
+              </Button>
+              <Button loading={loading} type="button" onClick={handleDone}>
+                {tCommon("save")}
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <form onSubmit={submit}>
+            <div className="flex flex-col space-y-6 w-full">
+              {FIELD_GROUPS.map((group) => {
+                const fields = CREDIT_CONFIG_FIELDS.filter(
+                  (field) => field.group === group.key,
+                )
+
+                return (
+                  <div
+                    key={group.key}
+                    className="space-y-3 rounded-lg border border-border bg-muted/30 p-4"
+                  >
+                    <div className="text-sm font-semibold">
+                      {t(`credit.groups.${group.titleKey}`)}
+                    </div>
+                    <div className="flex flex-col space-y-2 w-full">
+                      {fields.map((field) => {
+                        const optionsForCategory = accountSetOptionsByCategory[field.category]
+                        const isDisabled = optionsForCategory.length === 0
+                        const handleChange = (nextValue: string) => {
+                          setFormData({ ...formData, [field.key]: nextValue })
+                        }
+
+                        return (
+                          <div key={field.key}>
+                            <div className="flex items-center justify-between gap-2">
+                              <Label htmlFor={field.key}>
+                                {t(`credit.${field.key}`)}
+                              </Label>
+                              <span className="text-xs text-muted-foreground">
+                                {t(`accountCategories.${field.category}`)}
+                              </span>
+                            </div>
+                            <AccountSetCombobox
+                              id={field.key}
+                              value={formData[field.key]}
+                              options={optionsForCategory}
+                              onChange={handleChange}
+                              disabled={isDisabled}
+                              placeholder={t("credit.accountSetSelectPlaceholder")}
+                              searchPlaceholder={t("credit.accountSetSearchPlaceholder")}
+                              emptyLabel={t("credit.accountSetEmpty")}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
-          {error && <div className="text-destructive">{error.message}</div>}
-          <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={autoPopulate}
-              className="mr-auto"
-            >
-              {t("autoPopulate")}
-            </Button>
-            <Button variant="outline" type="button" onClick={close}>
-              {tCommon("cancel")}
-            </Button>
-            <Button loading={loading} type="submit">
-              {tCommon("save")}
-            </Button>
-          </DialogFooter>
-        </form>
+                )
+              })}
+            </div>
+            {error && <div className="text-destructive">{error.message}</div>}
+            <DialogFooter className="mt-4">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={autoPopulate}
+                className="mr-auto"
+              >
+                {t("autoPopulate")}
+              </Button>
+              <Button variant="outline" type="button" onClick={close}>
+                {tCommon("cancel")}
+              </Button>
+              <Button loading={loading} type="submit" disabled={!hasChanges || loading}>
+                {tCommon("review")}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   )

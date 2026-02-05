@@ -59,9 +59,13 @@ gql`
       chartOfAccountFacilityParentCode
       chartOfAccountCollateralParentCode
       chartOfAccountCollateralInLiquidationParentCode
+      chartOfAccountLiquidatedCollateralParentCode
+      chartOfAccountProceedsFromLiquidationParentCode
       chartOfAccountInterestIncomeParentCode
       chartOfAccountFeeIncomeParentCode
       chartOfAccountPaymentHoldingParentCode
+      chartOfAccountDisbursedDefaultedParentCode
+      chartOfAccountInterestDefaultedParentCode
       chartOfAccountShortTermIndividualDisbursedReceivableParentCode
       chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
       chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode
@@ -120,32 +124,37 @@ gql`
 
 const CREDIT_ACCOUNT_SET_OPTIONS_QUERY = gql`
   query CreditAccountSetOptions {
-    asset: accountSetsByCategory(category: ASSET) {
+    offBalanceSheet: descendantAccountSetsByCategory(category: OFF_BALANCE_SHEET) {
       accountSetId
       code
       name
     }
-    liability: accountSetsByCategory(category: LIABILITY) {
+    asset: descendantAccountSetsByCategory(category: ASSET) {
       accountSetId
       code
       name
     }
-    equity: accountSetsByCategory(category: EQUITY) {
+    liability: descendantAccountSetsByCategory(category: LIABILITY) {
       accountSetId
       code
       name
     }
-    revenue: accountSetsByCategory(category: REVENUE) {
+    equity: descendantAccountSetsByCategory(category: EQUITY) {
       accountSetId
       code
       name
     }
-    costOfRevenue: accountSetsByCategory(category: COST_OF_REVENUE) {
+    revenue: descendantAccountSetsByCategory(category: REVENUE) {
       accountSetId
       code
       name
     }
-    expenses: accountSetsByCategory(category: EXPENSES) {
+    costOfRevenue: descendantAccountSetsByCategory(category: COST_OF_REVENUE) {
+      accountSetId
+      code
+      name
+    }
+    expenses: descendantAccountSetsByCategory(category: EXPENSES) {
       accountSetId
       code
       name
@@ -154,6 +163,7 @@ const CREDIT_ACCOUNT_SET_OPTIONS_QUERY = gql`
 `
 
 type CreditAccountSetOptionsData = {
+  offBalanceSheet: AccountInfo[]
   asset: AccountInfo[]
   liability: AccountInfo[]
   equity: AccountInfo[]
@@ -183,6 +193,7 @@ const Modules: React.FC = () => {
     const categoryMap: Array<{
       key: keyof CreditAccountSetOptionsData
       category:
+        | "offBalanceSheet"
         | "asset"
         | "liability"
         | "equity"
@@ -190,6 +201,7 @@ const Modules: React.FC = () => {
         | "costOfRevenue"
         | "expenses"
     }> = [
+      { key: "offBalanceSheet", category: "offBalanceSheet" },
       { key: "asset", category: "asset" },
       { key: "liability", category: "liability" },
       { key: "equity", category: "equity" },
@@ -289,20 +301,18 @@ const Modules: React.FC = () => {
             <div>{t("notYetConfigured")}</div>
           )}
         </CardContent>
-        {!creditConfig?.creditConfig && (
-          <>
-            <Separator className="mb-4" />
-            <CardFooter className="-mb-3 -mt-1 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setOpenCreditConfigUpdateDialog(true)}
-              >
-                <Pencil />
-                {t("credit.setTitle")}
-              </Button>
-            </CardFooter>
-          </>
-        )}
+        <>
+          <Separator className="mb-4" />
+          <CardFooter className="-mb-3 -mt-1 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setOpenCreditConfigUpdateDialog(true)}
+            >
+              <Pencil />
+              {t("credit.setTitle")}
+            </Button>
+          </CardFooter>
+        </>
       </Card>
       <Card className="mt-3">
         <CardHeader>
