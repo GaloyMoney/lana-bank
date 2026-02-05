@@ -87,7 +87,7 @@ const initialFormData: CreditModuleConfigureInput = {
   chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: "",
 }
 
-const creditModuleCodes = {
+const creditModuleCodes: CreditModuleConfigureInput = {
   chartOfAccountFacilityOmnibusParentCode: "9110.02.0201",
   chartOfAccountCollateralOmnibusParentCode: "9220.08.0201",
   chartOfAccountLiquidationProceedsOmnibusParentCode: "9170.00.0001",
@@ -143,6 +143,26 @@ const creditModuleCodes = {
   chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: "1148.08.0101",
 }
 
+const buildCreditFormData = (
+  creditModuleConfig?: CreditModuleConfig,
+): CreditModuleConfigureInput => {
+  const updatedFormData: CreditModuleConfigureInput = { ...creditModuleCodes }
+  if (!creditModuleConfig) {
+    return updatedFormData
+  }
+
+  ;(Object.keys(initialFormData) as Array<keyof CreditModuleConfigureInput>).forEach(
+    (key) => {
+      const value = creditModuleConfig[key as keyof CreditModuleConfig]
+      if (value) {
+        updatedFormData[key] = value as string
+      }
+    },
+  )
+
+  return updatedFormData
+}
+
 export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> = ({
   open,
   setOpen,
@@ -155,29 +175,20 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
     useCreditModuleConfigureMutation({
       refetchQueries: [CreditConfigDocument],
     })
-  const [formData, setFormData] = useState<CreditModuleConfigureInput>(initialFormData)
+  const [formData, setFormData] = useState<CreditModuleConfigureInput>(() =>
+    buildCreditFormData(creditModuleConfig),
+  )
 
   const close = () => {
     reset()
     setOpen(false)
-    setFormData(initialFormData)
+    setFormData(buildCreditFormData(creditModuleConfig))
   }
 
   useEffect(() => {
-    if (creditModuleConfig) {
-      const updatedFormData = { ...initialFormData }
-      Object.keys(initialFormData).forEach((key) => {
-        if (creditModuleConfig[key as keyof CreditModuleConfig]) {
-          updatedFormData[key as keyof CreditModuleConfigureInput] = creditModuleConfig[
-            key as keyof CreditModuleConfig
-          ] as string
-        }
-      })
-      if (Object.values(updatedFormData).some((value) => value !== "")) {
-        setFormData(updatedFormData)
-      }
-    }
-  }, [creditModuleConfig])
+    if (!open) return
+    setFormData(buildCreditFormData(creditModuleConfig))
+  }, [creditModuleConfig, open])
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -186,17 +197,22 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
   }
 
   const autoPopulate = () => {
-    setFormData(creditModuleCodes)
+    setFormData({ ...creditModuleCodes })
   }
 
   return (
-    <Dialog open={open} onOpenChange={close}>
-      <DialogContent>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) close()
+      }}
+    >
+      <DialogContent className="max-h-[calc(100vh-2rem)] sm:max-w-3xl flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>{t("credit.setTitle")}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={submit}>
-          <div className="flex flex-col space-y-2 w-full">
+        <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col gap-4">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-2">
             {Object.entries(formData).map(([key, value]) => (
               <div key={key}>
                 <Label htmlFor={key}>{t(`credit.${key}`)}</Label>
