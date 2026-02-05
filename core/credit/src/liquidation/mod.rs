@@ -61,7 +61,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn init(
+    pub fn new(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,

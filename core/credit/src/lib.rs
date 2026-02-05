@@ -239,7 +239,7 @@ where
         .await?;
         let collections_arc = Arc::new(collections);
 
-        let liquidations = Liquidations::init(pool, authz_arc.clone(), &publisher, clock.clone());
+        let liquidations = Liquidations::new(pool, authz_arc.clone(), &publisher, clock.clone());
         let liquidations_arc = Arc::new(liquidations);
 
         let credit_facility_proposals = CreditFacilityProposals::init(
