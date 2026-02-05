@@ -363,11 +363,26 @@ impl Chart {
         self.base_config.clone()
     }
 
-    pub fn off_balance_sheet_category_codes(&self) -> Vec<AccountCode> {
-        let Some(base_config) = &self.base_config else {
-            return vec![];
-        };
+    pub fn account_sets_by_category(&self, category: AccountCategory) -> Option<Vec<AccountInfo>> {
+        let base_config = self.base_config.as_ref()?;
 
+        if category == AccountCategory::OffBalanceSheet {
+            let account_sets = self
+                .off_balance_sheet_category_codes(base_config)
+                .iter()
+                .flat_map(|code| self.account_sets_under_code(code))
+                .collect();
+            return Some(account_sets);
+        }
+
+        let code = base_config.code_for_category(category)?;
+        Some(self.account_sets_under_code(code))
+    }
+
+    fn off_balance_sheet_category_codes(
+        &self,
+        base_config: &AccountingBaseConfig,
+    ) -> Vec<AccountCode> {
         let statement_codes = [
             &base_config.assets_code,
             &base_config.liabilities_code,
@@ -1241,226 +1256,67 @@ mod test {
         }
     }
 
-    mod off_balance_sheet_category_codes {
+    mod account_sets_by_category {
         use super::*;
 
         #[test]
-        fn returns_empty_when_no_base_config() {
+        fn returns_none_when_no_base_config() {
             let (chart, _) = default_chart();
 
-            let codes = chart.off_balance_sheet_category_codes();
+            let result = chart.account_sets_by_category(AccountCategory::OffBalanceSheet);
 
-            assert!(codes.is_empty());
+            assert!(result.is_none());
         }
 
         #[test]
-        fn returns_codes_for_top_level_accounts_not_in_base_config() {
-            let mut chart = chart_from(initial_events());
-            let journal_id = CalaJournalId::new();
-
-            let specs = vec![
-                AccountSpec {
-                    name: "Assets".parse().unwrap(),
-                    parent: None,
-                    code: code("1"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                AccountSpec {
-                    name: "Liabilities".parse().unwrap(),
-                    parent: None,
-                    code: code("2"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Equity".parse().unwrap(),
-                    parent: None,
-                    code: code("3"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Retained Earnings Gain".parse().unwrap(),
-                    parent: Some(code("3")),
-                    code: code("3.1"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Retained Earnings Loss".parse().unwrap(),
-                    parent: Some(code("3")),
-                    code: code("3.2"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Revenue".parse().unwrap(),
-                    parent: None,
-                    code: code("4"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Cost of Revenue".parse().unwrap(),
-                    parent: None,
-                    code: code("5"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                AccountSpec {
-                    name: "Expenses".parse().unwrap(),
-                    parent: None,
-                    code: code("6"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                // Off-balance-sheet accounts (not in base_config)
-                AccountSpec {
-                    name: "Off Balance Sheet".parse().unwrap(),
-                    parent: None,
-                    code: code("7"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                AccountSpec {
-                    name: "Another Off Balance Sheet".parse().unwrap(),
-                    parent: None,
-                    code: code("9"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-            ];
-
-            let base_config = AccountingBaseConfig::try_new(
-                code("1"),
-                code("2"),
-                code("3"),
-                code("3.1"),
-                code("3.2"),
-                code("4"),
-                code("5"),
-                code("6"),
-            )
-            .unwrap();
-
-            let _ = chart
-                .configure_with_initial_accounts(specs, base_config, journal_id)
-                .unwrap();
-            hydrate_chart_of_accounts(&mut chart);
-
-            let codes = chart.off_balance_sheet_category_codes();
-
-            assert_eq!(codes.len(), 2);
-            assert!(codes.iter().any(|c| c.to_string() == "7"));
-            assert!(codes.iter().any(|c| c.to_string() == "9"));
-        }
-
-        #[test]
-        fn excludes_child_accounts_from_off_balance_sheet_codes() {
-            let mut chart = chart_from(initial_events());
-            let journal_id = CalaJournalId::new();
-
-            let specs = vec![
-                AccountSpec {
-                    name: "Assets".parse().unwrap(),
-                    parent: None,
-                    code: code("1"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                AccountSpec {
-                    name: "Liabilities".parse().unwrap(),
-                    parent: None,
-                    code: code("2"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Equity".parse().unwrap(),
-                    parent: None,
-                    code: code("3"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Retained Earnings Gain".parse().unwrap(),
-                    parent: Some(code("3")),
-                    code: code("3.1"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Retained Earnings Loss".parse().unwrap(),
-                    parent: Some(code("3")),
-                    code: code("3.2"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Revenue".parse().unwrap(),
-                    parent: None,
-                    code: code("4"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Cost of Revenue".parse().unwrap(),
-                    parent: None,
-                    code: code("5"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                AccountSpec {
-                    name: "Expenses".parse().unwrap(),
-                    parent: None,
-                    code: code("6"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                // Off-balance-sheet parent
-                AccountSpec {
-                    name: "Off Balance Sheet".parse().unwrap(),
-                    parent: None,
-                    code: code("9"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                // Child of off-balance-sheet (should NOT be in result)
-                AccountSpec {
-                    name: "Off Balance Sheet Child".parse().unwrap(),
-                    parent: Some(code("9")),
-                    code: code("9.1"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-            ];
-
-            let base_config = AccountingBaseConfig::try_new(
-                code("1"),
-                code("2"),
-                code("3"),
-                code("3.1"),
-                code("3.2"),
-                code("4"),
-                code("5"),
-                code("6"),
-            )
-            .unwrap();
-
-            let _ = chart
-                .configure_with_initial_accounts(specs, base_config, journal_id)
-                .unwrap();
-            hydrate_chart_of_accounts(&mut chart);
-
-            let codes = chart.off_balance_sheet_category_codes();
-
-            // Only the parent "9" should be returned, not the child "9.1"
-            assert_eq!(codes.len(), 1);
-            assert!(codes.iter().any(|c| c.to_string() == "9"));
-            assert!(!codes.iter().any(|c| c.to_string() == "9.1"));
-        }
-
-        #[test]
-        fn returns_empty_when_all_top_level_accounts_are_in_base_config() {
+        fn returns_account_sets_for_standard_categories() {
             let (mut chart, _journal_id) = default_configured_chart();
             hydrate_chart_of_accounts(&mut chart);
 
-            let codes = chart.off_balance_sheet_category_codes();
+            let assets = chart.account_sets_by_category(AccountCategory::Asset);
+            assert!(assets.is_some());
 
-            assert!(codes.is_empty());
+            let liabilities = chart.account_sets_by_category(AccountCategory::Liability);
+            assert!(liabilities.is_some());
+
+            let equity = chart.account_sets_by_category(AccountCategory::Equity);
+            assert!(equity.is_some());
+
+            let revenue = chart.account_sets_by_category(AccountCategory::Revenue);
+            assert!(revenue.is_some());
+
+            let cost_of_revenue = chart.account_sets_by_category(AccountCategory::CostOfRevenue);
+            assert!(cost_of_revenue.is_some());
+
+            let expenses = chart.account_sets_by_category(AccountCategory::Expenses);
+            assert!(expenses.is_some());
         }
 
         #[test]
-        fn excludes_all_statement_category_codes() {
+        fn returns_off_balance_sheet_account_sets() {
             let mut chart = chart_from(initial_events());
             let journal_id = CalaJournalId::new();
 
             let mut specs = account_specs_for_base_config();
+            // Off-balance-sheet top-level category
             specs.push(AccountSpec {
                 name: "Off Balance Sheet".parse().unwrap(),
                 parent: None,
                 code: code("9"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+            // Sub-category (account set) with children
+            specs.push(AccountSpec {
+                name: "Off Balance Sheet Sub".parse().unwrap(),
+                parent: Some(code("9")),
+                code: code("9.1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+            // Leaf account (actual account, not an account set)
+            specs.push(AccountSpec {
+                name: "Off Balance Sheet Leaf".parse().unwrap(),
+                parent: Some(code("9.1")),
+                code: code("9.1.1"),
                 normal_balance_type: DebitOrCredit::Debit,
             });
 
@@ -1469,20 +1325,149 @@ mod test {
                 .unwrap();
             hydrate_chart_of_accounts(&mut chart);
 
-            let codes = chart.off_balance_sheet_category_codes();
+            let result = chart.account_sets_by_category(AccountCategory::OffBalanceSheet);
 
-            // Should only contain code "9", not any of the base_config codes
-            assert_eq!(codes.len(), 1);
-            assert!(codes.iter().any(|c| c.to_string() == "9"));
+            assert!(result.is_some());
+            let account_sets = result.unwrap();
+            // Should include account sets (nodes with children) under off-balance-sheet
+            // The method returns descendant account sets, not the category root itself
+            assert!(!account_sets.is_empty());
+            // 9.1 has children, so it's an account set and should be included
+            assert!(account_sets.iter().any(|a| a.code.to_string() == "9.1"));
+            // 9.1.1 is a leaf (no children), so it should NOT be included
+            assert!(!account_sets.iter().any(|a| a.code.to_string() == "9.1.1"));
+        }
 
-            // Verify all statement codes are excluded
-            let code_strings: Vec<String> = codes.iter().map(|c| c.to_string()).collect();
-            assert!(!code_strings.contains(&"1".to_string())); // assets
-            assert!(!code_strings.contains(&"2".to_string())); // liabilities
-            assert!(!code_strings.contains(&"3".to_string())); // equity
-            assert!(!code_strings.contains(&"4".to_string())); // revenue
-            assert!(!code_strings.contains(&"5".to_string())); // cost_of_revenue
-            assert!(!code_strings.contains(&"6".to_string())); // expenses
+        #[test]
+        fn returns_empty_off_balance_sheet_when_all_top_level_accounts_are_in_base_config() {
+            let (mut chart, _journal_id) = default_configured_chart();
+            hydrate_chart_of_accounts(&mut chart);
+
+            let result = chart.account_sets_by_category(AccountCategory::OffBalanceSheet);
+
+            assert!(result.is_some());
+            let account_sets = result.unwrap();
+            assert!(account_sets.is_empty());
+        }
+
+        #[test]
+        fn returns_multiple_off_balance_sheet_category_accounts() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let specs = vec![
+                AccountSpec {
+                    name: "Assets".parse().unwrap(),
+                    parent: None,
+                    code: code("1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Liabilities".parse().unwrap(),
+                    parent: None,
+                    code: code("2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Equity".parse().unwrap(),
+                    parent: None,
+                    code: code("3"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Earnings Gain".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.1"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Earnings Loss".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("4"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Cost of Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("5"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Expenses".parse().unwrap(),
+                    parent: None,
+                    code: code("6"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                // Off-balance-sheet category 1 with sub-accounts
+                AccountSpec {
+                    name: "Off Balance Sheet One".parse().unwrap(),
+                    parent: None,
+                    code: code("7"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Off Balance Sheet One Sub".parse().unwrap(),
+                    parent: Some(code("7")),
+                    code: code("7.1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Off Balance Sheet One Leaf".parse().unwrap(),
+                    parent: Some(code("7.1")),
+                    code: code("7.1.1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                // Off-balance-sheet category 2 with sub-accounts
+                AccountSpec {
+                    name: "Off Balance Sheet Two".parse().unwrap(),
+                    parent: None,
+                    code: code("9"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Off Balance Sheet Two Sub".parse().unwrap(),
+                    parent: Some(code("9")),
+                    code: code("9.1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Off Balance Sheet Two Leaf".parse().unwrap(),
+                    parent: Some(code("9.1")),
+                    code: code("9.1.1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+            ];
+
+            let base_config = AccountingBaseConfig::try_new(
+                code("1"),
+                code("2"),
+                code("3"),
+                code("3.1"),
+                code("3.2"),
+                code("4"),
+                code("5"),
+                code("6"),
+            )
+            .unwrap();
+
+            let _ = chart
+                .configure_with_initial_accounts(specs, base_config, journal_id)
+                .unwrap();
+            hydrate_chart_of_accounts(&mut chart);
+
+            let result = chart.account_sets_by_category(AccountCategory::OffBalanceSheet);
+
+            assert!(result.is_some());
+            let account_sets = result.unwrap();
+            // Descendant account sets (nodes with children) from both categories should be included
+            assert!(account_sets.iter().any(|a| a.code.to_string() == "7.1"));
+            assert!(account_sets.iter().any(|a| a.code.to_string() == "9.1"));
         }
     }
 
