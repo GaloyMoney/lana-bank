@@ -47,6 +47,7 @@ export enum AccountCategory {
   Equity = 'EQUITY',
   Expenses = 'EXPENSES',
   Liability = 'LIABILITY',
+  OffBalanceSheet = 'OFF_BALANCE_SHEET',
   Revenue = 'REVENUE'
 }
 

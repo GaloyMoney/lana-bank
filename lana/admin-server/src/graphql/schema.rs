@@ -839,19 +839,6 @@ impl Query {
         Ok(members.into_iter().map(AccountInfo::from).collect())
     }
 
-    async fn off_balance_sheet_account_sets(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<AccountInfo>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let members = app
-            .accounting()
-            .chart_of_accounts()
-            .off_balance_sheet_account_sets(sub, CHART_REF.0)
-            .await?;
-        Ok(members.into_iter().map(AccountInfo::from).collect())
-    }
-
     async fn fiscal_year(
         &self,
         ctx: &Context<'_>,

@@ -1,7 +1,0 @@
-query OffBalanceSheetAccountSets {
-  offBalanceSheetAccountSets {
-    accountSetId
-    code
-    name
-  }
-}

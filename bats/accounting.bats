@@ -173,13 +173,13 @@ teardown_file() {
 }
 
 @test "accounting: can query off-balance sheet account sets" {
-  exec_admin_graphql 'off-balance-sheet-account-sets'
-  count=$(graphql_output '.data.offBalanceSheetAccountSets | length')
+  exec_admin_graphql 'account-sets-by-category' '{"category": "OFF_BALANCE_SHEET"}'
+  count=$(graphql_output '.data.accountSetsByCategory | length')
   # The test chart has off-balance sheet accounts under codes 7 and 8
   [[ "$count" -gt 0 ]] || exit 1
 
   # Verify that returned account sets are not from the main statement categories (1-6)
-  codes=$(graphql_output '.data.offBalanceSheetAccountSets[].code')
+  codes=$(graphql_output '.data.accountSetsByCategory[].code')
   for code in $codes; do
     # Check that code doesn't start with 1-6 (main statement categories)
     [[ ! "$code" =~ ^[1-6] ]] || exit 1

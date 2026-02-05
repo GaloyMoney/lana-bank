@@ -5,6 +5,7 @@ enum AccountCategory {
 	REVENUE
 	COST_OF_REVENUE
 	EXPENSES
+	OFF_BALANCE_SHEET
 }
 
 scalar AccountCode
@@ -2211,7 +2212,6 @@ type Query {
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
 	accountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
-	offBalanceSheetAccountSets: [AccountInfo!]!
 	fiscalYear(fiscalYearId: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!
