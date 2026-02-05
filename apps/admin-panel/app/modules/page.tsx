@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import {
   Card,
@@ -10,7 +10,7 @@ import {
   CardContent,
   CardFooter,
 } from "@lana/web/ui/card"
-import { gql } from "@apollo/client"
+import { gql, useQuery } from "@apollo/client"
 
 import { Button } from "@lana/web/ui/button"
 import { Separator } from "@lana/web/ui/separator"
@@ -23,6 +23,7 @@ import { CreditConfigUpdateDialog } from "./credit-config-update"
 
 import { DetailItem } from "@/components/details"
 import {
+  AccountInfo,
   useDepositConfigQuery,
   useCreditConfigQuery,
   useChartAccountingBaseConfigQuery,
@@ -117,6 +118,50 @@ gql`
   }
 `
 
+const CREDIT_ACCOUNT_SET_OPTIONS_QUERY = gql`
+  query CreditAccountSetOptions {
+    asset: accountSetsByCategory(category: ASSET) {
+      accountSetId
+      code
+      name
+    }
+    liability: accountSetsByCategory(category: LIABILITY) {
+      accountSetId
+      code
+      name
+    }
+    equity: accountSetsByCategory(category: EQUITY) {
+      accountSetId
+      code
+      name
+    }
+    revenue: accountSetsByCategory(category: REVENUE) {
+      accountSetId
+      code
+      name
+    }
+    costOfRevenue: accountSetsByCategory(category: COST_OF_REVENUE) {
+      accountSetId
+      code
+      name
+    }
+    expenses: accountSetsByCategory(category: EXPENSES) {
+      accountSetId
+      code
+      name
+    }
+  }
+`
+
+type CreditAccountSetOptionsData = {
+  asset: AccountInfo[]
+  liability: AccountInfo[]
+  equity: AccountInfo[]
+  revenue: AccountInfo[]
+  costOfRevenue: AccountInfo[]
+  expenses: AccountInfo[]
+}
+
 const Modules: React.FC = () => {
   const t = useTranslations("Modules")
 
@@ -127,8 +172,40 @@ const Modules: React.FC = () => {
   const { data: depositConfig, loading: depositConfigLoading } = useDepositConfigQuery()
   const { data: creditConfig, loading: creditConfigLoading } = useCreditConfigQuery()
   const { data: chartData, loading: chartLoading } = useChartAccountingBaseConfigQuery()
+  const { data: accountSetOptionsData } = useQuery<CreditAccountSetOptionsData>(
+    CREDIT_ACCOUNT_SET_OPTIONS_QUERY,
+  )
 
   const accountingBaseConfig = chartData?.chartOfAccounts?.accountingBaseConfig
+  const accountSetOptions = useMemo(() => {
+    if (!accountSetOptionsData) return []
+
+    const categoryMap: Array<{
+      key: keyof CreditAccountSetOptionsData
+      category:
+        | "asset"
+        | "liability"
+        | "equity"
+        | "revenue"
+        | "costOfRevenue"
+        | "expenses"
+    }> = [
+      { key: "asset", category: "asset" },
+      { key: "liability", category: "liability" },
+      { key: "equity", category: "equity" },
+      { key: "revenue", category: "revenue" },
+      { key: "costOfRevenue", category: "costOfRevenue" },
+      { key: "expenses", category: "expenses" },
+    ]
+
+    return categoryMap.flatMap(({ key, category }) =>
+      (accountSetOptionsData[key] || []).map((option) => ({
+        code: option.code,
+        name: option.name,
+        category,
+      })),
+    )
+  }, [accountSetOptionsData])
 
   return (
     <>
@@ -141,6 +218,7 @@ const Modules: React.FC = () => {
         open={openCreditConfigUpdateDialog}
         setOpen={setOpenCreditConfigUpdateDialog}
         creditModuleConfig={creditConfig?.creditConfig || undefined}
+        accountSetOptions={accountSetOptions}
       />
 
       <Card>
