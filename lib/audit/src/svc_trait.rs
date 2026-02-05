@@ -3,9 +3,7 @@ use tracing_macros::record_error_severity;
 
 use std::{collections::HashMap, fmt, str::FromStr};
 
-use crate::{AuditEntry, error::AuditError, primitives::*};
-
-use crate::SystemActor;
+use crate::{AuditEntry, SystemActor, error::AuditError, primitives::*};
 
 pub trait SystemSubject {
     fn system(actor: SystemActor) -> Self;
