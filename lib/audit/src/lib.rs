@@ -41,14 +41,9 @@ pub enum SystemActor {
     DisbursalJob,
 
     // Deposit module
-    DepositSync,
     DepositApproval,
 
-    // Custody module
-    CustodyWebhook,
-
     // Customer module
-    KycCallback,
     CustomerSync,
 
     // Accounting module
@@ -58,9 +53,7 @@ pub enum SystemActor {
     Governance,
 
     // System operations
-    ReportsSync,
     Bootstrap,
-    Cli,
 
     // Backward compatibility for existing audit entries
     Unknown,
