@@ -14,23 +14,7 @@ pub struct TypedDomainConfig<C: ConfigSpec> {
 
 impl<C: ConfigSpec> TypedDomainConfig<C> {
     pub(crate) fn new(entity: DomainConfig) -> Result<Self, DomainConfigError> {
-        if !entity.is_compatible::<C>() {
-            let expected_type = <C::Kind as ValueKind>::TYPE;
-            if entity.config_type != expected_type {
-                return Err(DomainConfigError::InvalidType(format!(
-                    "Invalid config type for {key}: expected {expected}, found {found}",
-                    key = entity.key,
-                    expected = expected_type,
-                    found = entity.config_type
-                )));
-            }
-            return Err(DomainConfigError::InvalidType(format!(
-                "Invalid visibility for {key}: expected {expected}, found {found}",
-                key = entity.key,
-                expected = C::VISIBILITY,
-                found = entity.visibility
-            )));
-        }
+        DomainConfig::assert_compatible::<C>(&entity)?;
         Ok(Self {
             entity,
             _marker: PhantomData,
