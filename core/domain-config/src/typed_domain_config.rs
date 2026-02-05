@@ -13,7 +13,7 @@ pub struct TypedDomainConfig<C: ConfigSpec> {
 }
 
 impl<C: ConfigSpec> TypedDomainConfig<C> {
-    pub(crate) fn new(entity: DomainConfig) -> Result<Self, DomainConfigError> {
+    pub(crate) fn try_new(entity: DomainConfig) -> Result<Self, DomainConfigError> {
         DomainConfig::assert_compatible::<C>(&entity)?;
         Ok(Self {
             entity,
