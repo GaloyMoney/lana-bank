@@ -122,6 +122,18 @@ const CREDIT_CONFIG_FIELDS: CreditConfigField[] = [
     group: "summary",
   },
   {
+    key: "chartOfAccountLiquidatedCollateralParentCode",
+    defaultCode: "9220.08.0201",
+    category: "offBalanceSheet",
+    group: "summary",
+  },
+  {
+    key: "chartOfAccountProceedsFromLiquidationParentCode",
+    defaultCode: "9220.08.0201",
+    category: "offBalanceSheet",
+    group: "summary",
+  },
+  {
     key: "chartOfAccountInterestIncomeParentCode",
     defaultCode: "6110.01.0100",
     category: "revenue",
@@ -143,6 +155,18 @@ const CREDIT_CONFIG_FIELDS: CreditConfigField[] = [
     key: "chartOfAccountUncoveredOutstandingParentCode",
     defaultCode: "9110",
     category: "offBalanceSheet",
+    group: "summary",
+  },
+  {
+    key: "chartOfAccountDisbursedDefaultedParentCode",
+    defaultCode: "11.02.0203",
+    category: "asset",
+    group: "summary",
+  },
+  {
+    key: "chartOfAccountInterestDefaultedParentCode",
+    defaultCode: "11.02.0203",
+    category: "asset",
     group: "summary",
   },
   {
@@ -440,7 +464,7 @@ const AccountSetCombobox = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[calc(var(--radix-popover-trigger-width)*1.5)] max-w-[90vw] min-w-[--radix-popover-trigger-width] p-0"
+        className="w-[calc(var(--radix-popover-trigger-width)*0.7)] min-w-[calc(var(--radix-popover-trigger-width)*0.5)] max-w-[calc(var(--radix-popover-trigger-width)*0.75)] p-0"
         align="start"
       >
         <Command>
