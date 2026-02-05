@@ -1351,6 +1351,84 @@ mod test {
         }
 
         #[test]
+        fn off_balance_sheet_excludes_statement_categories() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let mut specs = account_specs_for_base_config();
+            // Add children to statement categories to make them account sets
+            specs.push(AccountSpec {
+                name: "Cash".parse().unwrap(),
+                parent: Some(code("1")),
+                code: code("1.1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+            specs.push(AccountSpec {
+                name: "Cash Child".parse().unwrap(),
+                parent: Some(code("1.1")),
+                code: code("1.1.1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+            // Off-balance-sheet category
+            specs.push(AccountSpec {
+                name: "Off Balance Sheet".parse().unwrap(),
+                parent: None,
+                code: code("9"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+            specs.push(AccountSpec {
+                name: "Off Balance Sheet Sub".parse().unwrap(),
+                parent: Some(code("9")),
+                code: code("9.1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+            specs.push(AccountSpec {
+                name: "Off Balance Sheet Leaf".parse().unwrap(),
+                parent: Some(code("9.1")),
+                code: code("9.1.1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+
+            let _ = chart
+                .configure_with_initial_accounts(specs, base_config(), journal_id)
+                .unwrap();
+            hydrate_chart_of_accounts(&mut chart);
+
+            let result = chart
+                .account_sets_by_category(AccountCategory::OffBalanceSheet)
+                .unwrap();
+
+            // Should only contain off-balance-sheet account sets, not statement category ones
+            let codes: Vec<String> = result.iter().map(|a| a.code.to_string()).collect();
+            assert!(
+                !codes.iter().any(|c| c.starts_with("1")),
+                "Should not contain assets (code 1.x)"
+            );
+            assert!(
+                !codes.iter().any(|c| c.starts_with("2")),
+                "Should not contain liabilities (code 2.x)"
+            );
+            assert!(
+                !codes.iter().any(|c| c.starts_with("3")),
+                "Should not contain equity (code 3.x)"
+            );
+            assert!(
+                !codes.iter().any(|c| c.starts_with("4")),
+                "Should not contain revenue (code 4.x)"
+            );
+            assert!(
+                !codes.iter().any(|c| c.starts_with("5")),
+                "Should not contain cost of revenue (code 5.x)"
+            );
+            assert!(
+                !codes.iter().any(|c| c.starts_with("6")),
+                "Should not contain expenses (code 6.x)"
+            );
+            // Should contain the off-balance-sheet account set
+            assert!(codes.contains(&"9.1".to_string()));
+        }
+
+        #[test]
         fn returns_multiple_off_balance_sheet_category_accounts() {
             let mut chart = chart_from(initial_events());
             let journal_id = CalaJournalId::new();
