@@ -168,29 +168,6 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(
-        name = "outbox.core_credit.partial_liquidation.complete_liquidation_in_op",
-        skip(self, db)
-    )]
-    async fn complete_liquidation_in_op(
-        &self,
-        db: &mut DbOp<'_>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut collateral = self
-            .repo
-            .find_by_id_in_op(&mut *db, self.config.collateral_id)
-            .await?;
-
-        if collateral
-            .record_liquidation_completed(self.config.liquidation_id)?
-            .did_execute()
-        {
-            self.repo.update_in_op(db, &mut collateral).await?;
-        }
-
-        Ok(())
-    }
-
     #[instrument(name = "outbox.core_credit.partial_liquidation.process_message_in_op", parent = None, skip(self, message, db), fields(payment_id, seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message_in_op(
         &self,
@@ -210,8 +187,6 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
-
-                self.complete_liquidation_in_op(db).await?;
 
                 Ok(ControlFlow::Break(()))
             }
