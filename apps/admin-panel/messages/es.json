@@ -2365,7 +2365,7 @@
       "liability": "Pasivo",
       "equity": "Patrimonio",
       "revenue": "Ingresos",
-      "costOfRevenue": "Costo de Ingresos",
+      "costOfRevenue": "Costos",
       "expenses": "Gastos"
     },
     "deposit": {
