@@ -12,7 +12,7 @@ with
             created_at,
             modified_at,
             amount,
-            credit_facility_id,
+            beneficiary_id as credit_facility_id,
             _dlt_load_id,
             _dlt_id
         from {{ source("lana", "core_payment_events_rollup") }}

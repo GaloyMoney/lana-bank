@@ -13,7 +13,7 @@ with
             modified_at,
             payment_holding_account_id,
             amount,
-            credit_facility_id,
+            beneficiary_id as credit_facility_id,
             effective,
             ledger_tx_id,
             obligation_id,

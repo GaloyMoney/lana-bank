@@ -12,7 +12,7 @@ with
             created_at,
             modified_at,
             amount,
-            credit_facility_id,
+            beneficiary_id as credit_facility_id,
             defaulted_account_id,
             defaulted_amount,
             defaulted_date,
