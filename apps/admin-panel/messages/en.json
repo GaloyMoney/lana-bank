@@ -2391,6 +2391,13 @@
       "title": "Credit",
       "description": "Credit configuration",
       "setTitle": "Set Credit Configuration",
+      "accountSetSelectPlaceholder": "Select account set...",
+      "accountSetSearchPlaceholder": "Search account sets...",
+      "accountSetEmpty": "No account sets found.",
+      "groups": {
+        "omnibus": "Omnibus Accounts",
+        "summary": "Summary Accounts"
+      },
       "chartOfAccountsId": "Chart of Accounts ID",
       "chartOfAccountFacilityOmnibusParentCode": "Facility Omnibus Parent Code",
       "chartOfAccountCollateralOmnibusParentCode": "Collateral Omnibus Parent Code",

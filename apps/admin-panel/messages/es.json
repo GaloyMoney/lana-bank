@@ -2391,6 +2391,13 @@
       "title": "Crédito",
       "description": "Configuración de crédito",
       "setTitle": "Establecer configuración de crédito",
+      "accountSetSelectPlaceholder": "Selecciona un conjunto de cuentas...",
+      "accountSetSearchPlaceholder": "Buscar conjuntos de cuentas...",
+      "accountSetEmpty": "No se encontraron conjuntos de cuentas.",
+      "groups": {
+        "omnibus": "Cuentas Omnibus",
+        "summary": "Cuentas Resumen"
+      },
       "chartOfAccountsId": "ID del catálogo de cuentas",
       "chartOfAccountFacilityOmnibusParentCode": "Código padre ómnibus de línea de crédito",
       "chartOfAccountCollateralOmnibusParentCode": "Código padre ómnibus de garantía",
