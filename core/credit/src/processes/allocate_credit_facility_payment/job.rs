@@ -129,7 +129,7 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         use CoreCreditCollectionEvent::*;
 
-        if let Some(event @ PaymentReceived { entity }) = message.as_event() {
+        if let Some(event @ PaymentCreated { entity }) = message.as_event() {
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());

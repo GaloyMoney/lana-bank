@@ -101,7 +101,7 @@ where
             _ => {}
         }
 
-        if let Some(event @ CoreCreditCollectionEvent::PaymentAllocated { entity }) =
+        if let Some(event @ CoreCreditCollectionEvent::PaymentAllocationCreated { entity }) =
             message.as_event()
         {
             let id: CreditFacilityId = entity.beneficiary_id.into();

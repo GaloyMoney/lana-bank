@@ -250,7 +250,7 @@ impl CreditFacilityRepaymentPlan {
 
                 existing_obligations.push(entry);
             }
-            CoreCreditCollectionEvent::PaymentAllocated { entity } => {
+            CoreCreditCollectionEvent::PaymentAllocationCreated { entity } => {
                 if !self.applied_allocations.insert(entity.id) {
                     return false;
                 }
@@ -811,7 +811,7 @@ mod tests {
                     effective: interest_recorded_at.date_naive(),
                 },
             }),
-            TestEvent::Collection(CoreCreditCollectionEvent::PaymentAllocated {
+            TestEvent::Collection(CoreCreditCollectionEvent::PaymentAllocationCreated {
                 entity: PublicPaymentAllocation {
                     id: PaymentAllocationId::new(),
                     obligation_id: interest_obligation_id,
@@ -897,7 +897,7 @@ mod tests {
                     effective: interest_recorded_at.date_naive(),
                 },
             }),
-            TestEvent::Collection(CoreCreditCollectionEvent::PaymentAllocated {
+            TestEvent::Collection(CoreCreditCollectionEvent::PaymentAllocationCreated {
                 entity: PublicPaymentAllocation {
                     id: PaymentAllocationId::new(),
                     obligation_id: interest_obligation_id,
@@ -1126,7 +1126,7 @@ mod tests {
         ];
         process_test_events(&mut plan, events);
 
-        let payment_event = CoreCreditCollectionEvent::PaymentAllocated {
+        let payment_event = CoreCreditCollectionEvent::PaymentAllocationCreated {
             entity: PublicPaymentAllocation {
                 id: allocation_id,
                 obligation_id: interest_obligation_id,

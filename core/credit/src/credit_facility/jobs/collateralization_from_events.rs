@@ -185,7 +185,7 @@ where
             event @ (CoreCreditCollectionEvent::ObligationCreated {
                 entity: PublicObligation { beneficiary_id, .. },
             }
-            | CoreCreditCollectionEvent::PaymentAllocated {
+            | CoreCreditCollectionEvent::PaymentAllocationCreated {
                 entity: PublicPaymentAllocation { beneficiary_id, .. },
             }),
         ) = message.as_event()

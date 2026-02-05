@@ -167,7 +167,7 @@ where
 
         if let Some(collection_event) = message.as_event::<CoreCreditCollectionEvent>() {
             let facility_id = match collection_event {
-                CoreCreditCollectionEvent::PaymentAllocated {
+                CoreCreditCollectionEvent::PaymentAllocationCreated {
                     entity: PublicPaymentAllocation { beneficiary_id, .. },
                 }
                 | CoreCreditCollectionEvent::ObligationCreated {

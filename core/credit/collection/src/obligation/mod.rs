@@ -32,7 +32,6 @@ pub use entity::ObligationEvent;
 pub(crate) use entity::ObligationOverdueReallocationData;
 use error::ObligationError;
 pub(crate) use repo::ObligationRepo;
-pub use repo::obligation_cursor;
 
 pub struct Obligations<Perms, E>
 where

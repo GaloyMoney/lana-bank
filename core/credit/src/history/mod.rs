@@ -183,7 +183,7 @@ impl CreditFacilityHistory {
     }
 
     pub fn process_collection_event(&mut self, event: &CoreCreditCollectionEvent) {
-        if let CoreCreditCollectionEvent::PaymentAllocated { entity } = event {
+        if let CoreCreditCollectionEvent::PaymentAllocationCreated { entity } = event {
             self.entries
                 .push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
                     recorded_at: entity.recorded_at,

@@ -9,8 +9,8 @@ use super::{PublicObligation, PublicPayment, PublicPaymentAllocation};
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type")]
 pub enum CoreCreditCollectionEvent {
-    PaymentReceived { entity: PublicPayment },
-    PaymentAllocated { entity: PublicPaymentAllocation },
+    PaymentCreated { entity: PublicPayment },
+    PaymentAllocationCreated { entity: PublicPaymentAllocation },
     ObligationCreated { entity: PublicObligation },
     ObligationDue { entity: PublicObligation },
     ObligationOverdue { entity: PublicObligation },

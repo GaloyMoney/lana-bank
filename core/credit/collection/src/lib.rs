@@ -10,13 +10,6 @@ mod ledger;
 mod primitives;
 mod publisher;
 
-#[cfg(feature = "json-schema")]
-pub use obligation::ObligationEvent;
-#[cfg(feature = "json-schema")]
-pub use payment::PaymentEvent;
-#[cfg(feature = "json-schema")]
-pub use payment_allocation::PaymentAllocationEvent;
-
 use std::sync::Arc;
 
 use audit::AuditSvc;
@@ -26,10 +19,12 @@ use obix::out::OutboxEventMarker;
 
 pub use error::CoreCreditCollectionError;
 pub use obligation::{
-    NewObligation, Obligation, Obligations, error::ObligationError, obligation_cursor,
+    NewObligation, Obligation, ObligationEvent, Obligations, error::ObligationError,
 };
-pub use payment::{Payment, PaymentLedgerAccountIds, Payments, error::PaymentError};
-pub use payment_allocation::{PaymentAllocation, error::PaymentAllocationError};
+pub use payment::{Payment, PaymentEvent, PaymentLedgerAccountIds, Payments, error::PaymentError};
+pub use payment_allocation::{
+    PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
+};
 pub use primitives::{
     BalanceUpdateData, BalanceUpdatedSource, BeneficiaryId, CalaAccountId,
     CoreCreditCollectionAction, CoreCreditCollectionObject, ObligationAction, ObligationAllOrOne,

@@ -50,7 +50,7 @@ where
         use PaymentEvent::*;
         let publish_events = new_events
             .map(|event| match &event.event {
-                Initialized { .. } => CoreCreditCollectionEvent::PaymentReceived {
+                Initialized { .. } => CoreCreditCollectionEvent::PaymentCreated {
                     entity: PublicPayment::from(entity),
                 },
             })
@@ -75,7 +75,7 @@ where
         use PaymentAllocationEvent::*;
         let publish_events = new_events
             .map(|event| match &event.event {
-                Initialized { .. } => CoreCreditCollectionEvent::PaymentAllocated {
+                Initialized { .. } => CoreCreditCollectionEvent::PaymentAllocationCreated {
                     entity: PublicPaymentAllocation::from(entity),
                 },
             })
