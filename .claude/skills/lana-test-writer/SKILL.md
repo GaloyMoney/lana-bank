@@ -13,9 +13,9 @@ LANA follows hexagonal architecture and DDD principles. This architectural choic
 - **Use cases are thin orchestrators** - They coordinate database operations and call entity methods
 - **This makes mocking unnecessary** - Domain objects can be tested in isolation without external dependencies
 
-## Unit Tests
+# Unit Tests
 
-### Where to Write Them
+## Where to Write Them
 
 Write unit tests **directly in entity and value object files**, not in use cases or service layers.
 
@@ -27,7 +27,7 @@ Do NOT write unit tests for:
 - Repository implementations
 - Adapter layers
 
-### No Mocking Policy
+## No Mocking Policy
 
 Unit tests should not use mocking frameworks. The architecture makes this unnecessary:
 
@@ -37,7 +37,7 @@ Unit tests should not use mocking frameworks. The architecture makes this unnece
 
 If you find yourself needing to mock something, consider whether the logic should be moved into an entity or value object.
 
-### Entity Testing with Event Rehydration
+## Entity Testing with Event Rehydration
 
 LANA uses event sourcing for entities. Testing entities requires understanding the rehydration pattern:
 
@@ -48,7 +48,7 @@ LANA uses event sourcing for entities. Testing entities requires understanding t
 
 Use subagents to explore existing entity tests in `/core/*/src/*/entity.rs` files to understand the specific patterns used in this codebase. These patterns can be mimicked when writing new tests.
 
-### Comprehensive Test Planning
+## Comprehensive Test Planning
 
 Before writing tests, create a plan to ensure thorough coverage:
 
@@ -64,25 +64,41 @@ Existing tests may need updates when:
 
 The goal is a complete, maintainable test suite - not just adding new tests in isolation.
 
-## BATS Integration Tests
+# Integration Tests
 
-### Purpose
+## When Database Interaction Is Acceptable
+
+Some functionality requires actual database interaction for testing:
+- Event publication and outbox patterns
+- Repository behavior verification
+- Multi-step workflows involving persistence
+
+These tests live in `/core/<module>/tests/` directories.
+
+**This is the exception, not the rule.** Only use database-backed tests when:
+1. Testing outbox/event publication workflows
+2. The behavior fundamentally depends on persistence semantics
+3. Unit testing would require impractical amounts of setup
+
+# BATS E2E Tests
+
+## Purpose
 
 BATS tests verify end-to-end behavior through the GraphQL API. They exist in `/bats/`.
 
-### What to Test
+## What to Test
 
 - **Happy paths**: Successful workflows and operations
 - **User journeys**: Complete business processes (e.g., loan origination to disbursement)
 - **API contracts**: GraphQL mutations and queries work as documented
 
-### What NOT to Test
+## What NOT to Test
 
 - **Edge cases**: These belong in unit tests where validation logic lives
 - **Error conditions**: Test these at the entity/value object level
 - **Internal implementation details**: BATS tests should treat the system as a black box
 
-### Structure and Conventions
+## Structure and Conventions
 
 BATS tests use helper functions for common operations:
 - GraphQL execution helpers
@@ -91,7 +107,7 @@ BATS tests use helper functions for common operations:
 
 Use subagents to explore `/bats/helpers/` to understand available test utilities before writing new tests.
 
-### Shared Database State
+## Shared Database State
 
 All BATS tests run against a **single shared database instance**. This has important implications:
 
@@ -106,23 +122,7 @@ When writing new BATS tests:
 3. If your test relies on specific state, ensure earlier tests create that state or create it yourself
 4. Do not assume any table is empty
 
-## Module Integration Tests
-
-### When Database Interaction Is Acceptable
-
-Some functionality requires actual database interaction for testing:
-- Event publication and outbox patterns
-- Repository behavior verification
-- Multi-step workflows involving persistence
-
-These tests live in `/core/<module>/tests/` directories.
-
-**This is the exception, not the rule.** Only use database-backed tests when:
-1. Testing outbox/event publication workflows
-2. The behavior fundamentally depends on persistence semantics
-3. Unit testing would require impractical amounts of setup
-
-## Gathering Context
+# Gathering Context
 
 When writing tests, use subagents to explore existing patterns:
 
@@ -133,7 +133,7 @@ When writing tests, use subagents to explore existing patterns:
 
 Do not guess at patterns - let the existing codebase guide your approach.
 
-## Test Writing Checklist
+# Test Writing Checklist
 
 Before writing a test, answer these questions:
 
@@ -144,7 +144,7 @@ Before writing a test, answer these questions:
 - [ ] **Am I tempted to mock?** Reconsider - the logic might be in the wrong place
 - [ ] **Have I checked existing patterns?** Use subagents to explore before inventing
 
-## Running Tests
+# Running Tests
 
 - `cargo nextest run` - Run all Rust tests
 - `cargo nextest run -p <crate>` - Run tests for a specific crate
