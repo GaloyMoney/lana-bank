@@ -126,7 +126,7 @@ When writing new BATS tests:
 1. Consider what state the database will be in when your test runs
 2. Use unique identifiers or timestamps to avoid conflicts with existing test data
 3. If your test relies on specific state, ensure earlier tests create that state or create it yourself
-4. Do not assume any table is empty
+4. Assume sqlx migrations has run `lana/app/migrations/*.sql`, and that tests may or may not have run previously
 
 # Test Writing Checklist
 
