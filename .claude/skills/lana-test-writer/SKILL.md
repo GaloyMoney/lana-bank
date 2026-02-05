@@ -15,6 +15,9 @@ LANA follows hexagonal architecture and DDD principles. This architectural choic
 
 # Unit Tests
 
+- `cargo nextest run` - Run all Rust tests
+- `cargo nextest run -p <crate>` - Run tests for a specific crate
+
 ## Where to Write Them
 
 Write unit tests **directly in entity and value object files**, not in use cases or service layers.
@@ -66,6 +69,9 @@ The goal is a complete, maintainable test suite - not just adding new tests in i
 
 # Integration Tests
 
+- `cargo nextest run` - Run all Rust tests
+- `cargo nextest run -p <crate>` - Run tests for a specific crate
+
 ## When Database Interaction Is Acceptable
 
 Some functionality requires actual database interaction for testing:
@@ -81,6 +87,8 @@ These tests live in `/{core,lib}/<module>/tests/` directories. Use subagents wit
 3. There is specific behavior in the service/application layer that requires test-based verification
 
 # BATS E2E Tests
+
+`make e2e` - Run BATS integration tests
 
 ## Purpose
 
@@ -130,9 +138,3 @@ Before writing a test, answer these questions:
 - [ ] **Do I need database interaction?** Only use `/core/<module>/tests/` if absolutely necessary
 - [ ] **Am I tempted to mock?** Reconsider - the logic might be in the wrong place
 - [ ] **Have I checked existing patterns?** Use subagents to explore before inventing
-
-# Running Tests
-
-- `cargo nextest run` - Run all Rust tests
-- `cargo nextest run -p <crate>` - Run tests for a specific crate
-- `make e2e` - Run BATS integration tests
