@@ -54,7 +54,7 @@
       "type": "object"
     },
     "LiquidationProceedsAccountIds": {
-      "description": "Account IDs needed for recording proceeds from liquidation.\nThese come from the credit facility and collateral accounts.",
+      "description": "Account IDs needed for recording proceeds from liquidation.",
       "properties": {
         "collateral_in_liquidation_account_id": {
           "format": "uuid",
