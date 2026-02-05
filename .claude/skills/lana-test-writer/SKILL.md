@@ -105,8 +105,6 @@ BATS tests use helper functions for common operations:
 - State caching utilities
 - Balance verification functions
 
-Use subagents to explore `/bats/helpers/` to understand available test utilities before writing new tests.
-
 ## Shared Database State
 
 All BATS tests run against a **single shared database instance**. This has important implications:
