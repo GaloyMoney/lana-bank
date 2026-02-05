@@ -1184,8 +1184,7 @@ mod test {
         fn returns_id_for_valid_asset_category() {
             let chart = chart_with_base_config_and_asset_members();
 
-            let result =
-                chart.find_account_set_id_in_category(&code("1"), AccountCategory::Asset);
+            let result = chart.find_account_set_id_in_category(&code("1"), AccountCategory::Asset);
             assert!(result.is_some());
 
             let result =
@@ -1197,8 +1196,8 @@ mod test {
         fn returns_id_for_valid_off_balance_sheet_category() {
             let chart = chart_with_base_config_and_asset_members();
 
-            let result = chart
-                .find_account_set_id_in_category(&code("9"), AccountCategory::OffBalanceSheet);
+            let result =
+                chart.find_account_set_id_in_category(&code("9"), AccountCategory::OffBalanceSheet);
             assert!(result.is_some());
         }
 
@@ -1219,8 +1218,8 @@ mod test {
                 chart.find_account_set_id_in_category(&code("1"), AccountCategory::Revenue);
             assert!(result.is_none());
 
-            let result = chart
-                .find_account_set_id_in_category(&code("4"), AccountCategory::OffBalanceSheet);
+            let result =
+                chart.find_account_set_id_in_category(&code("4"), AccountCategory::OffBalanceSheet);
             assert!(result.is_none());
         }
 
@@ -1228,8 +1227,7 @@ mod test {
         fn returns_none_when_code_not_found() {
             let chart = chart_with_base_config_and_asset_members();
 
-            let result =
-                chart.find_account_set_id_in_category(&code("99"), AccountCategory::Asset);
+            let result = chart.find_account_set_id_in_category(&code("99"), AccountCategory::Asset);
             assert!(result.is_none());
         }
 
@@ -1238,8 +1236,7 @@ mod test {
             // Use default_chart which has accounts but no base_config
             let (chart, _) = default_chart();
 
-            let result =
-                chart.find_account_set_id_in_category(&code("1"), AccountCategory::Asset);
+            let result = chart.find_account_set_id_in_category(&code("1"), AccountCategory::Asset);
             assert!(result.is_none());
         }
     }
