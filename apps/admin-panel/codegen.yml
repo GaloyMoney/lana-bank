@@ -25,6 +25,7 @@ generates:
         Satoshis: "types#Satoshis"
         SignedUsdCents: "types#SignedUsdCents"
         SignedSatoshis: "types#SignedSatoshis"
+        AuditSubjectId: string
   ./lib/graphql/generated/mocks.ts:
     plugins:
       - add:
@@ -103,6 +104,7 @@ generates:
             AnnualRatePct: "generateMockValue.int()"
             CVLPct: "generateMockValue.int()"
             DisbursalIdx: "generateMockValue.int()"
+            AuditSubjectId: "generateMockValue.uuid()"
           fieldGeneration:
             _all:
               email: "generateMockValue.email()"

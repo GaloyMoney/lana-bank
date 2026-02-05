@@ -24,6 +24,7 @@ export type Scalars = {
   AccountCode: { input: any; output: any; }
   AnnualRatePct: { input: any; output: any; }
   AuditEntryId: { input: any; output: any; }
+  AuditSubjectId: { input: string; output: string; }
   CVLPctValue: { input: any; output: any; }
   Date: { input: any; output: any; }
   Decimal: { input: any; output: any; }
@@ -2436,7 +2437,7 @@ export type Query = {
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
-  auditSubjects: Array<Scalars['String']['output']>;
+  auditSubjects: Array<Scalars['AuditSubjectId']['output']>;
   balanceSheet: BalanceSheet;
   chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;
@@ -2528,7 +2529,7 @@ export type QueryAuditArgs = {
   authorized?: InputMaybe<Scalars['Boolean']['input']>;
   first: Scalars['Int']['input'];
   object?: InputMaybe<Scalars['String']['input']>;
-  subject?: InputMaybe<Scalars['String']['input']>;
+  subject?: InputMaybe<Scalars['AuditSubjectId']['input']>;
 };
 
 
@@ -3374,7 +3375,7 @@ export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typ
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
-  subject?: InputMaybe<Scalars['String']['input']>;
+  subject?: InputMaybe<Scalars['AuditSubjectId']['input']>;
   authorized?: InputMaybe<Scalars['Boolean']['input']>;
   object?: InputMaybe<Scalars['String']['input']>;
   action?: InputMaybe<Scalars['String']['input']>;
@@ -6053,7 +6054,7 @@ export type AllActionsLazyQueryHookResult = ReturnType<typeof useAllActionsLazyQ
 export type AllActionsSuspenseQueryHookResult = ReturnType<typeof useAllActionsSuspenseQuery>;
 export type AllActionsQueryResult = Apollo.QueryResult<AllActionsQuery, AllActionsQueryVariables>;
 export const AuditLogsDocument = gql`
-    query AuditLogs($first: Int!, $after: String, $subject: String, $authorized: Boolean, $object: String, $action: String) {
+    query AuditLogs($first: Int!, $after: String, $subject: AuditSubjectId, $authorized: Boolean, $object: String, $action: String) {
   audit(
     first: $first
     after: $after

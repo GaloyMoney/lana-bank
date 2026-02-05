@@ -25,7 +25,7 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 
 gql`
-  query AuditLogs($first: Int!, $after: String, $subject: String, $authorized: Boolean, $object: String, $action: String) {
+  query AuditLogs($first: Int!, $after: String, $subject: AuditSubjectId, $authorized: Boolean, $object: String, $action: String) {
     audit(first: $first, after: $after, subject: $subject, authorized: $authorized, object: $object, action: $action) {
       edges {
         cursor

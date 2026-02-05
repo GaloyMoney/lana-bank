@@ -941,13 +941,13 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-        subject: Option<String>,
+        subject: Option<AuditSubjectId>,
         authorized: Option<bool>,
         object: Option<String>,
         action: Option<String>,
     ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let subject_filter = subject;
+        let subject_filter: Option<String> = subject.map(String::from);
         let authorized_filter = authorized;
         let object_filter = object;
         let action_filter = action;
@@ -986,9 +986,14 @@ impl Query {
         .await
     }
 
-    async fn audit_subjects(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<String>> {
+    async fn audit_subjects(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditSubjectId>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        Ok(app.list_audit_subjects(sub).await?)
+        Ok(app
+            .list_audit_subjects(sub)
+            .await?
+            .into_iter()
+            .map(AuditSubjectId::from)
+            .collect())
     }
 
     async fn deposit_config(

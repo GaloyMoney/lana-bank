@@ -85,6 +85,21 @@ impl From<audit::AuditEntryId> for AuditEntryId {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct AuditSubjectId(String);
+scalar!(AuditSubjectId);
+impl From<String> for AuditSubjectId {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+impl From<AuditSubjectId> for String {
+    fn from(value: AuditSubjectId) -> Self {
+        value.0
+    }
+}
+
 pub trait ToGlobalId {
     fn to_global_id(&self) -> async_graphql::types::ID;
 }
