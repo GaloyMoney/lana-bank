@@ -149,10 +149,10 @@ All public `&self` methods on `#[derive(EsEntity)]` structs must NOT return `Res
 - Frontend uses Apollo Client - run codegen after schema changes
 - Don't mix admin/customer Keycloak realms
 
-## Function Naming Conventions
-- `new` - Always succeeds, sync
-- `try_new` - Might fail, sync
-- `init` - Might fail, async
+## Function Naming Conventions (lint: `constructor-naming`)
+- `new` - Always succeeds, sync. Must NOT return `Result`. Must NOT be async.
+- `try_new` - Might fail, sync. MUST return `Result`. Must NOT be async.
+- `init` - Might fail, async. MUST be async. MUST return `Result`.
 - `*_without_audit` suffix - Must return `Result<X, XError>`, not `Option`
 
 ## Coding Rules
