@@ -78,7 +78,7 @@ These tests live in `/core/<module>/tests/` directories.
 **This is the exception, not the rule.** Only use database-backed tests when:
 1. Testing outbox/event publication workflows
 2. The behavior fundamentally depends on persistence semantics
-3. Unit testing would require impractical amounts of setup
+3. There is specific behavior in the service/application layer that requires test-based verification
 
 # BATS E2E Tests
 
