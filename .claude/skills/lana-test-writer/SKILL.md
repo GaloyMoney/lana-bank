@@ -82,7 +82,7 @@ Some functionality requires actual database interaction for testing:
 These tests live in `/{core,lib}/<module>/tests/` directories. Use subagents with `Glob("**/{core,lib}/**/tests/")` to explore existing patterns.
 
 **This is the exception, not the rule.** Only use database-backed tests when:
-1. Testing outbox/event publication workflows
+1. Testing outbox/event publication workflows. Outbox events should always be tested like this.
 2. The behavior fundamentally depends on persistence semantics
 3. There is specific behavior in the service/application layer that requires test-based verification
 
