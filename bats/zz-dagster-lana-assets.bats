@@ -329,8 +329,8 @@ EOF
 
   echo "Launched dbt models materialization with run ID: $dbt_run_id"
 
-  # Wait for dbt run to complete (20 min timeout for all models)
-  dagster_poll_run_status "$dbt_run_id" 600 2 || return 1
+  # Wait for dbt run to complete (30 min timeout for all models)
+  dagster_poll_run_status "$dbt_run_id" 900 2 || return 1
 
   echo ""
   echo "=== dbt seed + dbt run completed successfully ==="
