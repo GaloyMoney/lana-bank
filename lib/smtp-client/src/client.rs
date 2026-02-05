@@ -12,7 +12,7 @@ pub struct SmtpClient {
 }
 
 impl SmtpClient {
-    pub fn init(config: SmtpConfig) -> Result<Self, SmtpError> {
+    pub fn try_new(config: SmtpConfig) -> Result<Self, SmtpError> {
         let client = if config.insecure {
             AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&config.relay)
                 .port(config.port)

@@ -62,8 +62,8 @@ where
         credit: &CoreCredit<Perms, LanaEvent>,
         customers: &Customers<Perms, LanaEvent>,
     ) -> Result<Self, EmailError> {
-        let template = EmailTemplate::new(infra_config.admin_panel_url.clone())?;
-        let smtp_client = SmtpClient::init(infra_config.to_smtp_config())?;
+        let template = EmailTemplate::try_new(infra_config.admin_panel_url.clone())?;
+        let smtp_client = SmtpClient::try_new(infra_config.to_smtp_config())?;
 
         let email_sender_job_spawner = jobs.add_initializer(EmailSenderInit::new(
             smtp_client,

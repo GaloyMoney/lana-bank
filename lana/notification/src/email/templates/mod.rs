@@ -25,7 +25,7 @@ pub struct EmailTemplate {
 
 impl EmailTemplate {
     #[allow(clippy::result_large_err)]
-    pub fn new(admin_panel_url: Url) -> Result<Self, EmailError> {
+    pub fn try_new(admin_panel_url: Url) -> Result<Self, EmailError> {
         let mut handlebars = Handlebars::new();
         handlebars.register_template_string("base", include_str!("layouts/base.hbs"))?;
         handlebars.register_template_string("styles", include_str!("partials/styles.hbs"))?;

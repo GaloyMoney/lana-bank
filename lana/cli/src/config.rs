@@ -76,7 +76,7 @@ pub struct EnvSecrets {
 }
 
 impl Config {
-    pub fn init(
+    pub fn try_new(
         path: impl AsRef<Path>,
         EnvSecrets {
             pg_con,
