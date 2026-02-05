@@ -194,6 +194,8 @@ scalar AuditEntryId
 
 union AuditSubject = User | System
 
+scalar AuditSubjectId
+
 type BalanceSheet {
 	name: String!
 	balance: LedgerAccountBalanceRange!
@@ -2215,7 +2217,8 @@ type Query {
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!
-	audit(first: Int!, after: String): AuditEntryConnection!
+	audit(first: Int!, after: String, subject: AuditSubjectId, authorized: Boolean, object: String, action: String): AuditEntryConnection!
+	auditSubjects: [AuditSubjectId!]!
 	depositConfig: DepositModuleConfig
 	domainConfigs(first: Int!, after: String): DomainConfigConnection!
 	creditConfig: CreditModuleConfig

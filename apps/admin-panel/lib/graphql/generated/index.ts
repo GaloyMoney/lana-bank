@@ -24,6 +24,7 @@ export type Scalars = {
   AccountCode: { input: any; output: any; }
   AnnualRatePct: { input: any; output: any; }
   AuditEntryId: { input: any; output: any; }
+  AuditSubjectId: { input: string; output: string; }
   CVLPctValue: { input: any; output: any; }
   Date: { input: any; output: any; }
   Decimal: { input: any; output: any; }
@@ -2436,6 +2437,7 @@ export type Query = {
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
+  auditSubjects: Array<Scalars['AuditSubjectId']['output']>;
   balanceSheet: BalanceSheet;
   chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;
@@ -2522,8 +2524,12 @@ export type QueryApprovalProcessesArgs = {
 
 
 export type QueryAuditArgs = {
+  action?: InputMaybe<Scalars['String']['input']>;
   after?: InputMaybe<Scalars['String']['input']>;
+  authorized?: InputMaybe<Scalars['Boolean']['input']>;
   first: Scalars['Int']['input'];
+  object?: InputMaybe<Scalars['String']['input']>;
+  subject?: InputMaybe<Scalars['AuditSubjectId']['input']>;
 };
 
 
@@ -3369,6 +3375,10 @@ export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typ
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  subject?: InputMaybe<Scalars['AuditSubjectId']['input']>;
+  authorized?: InputMaybe<Scalars['Boolean']['input']>;
+  object?: InputMaybe<Scalars['String']['input']>;
+  action?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -3376,6 +3386,11 @@ export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'Audi
           | { __typename?: 'System', name: string }
           | { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string } }
          } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type AuditSubjectsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AuditSubjectsQuery = { __typename?: 'Query', auditSubjects: Array<string> };
 
 export type BalanceSheetQueryVariables = Exact<{
   from: Scalars['Date']['input'];
@@ -6039,8 +6054,15 @@ export type AllActionsLazyQueryHookResult = ReturnType<typeof useAllActionsLazyQ
 export type AllActionsSuspenseQueryHookResult = ReturnType<typeof useAllActionsSuspenseQuery>;
 export type AllActionsQueryResult = Apollo.QueryResult<AllActionsQuery, AllActionsQueryVariables>;
 export const AuditLogsDocument = gql`
-    query AuditLogs($first: Int!, $after: String) {
-  audit(first: $first, after: $after) {
+    query AuditLogs($first: Int!, $after: String, $subject: AuditSubjectId, $authorized: Boolean, $object: String, $action: String) {
+  audit(
+    first: $first
+    after: $after
+    subject: $subject
+    authorized: $authorized
+    object: $object
+    action: $action
+  ) {
     edges {
       cursor
       node {
@@ -6089,6 +6111,10 @@ export const AuditLogsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      subject: // value for 'subject'
+ *      authorized: // value for 'authorized'
+ *      object: // value for 'object'
+ *      action: // value for 'action'
  *   },
  * });
  */
@@ -6111,6 +6137,46 @@ export type AuditLogsQueryHookResult = ReturnType<typeof useAuditLogsQuery>;
 export type AuditLogsLazyQueryHookResult = ReturnType<typeof useAuditLogsLazyQuery>;
 export type AuditLogsSuspenseQueryHookResult = ReturnType<typeof useAuditLogsSuspenseQuery>;
 export type AuditLogsQueryResult = Apollo.QueryResult<AuditLogsQuery, AuditLogsQueryVariables>;
+export const AuditSubjectsDocument = gql`
+    query AuditSubjects {
+  auditSubjects
+}
+    `;
+
+/**
+ * __useAuditSubjectsQuery__
+ *
+ * To run a query within a React component, call `useAuditSubjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAuditSubjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAuditSubjectsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAuditSubjectsQuery(baseOptions?: Apollo.QueryHookOptions<AuditSubjectsQuery, AuditSubjectsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AuditSubjectsQuery, AuditSubjectsQueryVariables>(AuditSubjectsDocument, options);
+      }
+export function useAuditSubjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AuditSubjectsQuery, AuditSubjectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AuditSubjectsQuery, AuditSubjectsQueryVariables>(AuditSubjectsDocument, options);
+        }
+// @ts-ignore
+export function useAuditSubjectsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AuditSubjectsQuery, AuditSubjectsQueryVariables>): Apollo.UseSuspenseQueryResult<AuditSubjectsQuery, AuditSubjectsQueryVariables>;
+export function useAuditSubjectsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AuditSubjectsQuery, AuditSubjectsQueryVariables>): Apollo.UseSuspenseQueryResult<AuditSubjectsQuery | undefined, AuditSubjectsQueryVariables>;
+export function useAuditSubjectsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AuditSubjectsQuery, AuditSubjectsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AuditSubjectsQuery, AuditSubjectsQueryVariables>(AuditSubjectsDocument, options);
+        }
+export type AuditSubjectsQueryHookResult = ReturnType<typeof useAuditSubjectsQuery>;
+export type AuditSubjectsLazyQueryHookResult = ReturnType<typeof useAuditSubjectsLazyQuery>;
+export type AuditSubjectsSuspenseQueryHookResult = ReturnType<typeof useAuditSubjectsSuspenseQuery>;
+export type AuditSubjectsQueryResult = Apollo.QueryResult<AuditSubjectsQuery, AuditSubjectsQueryVariables>;
 export const BalanceSheetDocument = gql`
     query BalanceSheet($from: Date!, $until: Date) {
   balanceSheet(from: $from, until: $until) {

@@ -7,13 +7,13 @@ pub const PERMISSION_SET_AUDIT_VIEWER: &str = "audit_viewer";
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AuditAction {
-    Audit(AuditEntityAction),
+    Audit(AuditEntryAction),
 }
 
 impl AuditAction {
     pub fn actions() -> Vec<ActionMapping> {
         use AuditActionDiscriminants::*;
-        map_action!(audit, Audit, AuditEntityAction)
+        map_action!(audit, Audit, AuditEntryAction)
     }
 }
 
@@ -36,7 +36,7 @@ impl FromStr for AuditAction {
         let action = elems.next().expect("missing second element");
         use AuditActionDiscriminants::*;
         let res = match entity.parse()? {
-            Audit => AuditAction::from(action.parse::<AuditEntityAction>()?),
+            Audit => AuditAction::from(action.parse::<AuditEntryAction>()?),
         };
         Ok(res)
     }
@@ -44,11 +44,11 @@ impl FromStr for AuditAction {
 
 #[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
-pub enum AuditEntityAction {
+pub enum AuditEntryAction {
     List,
 }
 
-impl ActionPermission for AuditEntityAction {
+impl ActionPermission for AuditEntryAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::List => PERMISSION_SET_AUDIT_VIEWER,
@@ -56,8 +56,8 @@ impl ActionPermission for AuditEntityAction {
     }
 }
 
-impl From<AuditEntityAction> for AuditAction {
-    fn from(action: AuditEntityAction) -> Self {
+impl From<AuditEntryAction> for AuditAction {
+    fn from(action: AuditEntryAction) -> Self {
         AuditAction::Audit(action)
     }
 }

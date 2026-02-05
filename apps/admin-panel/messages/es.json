@@ -2024,6 +2024,14 @@
         "authorizedNo": "No",
         "recordedAt": "Registrado El"
       },
+      "filters": {
+        "allSubjects": "Todos los Sujetos",
+        "allAuthorized": "Todas las autorizaciones",
+        "authorizedOnly": "Autorizado",
+        "unauthorizedOnly": "No Autorizado",
+        "objectPlaceholder": "Filtrar por objeto",
+        "actionPlaceholder": "Filtrar por acción"
+      },
       "error": "Ocurrió un error al obtener los registros de auditoría.",
       "emptyMessage": "No se encontraron registros de auditoría."
     }

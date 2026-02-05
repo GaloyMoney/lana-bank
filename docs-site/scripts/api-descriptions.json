@@ -63,6 +63,7 @@
       "profitAndLossStatement": "Generates a profit and loss statement for the specified date range",
       "realtimePrice": "Returns the current BTC/USD exchange rate",
       "audit": "Returns a paginated list of audit log entries",
+      "auditSubjects": "Returns a list of distinct audit log subjects",
       "depositConfig": "Returns the current deposit module configuration",
       "domainConfigs": "Returns a paginated list of all domain configuration settings",
       "creditConfig": "Returns the current credit module configuration",

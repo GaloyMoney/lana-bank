@@ -8,7 +8,7 @@ use tracing_macros::record_error_severity;
 
 use authz::PermissionCheck;
 
-use rbac_types::{AuditAction, AuditEntityAction, AuditObject};
+use rbac_types::{AuditAction, AuditEntryAction, AuditObject};
 
 use crate::{
     access::Access,
@@ -325,6 +325,10 @@ impl LanaApp {
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
+        subject_filter: Option<String>,
+        authorized_filter: Option<bool>,
+        object_filter: Option<String>,
+        action_filter: Option<String>,
     ) -> Result<es_entity::PaginatedQueryRet<AuditEntry, AuditCursor>, ApplicationError> {
         use crate::audit::AuditSvc;
 
@@ -332,11 +336,39 @@ impl LanaApp {
             .enforce_permission(
                 sub,
                 AuditObject::all_audits(),
-                AuditAction::from(AuditEntityAction::List),
+                AuditAction::from(AuditEntryAction::List),
             )
             .await?;
 
-        self.audit.list(query).await.map_err(ApplicationError::from)
+        self.audit
+            .list(
+                query,
+                subject_filter,
+                authorized_filter,
+                object_filter,
+                action_filter,
+            )
+            .await
+            .map_err(ApplicationError::from)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "lana.audit.list_audit_subjects", skip(self))]
+    pub async fn list_audit_subjects(
+        &self,
+        sub: &Subject,
+    ) -> Result<Vec<String>, ApplicationError> {
+        use crate::audit::AuditSvc;
+
+        self.authz
+            .enforce_permission(
+                sub,
+                AuditObject::all_audits(),
+                AuditAction::from(AuditEntryAction::List),
+            )
+            .await?;
+
+        Ok(self.audit.list_subjects().await?)
     }
 
     pub fn accounting(&self) -> &Accounting {

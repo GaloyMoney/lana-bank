@@ -1,10 +1,23 @@
 "use client"
+import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { formatDate } from "@lana/web/utils"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@lana/web/ui/select"
+import { Input } from "@lana/web/ui/input"
 
-import { AuditEntry, useAuditLogsQuery } from "@/lib/graphql/generated"
+import {
+  AuditEntry,
+  useAuditLogsQuery,
+  useAuditSubjectsQuery,
+} from "@/lib/graphql/generated"
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
@@ -12,8 +25,8 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 
 gql`
-  query AuditLogs($first: Int!, $after: String) {
-    audit(first: $first, after: $after) {
+  query AuditLogs($first: Int!, $after: String, $subject: AuditSubjectId, $authorized: Boolean, $object: String, $action: String) {
+    audit(first: $first, after: $after, subject: $subject, authorized: $authorized, object: $object, action: $action) {
       edges {
         cursor
         node {
@@ -48,13 +61,34 @@ gql`
   }
 `
 
+gql`
+  query AuditSubjects {
+    auditSubjects
+  }
+`
+
 const AuditLogsList = () => {
   const t = useTranslations("AuditLogs.table")
+
+  const [subjectFilter, setSubjectFilter] = useState<string | undefined>(undefined)
+  const [authorizedFilter, setAuthorizedFilter] = useState<boolean | undefined>(
+    undefined,
+  )
+  const [objectFilter, setObjectFilter] = useState<string | undefined>(undefined)
+  const [actionFilter, setActionFilter] = useState<string | undefined>(undefined)
 
   const { data, loading, error, fetchMore } = useAuditLogsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      subject: subjectFilter ?? null,
+      authorized: authorizedFilter ?? null,
+      object: objectFilter ?? null,
+      action: actionFilter ?? null,
     },
+    fetchPolicy: "cache-and-network",
+  })
+
+  const { data: subjectsData } = useAuditSubjectsQuery({
     fetchPolicy: "cache-and-network",
   })
 
@@ -68,9 +102,15 @@ const AuditLogsList = () => {
       key: "subject",
       label: t("headers.subject"),
       labelClassName: "w-[20%]",
-      render: (subject) => (
-        <div>{subject.__typename === "User" ? subject.email : subject.__typename}</div>
-      ),
+      render: (subject) => {
+        if (subject.__typename === "User") {
+          return <div>user: {subject.email}</div>
+        }
+        if (subject.__typename === "System") {
+          return <div>system</div>
+        }
+        return <div>{subject.__typename}</div>
+      },
     },
     {
       key: "object",
@@ -103,12 +143,66 @@ const AuditLogsList = () => {
   return (
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
+      <div className="flex gap-2 mb-4">
+        <Select
+          value={subjectFilter ?? "all"}
+          onValueChange={(val) => setSubjectFilter(val === "all" ? undefined : val)}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder={t("filters.allSubjects")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("filters.allSubjects")}</SelectItem>
+            {subjectsData?.auditSubjects.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={authorizedFilter === undefined ? "all" : String(authorizedFilter)}
+          onValueChange={(val) =>
+            setAuthorizedFilter(val === "all" ? undefined : val === "true")
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder={t("filters.allAuthorized")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("filters.allAuthorized")}</SelectItem>
+            <SelectItem value="true">{t("filters.authorizedOnly")}</SelectItem>
+            <SelectItem value="false">{t("filters.unauthorizedOnly")}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          placeholder={t("filters.objectPlaceholder")}
+          value={objectFilter ?? ""}
+          onChange={(e) => setObjectFilter(e.target.value || undefined)}
+        />
+        <Input
+          placeholder={t("filters.actionPlaceholder")}
+          value={actionFilter ?? ""}
+          onChange={(e) => setActionFilter(e.target.value || undefined)}
+        />
+      </div>
       <PaginatedTable<AuditEntry>
+        key={`${subjectFilter}-${authorizedFilter}-${objectFilter}-${actionFilter}`}
         columns={columns}
         data={data?.audit as PaginatedData<AuditEntry>}
         loading={loading}
         pageSize={DEFAULT_PAGESIZE}
-        fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+        fetchMore={async (cursor) =>
+          fetchMore({
+            variables: {
+              after: cursor,
+              subject: subjectFilter ?? null,
+              authorized: authorizedFilter ?? null,
+              object: objectFilter ?? null,
+              action: actionFilter ?? null,
+            },
+          })
+        }
       />
     </div>
   )
