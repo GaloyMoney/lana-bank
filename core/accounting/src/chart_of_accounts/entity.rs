@@ -352,7 +352,7 @@ impl Chart {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
 
-    pub fn account_sets_under_code(&self, code: &AccountCode) -> Vec<AccountInfo> {
+    fn account_sets_under_code(&self, code: &AccountCode) -> Vec<AccountInfo> {
         self.chart()
             .find_node_by_code(code)
             .map(|node| node.descendant_account_sets())
