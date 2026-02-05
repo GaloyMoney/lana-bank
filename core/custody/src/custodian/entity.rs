@@ -65,7 +65,6 @@ impl Custodian {
         Idempotent::Executed(())
     }
 
-    #[allow(dead_code)]
     fn custodian_config(&self, key: EncryptionKey) -> CustodianConfig {
         let (encrypted_config, nonce) = &self.encrypted_custodian_config;
         CustodianConfig::decrypt(&key, encrypted_config, nonce)

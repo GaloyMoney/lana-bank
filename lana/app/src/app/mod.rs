@@ -25,6 +25,7 @@ use crate::{
     deposit::Deposits,
     deposit_sync::DepositSync,
     document::DocumentStorage,
+    domain_config::{ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs},
     governance::Governance,
     job::Jobs,
     kyc::CustomerKyc,
@@ -39,7 +40,6 @@ use crate::{
     time_events::TimeEvents,
     user_onboarding::UserOnboarding,
 };
-use domain_config::{ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 
 pub use config::*;
 use error::ApplicationError;
@@ -94,9 +94,10 @@ impl LanaApp {
         )
         .await?;
         let authz = Authorization::init(&pool, &audit).await?;
-        let internal_domain_configs = InternalDomainConfigs::new(&pool);
-        let exposed_domain_configs = ExposedDomainConfigs::new(&pool, &authz);
-        let exposed_domain_configs_readonly = ExposedDomainConfigsReadOnly::new(&pool);
+        let internal_domain_configs = InternalDomainConfigs::new(&pool, config.encryption);
+        let exposed_domain_configs = ExposedDomainConfigs::new(&pool, &authz, config.encryption);
+        let exposed_domain_configs_readonly =
+            ExposedDomainConfigsReadOnly::new(&pool, config.encryption);
         internal_domain_configs.seed_registered().await?;
         exposed_domain_configs.seed_registered().await?;
 

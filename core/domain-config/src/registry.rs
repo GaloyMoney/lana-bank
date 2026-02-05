@@ -5,6 +5,7 @@ pub struct ConfigSpecEntry {
     pub key: &'static str,
     pub visibility: Visibility,
     pub config_type: ConfigType,
+    pub encrypted: bool,
     pub validate_json: fn(&serde_json::Value) -> Result<(), crate::DomainConfigError>,
 }
 
