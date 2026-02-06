@@ -34,7 +34,7 @@ pub struct AppConfig {
     pub report: ReportConfig,
     #[serde(default)]
     pub gotenberg: GotenbergConfig,
-    #[serde(default)]
+    #[serde(skip)]
     pub encryption: DomainEncryptionConfig,
 }
 
