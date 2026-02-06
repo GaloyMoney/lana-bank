@@ -28,6 +28,9 @@
         "config_type": {
           "$ref": "#/$defs/ConfigType"
         },
+        "encrypted": {
+          "type": "boolean"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -48,7 +51,8 @@
         "id",
         "key",
         "config_type",
-        "visibility"
+        "visibility",
+        "encrypted"
       ],
       "type": "object"
     },
