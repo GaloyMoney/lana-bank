@@ -164,7 +164,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .expect("super user");
 
     let (clock, _clock_ctrl) = config.time.into_clock();
-    let encryption_config = config.app.encryption;
+    let encryption_config = config.app.encryption.clone();
 
     let app = lana_app::app::LanaApp::init(pool.clone(), config.app, clock.clone())
         .await

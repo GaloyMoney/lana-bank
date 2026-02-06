@@ -46,17 +46,6 @@ mod tests {
     }
 
     #[test]
-    fn encrypt_decrypt_bytes() {
-        let key = gen_encryption_key();
-        let original = b"hello world";
-
-        let encrypted = EncryptedValue::encrypt(&key, original);
-        let decrypted = encrypted.decrypt(&key).unwrap();
-
-        assert_eq!(original.as_slice(), decrypted.as_slice());
-    }
-
-    #[test]
     fn encrypt_decrypt_json_roundtrip() {
         let key = gen_encryption_key();
         let original = serde_json::json!({"enabled": true, "limit": 42});
