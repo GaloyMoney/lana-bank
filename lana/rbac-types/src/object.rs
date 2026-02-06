@@ -6,7 +6,7 @@ use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
 use core_credit_collection::CoreCreditCollectionObject;
-use core_credit_disbursal::DisbursalObject;
+use core_credit_disbursal::CoreCreditDisbursalObject;
 use core_credit_terms::CoreCreditTermsObject;
 use core_custody::CoreCustodyObject;
 use core_customer::CustomerObject;
@@ -29,7 +29,7 @@ pub enum LanaObject {
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
     CreditCollection(CoreCreditCollectionObject),
-    CreditDisbursal(DisbursalObject),
+    CreditDisbursal(CoreCreditDisbursalObject),
     Terms(CoreCreditTermsObject),
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
@@ -94,8 +94,8 @@ impl From<CoreCreditCollectionObject> for LanaObject {
     }
 }
 
-impl From<DisbursalObject> for LanaObject {
-    fn from(object: DisbursalObject) -> Self {
+impl From<CoreCreditDisbursalObject> for LanaObject {
+    fn from(object: CoreCreditDisbursalObject) -> Self {
         LanaObject::CreditDisbursal(object)
     }
 }
@@ -160,8 +160,8 @@ impl FromStr for LanaObject {
             CreditCollection => LanaObject::from(object.parse::<CoreCreditCollectionObject>()?),
             CreditDisbursal => LanaObject::from(
                 object
-                    .parse::<DisbursalObject>()
-                    .map_err(|_| "could not parse DisbursalObject")?,
+                    .parse::<CoreCreditDisbursalObject>()
+                    .map_err(|_| "could not parse CoreCreditDisbursalObject")?,
             ),
             Terms => LanaObject::from(object.parse::<core_credit_terms::CoreCreditTermsObject>()?),
             Custody => LanaObject::from(object.parse::<CoreCustodyObject>()?),

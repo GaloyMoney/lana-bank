@@ -28,9 +28,9 @@ pub use event::CoreCreditDisbursalEvent;
 pub use ledger::DisbursalLedgerAccountIds;
 use primitives::BeneficiaryId;
 pub use primitives::{
-    DISBURSAL_REF_TARGET, DISBURSAL_TRANSACTION_ENTITY_TYPE, DisbursalAction, DisbursalAllOrOne,
-    DisbursalId, DisbursalObject, DisbursalStatus, PERMISSION_SET_DISBURSAL_VIEWER,
-    PERMISSION_SET_DISBURSAL_WRITER,
+    CoreCreditDisbursalAction, CoreCreditDisbursalObject, DISBURSAL_REF_TARGET,
+    DISBURSAL_TRANSACTION_ENTITY_TYPE, DisbursalAction, DisbursalAllOrOne, DisbursalId,
+    DisbursalStatus, PERMISSION_SET_DISBURSAL_VIEWER, PERMISSION_SET_DISBURSAL_WRITER,
 };
 pub use publisher::DisbursalPublisher;
 use repo::DisbursalRepo;
@@ -78,9 +78,9 @@ impl<Perms, E> Disbursals<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<DisbursalAction> + From<CoreCreditCollectionAction> + From<GovernanceAction>,
+        From<CoreCreditDisbursalAction> + From<CoreCreditCollectionAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<DisbursalObject> + From<CoreCreditCollectionObject> + From<GovernanceObject>,
+        From<CoreCreditDisbursalObject> + From<CoreCreditCollectionObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>,
@@ -163,7 +163,11 @@ where
     ) -> Result<Option<Disbursal>, DisbursalError> {
         let id = id.into();
         self.authz
-            .enforce_permission(sub, DisbursalObject::disbursal(id), DisbursalAction::Read)
+            .enforce_permission(
+                sub,
+                CoreCreditDisbursalObject::disbursal(id),
+                CoreCreditDisbursalAction::DISBURSAL_READ,
+            )
             .await?;
 
         self.repo.maybe_find_by_id(id).await
@@ -192,8 +196,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                DisbursalObject::disbursal(disbursal.id),
-                DisbursalAction::Read,
+                CoreCreditDisbursalObject::disbursal(disbursal.id),
+                CoreCreditDisbursalAction::DISBURSAL_READ,
             )
             .await?;
 
@@ -213,8 +217,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                DisbursalObject::all_disbursals(),
-                DisbursalAction::Read,
+                CoreCreditDisbursalObject::all_disbursals(),
+                CoreCreditDisbursalAction::DISBURSAL_READ,
             )
             .await?;
 
@@ -231,8 +235,8 @@ where
             .audit()
             .record_system_entry_in_op(
                 op,
-                DisbursalObject::disbursal(disbursal_id),
-                DisbursalAction::Settle,
+                CoreCreditDisbursalObject::disbursal(disbursal_id),
+                CoreCreditDisbursalAction::DISBURSAL_SETTLE,
             )
             .await
             .map_err(authz::error::AuthorizationError::from)?;
@@ -275,8 +279,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                DisbursalObject::all_disbursals(),
-                DisbursalAction::List,
+                CoreCreditDisbursalObject::all_disbursals(),
+                CoreCreditDisbursalAction::DISBURSAL_LIST,
             )
             .await?;
         let disbursals = self

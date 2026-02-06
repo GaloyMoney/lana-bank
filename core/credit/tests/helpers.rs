@@ -146,7 +146,7 @@ pub mod action {
     use core_accounting::CoreAccountingAction;
     use core_credit::CoreCreditAction;
     use core_credit::CoreCreditCollectionAction;
-    use core_credit::DisbursalAction;
+    use core_credit::CoreCreditDisbursalAction;
     use core_custody::CoreCustodyAction;
     use core_customer::CoreCustomerAction;
     use core_deposit::CoreDepositAction;
@@ -168,8 +168,8 @@ pub mod action {
         }
     }
 
-    impl From<DisbursalAction> for DummyAction {
-        fn from(_: DisbursalAction) -> Self {
+    impl From<CoreCreditDisbursalAction> for DummyAction {
+        fn from(_: CoreCreditDisbursalAction) -> Self {
             Self
         }
     }
@@ -229,8 +229,8 @@ pub mod action {
 pub mod object {
     use core_accounting::CoreAccountingObject;
     use core_credit::CoreCreditCollectionObject;
+    use core_credit::CoreCreditDisbursalObject;
     use core_credit::CoreCreditObject;
-    use core_credit::DisbursalObject;
     use core_custody::CoreCustodyObject;
     use core_customer::CustomerObject;
     use core_deposit::CoreDepositObject;
@@ -250,8 +250,8 @@ pub mod object {
             Self
         }
     }
-    impl From<DisbursalObject> for DummyObject {
-        fn from(_: DisbursalObject) -> Self {
+    impl From<CoreCreditDisbursalObject> for DummyObject {
+        fn from(_: CoreCreditDisbursalObject) -> Self {
             Self
         }
     }

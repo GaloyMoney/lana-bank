@@ -8,7 +8,7 @@ use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
 use core_credit_collection::CoreCreditCollectionAction;
-use core_credit_disbursal::DisbursalAction;
+use core_credit_disbursal::CoreCreditDisbursalAction;
 use core_credit_terms::CoreCreditTermsAction;
 use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
@@ -32,7 +32,7 @@ pub enum LanaAction {
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
     CreditCollection(CoreCreditCollectionAction),
-    CreditDisbursal(DisbursalAction),
+    CreditDisbursal(CoreCreditDisbursalAction),
     Terms(CoreCreditTermsAction),
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
@@ -53,6 +53,7 @@ impl LanaAction {
             CoreDepositAction::actions(),
             CoreCreditAction::actions(),
             CoreCreditCollectionAction::actions(),
+            CoreCreditDisbursalAction::actions(),
             CoreCreditTermsAction::actions(),
             CoreCustodyAction::actions(),
             CoreReportAction::actions(),
@@ -112,8 +113,8 @@ impl From<CoreCreditCollectionAction> for LanaAction {
         LanaAction::CreditCollection(action)
     }
 }
-impl From<DisbursalAction> for LanaAction {
-    fn from(action: DisbursalAction) -> Self {
+impl From<CoreCreditDisbursalAction> for LanaAction {
+    fn from(action: CoreCreditDisbursalAction) -> Self {
         LanaAction::CreditDisbursal(action)
     }
 }
@@ -179,7 +180,7 @@ impl FromStr for LanaAction {
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
             CreditCollection => LanaAction::from(action.parse::<CoreCreditCollectionAction>()?),
-            CreditDisbursal => LanaAction::from(action.parse::<DisbursalAction>()?),
+            CreditDisbursal => LanaAction::from(action.parse::<CoreCreditDisbursalAction>()?),
             Terms => LanaAction::from(action.parse::<CoreCreditTermsAction>()?),
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),

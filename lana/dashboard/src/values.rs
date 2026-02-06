@@ -30,7 +30,10 @@ impl DashboardValues {
                 self.active_facilities -= 1;
                 true
             }
-            LanaEvent::Credit(CoreCreditEvent::DisbursalSettled { amount, .. }) => {
+            LanaEvent::CreditDisbursal(CoreCreditDisbursalEvent::DisbursalSettled {
+                amount,
+                ..
+            }) => {
                 self.total_disbursed += *amount;
                 true
             }
