@@ -202,12 +202,8 @@ where
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id(collateral_id).await?;
 
-        if collateral.custody_wallet_id.is_some() {
-            return Err(CollateralError::ManualUpdateError);
-        }
-
         let res = if let es_entity::Idempotent::Executed(data) =
-            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)
+            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)?
         {
             self.repo.update_in_op(db, &mut collateral).await?;
             Some(data)
