@@ -1,0 +1,86 @@
+---
+id: collateralization-state
+title: CollateralizationState
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+enum CollateralizationState {
+  FULLY_COLLATERALIZED
+  UNDER_MARGIN_CALL_THRESHOLD
+  UNDER_LIQUIDATION_THRESHOLD
+  NO_COLLATERAL
+  NO_EXPOSURE
+}
+```
+
+
+
+
+### Values
+
+#### [<code style={{ fontWeight: 'normal' }}>CollateralizationState.<b>FULLY&#x005F;COLLATERALIZED</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CollateralizationState.<b>UNDER&#x005F;MARGIN&#x005F;CALL&#x005F;THRESHOLD</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CollateralizationState.<b>UNDER&#x005F;LIQUIDATION&#x005F;THRESHOLD</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CollateralizationState.<b>NO&#x005F;COLLATERAL</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CollateralizationState.<b>NO&#x005F;EXPOSURE</b></code>](#)  
+
+
+
+
+
+
+
+### Member Of
+
+[`CreditFacilitiesFilter`](/for-developers/admin-api/types/inputs/credit-facilities-filter.mdx)  <Badge class="badge badge--secondary badge--relation" text="input"/><Bullet />[`CreditFacility`](/for-developers/admin-api/types/objects/credit-facility.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityCollateralizationPayload`](/for-developers/admin-api/types/objects/credit-facility-collateralization-payload.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityCollateralizationUpdated`](/for-developers/admin-api/types/objects/credit-facility-collateralization-updated.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>
