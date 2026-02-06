@@ -281,6 +281,12 @@ impl NewDomainConfigBuilder {
     where
         C: ConfigSpec,
     {
+        if C::ENCRYPTED {
+            return Err(DomainConfigError::InvalidState(
+                "with_value cannot be used for encrypted configs, use seed + update_value"
+                    .to_string(),
+            ));
+        }
         C::validate(&value)?;
         let value_json = <C::Kind as ValueKind>::encode(&value)?;
         let config_type = <C::Kind as ValueKind>::TYPE;
