@@ -3,9 +3,9 @@ name: Deploy docs on release
 on:
   push:
     tags:
-      # Match all final release tags (X.Y.Z)
-      # RC tags (e.g., 0.39.0-rc.1) won't match because the glob ends after the third digit group
-      - "[0-9]+.[0-9]+.[0-9]+"
+      # Match final release tags (X.Y.Z) but not RC tags (X.Y.Z-rc.N)
+      - "[0-9]*.[0-9]*.[0-9]*"
+      - "!*-*"
 
 permissions:
   contents: read
