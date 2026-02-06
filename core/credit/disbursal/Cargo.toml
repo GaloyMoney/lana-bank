@@ -36,15 +36,11 @@ sqlx = { workspace = true }
 strum = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
-uuid = { workspace = true }
 derive_builder = { workspace = true }
-rust_decimal = { workspace = true }
-async-trait = { workspace = true }
 schemars = { workspace = true, optional = true }
 async-graphql = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../../workspace-hack" }

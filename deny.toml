@@ -192,6 +192,11 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
+crate = "core-credit-disbursal"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
 crate = "core-credit-terms"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []

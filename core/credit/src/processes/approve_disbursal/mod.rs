@@ -17,8 +17,9 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 
 use crate::{
-    CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, Disbursals,
-    credit_facility::CreditFacilities, ledger::CreditLedger, primitives::DisbursalId,
+    CoreCreditAction, CoreCreditDisbursalEvent, CoreCreditError, CoreCreditEvent, CoreCreditObject,
+    CreditFacilityId, Disbursal, Disbursals, credit_facility::CreditFacilities,
+    ledger::CreditLedger, primitives::DisbursalId,
 };
 
 pub use job::*;
@@ -30,6 +31,7 @@ where
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
@@ -45,6 +47,7 @@ where
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
@@ -63,15 +66,18 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<crate::CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<crate::CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
@@ -117,7 +123,7 @@ where
 
                 let credit_facility = self
                     .credit_facilities
-                    .find_by_id_without_audit(disbursal.facility_id) // changed for now
+                    .find_by_id_without_audit(CreditFacilityId::from(disbursal.beneficiary_id))
                     .await?;
                 self.ledger
                     .settle_disbursal_in_op(
@@ -136,7 +142,7 @@ where
                 tracing::Span::current().record("already_applied", false);
                 let credit_facility = self
                     .credit_facilities
-                    .find_by_id_without_audit(disbursal.facility_id) // changed for now
+                    .find_by_id_without_audit(CreditFacilityId::from(disbursal.beneficiary_id))
                     .await?;
                 self.ledger
                     .cancel_disbursal_in_op(

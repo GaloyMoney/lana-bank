@@ -16,6 +16,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -36,14 +37,17 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -204,7 +208,7 @@ where
         .await?;
         let disbursals = self
             .disbursals
-            .list_for_facility_without_audit(id, query, sort)
+            .list_for_beneficiary_without_audit(id.into(), query, sort)
             .await?;
 
         Ok(disbursals)
@@ -222,7 +226,7 @@ where
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id_without_audit(disbursal.facility_id)
+            .find_by_id_without_audit(CreditFacilityId::from(disbursal.beneficiary_id))
             .await?;
         self.ensure_credit_facility_access(
             &credit_facility,

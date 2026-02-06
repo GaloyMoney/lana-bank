@@ -1,3 +1,5 @@
+use crate::CreditFacilityId;
+use core_credit_disbursal::{Disbursal, DisbursalError, DisbursalEvent};
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -18,7 +20,6 @@ use crate::{
     credit_facility_proposal::{
         CreditFacilityProposal, CreditFacilityProposalEvent, error::CreditFacilityProposalError,
     },
-    disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
     event::*,
     pending_credit_facility::{
         PendingCreditFacility, PendingCreditFacilityEvent, error::PendingCreditFacilityError,
@@ -268,7 +269,7 @@ where
                     effective,
                     ..
                 } => Some(CoreCreditEvent::DisbursalSettled {
-                    credit_facility_id: entity.facility_id,
+                    credit_facility_id: CreditFacilityId::from(entity.beneficiary_id),
                     amount: *amount,
                     recorded_at: event.recorded_at,
                     effective: *effective,

@@ -8,6 +8,7 @@ use schemars::JsonSchema;
 
 pub use core_access::CoreAccessEvent;
 pub use core_accounting::CoreAccountingEvent;
+pub use core_credit::CoreCreditDisbursalEvent;
 pub use core_credit::{CollateralDirection, CoreCreditEvent, ObligationStatus, ObligationType};
 pub use core_credit_collection::CoreCreditCollectionEvent;
 pub use core_custody::CoreCustodyEvent;
@@ -29,6 +30,7 @@ pub enum LanaEvent {
     Customer(CoreCustomerEvent),
     Credit(CoreCreditEvent),
     CreditCollection(CoreCreditCollectionEvent),
+    CreditDisbursal(CoreCreditDisbursalEvent),
     Deposit(CoreDepositEvent),
     Custody(CoreCustodyEvent),
     Report(CoreReportEvent),

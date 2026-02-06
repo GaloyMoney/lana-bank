@@ -75,6 +75,17 @@ impl CreditFacilityLedgerAccountIds {
     }
 }
 
+impl From<CreditFacilityLedgerAccountIds> for core_credit_disbursal::DisbursalLedgerAccountIds {
+    fn from(account_ids: CreditFacilityLedgerAccountIds) -> Self {
+        Self::new(
+            account_ids.disbursed_receivable_not_yet_due_account_id,
+            account_ids.disbursed_receivable_due_account_id,
+            account_ids.disbursed_receivable_overdue_account_id,
+            account_ids.disbursed_defaulted_account_id,
+        )
+    }
+}
+
 impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
     fn from(proposal_ids: PendingCreditFacilityAccountIds) -> Self {
         Self {

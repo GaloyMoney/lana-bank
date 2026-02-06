@@ -8,6 +8,7 @@ use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
 use core_credit_collection::CoreCreditCollectionAction;
+use core_credit_disbursal::DisbursalAction;
 use core_credit_terms::CoreCreditTermsAction;
 use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
@@ -31,6 +32,7 @@ pub enum LanaAction {
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
     CreditCollection(CoreCreditCollectionAction),
+    CreditDisbursal(DisbursalAction),
     Terms(CoreCreditTermsAction),
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
@@ -110,6 +112,11 @@ impl From<CoreCreditCollectionAction> for LanaAction {
         LanaAction::CreditCollection(action)
     }
 }
+impl From<DisbursalAction> for LanaAction {
+    fn from(action: DisbursalAction) -> Self {
+        LanaAction::CreditDisbursal(action)
+    }
+}
 impl From<CoreCreditTermsAction> for LanaAction {
     fn from(action: CoreCreditTermsAction) -> Self {
         LanaAction::Terms(action)
@@ -146,6 +153,7 @@ impl Display for LanaAction {
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
             CreditCollection(action) => action.fmt(f),
+            CreditDisbursal(action) => action.fmt(f),
             Terms(action) => action.fmt(f),
             Custody(action) => action.fmt(f),
             Report(action) => action.fmt(f),
@@ -171,6 +179,7 @@ impl FromStr for LanaAction {
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
             CreditCollection => LanaAction::from(action.parse::<CoreCreditCollectionAction>()?),
+            CreditDisbursal => LanaAction::from(action.parse::<DisbursalAction>()?),
             Terms => LanaAction::from(action.parse::<CoreCreditTermsAction>()?),
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),

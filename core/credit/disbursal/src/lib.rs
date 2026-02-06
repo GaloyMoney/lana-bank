@@ -22,7 +22,7 @@ use core_credit_collection::{
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 
-pub use entity::{Disbursal, NewDisbursal, NewDisbursalBuilder};
+pub use entity::{Disbursal, NewDisbursal, NewDisbursalBuilder, NewDisbursalBuilderError};
 pub use error::DisbursalError;
 pub use event::CoreCreditDisbursalEvent;
 pub use ledger::DisbursalLedgerAccountIds;
@@ -36,7 +36,6 @@ pub use publisher::DisbursalPublisher;
 use repo::DisbursalRepo;
 pub use repo::{DisbursalsFilter, DisbursalsSortBy, disbursal_cursor};
 
-#[cfg(feature = "json-schema")]
 pub use entity::DisbursalEvent;
 
 pub struct Disbursals<Perms, E>

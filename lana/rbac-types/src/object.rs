@@ -6,6 +6,7 @@ use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
 use core_credit_collection::CoreCreditCollectionObject;
+use core_credit_disbursal::DisbursalObject;
 use core_credit_terms::CoreCreditTermsObject;
 use core_custody::CoreCustodyObject;
 use core_customer::CustomerObject;
@@ -28,6 +29,7 @@ pub enum LanaObject {
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
     CreditCollection(CoreCreditCollectionObject),
+    CreditDisbursal(DisbursalObject),
     Terms(CoreCreditTermsObject),
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
@@ -92,6 +94,12 @@ impl From<CoreCreditCollectionObject> for LanaObject {
     }
 }
 
+impl From<DisbursalObject> for LanaObject {
+    fn from(object: DisbursalObject) -> Self {
+        LanaObject::CreditDisbursal(object)
+    }
+}
+
 impl From<CoreCreditTermsObject> for LanaObject {
     fn from(object: CoreCreditTermsObject) -> Self {
         LanaObject::Terms(object)
@@ -124,6 +132,7 @@ impl Display for LanaObject {
             Deposit(object) => object.fmt(f),
             Credit(object) => object.fmt(f),
             CreditCollection(object) => object.fmt(f),
+            CreditDisbursal(object) => object.fmt(f),
             Terms(object) => object.fmt(f),
             Custody(object) => object.fmt(f),
             Dashboard(object) => object.fmt(f),
@@ -149,6 +158,11 @@ impl FromStr for LanaObject {
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Credit => LanaObject::from(object.parse::<CoreCreditObject>()?),
             CreditCollection => LanaObject::from(object.parse::<CoreCreditCollectionObject>()?),
+            CreditDisbursal => LanaObject::from(
+                object
+                    .parse::<DisbursalObject>()
+                    .map_err(|_| "could not parse DisbursalObject")?,
+            ),
             Terms => LanaObject::from(object.parse::<core_credit_terms::CoreCreditTermsObject>()?),
             Custody => LanaObject::from(object.parse::<CoreCustodyObject>()?),
             Dashboard => LanaObject::from(

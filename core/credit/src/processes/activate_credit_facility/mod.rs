@@ -7,6 +7,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_credit_disbursal::{CoreCreditDisbursalEvent, Disbursals};
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::{CorePriceEvent, Price};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -17,7 +18,6 @@ pub use job::*;
 
 use crate::{
     credit_facility::CreditFacilities,
-    disbursal::Disbursals,
     error::CoreCreditError,
     event::CoreCreditEvent,
     ledger::CreditLedger,
@@ -29,6 +29,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -46,6 +47,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -66,14 +68,17 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<crate::CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<crate::CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,

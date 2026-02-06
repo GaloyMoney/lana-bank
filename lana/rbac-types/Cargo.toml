@@ -16,6 +16,7 @@ core-access = { workspace = true }
 core-customer = { workspace = true }
 core-credit = { workspace = true }
 core-credit-collection = { workspace = true }
+core-credit-disbursal = { workspace = true }
 core-credit-terms = { workspace = true }
 core-custody = { workspace = true }
 core-deposit = { workspace = true }

@@ -6,9 +6,10 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use core_credit_disbursal::NewDisbursalBuilder;
+
 use crate::{
     credit_facility::NewCreditFacilityBuilder,
-    disbursal::NewDisbursalBuilder,
     ledger::{
         PendingCreditFacilityAccountIds, PendingCreditFacilityBalanceSummary,
         PendingCreditFacilityCreation,
@@ -223,7 +224,7 @@ impl PendingCreditFacility {
             let mut new_disbursal_builder = NewDisbursalBuilder::default();
             new_disbursal_builder
                 .id(DisbursalId::new())
-                .credit_facility_id(self.id)
+                .beneficiary_id(CreditFacilityId::from(self.id))
                 .approval_process_id(self.approval_process_id)
                 .amount(disbursal_amount)
                 .account_ids(account_ids.into())

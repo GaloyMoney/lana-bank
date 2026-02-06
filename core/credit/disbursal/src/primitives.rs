@@ -82,3 +82,18 @@ impl std::fmt::Display for DisbursalObject {
         }
     }
 }
+
+impl std::str::FromStr for DisbursalObject {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (entity, id) = s.split_once('/').ok_or("missing slash")?;
+        match entity {
+            "disbursal" => {
+                let obj_ref = id.parse().map_err(|_| "could not parse DisbursalObject")?;
+                Ok(DisbursalObject::Disbursal(obj_ref))
+            }
+            _ => Err("unknown entity type for DisbursalObject"),
+        }
+    }
+}

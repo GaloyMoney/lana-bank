@@ -40,6 +40,12 @@ pub use core_credit_collection::{
     PaymentSourceAccountId, Payments,
 };
 
+// Re-export from core_credit_disbursal to avoid duplicates
+pub use core_credit_disbursal::{
+    DISBURSAL_REF_TARGET, DISBURSAL_TRANSACTION_ENTITY_TYPE, DisbursalAction, DisbursalAllOrOne,
+    DisbursalId,
+};
+
 impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {
     fn from(duration_type: FacilityDurationType) -> Self {
         match duration_type {
@@ -55,7 +61,6 @@ es_entity::entity_id! {
     CreditFacilityProposalId,
     PendingCreditFacilityId,
     CreditFacilityId,
-    DisbursalId,
     ChartOfAccountsIntegrationConfigId,
     CollateralId,
     LiquidationId,
@@ -69,15 +74,11 @@ es_entity::entity_id! {
 
     CreditFacilityId => governance::ApprovalProcessId,
     CreditFacilityProposalId => governance::ApprovalProcessId,
-    DisbursalId => governance::ApprovalProcessId,
 
     CreditFacilityId => job::JobId,
     InterestAccrualCycleId => job::JobId,
 
-    DisbursalId => LedgerTxId,
-
     CreditFacilityId => public_id::PublicIdTargetId,
-    DisbursalId => public_id::PublicIdTargetId,
 
     CreditFacilityId => core_credit_collection::BeneficiaryId,
 }
@@ -110,21 +111,17 @@ pub const CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("CreditFacilityProposal");
 pub const COLLATERAL_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("Collateral");
-pub const DISBURSAL_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
-    core_accounting::EntityType::new("Disbursal");
 
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type CollateralAllOrOne = AllOrOne<CollateralId>;
-pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
+// DisbursalAllOrOne is now imported from core_credit_disbursal
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
 pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
 pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
 
 pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("credit_facility");
-pub const DISBURSAL_REF_TARGET: public_id::PublicIdTargetType =
-    public_id::PublicIdTargetType::new("disbursal");
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -395,23 +392,7 @@ impl From<CreditFacilityAction> for CoreCreditAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
-#[strum(serialize_all = "kebab-case")]
-pub enum DisbursalAction {
-    Initiate,
-    Settle,
-    List,
-    Read,
-}
-
-impl ActionPermission for DisbursalAction {
-    fn permission_set(&self) -> &'static str {
-        match self {
-            Self::List | Self::Read => PERMISSION_SET_CREDIT_VIEWER,
-            Self::Initiate | Self::Settle => PERMISSION_SET_CREDIT_WRITER,
-        }
-    }
-}
+// DisbursalAction is now imported from core_credit_disbursal
 
 impl From<DisbursalAction> for CoreCreditAction {
     fn from(action: DisbursalAction) -> Self {
@@ -553,16 +534,6 @@ pub enum PendingCreditFacilityStatus {
     #[default]
     PendingCollateralization,
     Completed,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum DisbursalStatus {
-    New,
-    Approved,
-    Denied,
-    Confirmed,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]

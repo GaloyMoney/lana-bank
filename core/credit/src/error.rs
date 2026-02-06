@@ -51,7 +51,7 @@ pub enum CoreCreditError {
     #[error("CoreCreditError - CoreCustodyError: {0}")]
     CustodyError(#[from] core_custody::error::CoreCustodyError),
     #[error("CoreCreditError - DisbursalError: {0}")]
-    DisbursalError(#[from] super::disbursal::error::DisbursalError),
+    DisbursalError(#[from] core_credit_disbursal::DisbursalError),
     #[error("CoreCreditError - LiquidationError: {0}")]
     LiquidationError(#[from] super::collateral::liquidation::LiquidationError),
     #[error("CoreCreditError - InterestAccrualCycleError: {0}")]
@@ -71,7 +71,7 @@ pub enum CoreCreditError {
     #[error("CoreCreditError - CustomerIsNotVerified")]
     CustomerNotVerified,
     #[error("CoreCreditError - DisbursalBuilderError: {0}")]
-    DisbursalBuilderError(#[from] super::NewDisbursalBuilderError),
+    DisbursalBuilderError(#[from] core_credit_disbursal::NewDisbursalBuilderError),
     #[error("CoreCreditError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("CoreCreditError - DomainConfigError: {0}")]

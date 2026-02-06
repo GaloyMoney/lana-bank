@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": " \n            SELECT dashboard_json\n            FROM dashboards\n            WHERE id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "dashboard_json",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "0d8570c822a08f48f7ce244fedc258858524d56c07da635cc4e42c6e81240c08"
+}

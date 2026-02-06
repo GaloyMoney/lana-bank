@@ -34,6 +34,7 @@ where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_credit_collection::CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
@@ -41,6 +42,7 @@ where
         + From<core_custody::CoreCustodyAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
@@ -63,6 +65,7 @@ where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_credit_collection::CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
@@ -70,6 +73,7 @@ where
         + From<core_custody::CoreCustodyAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
@@ -117,6 +121,7 @@ where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_credit_collection::CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
@@ -124,6 +129,7 @@ where
         + From<core_custody::CoreCustodyAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
@@ -247,6 +253,7 @@ where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_credit_collection::CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
@@ -254,6 +261,7 @@ where
         + From<core_custody::CoreCustodyAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>

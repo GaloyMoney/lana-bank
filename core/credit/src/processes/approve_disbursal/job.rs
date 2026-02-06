@@ -15,7 +15,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
-    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
+    CoreCreditCollectionObject, CoreCreditDisbursalEvent, CoreCreditEvent, CoreCreditObject,
 };
 
 use super::ApproveDisbursal;
@@ -42,13 +42,18 @@ impl<Perms, E> Clone for DisbursalApprovalJobConfig<Perms, E> {
 pub(crate) struct DisbursalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<core_credit_disbursal::DisbursalAction>
+        + From<GovernanceAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<core_credit_disbursal::DisbursalObject>
+        + From<GovernanceObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
@@ -61,15 +66,18 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
@@ -87,15 +95,18 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
@@ -131,6 +142,7 @@ where
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
@@ -143,15 +155,18 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
@@ -184,15 +199,18 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {

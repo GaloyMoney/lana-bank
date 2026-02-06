@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_credit_disbursal::NewDisbursalBuilder;
 use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -20,7 +21,6 @@ use crate::{
     Collaterals, CreditFacilityProposals,
     credit_facility::NewCreditFacilityBuilder,
     credit_facility_proposal::{CreditFacilityProposal, ProposalApprovalOutcome},
-    disbursal::NewDisbursalBuilder,
     event::CoreCreditEvent,
     ledger::*,
     primitives::*,

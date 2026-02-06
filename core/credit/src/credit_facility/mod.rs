@@ -18,7 +18,6 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     PublicIds,
-    disbursal::Disbursals,
     event::CoreCreditEvent,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
@@ -26,7 +25,7 @@ use crate::{
 };
 
 use core_credit_collection::CoreCreditCollection;
-
+use core_credit_disbursal::{CoreCreditDisbursalEvent, Disbursals};
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 pub use entity::CreditFacility;
@@ -46,6 +45,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -69,6 +69,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -100,14 +101,17 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,

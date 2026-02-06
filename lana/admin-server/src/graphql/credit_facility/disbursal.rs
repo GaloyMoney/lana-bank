@@ -44,8 +44,9 @@ impl CreditFacilityDisbursal {
 
     async fn credit_facility(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacility> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let credit_facility_id: CreditFacilityId = self.entity.beneficiary_id.into();
         let facility = loader
-            .load_one(self.entity.facility_id)
+            .load_one(credit_facility_id)
             .await?
             .expect("committee not found");
         Ok(facility)

@@ -130,7 +130,7 @@ impl CreditFacility {
             .list(
                 sub,
                 Default::default(),
-                DisbursalsFilter::WithCreditFacilityId(self.entity.id),
+                DisbursalsFilter::WithBeneficiaryId(self.entity.id.into()),
                 Sort {
                     by: DomainDisbursalsSortBy::CreatedAt,
                     direction: ListDirection::Descending,

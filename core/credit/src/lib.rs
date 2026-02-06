@@ -6,7 +6,6 @@ mod collateral;
 mod config;
 mod credit_facility;
 mod credit_facility_proposal;
-mod disbursal;
 pub mod error;
 mod event;
 mod for_subject;
@@ -49,10 +48,10 @@ pub use collateral::{
     liquidation_cursor, liquidation_cursor::*,
 };
 pub use config::*;
+pub use core_credit_disbursal::{disbursal_cursor::*, *};
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
 pub use credit_facility_proposal::*;
-pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
 pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
@@ -75,9 +74,10 @@ pub use core_credit_collection::{ObligationEvent, PaymentAllocationEvent, Paymen
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::{
-        ObligationEvent, PaymentAllocationEvent, PaymentEvent, collateral::CollateralEvent,
-        collateral::LiquidationEvent, credit_facility::CreditFacilityEvent,
-        credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
+        DisbursalEvent, ObligationEvent, PaymentAllocationEvent, PaymentEvent,
+        collateral::CollateralEvent, collateral::LiquidationEvent,
+        credit_facility::CreditFacilityEvent,
+        credit_facility_proposal::CreditFacilityProposalEvent,
         interest_accrual_cycle::InterestAccrualCycleEvent,
         pending_credit_facility::PendingCreditFacilityEvent,
     };
@@ -88,6 +88,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
@@ -125,6 +126,7 @@ where
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
@@ -164,17 +166,20 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
+        + From<core_credit_disbursal::DisbursalAction>
         + From<GovernanceAction>
         + From<CoreCustomerAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
+        + From<core_credit_disbursal::DisbursalObject>
         + From<GovernanceObject>
         + From<CustomerObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<CoreCreditDisbursalEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
@@ -213,6 +218,7 @@ where
 
         let publisher = CreditFacilityPublisher::new(outbox);
         let collections_publisher = core_credit_collection::CollectionPublisher::new(outbox);
+        let disbursal_publisher = core_credit_disbursal::DisbursalPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
@@ -281,10 +287,11 @@ where
         let disbursals = Disbursals::init(
             pool,
             authz_arc.clone(),
-            &publisher,
+            &disbursal_publisher,
             collections_arc.clone(),
             governance_arc.clone(),
             clock.clone(),
+            APPROVE_DISBURSAL_PROCESS,
         )
         .await?;
         let disbursals_arc = Arc::new(disbursals);
@@ -644,7 +651,7 @@ where
         let new_disbursal = NewDisbursal::builder()
             .id(disbursal_id)
             .approval_process_id(disbursal_id)
-            .credit_facility_id(credit_facility_id)
+            .beneficiary_id(credit_facility_id)
             .amount(amount)
             .account_ids(facility.account_ids.into())
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
@@ -654,7 +661,10 @@ where
             .public_id(public_id.id)
             .build()?;
 
-        let disbursal = self.disbursals.create_in_op(&mut db, new_disbursal).await?;
+        let disbursal = self
+            .disbursals
+            .create_in_op(&mut db, new_disbursal, APPROVE_DISBURSAL_PROCESS)
+            .await?;
 
         self.ledger
             .initiate_disbursal_in_op(
