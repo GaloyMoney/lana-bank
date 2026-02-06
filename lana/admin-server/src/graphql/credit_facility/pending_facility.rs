@@ -19,6 +19,7 @@ pub use lana_app::credit::{
 pub struct PendingCreditFacility {
     id: ID,
     pending_credit_facility_id: UUID,
+    collateral_id: UUID,
     status: PendingCreditFacilityStatus,
     approval_process_id: UUID,
     created_at: Timestamp,
@@ -101,6 +102,7 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
         Self {
             id: pending_credit_facility.id.to_global_id(),
             pending_credit_facility_id: UUID::from(pending_credit_facility.id),
+            collateral_id: UUID::from(pending_credit_facility.collateral_id),
             approval_process_id: UUID::from(pending_credit_facility.approval_process_id),
             created_at: created_at.into(),
             facility_amount: pending_credit_facility.amount,
@@ -111,14 +113,6 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
         }
     }
 }
-
-#[derive(InputObject)]
-pub struct PendingCreditFacilityCollateralUpdateInput {
-    pub pending_credit_facility_id: UUID,
-    pub collateral: Satoshis,
-    pub effective: Date,
-}
-crate::mutation_payload! { PendingCreditFacilityCollateralUpdatePayload, pending_credit_facility: PendingCreditFacility }
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
