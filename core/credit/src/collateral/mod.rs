@@ -162,6 +162,17 @@ where
         self.repo.find_all(ids).await
     }
 
+    pub async fn find_by_id_without_audit(
+        &self,
+        collateral_id: impl Into<CollateralId>,
+    ) -> Result<Collateral, CollateralError> {
+        self.repo.find_by_id(collateral_id.into()).await
+    }
+
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CollateralError> {
+        Ok(self.repo.begin_op().await?)
+    }
+
     pub async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,

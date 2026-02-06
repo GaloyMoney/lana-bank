@@ -795,6 +795,53 @@ where
         Ok(credit_facility)
     }
 
+    #[record_error_severity]
+    #[instrument(name = "credit.update_collateral_by_id", skip(self))]
+    pub async fn update_collateral_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        collateral_id: CollateralId,
+        updated_collateral: Satoshis,
+        effective: chrono::NaiveDate,
+    ) -> Result<Collateral, CoreCreditError> {
+        self.subject_can_update_collateral(sub, true).await?;
+
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(collateral_id)
+            .await?;
+
+        let mut db = self.collaterals.begin_op().await?;
+
+        let collateral_update = if let Some(update) = self
+            .collaterals
+            .record_collateral_update_via_manual_input_in_op(
+                &mut db,
+                collateral_id,
+                updated_collateral,
+                effective,
+            )
+            .await?
+        {
+            update
+        } else {
+            return Ok(collateral);
+        };
+
+        self.collateral_ledger
+            .update_collateral_amount_in_op(
+                &mut db,
+                collateral_update,
+                collateral.account_ids.collateral_account_id,
+                LedgerTransactionInitiator::try_from_subject(sub)?,
+            )
+            .await?;
+
+        db.commit().await?;
+
+        self.collaterals.find_by_id_without_audit(collateral_id).await.map_err(Into::into)
+    }
+
     pub async fn subject_can_record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
