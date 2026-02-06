@@ -103,7 +103,7 @@ chrono = { version = "0.4.43", features = [
   "serde",
 ], default-features = false }
 chrono-tz = "0.10.4"
-clap = { version = "4.5.54", features = ["derive", "env"] }
+clap = { version = "4.5.56", features = ["derive", "env"] }
 derive_builder = "0.20.0"
 graphql_client = { version = "0.14.0", features = ["reqwest-rustls"] }
 sqlx = { version = "0.8", features = [
@@ -115,7 +115,7 @@ sqlx = { version = "0.8", features = [
   "json",
 ] }
 thiserror = "2.0.18"
-uuid = { version = "1.19", features = ["serde", "v4"] }
+uuid = { version = "1.20", features = ["serde", "v4"] }
 log = "0.4"
 tracing = "0.1.44"
 tracing-opentelemetry = "0.32.1"
