@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT credit_facility_id, approval_process_id, id FROM core_disbursals WHERE ((credit_facility_id = $1) AND (COALESCE((approval_process_id, id) < ($4, $3), $3 IS NULL))) ORDER BY approval_process_id DESC, id DESC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_disbursal_events e ON i.id = e.id ORDER BY i.approval_process_id desc, i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT beneficiary_id, id FROM core_disbursals WHERE ((beneficiary_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_disbursal_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -34,7 +34,6 @@
         "Uuid",
         "Int8",
         "Uuid",
-        "Uuid",
         "Bool"
       ]
     },
@@ -46,5 +45,5 @@
       false
     ]
   },
-  "hash": "7d21277f0586b0fa7eed477c7406df994583e4c7aa29ecf7c82dec92580aaa89"
+  "hash": "65d679dab97ff93037fefaec76597764c6fb313bbc3da30fa499ef7e1d9695f3"
 }

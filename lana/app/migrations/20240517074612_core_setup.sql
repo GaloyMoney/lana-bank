@@ -391,7 +391,7 @@ CREATE TABLE core_liquidation_events (
 
 CREATE TABLE core_disbursals (
   id UUID PRIMARY KEY,
-  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  beneficiary_id UUID NOT NULL,
   approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
   obligation_id UUID DEFAULT NULL REFERENCES core_obligations(id),
   concluded_tx_id UUID DEFAULT NULL,
