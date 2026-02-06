@@ -14,7 +14,12 @@ use helpers::event::{DummyEvent, expect_event};
 use helpers::TestContext;
 
 async fn create_obligation(ctx: &TestContext, beneficiary_id: BeneficiaryId, amount: UsdCents) {
-    let due_date: EffectiveDate = ctx.clock.today().into();
+    let due_date: EffectiveDate = ctx
+        .clock
+        .today()
+        .checked_add_days(chrono::Days::new(30))
+        .expect("due date overflow")
+        .into();
     let overdue_date = due_date.checked_add_days(chrono::Days::new(30));
     let new_obligation = NewObligation::builder()
         .id(ObligationId::new())
@@ -86,7 +91,7 @@ async fn payment_allocation_created_event_on_allocate() -> anyhow::Result<()> {
             LedgerTransactionInitiator::System,
         )
         .await?
-        .expect("payment should be created");
+        .ok_or_else(|| anyhow::anyhow!("payment was not created"))?;
 
     let payment_details = PaymentDetailsForAllocation::from(payment);
     let obligations = ctx.collections.obligations().clone();

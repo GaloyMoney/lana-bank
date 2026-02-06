@@ -27,7 +27,7 @@ pub struct TestContext {
     pub clock: ClockHandle,
     pub outbox: Outbox<DummyEvent>,
     pub collections: CoreCreditCollection<TestPerms, DummyEvent>,
-    pub _jobs: job::Jobs,
+    pub jobs: job::Jobs,
     pub accounts: TestAccounts,
 }
 
@@ -84,10 +84,12 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     let cala = CalaLedger::init(cala_config).await?;
     let journal_id = init_journal(&cala).await?;
 
+    // Payment ledger accounts used by `RecordPayment`/`RecordPaymentAllocation` templates.
     let payments_made_omnibus = create_account(&cala, "payments-made-omnibus").await?;
     let payment_source = create_account(&cala, "payment-source").await?;
     let payment_holding = create_account(&cala, "payment-holding").await?;
     let uncovered_outstanding = create_account(&cala, "uncovered-outstanding").await?;
+    // Obligation lifecycle receivables used by due/overdue/defaulted postings.
     let receivable_not_yet_due = create_account(&cala, "receivable-not-yet-due").await?;
     let receivable_due = create_account(&cala, "receivable-due").await?;
     let receivable_overdue = create_account(&cala, "receivable-overdue").await?;
@@ -132,7 +134,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         clock,
         outbox,
         collections,
-        _jobs: jobs,
+        jobs,
         accounts,
     })
 }
