@@ -230,8 +230,8 @@ impl InternalDomainConfigs {
     where
         C: InternalConfig,
     {
-        let entity = self.repo.find_by_key(C::KEY).await?;
-        TypedDomainConfig::try_new(entity, self.config.key)
+        let config = self.repo.find_by_key(C::KEY).await?;
+        TypedDomainConfig::try_new(config, self.config.key)
     }
 
     #[record_error_severity]
@@ -299,8 +299,8 @@ impl ExposedDomainConfigsReadOnly {
     where
         C: ExposedConfig,
     {
-        let entity = self.repo.find_by_key(C::KEY).await?;
-        TypedDomainConfig::try_new(entity, self.config.key)
+        let config = self.repo.find_by_key(C::KEY).await?;
+        TypedDomainConfig::try_new(config, self.config.key)
     }
 }
 
@@ -329,8 +329,8 @@ where
         C: ExposedConfig,
     {
         self.ensure_read_permission(sub).await?;
-        let entity = self.repo.find_by_key(C::KEY).await?;
-        TypedDomainConfig::try_new(entity, self.config.key)
+        let config = self.repo.find_by_key(C::KEY).await?;
+        TypedDomainConfig::try_new(config, self.config.key)
     }
 
     #[record_error_severity]
