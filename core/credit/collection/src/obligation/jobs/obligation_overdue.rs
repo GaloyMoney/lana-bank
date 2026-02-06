@@ -9,10 +9,10 @@ use job::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    event::CoreCreditCollectionEvent,
     ledger::CollectionLedger,
     obligation::{ObligationError, ObligationRepo},
     primitives::*,
+    public::CoreCreditCollectionEvent,
 };
 
 use super::obligation_defaulted::{ObligationDefaultedJobConfig, ObligationDefaultedJobSpawner};

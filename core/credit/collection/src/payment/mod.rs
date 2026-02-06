@@ -12,7 +12,7 @@ use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    event::CoreCreditCollectionEvent, ledger::CollectionLedger, primitives::*,
+    ledger::CollectionLedger, primitives::*, public::CoreCreditCollectionEvent,
     publisher::CollectionPublisher,
 };
 

@@ -7,7 +7,7 @@ use tracing_macros::record_error_severity;
 
 use crate::primitives::*;
 
-use crate::{event::CoreCreditCollectionEvent, publisher::CollectionPublisher};
+use crate::{public::CoreCreditCollectionEvent, publisher::CollectionPublisher};
 
 use super::{entity::*, error::PaymentAllocationError};
 

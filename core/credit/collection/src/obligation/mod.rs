@@ -15,10 +15,10 @@ use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    event::CoreCreditCollectionEvent,
     ledger::CollectionLedger,
     payment_allocation::{PaymentAllocation, PaymentAllocationRepo},
     primitives::*,
+    public::CoreCreditCollectionEvent,
     publisher::CollectionPublisher,
 };
 
@@ -32,7 +32,6 @@ pub use entity::ObligationEvent;
 pub(crate) use entity::ObligationOverdueReallocationData;
 use error::ObligationError;
 pub(crate) use repo::ObligationRepo;
-pub use repo::obligation_cursor;
 
 pub struct Obligations<Perms, E>
 where

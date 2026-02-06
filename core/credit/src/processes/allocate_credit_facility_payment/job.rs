@@ -129,25 +129,18 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         use CoreCreditCollectionEvent::*;
 
-        if let Some(
-            event @ PaymentReceived {
-                beneficiary_id,
-                payment_id,
-                ..
-            },
-        ) = message.as_event()
-        {
+        if let Some(event @ PaymentCreated { entity }) = message.as_event() {
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
             Span::current().record(
                 "credit_facility_id",
-                tracing::field::display(beneficiary_id),
+                tracing::field::display(&entity.beneficiary_id),
             );
 
             let initiated_by = LedgerTransactionInitiator::System;
             self.process
-                .execute_in_op(db, *payment_id, initiated_by)
+                .execute_in_op(db, entity.id, initiated_by)
                 .await?;
         }
         Ok(())

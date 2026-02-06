@@ -9,10 +9,10 @@ use job::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    event::CoreCreditCollectionEvent,
     ledger::CollectionLedger,
     obligation::{ObligationRepo, error::ObligationError},
     primitives::*,
+    public::CoreCreditCollectionEvent,
 };
 
 #[derive(Serialize, Deserialize)]

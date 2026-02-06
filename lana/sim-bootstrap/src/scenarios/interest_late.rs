@@ -112,23 +112,20 @@ pub async fn interest_late_scenario(
             tokio::select! {
                 Some(msg) = stream.next() => {
                     if let Some(LanaEvent::CreditCollection(CoreCreditCollectionEvent::ObligationDue {
-                        beneficiary_id,
-                        amount,
-                        obligation_type,
-                        ..
+                        entity,
                     })) = &msg.payload
-                        && CreditFacilityId::from(*beneficiary_id) == cf_id
-                        && *amount > UsdCents::ZERO
+                        && CreditFacilityId::from(entity.beneficiary_id) == cf_id
+                        && entity.outstanding_amount > UsdCents::ZERO
                     {
                         msg.inject_trace_parent();
 
-                        if *obligation_type == ObligationType::Interest
+                        if entity.obligation_type == ObligationType::Interest
                             && first_interest_amount.is_none()
                         {
-                            first_interest_amount = Some(*amount);
+                            first_interest_amount = Some(entity.outstanding_amount);
                             first_interest_due_date = Some(current_date);
                         } else {
-                            app.record_payment_with_date(&sub, cf_id, *amount, current_date)
+                            app.record_payment_with_date(&sub, cf_id, entity.outstanding_amount, current_date)
                                 .await?;
                         }
                     }

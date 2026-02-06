@@ -3,7 +3,7 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    event::*,
+    CoreCreditCollectionEvent, PublicObligation, PublicPayment, PublicPaymentAllocation,
     obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment::{Payment, PaymentEvent, error::PaymentError},
     payment_allocation::{
@@ -44,24 +44,14 @@ where
     pub async fn publish_payment_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
-        _entity: &Payment,
+        entity: &Payment,
         new_events: es_entity::LastPersisted<'_, PaymentEvent>,
     ) -> Result<(), PaymentError> {
         use PaymentEvent::*;
         let publish_events = new_events
             .map(|event| match &event.event {
-                Initialized {
-                    id,
-                    beneficiary_id,
-                    amount,
-                    effective,
-                    ..
-                } => CoreCreditCollectionEvent::PaymentReceived {
-                    payment_id: *id,
-                    beneficiary_id: *beneficiary_id,
-                    amount: *amount,
-                    recorded_at: event.recorded_at,
-                    effective: *effective,
+                Initialized { .. } => CoreCreditCollectionEvent::PaymentCreated {
+                    entity: PublicPayment::from(entity),
                 },
             })
             .collect::<Vec<_>>();
@@ -85,21 +75,8 @@ where
         use PaymentAllocationEvent::*;
         let publish_events = new_events
             .map(|event| match &event.event {
-                Initialized {
-                    id,
-                    obligation_id,
-                    obligation_type,
-                    amount,
-                    effective,
-                    ..
-                } => CoreCreditCollectionEvent::PaymentAllocated {
-                    beneficiary_id: entity.beneficiary_id,
-                    obligation_id: *obligation_id,
-                    obligation_type: *obligation_type,
-                    allocation_id: *id,
-                    amount: *amount,
-                    recorded_at: event.recorded_at,
-                    effective: *effective,
+                Initialized { .. } => CoreCreditCollectionEvent::PaymentAllocationCreated {
+                    entity: PublicPaymentAllocation::from(entity),
                 },
             })
             .collect::<Vec<_>>();
@@ -118,50 +95,22 @@ where
         new_events: es_entity::LastPersisted<'_, ObligationEvent>,
     ) -> Result<(), ObligationError> {
         use ObligationEvent::*;
-
-        let dates = entity.lifecycle_dates();
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { effective, .. } => {
-                    Some(CoreCreditCollectionEvent::ObligationCreated {
-                        id: entity.id,
-                        obligation_type: entity.obligation_type,
-                        beneficiary_id: entity.beneficiary_id,
-                        amount: entity.initial_amount,
-                        due_at: dates.due,
-                        overdue_at: dates.overdue,
-                        defaulted_at: dates.defaulted,
-                        recorded_at: event.recorded_at,
-                        effective: *effective,
-                    })
-                }
-                DueRecorded {
-                    due_amount: amount, ..
-                } => Some(CoreCreditCollectionEvent::ObligationDue {
-                    id: entity.id,
-                    beneficiary_id: entity.beneficiary_id,
-                    obligation_type: entity.obligation_type,
-                    amount: *amount,
+                Initialized { .. } => Some(CoreCreditCollectionEvent::ObligationCreated {
+                    entity: PublicObligation::from(entity),
                 }),
-                OverdueRecorded {
-                    overdue_amount: amount,
-                    ..
-                } => Some(CoreCreditCollectionEvent::ObligationOverdue {
-                    id: entity.id,
-                    beneficiary_id: entity.beneficiary_id,
-                    amount: *amount,
+                DueRecorded { .. } => Some(CoreCreditCollectionEvent::ObligationDue {
+                    entity: PublicObligation::from(entity),
                 }),
-                DefaultedRecorded {
-                    defaulted_amount: amount,
-                    ..
-                } => Some(CoreCreditCollectionEvent::ObligationDefaulted {
-                    id: entity.id,
-                    beneficiary_id: entity.beneficiary_id,
-                    amount: *amount,
+                OverdueRecorded { .. } => Some(CoreCreditCollectionEvent::ObligationOverdue {
+                    entity: PublicObligation::from(entity),
+                }),
+                DefaultedRecorded { .. } => Some(CoreCreditCollectionEvent::ObligationDefaulted {
+                    entity: PublicObligation::from(entity),
                 }),
                 Completed { .. } => Some(CoreCreditCollectionEvent::ObligationCompleted {
-                    id: entity.id,
-                    beneficiary_id: entity.beneficiary_id,
+                    entity: PublicObligation::from(entity),
                 }),
                 _ => None,
             })

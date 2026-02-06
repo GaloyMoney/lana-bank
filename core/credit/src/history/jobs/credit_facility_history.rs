@@ -101,10 +101,10 @@ where
             _ => {}
         }
 
-        if let Some(event @ CoreCreditCollectionEvent::PaymentAllocated { beneficiary_id, .. }) =
+        if let Some(event @ CoreCreditCollectionEvent::PaymentAllocationCreated { entity }) =
             message.as_event()
         {
-            let id: CreditFacilityId = (*beneficiary_id).into();
+            let id: CreditFacilityId = entity.beneficiary_id.into();
             self.handle_collection_event(db, message, event, id).await?;
         }
 
