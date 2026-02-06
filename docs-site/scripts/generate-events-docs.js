@@ -14,8 +14,8 @@ const path = require('path');
 const SCHEMA_PATH = path.join(__dirname, '../schemas/lana_events.json');
 const DESCRIPTIONS_EN_PATH = path.join(__dirname, 'event-descriptions.json');
 const DESCRIPTIONS_ES_PATH = path.join(__dirname, 'event-descriptions.es.json');
-const OUTPUT_EN_PATH = path.join(__dirname, '../docs/api/events.md');
-const OUTPUT_ES_PATH = path.join(__dirname, '../i18n/es/docusaurus-plugin-content-docs/current/api/events.md');
+const OUTPUT_EN_PATH = path.join(__dirname, '../docs/for-developers/events/events.md');
+const OUTPUT_ES_PATH = path.join(__dirname, '../i18n/es/docusaurus-plugin-content-docs/current/for-developers/events/events.md');
 
 // Module display order and metadata
 const MODULE_ORDER = [

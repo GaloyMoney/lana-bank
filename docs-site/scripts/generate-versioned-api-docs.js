@@ -5,10 +5,10 @@
  *
  * This script:
  * 1. Reads versions.json to get all doc versions
- * 2. For each version, temporarily swaps in the versioned schemas
- * 3. Runs the standard docusaurus graphql-to-doc commands
+ * 2. For each version, temporarily swaps in the versioned schemas AND config
+ * 3. Runs the standard docusaurus graphql-to-doc commands with OLD structure paths
  * 4. Copies the generated docs to the appropriate versioned_docs folder
- * 5. Restores the original schemas
+ * 5. Restores the original schemas and config
  * 6. Generates events docs for each version
  *
  * Schema files are expected at: schemas/versions/{version}/admin.graphql, customer.graphql, events.json
@@ -22,14 +22,19 @@ const DOCS_SITE_DIR = path.join(__dirname, "..");
 const VERSIONS_FILE = path.join(DOCS_SITE_DIR, "versions.json");
 const SCHEMAS_DIR = path.join(DOCS_SITE_DIR, "schemas", "versions");
 const VERSIONED_DOCS_DIR = path.join(DOCS_SITE_DIR, "versioned_docs");
+const DOCUSAURUS_CONFIG_PATH = path.join(DOCS_SITE_DIR, "docusaurus.config.js");
 
 // Original schema locations (as referenced in docusaurus.config.js)
 const ADMIN_SCHEMA_PATH = path.join(DOCS_SITE_DIR, "..", "lana", "admin-server", "src", "graphql", "schema.graphql");
 const CUSTOMER_SCHEMA_PATH = path.join(DOCS_SITE_DIR, "..", "lana", "customer-server", "src", "graphql", "schema.graphql");
 
-// Generated docs location (where docusaurus outputs)
-const GENERATED_ADMIN_DIR = path.join(DOCS_SITE_DIR, "docs", "api", "admin");
-const GENERATED_CUSTOMER_DIR = path.join(DOCS_SITE_DIR, "docs", "api", "customer");
+// Current structure paths (new)
+const CURRENT_ADMIN_DIR = path.join(DOCS_SITE_DIR, "docs", "for-developers", "admin-api");
+const CURRENT_CUSTOMER_DIR = path.join(DOCS_SITE_DIR, "docs", "for-developers", "customer-api");
+
+// Versioned structure paths (old) - used during versioned generation
+const VERSIONED_ADMIN_DIR = path.join(DOCS_SITE_DIR, "docs", "api", "admin");
+const VERSIONED_CUSTOMER_DIR = path.join(DOCS_SITE_DIR, "docs", "api", "customer");
 
 /**
  * Get all versions from versions.json
@@ -104,6 +109,81 @@ function restoreFile(filePath) {
   if (fs.existsSync(backupPath)) {
     fs.copyFileSync(backupPath, filePath);
     fs.unlinkSync(backupPath);
+  }
+}
+
+/**
+ * Swap docusaurus.config.js to use old structure paths for versioned docs
+ */
+function swapToOldStructure() {
+  let config = fs.readFileSync(DOCUSAURUS_CONFIG_PATH, "utf8");
+  config = config.replace(
+    /baseURL:\s*["']for-developers\/admin-api["']/g,
+    'baseURL: "api/admin"'
+  );
+  config = config.replace(
+    /baseURL:\s*["']for-developers\/customer-api["']/g,
+    'baseURL: "api/customer"'
+  );
+  fs.writeFileSync(DOCUSAURUS_CONFIG_PATH, config);
+}
+
+/**
+ * Fix the generated.md overview file to have correct doc ID for versioned sidebar
+ * The graphql-markdown plugin generates with `id: schema`, but sidebar expects `id: generated`
+ */
+function fixGeneratedOverview(filePath, apiName) {
+  if (!fs.existsSync(filePath)) return;
+
+  let content = fs.readFileSync(filePath, "utf8");
+  // Change id from 'schema' to 'generated' so sidebar can find it
+  content = content.replace(/^id:\s*schema\s*$/m, "id: generated");
+  // Update title to be more descriptive
+  content = content.replace(
+    /^title:\s*Schema Documentation\s*$/m,
+    `title: ${apiName} API`
+  );
+  // Update the intro text
+  content = content.replace(
+    /^This documentation has been automatically generated from the GraphQL schema\.$/m,
+    `This documentation has been automatically generated from the ${apiName} GraphQL schema.`
+  );
+  fs.writeFileSync(filePath, content);
+}
+
+/**
+ * Add unique keys to _category_.yml files in versioned docs to avoid i18n key conflicts
+ */
+function addVersionedCategoryKeys(dir, version, prefix) {
+  if (!fs.existsSync(dir)) return;
+
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      addVersionedCategoryKeys(fullPath, version, prefix);
+    } else if (entry.name === "_category_.yml" || entry.name === "_category_.json") {
+      // Generate a unique key based on version and path
+      const relativePath = path.relative(dir, fullPath);
+      const dirPath = path.dirname(fullPath);
+      const keyBase = dirPath.split(path.sep).slice(-2).join("-").toLowerCase();
+      const uniqueKey = `v${version.replace(/\./g, "-")}-${prefix}-${keyBase}`;
+
+      if (entry.name === "_category_.yml") {
+        let content = fs.readFileSync(fullPath, "utf8");
+        // Only add key if not already present
+        if (!content.includes("key:")) {
+          content = content.trimEnd() + `\nkey: ${uniqueKey}\n`;
+          fs.writeFileSync(fullPath, content);
+        }
+      } else {
+        const data = JSON.parse(fs.readFileSync(fullPath, "utf8"));
+        if (!data.key) {
+          data.key = uniqueKey;
+          fs.writeFileSync(fullPath, JSON.stringify(data, null, 2) + "\n");
+        }
+      }
+    }
   }
 }
 
@@ -357,10 +437,11 @@ async function main() {
     const versionedCustomerSchema = path.join(versionSchemaDir, "customer.graphql");
     const versionedEventsSchema = path.join(versionSchemaDir, "events.json");
 
-    // Backup original schemas
-    console.log("  Backing up original schemas...");
+    // Backup original schemas and config
+    console.log("  Backing up original schemas and config...");
     backupFile(ADMIN_SCHEMA_PATH);
     backupFile(CUSTOMER_SCHEMA_PATH);
+    backupFile(DOCUSAURUS_CONFIG_PATH);
 
     try {
       // Swap in versioned schemas
@@ -371,11 +452,15 @@ async function main() {
         fs.copyFileSync(versionedCustomerSchema, CUSTOMER_SCHEMA_PATH);
       }
 
-      // Clear existing generated docs to ensure fresh generation
-      rmDirSync(GENERATED_ADMIN_DIR);
-      rmDirSync(GENERATED_CUSTOMER_DIR);
+      // Swap docusaurus config to use old structure paths
+      console.log("  Switching to old structure paths...");
+      swapToOldStructure();
 
-      // Run docusaurus graphql-to-doc commands
+      // Clear any existing old structure docs
+      rmDirSync(VERSIONED_ADMIN_DIR);
+      rmDirSync(VERSIONED_CUSTOMER_DIR);
+
+      // Run docusaurus graphql-to-doc commands (will generate to api/admin, api/customer)
       console.log("  Generating Admin API docs...");
       try {
         execSync("npm run generate-api-docs:admin", {
@@ -396,17 +481,6 @@ async function main() {
         console.log(`    Warning: Customer API generation had issues`);
       }
 
-      // Run fix-category-keys on generated docs
-      console.log("  Adding category keys...");
-      try {
-        execSync("node scripts/fix-category-keys.js", {
-          cwd: DOCS_SITE_DIR,
-          stdio: "pipe",
-        });
-      } catch (e) {
-        // Ignore errors, descriptions might not all be filled
-      }
-
       // Copy generated docs to versioned docs
       console.log("  Copying to versioned docs...");
       const adminDestDir = path.join(versionDocsDir, "api", "admin");
@@ -416,14 +490,36 @@ async function main() {
       rmDirSync(adminDestDir);
       rmDirSync(customerDestDir);
 
-      if (fs.existsSync(GENERATED_ADMIN_DIR)) {
-        const count = copyDirSync(GENERATED_ADMIN_DIR, adminDestDir);
+      if (fs.existsSync(VERSIONED_ADMIN_DIR)) {
+        const count = copyDirSync(VERSIONED_ADMIN_DIR, adminDestDir);
         console.log(`    Copied ${count} files to api/admin`);
       }
 
-      if (fs.existsSync(GENERATED_CUSTOMER_DIR)) {
-        const count = copyDirSync(GENERATED_CUSTOMER_DIR, customerDestDir);
+      if (fs.existsSync(VERSIONED_CUSTOMER_DIR)) {
+        const count = copyDirSync(VERSIONED_CUSTOMER_DIR, customerDestDir);
         console.log(`    Copied ${count} files to api/customer`);
+      }
+
+      // Fix the generated.md files to have correct doc IDs for versioned sidebar
+      console.log("  Fixing overview page IDs...");
+      fixGeneratedOverview(path.join(adminDestDir, "generated.md"), "Admin");
+      fixGeneratedOverview(path.join(customerDestDir, "generated.md"), "Customer");
+
+      // Add unique keys to _category_.yml files to avoid i18n conflicts
+      console.log("  Adding version-specific category keys...");
+      addVersionedCategoryKeys(adminDestDir, version, "admin");
+      addVersionedCategoryKeys(customerDestDir, version, "customer");
+
+      // Clean up temporary old structure docs
+      rmDirSync(VERSIONED_ADMIN_DIR);
+      rmDirSync(VERSIONED_CUSTOMER_DIR);
+      // Also remove parent api/ dir if empty
+      const apiDir = path.join(DOCS_SITE_DIR, "docs", "api");
+      if (fs.existsSync(apiDir)) {
+        const remaining = fs.readdirSync(apiDir);
+        if (remaining.length === 0) {
+          fs.rmdirSync(apiDir);
+        }
       }
 
       // Generate Events docs
@@ -436,14 +532,15 @@ async function main() {
       }
 
     } finally {
-      // Restore original schemas
-      console.log("  Restoring original schemas...");
+      // Restore original schemas and config
+      console.log("  Restoring original schemas and config...");
       restoreFile(ADMIN_SCHEMA_PATH);
       restoreFile(CUSTOMER_SCHEMA_PATH);
+      restoreFile(DOCUSAURUS_CONFIG_PATH);
     }
   }
 
-  // Regenerate current docs with original schemas (to ensure they're correct)
+  // Regenerate current docs with original schemas and new structure
   console.log("\n=== Regenerating current docs ===\n");
   try {
     execSync("npm run generate-api-docs", {
