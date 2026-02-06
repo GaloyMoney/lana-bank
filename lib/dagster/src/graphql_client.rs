@@ -248,6 +248,7 @@ query GetLogsForRun($runId: ID!) {
         ... on MaterializationEvent {
           metadataEntries {
             __typename
+            label
             ... on JsonMetadataEntry {
               jsonString
             }
@@ -292,9 +293,11 @@ query GetLogsForRun($runId: ID!) {
             if event["__typename"] == "MaterializationEvent" {
                 let entries = event["metadataEntries"].as_array().unwrap_or(&empty);
                 for entry in entries {
-                    if let Some(json_string) = entry["jsonString"]
-                        .as_str()
-                        .filter(|_| entry["__typename"] == "JsonMetadataEntry")
+                    // Only parse entries with label "report" and type JsonMetadataEntry
+                    let is_report_entry = entry["label"].as_str() == Some("report")
+                        && entry["__typename"] == "JsonMetadataEntry";
+
+                    if let Some(json_string) = entry["jsonString"].as_str().filter(|_| is_report_entry)
                     {
                         let parsed: Report = serde_json::from_str(json_string)?;
                         reports.push(parsed);
