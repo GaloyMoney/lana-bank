@@ -339,13 +339,6 @@ where
         self.repo.find_all(ids).await
     }
 
-    pub(crate) async fn find_by_id_without_audit(
-        &self,
-        id: impl Into<PendingCreditFacilityId> + std::fmt::Debug,
-    ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
-        self.repo.find_by_id(id.into()).await
-    }
-
     #[record_error_severity]
     #[instrument(
         name = "credit.pending_credit_facility.find_by_id",

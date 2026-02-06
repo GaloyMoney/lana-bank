@@ -108,11 +108,16 @@ async fn create_active_facility(
 
     // Update collateral to meet CVL requirements
     let pending_facility_id: PendingCreditFacilityId = proposal.id.into();
+    let pending_facility = credit
+        .pending_credit_facilities()
+        .find_by_id(&DummySubject, pending_facility_id)
+        .await?
+        .expect("pending facility exists");
     let collateral_satoshis = Satoshis::from(50_000_000); // 0.5 BTC
     credit
-        .update_pending_facility_collateral(
+        .update_collateral_by_id(
             &DummySubject,
-            pending_facility_id,
+            pending_facility.collateral_id,
             collateral_satoshis,
             chrono::Utc::now().date_naive(),
         )
