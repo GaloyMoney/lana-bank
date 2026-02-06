@@ -31,13 +31,12 @@ pub use core_credit_terms::{
 };
 
 pub use core_credit_collection::{
-    BalanceUpdateData, BalanceUpdatedSource, BeneficiaryId, CoreCreditCollectionAction,
-    CoreCreditCollectionEvent, CoreCreditCollectionObject, ObligationAction, ObligationAllOrOne,
-    ObligationError, ObligationId, ObligationStatus, ObligationType, Obligations,
-    ObligationsAmounts, PERMISSION_SET_COLLECTION_PAYMENT_DATE, PERMISSION_SET_COLLECTION_VIEWER,
-    PERMISSION_SET_COLLECTION_WRITER, Payment, PaymentAllocation, PaymentAllocationError,
-    PaymentAllocationId, PaymentDetailsForAllocation, PaymentError, PaymentId,
-    PaymentSourceAccountId, Payments,
+    CoreCreditCollectionAction, CoreCreditCollectionEvent, CoreCreditCollectionObject,
+    ObligationAction, ObligationAllOrOne, ObligationError, ObligationId, ObligationStatus,
+    ObligationType, Obligations, ObligationsAmounts, PERMISSION_SET_COLLECTION_PAYMENT_DATE,
+    PERMISSION_SET_COLLECTION_VIEWER, PERMISSION_SET_COLLECTION_WRITER, Payment, PaymentAllocation,
+    PaymentAllocationError, PaymentAllocationId, PaymentError, PaymentId, PaymentSourceAccountId,
+    Payments,
 };
 
 impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {
@@ -80,22 +79,6 @@ es_entity::entity_id! {
     DisbursalId => public_id::PublicIdTargetId,
 
     CreditFacilityId => core_credit_collection::BeneficiaryId,
-}
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum BalanceUpdatedType {
-    Disbursal,
-    InterestAccrual,
-}
-
-impl From<ObligationType> for BalanceUpdatedType {
-    fn from(obligation_type: ObligationType) -> Self {
-        match obligation_type {
-            ObligationType::Disbursal => Self::Disbursal,
-            ObligationType::Interest => Self::InterestAccrual,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
