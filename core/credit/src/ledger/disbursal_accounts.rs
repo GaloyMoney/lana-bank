@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
 
-use super::{CreditFacilityLedgerAccountIds, ObligationReceivableAccountIds};
+use super::CreditFacilityLedgerAccountIds;
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -25,16 +25,6 @@ impl From<CreditFacilityLedgerAccountIds> for DisbursalLedgerAccountIds {
             receivable_overdue_account_id: credit_facility_account_ids
                 .disbursed_receivable_overdue_account_id,
             defaulted_account_id: credit_facility_account_ids.disbursed_defaulted_account_id,
-        }
-    }
-}
-
-impl From<DisbursalLedgerAccountIds> for ObligationReceivableAccountIds {
-    fn from(account_ids: DisbursalLedgerAccountIds) -> Self {
-        Self {
-            not_yet_due: account_ids.receivable_not_yet_due_account_id,
-            due: account_ids.receivable_due_account_id,
-            overdue: account_ids.receivable_overdue_account_id,
         }
     }
 }

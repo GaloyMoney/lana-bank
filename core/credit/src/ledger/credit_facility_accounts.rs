@@ -10,8 +10,6 @@ use crate::{
     primitives::{CreditFacilityId, CustomerType, DisbursalId, LedgerTxId, Satoshis, UsdCents},
 };
 
-use super::ObligationReceivableAccountIds;
-
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityLedgerAccountIds {
@@ -147,16 +145,6 @@ impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleLedgerAccountI
 impl InterestAccrualCycleLedgerAccountIds {
     pub fn defaulted_account_id(&self) -> CalaAccountId {
         self.defaulted_account_id
-    }
-}
-
-impl From<InterestAccrualCycleLedgerAccountIds> for ObligationReceivableAccountIds {
-    fn from(account_ids: InterestAccrualCycleLedgerAccountIds) -> Self {
-        Self {
-            not_yet_due: account_ids.receivable_not_yet_due_account_id,
-            due: account_ids.receivable_due_account_id,
-            overdue: account_ids.receivable_overdue_account_id,
-        }
     }
 }
 
