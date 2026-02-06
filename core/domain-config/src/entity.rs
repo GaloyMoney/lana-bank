@@ -20,6 +20,7 @@ pub enum DomainConfigEvent {
         key: DomainConfigKey,
         config_type: ConfigType,
         visibility: Visibility,
+        encrypted: bool,
     },
     Updated {
         value: serde_json::Value,
@@ -33,6 +34,7 @@ pub struct DomainConfig {
     pub key: DomainConfigKey,
     pub config_type: ConfigType,
     pub visibility: Visibility,
+    pub encrypted: bool,
     events: EntityEvents<DomainConfigEvent>,
 }
 
@@ -50,7 +52,7 @@ impl DomainConfig {
             return None;
         }
 
-        if C::ENCRYPTED {
+        if self.encrypted {
             let encrypted: EncryptedValue = serde_json::from_value(value.clone()).ok()?;
             let plaintext = encrypted.decrypt(key).ok()?;
             let decrypted = serde_json::from_slice(&plaintext).ok()?;
@@ -70,21 +72,15 @@ impl DomainConfig {
     {
         Self::assert_compatible::<C>(self)?;
         C::validate(&new_value)?;
-        let value_json = if C::ENCRYPTED {
-            let encoded = <C::Kind as ValueKind>::encode(&new_value)?;
-            let bytes = serde_json::to_vec(&encoded)?;
-            let encrypted = EncryptedValue::encrypt(key, &bytes);
-            serde_json::to_value(encrypted)?
-        } else {
-            <C::Kind as ValueKind>::encode(&new_value)?
-        };
-
+        let encoded = <C::Kind as ValueKind>::encode(&new_value)?;
+        let value_json = self.maybe_encrypt(key, encoded)?;
         self.update_json_value(value_json)
     }
 
     pub(super) fn apply_exposed_update_from_json(
         &mut self,
         entry: &crate::registry::ConfigSpecEntry,
+        key: &EncryptionKey,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
         if self.visibility != crate::Visibility::Exposed {
@@ -110,7 +106,8 @@ impl DomainConfig {
 
         (entry.validate_json)(&new_value)?;
 
-        self.update_json_value(new_value)
+        let stored = self.maybe_encrypt(key, new_value)?;
+        self.update_json_value(stored)
     }
 
     /// Apply update from JSON for any config (CLI startup, no auth required).
@@ -120,6 +117,7 @@ impl DomainConfig {
     pub fn apply_update_from_json(
         &mut self,
         entry: &crate::registry::ConfigSpecEntry,
+        key: &EncryptionKey,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
         if self.config_type != entry.config_type {
@@ -138,7 +136,22 @@ impl DomainConfig {
 
         (entry.validate_json)(&new_value)?;
 
-        self.update_json_value(new_value)
+        let stored = self.maybe_encrypt(key, new_value)?;
+        self.update_json_value(stored)
+    }
+
+    fn maybe_encrypt(
+        &self,
+        key: &EncryptionKey,
+        value: serde_json::Value,
+    ) -> Result<serde_json::Value, DomainConfigError> {
+        if self.encrypted {
+            let bytes = serde_json::to_vec(&value)?;
+            let encrypted = EncryptedValue::encrypt(key, &bytes);
+            Ok(serde_json::to_value(encrypted)?)
+        } else {
+            Ok(value)
+        }
     }
 
     fn update_json_value(
@@ -200,13 +213,15 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
                     key,
                     config_type,
                     visibility,
+                    encrypted,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .key(key.clone())
                         .config_type(*config_type)
-                        .visibility(*visibility);
+                        .visibility(*visibility)
+                        .encrypted(*encrypted);
                 }
                 DomainConfigEvent::Updated { .. } => {}
             }
@@ -222,6 +237,8 @@ pub struct NewDomainConfig {
     pub(super) key: DomainConfigKey,
     pub(super) config_type: ConfigType,
     pub(super) visibility: Visibility,
+    #[builder(default)]
+    pub(super) encrypted: bool,
     #[builder(default)]
     value: Option<serde_json::Value>,
 }
@@ -239,11 +256,13 @@ impl NewDomainConfigBuilder {
         key: DomainConfigKey,
         config_type: ConfigType,
         visibility: Visibility,
+        encrypted: bool,
     ) -> Self {
         self.id(id);
         self.key(key);
         self.config_type(config_type);
         self.visibility(visibility);
+        self.encrypted(encrypted);
 
         self
     }
@@ -264,6 +283,7 @@ impl NewDomainConfigBuilder {
         self.key(C::KEY);
         self.config_type(config_type);
         self.visibility(C::VISIBILITY);
+        self.encrypted(C::ENCRYPTED);
         self.value(Some(value_json));
 
         Ok(self)
@@ -278,6 +298,7 @@ impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
             key: self.key,
             config_type: self.config_type,
             visibility: self.visibility,
+            encrypted: self.encrypted,
         });
 
         if let Some(value) = self.value {
