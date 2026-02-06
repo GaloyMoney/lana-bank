@@ -536,7 +536,7 @@ impl Query {
         maybe_fetch_one!(
             Liquidation,
             ctx,
-            app.credit().liquidations().find_by_id(sub, id)
+            app.credit().collaterals().find_liquidation_by_id(sub, id)
         )
     }
 
@@ -555,7 +555,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.credit().liquidations().list(sub, query)
+            |query| app.credit().collaterals().list_liquidations(sub, query)
         )
     }
 

@@ -150,8 +150,8 @@ impl CreditFacility {
 
         let liquidations = app
             .credit()
-            .liquidations()
-            .list_for_facility_by_created_at(sub, self.entity.id)
+            .collaterals()
+            .list_liquidations_for_facility_by_created_at(sub, self.entity.id)
             .await?
             .into_iter()
             .map(Liquidation::from)

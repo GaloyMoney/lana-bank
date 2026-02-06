@@ -280,6 +280,8 @@ impl CoreCreditAction {
 
     pub const COLLATERAL_RECORD_LIQUIDATION_UPDATE: Self =
         CoreCreditAction::Collateral(CollateralAction::RecordLiquidationUpdate);
+    pub const COLLATERAL_RECORD_PAYMENT_RECEIVED_FROM_LIQUIDATION: Self =
+        CoreCreditAction::Collateral(CollateralAction::RecordPaymentReceived);
 
     pub const DISBURSAL_INITIATE: Self = CoreCreditAction::Disbursal(DisbursalAction::Initiate);
     pub const DISBURSAL_SETTLE: Self = CoreCreditAction::Disbursal(DisbursalAction::Settle);
@@ -288,8 +290,6 @@ impl CoreCreditAction {
 
     pub const LIQUIDATION_LIST: Self = CoreCreditAction::Liquidation(LiquidationAction::List);
     pub const LIQUIDATION_READ: Self = CoreCreditAction::Liquidation(LiquidationAction::Read);
-    pub const LIQUIDATION_RECORD_PAYMENT_RECEIVED: Self =
-        CoreCreditAction::Liquidation(LiquidationAction::RecordPaymentReceived);
 
     pub const OBLIGATION_READ: Self = CoreCreditAction::Obligation(ObligationAction::Read);
     pub const OBLIGATION_UPDATE_STATUS: Self =
@@ -423,12 +423,15 @@ impl From<DisbursalAction> for CoreCreditAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum CollateralAction {
     RecordLiquidationUpdate,
+    RecordPaymentReceived,
 }
 
 impl ActionPermission for CollateralAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            Self::RecordLiquidationUpdate => PERMISSION_SET_CREDIT_WRITER,
+            Self::RecordLiquidationUpdate | Self::RecordPaymentReceived => {
+                PERMISSION_SET_CREDIT_WRITER
+            }
         }
     }
 }
@@ -444,14 +447,12 @@ impl From<CollateralAction> for CoreCreditAction {
 pub enum LiquidationAction {
     List,
     Read,
-    RecordPaymentReceived,
 }
 
 impl ActionPermission for LiquidationAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::List | Self::Read => PERMISSION_SET_CREDIT_VIEWER,
-            Self::RecordPaymentReceived => PERMISSION_SET_CREDIT_WRITER,
         }
     }
 }

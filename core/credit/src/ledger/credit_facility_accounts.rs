@@ -3,9 +3,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
+use core_credit_collection::PaymentSourceAccountId;
 
 use crate::{
-    FacilityDurationType, FacilityProceedsFromLiquidationAccountId, InterestPeriod,
+    FacilityDurationType, InterestPeriod,
     primitives::{CreditFacilityId, CustomerType, DisbursalId, LedgerTxId, Satoshis, UsdCents},
 };
 
@@ -242,4 +243,37 @@ pub struct CreditFacilityInterestAccrualCycle {
     pub interest: UsdCents,
     pub effective: chrono::NaiveDate,
     pub account_ids: InterestAccrualCycleLedgerAccountIds,
+}
+
+#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(transparent)]
+pub struct FacilityProceedsFromLiquidationAccountId(CalaAccountId);
+
+impl FacilityProceedsFromLiquidationAccountId {
+    pub fn new() -> Self {
+        Self(CalaAccountId::new())
+    }
+
+    pub const fn into_inner(self) -> CalaAccountId {
+        self.0
+    }
+}
+
+impl Default for FacilityProceedsFromLiquidationAccountId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<&FacilityProceedsFromLiquidationAccountId> for PaymentSourceAccountId {
+    fn from(account: &FacilityProceedsFromLiquidationAccountId) -> Self {
+        Self::new(account.0)
+    }
+}
+
+impl From<FacilityProceedsFromLiquidationAccountId> for CalaAccountId {
+    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
+        account.0
+    }
 }

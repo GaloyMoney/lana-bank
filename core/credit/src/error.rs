@@ -53,7 +53,7 @@ pub enum CoreCreditError {
     #[error("CoreCreditError - DisbursalError: {0}")]
     DisbursalError(#[from] super::disbursal::error::DisbursalError),
     #[error("CoreCreditError - LiquidationError: {0}")]
-    LiquidationError(#[from] super::liquidation::error::LiquidationError),
+    LiquidationError(#[from] super::collateral::liquidation::LiquidationError),
     #[error("CoreCreditError - InterestAccrualCycleError: {0}")]
     InterestAccrualCycleError(
         #[from] super::interest_accrual_cycle::error::InterestAccrualCycleError,

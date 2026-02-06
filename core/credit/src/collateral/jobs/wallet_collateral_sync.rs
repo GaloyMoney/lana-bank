@@ -65,12 +65,12 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         ledger: Arc<CollateralLedger>,
-        collateral_repo: Arc<CollateralRepo<E>>,
+        repo: Arc<CollateralRepo<E>>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             ledger,
-            repo: collateral_repo,
+            repo,
         }
     }
 }

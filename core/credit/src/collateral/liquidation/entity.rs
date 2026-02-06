@@ -6,12 +6,9 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 use es_entity::*;
 
-use crate::primitives::*;
+use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::*};
 
-use super::{
-    FacilityProceedsFromLiquidationAccountId, RecordProceedsFromLiquidationData,
-    error::LiquidationError,
-};
+use super::RecordProceedsFromLiquidationData;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -93,50 +90,38 @@ impl Liquidation {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn record_collateral_sent_out(
-        &mut self,
-        amount_sent: Satoshis,
-        ledger_tx_id: LedgerTxId,
-    ) -> Result<Idempotent<()>, LiquidationError> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            LiquidationEvent::CollateralSentOut {
-                amount,
-                ledger_tx_id: tx_id
-            } if amount_sent == *amount && ledger_tx_id == *tx_id
-        );
-
+    pub fn record_collateral_sent_out(&mut self, amount_sent: Satoshis) -> Idempotent<LedgerTxId> {
         self.sent_total += amount_sent;
 
+        let ledger_tx_id = LedgerTxId::new();
         self.events.push(LiquidationEvent::CollateralSentOut {
             amount: amount_sent,
             ledger_tx_id,
         });
 
-        Ok(Idempotent::Executed(()))
+        Idempotent::Executed(ledger_tx_id)
     }
 
     pub fn record_proceeds_from_liquidation(
         &mut self,
         amount_received: UsdCents,
-        payment_id: PaymentId,
-        ledger_tx_id: LedgerTxId,
-    ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, LiquidationError> {
+    ) -> Idempotent<RecordProceedsFromLiquidationData> {
         idempotency_guard!(
             self.events.iter_all(),
-            LiquidationEvent::ProceedsFromLiquidationReceived { .. }
+            LiquidationEvent::ProceedsFromLiquidationReceived { .. },
         );
 
         self.amount_received = amount_received;
 
+        let ledger_tx_id = LedgerTxId::new();
         self.events
             .push(LiquidationEvent::ProceedsFromLiquidationReceived {
                 amount: amount_received,
-                payment_id,
+                payment_id: PaymentId::new(),
                 ledger_tx_id,
             });
 
-        Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
+        Idempotent::Executed(RecordProceedsFromLiquidationData {
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             proceeds_from_liquidation_account_id: self
                 .facility_proceeds_from_liquidation_account_id,
@@ -144,7 +129,8 @@ impl Liquidation {
             collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
             liquidated_collateral_account_id: self.liquidated_collateral_account_id,
             amount_liquidated: self.sent_total,
-        }))
+            ledger_tx_id,
+        })
     }
 
     pub fn complete(&mut self) -> Idempotent<()> {
@@ -314,5 +300,100 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
                 liquidated_collateral_account_id: self.liquidated_collateral_account_id,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
+
+    fn default_new_liquidation() -> NewLiquidation {
+        NewLiquidation::builder()
+            .id(LiquidationId::new())
+            .credit_facility_id(CreditFacilityId::new())
+            .collateral_id(CollateralId::new())
+            .liquidation_proceeds_omnibus_account_id(CalaAccountId::new())
+            .facility_proceeds_from_liquidation_account_id(
+                FacilityProceedsFromLiquidationAccountId::new(),
+            )
+            .facility_payment_holding_account_id(CalaAccountId::new())
+            .facility_uncovered_outstanding_account_id(CalaAccountId::new())
+            .collateral_account_id(CalaAccountId::new())
+            .collateral_in_liquidation_account_id(CalaAccountId::new())
+            .liquidated_collateral_account_id(CalaAccountId::new())
+            .trigger_price(PriceOfOneBTC::new(UsdCents::from(5000000)))
+            .initially_expected_to_receive(UsdCents::from(1000))
+            .initially_estimated_to_liquidate(Satoshis::from(100000))
+            .build()
+            .unwrap()
+    }
+
+    fn liquidation_from(new_liquidation: NewLiquidation) -> Liquidation {
+        Liquidation::try_from_events(new_liquidation.into_events()).unwrap()
+    }
+
+    #[test]
+    fn record_collateral_sent_out_updates_sent_total() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+        assert_eq!(liquidation.sent_total, Satoshis::ZERO);
+
+        let amount = Satoshis::from(50000);
+        let result = liquidation.record_collateral_sent_out(amount);
+        assert!(result.did_execute());
+        assert_eq!(liquidation.sent_total, amount);
+
+        let amount2 = Satoshis::from(30000);
+        liquidation.record_collateral_sent_out(amount2).unwrap();
+        assert_eq!(liquidation.sent_total, amount + amount2);
+    }
+
+    #[test]
+    fn collateral_sent_out_returns_correct_list() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+
+        let amount1 = Satoshis::from(50000);
+        let amount2 = Satoshis::from(30000);
+        liquidation.record_collateral_sent_out(amount1).unwrap();
+        liquidation.record_collateral_sent_out(amount2).unwrap();
+
+        let sent_out = liquidation.collateral_sent_out();
+        assert_eq!(sent_out.len(), 2);
+        assert_eq!(sent_out[0].0, amount1);
+        assert_eq!(sent_out[1].0, amount2);
+    }
+
+    #[test]
+    fn record_proceeds_from_liquidation_is_idempotent() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+
+        let amount = UsdCents::from(500);
+        let result = liquidation.record_proceeds_from_liquidation(amount);
+        assert!(result.did_execute());
+        assert_eq!(liquidation.amount_received, amount);
+
+        let result2 = liquidation.record_proceeds_from_liquidation(amount);
+        assert!(result2.was_already_applied());
+        assert_eq!(liquidation.amount_received, amount);
+    }
+
+    #[test]
+    fn complete_is_idempotent() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+        assert!(!liquidation.is_completed());
+
+        let result = liquidation.complete();
+        assert!(result.did_execute());
+        assert!(liquidation.is_completed());
+
+        let result2 = liquidation.complete();
+        assert!(result2.was_already_applied());
+        assert!(liquidation.is_completed());
+    }
+
+    #[test]
+    fn is_completed_returns_false_for_new_liquidation() {
+        let liquidation = liquidation_from(default_new_liquidation());
+        assert!(!liquidation.is_completed());
     }
 }

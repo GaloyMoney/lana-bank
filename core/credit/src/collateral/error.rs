@@ -13,12 +13,16 @@ pub enum CollateralError {
     CollateralLedgerError(#[from] super::ledger::CollateralLedgerError),
     #[error("CollateralError - ManualUpdateError: Cannot update collateral with a custodian")]
     ManualUpdateError,
-    #[error("CollateralError - NoActiveLiquidation: Collateral has no active liquidation")]
+    #[error("CollateralError - NoActiveLiquidation")]
     NoActiveLiquidation,
+    #[error(
+        "CollateralError - ActiveLiquidationExists: Collateral has active liquidation with id {0}"
+    )]
+    ActiveLiquidationExists(crate::primitives::LiquidationId),
     #[error("CollateralError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CollateralError - LiquidationError: {0}")]
-    LiquidationError(#[from] super::super::liquidation::error::LiquidationError),
+    LiquidationError(#[from] super::liquidation::LiquidationError),
     #[error("CollateralError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CollateralError - LedgerTransactionInitiatorParseError: {0}")]
@@ -36,6 +40,7 @@ impl ErrorSeverity for CollateralError {
             Self::CollateralLedgerError(e) => e.severity(),
             Self::ManualUpdateError => Level::WARN,
             Self::NoActiveLiquidation => Level::WARN,
+            Self::ActiveLiquidationExists(_) => Level::WARN,
             Self::JobError(_) => Level::ERROR,
             Self::LiquidationError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),

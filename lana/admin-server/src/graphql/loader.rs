@@ -460,8 +460,8 @@ impl Loader<LiquidationId> for LanaLoader {
     ) -> Result<HashMap<LiquidationId, Liquidation>, Self::Error> {
         self.app
             .credit()
-            .liquidations()
-            .find_all(keys)
+            .collaterals()
+            .find_all_liquidations(keys)
             .await
             .map_err(|e| Arc::new(e.into()))
     }

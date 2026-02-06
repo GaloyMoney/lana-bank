@@ -2,6 +2,7 @@ mod entity;
 pub mod error;
 mod jobs;
 pub mod ledger;
+pub mod liquidation;
 mod repo;
 
 use std::collections::HashMap;
@@ -14,31 +15,34 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
+use core_money::UsdCents;
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject};
 
-use cala_ledger::TransactionId as CalaTransactionId;
 use es_entity::Idempotent;
 
-use crate::{
-    CreditFacilityPublisher, PaymentId, UsdCents, event::CoreCreditEvent,
-    liquidation::LiquidationRepo, primitives::*,
-};
+use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
 use ledger::CollateralLedger;
 
-pub use entity::Collateral;
 pub(super) use entity::*;
 use jobs::{
     credit_facility_liquidations, liquidation_payment, partial_liquidation, wallet_collateral_sync,
+};
+pub use {
+    entity::Collateral,
+    liquidation::{Liquidation, LiquidationError, RecordProceedsFromLiquidationData},
+    repo::liquidation_cursor,
 };
 
 #[cfg(feature = "json-schema")]
 pub use entity::CollateralEvent;
 use error::CollateralError;
+#[cfg(feature = "json-schema")]
+pub use liquidation::LiquidationEvent;
 use repo::CollateralRepo;
 
 pub struct Collaterals<Perms, E>
@@ -52,7 +56,6 @@ where
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
-    liquidation_repo: Arc<LiquidationRepo<E>>,
     clock: ClockHandle,
 }
 
@@ -69,7 +72,6 @@ where
             authz: self.authz.clone(),
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
-            liquidation_repo: self.liquidation_repo.clone(),
             clock: self.clock.clone(),
         }
     }
@@ -115,23 +117,15 @@ where
             )
             .await?;
 
-        let liquidation_repo = Arc::new(crate::liquidation::LiquidationRepo::new(
-            pool,
-            publisher,
-            clock.clone(),
-        ));
         let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
             pool,
             publisher,
             clock.clone(),
         ));
 
-        let partial_liquidation_job_spawner =
-            jobs.add_initializer(partial_liquidation::PartialLiquidationInit::new(
-                outbox,
-                liquidation_repo.clone(),
-                repo_arc.clone(),
-            ));
+        let partial_liquidation_job_spawner = jobs.add_initializer(
+            partial_liquidation::PartialLiquidationInit::new(outbox, repo_arc.clone()),
+        );
 
         let liquidation_payment_job_spawner =
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
@@ -143,7 +137,6 @@ where
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(
             credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
-                liquidation_repo.clone(),
                 repo_arc.clone(),
                 proceeds_omnibus_account_ids,
                 partial_liquidation_job_spawner,
@@ -164,7 +157,6 @@ where
             authz,
             repo: repo_arc,
             ledger,
-            liquidation_repo,
             clock,
         })
     }
@@ -253,37 +245,20 @@ where
 
         let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
 
-        let liquidation_id = collateral
-            .active_liquidation()
-            .ok_or(CollateralError::NoActiveLiquidation)?;
-
-        let mut liquidation = self
-            .liquidation_repo
-            .find_by_id_in_op(&mut db, liquidation_id)
-            .await?;
-
-        let tx_id = CalaTransactionId::new();
-
-        if liquidation
-            .record_collateral_sent_out(amount_sent, tx_id)?
-            .did_execute()
-        {
-            self.liquidation_repo
-                .update_in_op(&mut db, &mut liquidation)
-                .await?;
-        }
-
-        if let es_entity::Idempotent::Executed(data) = collateral
-            .record_collateral_update_via_liquidation(liquidation_id, amount_sent, effective)
+        if let es_entity::Idempotent::Executed(data) =
+            collateral.record_collateral_update_via_liquidation(amount_sent, effective)?
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
+
             self.ledger
                 .record_collateral_sent_to_liquidation_in_op(
                     &mut db,
                     data.tx_id,
                     amount_sent,
                     collateral.account_id,
-                    liquidation.collateral_in_liquidation_account_id,
+                    collateral
+                        .collateral_in_liquidation_account_id()
+                        .expect("No liquidations found"),
                     initiated_by,
                 )
                 .await?;
@@ -306,41 +281,25 @@ where
         collateral_id: CollateralId,
         amount_received: UsdCents,
     ) -> Result<Collateral, CollateralError> {
-        let collateral = self.repo.find_by_id(collateral_id).await?;
-
-        let liquidation_id = collateral
-            .active_liquidation()
-            .ok_or(CollateralError::NoActiveLiquidation)?;
+        let mut collateral = self.repo.find_by_id(collateral_id).await?;
 
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::liquidation(liquidation_id),
-                CoreCreditAction::LIQUIDATION_RECORD_PAYMENT_RECEIVED,
+                CoreCreditObject::collateral(collateral_id),
+                CoreCreditAction::COLLATERAL_RECORD_PAYMENT_RECEIVED_FROM_LIQUIDATION,
             )
             .await?;
 
         let mut db = self.repo.begin_op().await?;
 
-        let mut liquidation = self
-            .liquidation_repo
-            .find_by_id_in_op(&mut db, liquidation_id)
-            .await?;
-
-        let tx_id = CalaTransactionId::new();
-
-        if let Idempotent::Executed(data) = liquidation.record_proceeds_from_liquidation(
-            amount_received,
-            PaymentId::new(),
-            tx_id,
-        )? {
-            self.liquidation_repo
-                .update_in_op(&mut db, &mut liquidation)
-                .await?;
+        if let Idempotent::Executed(data) =
+            collateral.record_liquidation_proceeds_received(amount_received)?
+        {
+            self.repo.update_in_op(&mut db, &mut collateral).await?;
             self.ledger
                 .record_proceeds_from_liquidation_in_op(
                     &mut db,
-                    tx_id,
                     data,
                     LedgerTransactionInitiator::try_from_subject(sub)?,
                 )
@@ -350,5 +309,75 @@ where
         db.commit().await?;
 
         Ok(collateral)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "collateral.list_liquidations_for_facility_by_created_at",
+        skip(self, sub)
+    )]
+    pub async fn list_liquidations_for_facility_by_created_at(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Vec<Liquidation>, LiquidationError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_liquidations(),
+                CoreCreditAction::LIQUIDATION_LIST,
+            )
+            .await?;
+
+        self.repo
+            .list_liquidations_for_credit_facility_id(credit_facility_id)
+            .await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "collateral.find_liquidation_by_id", skip(self, sub))]
+    pub async fn find_liquidation_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        liquidation_id: impl Into<LiquidationId> + std::fmt::Debug,
+    ) -> Result<Option<Liquidation>, LiquidationError> {
+        let id = liquidation_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::liquidation(id),
+                CoreCreditAction::LIQUIDATION_READ,
+            )
+            .await?;
+
+        self.repo.find_liquidation_by_id(id).await
+    }
+
+    pub async fn find_all_liquidations<T: From<Liquidation>>(
+        &self,
+        ids: &[LiquidationId],
+    ) -> Result<HashMap<LiquidationId, T>, LiquidationError> {
+        self.repo.find_all_liquidations(ids).await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "collateral.list_liquidations", skip(self, sub))]
+    pub async fn list_liquidations(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByIdCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsByIdCursor>,
+        LiquidationError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_liquidations(),
+                CoreCreditAction::LIQUIDATION_LIST,
+            )
+            .await?;
+
+        self.repo.list_liquidations(query).await
     }
 }
