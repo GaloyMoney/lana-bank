@@ -2674,7 +2674,6 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
     return {
         __typename: 'Query',
         accountEntryCsv: overrides && overrides.hasOwnProperty('accountEntryCsv') ? overrides.accountEntryCsv! : relationshipsToOmit.has('AccountingCsvDocument') ? {} as AccountingCsvDocument : mockAccountingCsvDocument({}, relationshipsToOmit),
-        accountSetsByCategory: overrides && overrides.hasOwnProperty('accountSetsByCategory') ? overrides.accountSetsByCategory! : [relationshipsToOmit.has('AccountInfo') ? {} as AccountInfo : mockAccountInfo({}, relationshipsToOmit)],
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
         approvalProcesses: overrides && overrides.hasOwnProperty('approvalProcesses') ? overrides.approvalProcesses! : relationshipsToOmit.has('ApprovalProcessConnection') ? {} as ApprovalProcessConnection : mockApprovalProcessConnection({}, relationshipsToOmit),
         audit: overrides && overrides.hasOwnProperty('audit') ? overrides.audit! : relationshipsToOmit.has('AuditEntryConnection') ? {} as AuditEntryConnection : mockAuditEntryConnection({}, relationshipsToOmit),
@@ -2703,6 +2702,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         depositByPublicId: overrides && overrides.hasOwnProperty('depositByPublicId') ? overrides.depositByPublicId! : relationshipsToOmit.has('Deposit') ? {} as Deposit : mockDeposit({}, relationshipsToOmit),
         depositConfig: overrides && overrides.hasOwnProperty('depositConfig') ? overrides.depositConfig! : relationshipsToOmit.has('DepositModuleConfig') ? {} as DepositModuleConfig : mockDepositModuleConfig({}, relationshipsToOmit),
         deposits: overrides && overrides.hasOwnProperty('deposits') ? overrides.deposits! : relationshipsToOmit.has('DepositConnection') ? {} as DepositConnection : mockDepositConnection({}, relationshipsToOmit),
+        descendantAccountSetsByCategory: overrides && overrides.hasOwnProperty('descendantAccountSetsByCategory') ? overrides.descendantAccountSetsByCategory! : [relationshipsToOmit.has('AccountInfo') ? {} as AccountInfo : mockAccountInfo({}, relationshipsToOmit)],
         disbursal: overrides && overrides.hasOwnProperty('disbursal') ? overrides.disbursal! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         disbursalByPublicId: overrides && overrides.hasOwnProperty('disbursalByPublicId') ? overrides.disbursalByPublicId! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         disbursals: overrides && overrides.hasOwnProperty('disbursals') ? overrides.disbursals! : relationshipsToOmit.has('CreditFacilityDisbursalConnection') ? {} as CreditFacilityDisbursalConnection : mockCreditFacilityDisbursalConnection({}, relationshipsToOmit),

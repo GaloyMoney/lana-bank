@@ -128,58 +128,58 @@ teardown_file() {
   [[ "$retained_earnings_loss_code" == "32.02" ]] || exit 1
 }
 
-@test "accounting: can query account sets by category" {
+@test "accounting: can query descendant account sets by category" {
   # Test ASSET category
   exec_admin_graphql 'account-sets-by-category' '{"category": "ASSET"}'
-  count=$(graphql_output '.data.accountSetsByCategory | length')
+  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
   [[ "$first_code" =~ ^1 ]] || exit 1
 
   # Test LIABILITY category
   exec_admin_graphql 'account-sets-by-category' '{"category": "LIABILITY"}'
-  count=$(graphql_output '.data.accountSetsByCategory | length')
+  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
   [[ "$first_code" =~ ^2 ]] || exit 1
 
   # Test EQUITY category
   exec_admin_graphql 'account-sets-by-category' '{"category": "EQUITY"}'
-  count=$(graphql_output '.data.accountSetsByCategory | length')
+  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
   [[ "$first_code" =~ ^3 ]] || exit 1
 
   # Test REVENUE category
   exec_admin_graphql 'account-sets-by-category' '{"category": "REVENUE"}'
-  count=$(graphql_output '.data.accountSetsByCategory | length')
+  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
   [[ "$first_code" =~ ^4 ]] || exit 1
 
   # Test COST_OF_REVENUE category
   exec_admin_graphql 'account-sets-by-category' '{"category": "COST_OF_REVENUE"}'
-  count=$(graphql_output '.data.accountSetsByCategory | length')
+  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
   [[ "$first_code" =~ ^5 ]] || exit 1
 
   # Test EXPENSES category
   exec_admin_graphql 'account-sets-by-category' '{"category": "EXPENSES"}'
-  count=$(graphql_output '.data.accountSetsByCategory | length')
+  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.accountSetsByCategory[0].code')
+  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
   [[ "$first_code" =~ ^6 ]] || exit 1
 }
 
 @test "accounting: can query off-balance sheet account sets" {
   exec_admin_graphql 'account-sets-by-category' '{"category": "OFF_BALANCE_SHEET"}'
-  count=$(graphql_output '.data.accountSetsByCategory | length')
+  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
   # The test chart has off-balance sheet accounts under codes 7 and 8
   [[ "$count" -gt 0 ]] || exit 1
 
   # Verify that returned account sets are not from the main statement categories (1-6)
-  codes=$(graphql_output '.data.accountSetsByCategory[].code')
+  codes=$(graphql_output '.data.descendantAccountSetsByCategory[].code')
   for code in $codes; do
     # Check that code doesn't start with 1-6 (main statement categories)
     [[ ! "$code" =~ ^[1-6] ]] || exit 1

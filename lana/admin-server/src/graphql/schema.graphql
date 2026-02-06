@@ -2211,7 +2211,7 @@ type Query {
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
-	accountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
+	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
 	fiscalYear(fiscalYearId: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!
