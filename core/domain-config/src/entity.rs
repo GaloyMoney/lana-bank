@@ -1,4 +1,3 @@
-// update macro: unsure of change need review
 use derive_builder::Builder;
 use es_entity::*;
 #[cfg(feature = "json-schema")]
