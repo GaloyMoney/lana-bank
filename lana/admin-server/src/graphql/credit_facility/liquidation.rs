@@ -1,7 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use crate::{graphql::loader::LanaDataLoader, primitives::*};
 pub use lana_app::credit::Liquidation as DomainLiquidation;
+
+use super::Collateral;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -69,5 +71,14 @@ impl Liquidation {
                 ledger_tx_id: ledger_tx_id.into(),
             })
             .collect()
+    }
+
+    async fn collateral(&self, ctx: &Context<'_>) -> Result<Collateral> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let collateral = loader
+            .load_one(self.entity.collateral_id)
+            .await?
+            .expect("Collateral not found");
+        Ok(collateral)
     }
 }
