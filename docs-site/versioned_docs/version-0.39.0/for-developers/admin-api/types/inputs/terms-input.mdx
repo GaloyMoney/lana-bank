@@ -1,0 +1,121 @@
+---
+id: terms-input
+title: TermsInput
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+input TermsInput {
+  annualRate: AnnualRatePct!
+  accrualInterval: InterestInterval!
+  accrualCycleInterval: InterestInterval!
+  oneTimeFeeRate: OneTimeFeeRatePct!
+  disbursalPolicy: DisbursalPolicy!
+  duration: DurationInput!
+  interestDueDurationFromAccrual: DurationInput!
+  obligationOverdueDurationFromDue: DurationInput!
+  obligationLiquidationDurationFromDue: DurationInput!
+  marginCallCvl: CVLPctValue!
+  initialCvl: CVLPctValue!
+  liquidationCvl: CVLPctValue!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>annualRate</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>AnnualRatePct!</b></code>](/for-developers/admin-api/types/scalars/annual-rate-pct.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>accrualInterval</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>InterestInterval!</b></code>](/for-developers/admin-api/types/enums/interest-interval.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>accrualCycleInterval</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>InterestInterval!</b></code>](/for-developers/admin-api/types/enums/interest-interval.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>oneTimeFeeRate</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>OneTimeFeeRatePct!</b></code>](/for-developers/admin-api/types/scalars/one-time-fee-rate-pct.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>disbursalPolicy</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DisbursalPolicy!</b></code>](/for-developers/admin-api/types/enums/disbursal-policy.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>duration</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DurationInput!</b></code>](/for-developers/admin-api/types/inputs/duration-input.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="input"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>interestDueDurationFromAccrual</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DurationInput!</b></code>](/for-developers/admin-api/types/inputs/duration-input.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="input"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>obligationOverdueDurationFromDue</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DurationInput!</b></code>](/for-developers/admin-api/types/inputs/duration-input.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="input"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>obligationLiquidationDurationFromDue</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DurationInput!</b></code>](/for-developers/admin-api/types/inputs/duration-input.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="input"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>marginCallCvl</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CVLPctValue!</b></code>](/for-developers/admin-api/types/scalars/cvlpct-value.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>initialCvl</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CVLPctValue!</b></code>](/for-developers/admin-api/types/scalars/cvlpct-value.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsInput.<b>liquidationCvl</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CVLPctValue!</b></code>](/for-developers/admin-api/types/scalars/cvlpct-value.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+
+
+
+
+### Member Of
+
+[`CreditFacilityProposalCreateInput`](/for-developers/admin-api/types/inputs/credit-facility-proposal-create-input.mdx)  <Badge class="badge badge--secondary badge--relation" text="input"/>
