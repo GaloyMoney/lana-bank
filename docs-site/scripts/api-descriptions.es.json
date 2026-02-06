@@ -55,7 +55,7 @@
       "journalEntries": "Devuelve una lista paginada de todos los asientos contables",
       "trialBalance": "Genera un reporte de balance de comprobacion para el rango de fechas especificado",
       "chartOfAccounts": "Devuelve la estructura del catalogo de cuentas",
-      "accountSetsByCategory": "Devuelve los grupos de cuentas (cuentas no terminales) bajo una categoria contable especificada (activo, pasivo, capital, ingresos, costo de ventas, o gastos)",
+      "descendantAccountSetsByCategory": "Devuelve los grupos de cuentas descendientes (cuentas no terminales) bajo una categoria contable especificada (activo, pasivo, capital, ingresos, costo de ventas, gastos, o fuera de balance)",
       "fiscalYear": "Obtiene un ano fiscal especifico por su identificador unico",
       "fiscalYearByYear": "Obtiene un ano fiscal por su cadena de ano (ej. '2024')",
       "fiscalYears": "Devuelve una lista paginada de todos los anos fiscales",
