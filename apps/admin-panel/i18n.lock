@@ -1411,12 +1411,16 @@ checksums:
     Modules/credit/chartOfAccountFacilityParentCode: 2f989fd7b573d6c58697bc7f3584bd6c
     Modules/credit/chartOfAccountCollateralParentCode: 0369fcbe2714bbef2ad97d2dcb74d021
     Modules/credit/chartOfAccountCollateralInLiquidationParentCode: 7f9de94d851accfb663db254ad1e7b96
+    Modules/credit/chartOfAccountLiquidatedCollateralParentCode: 248b6f8487a69fc19020caf561e04660
+    Modules/credit/chartOfAccountProceedsFromLiquidationParentCode: 40904a981e286ac38a4fa95f2c9da1a3
     Modules/credit/chartOfAccountInterestIncomeParentCode: 6f7bc91587039fec7e07edc8214be0b1
     Modules/credit/chartOfAccountFeeIncomeParentCode: 41eb6f093aee01175ddc0a61cb612efd
     Modules/credit/chartOfAccountPaymentHoldingParentCode: ca6f787a282ddad6b86f2eb24d50959a
     Modules/credit/chartOfAccountPaymentsMadeOmnibusParentCode: 01a4e7ece6ed80b3e65431f10928086d
     Modules/credit/chartOfAccountInterestAddedToObligationsOmnibusParentCode: d0b0446fc53ce13a53b91f028d36968c
     Modules/credit/chartOfAccountUncoveredOutstandingParentCode: 19d8294c2131a66ffed0f3f4f106ff3a
+    Modules/credit/chartOfAccountDisbursedDefaultedParentCode: 47270cfd49ce463d4eca86475ce4ce44
+    Modules/credit/chartOfAccountInterestDefaultedParentCode: 38c11bd212433f38c6cf6ff60cbca5fe
     Modules/credit/chartOfAccountShortTermIndividualInterestReceivableParentCode: 0ccd48b3ce1d6660158061b98833f6cb
     Modules/credit/chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: 4a90bcdd6a1a8d57a4c80c18914c5c3c
     Modules/credit/chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: df5d335adeb84083d130420018874fa8
