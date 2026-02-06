@@ -8,7 +8,7 @@ use core_custody::{
     CoreCustodyEvent, CustodianId, CustodyPublisher, NewWallet, Wallet, WalletId, WalletNetwork,
     WalletRepo,
 };
-use core_money::Satoshis;
+use money::Satoshis;
 use helpers::event;
 
 async fn setup() -> anyhow::Result<(

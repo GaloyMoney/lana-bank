@@ -9,7 +9,7 @@ pub enum DepositSyncError {
     #[error("DepositSyncError - SumsubError: {0}")]
     Sumsub(#[from] sumsub::SumsubError),
     #[error("DepositSyncError - CoreMoneyError: {0}")]
-    CoreMoney(#[from] core_money::ConversionError),
+    CoreMoney(#[from] money::ConversionError),
     #[error("DepositSyncError - DecimalConversionError: {0}")]
     DecimalConversion(#[from] rust_decimal::Error),
     #[error("DepositSyncError - CoreDepositError: {0}")]

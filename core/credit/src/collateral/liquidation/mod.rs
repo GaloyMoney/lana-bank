@@ -6,7 +6,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
-use core_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 
 use crate::primitives::LedgerTxId;
 

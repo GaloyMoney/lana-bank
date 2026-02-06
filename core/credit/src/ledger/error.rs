@@ -17,7 +17,7 @@ pub enum CreditLedgerError {
     #[error("CreditLedgerError - CalaBalanceError: {0}")]
     CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
     #[error("CreditLedgerError - ConversionError: {0}")]
-    ConversionError(#[from] core_money::ConversionError),
+    ConversionError(#[from] money::ConversionError),
     #[error("CreditLedgerError - CalaVelocityError: {0}")]
     CalaVelocity(#[from] cala_ledger::velocity::error::VelocityError),
     #[error("CreditLedgerError - ChartOfAccountsError: {0}")]

@@ -16,7 +16,7 @@ obix = { workspace = true }
 job = { workspace = true }
 bitgo = { workspace = true }
 komainu = { workspace = true }
-core-money = { workspace = true }
+money = { workspace = true }
 
 async-trait = { workspace = true }
 bytes = { workspace = true }

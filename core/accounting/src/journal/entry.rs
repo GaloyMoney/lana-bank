@@ -1,6 +1,6 @@
 use cala_ledger::entry::Entry;
 use cala_ledger::{Currency, DebitOrCredit, EntryId, Layer};
-use core_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
 use super::error::JournalError;

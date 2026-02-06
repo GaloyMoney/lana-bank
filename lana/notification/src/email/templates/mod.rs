@@ -1,5 +1,5 @@
 use chrono::{DateTime, NaiveDate, Utc};
-use core_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
 use serde_json::json;

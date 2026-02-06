@@ -565,6 +565,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55248b47b0caf0546f7988906588779981c43bb1bc9d0c44087278f80cdb44ba"
 
 [[package]]
+name = "bfx-client"
+version = "0.0.0"
+dependencies = [
+ "money",
+ "reqwest",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
+ "workspace-hack",
+]
+
+[[package]]
 name = "bip32"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1296,12 +1313,12 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
- "core-money",
  "csv",
  "derive_builder",
  "document-storage",
  "es-entity",
  "job",
+ "money",
  "obix",
  "rand 0.9.2",
  "rust_decimal",
@@ -1339,7 +1356,6 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
- "core-money",
  "core-price",
  "derive_builder",
  "document-storage",
@@ -1348,6 +1364,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
+ "money",
  "obix",
  "public-id",
  "rand 0.9.2",
@@ -1380,10 +1397,10 @@ dependencies = [
  "chrono",
  "core-accounting",
  "core-credit-terms",
- "core-money",
  "derive_builder",
  "es-entity",
  "job",
+ "money",
  "obix",
  "rust_decimal",
  "schemars 1.2.0",
@@ -1407,10 +1424,10 @@ dependencies = [
  "audit",
  "authz",
  "chrono",
- "core-money",
  "core-price",
  "derive_builder",
  "es-entity",
+ "money",
  "rust_decimal",
  "rust_decimal_macros",
  "schemars 1.2.0",
@@ -1437,7 +1454,6 @@ dependencies = [
  "bytes",
  "chacha20poly1305",
  "chrono",
- "core-money",
  "derive_builder",
  "es-entity",
  "hex",
@@ -1445,6 +1461,7 @@ dependencies = [
  "http",
  "job",
  "komainu",
+ "money",
  "obix",
  "schemars 1.2.0",
  "serde",
@@ -1510,7 +1527,6 @@ dependencies = [
  "cloud-storage",
  "core-accounting",
  "core-customer",
- "core-money",
  "derive_builder",
  "document-storage",
  "domain-config",
@@ -1518,6 +1534,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
+ "money",
  "obix",
  "public-id",
  "rand 0.9.2",
@@ -1554,30 +1571,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
-name = "core-money"
-version = "0.0.0"
-dependencies = [
- "async-graphql",
- "rust_decimal",
- "rust_decimal_macros",
- "schemars 1.2.0",
- "serde",
- "thiserror 2.0.18",
- "tracing",
- "tracing-utils",
- "workspace-hack",
-]
-
-[[package]]
 name = "core-price"
 version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "bfx-client",
  "chrono",
- "core-money",
  "futures",
  "job",
+ "money",
  "obix",
  "rand 0.9.2",
  "reqwest",
@@ -1968,11 +1971,11 @@ dependencies = [
  "audit",
  "authz",
  "chrono",
- "core-money",
  "es-entity",
  "futures",
  "job",
  "lana-events",
+ "money",
  "obix",
  "schemars 1.2.0",
  "serde",
@@ -2003,11 +2006,11 @@ dependencies = [
  "authz",
  "core-customer",
  "core-deposit",
- "core-money",
  "futures",
  "governance",
  "job",
  "lana-events",
+ "money",
  "obix",
  "rust_decimal",
  "serde",
@@ -3493,7 +3496,6 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
- "core-money",
  "core-price",
  "core-report",
  "core-time-events",
@@ -3508,6 +3510,7 @@ dependencies = [
  "job",
  "lana-events",
  "lana-ids",
+ "money",
  "notification",
  "obix",
  "public-id",
@@ -3788,6 +3791,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "money"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "schemars 1.2.0",
+ "serde",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-utils",
+ "workspace-hack",
+]
+
+[[package]]
 name = "multer"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3859,7 +3877,6 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
- "core-money",
  "domain-config",
  "es-entity",
  "futures",
@@ -3868,6 +3885,7 @@ dependencies = [
  "job",
  "lana-events",
  "lettre",
+ "money",
  "obix",
  "serde",
  "serde_json",

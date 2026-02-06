@@ -5,7 +5,7 @@ use bitgo::TransferState;
 use bytes::Bytes;
 use chrono::Utc;
 
-use core_money::Satoshis;
+use money::Satoshis;
 
 use error::CustodianClientError;
 

@@ -33,7 +33,7 @@ es_entity::entity_id! {
     WithdrawalId => ApprovalProcessId
 }
 
-pub use core_money::UsdCents;
+pub use money::UsdCents;
 
 pub const DEPOSIT_ACCOUNT_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("DepositAccount");

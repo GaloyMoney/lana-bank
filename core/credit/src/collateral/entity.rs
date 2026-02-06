@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use core_money::UsdCents;
+use money::UsdCents;
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;

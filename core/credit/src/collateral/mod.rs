@@ -15,7 +15,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
-use core_money::UsdCents;
+use money::UsdCents;
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -200,7 +200,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
-        updated_collateral: core_money::Satoshis,
+        updated_collateral: money::Satoshis,
         effective: chrono::NaiveDate,
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id(collateral_id).await?;
@@ -227,7 +227,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
-        amount_sent: core_money::Satoshis,
+        amount_sent: money::Satoshis,
     ) -> Result<Collateral, CollateralError> {
         self.authz
             .enforce_permission(

@@ -1,15 +1,10 @@
 pub mod error;
-mod response;
+pub mod response;
 
 use reqwest::Client as ReqwestClient;
 
-use core_money::UsdCents;
-
-use crate::PriceOfOneBTC;
-use error::BfxClientError;
-use response::{BfxErrorResponse, BtcUsdTick};
-use tracing::instrument;
-use tracing_macros::record_error_severity;
+pub use error::BfxClientError;
+pub use response::{BfxErrorResponse, BtcUsdTick};
 
 const BASE_URL: &str = "https://api-pub.bitfinex.com/v2/";
 
@@ -57,15 +52,4 @@ impl BfxClient {
             )))
         }
     }
-}
-
-#[record_error_severity]
-#[instrument(name = "core.price.bfx_client.fetch_price", skip(client))]
-pub async fn fetch_price(
-    client: std::sync::Arc<BfxClient>,
-) -> Result<PriceOfOneBTC, BfxClientError> {
-    let tick = client.btc_usd_tick().await?;
-    let usd_cents =
-        UsdCents::try_from_usd(tick.last_price).map_err(BfxClientError::ConversionError)?;
-    Ok(PriceOfOneBTC::new(usd_cents))
 }

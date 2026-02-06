@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use core_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 use lana_events::*;
 
 #[derive(Clone, Default, Serialize, Deserialize, Debug)]

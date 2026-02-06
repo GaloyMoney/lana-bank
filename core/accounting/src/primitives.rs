@@ -19,7 +19,7 @@ pub use cala_ledger::{
     },
 };
 
-pub use core_money::{Satoshis, UsdCents};
+pub use money::{Satoshis, UsdCents};
 
 es_entity::entity_id! {
     ChartId,
