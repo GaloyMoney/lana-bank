@@ -1954,47 +1954,23 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_collateral_update(
+    pub async fn collateral_update(
         &self,
         ctx: &Context<'_>,
-        input: CreditFacilityCollateralUpdateInput,
-    ) -> async_graphql::Result<CreditFacilityCollateralUpdatePayload> {
+        input: CollateralUpdateInput,
+    ) -> async_graphql::Result<CollateralUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let CreditFacilityCollateralUpdateInput {
-            credit_facility_id,
+        let CollateralUpdateInput {
+            collateral_id,
             collateral,
             effective,
         } = input;
         exec_mutation!(
-            CreditFacilityCollateralUpdatePayload,
-            CreditFacility,
+            CollateralUpdatePayload,
+            Collateral,
             ctx,
             app.credit()
-                .update_collateral(sub, credit_facility_id, collateral, effective)
-        )
-    }
-
-    pub async fn pending_credit_facility_collateral_update(
-        &self,
-        ctx: &Context<'_>,
-        input: PendingCreditFacilityCollateralUpdateInput,
-    ) -> async_graphql::Result<PendingCreditFacilityCollateralUpdatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let PendingCreditFacilityCollateralUpdateInput {
-            pending_credit_facility_id,
-            collateral,
-            effective,
-        } = input;
-        exec_mutation!(
-            PendingCreditFacilityCollateralUpdatePayload,
-            PendingCreditFacility,
-            ctx,
-            app.credit().update_pending_facility_collateral(
-                sub,
-                pending_credit_facility_id,
-                collateral,
-                effective
-            )
+                .update_collateral_by_id(sub, collateral_id.into(), collateral, effective.into())
         )
     }
 
