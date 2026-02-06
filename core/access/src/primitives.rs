@@ -216,7 +216,15 @@ impl FromStr for CoreAccessAction {
     type Err = strum::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (entity, action) = s.split_once(':').expect("missing colon");
+        // ActionMapping generates "module:entity:action" (e.g., "access:user:create")
+        // but we also support legacy "entity:action" format for backward compatibility
+        let parts: Vec<&str> = s.split(':').collect();
+        let (entity, action) = match parts.as_slice() {
+            [entity, action] => (*entity, *action),
+            [_module, entity, action] => (*entity, *action),
+            _ => panic!("invalid action format: expected 'entity:action' or 'module:entity:action', got '{}'", s),
+        };
+
         use CoreAccessActionDiscriminants::*;
         let res = match entity.parse()? {
             User => CoreAccessAction::from(action.parse::<UserAction>()?),
@@ -297,7 +305,15 @@ impl FromStr for CoreAccessObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (entity, id) = s.split_once('/').expect("missing slash");
+        // ActionMapping generates "module/entity/id" (e.g., "access/user/*")
+        // but we also support legacy "entity/id" format for backward compatibility
+        let parts: Vec<&str> = s.split('/').collect();
+        let (entity, id) = match parts.as_slice() {
+            [entity, id] => (*entity, *id),
+            [_module, entity, id] => (*entity, *id),
+            _ => panic!("invalid object format: expected 'entity/id' or 'module/entity/id', got '{}'", s),
+        };
+
         use CoreAccessObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             User => {
