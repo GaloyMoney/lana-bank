@@ -1,6 +1,7 @@
 query pendingCreditFacility($id: UUID!) {
   pendingCreditFacility(id: $id) {
     pendingCreditFacilityId
+    collateralId
     status
     wallet {
       address

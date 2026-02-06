@@ -112,23 +112,28 @@ wait_for_facility_to_be_under_liquidation_threshold() {
 
   retry 30 2 wait_for_approval "$credit_facility_proposal_id"
 
+  # Get collateral_id from pending credit facility
+  variables=$(jq -n --arg id "$credit_facility_proposal_id" '{ id: $id }')
+  exec_admin_graphql 'find-pending-credit-facility' "$variables"
+  collateral_id=$(graphql_output '.data.pendingCreditFacility.collateralId')
+  [[ "$collateral_id" != "null" ]] || exit 1
+
   # Add enough collateral to activate the facility
   variables=$(
     jq -n \
-      --arg pending_credit_facility_id "$credit_facility_proposal_id" \
+      --arg collateral_id "$collateral_id" \
       --arg effective "$(naive_now)" \
     '{
       input: {
-        pendingCreditFacilityId: $pending_credit_facility_id,
+        collateralId: $collateral_id,
         collateral: 200000000,
         effective: $effective,
       }
     }'
   )
-  exec_admin_graphql 'pending-credit-facility-collateral-update' "$variables"
+  exec_admin_graphql 'collateral-update' "$variables"
 
-  credit_facility_id=$(graphql_output '.data.pendingCreditFacilityCollateralUpdate.pendingCreditFacility.pendingCreditFacilityId')
-  [[ "$credit_facility_id" != "null" ]] || exit 1
+  credit_facility_id=$credit_facility_proposal_id
 
   retry 30 2 wait_for_active "$credit_facility_id"
   cache_value 'credit_facility_id' "$credit_facility_id"
@@ -136,17 +141,17 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   # Drop collateral so CVL falls below the liquidation threshold.
   variables=$(
     jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
+      --arg collateral_id "$collateral_id" \
       --arg effective "$(naive_now)" \
     '{
       input: {
-        creditFacilityId: $creditFacilityId,
+        collateralId: $collateral_id,
         collateral: 100000000,
         effective: $effective,
       }
     }'
   )
-  exec_admin_graphql 'credit-facility-collateral-update' "$variables"
+  exec_admin_graphql 'collateral-update' "$variables"
 
   retry 60 2 wait_for_facility_to_be_under_liquidation_threshold "$credit_facility_id"
 
