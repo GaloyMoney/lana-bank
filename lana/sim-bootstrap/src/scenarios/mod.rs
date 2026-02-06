@@ -97,10 +97,17 @@ async fn process_facility_message(
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
+            let pending_facility = app
+                .credit()
+                .pending_credit_facilities()
+                .find_by_id(sub, cf_proposal.id)
+                .await?
+                .expect("pending facility exists");
+
             app.credit()
-                .update_pending_facility_collateral(
+                .update_collateral_by_id(
                     sub,
-                    cf_proposal.id,
+                    pending_facility.collateral_id,
                     Satoshis::try_from_btc(dec!(230))?,
                     clock.today(),
                 )
