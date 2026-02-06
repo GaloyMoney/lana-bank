@@ -94,10 +94,11 @@ impl LanaApp {
         )
         .await?;
         let authz = Authorization::init(&pool, &audit).await?;
-        let internal_domain_configs = InternalDomainConfigs::new(&pool, config.encryption);
-        let exposed_domain_configs = ExposedDomainConfigs::new(&pool, &authz, config.encryption);
+        let internal_domain_configs = InternalDomainConfigs::new(&pool, config.encryption.clone());
+        let exposed_domain_configs =
+            ExposedDomainConfigs::new(&pool, &authz, config.encryption.clone());
         let exposed_domain_configs_readonly =
-            ExposedDomainConfigsReadOnly::new(&pool, config.encryption);
+            ExposedDomainConfigsReadOnly::new(&pool, config.encryption.clone());
         internal_domain_configs.seed_registered().await?;
         exposed_domain_configs.seed_registered().await?;
 

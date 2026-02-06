@@ -54,8 +54,8 @@ impl DomainConfig {
 
         if self.encrypted {
             let encrypted: EncryptedValue = serde_json::from_value(value.clone()).ok()?;
-            let plaintext = encrypted.decrypt(key).ok()?;
-            let decrypted = serde_json::from_slice(&plaintext).ok()?;
+            let bytes = encrypted.decrypt(key).ok()?;
+            let decrypted = serde_json::from_slice(&bytes).ok()?;
             <C::Kind as ValueKind>::decode(decrypted).ok()
         } else {
             <C::Kind as ValueKind>::decode(value.clone()).ok()
@@ -73,8 +73,7 @@ impl DomainConfig {
         Self::assert_compatible::<C>(self)?;
         C::validate(&new_value)?;
         let encoded = <C::Kind as ValueKind>::encode(&new_value)?;
-        let value_json = self.maybe_encrypt(key, encoded)?;
-        self.update_json_value(value_json)
+        self.store_value(key, encoded)
     }
 
     pub(super) fn apply_exposed_update_from_json(
@@ -106,8 +105,7 @@ impl DomainConfig {
 
         (entry.validate_json)(&new_value)?;
 
-        let stored = self.maybe_encrypt(key, new_value)?;
-        self.update_json_value(stored)
+        self.store_value(key, new_value)
     }
 
     /// Apply update from JSON for any config (CLI startup, no auth required).
@@ -136,34 +134,42 @@ impl DomainConfig {
 
         (entry.validate_json)(&new_value)?;
 
-        let stored = self.maybe_encrypt(key, new_value)?;
-        self.update_json_value(stored)
+        self.store_value(key, new_value)
     }
 
-    fn maybe_encrypt(
-        &self,
-        key: &EncryptionKey,
-        value: serde_json::Value,
-    ) -> Result<serde_json::Value, DomainConfigError> {
-        if self.encrypted {
-            let bytes = serde_json::to_vec(&value)?;
-            let encrypted = EncryptedValue::encrypt(key, &bytes);
-            Ok(serde_json::to_value(encrypted)?)
+    fn current_decrypted_json(&self, key: &EncryptionKey) -> serde_json::Value {
+        let json = self.current_json_value();
+        if self.encrypted && !json.is_null() {
+            let encrypted: EncryptedValue = serde_json::from_value(json.clone())
+                .expect("stored encrypted value should be valid");
+            let bytes = encrypted
+                .decrypt(key)
+                .expect("decryption should succeed with correct key");
+            serde_json::from_slice(&bytes).expect("decrypted bytes should be valid json")
         } else {
-            Ok(value)
+            json.clone()
         }
     }
 
-    fn update_json_value(
+    fn store_value(
         &mut self,
-        new_value: serde_json::Value,
+        key: &EncryptionKey,
+        plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        if self.current_json_value() == &new_value {
+        if self.current_decrypted_json(key) == plaintext {
             return Ok(Idempotent::AlreadyApplied);
         }
 
+        let stored = if self.encrypted {
+            let bytes = serde_json::to_vec(&plaintext)?;
+            let encrypted = EncryptedValue::encrypt(key, &bytes);
+            serde_json::to_value(encrypted)?
+        } else {
+            plaintext
+        };
+
         self.events
-            .push(DomainConfigEvent::Updated { value: new_value });
+            .push(DomainConfigEvent::Updated { value: stored });
 
         Ok(Idempotent::Executed(()))
     }
@@ -356,6 +362,18 @@ mod tests {
         struct SampleExposedBool(bool);
         spec {
             key: "simple-bool";
+        }
+    }
+
+    crate::define_internal_config! {
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+        struct SampleEncryptedConfig {
+            secret: String,
+        }
+
+        spec {
+            key: "encrypted-config";
+            encrypted: true;
         }
     }
 
@@ -651,5 +669,72 @@ mod tests {
             update_type_error,
             Err(DomainConfigError::InvalidType(message)) if message.contains("config type")
         ));
+    }
+
+    fn seed_encrypted_config() -> DomainConfig {
+        let events = NewDomainConfig::builder()
+            .seed(
+                DomainConfigId::new(),
+                SampleEncryptedConfig::KEY,
+                <<SampleEncryptedConfig as ConfigSpec>::Kind as ValueKind>::TYPE,
+                SampleEncryptedConfig::VISIBILITY,
+                SampleEncryptedConfig::ENCRYPTED,
+            )
+            .build()
+            .unwrap()
+            .into_events();
+        DomainConfig::try_from_events(events).unwrap()
+    }
+
+    #[test]
+    fn encrypted_config_roundtrip() {
+        let mut config = seed_encrypted_config();
+        assert!(config.encrypted);
+
+        let value = SampleEncryptedConfig {
+            secret: "my-secret".to_string(),
+        };
+        assert!(
+            config
+                .update_value::<SampleEncryptedConfig>(&test_key(), value.clone())
+                .unwrap()
+                .did_execute()
+        );
+        assert_eq!(
+            config
+                .current_value::<SampleEncryptedConfig>(&test_key())
+                .unwrap(),
+            value
+        );
+
+        // Stored JSON should be ciphertext, not plaintext
+        let stored = config.current_json_value();
+        assert!(
+            stored.get("ciphertext").is_some(),
+            "stored value should be encrypted"
+        );
+    }
+
+    #[test]
+    fn encrypted_config_update_is_idempotent() {
+        let mut config = seed_encrypted_config();
+
+        let value = SampleEncryptedConfig {
+            secret: "my-secret".to_string(),
+        };
+        assert!(
+            config
+                .update_value::<SampleEncryptedConfig>(&test_key(), value.clone())
+                .unwrap()
+                .did_execute()
+        );
+
+        let event_count_after_first = config.events.iter_all().count();
+
+        let result = config
+            .update_value::<SampleEncryptedConfig>(&test_key(), value)
+            .unwrap();
+        assert!(result.was_already_applied());
+        assert_eq!(config.events.iter_all().count(), event_count_after_first);
     }
 }
