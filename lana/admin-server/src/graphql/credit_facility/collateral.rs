@@ -7,6 +7,14 @@ use crate::{
 pub use lana_app::credit::Collateral as DomainCollateral;
 
 #[derive(InputObject)]
+pub struct CollateralUpdateInput {
+    pub collateral_id: UUID,
+    pub collateral: Satoshis,
+    pub effective: Date,
+}
+crate::mutation_payload! { CollateralUpdatePayload, collateral: Collateral }
+
+#[derive(InputObject)]
 pub struct CollateralRecordSentToLiquidationInput {
     pub collateral_id: UUID,
     pub amount: Satoshis,

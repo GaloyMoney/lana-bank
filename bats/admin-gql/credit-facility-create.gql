@@ -2,6 +2,7 @@ mutation CreditFacilityCreate($input: CreditFacilityCreateInput!) {
   creditFacilityCreate(input: $input) {
     creditFacility {
       creditFacilityId
+      collateralId
       wallet {
         address
       }

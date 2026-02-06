@@ -31,14 +31,12 @@ import Balance from "@/components/balance/balance"
 import { useLoanAgreement } from "@/hooks/use-loan-agreement"
 
 type CreditFacilityDetailsProps = {
-  creditFacilityId: string
   creditFacilityDetails: NonNullable<
     GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
   >
 }
 
 const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
-  creditFacilityId,
   creditFacilityDetails,
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.DetailsCard")
@@ -182,7 +180,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         setOpenTermsDialog={setOpenTermsDialog}
       />
       <CreditFacilityCollateralUpdateDialog
-        creditFacilityId={creditFacilityId}
+        collateralId={creditFacilityDetails.collateralId}
         currentCollateral={creditFacilityDetails.balance.collateral.btcBalance}
         collateralToMatchInitialCvl={creditFacilityDetails.collateralToMatchInitialCvl}
         openDialog={openCollateralUpdateDialog}

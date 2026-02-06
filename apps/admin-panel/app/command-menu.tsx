@@ -489,7 +489,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
             }}
           />
           <CreditFacilityCollateralUpdateDialog
-            creditFacilityId={facility.creditFacilityId}
+            collateralId={facility.collateralId}
             currentCollateral={facility.balance.collateral.btcBalance}
             collateralToMatchInitialCvl={facility.collateralToMatchInitialCvl}
             openDialog={openCollateralUpdateDialog}

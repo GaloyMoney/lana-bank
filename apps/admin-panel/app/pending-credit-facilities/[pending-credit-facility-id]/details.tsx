@@ -148,7 +148,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
       <PendingCreditFacilityCollateralUpdateDialog
         openDialog={openCollateralUpdateDialog}
         setOpenDialog={setOpenCollateralUpdateDialog}
-        pendingCreditFacilityId={pendingDetails.pendingCreditFacilityId}
+        collateralId={pendingDetails.collateralId}
         currentCollateral={pendingDetails.collateral.btcBalance}
         collateralToMatchInitialCvl={pendingDetails.collateralToMatchInitialCvl}
       />
