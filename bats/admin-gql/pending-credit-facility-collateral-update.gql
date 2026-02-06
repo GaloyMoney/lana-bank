@@ -1,9 +1,0 @@
-mutation PendingCreditFacilityCollateralUpdate(
-  $input: PendingCreditFacilityCollateralUpdateInput!
-) {
-  pendingCreditFacilityCollateralUpdate(input: $input) {
-    pendingCreditFacility {
-      pendingCreditFacilityId
-    }
-  }
-}
