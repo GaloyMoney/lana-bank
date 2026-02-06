@@ -19,8 +19,7 @@ pub async fn init_read_only_exposed_domain_configs(
     pool: &sqlx::PgPool,
     authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
 ) -> anyhow::Result<ExposedDomainConfigsReadOnly> {
-    let exposed_configs =
-        ExposedDomainConfigs::new(pool, authz, DomainEncryptionConfig::default());
+    let exposed_configs = ExposedDomainConfigs::new(pool, authz, DomainEncryptionConfig::default());
     exposed_configs.seed_registered().await?;
     // Disable the require verified customer check for tests
     // Ignore concurrent modification - all tests want the same value (false)

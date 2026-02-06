@@ -407,7 +407,7 @@ where
         })?;
 
         if config
-            .apply_exposed_update_from_json(entry, value)?
+            .apply_exposed_update_from_json(entry, &self.config.key, value)?
             .did_execute()
         {
             self.repo.update(&mut config).await?;
@@ -471,7 +471,13 @@ async fn seed_registered_for_visibility(
         let key = DomainConfigKey::new(spec.key);
         let config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
-            .seed(config_id, key, spec.config_type, spec.visibility)
+            .seed(
+                config_id,
+                key,
+                spec.config_type,
+                spec.visibility,
+                spec.encrypted,
+            )
             .build()?;
         match repo.create(new).await {
             Ok(_) => {}
@@ -493,6 +499,7 @@ async fn seed_registered_for_visibility(
 #[instrument(name = "domain_config.apply_startup_configs", skip_all)]
 pub async fn apply_startup_configs<I, K>(
     pool: &sqlx::PgPool,
+    encryption_config: &DomainEncryptionConfig,
     settings: I,
 ) -> Result<(), DomainConfigError>
 where
@@ -513,7 +520,9 @@ where
         };
 
         let mut config = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
-        let changed = config.apply_update_from_json(entry, value)?.did_execute();
+        let changed = config
+            .apply_update_from_json(entry, &encryption_config.key, value)?
+            .did_execute();
 
         if changed {
             repo.update_in_op(&mut db_tx, &mut config).await?;
