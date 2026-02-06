@@ -16,25 +16,28 @@ import { Input } from "@lana/web/ui/input"
 
 import { Label } from "@lana/web/ui/label"
 
-import { useCreditFacilityCollateralUpdateMutation } from "@/lib/graphql/generated"
+import { useCollateralUpdateMutation } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter, getCurrentLocalDate } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 import { Satoshis } from "@/types"
 
 gql`
-  mutation CreditFacilityCollateralUpdate($input: CreditFacilityCollateralUpdateInput!) {
-    creditFacilityCollateralUpdate(input: $input) {
-      creditFacility {
-        id
-        creditFacilityId
-        balance {
-          collateral {
-            btcBalance
+  mutation CollateralUpdate($input: CollateralUpdateInput!) {
+    collateralUpdate(input: $input) {
+      collateral {
+        collateralId
+        creditFacility {
+          id
+          creditFacilityId
+          balance {
+            collateral {
+              btcBalance
+            }
           }
+          ...CreditFacilityHistoryFragment
+          ...CreditFacilityLayoutFragment
         }
-        ...CreditFacilityHistoryFragment
-        ...CreditFacilityLayoutFragment
       }
     }
   }
@@ -43,7 +46,7 @@ gql`
 type CreditFacilityCollateralUpdateDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
-  creditFacilityId: string
+  collateralId: string
   currentCollateral: Satoshis
   collateralToMatchInitialCvl?: Satoshis | null
 }
@@ -53,7 +56,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
 > = ({
   setOpenDialog,
   openDialog,
-  creditFacilityId,
+  collateralId,
   currentCollateral,
   collateralToMatchInitialCvl,
 }) => {
@@ -62,8 +65,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
   )
   const commonT = useTranslations("Common")
 
-  const [updateCollateral, { loading, reset }] =
-    useCreditFacilityCollateralUpdateMutation()
+  const [updateCollateral, { loading, reset }] = useCollateralUpdateMutation()
   const [error, setError] = useState<string | null>(null)
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false)
   const [newCollateral, setNewCollateral] = useState<string>("")
@@ -75,7 +77,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
       const result = await updateCollateral({
         variables: {
           input: {
-            creditFacilityId,
+            collateralId,
             collateral: currencyConverter.btcToSatoshi(Number(newCollateral)),
             effective: getCurrentLocalDate(),
           },
@@ -88,7 +90,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
         setError(commonT("error"))
       }
     } catch (error) {
-      console.error("Error updating credit facility collateral:", error)
+      console.error("Error updating collateral:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
