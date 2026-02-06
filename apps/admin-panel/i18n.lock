@@ -1399,6 +1399,11 @@ checksums:
     Modules/credit/title: 2d447a71ec815a039f175e94fbb12a56
     Modules/credit/description: 7feb16939959a3c35f74761021ad60d7
     Modules/credit/setTitle: fc23ba4cd507ca596a84e05344b4411d
+    Modules/credit/accountSetSelectPlaceholder: 0f8687d81e446cf21a97ae5a28311b35
+    Modules/credit/accountSetSearchPlaceholder: 07e37cdd89c5d352af71466fd0d035c3
+    Modules/credit/accountSetEmpty: bcdb1f1ed5d4e305d4b5bde4ff4d3ed0
+    Modules/credit/groups/omnibus: db91bcb3dd8b9f1a2eaae09c352c943a
+    Modules/credit/groups/summary: 86c482f2e49d7d96ee81eeea682f45f3
     Modules/credit/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
     Modules/credit/chartOfAccountFacilityOmnibusParentCode: bf703671363e0e235a983fe5a867859f
     Modules/credit/chartOfAccountCollateralOmnibusParentCode: 1ef5f1593be70bd9c306b0dc7144cf69
