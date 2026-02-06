@@ -224,29 +224,25 @@ where
         external_id: &str,
         run_id: crate::ReportRunId,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let reports = self
-            .reports
-            .list_for_run_id_by_created_at(
-                run_id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?;
-
-        if !reports.entities.is_empty() {
-            return Ok(());
-        }
-
         let dagster_reports = self.dagster.graphql().get_logs_for_run(external_id).await?;
 
         for dagster_report in dagster_reports {
-            let files: Vec<crate::report::ReportFile> =
-                dagster_report.files.into_iter().map(|f| f.into()).collect();
-
             let report_external_id = format!(
                 "{}_{}_{}",
                 external_id, dagster_report.norm, dagster_report.name
             );
+
+            if self
+                .reports
+                .find_by_external_id(&report_external_id)
+                .await
+                .is_ok()
+            {
+                continue;
+            }
+
+            let files: Vec<crate::report::ReportFile> =
+                dagster_report.files.into_iter().map(|f| f.into()).collect();
 
             let new_report = NewReport::builder()
                 .external_id(report_external_id)
