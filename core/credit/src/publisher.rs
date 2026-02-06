@@ -368,7 +368,6 @@ where
                     recorded_at: event.recorded_at,
                     effective: event.recorded_at.date_naive(),
                 }),
-                Updated { .. } => None,
             })
             .collect::<Vec<_>>();
         self.outbox

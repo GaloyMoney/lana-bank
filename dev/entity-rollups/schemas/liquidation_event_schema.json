@@ -92,34 +92,6 @@
     },
     {
       "properties": {
-        "current_price": {
-          "$ref": "#/$defs/PriceOfOneBTC"
-        },
-        "expected_to_receive": {
-          "$ref": "#/$defs/UsdCents"
-        },
-        "outstanding": {
-          "$ref": "#/$defs/UsdCents"
-        },
-        "to_liquidate_at_current_price": {
-          "$ref": "#/$defs/Satoshis"
-        },
-        "type": {
-          "const": "updated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "outstanding",
-        "to_liquidate_at_current_price",
-        "current_price",
-        "expected_to_receive"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
         "amount": {
           "$ref": "#/$defs/Satoshis"
         },

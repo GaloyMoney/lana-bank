@@ -30,12 +30,6 @@ pub enum LiquidationEvent {
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
     },
-    Updated {
-        outstanding: UsdCents,
-        to_liquidate_at_current_price: Satoshis,
-        current_price: PriceOfOneBTC,
-        expected_to_receive: UsdCents,
-    },
     CollateralSentOut {
         amount: Satoshis,
         ledger_tx_id: LedgerTxId,
@@ -228,10 +222,6 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     amount_received = *amount;
                 }
                 LiquidationEvent::Completed { .. } => {}
-                LiquidationEvent::Updated {
-                    expected_to_receive,
-                    ..
-                } => builder = builder.expected_to_receive(*expected_to_receive),
             }
         }
 
