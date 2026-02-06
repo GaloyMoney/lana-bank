@@ -43,9 +43,21 @@ fn test_parse_reports_from_logs_for_run_response() {
     let nrp_51_reports: Vec<_> = reports.iter().filter(|r| r.norm == "nrp_51").collect();
     let nrsf_03_reports: Vec<_> = reports.iter().filter(|r| r.norm == "nrsf_03").collect();
 
-    assert_eq!(nrp_41_reports.len(), 28, "Expected 28 nrp_41 report entries");
-    assert_eq!(nrp_51_reports.len(), 12, "Expected 12 nrp_51 report entries");
-    assert_eq!(nrsf_03_reports.len(), 8, "Expected 8 nrsf_03 report entries");
+    assert_eq!(
+        nrp_41_reports.len(),
+        28,
+        "Expected 28 nrp_41 report entries"
+    );
+    assert_eq!(
+        nrp_51_reports.len(),
+        12,
+        "Expected 12 nrp_51 report entries"
+    );
+    assert_eq!(
+        nrsf_03_reports.len(),
+        8,
+        "Expected 8 nrsf_03 report entries"
+    );
 
     // Each report name appears twice (once for each file type: xml/csv or csv/txt)
     let expected_nrp_41_names = [
@@ -112,10 +124,17 @@ fn test_parse_reports_from_logs_for_run_response() {
         );
     }
 
-    let first_report = reports.iter().find(|r| r.name == "garantia_hipotecaria" && r.files.iter().any(|f| f.extension == "xml")).unwrap();
+    let first_report = reports
+        .iter()
+        .find(|r| r.name == "garantia_hipotecaria" && r.files.iter().any(|f| f.extension == "xml"))
+        .unwrap();
     assert_eq!(first_report.files.len(), 1);
     assert_eq!(first_report.files[0].extension, "xml");
-    assert!(first_report.files[0].path_in_bucket.contains("garantia_hipotecaria.xml"));
+    assert!(
+        first_report.files[0]
+            .path_in_bucket
+            .contains("garantia_hipotecaria.xml")
+    );
 }
 
 #[test]

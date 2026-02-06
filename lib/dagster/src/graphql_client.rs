@@ -297,7 +297,8 @@ query GetLogsForRun($runId: ID!) {
                     let is_report_entry = entry["label"].as_str() == Some("report")
                         && entry["__typename"] == "JsonMetadataEntry";
 
-                    if let Some(json_string) = entry["jsonString"].as_str().filter(|_| is_report_entry)
+                    if let Some(json_string) =
+                        entry["jsonString"].as_str().filter(|_| is_report_entry)
                     {
                         let parsed: Report = serde_json::from_str(json_string)?;
                         reports.push(parsed);
