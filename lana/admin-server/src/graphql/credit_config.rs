@@ -15,10 +15,14 @@ pub struct CreditModuleConfig {
     chart_of_account_facility_parent_code: Option<String>,
     chart_of_account_collateral_parent_code: Option<String>,
     chart_of_account_collateral_in_liquidation_parent_code: Option<String>,
+    chart_of_account_liquidated_collateral_parent_code: Option<String>,
+    chart_of_account_proceeds_from_liquidation_parent_code: Option<String>,
     chart_of_account_interest_income_parent_code: Option<String>,
     chart_of_account_fee_income_parent_code: Option<String>,
     chart_of_account_payment_holding_parent_code: Option<String>,
     chart_of_account_uncovered_outstanding_parent_code: Option<String>,
+    chart_of_account_disbursed_defaulted_parent_code: Option<String>,
+    chart_of_account_interest_defaulted_parent_code: Option<String>,
 
     chart_of_account_short_term_individual_disbursed_receivable_parent_code: Option<String>,
     chart_of_account_short_term_government_entity_disbursed_receivable_parent_code: Option<String>,
@@ -115,6 +119,16 @@ impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
             chart_of_account_collateral_in_liquidation_parent_code: Some(
                 values.chart_of_account_collateral_in_liquidation_parent_code.to_string(),
             ),
+            chart_of_account_liquidated_collateral_parent_code: Some(
+                values
+                    .chart_of_account_liquidated_collateral_parent_code
+                    .to_string(),
+            ),
+            chart_of_account_proceeds_from_liquidation_parent_code: Some(
+                values
+                    .chart_of_account_proceeds_from_liquidation_parent_code
+                    .to_string(),
+            ),
             chart_of_account_interest_income_parent_code: Some(
                 values
                     .chart_of_account_interest_income_parent_code
@@ -128,6 +142,16 @@ impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
             ),
             chart_of_account_uncovered_outstanding_parent_code: Some(
                 values.chart_of_account_uncovered_outstanding_parent_code.to_string(),
+            ),
+            chart_of_account_disbursed_defaulted_parent_code: Some(
+                values
+                    .chart_of_account_disbursed_defaulted_parent_code
+                    .to_string(),
+            ),
+            chart_of_account_interest_defaulted_parent_code: Some(
+                values
+                    .chart_of_account_interest_defaulted_parent_code
+                    .to_string(),
             ),
 
             chart_of_account_short_term_individual_disbursed_receivable_parent_code: Some(
@@ -325,10 +349,14 @@ pub struct CreditModuleConfigureInput {
     pub chart_of_account_facility_parent_code: String,
     pub chart_of_account_collateral_parent_code: String,
     pub chart_of_account_collateral_in_liquidation_parent_code: String,
+    pub chart_of_account_liquidated_collateral_parent_code: String,
+    pub chart_of_account_proceeds_from_liquidation_parent_code: String,
     pub chart_of_account_interest_income_parent_code: String,
     pub chart_of_account_fee_income_parent_code: String,
     pub chart_of_account_payment_holding_parent_code: String,
     pub chart_of_account_uncovered_outstanding_parent_code: String,
+    pub chart_of_account_disbursed_defaulted_parent_code: String,
+    pub chart_of_account_interest_defaulted_parent_code: String,
 
     pub chart_of_account_short_term_individual_disbursed_receivable_parent_code: String,
     pub chart_of_account_short_term_government_entity_disbursed_receivable_parent_code: String,

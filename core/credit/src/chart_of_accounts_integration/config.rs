@@ -21,10 +21,14 @@ pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_account_facility_parent_code: AccountCode,
     pub chart_of_account_collateral_parent_code: AccountCode,
     pub chart_of_account_collateral_in_liquidation_parent_code: AccountCode,
+    pub chart_of_account_liquidated_collateral_parent_code: AccountCode,
+    pub chart_of_account_proceeds_from_liquidation_parent_code: AccountCode,
     pub chart_of_account_interest_income_parent_code: AccountCode,
     pub chart_of_account_fee_income_parent_code: AccountCode,
     pub chart_of_account_payment_holding_parent_code: AccountCode,
     pub chart_of_account_uncovered_outstanding_parent_code: AccountCode,
+    pub chart_of_account_disbursed_defaulted_parent_code: AccountCode,
+    pub chart_of_account_interest_defaulted_parent_code: AccountCode,
 
     pub chart_of_account_short_term_individual_disbursed_receivable_parent_code: AccountCode,
     pub chart_of_account_short_term_government_entity_disbursed_receivable_parent_code: AccountCode,
@@ -96,10 +100,14 @@ define_internal_config! {
         pub(crate) facility_parent_account_set_id: CalaAccountSetId,
         pub(crate) collateral_parent_account_set_id: CalaAccountSetId,
         pub(crate) collateral_in_liquidation_parent_account_set_id: CalaAccountSetId,
+        pub(crate) liquidated_collateral_parent_account_set_id: CalaAccountSetId,
+        pub(crate) proceeds_from_liquidation_parent_account_set_id: CalaAccountSetId,
         pub(crate) interest_income_parent_account_set_id: CalaAccountSetId,
         pub(crate) fee_income_parent_account_set_id: CalaAccountSetId,
         pub(crate) payment_holding_parent_account_set_id: CalaAccountSetId,
         pub(crate) uncovered_outstanding_parent_account_set_id: CalaAccountSetId,
+        pub(crate) disbursed_defaulted_parent_account_set_id: CalaAccountSetId,
+        pub(crate) interest_defaulted_parent_account_set_id: CalaAccountSetId,
 
         pub(crate) short_term_disbursed_integration_meta: ShortTermDisbursedIntegrationMeta,
         pub(crate) long_term_disbursed_integration_meta: LongTermDisbursedIntegrationMeta,
@@ -128,10 +136,14 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             chart_of_account_facility_parent_code,
             chart_of_account_collateral_parent_code,
             chart_of_account_collateral_in_liquidation_parent_code,
+            chart_of_account_liquidated_collateral_parent_code,
+            chart_of_account_proceeds_from_liquidation_parent_code,
             chart_of_account_interest_income_parent_code,
             chart_of_account_fee_income_parent_code,
             chart_of_account_payment_holding_parent_code,
             chart_of_account_uncovered_outstanding_parent_code,
+            chart_of_account_disbursed_defaulted_parent_code,
+            chart_of_account_interest_defaulted_parent_code,
             chart_of_account_short_term_individual_disbursed_receivable_parent_code,
             chart_of_account_short_term_government_entity_disbursed_receivable_parent_code,
             chart_of_account_short_term_private_company_disbursed_receivable_parent_code,
@@ -243,6 +255,14 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             off_balance_sheet_account_set_member_parent_id(
                 chart_of_account_collateral_in_liquidation_parent_code,
             )?;
+        let liquidated_collateral_parent_account_set_id =
+            off_balance_sheet_account_set_member_parent_id(
+                chart_of_account_liquidated_collateral_parent_code,
+            )?;
+        let proceeds_from_liquidation_parent_account_set_id =
+            off_balance_sheet_account_set_member_parent_id(
+                chart_of_account_proceeds_from_liquidation_parent_code,
+            )?;
 
         let interest_income_parent_account_set_id =
             revenue_account_set_member_parent_id(chart_of_account_interest_income_parent_code)?;
@@ -254,6 +274,11 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             off_balance_sheet_account_set_member_parent_id(
                 chart_of_account_uncovered_outstanding_parent_code,
             )?;
+
+        let disbursed_defaulted_parent_account_set_id =
+            asset_account_set_member_parent_id(chart_of_account_disbursed_defaulted_parent_code)?;
+        let interest_defaulted_parent_account_set_id =
+            asset_account_set_member_parent_id(chart_of_account_interest_defaulted_parent_code)?;
 
         let short_term_disbursed_integration_meta = ShortTermDisbursedIntegrationMeta {
             short_term_individual_disbursed_receivable_parent_account_set_id:
@@ -421,10 +446,14 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
             collateral_in_liquidation_parent_account_set_id,
+            liquidated_collateral_parent_account_set_id,
+            proceeds_from_liquidation_parent_account_set_id,
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
             payment_holding_parent_account_set_id,
             uncovered_outstanding_parent_account_set_id,
+            disbursed_defaulted_parent_account_set_id,
+            interest_defaulted_parent_account_set_id,
 
             short_term_disbursed_integration_meta,
             long_term_disbursed_integration_meta,
