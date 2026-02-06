@@ -16,7 +16,6 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use super::{
     super::repo::CollateralRepo,
     liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
-    partial_liquidation::{PartialLiquidationJobConfig, PartialLiquidationJobSpawner},
 };
 use crate::{CoreCreditEvent, collateral::error::CollateralError};
 
@@ -38,7 +37,6 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
-    partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
@@ -51,13 +49,11 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         repo: Arc<CollateralRepo<E>>,
-        partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             repo,
-            partial_liquidation_job_spawner,
             liquidation_payment_job_spawner,
         }
     }
@@ -84,7 +80,6 @@ where
         Ok(Box::new(CreditFacilityLiquidationsJobRunner::<E> {
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
-            partial_liquidation_job_spawner: self.partial_liquidation_job_spawner.clone(),
             liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
         }))
     }
@@ -98,7 +93,6 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
-    partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
@@ -223,17 +217,6 @@ where
 
         self.repo.update_in_op(db, &mut collateral).await?;
 
-        self.partial_liquidation_job_spawner
-            .spawn_in_op(
-                db,
-                JobId::new(),
-                PartialLiquidationJobConfig::<E> {
-                    liquidation_id,
-                    collateral_id,
-                    _phantom: std::marker::PhantomData,
-                },
-            )
-            .await?;
         self.liquidation_payment_job_spawner
             .spawn_in_op(
                 db,

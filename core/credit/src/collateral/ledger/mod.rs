@@ -12,7 +12,7 @@ use core_accounting::{EntityRef, LedgerTransactionInitiator};
 use core_money::Satoshis;
 use es_entity::clock::ClockHandle;
 
-pub use accounts::CollateralLedgerAccountIds;
+pub use accounts::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds};
 pub use error::CollateralLedgerError;
 
 use crate::{
