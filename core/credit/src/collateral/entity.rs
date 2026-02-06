@@ -200,7 +200,7 @@ impl Collateral {
             .active_liquidation()
             .ok_or(CollateralError::NoActiveLiquidation)?;
 
-        Ok(liquidation.record_proceeds_from_liquidation(amount_received))
+        Ok(liquidation.record_proceeds_from_liquidation(amount_received)?)
     }
 
     pub(super) fn collateral_in_liquidation_account_id(&self) -> Option<CalaAccountId> {

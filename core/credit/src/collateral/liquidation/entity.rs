@@ -8,7 +8,7 @@ use es_entity::*;
 
 use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::*};
 
-use super::RecordProceedsFromLiquidationData;
+use super::{LiquidationError, RecordProceedsFromLiquidationData};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -99,11 +99,15 @@ impl Liquidation {
     pub fn record_proceeds_from_liquidation(
         &mut self,
         amount_received: UsdCents,
-    ) -> Idempotent<RecordProceedsFromLiquidationData> {
+    ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
             LiquidationEvent::ProceedsFromLiquidationReceived { .. },
         );
+
+        if self.is_completed() {
+            return Err(LiquidationError::AlreadyCompleted);
+        }
 
         self.amount_received = amount_received;
 
@@ -115,7 +119,7 @@ impl Liquidation {
                 ledger_tx_id,
             });
 
-        Idempotent::Executed(RecordProceedsFromLiquidationData {
+        Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             proceeds_from_liquidation_account_id: self
                 .facility_proceeds_from_liquidation_account_id,
@@ -124,7 +128,7 @@ impl Liquidation {
             liquidated_collateral_account_id: self.liquidated_collateral_account_id,
             amount_liquidated: self.sent_total,
             ledger_tx_id,
-        })
+        }))
     }
 
     pub fn complete(&mut self) -> Idempotent<()> {
@@ -358,13 +362,27 @@ mod tests {
         let mut liquidation = liquidation_from(default_new_liquidation());
 
         let amount = UsdCents::from(500);
-        let result = liquidation.record_proceeds_from_liquidation(amount);
+        let result = liquidation
+            .record_proceeds_from_liquidation(amount)
+            .unwrap();
         assert!(result.did_execute());
         assert_eq!(liquidation.amount_received, amount);
 
-        let result2 = liquidation.record_proceeds_from_liquidation(amount);
+        let result2 = liquidation
+            .record_proceeds_from_liquidation(amount)
+            .unwrap();
         assert!(result2.was_already_applied());
         assert_eq!(liquidation.amount_received, amount);
+    }
+
+    #[test]
+    fn record_proceeds_from_liquidation_fails_if_completed() {
+        let mut liquidation = liquidation_from(default_new_liquidation());
+
+        liquidation.complete().expect("completed");
+
+        let result = liquidation.record_proceeds_from_liquidation(UsdCents::from(500));
+        assert!(matches!(result, Err(LiquidationError::AlreadyCompleted)));
     }
 
     #[test]
