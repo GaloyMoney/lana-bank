@@ -1,28 +1,27 @@
-name: Check lana-bank-docs build
+name: Deploy docs on release
 
 on:
   push:
-    branches: ["main"]
-    paths:
-      - "docs-site/**"
-      - "lana/admin-server/src/graphql/schema.graphql"
-      - "lana/customer-server/src/graphql/schema.graphql"
-  pull_request:
-    paths:
-      - "docs-site/**"
-      - "lana/admin-server/src/graphql/schema.graphql"
-      - "lana/customer-server/src/graphql/schema.graphql"
+    tags:
+      # Match final release tags (X.Y.Z) but not RC tags (X.Y.Z-rc.N)
+      - "[0-9]*.[0-9]*.[0-9]*"
+      - "!*-*"
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: "lana-bank-docs-${{ github.ref }}"
-  cancel-in-progress: true
+  group: "lana-bank-docs"
+  cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: lana-bank-docs
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v4
@@ -54,10 +53,15 @@ jobs:
         run: |
           nix develop -c bash -lc "cd docs-site && npm run generate-versioned-api-docs"
 
-      - name: Validate API descriptions
-        run: |
-          nix develop -c bash -lc "cd docs-site && npm run validate-api-descriptions"
-
       - name: Build docs site
         run: |
           nix develop -c bash -lc "cd docs-site && npx docusaurus build"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs-site/build
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
