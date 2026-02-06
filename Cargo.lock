@@ -1373,6 +1373,7 @@ dependencies = [
 name = "core-credit-collection"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "async-trait",
  "audit",
  "authz",
@@ -1392,6 +1393,7 @@ dependencies = [
  "sqlx",
  "strum",
  "thiserror 2.0.18",
+ "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",
