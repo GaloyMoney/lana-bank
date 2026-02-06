@@ -1,0 +1,58 @@
+---
+id: public-id
+title: PublicId
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+scalar PublicId
+```
+
+
+
+
+
+
+
+
+### Member Of
+
+[`CreditFacility`](/for-developers/admin-api/types/objects/credit-facility.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`creditFacilityByPublicId`](/for-developers/admin-api/operations/queries/credit-facility-by-public-id.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/><Bullet />[`CreditFacilityDisbursal`](/for-developers/admin-api/types/objects/credit-facility-disbursal.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Customer`](/for-developers/admin-api/types/objects/customer.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`customerByPublicId`](/for-developers/admin-api/operations/queries/customer-by-public-id.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/><Bullet />[`Deposit`](/for-developers/admin-api/types/objects/deposit.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DepositAccount`](/for-developers/admin-api/types/objects/deposit-account.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`depositAccountByPublicId`](/for-developers/admin-api/operations/queries/deposit-account-by-public-id.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/><Bullet />[`depositByPublicId`](/for-developers/admin-api/operations/queries/deposit-by-public-id.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/><Bullet />[`disbursalByPublicId`](/for-developers/admin-api/operations/queries/disbursal-by-public-id.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/><Bullet />[`publicIdTarget`](/for-developers/admin-api/operations/queries/public-id-target.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/><Bullet />[`Withdrawal`](/for-developers/admin-api/types/objects/withdrawal.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`withdrawalByPublicId`](/for-developers/admin-api/operations/queries/withdrawal-by-public-id.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/>

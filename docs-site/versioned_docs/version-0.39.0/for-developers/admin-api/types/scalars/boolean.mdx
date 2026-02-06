@@ -1,0 +1,58 @@
+---
+id: boolean
+title: Boolean
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+The `Boolean` scalar type represents `true` or `false`.
+
+
+```graphql
+scalar Boolean
+```
+
+
+
+
+
+
+
+
+### Member Of
+
+[`ApprovalProcess`](/for-developers/admin-api/types/objects/approval-process.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`ApprovalProcessVoter`](/for-developers/admin-api/types/objects/approval-process-voter.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`audit`](/for-developers/admin-api/operations/queries/audit.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/><Bullet />[`AuditEntry`](/for-developers/admin-api/types/objects/audit-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`BitgoConfig`](/for-developers/admin-api/types/inputs/bitgo-config.mdx)  <Badge class="badge badge--secondary badge--relation" text="input"/><Bullet />[`CreditFacility`](/for-developers/admin-api/types/objects/credit-facility.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityProposalCustomerApprovalConcludeInput`](/for-developers/admin-api/types/inputs/credit-facility-proposal-customer-approval-conclude-input.mdx)  <Badge class="badge badge--secondary badge--relation" text="input"/><Bullet />[`Customer`](/for-developers/admin-api/types/objects/customer.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`FiscalYear`](/for-developers/admin-api/types/objects/fiscal-year.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`GovernanceNavigationItems`](/for-developers/admin-api/types/objects/governance-navigation-items.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`include`](/for-developers/admin-api/operations/directives/include.mdx)  <Badge class="badge badge--secondary badge--relation" text="directive"/><Bullet />[`InfiniteCVLPct`](/for-developers/admin-api/types/objects/infinite-cvlpct.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`KomainuConfig`](/for-developers/admin-api/types/inputs/komainu-config.mdx)  <Badge class="badge badge--secondary badge--relation" text="input"/><Bullet />[`LedgerAccount`](/for-developers/admin-api/types/objects/ledger-account.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Liquidation`](/for-developers/admin-api/types/objects/liquidation.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Me`](/for-developers/admin-api/types/objects/me.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PageInfo`](/for-developers/admin-api/types/objects/page-info.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`skip`](/for-developers/admin-api/operations/directives/skip.mdx)  <Badge class="badge badge--secondary badge--relation" text="directive"/><Bullet />[`SystemApproval`](/for-developers/admin-api/types/objects/system-approval.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`TermsTemplate`](/for-developers/admin-api/types/objects/terms-template.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`User`](/for-developers/admin-api/types/objects/user.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`VisibleNavigationItems`](/for-developers/admin-api/types/objects/visible-navigation-items.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>

@@ -1,0 +1,134 @@
+---
+id: ledger-account
+title: LedgerAccount
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type LedgerAccount {
+  id: ID!
+  ledgerAccountId: UUID!
+  code: AccountCode
+  entity: LedgerAccountEntity
+  name: String!
+  normalBalanceType: DebitOrCredit!
+  balanceRange: LedgerAccountBalanceRange!
+  isRootAccount: Boolean!
+  ancestors: [LedgerAccount!]!
+  closestAccountWithCode: LedgerAccount
+  children: [LedgerAccount!]!
+  history(
+    first: Int!
+    after: String
+  ): JournalEntryConnection!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>id</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>ID!</b></code>](/for-developers/admin-api/types/scalars/id.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>ledgerAccountId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID!</b></code>](/for-developers/admin-api/types/scalars/uuid.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>code</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>AccountCode</b></code>](/for-developers/admin-api/types/scalars/account-code.mdx) <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>entity</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>LedgerAccountEntity</b></code>](/for-developers/admin-api/types/unions/ledger-account-entity.mdx) <Badge class="badge badge--secondary " text="union"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>name</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>String!</b></code>](/for-developers/admin-api/types/scalars/string.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>normalBalanceType</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DebitOrCredit!</b></code>](/for-developers/admin-api/types/enums/debit-or-credit.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>balanceRange</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>LedgerAccountBalanceRange!</b></code>](/for-developers/admin-api/types/unions/ledger-account-balance-range.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="union"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>isRootAccount</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Boolean!</b></code>](/for-developers/admin-api/types/scalars/boolean.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>ancestors</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>[LedgerAccount!]!</b></code>](/for-developers/admin-api/types/objects/ledger-account.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>closestAccountWithCode</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>LedgerAccount</b></code>](/for-developers/admin-api/types/objects/ledger-account.mdx) <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>children</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>[LedgerAccount!]!</b></code>](/for-developers/admin-api/types/objects/ledger-account.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.<b>history</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>JournalEntryConnection!</b></code>](/for-developers/admin-api/types/objects/journal-entry-connection.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+##### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.history.<b>first</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Int!</b></code>](/for-developers/admin-api/types/scalars/int.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+##### [<code style={{ fontWeight: 'normal' }}>LedgerAccount.history.<b>after</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>String</b></code>](/for-developers/admin-api/types/scalars/string.mdx) <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+
+
+
+
+### Returned By
+
+[`ledgerAccount`](/for-developers/admin-api/operations/queries/ledger-account.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/><Bullet />[`ledgerAccountByCode`](/for-developers/admin-api/operations/queries/ledger-account-by-code.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/>
+
+### Member Of
+
+[`BalanceSheet`](/for-developers/admin-api/types/objects/balance-sheet.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Collateral`](/for-developers/admin-api/types/objects/collateral.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityLedgerAccounts`](/for-developers/admin-api/types/objects/credit-facility-ledger-accounts.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DepositAccountLedgerAccounts`](/for-developers/admin-api/types/objects/deposit-account-ledger-accounts.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`JournalEntry`](/for-developers/admin-api/types/objects/journal-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`LedgerAccount`](/for-developers/admin-api/types/objects/ledger-account.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`ProfitAndLossStatement`](/for-developers/admin-api/types/objects/profit-and-loss-statement.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`TrialBalance`](/for-developers/admin-api/types/objects/trial-balance.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>

@@ -1,0 +1,81 @@
+---
+id: credit-facility-collateral-sent-out
+title: CreditFacilityCollateralSentOut
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type CreditFacilityCollateralSentOut {
+  amount: Satoshis!
+  recordedAt: Timestamp!
+  effective: Date!
+  txId: UUID!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralSentOut.<b>amount</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Satoshis!</b></code>](/for-developers/customer-api/types/scalars/satoshis.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralSentOut.<b>recordedAt</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Timestamp!</b></code>](/for-developers/customer-api/types/scalars/timestamp.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralSentOut.<b>effective</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Date!</b></code>](/for-developers/customer-api/types/scalars/date.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralSentOut.<b>txId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID!</b></code>](/for-developers/customer-api/types/scalars/uuid.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+
+
+
+
+### Implemented By
+
+[`CreditFacilityHistoryEntry`](/for-developers/customer-api/types/unions/credit-facility-history-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="union"/>
