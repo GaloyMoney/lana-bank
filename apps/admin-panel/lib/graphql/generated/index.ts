@@ -47,6 +47,7 @@ export enum AccountCategory {
   Equity = 'EQUITY',
   Expenses = 'EXPENSES',
   Liability = 'LIABILITY',
+  OffBalanceSheet = 'OFF_BALANCE_SHEET',
   Revenue = 'REVENUE'
 }
 
@@ -2433,7 +2434,6 @@ export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer
 export type Query = {
   __typename?: 'Query';
   accountEntryCsv?: Maybe<AccountingCsvDocument>;
-  accountSetsByCategory: Array<AccountInfo>;
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
@@ -2462,6 +2462,7 @@ export type Query = {
   depositByPublicId?: Maybe<Deposit>;
   depositConfig?: Maybe<DepositModuleConfig>;
   deposits: DepositConnection;
+  descendantAccountSetsByCategory: Array<AccountInfo>;
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
@@ -2504,11 +2505,6 @@ export type Query = {
 
 export type QueryAccountEntryCsvArgs = {
   ledgerAccountId: Scalars['UUID']['input'];
-};
-
-
-export type QueryAccountSetsByCategoryArgs = {
-  category: AccountCategory;
 };
 
 
@@ -2642,6 +2638,11 @@ export type QueryDepositByPublicIdArgs = {
 export type QueryDepositsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+
+export type QueryDescendantAccountSetsByCategoryArgs = {
+  category: AccountCategory;
 };
 
 

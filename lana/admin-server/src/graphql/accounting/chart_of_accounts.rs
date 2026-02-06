@@ -201,6 +201,7 @@ pub enum AccountCategory {
     Revenue,
     CostOfRevenue,
     Expenses,
+    OffBalanceSheet,
 }
 
 impl From<AccountCategory> for DomainAccountCategory {
@@ -212,6 +213,7 @@ impl From<AccountCategory> for DomainAccountCategory {
             AccountCategory::Revenue => DomainAccountCategory::Revenue,
             AccountCategory::CostOfRevenue => DomainAccountCategory::CostOfRevenue,
             AccountCategory::Expenses => DomainAccountCategory::Expenses,
+            AccountCategory::OffBalanceSheet => DomainAccountCategory::OffBalanceSheet,
         }
     }
 }

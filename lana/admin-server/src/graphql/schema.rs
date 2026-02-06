@@ -825,7 +825,7 @@ impl Query {
         Ok(ChartOfAccounts::from(chart))
     }
 
-    async fn account_sets_by_category(
+    async fn descendant_account_sets_by_category(
         &self,
         ctx: &Context<'_>,
         category: AccountCategory,
@@ -834,7 +834,7 @@ impl Query {
         let members = app
             .accounting()
             .chart_of_accounts()
-            .account_sets_by_category(sub, CHART_REF.0, category.into())
+            .descendant_account_sets_by_category(sub, CHART_REF.0, category.into())
             .await?;
         Ok(members.into_iter().map(AccountInfo::from).collect())
     }
