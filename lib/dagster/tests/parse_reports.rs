@@ -16,10 +16,9 @@ fn parse_reports_from_logs_response(response_data: &serde_json::Value) -> Vec<Re
                     && entry["__typename"] == "JsonMetadataEntry";
 
                 if let Some(json_string) = entry["jsonString"].as_str().filter(|_| is_report_entry)
+                    && let Ok(parsed) = serde_json::from_str::<Report>(json_string)
                 {
-                    if let Ok(parsed) = serde_json::from_str::<Report>(json_string) {
-                        reports.push(parsed);
-                    }
+                    reports.push(parsed);
                 }
             }
         }
@@ -31,7 +30,7 @@ fn parse_reports_from_logs_response(response_data: &serde_json::Value) -> Vec<Re
 #[test]
 fn test_parse_reports_from_logs_for_run_response() {
     let json_data = get_test_logs_for_run_response();
-    let response: serde_json::Value = serde_json::from_str(&json_data).unwrap();
+    let response: serde_json::Value = serde_json::from_str(json_data).unwrap();
     let reports = parse_reports_from_logs_response(&response);
 
     // Each MaterializationEvent produces one report entry (with one file each)

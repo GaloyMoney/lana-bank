@@ -26,5 +26,5 @@ extend-exclude = [
 	"dev/keycloak/customer-realm.json",
 	"docs/mermaid-init.js",
 	"docs/mermaid.min.js",
-	"lib/dagster/tests/parse_reports.rs
+	"lib/dagster/tests/parse_reports.rs"
 ]
