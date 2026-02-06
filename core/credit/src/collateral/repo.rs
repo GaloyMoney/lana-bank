@@ -135,7 +135,7 @@ where
     ),
     tbl_prefix = "core"
 )]
-pub(super) struct LiquidationRepo {
+struct LiquidationRepo {
     pool: PgPool,
     clock: ClockHandle,
 }

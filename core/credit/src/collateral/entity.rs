@@ -117,13 +117,17 @@ impl Collateral {
         &mut self,
         new_amount: Satoshis,
         effective: chrono::NaiveDate,
-    ) -> Idempotent<CollateralUpdate> {
+    ) -> Result<Idempotent<CollateralUpdate>, CollateralError> {
+        if self.custody_wallet_id.is_some() {
+            return Err(CollateralError::ManualUpdateError);
+        }
+
         let current = self.amount;
 
         let (abs_diff, direction) = match new_amount.cmp(&current) {
             Ordering::Less => (current - new_amount, CollateralDirection::Remove),
             Ordering::Greater => (new_amount - current, CollateralDirection::Add),
-            Ordering::Equal => return Idempotent::AlreadyApplied,
+            Ordering::Equal => return Ok(Idempotent::AlreadyApplied),
         };
 
         let tx_id = LedgerTxId::new();
@@ -137,12 +141,12 @@ impl Collateral {
 
         self.amount = new_amount;
 
-        Idempotent::Executed(CollateralUpdate {
+        Ok(Idempotent::Executed(CollateralUpdate {
             tx_id,
             abs_diff,
             direction,
             effective,
-        })
+        }))
     }
 
     pub fn record_collateral_update_via_liquidation(
@@ -196,7 +200,7 @@ impl Collateral {
             .active_liquidation()
             .ok_or(CollateralError::NoActiveLiquidation)?;
 
-        Ok(liquidation.record_proceeds_from_liquidation(amount_received))
+        Ok(liquidation.record_proceeds_from_liquidation(amount_received)?)
     }
 
     pub(super) fn collateral_in_liquidation_account_id(&self) -> Option<CalaAccountId> {
@@ -557,10 +561,12 @@ mod tests {
 
             // First add some collateral
             let initial_amount = Satoshis::from(100000);
-            let _ = collateral.record_collateral_update_via_manual_input(
-                initial_amount,
-                chrono::Utc::now().date_naive(),
-            );
+            let _ = collateral
+                .record_collateral_update_via_manual_input(
+                    initial_amount,
+                    chrono::Utc::now().date_naive(),
+                )
+                .unwrap();
 
             // Start a liquidation
             let new_liquidation = default_new_liquidation(collateral_id);
@@ -606,10 +612,12 @@ mod tests {
             let mut collateral = collateral_from(new_collateral);
 
             // Add some collateral first to avoid arithmetic overflow
-            let _ = collateral.record_collateral_update_via_manual_input(
-                Satoshis::from(100000),
-                chrono::Utc::now().date_naive(),
-            );
+            let _ = collateral
+                .record_collateral_update_via_manual_input(
+                    Satoshis::from(100000),
+                    chrono::Utc::now().date_naive(),
+                )
+                .unwrap();
 
             let result = collateral.record_collateral_update_via_liquidation(
                 Satoshis::from(50000),

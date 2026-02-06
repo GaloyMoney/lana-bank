@@ -428,6 +428,15 @@ pub fn update_schemas(
         SchemaInfo {
             name: "LiquidationEvent",
             filename: "liquidation_event_schema.json",
+            collections: vec![CollectionRollup {
+                column_name: "ledger_tx_ids",
+                values: "ledger_tx_id",
+                add_events: vec![
+                    "CollateralSentOut".to_string(),
+                    "ProceedsFromLiquidationReceived".to_string(),
+                ],
+                remove_events: vec![],
+            }],
             toggle_events: vec!["Completed"],
             generate_schema: || serde_json::to_value(schema_for!(LiquidationEvent)).unwrap(),
             ..Default::default()
