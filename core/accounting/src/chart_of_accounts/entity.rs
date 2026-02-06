@@ -1263,7 +1263,10 @@ mod test {
         fn returns_none_when_no_base_config() {
             let (chart, _) = default_chart();
 
-            let result = chart.account_sets_by_category(AccountCategory::OffBalanceSheet);
+            // Use Asset instead of OffBalanceSheet to make this test explicit about
+            // testing the "no base config" case (OffBalanceSheet could return Some([])
+            // even without off-balance-sheet accounts, making this test less clear)
+            let result = chart.account_sets_by_category(AccountCategory::Asset);
 
             assert!(result.is_none());
         }
