@@ -1431,6 +1431,7 @@ export type DomainConfig = {
   __typename?: 'DomainConfig';
   configType: ConfigType;
   domainConfigId: Scalars['UUID']['output'];
+  encrypted: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   key: Scalars['String']['output'];
   value: Scalars['Json']['output'];
@@ -3487,14 +3488,14 @@ export type DomainConfigsQueryVariables = Exact<{
 }>;
 
 
-export type DomainConfigsQuery = { __typename?: 'Query', domainConfigs: { __typename?: 'DomainConfigConnection', nodes: Array<{ __typename?: 'DomainConfig', id: string, domainConfigId: string, key: string, configType: ConfigType, value: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type DomainConfigsQuery = { __typename?: 'Query', domainConfigs: { __typename?: 'DomainConfigConnection', nodes: Array<{ __typename?: 'DomainConfig', id: string, domainConfigId: string, key: string, configType: ConfigType, encrypted: boolean, value: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type DomainConfigUpdateMutationVariables = Exact<{
   input: DomainConfigUpdateInput;
 }>;
 
 
-export type DomainConfigUpdateMutation = { __typename?: 'Mutation', domainConfigUpdate: { __typename?: 'DomainConfigUpdatePayload', domainConfig: { __typename?: 'DomainConfig', id: string, domainConfigId: string, key: string, configType: ConfigType, value: any } } };
+export type DomainConfigUpdateMutation = { __typename?: 'Mutation', domainConfigUpdate: { __typename?: 'DomainConfigUpdatePayload', domainConfig: { __typename?: 'DomainConfig', id: string, domainConfigId: string, key: string, configType: ConfigType, encrypted: boolean, value: any } } };
 
 export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: any };
 
@@ -6630,6 +6631,7 @@ export const DomainConfigsDocument = gql`
       domainConfigId
       key
       configType
+      encrypted
       value
     }
     pageInfo {
@@ -6684,6 +6686,7 @@ export const DomainConfigUpdateDocument = gql`
       domainConfigId
       key
       configType
+      encrypted
       value
     }
   }

@@ -44,6 +44,7 @@ gql`
         domainConfigId
         key
         configType
+        encrypted
         value
       }
       pageInfo {
@@ -60,6 +61,7 @@ gql`
         domainConfigId
         key
         configType
+        encrypted
         value
       }
     }
@@ -284,6 +286,10 @@ function TimezoneCombobox({ value, onChange, disabled, id }: TimezoneComboboxPro
 }
 
 const formatDomainValue = (config: DomainConfig): string | boolean => {
+  if (config.encrypted) {
+    return ""
+  }
+
   switch (config.configType) {
     case ConfigType.Bool:
       return config.value === true
@@ -401,6 +407,19 @@ const renderDomainInput = ({
   disabled,
   onChange,
 }: RenderDomainInputArgs) => {
+  if (config.encrypted) {
+    return (
+      <Input
+        id={inputId}
+        type="password"
+        placeholder="••••••"
+        value={typeof value === "string" ? value : ""}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    )
+  }
+
   switch (config.configType) {
     case ConfigType.Bool:
       return (
