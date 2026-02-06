@@ -363,7 +363,10 @@ impl Chart {
         self.base_config.clone()
     }
 
-    pub fn descendant_account_sets_by_category(&self, category: AccountCategory) -> Option<Vec<AccountInfo>> {
+    pub fn descendant_account_sets_by_category(
+        &self,
+        category: AccountCategory,
+    ) -> Option<Vec<AccountInfo>> {
         let base_config = self.base_config.as_ref()?;
 
         if category == AccountCategory::OffBalanceSheet {
@@ -1288,7 +1291,8 @@ mod test {
             let revenue = chart.descendant_account_sets_by_category(AccountCategory::Revenue);
             assert!(revenue.is_some());
 
-            let cost_of_revenue = chart.descendant_account_sets_by_category(AccountCategory::CostOfRevenue);
+            let cost_of_revenue =
+                chart.descendant_account_sets_by_category(AccountCategory::CostOfRevenue);
             assert!(cost_of_revenue.is_some());
 
             let expenses = chart.descendant_account_sets_by_category(AccountCategory::Expenses);
@@ -1328,7 +1332,8 @@ mod test {
                 .unwrap();
             hydrate_chart_of_accounts(&mut chart);
 
-            let result = chart.descendant_account_sets_by_category(AccountCategory::OffBalanceSheet);
+            let result =
+                chart.descendant_account_sets_by_category(AccountCategory::OffBalanceSheet);
 
             assert!(result.is_some());
             let account_sets = result.unwrap();
@@ -1346,7 +1351,8 @@ mod test {
             let (mut chart, _journal_id) = default_configured_chart();
             hydrate_chart_of_accounts(&mut chart);
 
-            let result = chart.descendant_account_sets_by_category(AccountCategory::OffBalanceSheet);
+            let result =
+                chart.descendant_account_sets_by_category(AccountCategory::OffBalanceSheet);
 
             assert!(result.is_some());
             let account_sets = result.unwrap();
@@ -1542,7 +1548,8 @@ mod test {
                 .unwrap();
             hydrate_chart_of_accounts(&mut chart);
 
-            let result = chart.descendant_account_sets_by_category(AccountCategory::OffBalanceSheet);
+            let result =
+                chart.descendant_account_sets_by_category(AccountCategory::OffBalanceSheet);
 
             assert!(result.is_some());
             let account_sets = result.unwrap();
