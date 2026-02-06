@@ -31,8 +31,8 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
   const details: DetailItemProps[] = [
     {
       label: t("details.customerEmail"),
-      value: liquidation.creditFacility.customer.email,
-      href: `/customers/${liquidation.creditFacility.customer.publicId}`,
+      value: liquidation.collateral.creditFacility.customer.email,
+      href: `/customers/${liquidation.collateral.creditFacility.customer.publicId}`,
     },
     {
       label: t("details.status"),
@@ -84,12 +84,12 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
       <RecordCollateralSentDialog
         open={openCollateralSentDialog}
         onOpenChange={setOpenCollateralSentDialog}
-        collateralId={liquidation.creditFacility.collateralId}
+        collateralId={liquidation.collateralId}
       />
       <RecordPaymentReceivedDialog
         open={openPaymentReceivedDialog}
         onOpenChange={setOpenPaymentReceivedDialog}
-        collateralId={liquidation.creditFacility.collateralId}
+        collateralId={liquidation.collateralId}
       />
     </>
   )

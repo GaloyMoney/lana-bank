@@ -27,33 +27,23 @@ gql`
   fragment LiquidationDetails on Liquidation {
     id
     liquidationId
-    creditFacilityId
+    collateralId
     expectedToReceive
     sentTotal
     amountReceived
     createdAt
     completed
-    creditFacility {
-      id
-      creditFacilityId
-      collateralId
-      publicId
-      status
-      collateralizationState
-      facilityAmount
-      activatedAt
-      maturesAt
-      currentCvl {
-        __typename
-        ... on FiniteCVLPct {
-          value
-        }
-        ... on InfiniteCVLPct {
-          isInfinite
-        }
-      }
-      creditFacilityTerms {
-        liquidationCvl {
+    collateral {
+      creditFacility {
+        id
+        creditFacilityId
+        publicId
+        status
+        collateralizationState
+        facilityAmount
+        activatedAt
+        maturesAt
+        currentCvl {
           __typename
           ... on FiniteCVLPct {
             value
@@ -62,20 +52,31 @@ gql`
             isInfinite
           }
         }
-      }
-      balance {
-        outstanding {
-          usdBalance
+        creditFacilityTerms {
+          liquidationCvl {
+            __typename
+            ... on FiniteCVLPct {
+              value
+            }
+            ... on InfiniteCVLPct {
+              isInfinite
+            }
+          }
         }
-        collateral {
-          btcBalance
+        balance {
+          outstanding {
+            usdBalance
+          }
+          collateral {
+            btcBalance
+          }
         }
-      }
-      customer {
-        customerId
-        publicId
-        customerType
-        email
+        customer {
+          customerId
+          publicId
+          customerType
+          email
+        }
       }
     }
     sentCollateral {
@@ -115,7 +116,9 @@ function LiquidationPage({
   return (
     <main className="max-w-7xl m-auto space-y-2">
       <LiquidationDetailsCard liquidation={data.liquidation} />
-      <LiquidationCreditFacilityCard creditFacility={data.liquidation.creditFacility} />
+      <LiquidationCreditFacilityCard
+        creditFacility={data.liquidation.collateral.creditFacility}
+      />
       <div className="flex flex-col md:flex-row gap-2 items-start">
         <LiquidationCollateralSentTable
           collateralSent={data.liquidation.sentCollateral}
