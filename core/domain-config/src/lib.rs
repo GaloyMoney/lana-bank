@@ -164,6 +164,7 @@ use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+pub use config::DomainEncryptionConfig;
 pub use entity::DomainConfig;
 pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
@@ -181,10 +182,8 @@ pub use spec::{
 };
 pub use typed_domain_config::TypedDomainConfig;
 
+use encryption::EncryptionKey;
 use entity::NewDomainConfig;
-
-pub use config::DomainEncryptionConfig;
-pub use encryption::EncryptionKey;
 use repo::DomainConfigRepo;
 
 #[cfg(feature = "json-schema")]
