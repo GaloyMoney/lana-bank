@@ -323,3 +323,19 @@ pub mod event {
         Unknown,
     }
 }
+
+pub async fn seed_price(
+    outbox: &obix::Outbox<event::DummyEvent>,
+    price: core_price::PriceOfOneBTC,
+) -> anyhow::Result<()> {
+    outbox
+        .publish_ephemeral(
+            core_price::PRICE_UPDATED_EVENT_TYPE,
+            core_price::CorePriceEvent::PriceUpdated {
+                price,
+                timestamp: chrono::Utc::now(),
+            },
+        )
+        .await?;
+    Ok(())
+}
