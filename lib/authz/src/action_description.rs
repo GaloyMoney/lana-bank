@@ -8,26 +8,26 @@ pub trait ActionPermission {
 /// Simple action mapping - just the essentials!
 #[derive(Clone, Debug)]
 pub struct ActionMapping {
-    pub full_action_name: String,     // "access:user:create"
-    pub object_name: String,          // "access/user/*"
+    pub full_action_name: String,     // "entity:action"
+    pub object_name: String,          // "entity/*"
     pub permission_set: &'static str, // "access_writer"
 }
 
 impl ActionMapping {
     /// Create a complete action mapping with all context
+    /// Note: module parameter is kept for backward compatibility but not used in string generation
     pub fn new<M: Display, E: Display, A: Display>(
-        module: M,
+        _module: M,
         entity: E,
         action: A,
         permission_set: &'static str,
     ) -> Self {
-        let module_str = module.to_string();
         let entity_str = entity.to_string();
         let action_str = action.to_string();
 
         Self {
-            full_action_name: format!("{module_str}:{entity_str}:{action_str}"),
-            object_name: format!("{module_str}/{entity_str}/*"),
+            full_action_name: format!("{entity_str}:{action_str}"),
+            object_name: format!("{entity_str}/*"),
             permission_set,
         }
     }
@@ -37,12 +37,12 @@ impl ActionMapping {
         self.permission_set
     }
 
-    /// Returns full action name: "module:entity:action"
+    /// Returns full action name: "entity:action"
     pub fn action_name(&self) -> &str {
         &self.full_action_name
     }
 
-    /// Returns object name: "module/entity/*"
+    /// Returns object name: "entity/*"
     pub fn all_objects_name(&self) -> &str {
         &self.object_name
     }
