@@ -19,7 +19,7 @@ import { formatCvl } from "@/lib/utils"
 
 type CreditFacility = NonNullable<
   GetLiquidationDetailsQuery["liquidation"]
->["creditFacility"]
+>["collateral"]["creditFacility"]
 
 type LiquidationCreditFacilityCardProps = {
   creditFacility: CreditFacility

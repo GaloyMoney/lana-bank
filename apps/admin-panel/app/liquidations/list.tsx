@@ -25,8 +25,10 @@ gql`
     amountReceived
     createdAt
     completed
-    creditFacility {
-      publicId
+    collateral {
+      creditFacility {
+        publicId
+      }
     }
   }
 
@@ -61,10 +63,10 @@ const LiquidationsList = () => {
       render: (completed) => <LiquidationStatusBadge completed={completed} />,
     },
     {
-      key: "creditFacility",
+      key: "collateral",
       label: t("table.headers.creditFacility"),
-      render: (creditFacility) => (
-        <PublicIdBadge publicId={String(creditFacility.publicId)} />
+      render: (collateral) => (
+        <PublicIdBadge publicId={String(collateral.creditFacility.publicId)} />
       ),
     },
 

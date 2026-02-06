@@ -7,7 +7,7 @@ use tracing_macros::record_error_severity;
 
 use crate::{
     event::CoreCreditEvent,
-    primitives::{CollateralId, CreditFacilityId, CustodyWalletId, LiquidationId},
+    primitives::{CollateralId, CustodyWalletId, LiquidationId},
     publisher::CreditFacilityPublisher,
 };
 
@@ -64,14 +64,14 @@ where
             .await
     }
 
-    pub async fn list_liquidations_for_credit_facility_id(
+    pub async fn list_liquidations_for_collateral_id(
         &self,
-        credit_facility_id: CreditFacilityId,
+        collateral_id: CollateralId,
     ) -> Result<Vec<Liquidation>, LiquidationError> {
         Ok(self
             .liquidations
-            .list_for_credit_facility_id_by_created_at(
-                credit_facility_id,
+            .list_for_collateral_id_by_created_at(
+                collateral_id,
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )
@@ -126,7 +126,6 @@ where
     err = "LiquidationError",
     columns(
         collateral_id(ty = "CollateralId", list_for, parent, update(persist = false)),
-        credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
         completed(
             ty = "bool",
             create(persist = false),

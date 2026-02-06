@@ -2210,10 +2210,10 @@ export const mockLiquidation = (overrides?: Partial<Liquidation>, _relationships
     return {
         __typename: 'Liquidation',
         amountReceived: overrides && overrides.hasOwnProperty('amountReceived') ? overrides.amountReceived! : generateMockValue.usdCents(),
+        collateral: overrides && overrides.hasOwnProperty('collateral') ? overrides.collateral! : relationshipsToOmit.has('Collateral') ? {} as Collateral : mockCollateral({}, relationshipsToOmit),
+        collateralId: overrides && overrides.hasOwnProperty('collateralId') ? overrides.collateralId! : generateMockValue.uuid(),
         completed: overrides && overrides.hasOwnProperty('completed') ? overrides.completed! : faker.datatype.boolean(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
-        creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
-        creditFacilityId: overrides && overrides.hasOwnProperty('creditFacilityId') ? overrides.creditFacilityId! : generateMockValue.uuid(),
         expectedToReceive: overrides && overrides.hasOwnProperty('expectedToReceive') ? overrides.expectedToReceive! : generateMockValue.usdCents(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         liquidationId: overrides && overrides.hasOwnProperty('liquidationId') ? overrides.liquidationId! : generateMockValue.uuid(),

@@ -7,6 +7,34 @@
       ],
       "type": "string"
     },
+    "LiquidationProceedsAccountIds": {
+      "description": "Account IDs needed for recording proceeds from liquidation.\nThese come from the credit facility and collateral accounts.",
+      "properties": {
+        "collateral_in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "liquidated_collateral_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "liquidation_proceeds_omnibus_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "proceeds_from_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "liquidation_proceeds_omnibus_account_id",
+        "proceeds_from_liquidation_account_id",
+        "collateral_in_liquidation_account_id",
+        "liquidated_collateral_account_id"
+      ],
+      "type": "object"
+    },
     "Satoshis": {
       "format": "uint64",
       "minimum": 0,
@@ -143,6 +171,9 @@
     },
     {
       "properties": {
+        "account_ids": {
+          "$ref": "#/$defs/LiquidationProceedsAccountIds"
+        },
         "liquidation_id": {
           "format": "uuid",
           "type": "string"
@@ -154,7 +185,8 @@
       },
       "required": [
         "type",
-        "liquidation_id"
+        "liquidation_id",
+        "account_ids"
       ],
       "type": "object"
     },

@@ -1,15 +1,16 @@
 use async_graphql::*;
 
-use super::super::loader::LanaDataLoader;
-use crate::primitives::*;
+use crate::{graphql::loader::LanaDataLoader, primitives::*};
 pub use lana_app::credit::Liquidation as DomainLiquidation;
+
+use super::Collateral;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Liquidation {
     id: ID,
     liquidation_id: UUID,
-    credit_facility_id: UUID,
+    collateral_id: UUID,
     expected_to_receive: UsdCents,
     sent_total: Satoshis,
     amount_received: UsdCents,
@@ -25,7 +26,7 @@ impl From<DomainLiquidation> for Liquidation {
         Self {
             id: liquidation.id.to_global_id(),
             liquidation_id: UUID::from(liquidation.id),
-            credit_facility_id: UUID::from(liquidation.credit_facility_id),
+            collateral_id: UUID::from(liquidation.collateral_id),
             expected_to_receive: liquidation.expected_to_receive,
             sent_total: liquidation.sent_total,
             amount_received: liquidation.amount_received,
@@ -50,18 +51,6 @@ pub struct LiquidationProceedsReceived {
 
 #[ComplexObject]
 impl Liquidation {
-    async fn credit_facility(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<super::CreditFacility> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let credit_facility = loader
-            .load_one(self.entity.credit_facility_id)
-            .await?
-            .expect("credit facility not found");
-        Ok(credit_facility)
-    }
-
     async fn sent_collateral(&self) -> Vec<LiquidationCollateralSent> {
         self.entity
             .collateral_sent_out()
@@ -82,5 +71,14 @@ impl Liquidation {
                 ledger_tx_id: ledger_tx_id.into(),
             })
             .collect()
+    }
+
+    async fn collateral(&self, ctx: &Context<'_>) -> Result<Collateral> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let collateral = loader
+            .load_one(self.entity.collateral_id)
+            .await?
+            .expect("Collateral not found");
+        Ok(collateral)
     }
 }
