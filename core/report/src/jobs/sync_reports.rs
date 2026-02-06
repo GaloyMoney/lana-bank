@@ -226,11 +226,20 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         let dagster_reports = self.dagster.graphql().get_logs_for_run(external_id).await?;
 
+        let mut aggregated: std::collections::HashMap<
+            (String, String),
+            Vec<crate::report::ReportFile>,
+        > = std::collections::HashMap::new();
+
         for dagster_report in dagster_reports {
-            let report_external_id = format!(
-                "{}_{}_{}",
-                external_id, dagster_report.norm, dagster_report.name
-            );
+            let key = (dagster_report.norm.clone(), dagster_report.name.clone());
+            let files: Vec<crate::report::ReportFile> =
+                dagster_report.files.into_iter().map(|f| f.into()).collect();
+            aggregated.entry(key).or_default().extend(files);
+        }
+
+        for ((norm, name), files) in aggregated {
+            let report_external_id = format!("{}_{}_{}", external_id, norm, name);
 
             if self
                 .reports
@@ -241,14 +250,11 @@ where
                 continue;
             }
 
-            let files: Vec<crate::report::ReportFile> =
-                dagster_report.files.into_iter().map(|f| f.into()).collect();
-
             let new_report = NewReport::builder()
                 .external_id(report_external_id)
                 .run_id(run_id)
-                .name(dagster_report.name)
-                .norm(dagster_report.norm)
+                .name(name)
+                .norm(norm)
                 .files(files)
                 .build()?;
 

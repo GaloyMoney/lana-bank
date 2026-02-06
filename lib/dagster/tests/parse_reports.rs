@@ -34,16 +34,20 @@ fn test_parse_reports_from_logs_for_run_response() {
     let response: serde_json::Value = serde_json::from_str(&json_data).unwrap();
     let reports = parse_reports_from_logs_response(&response);
 
-    assert_eq!(reports.len(), 48, "Expected 48 reports to be parsed");
+    // Each MaterializationEvent produces one report entry (with one file each)
+    // The dagster parser returns 48 entries (one per file)
+    // The core-report sync job aggregates these by (norm, name) into 24 reports
+    assert_eq!(reports.len(), 48, "Expected 48 report entries to be parsed");
 
     let nrp_41_reports: Vec<_> = reports.iter().filter(|r| r.norm == "nrp_41").collect();
     let nrp_51_reports: Vec<_> = reports.iter().filter(|r| r.norm == "nrp_51").collect();
     let nrsf_03_reports: Vec<_> = reports.iter().filter(|r| r.norm == "nrsf_03").collect();
 
-    assert_eq!(nrp_41_reports.len(), 28, "Expected 28 nrp_41 reports");
-    assert_eq!(nrp_51_reports.len(), 12, "Expected 12 nrp_51 reports");
-    assert_eq!(nrsf_03_reports.len(), 8, "Expected 8 nrsf_03 reports");
+    assert_eq!(nrp_41_reports.len(), 28, "Expected 28 nrp_41 report entries");
+    assert_eq!(nrp_51_reports.len(), 12, "Expected 12 nrp_51 report entries");
+    assert_eq!(nrsf_03_reports.len(), 8, "Expected 8 nrsf_03 report entries");
 
+    // Each report name appears twice (once for each file type: xml/csv or csv/txt)
     let expected_nrp_41_names = [
         "garantia_hipotecaria",
         "garantia_fiduciaria",
@@ -68,7 +72,7 @@ fn test_parse_reports_from_logs_for_run_response() {
             .count();
         assert_eq!(
             count, 2,
-            "Expected 2 reports for {} in nrp_41, found {}",
+            "Expected 2 entries for {} in nrp_41, found {}",
             expected_name, count
         );
     }
@@ -89,7 +93,7 @@ fn test_parse_reports_from_logs_for_run_response() {
             .count();
         assert_eq!(
             count, 2,
-            "Expected 2 reports for {} in nrp_51, found {}",
+            "Expected 2 entries for {} in nrp_51, found {}",
             expected_name, count
         );
     }
@@ -103,7 +107,7 @@ fn test_parse_reports_from_logs_for_run_response() {
             .count();
         assert_eq!(
             count, 2,
-            "Expected 2 reports for {} in nrsf_03, found {}",
+            "Expected 2 entries for {} in nrsf_03, found {}",
             expected_name, count
         );
     }
