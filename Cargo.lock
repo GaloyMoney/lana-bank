@@ -4467,6 +4467,7 @@ name = "permission-sets-macro"
 version = "0.0.0"
 dependencies = [
  "paste",
+ "workspace-hack",
 ]
 
 [[package]]
