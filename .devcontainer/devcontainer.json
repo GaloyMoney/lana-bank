@@ -36,7 +36,7 @@
         5253
     ],
     "postCreateCommand": ".devcontainer/scripts/post-create.sh",
-    "postStartCommand": "direnv allow 2>/dev/null || true",
+    "postStartCommand": ".devcontainer/scripts/post-start.sh",
     "remoteEnv": {
         "SQLX_OFFLINE": "true"
     },

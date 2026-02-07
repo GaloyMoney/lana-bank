@@ -30,11 +30,22 @@ services:
       - NIX_CONFIG=experimental-features = nix-command flakes
       # Add Nix to PATH
       - PATH=/home/vscode/.nix-profile/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    depends_on:
+      - core-pg
+      - keycloak
+      - oathkeeper
     userns_mode: keep-id
     cap_add:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
+
+  # Override oathkeeper to use devcontainer-specific rules
+  # (routes to "devcontainer" hostname instead of "host.containers.internal")
+  oathkeeper:
+    volumes:
+      - ../dev/ory:/home/ory
+      - ./ory/oathkeeper_rules.yaml:/home/ory/oathkeeper_rules.yaml:ro
 
 # Named volumes to persist data across container rebuilds
 volumes:
