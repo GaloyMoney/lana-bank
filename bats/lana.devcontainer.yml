@@ -17,11 +17,7 @@ app:
     provider: local
     root_folder: ".lana"
   credit:
-    customer_active_check_enabled: false
-    collateralization_from_price_job_interval: 31536000 # 1 year
-    pending_collateralization_from_price_job_interval: 31536000 # 1 year
-  deposit:
-    require_verified_customer_for_account: false
+    price_job_interval: 31536000 # 1 year
   notification:
     email:
       admin_panel_url: "http://admin.localhost:4455"
@@ -34,20 +30,16 @@ app:
       client_id: internal-service-account
       realm: internal
   customer_sync:
-    customer_status_sync_active: false
     keycloak:
       url: http://keycloak:8080
       client_id: customer-service-account
       realm: customer
-    activity_update_job_interval: 31536000 # 1 year
   accounting_init:
     chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
     chart_of_accounts_opening_date: "2020-01-01"
     credit_config_path: "./bats/accounting-init/credit-module-config.json"
     deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
-    balance_sheet_config_path: "./bats/accounting-init/balance-sheet-module-config.json"
-    profit_and_loss_config_path: "./bats/accounting-init/profit-and-loss-module-config.json"
-    fiscal_year_config_path: "./bats/accounting-init/fiscal-year-module-config.json"
+    chart_of_accounts_integration_config_path: "./bats/accounting-init/accounting-base-config.json"
 time:
   type: artificial
   start_at: 2024-01-01T00:00:00Z
