@@ -10,7 +10,7 @@ query AuditLogs($first: Int!, $after: String) {
             email
           }
           ... on System {
-            name
+            actor
           }
         }
         object

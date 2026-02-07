@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemActor};
 use authz::PermissionCheck;
 use job::*;
 use obix::out::OutboxEventMarker;
@@ -153,6 +153,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                SystemActor::ObligationSync,
                 CoreCreditCollectionObject::obligation(id),
                 CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
             )
@@ -193,7 +194,9 @@ where
                 .record_obligation_due_in_op(
                     &mut op,
                     due_data,
-                    core_accounting::LedgerTransactionInitiator::System,
+                    core_accounting::LedgerTransactionInitiator::System(
+                        audit::SystemActor::ObligationSync,
+                    ),
                 )
                 .await?;
 

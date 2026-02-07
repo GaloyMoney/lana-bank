@@ -22,9 +22,7 @@ pub enum CollateralError {
     #[error("CollateralError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CollateralError - LedgerTransactionInitiatorParseError: {0}")]
-    LedgerTransactionInitiatorParseError(
-        #[from] core_accounting::LedgerTransactionInitiatorParseError,
-    ),
+    LedgerTransactionInitiatorParseError(#[from] audit::SubjectParseError),
 }
 
 impl ErrorSeverity for CollateralError {

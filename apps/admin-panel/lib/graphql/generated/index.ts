@@ -3034,7 +3034,7 @@ export type SumsubPermalinkCreatePayload = {
 
 export type System = {
   __typename?: 'System';
-  name: Scalars['String']['output'];
+  actor: Scalars['String']['output'];
 };
 
 export type SystemApproval = {
@@ -3392,7 +3392,7 @@ export type AuditLogsQueryVariables = Exact<{
 
 
 export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, auditEntryId: any, object: string, action: string, authorized: boolean, recordedAt: any, subject:
-          | { __typename?: 'System', name: string }
+          | { __typename?: 'System', actor: string }
           | { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string } }
          } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
@@ -4309,7 +4309,7 @@ export type LedgerTransactionQueryVariables = Exact<{
 
 
 export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, effective: any, initiatedBy:
-      | { __typename: 'System', name: string }
+      | { __typename: 'System', actor: string }
       | { __typename: 'User', userId: string, email: string }
     , entity?:
       | { __typename: 'CreditFacilityDisbursal', publicId: any }
@@ -6090,7 +6090,7 @@ export const AuditLogsDocument = gql`
             }
           }
           ... on System {
-            name
+            actor
           }
         }
         object
@@ -9750,7 +9750,7 @@ export const LedgerTransactionDocument = gql`
         email
       }
       ... on System {
-        name
+        actor
       }
     }
     entity {

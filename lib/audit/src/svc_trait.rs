@@ -3,10 +3,10 @@ use tracing_macros::record_error_severity;
 
 use std::{collections::HashMap, fmt, str::FromStr};
 
-use crate::{AuditEntry, error::AuditError, primitives::*};
+use crate::{AuditEntry, SystemActor, error::AuditError, primitives::*};
 
 pub trait SystemSubject {
-    fn system() -> Self;
+    fn system(actor: SystemActor) -> Self;
 }
 
 #[async_trait]
@@ -26,10 +26,11 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
 
     async fn record_system_entry(
         &self,
+        actor: SystemActor,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
-        let subject = Self::Subject::system();
+        let subject = Self::Subject::system(actor);
         let object = object.into();
         let action = action.into();
 
@@ -73,10 +74,11 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
     async fn record_system_entry_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
+        actor: SystemActor,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
-        let subject = Self::Subject::system();
+        let subject = Self::Subject::system(actor);
         let object = object.into();
         let action = action.into();
 

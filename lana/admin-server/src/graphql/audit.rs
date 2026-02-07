@@ -2,18 +2,21 @@ use async_graphql::{ComplexObject, Context, ID, SimpleObject, Union, connection:
 use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
+use audit::SystemActor;
 use lana_app::primitives::Subject as DomainSubject;
 
 use super::{access::User, loader::*};
 
 #[derive(SimpleObject)]
 pub struct System {
-    name: &'static str,
+    actor: String,
 }
 
 impl System {
-    pub fn lana() -> Self {
-        Self { name: "lana" }
+    pub fn from_actor(actor: SystemActor) -> Self {
+        Self {
+            actor: actor.as_ref().to_string(),
+        }
     }
 }
 
@@ -50,7 +53,7 @@ impl AuditEntry {
                     Some(user) => Ok(AuditSubject::User(user)),
                 }
             }
-            DomainSubject::System => Ok(AuditSubject::System(System::lana())),
+            DomainSubject::System(actor) => Ok(AuditSubject::System(System::from_actor(actor))),
             DomainSubject::Customer(_) => {
                 panic!("Whoops - have we gone live yet?");
             }

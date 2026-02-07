@@ -7,7 +7,7 @@ use std::sync::Arc;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemActor};
 use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
@@ -217,6 +217,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 op,
+                SystemActor::DisbursalJob,
                 CoreCreditObject::disbursal(disbursal_id),
                 CoreCreditAction::DISBURSAL_SETTLE,
             )

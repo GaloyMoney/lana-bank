@@ -88,15 +88,18 @@ impl LedgerTransaction {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<LedgerTransactionInitiator> {
         match &self.entity.initiated_by {
-            DomainLedgerTransactionInitiator::User { id } => {
+            DomainLedgerTransactionInitiator::User(id) => {
                 let loader = ctx.data_unchecked::<LanaDataLoader>();
                 match loader.load_one(UserId::from(*id)).await? {
                     Some(user) => Ok(LedgerTransactionInitiator::User(user)),
                     None => Err("Initiator user not found".into()),
                 }
             }
-            DomainLedgerTransactionInitiator::System => {
-                Ok(LedgerTransactionInitiator::System(System::lana()))
+            DomainLedgerTransactionInitiator::System(actor) => Ok(
+                LedgerTransactionInitiator::System(System::from_actor(*actor)),
+            ),
+            DomainLedgerTransactionInitiator::Customer(..) => {
+                Err("Customer-initiated transactions not supported yet".into())
             }
         }
     }

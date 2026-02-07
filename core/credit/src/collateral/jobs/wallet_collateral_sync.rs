@@ -177,7 +177,9 @@ where
                     &mut db,
                     data,
                     collateral.account_id,
-                    core_accounting::LedgerTransactionInitiator::System,
+                    core_accounting::LedgerTransactionInitiator::System(
+                        audit::SystemActor::CollateralizationSync,
+                    ),
                 )
                 .await?;
             db.commit().await?;
