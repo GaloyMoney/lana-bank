@@ -37,7 +37,6 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [build-dependencies]
 cargo_metadata = { workspace = true }
-regex = { workspace = true }
 walkdir = { workspace = true }
 
 [dev-dependencies]

@@ -4897,7 +4897,6 @@ dependencies = [
  "domain-config",
  "governance",
  "permission-sets-macro",
- "regex",
  "serde",
  "strum",
  "thiserror 2.0.18",
