@@ -51,7 +51,7 @@ fn scan_directory_for_permissions(dir: &Path, crate_name: &str, permissions: &mu
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| {
-            e.path().extension().map_or(false, |ext| ext == "rs")
+            e.path().extension().is_some_and(|ext| ext == "rs")
                 && !e.path().ends_with("generated_permission_sets.rs")
                 && !e.path().ends_with("rbac-types/src/lib.rs")
         });
@@ -149,7 +149,7 @@ fn generate_permission_enum(permissions: &[Permission]) {
     code.push_str("// 1. Make permission set changes visible in pull requests\n");
     code.push_str("// 2. Catch breaking changes to the permission set API\n");
     code.push_str("// 3. Ensure CI fails if the generated code is out of sync\n");
-    code.push_str("\n");
+    code.push('\n');
 
     code.push_str("#[derive(Clone, PartialEq, Eq, Copy, Debug, async_graphql::Enum)]\n");
     code.push_str("pub enum PermissionSetName {\n");
