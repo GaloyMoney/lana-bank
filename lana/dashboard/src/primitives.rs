@@ -2,7 +2,9 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
-pub const PERMISSION_SET_DASHBOARD_VIEWER: &str = "dashboard_viewer";
+permission_sets_macro::permission_sets! {
+    DashboardViewer,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]

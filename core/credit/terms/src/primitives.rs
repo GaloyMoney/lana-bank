@@ -5,8 +5,10 @@ use crate::TermsTemplateId;
 
 pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
 
-pub const PERMISSION_SET_CREDIT_TERM_TEMPLATES_VIEWER: &str = "credit_term_templates_viewer";
-pub const PERMISSION_SET_CREDIT_TERM_TEMPLATES_WRITER: &str = "credit_term_templates_writer";
+permission_sets_macro::permission_sets! {
+    CreditTermTemplatesViewer,
+    CreditTermTemplatesWriter,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

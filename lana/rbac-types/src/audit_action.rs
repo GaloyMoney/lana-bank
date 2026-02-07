@@ -1,7 +1,9 @@
 use authz::{ActionPermission, action_description::*, map_action};
 use std::{fmt::Display, str::FromStr};
 
-pub const PERMISSION_SET_AUDIT_VIEWER: &str = "audit_viewer";
+permission_sets_macro::permission_sets! {
+    AuditViewer,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]

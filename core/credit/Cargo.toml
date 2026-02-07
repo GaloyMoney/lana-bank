@@ -22,6 +22,7 @@ mock-custodian = ["core-custody/mock-custodian"]
 
 [dependencies]
 money = { workspace = true }
+permission-sets-macro = { workspace = true }
 core-price = { workspace = true }
 core-customer = { workspace = true }
 core-credit-collection = { path = "collection" }

@@ -11,6 +11,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema", "money/json-schema", "co
 
 [dependencies]
 money = { workspace = true }
+permission-sets-macro = { workspace = true }
 core-price = { workspace = true }
 
 audit = { workspace = true }

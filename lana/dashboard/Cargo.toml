@@ -11,6 +11,7 @@ fail-on-warnings = []
 json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
+permission-sets-macro = { workspace = true }
 lana-events = { workspace = true }
 money = { workspace = true }
 
