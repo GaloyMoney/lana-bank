@@ -175,7 +175,9 @@ where
                 .record_obligation_overdue_in_op(
                     &mut op,
                     data,
-                    core_accounting::LedgerTransactionInitiator::System,
+                    core_accounting::LedgerTransactionInitiator::System {
+                        actor: audit::SystemActor::ObligationSync,
+                    },
                 )
                 .await?;
 

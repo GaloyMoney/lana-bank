@@ -71,7 +71,7 @@ impl EntityRef {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum LedgerTransactionInitiator {
-    System,
+    System { actor: audit::SystemActor },
     User { id: uuid::Uuid },
 }
 
@@ -95,8 +95,11 @@ impl LedgerTransactionInitiator {
         S: std::fmt::Display,
     {
         let raw = subject.to_string();
-        if raw.starts_with("system:") {
-            return Ok(Self::System);
+        if let Some(actor_str) = raw.strip_prefix("system:") {
+            let actor = actor_str
+                .parse::<audit::SystemActor>()
+                .map_err(|_| LedgerTransactionInitiatorParseError::UnknownInitiator)?;
+            return Ok(Self::System { actor });
         }
 
         if let Some(id_str) = raw.strip_prefix("user:") {
