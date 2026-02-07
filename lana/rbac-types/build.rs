@@ -51,10 +51,9 @@ fn scan_directory_for_permissions(dir: &Path, crate_name: &str, permissions: &mu
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| {
-            e.path().extension().map_or(false, |ext| ext == "rs") &&
-            // Skip the generated file and lib.rs to avoid circular references
-            !e.path().ends_with("generated_permission_sets.rs") &&
-            !e.path().ends_with("lib.rs")
+            e.path().extension().map_or(false, |ext| ext == "rs")
+                && !e.path().ends_with("generated_permission_sets.rs")
+                && !e.path().ends_with("rbac-types/src/lib.rs")
         });
 
     for entry in walker {
