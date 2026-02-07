@@ -12,7 +12,7 @@ pub use primitives::*;
 pub use svc_trait::*;
 
 /// Identifies the specific system actor performing an operation.
-/// Used to differentiate between external integrations, internal jobs, and CLI operations.
+/// Used to differentiate between external integrations, internal jobs, and system operations.
 #[derive(
     Clone,
     Copy,
