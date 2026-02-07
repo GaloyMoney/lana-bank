@@ -16,9 +16,9 @@ pub use cala_ledger::primitives::{
 };
 pub use core_custody::WalletId as CustodyWalletId;
 pub use core_customer::{CustomerId, CustomerType};
-pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
 pub use governance::ApprovalProcessId;
+pub use money::*;
 pub use public_id::PublicId;
 
 pub use core_credit_terms::{

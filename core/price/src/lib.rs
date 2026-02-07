@@ -1,6 +1,5 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
-pub mod bfx_client;
 pub mod error;
 mod event;
 pub mod jobs;

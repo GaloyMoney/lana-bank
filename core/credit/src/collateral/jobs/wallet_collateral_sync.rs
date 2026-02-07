@@ -157,7 +157,7 @@ where
     async fn record_collateral_update_via_custodian_sync(
         &self,
         custody_wallet_id: crate::primitives::CustodyWalletId,
-        updated_collateral: core_money::Satoshis,
+        updated_collateral: money::Satoshis,
         effective: chrono::NaiveDate,
     ) -> Result<(), CollateralError> {
         let mut collateral = self

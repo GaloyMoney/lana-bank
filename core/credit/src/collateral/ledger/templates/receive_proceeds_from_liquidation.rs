@@ -18,7 +18,7 @@ use cala_ledger::{
     },
     velocity::{NewParamDefinition, ParamDataType, Params},
 };
-use core_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
 use crate::{

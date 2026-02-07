@@ -26,8 +26,8 @@ impl From<komainu::KomainuError> for CustodianClientError {
     }
 }
 
-impl From<core_money::ConversionError> for CustodianClientError {
-    fn from(error: core_money::ConversionError) -> Self {
+impl From<money::ConversionError> for CustodianClientError {
+    fn from(error: money::ConversionError) -> Self {
         Self::ClientError(Box::new(error))
     }
 }
@@ -41,7 +41,7 @@ impl ErrorSeverity for CustodianClientError {
                     bitgo_err.severity()
                 } else if let Some(komainu_err) = e.downcast_ref::<komainu::KomainuError>() {
                     komainu_err.severity()
-                } else if let Some(money_err) = e.downcast_ref::<core_money::ConversionError>() {
+                } else if let Some(money_err) = e.downcast_ref::<money::ConversionError>() {
                     money_err.severity()
                 } else {
                     // Default to ERROR for unknown error types

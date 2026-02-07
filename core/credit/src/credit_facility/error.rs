@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use core_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {

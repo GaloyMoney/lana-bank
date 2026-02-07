@@ -10,7 +10,7 @@ use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub use cala_ledger::primitives::{AccountId as CalaAccountId, TransactionId as LedgerTxId};
 pub use core_credit_terms::EffectiveDate;
-pub use core_money::*;
+pub use money::*;
 
 es_entity::entity_id! {
     BeneficiaryId,

@@ -14,7 +14,7 @@ use helpers::{action, event, object};
 use public_id::PublicIds;
 
 use core_credit::error::CoreCreditError;
-use core_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 
 fn random_email() -> String {
     format!("{}@integrationtest.com", uuid::Uuid::new_v4())

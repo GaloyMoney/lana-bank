@@ -7,10 +7,10 @@ edition = "2024"
 
 fail-on-warnings = []
 graphql = [ "dep:async-graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "core-money/json-schema", "core-price/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "money/json-schema", "core-price/json-schema"]
 
 [dependencies]
-core-money = { workspace = true }
+money = { workspace = true }
 core-price = { workspace = true }
 
 audit = { workspace = true }

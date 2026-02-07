@@ -9,13 +9,13 @@ graphql = ["es-entity/graphql", "cala-ledger/graphql"]
 json-schema = [
     "dep:schemars",
     "es-entity/json-schema",
-    "core-money/json-schema",
+    "money/json-schema",
     "job/json-schema",
     "cala-ledger/json-schema",
 ]
 
 [dependencies]
-core-money = { workspace = true }
+money = { workspace = true }
 core-accounting = { workspace = true }
 core-credit-terms = { path = "../terms" }
 
