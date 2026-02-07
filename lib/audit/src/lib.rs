@@ -63,7 +63,7 @@ pub enum SystemActor {
 /// Represents who initiated an operation (user, customer, or system actor).
 /// This type can be used across core and lana modules.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum Subject {
     System(SystemActor),
     User(Uuid),
