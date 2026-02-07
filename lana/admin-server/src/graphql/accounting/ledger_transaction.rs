@@ -95,9 +95,9 @@ impl LedgerTransaction {
                     None => Err("Initiator user not found".into()),
                 }
             }
-            DomainLedgerTransactionInitiator::System => {
-                Ok(LedgerTransactionInitiator::System(System::unknown()))
-            }
+            DomainLedgerTransactionInitiator::System { actor } => Ok(
+                LedgerTransactionInitiator::System(System::from_actor(*actor)),
+            ),
         }
     }
 

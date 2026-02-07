@@ -154,7 +154,9 @@ where
                 .record_obligation_defaulted_in_op(
                     &mut op,
                     defaulted,
-                    core_accounting::LedgerTransactionInitiator::System,
+                    core_accounting::LedgerTransactionInitiator::System {
+                        actor: audit::SystemActor::ObligationSync,
+                    },
                 )
                 .await?;
             op.commit().await?;
