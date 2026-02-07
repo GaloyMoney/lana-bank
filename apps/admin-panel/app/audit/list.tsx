@@ -54,7 +54,6 @@ gql`
               }
             }
             ... on System {
-              name
               actor
             }
           }
