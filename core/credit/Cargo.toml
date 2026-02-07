@@ -21,6 +21,7 @@ json-schema = [
 mock-custodian = ["core-custody/mock-custodian"]
 
 [dependencies]
+permission-sets-macro = { workspace = true }
 core-money = { workspace = true }
 core-price = { workspace = true }
 core-customer = { workspace = true }

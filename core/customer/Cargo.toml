@@ -16,6 +16,7 @@ governance = ["dep:governance"]
 sumsub-testing = ["sumsub/sumsub-testing"]
 
 [dependencies]
+permission-sets-macro = { workspace = true }
 
 audit = { workspace = true }
 authz = { workspace = true }

@@ -15,6 +15,7 @@ json-schema = [
 ]
 
 [dependencies]
+permission-sets-macro = { workspace = true }
 core-money = { workspace = true }
 core-accounting = { workspace = true }
 core-credit-terms = { path = "../terms" }

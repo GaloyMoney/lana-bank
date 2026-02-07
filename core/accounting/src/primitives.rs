@@ -678,8 +678,10 @@ pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if ther
 // option
 pub type FiscalYearAllOrOne = AllOrOne<FiscalYearId>;
 
-pub const PERMISSION_SET_ACCOUNTING_VIEWER: &str = "accounting_viewer";
-pub const PERMISSION_SET_ACCOUNTING_WRITER: &str = "accounting_writer";
+permission_sets_macro::permission_sets! {
+    AccountingViewer,
+    AccountingWriter,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]

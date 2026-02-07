@@ -11,6 +11,7 @@ fail-on-warnings = []
 json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
 
 [dependencies]
+permission-sets-macro = { workspace = true }
 core-customer = { workspace = true }
 document-storage = { workspace = true }
 job = { workspace = true }
