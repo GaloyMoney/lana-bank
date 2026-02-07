@@ -66,8 +66,8 @@ pub enum SystemActor {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Subject {
     System(SystemActor),
-    User { id: Uuid },
-    Customer { id: Uuid },
+    User(Uuid),
+    Customer(Uuid),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -98,12 +98,12 @@ impl Subject {
 
         if let Some(id_str) = s.strip_prefix("user:") {
             let id = Uuid::parse_str(id_str)?;
-            return Ok(Self::User { id });
+            return Ok(Self::User(id));
         }
 
         if let Some(id_str) = s.strip_prefix("customer:") {
             let id = Uuid::parse_str(id_str)?;
-            return Ok(Self::Customer { id });
+            return Ok(Self::Customer(id));
         }
 
         Err(SubjectParseError::UnknownFormat(s.to_string()))
@@ -114,8 +114,8 @@ impl fmt::Display for Subject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Subject::System(actor) => write!(f, "system:{}", actor.as_ref()),
-            Subject::User { id } => write!(f, "user:{}", id),
-            Subject::Customer { id } => write!(f, "customer:{}", id),
+            Subject::User(id) => write!(f, "user:{}", id),
+            Subject::Customer(id) => write!(f, "customer:{}", id),
         }
     }
 }
