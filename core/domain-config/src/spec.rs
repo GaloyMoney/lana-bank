@@ -180,6 +180,7 @@ where
 pub trait ConfigSpec {
     const KEY: DomainConfigKey;
     const VISIBILITY: Visibility;
+    const ENCRYPTED: bool = false;
     type Kind: ValueKind;
 
     fn default_value() -> Option<<Self::Kind as ValueKind>::Value> {

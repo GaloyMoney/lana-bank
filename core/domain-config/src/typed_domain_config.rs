@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
 use crate::{
-    ConfigSpec, ConfigType, DefaultedConfig, DomainConfigError, DomainConfigKey, ValueKind,
-    Visibility,
+    ConfigSpec, ConfigType, DefaultedConfig, DomainConfigError, DomainConfigKey, EncryptionKey,
+    ValueKind, Visibility,
 };
 
 use crate::entity::DomainConfig;
@@ -10,14 +10,19 @@ use crate::entity::DomainConfig;
 pub struct TypedDomainConfig<C: ConfigSpec> {
     entity: DomainConfig,
     _marker: PhantomData<C>,
+    key: EncryptionKey,
 }
 
 impl<C: ConfigSpec> TypedDomainConfig<C> {
-    pub(crate) fn try_new(entity: DomainConfig) -> Result<Self, DomainConfigError> {
+    pub(crate) fn try_new(
+        entity: DomainConfig,
+        key: EncryptionKey,
+    ) -> Result<Self, DomainConfigError> {
         DomainConfig::assert_compatible::<C>(&entity)?;
         Ok(Self {
             entity,
             _marker: PhantomData,
+            key,
         })
     }
 
@@ -26,7 +31,9 @@ impl<C: ConfigSpec> TypedDomainConfig<C> {
     /// Use this for configs without compile-time defaults, or when you need
     /// to distinguish between "not set" and "set to default".
     pub fn maybe_value(&self) -> Option<<C::Kind as ValueKind>::Value> {
-        self.entity.current_value::<C>().or_else(C::default_value)
+        self.entity
+            .current_value::<C>(&self.key)
+            .or_else(C::default_value)
     }
 
     pub fn default_value(&self) -> Option<<C::Kind as ValueKind>::Value> {

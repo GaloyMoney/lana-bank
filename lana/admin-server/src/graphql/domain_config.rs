@@ -39,6 +39,7 @@ pub struct DomainConfig {
     id: ID,
     domain_config_id: UUID,
     config_type: ConfigType,
+    encrypted: bool,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainConfigEntity>,
@@ -50,6 +51,7 @@ impl From<DomainConfigEntity> for DomainConfig {
             id: config.id.to_global_id(),
             domain_config_id: UUID::from(config.id),
             config_type: config.config_type.into(),
+            encrypted: config.encrypted,
             entity: Arc::new(config),
         }
     }
@@ -62,6 +64,9 @@ impl DomainConfig {
     }
 
     async fn value(&self) -> Json {
+        if self.encrypted {
+            return Json::from(serde_json::Value::Null);
+        }
         Json::from(self.entity.current_json_value().clone())
     }
 }

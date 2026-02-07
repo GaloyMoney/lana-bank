@@ -109,6 +109,7 @@ impl Config {
 
         let key_array: [u8; 32] = key_bytes.as_slice().try_into().expect("key is 32 bytes");
         config.app.custody.encryption.key = key_array.into();
+        config.app.encryption.key = key_array.into();
 
         Ok(config)
     }

@@ -164,6 +164,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .expect("super user");
 
     let (clock, _clock_ctrl) = config.time.into_clock();
+    let encryption_config = config.app.encryption.clone();
 
     let app = lana_app::app::LanaApp::init(pool.clone(), config.app, clock.clone())
         .await
@@ -186,6 +187,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     if !domain_config_settings.is_empty() {
         domain_config::apply_startup_configs(
             &pool,
+            &encryption_config,
             domain_config_settings.into_iter().map(|s| (s.key, s.value)),
         )
         .await

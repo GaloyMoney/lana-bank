@@ -238,3 +238,10 @@ pub mod time_events {
     pub type TimeEvents = core_time_events::TimeEvents;
     pub use core_time_events::error;
 }
+
+pub mod domain_config {
+    pub use domain_config::{
+        DomainEncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly,
+        InternalDomainConfigs,
+    };
+}
