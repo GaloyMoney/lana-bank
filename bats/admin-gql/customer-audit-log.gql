@@ -13,7 +13,7 @@ query CustomerAuditLog($id: UUID!) {
           }
         }
         ... on System {
-          name
+          actor
         }
       }
       object
