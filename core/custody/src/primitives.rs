@@ -38,7 +38,6 @@ pub enum WalletNetwork {
     Mainnet,
 }
 
-// Define permission sets - just list the variants, everything else is auto-derived!
 permission_sets_macro::permission_sets! {
     CustodyViewer,
     CustodyWriter,
