@@ -7,7 +7,7 @@ use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
 use std::sync::Arc;
 
-use crate::{CorePriceEvent, PriceOfOneBTC, PRICE_UPDATED_EVENT_TYPE};
+use crate::{CorePriceEvent, PRICE_UPDATED_EVENT_TYPE, PriceOfOneBTC};
 
 const PRICE_UPDATE_INTERVAL: Duration = Duration::from_secs(60);
 
@@ -17,8 +17,8 @@ pub async fn fetch_price(
     client: std::sync::Arc<bfx_client::BfxClient>,
 ) -> Result<PriceOfOneBTC, bfx_client::BfxClientError> {
     let tick = client.btc_usd_tick().await?;
-    let usd_cents =
-        money::UsdCents::try_from_usd(tick.last_price).map_err(bfx_client::BfxClientError::ConversionError)?;
+    let usd_cents = money::UsdCents::try_from_usd(tick.last_price)
+        .map_err(bfx_client::BfxClientError::ConversionError)?;
     Ok(PriceOfOneBTC::new(usd_cents))
 }
 

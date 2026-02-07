@@ -6,8 +6,8 @@ use tracing_macros::record_error_severity;
 
 use cala_ledger::{CalaLedger, Currency, JournalId, TransactionId as CalaTransactionId};
 use core_accounting::LedgerTransactionInitiator;
-use money::Satoshis;
 use es_entity::clock::ClockHandle;
+use money::Satoshis;
 
 pub use error::CollateralLedgerError;
 

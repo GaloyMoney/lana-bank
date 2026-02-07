@@ -9,8 +9,8 @@ use schemars::JsonSchema;
 
 use crate::{collateralization::*, cvl::CVLPct, effective_date::*};
 
-use money::{Satoshis, UsdCents};
 use core_price::PriceOfOneBTC;
+use money::{Satoshis, UsdCents};
 
 use super::error::TermsError;
 

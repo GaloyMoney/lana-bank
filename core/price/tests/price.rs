@@ -5,10 +5,10 @@ use std::sync::Arc;
 use rand::Rng;
 use rust_decimal_macros::dec;
 
-use money::{Satoshis, UsdCents};
 use bfx_client::BfxClient;
-use core_price::{jobs::get_price_from_bfx::fetch_price, Price, PriceOfOneBTC};
+use core_price::{Price, PriceOfOneBTC, jobs::get_price_from_bfx::fetch_price};
 use helpers::{DummyEvent, init_pool, publish_dummy_price_event, wait_for_price_to_be_updated};
+use money::{Satoshis, UsdCents};
 use obix::out::Outbox;
 
 #[tokio::test]
