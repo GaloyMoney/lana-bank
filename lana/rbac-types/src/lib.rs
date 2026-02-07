@@ -24,90 +24,90 @@ pub const ROLE_NAME_ACCOUNTANT: &str = "accountant";
 pub const ROLE_NAME_ADMIN: &str = "admin";
 pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
 
-#[derive(Clone, PartialEq, Eq, Copy, async_graphql::Enum)]
-pub enum PermissionSetName {
-    AccessViewer,
-    AccessWriter,
-    AccountingViewer,
-    AccountingWriter,
-    CollectionViewer,
-    CollectionWriter,
-    CollectionPaymentDate,
-    ContractCreation,
-    CreditViewer,
-    CreditWriter,
-    CreditTermTemplatesViewer,
-    CreditTermTemplatesWriter,
-    CustomerViewer,
-    CustomerWriter,
-    CustodyViewer,
-    CustodyWriter,
-    DashboardViewer,
-    DepositViewer,
-    DepositWriter,
-    DepositFreeze,
-    DepositUnfreeze,
-    ExposedConfigViewer,
-    ExposedConfigWriter,
-    GovernanceViewer,
-    GovernanceWriter,
-    ReportViewer,
-    ReportWriter,
-    AuditViewer,
+/// Macro to define a permission set enum with automatic FromStr/Display implementations.
+///
+/// This macro generates:
+/// - An enum with the specified variants
+/// - A FromStr implementation that maps string constants to enum variants
+/// - A Display implementation that maps enum variants back to strings
+/// - All the derives needed for GraphQL and testing
+///
+/// # Example
+/// ```ignore
+/// permission_set_enum! {
+///     PermissionSetName {
+///         AccessViewer = core_access::PERMISSION_SET_ACCESS_VIEWER,
+///         AccessWriter = core_access::PERMISSION_SET_ACCESS_WRITER,
+///     }
+/// }
+/// ```
+macro_rules! permission_set_enum {
+    (
+        $enum_name:ident {
+            $( $variant:ident = $const_path:expr ),* $(,)?
+        }
+    ) => {
+        #[derive(Clone, PartialEq, Eq, Copy, Debug, async_graphql::Enum, strum::VariantArray)]
+        pub enum $enum_name {
+            $( $variant, )*
+        }
+
+        impl std::str::FromStr for $enum_name {
+            type Err = strum::ParseError;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                $(
+                    if s == $const_path {
+                        return Ok(Self::$variant);
+                    }
+                )*
+                Err(strum::ParseError::VariantNotFound)
+            }
+        }
+
+        impl std::fmt::Display for $enum_name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                $(
+                    if matches!(self, Self::$variant) {
+                        return write!(f, "{}", $const_path);
+                    }
+                )*
+                unreachable!("All variants should be covered")
+            }
+        }
+    };
 }
 
-impl std::str::FromStr for PermissionSetName {
-    type Err = strum::ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use PermissionSetName::*;
-        match s {
-            core_access::PERMISSION_SET_ACCESS_VIEWER => Ok(AccessViewer),
-            core_access::PERMISSION_SET_ACCESS_WRITER => Ok(AccessWriter),
-
-            core_accounting::PERMISSION_SET_ACCOUNTING_VIEWER => Ok(AccountingViewer),
-            core_accounting::PERMISSION_SET_ACCOUNTING_WRITER => Ok(AccountingWriter),
-
-            core_credit::PERMISSION_SET_CREDIT_VIEWER => Ok(CreditViewer),
-            core_credit::PERMISSION_SET_CREDIT_WRITER => Ok(CreditWriter),
-            core_credit::PERMISSION_SET_COLLECTION_VIEWER => Ok(CollectionViewer),
-            core_credit::PERMISSION_SET_COLLECTION_WRITER => Ok(CollectionWriter),
-            core_credit::PERMISSION_SET_COLLECTION_PAYMENT_DATE => Ok(CollectionPaymentDate),
-            core_credit_terms::PERMISSION_SET_CREDIT_TERM_TEMPLATES_VIEWER => {
-                Ok(CreditTermTemplatesViewer)
-            }
-            core_credit_terms::PERMISSION_SET_CREDIT_TERM_TEMPLATES_WRITER => {
-                Ok(CreditTermTemplatesWriter)
-            }
-
-            core_customer::PERMISSION_SET_CUSTOMER_VIEWER => Ok(CustomerViewer),
-            core_customer::PERMISSION_SET_CUSTOMER_WRITER => Ok(CustomerWriter),
-
-            core_custody::PERMISSION_SET_CUSTODY_VIEWER => Ok(CustodyViewer),
-            core_custody::PERMISSION_SET_CUSTODY_WRITER => Ok(CustodyWriter),
-
-            dashboard::PERMISSION_SET_DASHBOARD_VIEWER => Ok(DashboardViewer),
-
-            core_deposit::PERMISSION_SET_DEPOSIT_VIEWER => Ok(DepositViewer),
-            core_deposit::PERMISSION_SET_DEPOSIT_WRITER => Ok(DepositWriter),
-            core_deposit::PERMISSION_SET_DEPOSIT_FREEZE => Ok(DepositFreeze),
-            core_deposit::PERMISSION_SET_DEPOSIT_UNFREEZE => Ok(DepositUnfreeze),
-
-            domain_config::PERMISSION_SET_EXPOSED_CONFIG_VIEWER => Ok(ExposedConfigViewer),
-            domain_config::PERMISSION_SET_EXPOSED_CONFIG_WRITER => Ok(ExposedConfigWriter),
-
-            governance::PERMISSION_SET_GOVERNANCE_VIEWER => Ok(GovernanceViewer),
-            governance::PERMISSION_SET_GOVERNANCE_WRITER => Ok(GovernanceWriter),
-
-            core_report::PERMISSION_SET_REPORT_VIEWER => Ok(ReportViewer),
-            core_report::PERMISSION_SET_REPORT_WRITER => Ok(ReportWriter),
-
-            contract_creation::PERMISSION_SET_CONTRACT_CREATION => Ok(ContractCreation),
-
-            PERMISSION_SET_AUDIT_VIEWER => Ok(AuditViewer),
-
-            _ => Err(strum::ParseError::VariantNotFound),
-        }
+permission_set_enum! {
+    PermissionSetName {
+        AccessViewer = core_access::PERMISSION_SET_ACCESS_VIEWER,
+        AccessWriter = core_access::PERMISSION_SET_ACCESS_WRITER,
+        AccountingViewer = core_accounting::PERMISSION_SET_ACCOUNTING_VIEWER,
+        AccountingWriter = core_accounting::PERMISSION_SET_ACCOUNTING_WRITER,
+        CollectionViewer = core_credit::PERMISSION_SET_COLLECTION_VIEWER,
+        CollectionWriter = core_credit::PERMISSION_SET_COLLECTION_WRITER,
+        CollectionPaymentDate = core_credit::PERMISSION_SET_COLLECTION_PAYMENT_DATE,
+        ContractCreation = contract_creation::PERMISSION_SET_CONTRACT_CREATION,
+        CreditViewer = core_credit::PERMISSION_SET_CREDIT_VIEWER,
+        CreditWriter = core_credit::PERMISSION_SET_CREDIT_WRITER,
+        CreditTermTemplatesViewer = core_credit_terms::PERMISSION_SET_CREDIT_TERM_TEMPLATES_VIEWER,
+        CreditTermTemplatesWriter = core_credit_terms::PERMISSION_SET_CREDIT_TERM_TEMPLATES_WRITER,
+        CustomerViewer = core_customer::PERMISSION_SET_CUSTOMER_VIEWER,
+        CustomerWriter = core_customer::PERMISSION_SET_CUSTOMER_WRITER,
+        CustodyViewer = core_custody::PERMISSION_SET_CUSTODY_VIEWER,
+        CustodyWriter = core_custody::PERMISSION_SET_CUSTODY_WRITER,
+        DashboardViewer = dashboard::PERMISSION_SET_DASHBOARD_VIEWER,
+        DepositViewer = core_deposit::PERMISSION_SET_DEPOSIT_VIEWER,
+        DepositWriter = core_deposit::PERMISSION_SET_DEPOSIT_WRITER,
+        DepositFreeze = core_deposit::PERMISSION_SET_DEPOSIT_FREEZE,
+        DepositUnfreeze = core_deposit::PERMISSION_SET_DEPOSIT_UNFREEZE,
+        ExposedConfigViewer = domain_config::PERMISSION_SET_EXPOSED_CONFIG_VIEWER,
+        ExposedConfigWriter = domain_config::PERMISSION_SET_EXPOSED_CONFIG_WRITER,
+        GovernanceViewer = governance::PERMISSION_SET_GOVERNANCE_VIEWER,
+        GovernanceWriter = governance::PERMISSION_SET_GOVERNANCE_WRITER,
+        ReportViewer = core_report::PERMISSION_SET_REPORT_VIEWER,
+        ReportWriter = core_report::PERMISSION_SET_REPORT_WRITER,
+        AuditViewer = PERMISSION_SET_AUDIT_VIEWER,
     }
 }
 
@@ -231,5 +231,37 @@ impl TryFrom<&Subject> for governance::CommitteeMemberId {
             Subject::User(id) => Ok(Self::from(*id)),
             _ => Err("Subject is not User"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use strum::VariantArray;
+
+    /// This test ensures that all PermissionSetName variants can round-trip
+    /// through Display and FromStr.
+    ///
+    /// The macro generates both implementations, so this verifies they're consistent.
+    #[test]
+    fn permission_set_name_round_trip() {
+        // Test all variants can round-trip
+        for variant in PermissionSetName::VARIANTS {
+            let as_string = variant.to_string();
+            let parsed: PermissionSetName = as_string
+                .parse()
+                .unwrap_or_else(|_| panic!("Failed to parse '{}' for {:?}", as_string, variant));
+            assert_eq!(
+                &parsed, variant,
+                "Round-trip failed for {:?}: {} -> {:?}",
+                variant, as_string, parsed
+            );
+        }
+    }
+
+    #[test]
+    fn permission_set_name_parse_invalid() {
+        let result = "invalid_permission_set".parse::<PermissionSetName>();
+        assert!(result.is_err(), "Should fail to parse invalid permission set");
     }
 }
