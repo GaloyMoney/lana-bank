@@ -16,11 +16,9 @@ job = { workspace = true }
 obix = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
-reqwest = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
