@@ -370,6 +370,7 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "uuid",
  "workspace-hack",
 ]
 

@@ -237,7 +237,7 @@ where
             )
             .await?;
 
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = sub.to_string().parse::<LedgerTransactionInitiator>()?;
         let effective = self.clock.today();
 
         let mut db = self.repo.begin_op().await?;
@@ -303,7 +303,7 @@ where
                 .record_proceeds_from_liquidation_in_op(
                     &mut db,
                     data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                    sub.to_string().parse::<LedgerTransactionInitiator>()?,
                 )
                 .await?;
         }

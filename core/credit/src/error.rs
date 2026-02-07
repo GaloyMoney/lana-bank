@@ -27,9 +27,7 @@ pub enum CoreCreditError {
         #[from] super::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,
     ),
     #[error("CoreCreditError - LedgerTransactionInitiatorParseError: {0}")]
-    LedgerTransactionInitiatorParseError(
-        #[from] core_accounting::LedgerTransactionInitiatorParseError,
-    ),
+    LedgerTransactionInitiatorParseError(#[from] audit::SubjectParseError),
     #[error("CoreCreditError - CreditFacilityProposalError: {0}")]
     CreditFacilityProposalError(
         #[from] super::credit_facility_proposal::error::CreditFacilityProposalError,

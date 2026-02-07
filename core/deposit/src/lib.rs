@@ -437,7 +437,7 @@ where
                 deposit_id,
                 amount,
                 deposit_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub.to_string().parse::<LedgerTransactionInitiator>()?,
             )
             .await?;
         op.commit().await?;
@@ -497,7 +497,7 @@ where
                 withdrawal_id,
                 amount,
                 deposit_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub.to_string().parse::<LedgerTransactionInitiator>()?,
             )
             .await?;
 
@@ -533,7 +533,7 @@ where
                 .revert_deposit_in_op(
                     &mut op,
                     deposit_reversal_data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                    sub.to_string().parse::<LedgerTransactionInitiator>()?,
                 )
                 .await?;
             op.commit().await?;
@@ -572,7 +572,7 @@ where
                 .revert_withdrawal_in_op(
                     &mut op,
                     withdrawal_reversal_data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                    sub.to_string().parse::<LedgerTransactionInitiator>()?,
                 )
                 .await?;
             op.commit().await?;
@@ -616,7 +616,7 @@ where
                 withdrawal.amount,
                 withdrawal.deposit_account_id,
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub.to_string().parse::<LedgerTransactionInitiator>()?,
             )
             .await?;
 
@@ -658,7 +658,7 @@ where
                 tx_id,
                 withdrawal.amount,
                 withdrawal.deposit_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub.to_string().parse::<LedgerTransactionInitiator>()?,
             )
             .await?;
         op.commit().await?;
@@ -693,7 +693,7 @@ where
                 .freeze_account_in_op(
                     &mut op,
                     &account,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                    sub.to_string().parse::<LedgerTransactionInitiator>()?,
                 )
                 .await?;
 
@@ -731,7 +731,7 @@ where
                 .unfreeze_account_in_op(
                     &mut op,
                     &account,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                    sub.to_string().parse::<LedgerTransactionInitiator>()?,
                 )
                 .await?;
 

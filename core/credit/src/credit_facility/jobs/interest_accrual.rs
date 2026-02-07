@@ -290,9 +290,9 @@ where
             .record_interest_accrual_in_op(
                 &mut db,
                 interest_accrual,
-                core_accounting::LedgerTransactionInitiator::System {
-                    actor: audit::SystemActor::InterestAccrual,
-                },
+                core_accounting::LedgerTransactionInitiator::System(
+                    audit::SystemActor::InterestAccrual,
+                ),
             )
             .await?;
 
@@ -440,9 +440,9 @@ where
             .record_interest_accrual_cycle_in_op(
                 &mut op,
                 facility_accrual_cycle_data,
-                core_accounting::LedgerTransactionInitiator::System {
-                    actor: audit::SystemActor::InterestAccrual,
-                },
+                core_accounting::LedgerTransactionInitiator::System(
+                    audit::SystemActor::InterestAccrual,
+                ),
             )
             .await?;
 
