@@ -22,12 +22,6 @@ impl System {
             actor: actor.as_ref().to_string(),
         }
     }
-
-    /// Creates a System with unknown actor for backward compatibility
-    /// (e.g., for ledger transactions where actor info isn't available)
-    pub fn unknown() -> Self {
-        Self::from_actor(SystemActor::Unknown)
-    }
 }
 
 #[derive(Union)]

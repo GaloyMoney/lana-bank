@@ -165,6 +165,6 @@ All public `&self` methods on `#[derive(EsEntity)]` structs must NOT return `Res
 - Prefer `?` operator over `.map_err()` for error conversion when `From` is implemented
 
 ## Git and Github
-- When checking github action (gh pr checks), use a timeout of 30m
 - Use conventional commits
 - Open draft PR by default
+- After making code changes, always run `cargo fmt` and regenerate any auto-generated files (GraphQL schema, sqlx queries, workspace-hack via `cargo hakari generate`) before committing. Never push without verifying formatting locally first.
