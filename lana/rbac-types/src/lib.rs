@@ -130,8 +130,8 @@ impl audit::SystemSubject for Subject {
 impl From<Subject> for audit::Subject {
     fn from(s: Subject) -> Self {
         match s {
-            Subject::Customer(id) => audit::Subject::Customer { id: id.into() },
-            Subject::User(id) => audit::Subject::User { id: id.into() },
+            Subject::Customer(id) => audit::Subject::Customer(id.into()),
+            Subject::User(id) => audit::Subject::User(id.into()),
             Subject::System(actor) => audit::Subject::System(actor),
         }
     }
@@ -140,8 +140,8 @@ impl From<Subject> for audit::Subject {
 impl From<audit::Subject> for Subject {
     fn from(s: audit::Subject) -> Self {
         match s {
-            audit::Subject::Customer { id } => Subject::Customer(CustomerId::from(id)),
-            audit::Subject::User { id } => Subject::User(UserId::from(id)),
+            audit::Subject::Customer(id) => Subject::Customer(CustomerId::from(id)),
+            audit::Subject::User(id) => Subject::User(UserId::from(id)),
             audit::Subject::System(actor) => Subject::System(actor),
         }
     }
