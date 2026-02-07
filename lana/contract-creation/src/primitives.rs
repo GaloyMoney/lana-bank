@@ -8,7 +8,9 @@ es_entity::entity_id! {
     ContractCreationId => document_storage::DocumentId,
 }
 
-pub const PERMISSION_SET_CONTRACT_CREATION: &str = "contract_creation";
+permission_sets_macro::permission_sets! {
+    ContractCreation,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]

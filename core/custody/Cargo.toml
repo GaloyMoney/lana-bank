@@ -10,6 +10,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema"]
 mock-custodian = []
 
 [dependencies]
+permission-sets-macro = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }

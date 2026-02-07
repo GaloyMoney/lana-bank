@@ -35,8 +35,11 @@ pub enum WalletNetwork {
     Mainnet,
 }
 
-pub const PERMISSION_SET_CUSTODY_VIEWER: &str = "custody_viewer";
-pub const PERMISSION_SET_CUSTODY_WRITER: &str = "custody_writer";
+// Define permission sets - just list the variants, everything else is auto-derived!
+permission_sets_macro::permission_sets! {
+    CustodyViewer,
+    CustodyWriter,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]

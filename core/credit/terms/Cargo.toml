@@ -10,6 +10,7 @@ graphql = [ "dep:async-graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema", "core-money/json-schema", "core-price/json-schema"]
 
 [dependencies]
+permission-sets-macro = { workspace = true }
 core-money = { workspace = true }
 core-price = { workspace = true }
 

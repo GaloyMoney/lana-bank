@@ -101,8 +101,10 @@ pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsInte
 pub type CollateralAllOrOne = AllOrOne<CollateralId>;
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
-pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
-pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
+permission_sets_macro::permission_sets! {
+    CreditWriter,
+    CreditViewer,
+}
 
 pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("credit_facility");

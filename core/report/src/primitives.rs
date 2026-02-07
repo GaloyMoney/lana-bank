@@ -10,8 +10,10 @@ es_entity::entity_id! {
 
 pub type ReportAllOrOne = AllOrOne<ReportId>;
 
-pub const PERMISSION_SET_REPORT_VIEWER: &str = "report_viewer";
-pub const PERMISSION_SET_REPORT_WRITER: &str = "report_writer";
+permission_sets_macro::permission_sets! {
+    ReportViewer,
+    ReportWriter,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

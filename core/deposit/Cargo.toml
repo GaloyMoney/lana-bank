@@ -17,6 +17,7 @@ json-schema = [
 ]
 
 [dependencies]
+permission-sets-macro = { workspace = true }
 core-money = { workspace = true }
 governance = { workspace = true }
 core-customer = { workspace = true }
