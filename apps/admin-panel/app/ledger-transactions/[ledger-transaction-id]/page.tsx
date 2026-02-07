@@ -37,7 +37,7 @@ gql`
           email
         }
         ... on System {
-          name
+          actor
         }
       }
       entity {
@@ -259,7 +259,7 @@ const getInitiatedByDisplay = (
       }
     case "System":
       return {
-        value: t("system"),
+        value: `${t("system")} (${initiatedBy.actor})`,
       }
     default: {
       const exhaustiveCheck: never = initiatedBy

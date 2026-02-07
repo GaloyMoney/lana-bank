@@ -9,16 +9,12 @@ use super::{access::User, loader::*};
 
 #[derive(SimpleObject)]
 pub struct System {
-    /// The name of the application
-    name: &'static str,
-    /// The specific system actor that performed this action
     actor: String,
 }
 
 impl System {
     pub fn from_actor(actor: SystemActor) -> Self {
         Self {
-            name: "lana",
             actor: actor.as_ref().to_string(),
         }
     }

@@ -2984,7 +2984,6 @@ export const mockSystem = (overrides?: Partial<System>, _relationshipsToOmit: Se
     return {
         __typename: 'System',
         actor: overrides && overrides.hasOwnProperty('actor') ? overrides.actor! : faker.lorem.word(),
-        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };
 
