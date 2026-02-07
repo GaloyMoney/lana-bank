@@ -161,9 +161,11 @@ pub struct BalanceUpdateData {
 
 pub type ObligationAllOrOne = AllOrOne<ObligationId>;
 
-pub const PERMISSION_SET_COLLECTION_WRITER: &str = "collection_writer";
-pub const PERMISSION_SET_COLLECTION_VIEWER: &str = "collection_viewer";
-pub const PERMISSION_SET_COLLECTION_PAYMENT_DATE: &str = "collection_payment_date";
+permission_sets_macro::permission_sets! {
+    CollectionWriter,
+    CollectionViewer,
+    CollectionPaymentDate,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

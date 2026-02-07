@@ -35,6 +35,7 @@ keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
 gotenberg = { path = "lib/gotenberg" }
 money = { path = "lib/money" }
+permission-sets-macro = { path = "lib/permission-sets-macro" }
 rendering = { path = "lib/rendering" }
 smtp-client = { path = "lib/smtp-client" }
 sumsub = { path = "lib/sumsub" }
@@ -166,6 +167,9 @@ sqlx-adapter = { version = "1.8", default-features = false, features = [
   "runtime-tokio-rustls",
 ] }
 cached = { version = "0.56.0", features = ["async"] }
+cargo_metadata = "0.19"
+regex = "1.11"
+walkdir = "2.5"
 google-cloud-auth = "1.5.0"
 google-cloud-storage = "1.7.0"
 rand = "0.9"
@@ -176,6 +180,7 @@ inventory = "0.3.15"
 schemars = { version = "1.2.0", features = ["derive", "chrono04", "rust_decimal1"] }
 tempfile = "3.24.0"
 p256 = "0.13.2"
+paste = "1.0"
 pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 bytes = "1.11"

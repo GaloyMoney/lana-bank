@@ -13,8 +13,9 @@ podman-service-start:
 # available container engines. To force use of podman, set ENGINE_DEFAULT=podman in your environment.
 # The podman-* targets below are Linux-only and used for manual podman service setup.
 
-check-code-rust: generate-default-config
+check-code-rust: generate-default-config generate-permission-sets
 	git diff --exit-code dev/lana.default.yml
+	git diff --exit-code lana/rbac-types/src/generated_permission_sets.rs
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features --all-targets
@@ -81,6 +82,10 @@ sdl-rust:
 # Generate default configuration file
 generate-default-config:
 	SQLX_OFFLINE=true cargo run -p lana-cli --all-features -- dump-default-config > dev/lana.default.yml
+
+# Generate permission sets enum (build.rs runs automatically during cargo build)
+generate-permission-sets:
+	SQLX_OFFLINE=true cargo build -p rbac-types
 
 sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen
