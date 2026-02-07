@@ -120,7 +120,10 @@ fn find_matching_brace(s: &str) -> Option<usize> {
 
 fn is_valid_identifier(s: &str) -> bool {
     !s.is_empty()
-        && s.chars().next().unwrap().is_alphabetic()
+        && s.chars()
+            .next()
+            .expect("string is not empty")
+            .is_alphabetic()
         && s.chars().all(|c| c.is_alphanumeric() || c == '_')
 }
 
@@ -130,7 +133,11 @@ fn camel_to_snake(s: &str) -> String {
         if ch.is_uppercase() && i > 0 {
             result.push('_');
         }
-        result.push(ch.to_lowercase().next().unwrap());
+        result.push(
+            ch.to_lowercase()
+                .next()
+                .expect("char has lowercase variant"),
+        );
     }
     result
 }
@@ -196,14 +203,15 @@ fn generate_permission_enum(permissions: &[Permission]) {
     code.push_str("}\n");
 
     // Write to OUT_DIR for compilation
-    let out_dir = env::var("OUT_DIR").unwrap();
+    let out_dir = env::var("OUT_DIR").expect("OUT_DIR must be set by cargo");
     let dest_path = Path::new(&out_dir).join("generated_permission_sets.rs");
-    fs::write(&dest_path, &code).unwrap();
+    fs::write(&dest_path, &code).expect("failed to write generated file to OUT_DIR");
 
     // Also write to src/ for version control (to track breaking changes)
-    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let manifest_dir =
+        env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR must be set by cargo");
     let checked_in_path = Path::new(&manifest_dir).join("src/generated_permission_sets.rs");
-    fs::write(&checked_in_path, &code).unwrap();
+    fs::write(&checked_in_path, &code).expect("failed to write generated file to src/");
 
     println!("cargo:rerun-if-changed=src/generated_permission_sets.rs");
 }
