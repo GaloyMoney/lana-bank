@@ -498,6 +498,13 @@ jobs:
             params:
               image: customer-portal-image/image.tar
               additional_tags: version/version
+      - put: gh-release
+        params:
+          name: artifacts/gh-release-name
+          tag: artifacts/gh-release-tag
+          body: artifacts/gh-release-notes.md
+          globs: [binaries/*]
+          commitish: repo/.git/HEAD
       - task: prepare-docker-build
         config:
           platform: linux
@@ -543,13 +550,6 @@ jobs:
       - put: version
         params:
           file: version/version
-      - put: gh-release
-        params:
-          name: artifacts/gh-release-name
-          tag: artifacts/gh-release-tag
-          body: artifacts/gh-release-notes.md
-          globs: [binaries/*]
-          commitish: repo/.git/HEAD
   
   - name: bump-image-in-chart
     plan:
@@ -747,6 +747,7 @@ jobs:
                   git config --global user.name "CI Bot"
                 fi
                 git add CHANGELOG.md
+                git add docs-site/
                 git commit -m "ci: release ${VERSION} [ci skip]"
       - put: repo-bot-branch
         params:
