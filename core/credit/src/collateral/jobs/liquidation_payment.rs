@@ -190,9 +190,9 @@ where
                         payment_ledger_account_ids,
                         *amount,
                         clock.today(),
-                        LedgerTransactionInitiator::System {
-                            actor: audit::SystemActor::CollateralizationSync,
-                        },
+                        LedgerTransactionInitiator::System(
+                            audit::SystemActor::CollateralizationSync,
+                        ),
                     )
                     .await?;
 

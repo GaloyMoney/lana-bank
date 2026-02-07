@@ -298,9 +298,9 @@ where
             .handle_activation_in_op(
                 &mut db,
                 activation_data,
-                core_accounting::LedgerTransactionInitiator::System {
-                    actor: audit::SystemActor::CreditFacilityJob,
-                },
+                core_accounting::LedgerTransactionInitiator::System(
+                    audit::SystemActor::CreditFacilityJob,
+                ),
             )
             .await?;
         db.commit().await?;

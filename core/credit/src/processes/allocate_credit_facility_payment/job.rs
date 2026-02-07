@@ -138,9 +138,8 @@ where
                 tracing::field::display(&entity.beneficiary_id),
             );
 
-            let initiated_by = LedgerTransactionInitiator::System {
-                actor: audit::SystemActor::CreditFacilityJob,
-            };
+            let initiated_by =
+                LedgerTransactionInitiator::System(audit::SystemActor::CreditFacilityJob);
             self.process
                 .execute_in_op(db, entity.id, initiated_by)
                 .await?;
