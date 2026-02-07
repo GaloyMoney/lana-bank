@@ -68,49 +68,8 @@ impl EntityRef {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum LedgerTransactionInitiator {
-    System { actor: audit::SystemActor },
-    User { id: uuid::Uuid },
-}
-
-#[derive(Debug, Error)]
-pub enum LedgerTransactionInitiatorParseError {
-    #[error("invalid user id")]
-    InvalidUserId,
-    #[error("unknown initiator")]
-    UnknownInitiator,
-}
-
-impl ErrorSeverity for LedgerTransactionInitiatorParseError {
-    fn severity(&self) -> Level {
-        Level::ERROR
-    }
-}
-
-impl LedgerTransactionInitiator {
-    pub fn try_from_subject<S>(subject: &S) -> Result<Self, LedgerTransactionInitiatorParseError>
-    where
-        S: std::fmt::Display,
-    {
-        let raw = subject.to_string();
-        if let Some(actor_str) = raw.strip_prefix("system:") {
-            let actor = actor_str
-                .parse::<audit::SystemActor>()
-                .map_err(|_| LedgerTransactionInitiatorParseError::UnknownInitiator)?;
-            return Ok(Self::System { actor });
-        }
-
-        if let Some(id_str) = raw.strip_prefix("user:") {
-            let id = uuid::Uuid::parse_str(id_str)
-                .map_err(|_| LedgerTransactionInitiatorParseError::InvalidUserId)?;
-            return Ok(Self::User { id });
-        }
-
-        Err(LedgerTransactionInitiatorParseError::UnknownInitiator)
-    }
-}
+// Re-export Subject from audit crate for ledger transaction initiators
+pub use audit::Subject as LedgerTransactionInitiator;
 
 pub type LedgerTransactionId = CalaTxId;
 pub type TransactionTemplateId = CalaTxTemplateId;

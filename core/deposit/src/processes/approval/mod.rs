@@ -102,9 +102,7 @@ where
                         denied_tx_id,
                         withdraw.amount,
                         withdraw.deposit_account_id,
-                        LedgerTransactionInitiator::System {
-                            actor: audit::SystemActor::DepositApproval,
-                        },
+                        LedgerTransactionInitiator::System(audit::SystemActor::DepositApproval),
                     )
                     .await?;
                 op.commit().await?;

@@ -216,9 +216,9 @@ where
                     .handle_pending_facility_creation_in_op(
                         &mut db,
                         &pending_credit_facility,
-                        core_accounting::LedgerTransactionInitiator::System {
-                            actor: audit::SystemActor::CreditFacilityJob,
-                        },
+                        core_accounting::LedgerTransactionInitiator::System(
+                            audit::SystemActor::CreditFacilityJob,
+                        ),
                     )
                     .await?;
 

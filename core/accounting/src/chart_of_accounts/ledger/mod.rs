@@ -358,9 +358,7 @@ impl ChartLedger {
             description,
             effective_balances_until,
             balances.entries_params(net_income_recipient_account),
-            LedgerTransactionInitiator::System {
-                actor: audit::SystemActor::AccountingJob,
-            },
+            LedgerTransactionInitiator::System(audit::SystemActor::AccountingJob),
         );
         let template_code = self
             .find_or_create_template_in_op(op, &closing_transaction_params)

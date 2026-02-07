@@ -194,9 +194,9 @@ where
                 .record_obligation_due_in_op(
                     &mut op,
                     due_data,
-                    core_accounting::LedgerTransactionInitiator::System {
-                        actor: audit::SystemActor::ObligationSync,
-                    },
+                    core_accounting::LedgerTransactionInitiator::System(
+                        audit::SystemActor::ObligationSync,
+                    ),
                 )
                 .await?;
 

@@ -663,7 +663,7 @@ where
                 disbursal.initiated_tx_id,
                 disbursal.amount,
                 facility.account_ids,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub.to_string().parse::<LedgerTransactionInitiator>()?,
             )
             .await?;
 
@@ -735,7 +735,7 @@ where
                 &mut db,
                 collateral_update,
                 pending_facility.account_ids.collateral_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub.to_string().parse::<LedgerTransactionInitiator>()?,
             )
             .await?;
 
@@ -786,7 +786,7 @@ where
                 &mut db,
                 collateral_update,
                 credit_facility.account_ids.collateral_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub.to_string().parse::<LedgerTransactionInitiator>()?,
             )
             .await?;
 
@@ -840,7 +840,7 @@ where
 
         let payment_id = PaymentId::new();
         let effective = self.clock.today();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = sub.to_string().parse::<LedgerTransactionInitiator>()?;
         self.collections
             .payments()
             .record(
@@ -902,7 +902,7 @@ where
             .await?;
 
         let payment_id = PaymentId::new();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = sub.to_string().parse::<LedgerTransactionInitiator>()?;
         self.collections
             .payments()
             .record(
@@ -977,7 +977,7 @@ where
                     .complete_credit_facility_in_op(
                         &mut db,
                         completion,
-                        LedgerTransactionInitiator::try_from_subject(sub)?,
+                        sub.to_string().parse::<LedgerTransactionInitiator>()?,
                     )
                     .await?;
                 db.commit().await?;
