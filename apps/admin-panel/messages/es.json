@@ -2371,14 +2371,14 @@
       "chartOfAccountBankDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos bancarios",
       "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de instituciones financieras",
       "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de personas no domiciliadas",
-      "chartOfAccountForeignAgencyOrSubsidiaryDepositAccountsParentCode": "Código padre de cuentas de depósitos de agencias o subsidiarias extranjeras",
+      "chartOfAccountForeignAgencyOrSubsidiaryDepositAccountsParentCode": "Código padre de cuentas de depósito de agencias extranjeras o subsidiarias",
       "chartOfAccountsFrozenIndividualDepositAccountsParentCode": "Código padre de cuentas de depósito congeladas de individuos",
       "chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode": "Código padre de cuentas de depósito congeladas de entidades gubernamentales",
       "chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos congelados de empresas privadas",
       "chartOfAccountFrozenBankDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos congelados bancarios",
       "chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos congelados de instituciones financieras",
       "chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos congelados de personas no domiciliadas",
-      "chartOfAccountFrozenForeignAgencyOrSubsidiaryDepositAccountsParentCode": "Código padre de cuentas de depósitos congelados de agencias o subsidiarias extranjeras"
+      "chartOfAccountFrozenForeignAgencyOrSubsidiaryDepositAccountsParentCode": "Código padre de cuentas de depósito congeladas de agencias extranjeras o subsidiarias"
     },
     "credit": {
       "title": "Crédito",
