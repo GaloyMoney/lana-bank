@@ -51,7 +51,6 @@ impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {
 pub use liquidation_payment::LiquidationPayment;
 
 pub const INTEREST_ACCRUAL: audit::SystemActor = audit::SystemActor::new("interest-accrual");
-pub const OBLIGATION_SYNC: audit::SystemActor = audit::SystemActor::new("obligation-sync");
 pub const COLLATERALIZATION_SYNC: audit::SystemActor =
     audit::SystemActor::new("collateralization-sync");
 pub const CREDIT_FACILITY_JOB: audit::SystemActor = audit::SystemActor::new("credit-facility-job");
