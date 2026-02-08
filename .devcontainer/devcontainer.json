@@ -30,12 +30,13 @@
         }
     },
     "forwardPorts": [
-        5433, // core-pg database
-        4455, // oathkeeper proxy
-        3000, // frontend dev server
-        5253 // lana backend
+        5433,
+        4455,
+        3000,
+        5253
     ],
-    "postCreateCommand": "echo 'Dev environment ready! Use: nix develop'",
+    "postCreateCommand": ".devcontainer/scripts/post-create.sh",
+    "postStartCommand": ".devcontainer/scripts/post-start.sh",
     "remoteEnv": {
         "SQLX_OFFLINE": "true"
     },

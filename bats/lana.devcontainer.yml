@@ -1,0 +1,48 @@
+db:
+  pool_size: 90
+admin_server:
+  port: 5253
+  jwks_url: http://oathkeeper:4456/.well-known/jwks.json
+  aud: https://admin-api/graphql
+customer_server:
+  port: 5254
+  jwks_url: http://oathkeeper:4456/.well-known/jwks.json
+  aud: https://customer-api/graphql
+app:
+  job_poller:
+    job_lost_interval: 864000
+  access:
+    superuser_email: "admin@galoy.io"
+  storage:
+    provider: local
+    root_folder: ".lana"
+  credit:
+    price_job_interval: 31536000 # 1 year
+  notification:
+    email:
+      admin_panel_url: "http://admin.localhost:4455"
+      relay: "mailcrab"
+      port: 1025
+      insecure: true
+  user_onboarding:
+    keycloak:
+      url: http://keycloak:8080
+      client_id: internal-service-account
+      realm: internal
+  customer_sync:
+    keycloak:
+      url: http://keycloak:8080
+      client_id: customer-service-account
+      realm: customer
+  accounting_init:
+    chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
+    chart_of_accounts_opening_date: "2020-01-01"
+    credit_config_path: "./bats/accounting-init/credit-module-config.json"
+    deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
+    chart_of_accounts_integration_config_path: "./bats/accounting-init/accounting-base-config.json"
+time:
+  type: artificial
+  start_at: 2024-01-01T00:00:00Z
+  mode:
+    type: auto_advance
+    time_scale: 1000000.00

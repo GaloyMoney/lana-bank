@@ -1,0 +1,73 @@
+# ADMIN PANEL
+- id: admin-api # lana/admin-server
+  upstream:
+    url: http://devcontainer:5253
+  match:
+    url: <(http|https)>://<admin.localhost:4455>/graphql
+    methods: [GET, POST, OPTIONS]
+  authenticators:
+    - handler: jwt
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+      config:
+        claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.lanaId | toJson }} }'
+
+- id: admin-api-sse # lana/admin-server SSE subscriptions
+  upstream:
+    url: http://devcontainer:5253
+  match:
+    url: <(http|https)>://<admin.localhost:4455>/graphql/stream
+    methods: [GET, POST, OPTIONS]
+  authenticators:
+    - handler: jwt
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+      config:
+        claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.lanaId | toJson }} }'
+
+- id: admin-panel-ui # apps/admin-panel
+  upstream:
+    url: http://devcontainer:3001
+  match:
+    url: <(http|https)>://<admin.localhost:4455><(?!\/sessions|\/self-service|\/graphql).*>
+    methods: [GET, POST, OPTIONS, PUT, DELETE, PATCH]
+  authenticators:
+    - handler: noop
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: noop
+
+- id: customer-portal-ui # apps/customer-portal
+  upstream:
+    url: http://devcontainer:3002
+  match:
+    url: <(http|https)>://<app.localhost:4455><(?!\/sessions|\/self-service|\/graphql).*>
+    methods: [GET, POST, OPTIONS, PUT, DELETE, PATCH]
+  authenticators:
+    - handler: noop
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: noop
+
+# CUSTOMER PORTAL
+
+- id: app-api # lana/customer-server
+  upstream:
+    url: http://devcontainer:5254
+  match:
+    url: <(http|https)>://<app.localhost:4455>/graphql
+    methods: [GET, POST, OPTIONS]
+  authenticators:
+    - handler: jwt
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+      config:
+        claims: '{"aud": ["https://customer-api/graphql"], "subject": {{ print .Extra.lanaId | toJson }} }'
