@@ -93,9 +93,13 @@ where
         email: impl Into<String> + std::fmt::Debug,
         role: &Role,
     ) -> Result<User, UserError> {
-        self.subject_can_create_user(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_CREATE,
+            )
+            .await?;
 
         let email = email.into();
 
@@ -229,9 +233,13 @@ where
     ) -> Result<User, UserError> {
         let id = user_id.into();
 
-        self.subject_can_update_role_of_user(sub, id, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::user(id),
+                CoreAccessAction::USER_UPDATE_ROLE,
+            )
+            .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
 

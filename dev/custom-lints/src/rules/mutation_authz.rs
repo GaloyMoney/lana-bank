@@ -76,13 +76,12 @@ fn collect_source_files(workspace_root: &Path) -> Vec<SourceFile> {
         for entry in WalkDir::new(&dir_path).into_iter().filter_map(|e| e.ok()) {
             if entry.file_type().is_file()
                 && entry.path().extension().is_some_and(|ext| ext == "rs")
+                && let Ok(content) = std::fs::read_to_string(entry.path())
             {
-                if let Ok(content) = std::fs::read_to_string(entry.path()) {
-                    files.push(SourceFile {
-                        path: entry.path().to_path_buf(),
-                        content,
-                    });
-                }
+                files.push(SourceFile {
+                    path: entry.path().to_path_buf(),
+                    content,
+                });
             }
         }
     }
@@ -193,45 +192,37 @@ impl MutationChecker {
         line: usize,
     ) {
         let Some(mac) = find_exec_mutation_macro(&method.block) else {
-            return; // Not using exec_mutation!, skip deep check for now
+            return;
         };
 
         let Some(call_info) = extract_call_from_exec_mutation(mac) else {
-            return; // Can't parse the call expression
+            return;
         };
 
-        let search_dirs = search_dirs_for_accessor(call_info.accessors.first());
-
+        // Search all source files for any definition of the called method
         let matches: Vec<&SourceFile> = self
             .source_files
             .iter()
             .filter(|sf| {
-                let relative = sf
-                    .path
-                    .strip_prefix(&self.workspace_root)
-                    .unwrap_or(&sf.path);
-                let in_search_dir = search_dirs.iter().any(|dir| relative.starts_with(dir));
-                in_search_dir
-                    && sf
-                        .content
-                        .contains(&format!("fn {}(", call_info.method_name))
+                sf.content
+                    .contains(&format!("fn {}(", call_info.method_name))
             })
             .collect();
 
         if matches.is_empty() {
-            return; // Method not found, skip
-        }
-
-        let any_has_enforce = matches
-            .iter()
-            .any(|sf| method_calls_enforce_permission(&sf.content, &call_info.method_name));
-
-        if any_has_enforce {
             return;
         }
 
-        // Cross-struct follow: check if target method delegates to self.field().method(sub, ...)
-        // and that delegated method has the authz check
+        // Direct check: does any implementation call enforce_permission?
+        if matches
+            .iter()
+            .any(|sf| method_has_direct_authz_call(&sf.content, &call_info.method_name))
+        {
+            return;
+        }
+
+        // Delegation follow: does the method delegate to another method (passing sub)
+        // that calls enforce_permission?
         for sf in &matches {
             let delegated = extract_delegated_calls(&sf.content, &call_info.method_name);
             for delegated_method in &delegated {
@@ -239,7 +230,7 @@ impl MutationChecker {
                     other_sf
                         .content
                         .contains(&format!("fn {delegated_method}("))
-                        && method_calls_enforce_permission(&other_sf.content, delegated_method)
+                        && method_has_direct_authz_call(&other_sf.content, delegated_method)
                 });
                 if found {
                     return;
@@ -304,12 +295,11 @@ enum SubExtraction {
 
 fn find_sub_extraction(block: &syn::Block) -> SubExtraction {
     for stmt in &block.stmts {
-        if let syn::Stmt::Local(local) = stmt {
-            if let Some(init) = &local.init {
-                if is_app_and_sub_macro(&init.expr) {
-                    return check_sub_binding(&local.pat);
-                }
-            }
+        if let syn::Stmt::Local(local) = stmt
+            && let Some(init) = &local.init
+            && is_app_and_sub_macro(&init.expr)
+        {
+            return check_sub_binding(&local.pat);
         }
     }
     SubExtraction::None
@@ -417,8 +407,6 @@ fn tokens_contain_sub_ident(tokens: &proc_macro2::TokenStream) -> bool {
 // ---------------------------------------------------------------------------
 
 struct MethodCallInfo {
-    /// Accessor chain after `app.`, e.g., `["deposits"]` or `["credit", "collaterals"]`
-    accessors: Vec<String>,
     /// The final method name, e.g., `"record_deposit"`
     method_name: String,
 }
@@ -465,14 +453,14 @@ fn split_macro_args(tokens: &proc_macro2::TokenStream) -> Vec<proc_macro2::Token
     let mut current = Vec::new();
 
     for token in tokens.clone() {
-        if let proc_macro2::TokenTree::Punct(ref punct) = token {
-            if punct.as_char() == ',' {
-                let ts: proc_macro2::TokenStream = current.drain(..).collect();
-                if !ts.is_empty() {
-                    args.push(ts);
-                }
-                continue;
+        if let proc_macro2::TokenTree::Punct(ref punct) = token
+            && punct.as_char() == ','
+        {
+            let ts: proc_macro2::TokenStream = current.drain(..).collect();
+            if !ts.is_empty() {
+                args.push(ts);
             }
+            continue;
         }
         current.push(token);
     }
@@ -489,54 +477,15 @@ fn split_macro_args(tokens: &proc_macro2::TokenStream) -> Vec<proc_macro2::Token
 fn extract_method_call_chain(expr: &syn::Expr) -> Option<MethodCallInfo> {
     if let syn::Expr::MethodCall(call) = expr {
         let method_name = call.method.to_string();
-        let mut accessors = Vec::new();
-
-        let mut current: &syn::Expr = &call.receiver;
-        loop {
-            match current {
-                syn::Expr::MethodCall(inner_call) => {
-                    accessors.push(inner_call.method.to_string());
-                    current = &inner_call.receiver;
-                }
-                syn::Expr::Path(_) => break, // Reached `app`
-                _ => break,
-            }
-        }
-
-        accessors.reverse();
-        Some(MethodCallInfo {
-            accessors,
-            method_name,
-        })
+        Some(MethodCallInfo { method_name })
     } else {
         None
     }
 }
 
-/// Map the first accessor name to search directories.
-fn search_dirs_for_accessor(accessor: Option<&String>) -> Vec<&'static str> {
-    match accessor.map(|s| s.as_str()) {
-        Some("deposits") => vec!["core/deposit"],
-        Some("credit") => vec!["core/credit"],
-        Some("accounting") => vec!["core/accounting"],
-        Some("customers" | "customer_kyc") => vec!["core/customer"],
-        Some("custody") => vec!["core/custody"],
-        Some("access") => vec!["core/access"],
-        Some("governance") => vec!["core/governance"],
-        Some("reports") => vec!["core/report"],
-        Some("exposed_domain_configs") => vec!["core/domain-config"],
-        Some("terms_templates") => vec!["core/credit"],
-        Some("contract_creation") => vec!["lana/contract-creation"],
-        None => vec!["lana/app"], // Direct method on LanaApp
-        Some(_) => vec!["core", "lana/app", "lana/contract-creation"], // Unknown, search broadly
-    }
-}
-
-/// Parse a source file, find the named method, and check for authorization.
-///
-/// Checks for `enforce_permission` or `evaluate_permission` both directly and
-/// through one level of `self.method()` delegation within the same file.
-fn method_calls_enforce_permission(content: &str, method_name: &str) -> bool {
+/// Parse a source file, find the named method, and check if it directly calls
+/// `enforce_permission` or `evaluate_permission`.
+fn method_has_direct_authz_call(content: &str, method_name: &str) -> bool {
     let file = match syn::parse_file(content) {
         Ok(f) => f,
         Err(_) => return true, // Can't parse → don't report
@@ -545,45 +494,17 @@ fn method_calls_enforce_permission(content: &str, method_name: &str) -> bool {
     for item in &file.items {
         if let syn::Item::Impl(impl_block) = item {
             for impl_item in &impl_block.items {
-                if let syn::ImplItem::Fn(method) = impl_item {
-                    if method.sig.ident == method_name {
-                        return check_method_authz(method, &file);
-                    }
+                if let syn::ImplItem::Fn(method) = impl_item
+                    && method.sig.ident == method_name
+                    && has_authz_call(&method.block)
+                {
+                    return true;
                 }
             }
         }
     }
 
-    true // Method not found in any impl block → don't report
-}
-
-/// Check if a method enforces authorization, either directly or via one level
-/// of `self.helper()` delegation within the same file.
-fn check_method_authz(method: &syn::ImplItemFn, file: &syn::File) -> bool {
-    // Direct check
-    if has_authz_call(&method.block) {
-        return true;
-    }
-
-    // One-level follow: check self.method() calls within the same file
-    let self_calls = find_self_method_calls(&method.block);
-    for called_name in &self_calls {
-        for item in &file.items {
-            if let syn::Item::Impl(impl_block) = item {
-                for impl_item in &impl_block.items {
-                    if let syn::ImplItem::Fn(other_method) = impl_item {
-                        if other_method.sig.ident == *called_name
-                            && has_authz_call(&other_method.block)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    false
+    false // No matching method with authz call found
 }
 
 /// Check for `enforce_permission` or `evaluate_permission` calls in a block.
@@ -608,28 +529,6 @@ fn has_authz_call(block: &syn::Block) -> bool {
     checker.found
 }
 
-/// Find all `self.method_name(...)` calls (where receiver is exactly `self`).
-fn find_self_method_calls(block: &syn::Block) -> Vec<String> {
-    struct Finder {
-        calls: Vec<String>,
-    }
-
-    impl<'ast> Visit<'ast> for Finder {
-        fn visit_expr_method_call(&mut self, node: &'ast syn::ExprMethodCall) {
-            if let syn::Expr::Path(path) = &*node.receiver {
-                if path.path.is_ident("self") {
-                    self.calls.push(node.method.to_string());
-                }
-            }
-            syn::visit::visit_expr_method_call(self, node);
-        }
-    }
-
-    let mut finder = Finder { calls: Vec::new() };
-    finder.visit_block(block);
-    finder.calls
-}
-
 /// Parse a source file, find the named method, and extract all method calls
 /// where `sub` is passed as an argument (cross-struct delegation).
 fn extract_delegated_calls(content: &str, method_name: &str) -> Vec<String> {
@@ -641,10 +540,10 @@ fn extract_delegated_calls(content: &str, method_name: &str) -> Vec<String> {
     for item in &file.items {
         if let syn::Item::Impl(impl_block) = item {
             for impl_item in &impl_block.items {
-                if let syn::ImplItem::Fn(method) = impl_item {
-                    if method.sig.ident == method_name {
-                        return find_method_calls_with_sub(&method.block);
-                    }
+                if let syn::ImplItem::Fn(method) = impl_item
+                    && method.sig.ident == method_name
+                {
+                    return find_method_calls_with_sub(&method.block);
                 }
             }
         }
@@ -661,7 +560,7 @@ fn find_method_calls_with_sub(block: &syn::Block) -> Vec<String> {
 
     impl<'ast> Visit<'ast> for Finder {
         fn visit_expr_method_call(&mut self, node: &'ast syn::ExprMethodCall) {
-            let has_sub = node.args.iter().any(|arg| expr_is_sub(arg));
+            let has_sub = node.args.iter().any(expr_is_sub);
             if has_sub {
                 self.calls.push(node.method.to_string());
             }
@@ -884,7 +783,6 @@ mod tests {
         let expr: syn::Expr = syn::parse_str("app.deposits().record_deposit(sub, id)").unwrap();
         let info = extract_method_call_chain(&expr).unwrap();
         assert_eq!(info.method_name, "record_deposit");
-        assert_eq!(info.accessors, vec!["deposits"]);
     }
 
     #[test]
@@ -893,7 +791,6 @@ mod tests {
             syn::parse_str("app.credit().collaterals().record_update(sub, id)").unwrap();
         let info = extract_method_call_chain(&expr).unwrap();
         assert_eq!(info.method_name, "record_update");
-        assert_eq!(info.accessors, vec!["credit", "collaterals"]);
     }
 
     #[test]
@@ -902,7 +799,6 @@ mod tests {
             syn::parse_str("app.create_facility_proposal(sub, id, amount)").unwrap();
         let info = extract_method_call_chain(&expr).unwrap();
         assert_eq!(info.method_name, "create_facility_proposal");
-        assert!(info.accessors.is_empty());
     }
 
     #[test]
@@ -959,85 +855,75 @@ mod tests {
         assert!(!has_authz_call(&block));
     }
 
-    #[test]
-    fn find_self_calls() {
-        let code = r#"{
-            self.subject_can_create(sub, true).await?;
-            self.repo.find_by_id(id).await?;
-            Ok(result)
-        }"#;
-        let block: syn::Block = syn::parse_str(code).unwrap();
-        let calls = find_self_method_calls(&block);
-        assert!(calls.contains(&"subject_can_create".to_string()));
-        // self.repo.find_by_id — receiver is self.repo (field access), not self
-        assert!(!calls.contains(&"find_by_id".to_string()));
-    }
+    // -- Direct authz check tests --
 
     #[test]
-    fn one_level_follow_delegation() {
+    fn method_has_direct_authz_call_found() {
         let code = r#"
             impl MyStruct {
-                pub async fn public_method(&self, sub: &Subject) -> Result<(), Error> {
-                    self.check_permission(sub).await?;
-                    Ok(())
-                }
-
-                async fn check_permission(&self, sub: &Subject) -> Result<(), Error> {
+                pub async fn my_method(&self, sub: &Subject) -> Result<(), Error> {
                     self.authz.enforce_permission(sub, Obj::all(), Act::DO).await?;
                     Ok(())
                 }
             }
         "#;
-        let file = syn::parse_file(code).unwrap();
-        // Find public_method
-        if let syn::Item::Impl(impl_block) = &file.items[0] {
-            if let syn::ImplItem::Fn(method) = &impl_block.items[0] {
-                assert_eq!(method.sig.ident, "public_method");
-                assert!(check_method_authz(method, &file));
-            }
-        }
+        assert!(method_has_direct_authz_call(code, "my_method"));
     }
 
     #[test]
-    fn one_level_follow_no_authz() {
+    fn method_has_direct_authz_call_not_found() {
         let code = r#"
             impl MyStruct {
-                pub async fn public_method(&self, sub: &Subject) -> Result<(), Error> {
-                    self.do_work(sub).await?;
-                    Ok(())
-                }
-
-                async fn do_work(&self, sub: &Subject) -> Result<(), Error> {
+                pub async fn my_method(&self, sub: &Subject) -> Result<(), Error> {
                     self.repo.save(sub).await?;
                     Ok(())
                 }
             }
         "#;
-        let file = syn::parse_file(code).unwrap();
-        if let syn::Item::Impl(impl_block) = &file.items[0] {
-            if let syn::ImplItem::Fn(method) = &impl_block.items[0] {
-                assert_eq!(method.sig.ident, "public_method");
-                assert!(!check_method_authz(method, &file));
-            }
-        }
+        assert!(!method_has_direct_authz_call(code, "my_method"));
     }
 
-    // -- Accessor mapping tests --
+    #[test]
+    fn method_has_direct_authz_call_different_name() {
+        let code = r#"
+            impl MyStruct {
+                pub async fn other_method(&self, sub: &Subject) -> Result<(), Error> {
+                    self.authz.enforce_permission(sub, Obj::all(), Act::DO).await?;
+                    Ok(())
+                }
+            }
+        "#;
+        // Looking for "my_method" but file only has "other_method"
+        assert!(!method_has_direct_authz_call(code, "my_method"));
+    }
+
+    // -- Delegation extraction tests --
 
     #[test]
-    fn accessor_mapping() {
-        assert_eq!(
-            search_dirs_for_accessor(Some(&"deposits".to_string())),
-            vec!["core/deposit"]
-        );
-        assert_eq!(
-            search_dirs_for_accessor(Some(&"credit".to_string())),
-            vec!["core/credit"]
-        );
-        assert_eq!(
-            search_dirs_for_accessor(Some(&"accounting".to_string())),
-            vec!["core/accounting"]
-        );
-        assert_eq!(search_dirs_for_accessor(None), vec!["lana/app"]);
+    fn extract_delegated_calls_with_sub() {
+        let code = r#"
+            impl MyStruct {
+                pub async fn wrapper(&self, sub: &Subject) -> Result<(), Error> {
+                    let result = self.inner.execute(sub, data).await?;
+                    Ok(result)
+                }
+            }
+        "#;
+        let delegated = extract_delegated_calls(code, "wrapper");
+        assert!(delegated.contains(&"execute".to_string()));
+    }
+
+    #[test]
+    fn extract_delegated_calls_without_sub() {
+        let code = r#"
+            impl MyStruct {
+                pub async fn wrapper(&self, sub: &Subject) -> Result<(), Error> {
+                    let result = self.inner.execute(data).await?;
+                    Ok(result)
+                }
+            }
+        "#;
+        let delegated = extract_delegated_calls(code, "wrapper");
+        assert!(!delegated.contains(&"execute".to_string()));
     }
 }

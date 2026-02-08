@@ -129,9 +129,13 @@ where
         telegram_id: impl Into<String> + std::fmt::Debug,
         customer_type: impl Into<CustomerType> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
-        self.subject_can_create_customer(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_customers(),
+                CoreCustomerAction::CUSTOMER_CREATE,
+            )
+            .await?;
 
         let customer_id = CustomerId::new();
         tracing::Span::current().record("customer_id", customer_id.to_string().as_str());
