@@ -2371,12 +2371,14 @@
       "chartOfAccountBankDepositAccountsParentCode": "Deposit Accounts Bank Receivable Parent Code",
       "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Deposit Accounts Financial Institution Receivable Parent Code",
       "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Deposit Accounts Non-Domiciled Persons Receivable Parent Code",
+      "chartOfAccountForeignAgencyOrSubsidiaryDepositAccountsParentCode": "Deposit Accounts Foreign Agency or Subsidiary Parent Code",
       "chartOfAccountsFrozenIndividualDepositAccountsParentCode": "Frozen Deposit Accounts Individual Parent Code",
       "chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode": "Frozen Deposit Accounts Government Entity Parent Code",
       "chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode": "Frozen Deposit Accounts Private Company Receivable Parent Code",
       "chartOfAccountFrozenBankDepositAccountsParentCode": "Frozen Deposit Accounts Bank Receivable Parent Code",
       "chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode": "Frozen Deposit Accounts Financial Institution Receivable Parent Code",
-      "chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode": "Frozen Deposit Accounts Non-Domiciled Persons Receivable Parent Code"
+      "chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode": "Frozen Deposit Accounts Non-Domiciled Persons Receivable Parent Code",
+      "chartOfAccountFrozenForeignAgencyOrSubsidiaryDepositAccountsParentCode": "Frozen Deposit Accounts Foreign Agency or Subsidiary Parent Code"
     },
     "credit": {
       "title": "Credit",
