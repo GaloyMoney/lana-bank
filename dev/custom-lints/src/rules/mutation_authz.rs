@@ -66,17 +66,14 @@ struct SourceFile {
     content: String,
 }
 
-/// Collect all `.rs` files from `core/` and `lana/app/` for method lookup.
+/// Collect all `.rs` files from `core/`, `lana/app/`, and `lana/contract-creation/` for method lookup.
 fn collect_source_files(workspace_root: &Path) -> Vec<SourceFile> {
-    let dirs = ["core", "lana/app"];
+    let dirs = ["core", "lana/app", "lana/contract-creation"];
     let mut files = Vec::new();
 
     for dir in &dirs {
         let dir_path = workspace_root.join(dir);
-        for entry in WalkDir::new(&dir_path)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+        for entry in WalkDir::new(&dir_path).into_iter().filter_map(|e| e.ok()) {
             if entry.file_type().is_file()
                 && entry.path().extension().is_some_and(|ext| ext == "rs")
             {
@@ -178,9 +175,7 @@ impl MutationChecker {
                 Violation::new(
                     RULE_NAME,
                     SCHEMA_PATH,
-                    format!(
-                        "Mutation '{method_name}' does not use exec_mutation! macro"
-                    ),
+                    format!("Mutation '{method_name}' does not use exec_mutation! macro"),
                 )
                 .with_line(line),
             );
@@ -215,9 +210,7 @@ impl MutationChecker {
                     .path
                     .strip_prefix(&self.workspace_root)
                     .unwrap_or(&sf.path);
-                let in_search_dir = search_dirs
-                    .iter()
-                    .any(|dir| relative.starts_with(dir));
+                let in_search_dir = search_dirs.iter().any(|dir| relative.starts_with(dir));
                 in_search_dir
                     && sf
                         .content
@@ -533,9 +526,9 @@ fn search_dirs_for_accessor(accessor: Option<&String>) -> Vec<&'static str> {
         Some("reports") => vec!["core/report"],
         Some("exposed_domain_configs") => vec!["core/domain-config"],
         Some("terms_templates") => vec!["core/credit"],
-        Some("contract_creation") => vec!["lana/app"],
-        None => vec!["lana/app"],               // Direct method on LanaApp
-        Some(_) => vec!["core", "lana/app"],     // Unknown accessor, search broadly
+        Some("contract_creation") => vec!["lana/contract-creation"],
+        None => vec!["lana/app"],                              // Direct method on LanaApp
+        Some(_) => vec!["core", "lana/app", "lana/contract-creation"], // Unknown, search broadly
     }
 }
 
@@ -745,7 +738,11 @@ mod tests {
         "#;
         let violations = check_mutations(code);
         assert_eq!(violations.len(), 1);
-        assert!(violations[0].message.contains("does not use exec_mutation!"));
+        assert!(
+            violations[0]
+                .message
+                .contains("does not use exec_mutation!")
+        );
     }
 
     #[test]
@@ -918,8 +915,9 @@ mod tests {
 
     #[test]
     fn split_macro_args_five_args() {
-        let tokens: proc_macro2::TokenStream =
-            "Payload , Type , IdType , ctx , app.method(sub)".parse().unwrap();
+        let tokens: proc_macro2::TokenStream = "Payload , Type , IdType , ctx , app.method(sub)"
+            .parse()
+            .unwrap();
         let args = split_macro_args(&tokens);
         assert_eq!(args.len(), 5);
     }

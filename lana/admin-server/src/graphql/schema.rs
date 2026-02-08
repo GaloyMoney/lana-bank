@@ -1410,9 +1410,11 @@ impl Mutation {
 
         exec_mutation!(
             DepositModuleConfigurePayload,
-            app.deposits()
-                .chart_of_accounts_integrations()
-                .set_config(sub, chart.as_ref(), config_values)
+            app.deposits().chart_of_accounts_integrations().set_config(
+                sub,
+                chart.as_ref(),
+                config_values
+            )
         )
     }
 
@@ -1876,9 +1878,11 @@ impl Mutation {
 
         exec_mutation!(
             CreditModuleConfigurePayload,
-            app.credit()
-                .chart_of_accounts_integrations()
-                .set_config(sub, chart.as_ref(), config_values)
+            app.credit().chart_of_accounts_integrations().set_config(
+                sub,
+                chart.as_ref(),
+                config_values
+            )
         )
     }
 

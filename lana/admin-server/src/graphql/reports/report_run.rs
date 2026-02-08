@@ -92,8 +92,10 @@ pub struct ReportRunCreatePayload {
 }
 
 impl From<lana_app::primitives::JobId> for ReportRunCreatePayload {
-    fn from(_: lana_app::primitives::JobId) -> Self {
-        Self { run_id: None }
+    fn from(id: lana_app::primitives::JobId) -> Self {
+        Self {
+            run_id: Some(id.to_string()),
+        }
     }
 }
 
