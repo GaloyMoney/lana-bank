@@ -56,9 +56,7 @@ impl AuditEntry {
             DomainSubject::System(actor) => {
                 Ok(AuditSubject::System(System::from_actor(actor.clone())))
             }
-            DomainSubject::Customer(_) => {
-                panic!("Whoops - have we gone live yet?");
-            }
+            DomainSubject::Customer(..) => Err("Customer subjects not supported yet".into()),
         }
     }
 }
