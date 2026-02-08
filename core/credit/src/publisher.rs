@@ -104,20 +104,6 @@ where
                     trigger_price: *trigger_price,
                     initially_expected_to_receive: *initially_expected_to_receive,
                     initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
-                    collateral_account_id: entity.account_ids.collateral_account_id,
-                    collateral_in_liquidation_account_id: entity
-                        .account_ids
-                        .collateral_in_liquidation_account_id,
-                    proceeds_from_liquidation_account_id: entity
-                        .account_ids
-                        .proceeds_from_liquidation_account_id,
-                    liquidated_collateral_account_id: entity
-                        .account_ids
-                        .liquidated_collateral_account_id,
-                    payment_holding_account_id: entity.account_ids.payment_holding_account_id,
-                    uncovered_outstanding_account_id: entity
-                        .account_ids
-                        .uncovered_outstanding_account_id,
                 }),
 
                 _ => None,

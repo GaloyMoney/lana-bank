@@ -9,13 +9,14 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::primitives::{
-    CalaAccountId, CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId,
-    LedgerTxId, LiquidationId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
+    CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
+    LiquidationId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
 };
 
 use super::{
     CollateralUpdate,
     error::CollateralError,
+    ledger::CollateralLedgerAccountIds,
     liquidation::{
         Liquidation, LiquidationProceedsAccountIds, NewLiquidation,
         RecordProceedsFromLiquidationData,
@@ -29,8 +30,8 @@ use super::{
 pub enum CollateralEvent {
     Initialized {
         id: CollateralId,
-        account_id: CalaAccountId,
         credit_facility_id: CreditFacilityId,
+        account_ids: CollateralLedgerAccountIds,
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
     },
@@ -65,8 +66,8 @@ pub enum CollateralEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Collateral {
     pub id: CollateralId,
-    pub account_id: CalaAccountId,
     pub credit_facility_id: CreditFacilityId,
+    pub account_ids: CollateralLedgerAccountIds,
     pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
@@ -263,7 +264,6 @@ impl Collateral {
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
-        account_ids: LiquidationProceedsAccountIds,
     ) -> Idempotent<LiquidationId> {
         if self.active_liquidation_id().is_some() {
             return Idempotent::AlreadyApplied;
@@ -278,6 +278,19 @@ impl Collateral {
             .initially_estimated_to_liquidate(initially_estimated_to_liquidate)
             .build()
             .expect("all fields for new liquidation provided");
+
+        let account_ids = LiquidationProceedsAccountIds {
+            liquidation_proceeds_omnibus_account_id: self
+                .account_ids
+                .liquidation_proceeds_omnibus_account_id,
+            proceeds_from_liquidation_account_id: self
+                .account_ids
+                .facility_proceeds_from_liquidation_account_id,
+            collateral_in_liquidation_account_id: self
+                .account_ids
+                .collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id: self.account_ids.liquidated_collateral_account_id,
+        };
 
         self.active_liquidation_account_ids = Some(account_ids);
         self.liquidations.add_new(new_liquidation);
@@ -321,13 +334,12 @@ pub struct NewCollateral {
     #[builder(setter(into))]
     pub(super) id: CollateralId,
     #[builder(setter(into))]
-    pub(super) account_id: CalaAccountId,
-    #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     #[builder(setter(into))]
     pub(super) pending_credit_facility_id: PendingCreditFacilityId,
     #[builder(default)]
     pub(super) custody_wallet_id: Option<CustodyWalletId>,
+    pub(super) account_ids: CollateralLedgerAccountIds,
 }
 
 impl NewCollateral {
@@ -348,12 +360,11 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     credit_facility_id,
                     pending_credit_facility_id,
                     custody_wallet_id,
-                    account_id,
-                    ..
+                    account_ids,
                 } => {
                     builder = builder
                         .id(*id)
-                        .account_id(*account_id)
+                        .account_ids(*account_ids)
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
                         .credit_facility_id(*credit_facility_id)
@@ -394,8 +405,8 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
             self.id,
             [CollateralEvent::Initialized {
                 id: self.id,
-                account_id: self.account_id,
                 credit_facility_id: self.credit_facility_id,
+                account_ids: self.account_ids,
                 pending_credit_facility_id: self.pending_credit_facility_id,
                 custody_wallet_id: self.custody_wallet_id,
             }],
@@ -406,13 +417,20 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ledger::FacilityProceedsFromLiquidationAccountId;
-    use crate::primitives::{PriceOfOneBTC, UsdCents};
+    use crate::ledger::PendingCreditFacilityAccountIds;
+    use crate::primitives::{CalaAccountId, PriceOfOneBTC, UsdCents};
+
+    fn default_account_ids() -> CollateralLedgerAccountIds {
+        CollateralLedgerAccountIds::new(
+            PendingCreditFacilityAccountIds::new(),
+            CalaAccountId::new(),
+        )
+    }
 
     fn default_new_collateral() -> NewCollateral {
         NewCollateral::builder()
             .id(CollateralId::new())
-            .account_id(CalaAccountId::new())
+            .account_ids(default_account_ids())
             .credit_facility_id(CreditFacilityId::new())
             .pending_credit_facility_id(PendingCreditFacilityId::new())
             .build()
@@ -421,15 +439,6 @@ mod tests {
 
     fn collateral_from(new_collateral: NewCollateral) -> Collateral {
         Collateral::try_from_events(new_collateral.into_events()).unwrap()
-    }
-
-    fn default_account_ids() -> LiquidationProceedsAccountIds {
-        LiquidationProceedsAccountIds {
-            liquidation_proceeds_omnibus_account_id: CalaAccountId::new(),
-            proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId::new(),
-            collateral_in_liquidation_account_id: CalaAccountId::new(),
-            liquidated_collateral_account_id: CalaAccountId::new(),
-        }
     }
 
     fn default_trigger_price() -> PriceOfOneBTC {
@@ -451,7 +460,6 @@ mod tests {
             default_trigger_price(),
             UsdCents::from(1000),
             Satoshis::from(100000),
-            default_account_ids(),
         );
         let liquidation_id = result.unwrap();
         hydrate_liquidations_in_collateral(collateral);
@@ -470,7 +478,6 @@ mod tests {
                 default_trigger_price(),
                 UsdCents::from(1000),
                 Satoshis::from(100000),
-                default_account_ids(),
             );
             assert!(result.did_execute());
             let liquidation_id = result.unwrap();
@@ -490,7 +497,6 @@ mod tests {
                 default_trigger_price(),
                 UsdCents::from(1000),
                 Satoshis::from(100000),
-                default_account_ids(),
             );
             assert!(result.was_already_applied());
         }

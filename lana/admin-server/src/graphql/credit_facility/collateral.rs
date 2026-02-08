@@ -38,7 +38,7 @@ impl From<DomainCollateral> for Collateral {
             id: collateral.id.to_global_id(),
             collateral_id: collateral.id.into(),
             wallet_id: collateral.custody_wallet_id.map(|id| id.into()),
-            account_id: collateral.account_id.into(),
+            account_id: collateral.account_ids.collateral_account_id.into(),
             entity: Arc::new(collateral),
         }
     }

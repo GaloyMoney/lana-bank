@@ -34,10 +34,7 @@ use jobs::{
 };
 pub use {
     entity::Collateral,
-    liquidation::{
-        Liquidation, LiquidationError, LiquidationProceedsAccountIds,
-        RecordProceedsFromLiquidationData,
-    },
+    liquidation::{Liquidation, LiquidationError, RecordProceedsFromLiquidationData},
     repo::liquidation_cursor,
 };
 
@@ -100,7 +97,6 @@ where
         ledger: Arc<CollateralLedger>,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
-        proceeds_omnibus_account_ids: &crate::LedgerOmnibusAccountIds,
         collections: Arc<core_credit_collection::CoreCreditCollection<Perms, E>>,
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
@@ -141,7 +137,6 @@ where
             credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
-                proceeds_omnibus_account_ids,
                 partial_liquidation_job_spawner,
                 liquidation_payment_job_spawner,
             ),
@@ -177,14 +172,18 @@ where
         collateral_id: CollateralId,
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
-        account_id: CalaAccountId,
+        account_ids: ledger::CollateralLedgerAccountIds,
     ) -> Result<Collateral, CollateralError> {
+        self.ledger
+            .create_collateral_accounts_in_op(db, collateral_id, account_ids)
+            .await?;
+
         let new_collateral = NewCollateral::builder()
             .id(collateral_id)
             .credit_facility_id(pending_credit_facility_id)
             .pending_credit_facility_id(pending_credit_facility_id)
-            .account_id(account_id)
             .custody_wallet_id(custody_wallet_id)
+            .account_ids(account_ids)
             .build()
             .expect("all fields for new collateral provided");
 
@@ -259,7 +258,7 @@ where
                     &mut db,
                     data.tx_id,
                     amount_sent,
-                    collateral.account_id,
+                    collateral.account_ids.collateral_account_id,
                     collateral_in_liquidation_account_id,
                     initiated_by,
                 )

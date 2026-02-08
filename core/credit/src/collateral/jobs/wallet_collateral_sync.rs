@@ -176,7 +176,7 @@ where
                 .update_collateral_amount_in_op(
                     &mut db,
                     data,
-                    collateral.account_id,
+                    collateral.account_ids.collateral_account_id,
                     core_accounting::LedgerTransactionInitiator::System,
                 )
                 .await?;

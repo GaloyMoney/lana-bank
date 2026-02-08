@@ -10,6 +10,10 @@ pub enum CollateralLedgerError {
     CalaLedger(#[from] cala_ledger::error::LedgerError),
     #[error("CollateralLedgerError - TxTemplate: {0}")]
     CalaTxTemplate(#[from] cala_ledger::tx_template::error::TxTemplateError),
+    #[error("CollateralLedgerError - CalaAccount: {0}")]
+    CalaAccount(#[from] cala_ledger::account::error::AccountError),
+    #[error("CollateralLedgerError - CalaAccountSet: {0}")]
+    CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
 }
 
 impl ErrorSeverity for CollateralLedgerError {
@@ -18,6 +22,8 @@ impl ErrorSeverity for CollateralLedgerError {
             Self::Sqlx(_) => Level::ERROR,
             Self::CalaLedger(_) => Level::ERROR,
             Self::CalaTxTemplate(_) => Level::ERROR,
+            Self::CalaAccount(_) => Level::ERROR,
+            Self::CalaAccountSet(_) => Level::ERROR,
         }
     }
 }
