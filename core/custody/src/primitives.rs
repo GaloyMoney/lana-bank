@@ -35,7 +35,7 @@ pub enum WalletNetwork {
     Mainnet,
 }
 
-pub const BITGO: audit::SystemActor = audit::SystemActor::new("bit-go");
+pub const BITGO: audit::SystemActor = audit::SystemActor::new("bitgo");
 pub const KOMAINU: audit::SystemActor = audit::SystemActor::new("komainu");
 pub const BOOTSTRAP: audit::SystemActor = audit::SystemActor::new("bootstrap");
 
