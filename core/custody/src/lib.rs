@@ -414,7 +414,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
-                crate::primitives::BOOTSTRAP,
+                audit::SystemActor::BOOTSTRAP,
                 CoreCustodyObject::all_custodians(),
                 CoreCustodyAction::CUSTODIAN_UPDATE,
             )

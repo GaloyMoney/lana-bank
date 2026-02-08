@@ -24,6 +24,8 @@ impl SystemActor {
     pub const fn new(actor: &'static str) -> Self {
         Self(Cow::Borrowed(actor))
     }
+
+    pub const BOOTSTRAP: Self = Self::new("bootstrap");
 }
 
 impl fmt::Display for SystemActor {

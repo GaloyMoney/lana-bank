@@ -1,6 +1,6 @@
 use crate::accounting_init::{constants::*, *};
 
-use core_access::primitives::BOOTSTRAP;
+use audit::SystemActor;
 use core_accounting::AccountingBaseConfig;
 use rbac_types::Subject;
 
@@ -37,7 +37,7 @@ async fn create_chart_of_accounts(
         let chart = accounting
             .chart_of_accounts()
             .create_chart(
-                &Subject::System(BOOTSTRAP),
+                &Subject::System(SystemActor::BOOTSTRAP),
                 CHART_NAME.to_string(),
                 CHART_REF.to_string(),
             )
@@ -45,7 +45,11 @@ async fn create_chart_of_accounts(
 
         accounting
             .fiscal_year()
-            .init_for_chart(&Subject::System(BOOTSTRAP), opening_date, chart.id)
+            .init_for_chart(
+                &Subject::System(SystemActor::BOOTSTRAP),
+                opening_date,
+                chart.id,
+            )
             .await?;
     }
 
@@ -78,7 +82,7 @@ async fn seed_chart_of_accounts(
 
     let chart = accounting
         .import_csv_with_base_config(
-            &Subject::System(BOOTSTRAP),
+            &Subject::System(SystemActor::BOOTSTRAP),
             CHART_REF,
             data,
             accounting_integration_config,
