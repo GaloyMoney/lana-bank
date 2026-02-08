@@ -12,6 +12,7 @@ sumsub-testing = ["lana-app/sumsub-testing"]
 [dependencies]
 lana-app = { workspace = true }
 domain-config = { workspace = true, features = ["graphql"] }
+permission-sets-macro = { workspace = true }
 obix = { workspace = true }
 audit = { workspace = true }
 tracing-utils = { workspace = true, features = ["http"] }

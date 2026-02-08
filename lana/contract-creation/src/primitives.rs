@@ -9,7 +9,7 @@ es_entity::entity_id! {
 }
 
 permission_sets_macro::permission_sets! {
-    ContractCreation,
+    ContractCreation("Can generate and manage loan agreements and contract documents"),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

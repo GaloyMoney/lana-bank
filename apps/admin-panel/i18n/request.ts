@@ -3,6 +3,13 @@ import { cookies, headers } from "next/headers"
 
 const locales = ["en", "es"]
 
+async function loadMessages(locale: string) {
+  const messages = (await import(`../messages/${locale}.json`)).default
+  const permissionMessages = (await import(`../messages/permissions/${locale}.json`))
+    .default
+  return { ...messages, ...permissionMessages }
+}
+
 export default getRequestConfig(async () => {
   const cookieStore = await cookies()
   const localeCookie = cookieStore.get("NEXT_LOCALE")
@@ -11,7 +18,7 @@ export default getRequestConfig(async () => {
     const locale = localeCookie.value
     return {
       locale,
-      messages: (await import(`../messages/${locale}.json`)).default,
+      messages: await loadMessages(locale),
     }
   }
 
@@ -33,6 +40,6 @@ export default getRequestConfig(async () => {
   const detectedLocale = userLocales.find((locale) => locales.includes(locale)) || "en"
   return {
     locale: detectedLocale,
-    messages: (await import(`../messages/${detectedLocale}.json`)).default,
+    messages: await loadMessages(detectedLocale),
   }
 })

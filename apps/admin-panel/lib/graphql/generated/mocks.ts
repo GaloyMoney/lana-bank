@@ -2565,6 +2565,7 @@ export const mockPermissionSet = (overrides?: Partial<PermissionSet>, _relations
     relationshipsToOmit.add('PermissionSet');
     return {
         __typename: 'PermissionSet',
+        description: overrides && overrides.hasOwnProperty('description') ? overrides.description! : generateMockValue.description(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         permissionSetId: overrides && overrides.hasOwnProperty('permissionSetId') ? overrides.permissionSetId! : generateMockValue.uuid(),

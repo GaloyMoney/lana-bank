@@ -113,8 +113,8 @@ pub type CollateralAllOrOne = AllOrOne<CollateralId>;
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
 permission_sets_macro::permission_sets! {
-    CreditWriter,
-    CreditViewer,
+    CreditWriter("Can create and manage credit facilities, update collateral, initiate and settle disbursals, record interest, and process obligations"),
+    CreditViewer("Can view credit facilities, disbursals, obligations, and related loan information"),
 }
 
 pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =

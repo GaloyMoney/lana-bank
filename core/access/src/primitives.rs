@@ -17,8 +17,8 @@ es_entity::entity_id! { PermissionSetId, RoleId }
 pub const ROLE_NAME_SUPERUSER: &str = "superuser";
 
 permission_sets_macro::permission_sets! {
-    AccessWriter,
-    AccessViewer,
+    AccessWriter("Can create, update, and manage users, roles, and permission sets, including assigning or revoking roles"),
+    AccessViewer("Can list and view users, roles, and permission sets"),
 }
 
 /// Type representing a role identifier for an underlying authorization subsystem.

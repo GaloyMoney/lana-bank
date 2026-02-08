@@ -2038,6 +2038,7 @@ type PermissionSet {
 	id: ID!
 	permissionSetId: UUID!
 	name: String!
+	description: String!
 }
 
 type PermissionSetConnection {

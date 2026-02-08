@@ -11,8 +11,8 @@ es_entity::entity_id! {
 pub type ReportAllOrOne = AllOrOne<ReportId>;
 
 permission_sets_macro::permission_sets! {
-    ReportViewer,
-    ReportWriter,
+    ReportViewer("Can see regulatory reports and download them"),
+    ReportWriter("Can trigger generation of regulatory reports"),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

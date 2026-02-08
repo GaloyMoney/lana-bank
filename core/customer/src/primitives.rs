@@ -124,8 +124,8 @@ pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 
 permission_sets_macro::permission_sets! {
-    CustomerViewer,
-    CustomerWriter,
+    CustomerViewer("Can view customer profiles and account details"),
+    CustomerWriter("Can create, update, and manage customers, including initiating and approving KYC processes"),
 }
 
 pub const CUSTOMER_REF_TARGET: public_id::PublicIdTargetType =

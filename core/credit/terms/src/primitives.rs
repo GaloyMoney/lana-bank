@@ -6,8 +6,8 @@ use crate::TermsTemplateId;
 pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
 
 permission_sets_macro::permission_sets! {
-    CreditTermTemplatesViewer,
-    CreditTermTemplatesWriter,
+    CreditTermTemplatesViewer("Can view and list term templates"),
+    CreditTermTemplatesWriter("Can create and update term templates"),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

@@ -162,9 +162,9 @@ pub struct BalanceUpdateData {
 pub type ObligationAllOrOne = AllOrOne<ObligationId>;
 
 permission_sets_macro::permission_sets! {
-    CollectionWriter,
-    CollectionViewer,
-    CollectionPaymentDate,
+    CollectionWriter("Can manage collections and related operations"),
+    CollectionViewer("Can view collection information"),
+    CollectionPaymentDate("Can create payments for credit facilities with custom effective dates"),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

@@ -19,6 +19,12 @@ impl PermissionSet {
     async fn name(&self) -> &str {
         &self.entity.name
     }
+
+    async fn description(&self) -> &str {
+        permission_sets_macro::find_by_name(&self.entity.name)
+            .map(|e| e.description)
+            .unwrap_or("")
+    }
 }
 
 impl From<DomainPermissionSet> for PermissionSet {

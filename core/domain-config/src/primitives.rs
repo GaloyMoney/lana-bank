@@ -121,8 +121,8 @@ impl FromStr for DomainConfigKey {
 }
 
 permission_sets_macro::permission_sets! {
-    ExposedConfigViewer,
-    ExposedConfigWriter,
+    ExposedConfigViewer("Can view exposed configuration values"),
+    ExposedConfigWriter("Can update exposed configuration values"),
 }
 
 pub type ExposedConfigAllOrOne = AllOrOne<DomainConfigId>;

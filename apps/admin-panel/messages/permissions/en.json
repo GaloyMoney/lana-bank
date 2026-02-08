@@ -1,0 +1,116 @@
+{
+  "Permissions": {
+    "access_viewer": {
+      "description": "Can list and view users, roles, and permission sets",
+      "label": "Access Viewer"
+    },
+    "access_writer": {
+      "description": "Can create, update, and manage users, roles, and permission sets, including assigning or revoking roles",
+      "label": "Access Writer"
+    },
+    "accounting_viewer": {
+      "description": "Can view accounting reports, journal entries, ledger accounts, and transactions",
+      "label": "Accounting Viewer"
+    },
+    "accounting_writer": {
+      "description": "Can create and manage charts of accounts, ledger and manual transactions, balance sheets, profit-and-loss reports, and related accounting data",
+      "label": "Accounting Writer"
+    },
+    "audit_viewer": {
+      "description": "Can view audit logs and system activity records",
+      "label": "Audit Viewer"
+    },
+    "collection_payment_date": {
+      "description": "Can create payments for credit facilities with custom effective dates",
+      "label": "Collection Payment Date"
+    },
+    "collection_viewer": {
+      "description": "Can view collection information",
+      "label": "Collection Viewer"
+    },
+    "collection_writer": {
+      "description": "Can manage collections and related operations",
+      "label": "Collection Writer"
+    },
+    "contract_creation": {
+      "description": "Can generate and manage loan agreements and contract documents",
+      "label": "Contract Creation"
+    },
+    "credit_term_templates_viewer": {
+      "description": "Can view and list term templates",
+      "label": "Credit Term Templates Viewer"
+    },
+    "credit_term_templates_writer": {
+      "description": "Can create and update term templates",
+      "label": "Credit Term Templates Writer"
+    },
+    "credit_viewer": {
+      "description": "Can view credit facilities, disbursals, obligations, and related loan information",
+      "label": "Credit Viewer"
+    },
+    "credit_writer": {
+      "description": "Can create and manage credit facilities, update collateral, initiate and settle disbursals, record interest, and process obligations",
+      "label": "Credit Writer"
+    },
+    "custody_viewer": {
+      "description": "Can view custodian configurations",
+      "label": "Custody Viewer"
+    },
+    "custody_writer": {
+      "description": "Can create and manage custodian configurations",
+      "label": "Custody Writer"
+    },
+    "customer_viewer": {
+      "description": "Can view customer profiles and account details",
+      "label": "Customer Viewer"
+    },
+    "customer_writer": {
+      "description": "Can create, update, and manage customers, including initiating and approving KYC processes",
+      "label": "Customer Writer"
+    },
+    "dashboard_viewer": {
+      "description": "Can view system dashboards and analytics",
+      "label": "Dashboard Viewer"
+    },
+    "deposit_freeze": {
+      "description": "Can freeze deposit accounts",
+      "label": "Deposit Freeze"
+    },
+    "deposit_unfreeze": {
+      "description": "Can unfreeze deposit accounts",
+      "label": "Deposit Unfreeze"
+    },
+    "deposit_viewer": {
+      "description": "Can view deposit accounts, balances, transaction history, and withdrawal details",
+      "label": "Deposit Viewer"
+    },
+    "deposit_writer": {
+      "description": "Can create and manage deposits, deposit accounts, and withdrawals, including initiating, confirming, cancelling, and approving withdrawals",
+      "label": "Deposit Writer"
+    },
+    "exposed_config_viewer": {
+      "description": "Can view exposed configuration values",
+      "label": "Exposed Config Viewer"
+    },
+    "exposed_config_writer": {
+      "description": "Can update exposed configuration values",
+      "label": "Exposed Config Writer"
+    },
+    "governance_viewer": {
+      "description": "Can view governance committees, policies, and approval processes",
+      "label": "Governance Viewer"
+    },
+    "governance_writer": {
+      "description": "Can create and manage committees and policies, and control approval processes (create, approve, deny, conclude)",
+      "label": "Governance Writer"
+    },
+    "report_viewer": {
+      "description": "Can see regulatory reports and download them",
+      "label": "Report Viewer"
+    },
+    "report_writer": {
+      "description": "Can trigger generation of regulatory reports",
+      "label": "Report Writer"
+    }
+  }
+}

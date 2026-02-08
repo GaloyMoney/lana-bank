@@ -641,8 +641,8 @@ pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if ther
 pub type FiscalYearAllOrOne = AllOrOne<FiscalYearId>;
 
 permission_sets_macro::permission_sets! {
-    AccountingViewer,
-    AccountingWriter,
+    AccountingViewer("Can view accounting reports, journal entries, ledger accounts, and transactions"),
+    AccountingWriter("Can create and manage charts of accounts, ledger and manual transactions, balance sheets, profit-and-loss reports, and related accounting data"),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

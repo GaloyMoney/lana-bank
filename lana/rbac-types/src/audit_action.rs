@@ -2,7 +2,7 @@ use authz::{ActionPermission, action_description::*, map_action};
 use std::{fmt::Display, str::FromStr};
 
 permission_sets_macro::permission_sets! {
-    AuditViewer,
+    AuditViewer("Can view audit logs and system activity records"),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

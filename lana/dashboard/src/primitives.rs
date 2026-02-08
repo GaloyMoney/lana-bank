@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 permission_sets_macro::permission_sets! {
-    DashboardViewer,
+    DashboardViewer("Can view system dashboards and analytics"),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

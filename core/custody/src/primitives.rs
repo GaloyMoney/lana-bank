@@ -39,8 +39,8 @@ pub enum WalletNetwork {
 }
 
 permission_sets_macro::permission_sets! {
-    CustodyViewer,
-    CustodyWriter,
+    CustodyViewer("Can view custodian configurations"),
+    CustodyWriter("Can create and manage custodian configurations"),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

@@ -9,13 +9,26 @@ pub use inventory;
 /// An entry registered at program start for each permission set variant.
 pub struct PermissionSetEntry {
     pub name: &'static str,
+    pub description: &'static str,
 }
 
 inventory::collect!(PermissionSetEntry);
 
+/// Look up a permission set entry by name.
+pub fn find_by_name(name: &str) -> Option<&'static PermissionSetEntry> {
+    inventory::iter::<PermissionSetEntry>
+        .into_iter()
+        .find(|e| e.name == name)
+}
+
+/// Iterate over all registered permission set entries.
+pub fn all_entries() -> impl Iterator<Item = &'static PermissionSetEntry> {
+    inventory::iter::<PermissionSetEntry>.into_iter()
+}
+
 /// Declarative macro for defining permission sets.
 ///
-/// Just list your permission variant names - everything else is auto-derived!
+/// List your permission variant names with descriptions - everything else is auto-derived!
 ///
 /// # Usage
 ///
@@ -23,8 +36,8 @@ inventory::collect!(PermissionSetEntry);
 /// use permission_sets_macro::permission_sets;
 ///
 /// permission_sets! {
-///     Viewer,
-///     Writer,
+///     Viewer("Can view resources"),
+///     Writer("Can create and manage resources"),
 /// }
 /// ```
 ///
@@ -39,7 +52,7 @@ inventory::collect!(PermissionSetEntry);
 /// - Variant `Viewer` → enum variant `CustodyViewer` → string `custody_viewer`
 #[macro_export]
 macro_rules! permission_sets {
-    ( $( $variant:ident ),* $(,)? ) => {
+    ( $( $variant:ident ($description:literal) ),* $(,)? ) => {
         $(
             $crate::paste::paste! {
                 #[doc = concat!("Permission set: ", stringify!($variant))]
@@ -48,6 +61,7 @@ macro_rules! permission_sets {
                 $crate::inventory::submit! {
                     $crate::PermissionSetEntry {
                         name: [<PERMISSION_SET_ $variant:snake:upper>],
+                        description: $description,
                     }
                 }
             }
