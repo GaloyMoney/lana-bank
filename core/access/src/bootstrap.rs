@@ -75,7 +75,7 @@ where
         self.authz
             .assign_role_to_subject(
                 <<Audit as AuditSvc>::Subject as SystemSubject>::system(
-                    crate::primitives::BOOTSTRAP,
+                    audit::SystemActor::BOOTSTRAP,
                 ),
                 superuser_role.id,
             )
@@ -126,7 +126,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 db,
-                crate::primitives::BOOTSTRAP,
+                audit::SystemActor::BOOTSTRAP,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::ROLE_CREATE,
             )

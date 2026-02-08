@@ -37,7 +37,6 @@ pub enum WalletNetwork {
 
 pub const BITGO: audit::SystemActor = audit::SystemActor::new("bitgo");
 pub const KOMAINU: audit::SystemActor = audit::SystemActor::new("komainu");
-pub const BOOTSTRAP: audit::SystemActor = audit::SystemActor::new("bootstrap");
 
 pub const PERMISSION_SET_CUSTODY_VIEWER: &str = "custody_viewer";
 pub const PERMISSION_SET_CUSTODY_WRITER: &str = "custody_writer";
