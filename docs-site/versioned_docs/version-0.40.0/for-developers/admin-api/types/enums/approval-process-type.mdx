@@ -1,0 +1,76 @@
+---
+id: approval-process-type
+title: ApprovalProcessType
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+enum ApprovalProcessType {
+  WITHDRAWAL_APPROVAL
+  DISBURSAL_APPROVAL
+  CREDIT_FACILITY_PROPOSAL_APPROVAL
+}
+```
+
+
+
+
+### Values
+
+#### [<code style={{ fontWeight: 'normal' }}>ApprovalProcessType.<b>WITHDRAWAL&#x005F;APPROVAL</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>ApprovalProcessType.<b>DISBURSAL&#x005F;APPROVAL</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>ApprovalProcessType.<b>CREDIT&#x005F;FACILITY&#x005F;PROPOSAL&#x005F;APPROVAL</b></code>](#)  
+
+
+
+
+
+
+
+### Member Of
+
+[`ApprovalProcess`](/for-developers/admin-api/types/objects/approval-process.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Policy`](/for-developers/admin-api/types/objects/policy.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>
