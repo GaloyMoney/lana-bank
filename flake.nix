@@ -255,6 +255,7 @@
           cachix
           ps
           curl
+          socat
           procps
           poppler-utils
           keycloak
