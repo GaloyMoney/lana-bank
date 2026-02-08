@@ -3,7 +3,6 @@
 
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt, marker::PhantomData, str::FromStr};
-use uuid::Uuid;
 
 pub mod error;
 mod primitives;
@@ -43,68 +42,6 @@ impl AsRef<str> for SystemActor {
 impl From<String> for SystemActor {
     fn from(s: String) -> Self {
         Self(Cow::Owned(s))
-    }
-}
-
-/// Represents who initiated an operation (user, customer, or system actor).
-/// This type can be used across core and lana modules.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Subject {
-    System(SystemActor),
-    User(Uuid),
-    Customer(Uuid),
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum SubjectParseError {
-    #[error("invalid uuid: {0}")]
-    InvalidUuid(#[from] uuid::Error),
-    #[error("unknown subject format: {0}")]
-    UnknownFormat(String),
-}
-
-impl tracing_utils::ErrorSeverity for SubjectParseError {
-    fn severity(&self) -> tracing::Level {
-        tracing::Level::ERROR
-    }
-}
-
-impl fmt::Display for Subject {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Subject::System(actor) => write!(f, "system:{}", actor.as_ref()),
-            Subject::User(id) => write!(f, "user:{}", id),
-            Subject::Customer(id) => write!(f, "customer:{}", id),
-        }
-    }
-}
-
-impl FromStr for Subject {
-    type Err = SubjectParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(actor_str) = s.strip_prefix("system:") {
-            return Ok(Self::System(SystemActor::from(actor_str.to_string())));
-        }
-
-        if let Some(id_str) = s.strip_prefix("user:") {
-            let id = Uuid::parse_str(id_str)?;
-            return Ok(Self::User(id));
-        }
-
-        if let Some(id_str) = s.strip_prefix("customer:") {
-            let id = Uuid::parse_str(id_str)?;
-            return Ok(Self::Customer(id));
-        }
-
-        Err(SubjectParseError::UnknownFormat(s.to_string()))
-    }
-}
-
-impl SystemSubject for Subject {
-    fn system(actor: SystemActor) -> Self {
-        Subject::System(actor)
     }
 }
 

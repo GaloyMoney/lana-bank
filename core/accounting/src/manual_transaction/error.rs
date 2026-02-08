@@ -19,7 +19,7 @@ pub enum ManualTransactionError {
     #[error("ManualTransactionError - ChartOfAccounts: {0}")]
     ChartOfAccountsError(#[from] chart_of_accounts::error::ChartOfAccountsError),
     #[error("ManualTransactionError - LedgerTransactionInitiatorParseError: {0}")]
-    LedgerTransactionInitiatorParseError(#[from] audit::SubjectParseError),
+    LedgerTransactionInitiatorParseError(#[from] core_ids::SubjectParseError),
 }
 
 es_entity::from_es_entity_error!(ManualTransactionError);

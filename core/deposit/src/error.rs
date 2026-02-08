@@ -29,7 +29,7 @@ pub enum CoreDepositError {
         #[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError,
     ),
     #[error("CoreDepositError - LedgerTransactionInitiatorParseError: {0}")]
-    LedgerTransactionInitiatorParseError(#[from] audit::SubjectParseError),
+    LedgerTransactionInitiatorParseError(#[from] core_ids::SubjectParseError),
     #[error("CoreDepositError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - ProcessError: {0}")]

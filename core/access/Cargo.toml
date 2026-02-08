@@ -19,6 +19,7 @@ json-schema = [
 [dependencies]
 governance = { workspace = true, optional = true }
 
+core-ids = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }

@@ -6,17 +6,13 @@ mod audit_action;
 mod audit_object;
 mod object;
 
-use serde::{Deserialize, Serialize};
-use tracing::Level;
-use tracing_utils::ErrorSeverity;
-
-use core_access::UserId;
-use core_customer::CustomerId;
-
 pub use action::*;
 pub use audit_action::*;
 pub use audit_object::*;
 pub use object::*;
+
+// Re-export Subject from core-ids (the canonical definition)
+pub use core_ids::Subject;
 
 // Re-export SystemActor from audit crate
 pub use audit::SystemActor;
@@ -108,163 +104,6 @@ impl std::str::FromStr for PermissionSetName {
             PERMISSION_SET_AUDIT_VIEWER => Ok(AuditViewer),
 
             _ => Err(strum::ParseError::VariantNotFound),
-        }
-    }
-}
-
-#[derive(Clone, Debug, strum::EnumDiscriminants, Serialize, Deserialize)]
-#[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]
-#[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum Subject {
-    Customer(CustomerId),
-    User(UserId),
-    System(SystemActor),
-}
-
-impl audit::SystemSubject for Subject {
-    fn system(actor: SystemActor) -> Self {
-        Subject::System(actor)
-    }
-}
-
-impl From<Subject> for audit::Subject {
-    fn from(s: Subject) -> Self {
-        match s {
-            Subject::Customer(id) => audit::Subject::Customer(id.into()),
-            Subject::User(id) => audit::Subject::User(id.into()),
-            Subject::System(actor) => audit::Subject::System(actor),
-        }
-    }
-}
-
-impl From<audit::Subject> for Subject {
-    fn from(s: audit::Subject) -> Self {
-        match s {
-            audit::Subject::Customer(id) => Subject::Customer(CustomerId::from(id)),
-            audit::Subject::User(id) => Subject::User(UserId::from(id)),
-            audit::Subject::System(actor) => Subject::System(actor),
-        }
-    }
-}
-
-impl std::str::FromStr for Subject {
-    type Err = ParseSubjectError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts: Vec<&str> = s.split(':').collect();
-        if parts.len() != 2 {
-            return Err(ParseSubjectError::InvalidSubjectFormat);
-        }
-
-        use SubjectDiscriminants::*;
-        let res = match SubjectDiscriminants::from_str(parts[0])? {
-            Customer => {
-                let id: uuid::Uuid = parts[1].parse()?;
-                Subject::Customer(CustomerId::from(id))
-            }
-            User => {
-                let id: uuid::Uuid = parts[1].parse()?;
-                Subject::User(UserId::from(id))
-            }
-            System => {
-                let actor = SystemActor::from(parts[1].to_string());
-                Subject::System(actor)
-            }
-        };
-        Ok(res)
-    }
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum ParseSubjectError {
-    #[error("ParseSubjectError - Strum: {0}")]
-    Strum(#[from] strum::ParseError),
-    #[error("ParseSubjectError - Uuid: {0}")]
-    Uuid(#[from] uuid::Error),
-    #[error("ParseSubjectError - InvalidSubjectFormat")]
-    InvalidSubjectFormat,
-}
-
-impl ErrorSeverity for ParseSubjectError {
-    fn severity(&self) -> Level {
-        match self {
-            Self::Strum(_) => Level::WARN,
-            Self::Uuid(_) => Level::WARN,
-            Self::InvalidSubjectFormat => Level::WARN,
-        }
-    }
-}
-
-impl From<UserId> for Subject {
-    fn from(s: UserId) -> Self {
-        Subject::User(s)
-    }
-}
-
-impl From<CustomerId> for Subject {
-    fn from(s: CustomerId) -> Self {
-        Subject::Customer(s)
-    }
-}
-
-impl std::fmt::Display for Subject {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Subject::Customer(id) => {
-                let uuid: uuid::Uuid = (*id).into();
-                write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), uuid)
-            }
-            Subject::User(id) => {
-                let uuid: uuid::Uuid = (*id).into();
-                write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), uuid)
-            }
-            Subject::System(actor) => {
-                write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), actor)
-            }
-        }
-    }
-}
-
-impl TryFrom<&Subject> for core_deposit::DepositAccountHolderId {
-    type Error = &'static str;
-
-    fn try_from(value: &Subject) -> Result<Self, Self::Error> {
-        match value {
-            Subject::Customer(id) => Ok(core_deposit::DepositAccountHolderId::from(*id)),
-            _ => Err("Subject is not Customer"),
-        }
-    }
-}
-
-impl TryFrom<&Subject> for CustomerId {
-    type Error = &'static str;
-
-    fn try_from(value: &Subject) -> Result<Self, Self::Error> {
-        match value {
-            Subject::Customer(id) => Ok(*id),
-            _ => Err("Subject is not Customer"),
-        }
-    }
-}
-
-impl TryFrom<&Subject> for UserId {
-    type Error = &'static str;
-
-    fn try_from(value: &Subject) -> Result<Self, Self::Error> {
-        match value {
-            Subject::User(id) => Ok(*id),
-            _ => Err("Subject is not User"),
-        }
-    }
-}
-
-impl TryFrom<&Subject> for governance::CommitteeMemberId {
-    type Error = &'static str;
-
-    fn try_from(value: &Subject) -> Result<Self, Self::Error> {
-        match value {
-            Subject::User(id) => Ok(Self::from(*id)),
-            _ => Err("Subject is not User"),
         }
     }
 }

@@ -3,14 +3,7 @@ use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
 pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
-
-#[cfg(feature = "governance")]
-es_entity::entity_id! {
-    UserId;
-    UserId => governance::CommitteeMemberId,
-}
-#[cfg(not(feature = "governance"))]
-es_entity::entity_id! { UserId }
+pub use core_ids::UserId;
 
 es_entity::entity_id! { PermissionSetId, RoleId }
 

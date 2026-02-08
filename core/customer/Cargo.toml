@@ -17,6 +17,7 @@ sumsub-testing = ["sumsub/sumsub-testing"]
 
 [dependencies]
 
+core-ids = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 domain-config = { workspace = true }

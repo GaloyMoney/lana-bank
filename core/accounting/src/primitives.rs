@@ -70,8 +70,8 @@ impl EntityRef {
     }
 }
 
-// Re-export Subject from audit crate for ledger transaction initiators
-pub use audit::Subject as LedgerTransactionInitiator;
+// Re-export Subject from core-ids crate for ledger transaction initiators
+pub use core_ids::Subject as LedgerTransactionInitiator;
 
 pub type LedgerTransactionId = CalaTxId;
 pub type TransactionTemplateId = CalaTxTemplateId;

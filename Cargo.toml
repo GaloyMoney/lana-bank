@@ -52,6 +52,7 @@ core-customer = { path = "core/customer" }
 core-deposit = { path = "core/deposit" }
 core-price = { path = "core/price" }
 core-report = { path = "core/report" }
+core-ids = { path = "core/ids" }
 core-time-events = { path = "core/time-events" }
 document-storage = { path = "core/document-storage" }
 governance = { path = "core/governance" }
@@ -67,7 +68,6 @@ dashboard = { path = "lana/dashboard" }
 deposit-sync = { path = "lana/deposit-sync" }
 lana-app = { path = "lana/app" }
 lana-events = { path = "lana/events" }
-lana-ids = { path = "lana/ids" }
 notification = { path = "lana/notification" }
 rbac-types = { path = "lana/rbac-types" }
 sim-bootstrap = { path = "lana/sim-bootstrap" }

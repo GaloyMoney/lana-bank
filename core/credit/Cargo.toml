@@ -23,6 +23,7 @@ mock-custodian = ["core-custody/mock-custodian"]
 [dependencies]
 money = { workspace = true }
 core-price = { workspace = true }
+core-ids = { workspace = true }
 core-customer = { workspace = true }
 core-credit-collection = { path = "collection" }
 core-credit-terms = { path = "terms" }

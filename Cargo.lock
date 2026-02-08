@@ -369,7 +369,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "uuid",
  "workspace-hack",
 ]
 
@@ -1282,6 +1281,7 @@ dependencies = [
  "audit",
  "authz",
  "chrono",
+ "core-ids",
  "derive_builder",
  "es-entity",
  "governance",
@@ -1314,6 +1314,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
+ "core-ids",
  "csv",
  "derive_builder",
  "document-storage",
@@ -1357,6 +1358,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-ids",
  "core-price",
  "derive_builder",
  "document-storage",
@@ -1490,6 +1492,7 @@ dependencies = [
  "authz",
  "chrono",
  "cloud-storage",
+ "core-ids",
  "derive_builder",
  "document-storage",
  "domain-config",
@@ -1528,6 +1531,7 @@ dependencies = [
  "cloud-storage",
  "core-accounting",
  "core-customer",
+ "core-ids",
  "derive_builder",
  "document-storage",
  "domain-config",
@@ -1570,6 +1574,28 @@ name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
+
+[[package]]
+name = "core-ids"
+version = "0.0.0"
+dependencies = [
+ "audit",
+ "cala-ledger",
+ "document-storage",
+ "es-entity",
+ "governance",
+ "job",
+ "public-id",
+ "schemars 1.2.0",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-utils",
+ "uuid",
+ "workspace-hack",
+]
 
 [[package]]
 name = "core-price"
@@ -3495,6 +3521,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-ids",
  "core-price",
  "core-report",
  "core-time-events",
@@ -3508,7 +3535,6 @@ dependencies = [
  "governance",
  "job",
  "lana-events",
- "lana-ids",
  "money",
  "notification",
  "obix",
@@ -3576,20 +3602,6 @@ dependencies = [
  "schemars 1.2.0",
  "serde",
  "strum",
- "workspace-hack",
-]
-
-[[package]]
-name = "lana-ids"
-version = "0.0.0"
-dependencies = [
- "cala-ledger",
- "es-entity",
- "governance",
- "job",
- "schemars 1.2.0",
- "serde",
- "sqlx",
  "workspace-hack",
 ]
 
@@ -4859,16 +4871,12 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-ids",
  "core-report",
  "dashboard",
  "domain-config",
  "governance",
- "serde",
  "strum",
- "thiserror 2.0.18",
- "tracing",
- "tracing-utils",
- "uuid",
  "workspace-hack",
 ]
 

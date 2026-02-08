@@ -5,12 +5,11 @@ pub use audit::AuditInfo;
 pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 pub use public_id::PublicId;
 
+pub use core_ids::CustomerId;
+
 es_entity::entity_id! {
-    CustomerId,
     CustomerDocumentId;
 
-    CustomerId => document_storage::ReferenceId,
-    CustomerId => public_id::PublicIdTargetId,
     CustomerDocumentId => document_storage::DocumentId
 }
 

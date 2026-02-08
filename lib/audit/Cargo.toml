@@ -21,5 +21,4 @@ tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 schemars = { workspace = true, optional = true }
-uuid = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

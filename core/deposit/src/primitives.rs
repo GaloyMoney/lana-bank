@@ -35,6 +35,17 @@ es_entity::entity_id! {
 
 pub use money::UsdCents;
 
+impl TryFrom<&core_ids::Subject> for DepositAccountHolderId {
+    type Error = &'static str;
+
+    fn try_from(value: &core_ids::Subject) -> Result<Self, Self::Error> {
+        match value {
+            core_ids::Subject::Customer(id) => Ok(DepositAccountHolderId::from(*id)),
+            _ => Err("Subject is not Customer"),
+        }
+    }
+}
+
 pub const DEPOSIT_APPROVAL: audit::SystemActor = audit::SystemActor::new("deposit-approval");
 
 pub const DEPOSIT_ACCOUNT_ENTITY_TYPE: core_accounting::EntityType =

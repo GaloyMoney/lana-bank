@@ -1,5 +1,5 @@
 [package]
-name = "lana-ids"
+name = "core-ids"
 
 license = "BUSL-1.1"
 edition = "2024"
@@ -15,6 +15,9 @@ graphql = []
 
 [dependencies]
 governance = { workspace = true, features = ["graphql"] }
+audit = { workspace = true }
+document-storage = { workspace = true }
+public-id = { workspace = true }
 
 job = { workspace = true }
 
@@ -24,5 +27,10 @@ cala-ledger = { workspace = true }
 # Required by es_entity::entity_id macro
 sqlx = { workspace = true }
 serde = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-utils = { workspace = true }
+uuid = { workspace = true }
 schemars = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

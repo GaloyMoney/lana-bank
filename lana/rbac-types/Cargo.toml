@@ -12,6 +12,7 @@ dashboard = { workspace = true }
 contract-creation = { workspace = true }
 
 governance = { workspace = true }
+core-ids = { workspace = true }
 core-access = { workspace = true }
 core-customer = { workspace = true }
 core-credit = { workspace = true }
@@ -27,11 +28,6 @@ domain-config = { workspace = true }
 
 async-graphql = { workspace = true }
 strum = { workspace = true }
-uuid = { workspace = true }
-serde = { workspace = true }
-thiserror = { workspace = true }
-tracing = { workspace = true }
-tracing-utils = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
