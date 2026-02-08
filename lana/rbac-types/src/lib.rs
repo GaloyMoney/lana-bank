@@ -167,9 +167,7 @@ impl std::str::FromStr for Subject {
                 Subject::User(UserId::from(id))
             }
             System => {
-                let actor = parts[1]
-                    .parse::<SystemActor>()
-                    .expect("SystemActor parse is infallible");
+                let actor = SystemActor::from(parts[1].to_string());
                 Subject::System(actor)
             }
         };

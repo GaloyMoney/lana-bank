@@ -40,10 +40,9 @@ impl AsRef<str> for SystemActor {
     }
 }
 
-impl FromStr for SystemActor {
-    type Err = std::convert::Infallible;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(Cow::Owned(s.to_string())))
+impl From<String> for SystemActor {
+    fn from(s: String) -> Self {
+        Self(Cow::Owned(s))
     }
 }
 
@@ -71,29 +70,6 @@ impl tracing_utils::ErrorSeverity for SubjectParseError {
     }
 }
 
-impl Subject {
-    /// Parse a subject from a string representation (e.g., "system:bootstrap", "user:uuid", "customer:uuid")
-    pub fn try_from_string(s: &str) -> Result<Self, SubjectParseError> {
-        if let Some(actor_str) = s.strip_prefix("system:") {
-            return Ok(Self::System(
-                actor_str.parse().expect("SystemActor parse is infallible"),
-            ));
-        }
-
-        if let Some(id_str) = s.strip_prefix("user:") {
-            let id = Uuid::parse_str(id_str)?;
-            return Ok(Self::User(id));
-        }
-
-        if let Some(id_str) = s.strip_prefix("customer:") {
-            let id = Uuid::parse_str(id_str)?;
-            return Ok(Self::Customer(id));
-        }
-
-        Err(SubjectParseError::UnknownFormat(s.to_string()))
-    }
-}
-
 impl fmt::Display for Subject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -108,7 +84,21 @@ impl FromStr for Subject {
     type Err = SubjectParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from_string(s)
+        if let Some(actor_str) = s.strip_prefix("system:") {
+            return Ok(Self::System(SystemActor::from(actor_str.to_string())));
+        }
+
+        if let Some(id_str) = s.strip_prefix("user:") {
+            let id = Uuid::parse_str(id_str)?;
+            return Ok(Self::User(id));
+        }
+
+        if let Some(id_str) = s.strip_prefix("customer:") {
+            let id = Uuid::parse_str(id_str)?;
+            return Ok(Self::Customer(id));
+        }
+
+        Err(SubjectParseError::UnknownFormat(s.to_string()))
     }
 }
 
