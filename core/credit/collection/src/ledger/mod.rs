@@ -118,7 +118,7 @@ impl CollectionLedger {
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CollectionLedgerError> {
         for payment in payments {
-            self.record_obligation_repayment_in_op(op, payment, initiated_by)
+            self.record_obligation_repayment_in_op(op, payment, initiated_by.clone())
                 .await?;
         }
         Ok(())

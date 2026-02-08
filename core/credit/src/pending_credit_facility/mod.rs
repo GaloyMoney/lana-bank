@@ -217,7 +217,7 @@ where
                         &mut db,
                         &pending_credit_facility,
                         core_accounting::LedgerTransactionInitiator::System(
-                            audit::SystemActor::CreditFacilityJob,
+                            crate::primitives::CREDIT_FACILITY_JOB,
                         ),
                     )
                     .await?;

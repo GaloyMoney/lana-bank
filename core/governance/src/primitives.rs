@@ -187,6 +187,8 @@ impl ActionPermission for ApprovalProcessAction {
     }
 }
 
+pub const GOVERNANCE: audit::SystemActor = audit::SystemActor::new("governance");
+
 pub type CommitteeAllOrOne = AllOrOne<CommitteeId>;
 pub type PolicyAllOrOne = AllOrOne<PolicyId>;
 pub type ApprovalProcessAllOrOne = AllOrOne<ApprovalProcessId>;

@@ -112,7 +112,7 @@ impl std::str::FromStr for PermissionSetName {
     }
 }
 
-#[derive(Clone, Copy, Debug, strum::EnumDiscriminants, Serialize, Deserialize)]
+#[derive(Clone, Debug, strum::EnumDiscriminants, Serialize, Deserialize)]
 #[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum Subject {
@@ -167,11 +167,7 @@ impl std::str::FromStr for Subject {
                 Subject::User(UserId::from(id))
             }
             System => {
-                // Try to parse as SystemActor first, fallback to Unknown for backward compat
-                // (e.g., old "system:00000000-0000-0000-0000-000000000000" entries)
-                let actor = parts[1]
-                    .parse::<SystemActor>()
-                    .unwrap_or(SystemActor::Unknown);
+                let actor = parts[1].parse::<SystemActor>().unwrap();
                 Subject::System(actor)
             }
         };

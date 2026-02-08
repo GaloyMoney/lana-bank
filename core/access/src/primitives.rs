@@ -14,6 +14,8 @@ es_entity::entity_id! { UserId }
 
 es_entity::entity_id! { PermissionSetId, RoleId }
 
+pub const BOOTSTRAP: audit::SystemActor = audit::SystemActor::new("bootstrap");
+
 pub const ROLE_NAME_SUPERUSER: &str = "superuser";
 
 pub const PERMISSION_SET_ACCESS_WRITER: &str = "access_writer";

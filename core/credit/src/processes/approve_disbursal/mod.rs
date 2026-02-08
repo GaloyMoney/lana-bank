@@ -126,7 +126,7 @@ where
                         disbursal.disbursal_credit_account_id,
                         obligation,
                         credit_facility.account_ids,
-                        LedgerTransactionInitiator::System(audit::SystemActor::DisbursalJob),
+                        LedgerTransactionInitiator::System(crate::primitives::DISBURSAL_JOB),
                     )
                     .await?;
                 op.commit().await?;
@@ -145,7 +145,7 @@ where
                         disbursal.initiated_tx_id,
                         disbursal.amount,
                         credit_facility.account_ids,
-                        LedgerTransactionInitiator::System(audit::SystemActor::DisbursalJob),
+                        LedgerTransactionInitiator::System(crate::primitives::DISBURSAL_JOB),
                     )
                     .await?;
                 op.commit().await?;

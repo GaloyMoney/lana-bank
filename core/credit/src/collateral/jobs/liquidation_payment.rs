@@ -191,7 +191,7 @@ where
                         *amount,
                         clock.today(),
                         LedgerTransactionInitiator::System(
-                            audit::SystemActor::CollateralizationSync,
+                            crate::primitives::COLLATERALIZATION_SYNC,
                         ),
                     )
                     .await?;

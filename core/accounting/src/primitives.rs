@@ -21,6 +21,8 @@ pub use cala_ledger::{
 
 pub use money::{Satoshis, UsdCents};
 
+pub const ACCOUNTING_JOB: audit::SystemActor = audit::SystemActor::new("accounting-job");
+
 es_entity::entity_id! {
     ChartId,
     ChartNodeId,

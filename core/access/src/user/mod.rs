@@ -6,7 +6,7 @@ use es_entity::{DbOp, Idempotent};
 use std::collections::HashMap;
 use tracing::instrument;
 
-use audit::{AuditSvc, SystemActor};
+use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck};
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
@@ -258,7 +258,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut *op,
-                SystemActor::Bootstrap,
+                crate::primitives::BOOTSTRAP,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::USER_CREATE,
             )

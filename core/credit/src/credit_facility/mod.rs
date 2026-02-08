@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::{AuditSvc, SystemActor};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::{CorePriceEvent, Price};
 use es_entity::clock::ClockHandle;
@@ -196,7 +196,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
-                SystemActor::CreditFacilityJob,
+                crate::primitives::CREDIT_FACILITY_JOB,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
             )
@@ -299,7 +299,7 @@ where
                 &mut db,
                 activation_data,
                 core_accounting::LedgerTransactionInitiator::System(
-                    audit::SystemActor::CreditFacilityJob,
+                    crate::primitives::CREDIT_FACILITY_JOB,
                 ),
             )
             .await?;
