@@ -5,8 +5,12 @@ const locales = ["en", "es"]
 
 async function loadMessages(locale: string) {
   const messages = (await import(`../messages/${locale}.json`)).default
-  const permissionMessages = (await import(`../messages/permissions/${locale}.json`))
-    .default
+  let permissionMessages = {}
+  try {
+    permissionMessages = (await import(`../messages/permissions/${locale}.json`)).default
+  } catch {
+    permissionMessages = (await import(`../messages/permissions/en.json`)).default
+  }
   return { ...messages, ...permissionMessages }
 }
 
