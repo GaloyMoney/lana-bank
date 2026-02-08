@@ -80,6 +80,14 @@ pub struct CustomerDocumentDeletePayload {
     pub deleted_document_id: UUID,
 }
 
+impl From<CustomerDocumentId> for CustomerDocumentDeletePayload {
+    fn from(id: CustomerDocumentId) -> Self {
+        Self {
+            deleted_document_id: UUID::from(id),
+        }
+    }
+}
+
 #[derive(InputObject)]
 pub struct CustomerDocumentArchiveInput {
     pub document_id: UUID,

@@ -1176,14 +1176,13 @@ impl Mutation {
         input: SumsubPermalinkCreateInput,
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let permalink = app
-            .customer_kyc()
-            .create_verification_link(
+        exec_mutation!(
+            SumsubPermalinkCreatePayload,
+            app.customer_kyc().create_verification_link(
                 sub,
                 lana_app::primitives::CustomerId::from(input.customer_id),
             )
-            .await?;
-        Ok(SumsubPermalinkCreatePayload { url: permalink.url })
+        )
     }
 
     /// ⚠️ TEST ONLY: Creates a complete test applicant for Sumsub integration testing.
@@ -1409,14 +1408,12 @@ impl Mutation {
             chart_of_accounts_omnibus_parent_code: chart_of_accounts_omnibus_parent_code.parse()?,
         };
 
-        let config = app
-            .deposits()
-            .chart_of_accounts_integrations()
-            .set_config(sub, chart.as_ref(), config_values)
-            .await?;
-        Ok(DepositModuleConfigurePayload::from(
-            DepositModuleConfig::from(config),
-        ))
+        exec_mutation!(
+            DepositModuleConfigurePayload,
+            app.deposits()
+                .chart_of_accounts_integrations()
+                .set_config(sub, chart.as_ref(), config_values)
+        )
     }
 
     pub async fn manual_transaction_execute(
@@ -1877,14 +1874,12 @@ impl Mutation {
                     .parse()?
         };
 
-        let config = app
-            .credit()
-            .chart_of_accounts_integrations()
-            .set_config(sub, chart.as_ref(), config_values)
-            .await?;
-        Ok(CreditModuleConfigurePayload::from(
-            CreditModuleConfig::from(config),
-        ))
+        exec_mutation!(
+            CreditModuleConfigurePayload,
+            app.credit()
+                .chart_of_accounts_integrations()
+                .set_config(sub, chart.as_ref(), config_values)
+        )
     }
 
     pub async fn credit_facility_proposal_create(
@@ -2229,12 +2224,11 @@ impl Mutation {
         input: CustomerDocumentDownloadLinksGenerateInput,
     ) -> async_graphql::Result<CustomerDocumentDownloadLinksGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // not using macro here because DocumentDownloadLinksGeneratePayload is non standard
-        let doc = app
-            .customers()
-            .generate_document_download_link(sub, input.document_id)
-            .await?;
-        Ok(CustomerDocumentDownloadLinksGeneratePayload::from(doc))
+        exec_mutation!(
+            CustomerDocumentDownloadLinksGeneratePayload,
+            app.customers()
+                .generate_document_download_link(sub, input.document_id)
+        )
     }
 
     async fn customer_document_delete(
@@ -2243,13 +2237,10 @@ impl Mutation {
         input: CustomerDocumentDeleteInput,
     ) -> async_graphql::Result<CustomerDocumentDeletePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // not using macro here because DocumentDeletePayload is non standard
-        app.customers()
-            .delete_document(sub, input.document_id)
-            .await?;
-        Ok(CustomerDocumentDeletePayload {
-            deleted_document_id: input.document_id,
-        })
+        exec_mutation!(
+            CustomerDocumentDeletePayload,
+            app.customers().delete_document(sub, input.document_id)
+        )
     }
 
     async fn customer_document_archive(
@@ -2431,14 +2422,12 @@ impl Mutation {
         input: LedgerAccountCsvCreateInput,
     ) -> async_graphql::Result<LedgerAccountCsvCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let csv = app
-            .accounting()
-            .csvs()
-            .create_ledger_account_csv(sub, input.ledger_account_id)
-            .await?;
-
-        let csv_document = AccountingCsvDocument::from(csv);
-        Ok(LedgerAccountCsvCreatePayload::from(csv_document))
+        exec_mutation!(
+            LedgerAccountCsvCreatePayload,
+            app.accounting()
+                .csvs()
+                .create_ledger_account_csv(sub, input.ledger_account_id)
+        )
     }
 
     pub async fn accounting_csv_download_link_generate(
@@ -2447,15 +2436,12 @@ impl Mutation {
         input: AccountingCsvDownloadLinkGenerateInput,
     ) -> async_graphql::Result<AccountingCsvDownloadLinkGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let result = app
-            .accounting()
-            .csvs()
-            .generate_download_link(sub, input.document_id.into())
-            .await?;
-
-        let link = AccountingCsvDownloadLink::from(result);
-
-        Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
+        exec_mutation!(
+            AccountingCsvDownloadLinkGeneratePayload,
+            app.accounting()
+                .csvs()
+                .generate_download_link(sub, input.document_id.into())
+        )
     }
 
     pub async fn loan_agreement_generate(
@@ -2464,15 +2450,11 @@ impl Mutation {
         input: LoanAgreementGenerateInput,
     ) -> async_graphql::Result<LoanAgreementGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        // Create async job for loan agreement generation
-        let loan_agreement = app
-            .contract_creation()
-            .initiate_loan_agreement_generation(sub, input.customer_id)
-            .await?;
-
-        let loan_agreement = LoanAgreement::from(loan_agreement);
-        Ok(LoanAgreementGeneratePayload::from(loan_agreement))
+        exec_mutation!(
+            LoanAgreementGeneratePayload,
+            app.contract_creation()
+                .initiate_loan_agreement_generation(sub, input.customer_id)
+        )
     }
 
     async fn loan_agreement_download_link_generate(
@@ -2481,11 +2463,11 @@ impl Mutation {
         input: LoanAgreementDownloadLinksGenerateInput,
     ) -> async_graphql::Result<LoanAgreementDownloadLinksGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let doc = app
-            .contract_creation()
-            .generate_document_download_link(sub, input.loan_agreement_id)
-            .await?;
-        Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
+        exec_mutation!(
+            LoanAgreementDownloadLinksGeneratePayload,
+            app.contract_creation()
+                .generate_document_download_link(sub, input.loan_agreement_id)
+        )
     }
 
     async fn trigger_report_run(
@@ -2493,8 +2475,10 @@ impl Mutation {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<ReportRunCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let _job_id = app.reports().trigger_report_run_job(sub).await?;
-        Ok(ReportRunCreatePayload { run_id: None })
+        exec_mutation!(
+            ReportRunCreatePayload,
+            app.reports().trigger_report_run_job(sub)
+        )
     }
 
     async fn report_file_generate_download_link(
@@ -2503,11 +2487,11 @@ impl Mutation {
         input: ReportFileGenerateDownloadLinkInput,
     ) -> async_graphql::Result<ReportFileGenerateDownloadLinkPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let url = app
-            .reports()
-            .generate_report_file_download_link(sub, input.report_id, input.extension)
-            .await?;
-        Ok(ReportFileGenerateDownloadLinkPayload { url })
+        exec_mutation!(
+            ReportFileGenerateDownloadLinkPayload,
+            app.reports()
+                .generate_report_file_download_link(sub, input.report_id, input.extension)
+        )
     }
 }
 

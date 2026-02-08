@@ -404,3 +404,9 @@ pub struct CreditModuleConfigureInput {
     pub chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code: String,
 }
 crate::mutation_payload! { CreditModuleConfigurePayload, credit_config: CreditModuleConfig }
+
+impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfigurePayload {
+    fn from(config: DomainChartOfAccountsIntegrationConfig) -> Self {
+        Self::from(CreditModuleConfig::from(config))
+    }
+}

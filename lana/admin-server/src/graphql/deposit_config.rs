@@ -115,3 +115,9 @@ pub struct DepositModuleConfigureInput {
     pub chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: String,
 }
 crate::mutation_payload! { DepositModuleConfigurePayload, deposit_config: DepositModuleConfig }
+
+impl From<DomainChartOfAccountsIntegrationConfig> for DepositModuleConfigurePayload {
+    fn from(config: DomainChartOfAccountsIntegrationConfig) -> Self {
+        Self::from(DepositModuleConfig::from(config))
+    }
+}

@@ -12,6 +12,12 @@ pub struct SumsubPermalinkCreatePayload {
     pub url: String,
 }
 
+impl From<lana_app::kyc::PermalinkResponse> for SumsubPermalinkCreatePayload {
+    fn from(resp: lana_app::kyc::PermalinkResponse) -> Self {
+        Self { url: resp.url }
+    }
+}
+
 #[cfg(feature = "sumsub-testing")]
 #[derive(InputObject)]
 pub struct SumsubTestApplicantCreateInput {

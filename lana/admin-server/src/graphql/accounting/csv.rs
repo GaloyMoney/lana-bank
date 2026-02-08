@@ -72,8 +72,20 @@ pub struct LedgerAccountCsvCreateInput {
 }
 crate::mutation_payload! { LedgerAccountCsvCreatePayload, accounting_csv_document: AccountingCsvDocument }
 
+impl From<DomainDocument> for LedgerAccountCsvCreatePayload {
+    fn from(document: DomainDocument) -> Self {
+        Self::from(AccountingCsvDocument::from(document))
+    }
+}
+
 #[derive(InputObject)]
 pub struct AccountingCsvDownloadLinkGenerateInput {
     pub document_id: UUID,
 }
 crate::mutation_payload! { AccountingCsvDownloadLinkGeneratePayload, link: AccountingCsvDownloadLink }
+
+impl From<GeneratedDocumentDownloadLink> for AccountingCsvDownloadLinkGeneratePayload {
+    fn from(link: GeneratedDocumentDownloadLink) -> Self {
+        Self::from(AccountingCsvDownloadLink::from(link))
+    }
+}

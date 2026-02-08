@@ -558,7 +558,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         document_id: impl Into<CustomerDocumentId> + std::fmt::Debug + Copy,
-    ) -> Result<(), CustomerError> {
+    ) -> Result<CustomerDocumentId, CustomerError> {
         let customer_document_id = document_id.into();
         self.authz
             .enforce_permission(
@@ -570,7 +570,7 @@ where
 
         self.document_storage.delete(customer_document_id).await?;
 
-        Ok(())
+        Ok(customer_document_id)
     }
 
     #[record_error_severity]
