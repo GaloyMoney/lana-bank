@@ -99,7 +99,7 @@ fn system_actor_for_provider(provider: &str) -> SystemActor {
     match provider {
         "bitgo" => crate::primitives::BITGO,
         "komainu" => crate::primitives::KOMAINU,
-        _ => provider.parse().expect("SystemActor parse is infallible"),
+        _ => SystemActor::from(provider.to_string()),
     }
 }
 
