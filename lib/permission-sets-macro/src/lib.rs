@@ -13,13 +13,6 @@ pub struct PermissionSetEntry {
 
 inventory::collect!(PermissionSetEntry);
 
-/// Returns an iterator over all registered permission set names.
-pub fn all_permission_set_names() -> impl Iterator<Item = &'static str> {
-    inventory::iter::<PermissionSetEntry>
-        .into_iter()
-        .map(|e| e.name)
-}
-
 /// Declarative macro for defining permission sets.
 ///
 /// Just list your permission variant names - everything else is auto-derived!
@@ -39,8 +32,7 @@ pub fn all_permission_set_names() -> impl Iterator<Item = &'static str> {
 /// - `pub const PERMISSION_SET_CUSTODY_VIEWER: &str = "custody_viewer";`
 /// - `pub const PERMISSION_SET_CUSTODY_WRITER: &str = "custody_writer";`
 ///
-/// Each variant is also registered via `inventory` so that
-/// `permission_sets_macro::all_permission_set_names()` discovers them at runtime.
+/// Each variant is also registered via `inventory` for runtime discovery.
 ///
 /// ## Naming Rules:
 /// - Crate `core-custody` → module prefix `CUSTODY` → string prefix `custody_`
