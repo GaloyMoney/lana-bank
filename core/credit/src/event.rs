@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 
 use core_credit_terms::{InterestPeriod, TermValues, collateralization::CollateralizationState};
-use core_money::{Satoshis, UsdCents};
+use money::{Satoshis, UsdCents};
 
 use crate::{
     credit_facility::CreditFacilityReceivable, ledger::FacilityProceedsFromLiquidationAccountId,

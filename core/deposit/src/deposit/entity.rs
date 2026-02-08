@@ -3,8 +3,8 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use core_money::UsdCents;
 use es_entity::*;
+use money::UsdCents;
 
 use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId, DepositStatus, PublicId};
 

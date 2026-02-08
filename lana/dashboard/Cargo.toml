@@ -12,7 +12,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 lana-events = { workspace = true }
-core-money = { workspace = true }
+money = { workspace = true }
 
 authz = { workspace = true }
 audit = { workspace = true }

@@ -152,6 +152,11 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
+crate = "bfx-client"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
 crate = "bitgo"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
@@ -203,11 +208,6 @@ license-files = []
 
 [[licenses.clarify]]
 crate = "domain-config"
-expression = "LicenseRef-BUSL-1.1"
-license-files = []
-
-[[licenses.clarify]]
-crate = "core-money"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
@@ -288,6 +288,11 @@ license-files = []
 
 [[licenses.clarify]]
 crate = "komainu"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "money"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
 

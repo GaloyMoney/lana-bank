@@ -8,7 +8,7 @@ use cala_ledger::{
     },
     velocity::{NewParamDefinition, ParamDataType, Params},
 };
-use core_money::Satoshis;
+use money::Satoshis;
 use tracing_macros::record_error_severity;
 
 use crate::collateral::ledger::CollateralLedgerError;

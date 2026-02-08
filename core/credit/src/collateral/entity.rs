@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
-use core_money::UsdCents;
 use derive_builder::Builder;
+use money::UsdCents;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

@@ -144,6 +144,7 @@ All public `&self` methods on `#[derive(EsEntity)]` structs must NOT return `Res
 - Schema changes require `make sdl` before commit
 
 ## Common Pitfalls
+- Run `cargo fmt` before commit
 - Always regenerate GraphQL schema after Rust changes: `make sdl`
 - SQLx queries are compile-time checked - update offline cache if needed
 - Frontend uses Apollo Client - run codegen after schema changes

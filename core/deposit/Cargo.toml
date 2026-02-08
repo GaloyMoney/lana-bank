@@ -12,12 +12,12 @@ json-schema = [
     "es-entity/json-schema",
     "cala-ledger/json-schema",
     "job/json-schema",
-    "core-money/json-schema",
+    "money/json-schema",
     "public-id/json-schema",
 ]
 
 [dependencies]
-core-money = { workspace = true }
+money = { workspace = true }
 governance = { workspace = true }
 core-customer = { workspace = true }
 core-accounting = { workspace = true }

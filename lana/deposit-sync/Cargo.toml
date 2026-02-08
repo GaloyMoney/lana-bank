@@ -10,7 +10,7 @@ fail-on-warnings = []
 
 core-deposit = { workspace = true }
 core-customer = { workspace = true }
-core-money = { workspace = true }
+money = { workspace = true }
 governance = { workspace = true }
 
 sumsub = { workspace = true }

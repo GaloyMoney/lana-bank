@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use core_money::{Satoshis, UsdCents};
 use lana_events::*;
+use money::{Satoshis, UsdCents};
 
 #[derive(Clone, Default, Serialize, Deserialize, Debug)]
 pub struct DashboardValues {

@@ -1,4 +1,4 @@
-use core_money::UsdCents;
+use money::UsdCents;
 
 pub struct DepositAccountBalance {
     pub settled: UsdCents,

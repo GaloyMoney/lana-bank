@@ -1,0 +1,21 @@
+[package]
+name = "bfx-client"
+license = "BUSL-1.1"
+edition = "2024"
+
+[dependencies]
+money = { workspace = true }
+tracing-macros = { workspace = true }
+tracing-utils = { workspace = true }
+
+reqwest = { workspace = true }
+rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+
+[features]
+fail-on-warnings = []
