@@ -1,0 +1,81 @@
+---
+id: custodian
+title: Custodian
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type Custodian {
+  id: ID!
+  custodianId: UUID!
+  createdAt: Timestamp!
+  name: String!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>Custodian.<b>id</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>ID!</b></code>](/for-developers/admin-api/types/scalars/id.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Custodian.<b>custodianId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID!</b></code>](/for-developers/admin-api/types/scalars/uuid.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Custodian.<b>createdAt</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Timestamp!</b></code>](/for-developers/admin-api/types/scalars/timestamp.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Custodian.<b>name</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>String!</b></code>](/for-developers/admin-api/types/scalars/string.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+
+
+
+
+### Member Of
+
+[`CreditFacilityProposal`](/for-developers/admin-api/types/objects/credit-facility-proposal.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CustodianConfigUpdatePayload`](/for-developers/admin-api/types/objects/custodian-config-update-payload.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CustodianConnection`](/for-developers/admin-api/types/objects/custodian-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CustodianCreatePayload`](/for-developers/admin-api/types/objects/custodian-create-payload.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CustodianEdge`](/for-developers/admin-api/types/objects/custodian-edge.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Wallet`](/for-developers/admin-api/types/objects/wallet.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>

@@ -1,0 +1,91 @@
+---
+id: credit-facility-repayment-plan-entry
+title: CreditFacilityRepaymentPlanEntry
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type CreditFacilityRepaymentPlanEntry {
+  repaymentType: CreditFacilityRepaymentType!
+  status: CreditFacilityRepaymentStatus!
+  initial: UsdCents!
+  outstanding: UsdCents!
+  accrualAt: Timestamp!
+  dueAt: Timestamp!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityRepaymentPlanEntry.<b>repaymentType</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CreditFacilityRepaymentType!</b></code>](/for-developers/admin-api/types/enums/credit-facility-repayment-type.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityRepaymentPlanEntry.<b>status</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CreditFacilityRepaymentStatus!</b></code>](/for-developers/admin-api/types/enums/credit-facility-repayment-status.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityRepaymentPlanEntry.<b>initial</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UsdCents!</b></code>](/for-developers/admin-api/types/scalars/usd-cents.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityRepaymentPlanEntry.<b>outstanding</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UsdCents!</b></code>](/for-developers/admin-api/types/scalars/usd-cents.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityRepaymentPlanEntry.<b>accrualAt</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Timestamp!</b></code>](/for-developers/admin-api/types/scalars/timestamp.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityRepaymentPlanEntry.<b>dueAt</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Timestamp!</b></code>](/for-developers/admin-api/types/scalars/timestamp.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+
+
+
+
+### Member Of
+
+[`CreditFacility`](/for-developers/admin-api/types/objects/credit-facility.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityProposal`](/for-developers/admin-api/types/objects/credit-facility-proposal.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PendingCreditFacility`](/for-developers/admin-api/types/objects/pending-credit-facility.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>

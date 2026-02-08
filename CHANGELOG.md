@@ -1,3 +1,22 @@
+## [0.40.0] - 2026-02-08
+
+### 🚀 Features
+
+- Add dagster e2e bats test (#3654)
+
+### 🐛 Bug Fixes
+
+- Autofill values for credit module (#3687)
+
+### 🚜 Refactor
+
+- Extract core utilities to lib and add custom lint (#3688)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.39.0 [ci skip] (#3684)
+- Fix release and update docs (#3690)
+- Update nix flake inputs (#3692)
 ## [0.39.0] - 2026-02-06
 
 ### 🚀 Features

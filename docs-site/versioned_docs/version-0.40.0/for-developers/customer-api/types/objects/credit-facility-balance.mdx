@@ -1,0 +1,91 @@
+---
+id: credit-facility-balance
+title: CreditFacilityBalance
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type CreditFacilityBalance {
+  facilityRemaining: FacilityRemaining!
+  disbursed: Disbursed!
+  interest: Interest!
+  outstanding: Outstanding!
+  dueOutstanding: Outstanding!
+  collateral: Collateral!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityBalance.<b>facilityRemaining</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>FacilityRemaining!</b></code>](/for-developers/customer-api/types/objects/facility-remaining.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityBalance.<b>disbursed</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Disbursed!</b></code>](/for-developers/customer-api/types/objects/disbursed.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityBalance.<b>interest</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Interest!</b></code>](/for-developers/customer-api/types/objects/interest.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityBalance.<b>outstanding</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Outstanding!</b></code>](/for-developers/customer-api/types/objects/outstanding.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityBalance.<b>dueOutstanding</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Outstanding!</b></code>](/for-developers/customer-api/types/objects/outstanding.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityBalance.<b>collateral</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Collateral!</b></code>](/for-developers/customer-api/types/objects/collateral.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+
+
+
+
+### Member Of
+
+[`CreditFacility`](/for-developers/customer-api/types/objects/credit-facility.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>
