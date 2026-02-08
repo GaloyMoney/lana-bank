@@ -527,7 +527,7 @@ fn search_dirs_for_accessor(accessor: Option<&String>) -> Vec<&'static str> {
         Some("exposed_domain_configs") => vec!["core/domain-config"],
         Some("terms_templates") => vec!["core/credit"],
         Some("contract_creation") => vec!["lana/contract-creation"],
-        None => vec!["lana/app"],                              // Direct method on LanaApp
+        None => vec!["lana/app"], // Direct method on LanaApp
         Some(_) => vec!["core", "lana/app", "lana/contract-creation"], // Unknown, search broadly
     }
 }
