@@ -1336,8 +1336,10 @@ export type DepositModuleConfig = {
   __typename?: 'DepositModuleConfig';
   chartOfAccountBankDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFinancialInstitutionDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountForeignAgencyOrSubsidiaryDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFrozenBankDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountFrozenForeignAgencyOrSubsidiaryDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountNonDomiciledIndividualDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
@@ -1353,8 +1355,10 @@ export type DepositModuleConfig = {
 export type DepositModuleConfigureInput = {
   chartOfAccountBankDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountFinancialInstitutionDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountForeignAgencyOrSubsidiaryDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountFrozenBankDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountFrozenForeignAgencyOrSubsidiaryDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: Scalars['String']['input'];

@@ -70,6 +70,15 @@ pub const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
 pub const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
     "frozen-deposit-non-domiciled-company-account-set";
 
+pub const DEPOSIT_FOREIGN_AGENCY_OR_SUBSIDIARY_ACCOUNT_SET_NAME: &str =
+    "Deposit Foreign Agency or Subsidiary Account Set";
+pub const DEPOSIT_FOREIGN_AGENCY_OR_SUBSIDIARY_ACCOUNT_SET_REF: &str =
+    "deposit-foreign-agency-or-subsidiary-account-set";
+pub const FROZEN_DEPOSIT_FOREIGN_AGENCY_OR_SUBSIDIARY_ACCOUNT_SET_NAME: &str =
+    "Frozen Deposit Foreign Agency or Subsidiary Account Set";
+pub const FROZEN_DEPOSIT_FOREIGN_AGENCY_OR_SUBSIDIARY_ACCOUNT_SET_REF: &str =
+    "frozen-deposit-foreign-agency-or-subsidiary-account-set";
+
 pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME: &str = "Deposit Omnibus Account Set";
 pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_REF: &str = "deposit-omnibus-account-set";
 pub const DEPOSIT_OMNIBUS_ACCOUNT_REF: &str = "deposit-omnibus-account";
@@ -91,6 +100,7 @@ pub struct DepositAccountSets {
     bank: InternalAccountSetDetails,
     financial_institution: InternalAccountSetDetails,
     non_domiciled_individual: InternalAccountSetDetails,
+    foreign_agency_or_subsidiary: InternalAccountSetDetails,
 }
 
 #[derive(Clone)]
@@ -179,6 +189,15 @@ impl DepositLedger {
         )
         .await?;
 
+        let foreign_agency_or_subsidiary_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{DEPOSIT_FOREIGN_AGENCY_OR_SUBSIDIARY_ACCOUNT_SET_REF}"),
+            DEPOSIT_FOREIGN_AGENCY_OR_SUBSIDIARY_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
         let frozen_individual_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
@@ -233,6 +252,18 @@ impl DepositLedger {
         )
         .await?;
 
+        let frozen_foreign_agency_or_subsidiary_deposit_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{FROZEN_DEPOSIT_FOREIGN_AGENCY_OR_SUBSIDIARY_ACCOUNT_SET_REF}"
+                ),
+                FROZEN_DEPOSIT_FOREIGN_AGENCY_OR_SUBSIDIARY_ACCOUNT_SET_NAME.to_string(),
+                deposits_normal_balance_type,
+            )
+            .await?;
+
         let deposit_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
@@ -285,6 +316,10 @@ impl DepositLedger {
                     id: non_domiciled_company_deposit_account_set_id,
                     normal_balance_type: deposits_normal_balance_type,
                 },
+                foreign_agency_or_subsidiary: InternalAccountSetDetails {
+                    id: foreign_agency_or_subsidiary_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
             },
             frozen_deposit_account_sets: DepositAccountSets {
                 individual: InternalAccountSetDetails {
@@ -309,6 +344,10 @@ impl DepositLedger {
                 },
                 non_domiciled_individual: InternalAccountSetDetails {
                     id: frozen_non_domiciled_company_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                foreign_agency_or_subsidiary: InternalAccountSetDetails {
+                    id: frozen_foreign_agency_or_subsidiary_deposit_account_set_id,
                     normal_balance_type: deposits_normal_balance_type,
                 },
             },
@@ -935,6 +974,9 @@ impl DepositLedger {
             DepositAccountType::NonDomiciledCompany => {
                 self.deposit_account_sets.non_domiciled_individual
             }
+            DepositAccountType::ForeignAgencyOrSubsidiary => {
+                self.deposit_account_sets.foreign_agency_or_subsidiary
+            }
         }
     }
 
@@ -954,6 +996,10 @@ impl DepositLedger {
             }
             DepositAccountType::NonDomiciledCompany => {
                 self.frozen_deposit_account_sets.non_domiciled_individual
+            }
+            DepositAccountType::ForeignAgencyOrSubsidiary => {
+                self.frozen_deposit_account_sets
+                    .foreign_agency_or_subsidiary
             }
         }
     }
@@ -1093,12 +1139,14 @@ impl DepositLedger {
             bank_deposit_accounts_parent_account_set_id,
             financial_institution_deposit_accounts_parent_account_set_id,
             non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id,
             frozen_individual_deposit_accounts_parent_account_set_id,
             frozen_government_entity_deposit_accounts_parent_account_set_id,
             frozen_private_company_deposit_accounts_parent_account_set_id,
             frozen_bank_deposit_accounts_parent_account_set_id,
             frozen_financial_institution_deposit_accounts_parent_account_set_id,
             frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id,
         } = &new_integration_config;
 
         self.attach_charts_account_set_in_op(
@@ -1165,6 +1213,16 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
+            self.deposit_account_sets.foreign_agency_or_subsidiary.id,
+            *foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id,
+            old_integration_config.map(|config| {
+                config.foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id
+            }),
+        )
+        .await?;
+
+        self.attach_charts_account_set_in_op(
+            op,
             self.frozen_deposit_account_sets.individual.id,
             *frozen_individual_deposit_accounts_parent_account_set_id,
             old_integration_config
@@ -1216,6 +1274,18 @@ impl DepositLedger {
             *frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
             old_integration_config.map(|config| {
                 config.frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id
+            }),
+        )
+        .await?;
+
+        self.attach_charts_account_set_in_op(
+            op,
+            self.frozen_deposit_account_sets
+                .foreign_agency_or_subsidiary
+                .id,
+            *frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id,
+            old_integration_config.map(|config| {
+                config.frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id
             }),
         )
         .await?;
