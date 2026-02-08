@@ -1,0 +1,116 @@
+{
+  "Permissions": {
+    "access_viewer": {
+      "description": "Puede listar y ver usuarios, roles y conjuntos de permisos",
+      "label": "Visualizador de acceso"
+    },
+    "access_writer": {
+      "description": "Puede crear, actualizar y gestionar usuarios, roles y conjuntos de permisos, incluyendo asignar o revocar roles",
+      "label": "Editor de acceso"
+    },
+    "accounting_viewer": {
+      "description": "Puede ver informes contables, asientos contables, cuentas del libro mayor y transacciones",
+      "label": "Visualizador de contabilidad"
+    },
+    "accounting_writer": {
+      "description": "Puede crear y gestionar planes de cuentas, transacciones del libro mayor y manuales, balances, informes de pérdidas y ganancias, y datos contables relacionados",
+      "label": "Editor de contabilidad"
+    },
+    "audit_viewer": {
+      "description": "Puede ver registros de auditoría y registros de actividad del sistema",
+      "label": "Visualizador de auditoría"
+    },
+    "collection_payment_date": {
+      "description": "Puede crear pagos para líneas de crédito con fechas efectivas personalizadas",
+      "label": "Fecha de pago de cobranza"
+    },
+    "collection_viewer": {
+      "description": "Puede ver información de cobranza",
+      "label": "Visualizador de cobranza"
+    },
+    "collection_writer": {
+      "description": "Puede gestionar cobranzas y operaciones relacionadas",
+      "label": "Editor de cobranza"
+    },
+    "contract_creation": {
+      "description": "Puede generar y gestionar contratos de préstamo y documentos contractuales",
+      "label": "Creación de contratos"
+    },
+    "credit_term_templates_viewer": {
+      "description": "Puede ver y listar plantillas de términos",
+      "label": "Visualizador de plantillas de términos de crédito"
+    },
+    "credit_term_templates_writer": {
+      "description": "Puede crear y actualizar plantillas de términos",
+      "label": "Editor de plantillas de términos de crédito"
+    },
+    "credit_viewer": {
+      "description": "Puede ver líneas de crédito, desembolsos, obligaciones e información relacionada con préstamos",
+      "label": "Visualizador de crédito"
+    },
+    "credit_writer": {
+      "description": "Puede crear y gestionar líneas de crédito, actualizar garantías, iniciar y liquidar desembolsos, registrar intereses y procesar obligaciones",
+      "label": "Escritor de crédito"
+    },
+    "custody_viewer": {
+      "description": "Puede ver configuraciones de custodia",
+      "label": "Visualizador de custodia"
+    },
+    "custody_writer": {
+      "description": "Puede crear y gestionar configuraciones de custodia",
+      "label": "Escritor de custodia"
+    },
+    "customer_viewer": {
+      "description": "Puede ver perfiles de clientes y detalles de cuentas",
+      "label": "Visualizador de clientes"
+    },
+    "customer_writer": {
+      "description": "Puede crear, actualizar y gestionar clientes, incluyendo iniciar y aprobar procesos KYC",
+      "label": "Escritor de clientes"
+    },
+    "dashboard_viewer": {
+      "description": "Puede ver paneles del sistema y analíticas",
+      "label": "Visualizador de panel"
+    },
+    "deposit_freeze": {
+      "description": "Puede congelar cuentas de depósito",
+      "label": "Congelación de depósitos"
+    },
+    "deposit_unfreeze": {
+      "description": "Puede descongelar cuentas de depósito",
+      "label": "Descongelación de depósitos"
+    },
+    "deposit_viewer": {
+      "description": "Puede ver cuentas de depósito, saldos, historial de transacciones y detalles de retiros",
+      "label": "Visualizador de depósitos"
+    },
+    "deposit_writer": {
+      "description": "Puede crear y gestionar depósitos, cuentas de depósito y retiros, incluyendo iniciar, confirmar, cancelar y aprobar retiros",
+      "label": "Escritor de depósitos"
+    },
+    "exposed_config_viewer": {
+      "description": "Puede ver valores de configuración expuestos",
+      "label": "Visualizador de configuración expuesta"
+    },
+    "exposed_config_writer": {
+      "description": "Puede actualizar valores de configuración expuestos",
+      "label": "Escritor de configuración expuesta"
+    },
+    "governance_viewer": {
+      "description": "Puede ver comités de gobernanza, políticas y procesos de aprobación",
+      "label": "Visualizador de gobernanza"
+    },
+    "governance_writer": {
+      "description": "Puede crear y gestionar comités y políticas, y controlar procesos de aprobación (crear, aprobar, denegar, concluir)",
+      "label": "Editor de gobernanza"
+    },
+    "report_viewer": {
+      "description": "Puede ver informes regulatorios y descargarlos",
+      "label": "Visualizador de informes"
+    },
+    "report_writer": {
+      "description": "Puede activar la generación de informes regulatorios",
+      "label": "Editor de informes"
+    }
+  }
+}
