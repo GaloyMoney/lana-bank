@@ -1,7 +1,5 @@
 import { useTranslations } from "next-intl"
 
-import { PermissionSetName } from "@/lib/graphql/generated"
-
 export type PermissionTranslation = {
   label: string
   description: string
@@ -10,152 +8,151 @@ export type PermissionTranslation = {
 export function usePermissionDisplay() {
   const t = useTranslations("Permissions")
 
-  const getTranslation = (permissionName: PermissionSetName): PermissionTranslation => {
+  const getTranslation = (permissionName: string): PermissionTranslation => {
     switch (permissionName) {
-      case PermissionSetName.AccessViewer:
+      case "access_viewer":
         return {
           label: t("access_viewer.label"),
           description: t("access_viewer.description"),
         }
-      case PermissionSetName.AccessWriter:
+      case "access_writer":
         return {
           label: t("access_writer.label"),
           description: t("access_writer.description"),
         }
-      case PermissionSetName.AccountingViewer:
+      case "accounting_viewer":
         return {
           label: t("accounting_viewer.label"),
           description: t("accounting_viewer.description"),
         }
-      case PermissionSetName.AccountingWriter:
+      case "accounting_writer":
         return {
           label: t("accounting_writer.label"),
           description: t("accounting_writer.description"),
         }
-      case PermissionSetName.AuditViewer:
+      case "audit_viewer":
         return {
           label: t("audit_viewer.label"),
           description: t("audit_viewer.description"),
         }
-      case PermissionSetName.ContractCreation:
+      case "contract_creation":
         return {
           label: t("contract_creation.label"),
           description: t("contract_creation.description"),
         }
-      case PermissionSetName.CreditViewer:
+      case "credit_viewer":
         return {
           label: t("credit_viewer.label"),
           description: t("credit_viewer.description"),
         }
-      case PermissionSetName.CreditWriter:
+      case "credit_writer":
         return {
           label: t("credit_writer.label"),
           description: t("credit_writer.description"),
         }
-      case PermissionSetName.CollectionPaymentDate:
+      case "collection_payment_date":
         return {
           label: t("collection_payment_date.label"),
           description: t("collection_payment_date.description"),
         }
-      case PermissionSetName.CollectionViewer:
+      case "collection_viewer":
         return {
           label: t("collection_viewer.label"),
           description: t("collection_viewer.description"),
         }
-      case PermissionSetName.CollectionWriter:
+      case "collection_writer":
         return {
           label: t("collection_writer.label"),
           description: t("collection_writer.description"),
         }
-      case PermissionSetName.CreditTermTemplatesViewer:
+      case "credit_term_templates_viewer":
         return {
           label: t("credit_term_templates_viewer.label"),
           description: t("credit_term_templates_viewer.description"),
         }
-      case PermissionSetName.CreditTermTemplatesWriter:
+      case "credit_term_templates_writer":
         return {
           label: t("credit_term_templates_writer.label"),
           description: t("credit_term_templates_writer.description"),
         }
-      case PermissionSetName.CustomerViewer:
+      case "customer_viewer":
         return {
           label: t("customer_viewer.label"),
           description: t("customer_viewer.description"),
         }
-      case PermissionSetName.CustomerWriter:
+      case "customer_writer":
         return {
           label: t("customer_writer.label"),
           description: t("customer_writer.description"),
         }
-      case PermissionSetName.DashboardViewer:
+      case "dashboard_viewer":
         return {
           label: t("dashboard_viewer.label"),
           description: t("dashboard_viewer.description"),
         }
-      case PermissionSetName.DepositViewer:
+      case "deposit_viewer":
         return {
           label: t("deposit_viewer.label"),
           description: t("deposit_viewer.description"),
         }
-      case PermissionSetName.DepositWriter:
+      case "deposit_writer":
         return {
           label: t("deposit_writer.label"),
           description: t("deposit_writer.description"),
         }
-      case PermissionSetName.DepositFreeze:
+      case "deposit_freeze":
         return {
           label: t("deposit_freeze.label"),
           description: t("deposit_freeze.description"),
         }
-      case PermissionSetName.DepositUnfreeze:
+      case "deposit_unfreeze":
         return {
           label: t("deposit_unfreeze.label"),
           description: t("deposit_unfreeze.description"),
         }
-      case PermissionSetName.ExposedConfigViewer:
+      case "exposed_config_viewer":
         return {
           label: t("exposed_config_viewer.label"),
           description: t("exposed_config_viewer.description"),
         }
-      case PermissionSetName.ExposedConfigWriter:
+      case "exposed_config_writer":
         return {
           label: t("exposed_config_writer.label"),
           description: t("exposed_config_writer.description"),
         }
-      case PermissionSetName.GovernanceViewer:
+      case "governance_viewer":
         return {
           label: t("governance_viewer.label"),
           description: t("governance_viewer.description"),
         }
-      case PermissionSetName.GovernanceWriter:
+      case "governance_writer":
         return {
           label: t("governance_writer.label"),
           description: t("governance_writer.description"),
         }
-      case PermissionSetName.CustodyViewer:
+      case "custody_viewer":
         return {
           label: t("custody_viewer.label"),
           description: t("custody_viewer.description"),
         }
-      case PermissionSetName.CustodyWriter:
+      case "custody_writer":
         return {
           label: t("custody_writer.label"),
           description: t("custody_writer.description"),
         }
-      case PermissionSetName.ReportViewer:
+      case "report_viewer":
         return {
           label: t("report_viewer.label"),
           description: t("report_viewer.description"),
         }
-      case PermissionSetName.ReportWriter:
+      case "report_writer":
         return {
           label: t("report_writer.label"),
           description: t("report_writer.description"),
         }
+      default:
+        return { label: permissionName, description: "" }
     }
-
-    const exhaustiveCheck: never = permissionName
-    return exhaustiveCheck
   }
 
   return {
