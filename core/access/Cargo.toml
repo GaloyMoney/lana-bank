@@ -5,20 +5,15 @@ edition = "2024"
 
 [features]
 
-default = ["governance"]
 fail-on-warnings = []
-graphql = ["es-entity/graphql", "governance/graphql"]
-governance = ["dep:governance"]
+graphql = ["es-entity/graphql"]
 json-schema = [
     "dep:schemars",
     "es-entity/json-schema",
     "audit/json-schema",
-    "governance/json-schema",
 ]
 
 [dependencies]
-governance = { workspace = true, optional = true }
-
 core-ids = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
