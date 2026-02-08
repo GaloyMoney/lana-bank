@@ -103,8 +103,7 @@ impl Customer {
     pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustomerEvent::KycApproved { .. },
-            => CustomerEvent::KycDeclined { .. }
+            CustomerEvent::KycApproved { .. }
         );
         self.events.push(CustomerEvent::KycApproved {
             level,
@@ -120,8 +119,7 @@ impl Customer {
     pub fn decline_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustomerEvent::KycDeclined { .. },
-            => CustomerEvent::KycApproved { .. }
+            CustomerEvent::KycDeclined { .. }
         );
         self.events
             .push(CustomerEvent::KycDeclined { applicant_id });
@@ -135,8 +133,7 @@ impl Customer {
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustomerEvent::KycVerificationUpdated { kyc_verification: existing_kyc_verification, .. } if existing_kyc_verification == &kyc_verification,
-            => CustomerEvent::KycVerificationUpdated { .. }
+            CustomerEvent::KycVerificationUpdated { kyc_verification: existing_kyc_verification, .. } if existing_kyc_verification == &kyc_verification
         );
         self.events
             .push(CustomerEvent::KycVerificationUpdated { kyc_verification });
