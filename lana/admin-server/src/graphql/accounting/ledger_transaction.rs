@@ -96,7 +96,7 @@ impl LedgerTransaction {
                 }
             }
             DomainLedgerTransactionInitiator::System(actor) => Ok(
-                LedgerTransactionInitiator::System(System::from_actor(*actor)),
+                LedgerTransactionInitiator::System(System::from_actor(actor.clone())),
             ),
             DomainLedgerTransactionInitiator::Customer(..) => {
                 Err("Customer-initiated transactions not supported yet".into())

@@ -178,7 +178,7 @@ where
                     data,
                     collateral.account_id,
                     core_accounting::LedgerTransactionInitiator::System(
-                        audit::SystemActor::CollateralizationSync,
+                        crate::primitives::COLLATERALIZATION_SYNC,
                     ),
                 )
                 .await?;

@@ -139,7 +139,7 @@ where
             );
 
             let initiated_by =
-                LedgerTransactionInitiator::System(audit::SystemActor::CreditFacilityJob);
+                LedgerTransactionInitiator::System(crate::primitives::CREDIT_FACILITY_JOB);
             self.process
                 .execute_in_op(db, entity.id, initiated_by)
                 .await?;

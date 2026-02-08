@@ -6,7 +6,7 @@ use tracing_macros::record_error_severity;
 
 use std::sync::Arc;
 
-use audit::{AuditSvc, SystemActor};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::GovernanceEvent;
 use job::*;
@@ -245,7 +245,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
-                SystemActor::CollateralizationSync,
+                crate::primitives::COLLATERALIZATION_SYNC,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
             )
@@ -305,7 +305,7 @@ where
                 .audit()
                 .record_system_entry_in_op(
                     &mut op,
-                    SystemActor::CollateralizationSync,
+                    crate::primitives::COLLATERALIZATION_SYNC,
                     CoreCreditObject::all_credit_facilities(),
                     CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
                 )

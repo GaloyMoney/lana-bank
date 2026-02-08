@@ -63,6 +63,7 @@ pub async fn run(
             let app = app.clone();
             let clock = clock.clone();
 
+            let sub = sub.clone();
             let handle = tokio::spawn(
                 async move {
                     scenarios::process_facility_lifecycle(

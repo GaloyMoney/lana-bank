@@ -117,6 +117,9 @@ impl From<CustomerType> for String {
     }
 }
 
+pub const CUSTOMER_SYNC: audit::SystemActor = audit::SystemActor::new("customer-sync");
+pub const SUMSUB: audit::SystemActor = audit::SystemActor::new("sumsub");
+
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 

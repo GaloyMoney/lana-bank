@@ -8,7 +8,8 @@ use crate::{
     deposit::{ChartOfAccountsIntegrationConfig, Deposits},
 };
 
-use rbac_types::{Subject, SystemActor};
+use core_access::primitives::BOOTSTRAP;
+use rbac_types::Subject;
 
 #[derive(Deserialize)]
 struct DepositConfigData {
@@ -80,11 +81,7 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
 
     match deposit
         .chart_of_accounts_integrations()
-        .set_config(
-            &Subject::System(SystemActor::Bootstrap),
-            chart,
-            config_values,
-        )
+        .set_config(&Subject::System(BOOTSTRAP), chart, config_values)
         .await
     {
         Ok(_) => (),

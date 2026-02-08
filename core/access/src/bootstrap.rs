@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use audit::{SystemActor, SystemSubject};
+use audit::SystemSubject;
 use authz::action_description::*;
 use es_entity::DbOp;
 
@@ -74,7 +74,9 @@ where
         // Subject::System also has the superuser role
         self.authz
             .assign_role_to_subject(
-                <<Audit as AuditSvc>::Subject as SystemSubject>::system(SystemActor::Bootstrap),
+                <<Audit as AuditSvc>::Subject as SystemSubject>::system(
+                    crate::primitives::BOOTSTRAP,
+                ),
                 superuser_role.id,
             )
             .await?;
@@ -124,7 +126,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 db,
-                SystemActor::Bootstrap,
+                crate::primitives::BOOTSTRAP,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::ROLE_CREATE,
             )

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
-use audit::{AuditSvc, SystemActor};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use job::*;
 use obix::out::OutboxEventMarker;
@@ -139,7 +139,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
-                SystemActor::ObligationSync,
+                crate::primitives::OBLIGATION_SYNC,
                 CoreCreditCollectionObject::obligation(id),
                 CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
             )
@@ -155,7 +155,7 @@ where
                     &mut op,
                     defaulted,
                     core_accounting::LedgerTransactionInitiator::System(
-                        audit::SystemActor::ObligationSync,
+                        crate::primitives::OBLIGATION_SYNC,
                     ),
                 )
                 .await?;

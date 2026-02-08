@@ -97,9 +97,9 @@ where
 
 fn system_actor_for_provider(provider: &str) -> SystemActor {
     match provider {
-        "bitgo" => SystemActor::BitGo,
-        "komainu" => SystemActor::Komainu,
-        _ => SystemActor::Unknown,
+        "bitgo" => crate::primitives::BITGO,
+        "komainu" => crate::primitives::KOMAINU,
+        _ => provider.parse().unwrap(),
     }
 }
 
@@ -414,7 +414,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
-                SystemActor::Bootstrap,
+                crate::primitives::BOOTSTRAP,
                 CoreCustodyObject::all_custodians(),
                 CoreCustodyAction::CUSTODIAN_UPDATE,
             )

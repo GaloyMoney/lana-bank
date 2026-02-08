@@ -1332,7 +1332,7 @@ impl CreditLedger {
             account_ids,
             facility_amount,
             tx_ref,
-            initiated_by,
+            initiated_by.clone(),
         )
         .await?;
 
@@ -1342,7 +1342,7 @@ impl CreditLedger {
                 initial_disbursal,
                 account_ids,
                 debit_account_id,
-                initiated_by,
+                initiated_by.clone(),
             )
             .await?;
         }

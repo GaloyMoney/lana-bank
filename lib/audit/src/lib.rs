@@ -2,7 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 use serde::{Deserialize, Serialize};
-use std::{fmt, marker::PhantomData, str::FromStr};
+use std::{borrow::Cow, fmt, marker::PhantomData, str::FromStr};
 use uuid::Uuid;
 
 pub mod error;
@@ -14,55 +14,40 @@ pub use svc_trait::*;
 
 /// Identifies the specific system actor performing an operation.
 /// Used to differentiate between external integrations, internal jobs, and system operations.
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    Serialize,
-    Deserialize,
-    strum::Display,
-    strum::EnumString,
-    strum::AsRefStr,
-)]
-#[strum(serialize_all = "kebab-case")]
-pub enum SystemActor {
-    // External integrations
-    Sumsub,
-    BitGo,
-    Komainu,
+///
+/// Each `core/` module defines its own constants (e.g. `core_credit::primitives::INTEREST_ACCRUAL`).
+#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct SystemActor(Cow<'static, str>);
 
-    // Credit module jobs
-    InterestAccrual,
-    ObligationSync,
-    CollateralizationSync,
-    CreditFacilityJob,
-    DisbursalJob,
+impl SystemActor {
+    pub const fn new(actor: &'static str) -> Self {
+        Self(Cow::Borrowed(actor))
+    }
+}
 
-    // Deposit module
-    DepositApproval,
+impl fmt::Display for SystemActor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
-    // Customer module
-    CustomerSync,
+impl AsRef<str> for SystemActor {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
 
-    // Accounting module
-    AccountingJob,
-
-    // Governance
-    Governance,
-
-    // System operations
-    Bootstrap,
-
-    // Backward compatibility for existing audit entries
-    Unknown,
+impl FromStr for SystemActor {
+    type Err = std::convert::Infallible;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(Cow::Owned(s.to_string())))
+    }
 }
 
 /// Represents who initiated an operation (user, customer, or system actor).
 /// This type can be used across core and lana modules.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Subject {
     System(SystemActor),
@@ -72,8 +57,6 @@ pub enum Subject {
 
 #[derive(Debug, thiserror::Error)]
 pub enum SubjectParseError {
-    #[error("unknown system actor: {0}")]
-    UnknownSystemActor(String),
     #[error("invalid uuid: {0}")]
     InvalidUuid(#[from] uuid::Error),
     #[error("unknown subject format: {0}")]
@@ -90,10 +73,7 @@ impl Subject {
     /// Parse a subject from a string representation (e.g., "system:bootstrap", "user:uuid", "customer:uuid")
     pub fn try_from_string(s: &str) -> Result<Self, SubjectParseError> {
         if let Some(actor_str) = s.strip_prefix("system:") {
-            let actor = actor_str
-                .parse::<SystemActor>()
-                .map_err(|_| SubjectParseError::UnknownSystemActor(actor_str.to_string()))?;
-            return Ok(Self::System(actor));
+            return Ok(Self::System(actor_str.parse().unwrap()));
         }
 
         if let Some(id_str) = s.strip_prefix("user:") {

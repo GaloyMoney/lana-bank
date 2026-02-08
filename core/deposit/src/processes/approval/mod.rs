@@ -5,7 +5,7 @@ use governance::{ApprovalProcessType, GovernanceAction, GovernanceEvent, Governa
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::{AuditSvc, SystemActor};
+use audit::AuditSvc;
 use core_accounting::LedgerTransactionInitiator;
 use governance::Governance;
 use obix::out::OutboxEventMarker;
@@ -87,7 +87,7 @@ where
         self.audit
             .record_system_entry_in_op(
                 &mut op,
-                SystemActor::DepositApproval,
+                crate::primitives::DEPOSIT_APPROVAL,
                 CoreDepositObject::withdrawal(id),
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
             )
@@ -102,7 +102,7 @@ where
                         denied_tx_id,
                         withdraw.amount,
                         withdraw.deposit_account_id,
-                        LedgerTransactionInitiator::System(audit::SystemActor::DepositApproval),
+                        LedgerTransactionInitiator::System(crate::primitives::DEPOSIT_APPROVAL),
                     )
                     .await?;
                 op.commit().await?;

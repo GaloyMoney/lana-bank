@@ -45,15 +45,17 @@ impl AuditEntry {
     async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<AuditSubject> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
 
-        match self.subject {
+        match &self.subject {
             DomainSubject::User(id) => {
-                let user = loader.load_one(id).await?;
+                let user = loader.load_one(*id).await?;
                 match user {
                     None => Err("User not found".into()),
                     Some(user) => Ok(AuditSubject::User(user)),
                 }
             }
-            DomainSubject::System(actor) => Ok(AuditSubject::System(System::from_actor(actor))),
+            DomainSubject::System(actor) => {
+                Ok(AuditSubject::System(System::from_actor(actor.clone())))
+            }
             DomainSubject::Customer(_) => {
                 panic!("Whoops - have we gone live yet?");
             }

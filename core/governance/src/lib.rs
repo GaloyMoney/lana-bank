@@ -14,7 +14,7 @@ use tracing_macros::record_error_severity;
 
 use std::collections::{HashMap, HashSet};
 
-use audit::{AuditSvc, SystemActor};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use obix::out::{Outbox, OutboxEventMarker};
 
@@ -93,7 +93,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
-                SystemActor::Governance,
+                crate::primitives::GOVERNANCE,
                 GovernanceObject::all_policies(),
                 GovernanceAction::POLICY_CREATE,
             )
@@ -224,7 +224,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
-                SystemActor::Governance,
+                crate::primitives::GOVERNANCE,
                 GovernanceObject::all_approval_processes(),
                 GovernanceAction::APPROVAL_PROCESS_CREATE,
             )
@@ -362,7 +362,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 op,
-                SystemActor::Governance,
+                crate::primitives::GOVERNANCE,
                 GovernanceObject::approval_process(process.id),
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )

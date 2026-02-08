@@ -27,14 +27,25 @@ pub async fn run(
     clock: ClockHandle,
     clock_ctrl: ClockController,
 ) -> anyhow::Result<(), anyhow::Error> {
-    timely_payments::timely_payments_scenario(*sub, app, &clock, &clock_ctrl).await?;
-    interest_late::interest_late_scenario(*sub, app, &clock, &clock_ctrl).await?;
-    principal_late::principal_late_scenario(*sub, app, &clock, &clock_ctrl).await?;
-    disbursal_different_months::disbursal_different_months_scenario(*sub, app, &clock, &clock_ctrl)
+    timely_payments::timely_payments_scenario(sub.clone(), app, &clock, &clock_ctrl).await?;
+    interest_late::interest_late_scenario(sub.clone(), app, &clock, &clock_ctrl).await?;
+    principal_late::principal_late_scenario(sub.clone(), app, &clock, &clock_ctrl).await?;
+    disbursal_different_months::disbursal_different_months_scenario(
+        sub.clone(),
+        app,
+        &clock,
+        &clock_ctrl,
+    )
+    .await?;
+    principal_under_payment::principal_under_payment_scenario(
+        sub.clone(),
+        app,
+        &clock,
+        &clock_ctrl,
+    )
+    .await?;
+    interest_under_payment::interest_under_payment_scenario(sub.clone(), app, &clock, &clock_ctrl)
         .await?;
-    principal_under_payment::principal_under_payment_scenario(*sub, app, &clock, &clock_ctrl)
-        .await?;
-    interest_under_payment::interest_under_payment_scenario(*sub, app, &clock, &clock_ctrl).await?;
 
     Ok(())
 }
