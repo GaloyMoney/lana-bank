@@ -163,6 +163,7 @@ All public `&self` methods on `#[derive(EsEntity)]` structs must NOT return `Res
 - Use `#[serde(rename_all = "camelCase")]` instead of manual field renames
 - Don't add `#[allow(dead_code)]`
 - Prefer `?` operator over `.map_err()` for error conversion when `From` is implemented
+- **Never use `.unwrap()`** in production code (lint: `unwrap-usage`). Always use `.expect("reason")` to provide context on failure. This is enforced by a custom lint in CI.
 
 ## Git and Github
 - Use conventional commits
