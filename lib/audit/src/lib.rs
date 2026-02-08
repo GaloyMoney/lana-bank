@@ -75,7 +75,9 @@ impl Subject {
     /// Parse a subject from a string representation (e.g., "system:bootstrap", "user:uuid", "customer:uuid")
     pub fn try_from_string(s: &str) -> Result<Self, SubjectParseError> {
         if let Some(actor_str) = s.strip_prefix("system:") {
-            return Ok(Self::System(actor_str.parse().unwrap()));
+            return Ok(Self::System(
+                actor_str.parse().expect("SystemActor parse is infallible"),
+            ));
         }
 
         if let Some(id_str) = s.strip_prefix("user:") {
