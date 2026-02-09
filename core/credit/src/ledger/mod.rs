@@ -1786,13 +1786,6 @@ impl CreditLedger {
         )
         .await?;
 
-        self.create_collateral_facility_accounts_in_op(
-            op,
-            pending_credit_facility.collateral_id,
-            pending_credit_facility.account_ids,
-        )
-        .await?;
-
         self.add_credit_facility_control_to_account_in_op(
             op,
             pending_credit_facility.account_ids.facility_account_id,
@@ -1898,71 +1891,6 @@ impl CreditLedger {
             proceeds_from_liquidation_name,
             proceeds_from_liquidation_name,
             entity_ref,
-        )
-        .await?;
-
-        Ok(())
-    }
-
-    async fn create_collateral_facility_accounts_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        collateral_id: CollateralId,
-        account_ids: PendingCreditFacilityAccountIds,
-    ) -> Result<(), CreditLedgerError> {
-        let PendingCreditFacilityAccountIds {
-            facility_payment_holding_account_id,
-            facility_proceeds_from_liquidation_account_id,
-            facility_uncovered_outstanding_account_id,
-            ..
-        } = account_ids;
-
-        let collateral_entity_ref = EntityRef::new(COLLATERAL_ENTITY_TYPE, collateral_id);
-
-        let facility_payment_holding_reference =
-            format!("collateral-facility-payment-holding:{collateral_id}");
-        let facility_payment_holding_name =
-            format!("Facility Payment Holding Account for Collateral {collateral_id}");
-        self.create_account_in_op(
-            op,
-            facility_payment_holding_account_id,
-            self.internal_account_sets.payment_holding,
-            &facility_payment_holding_reference,
-            &facility_payment_holding_name,
-            &facility_payment_holding_name,
-            collateral_entity_ref.clone(),
-        )
-        .await?;
-
-        let facility_uncovered_outstanding_reference =
-            format!("collateral-facility-uncovered-outstanding:{collateral_id}");
-        let facility_uncovered_outstanding_name =
-            format!("Facility Uncovered Outstanding Account for Collateral {collateral_id}");
-        self.create_account_in_op(
-            op,
-            facility_uncovered_outstanding_account_id,
-            self.internal_account_sets.uncovered_outstanding,
-            &facility_uncovered_outstanding_reference,
-            &facility_uncovered_outstanding_name,
-            &facility_uncovered_outstanding_name,
-            collateral_entity_ref.clone(),
-        )
-        .await?;
-
-        let facility_proceeds_from_liquidation_reference =
-            format!("collateral-facility-proceeds-from-liquidation:{collateral_id}");
-        let facility_proceeds_from_liquidation_name =
-            format!("Facility Proceeds From Liquidation Account for Collateral {collateral_id}");
-        self.create_account_in_op(
-            op,
-            facility_proceeds_from_liquidation_account_id,
-            self.internal_account_sets
-                .liquidation
-                .proceeds_from_liquidation,
-            &facility_proceeds_from_liquidation_reference,
-            &facility_proceeds_from_liquidation_name,
-            &facility_proceeds_from_liquidation_name,
-            collateral_entity_ref,
         )
         .await?;
 
