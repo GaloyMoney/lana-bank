@@ -9,7 +9,7 @@ use money::{Satoshis, UsdCents};
 
 use crate::{
     credit_facility::CreditFacilityReceivable, ledger::FacilityProceedsFromLiquidationAccountId,
-    public::PublicCreditFacilityProposal,
+    public::{PublicCreditFacilityProposal, PublicPendingCreditFacility},
 };
 
 use super::primitives::*;
@@ -25,17 +25,12 @@ pub enum CoreCreditEvent {
         entity: PublicCreditFacilityProposal,
     },
     PendingCreditFacilityCollateralizationChanged {
-        id: PendingCreditFacilityId,
-        state: PendingCreditFacilityCollateralizationState,
-        collateral: Satoshis,
-        price: PriceOfOneBTC,
+        entity: PublicPendingCreditFacility,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
     PendingCreditFacilityCompleted {
-        id: PendingCreditFacilityId,
-        status: PendingCreditFacilityStatus,
-        recorded_at: DateTime<Utc>,
+        entity: PublicPendingCreditFacility,
     },
     FacilityActivated {
         id: CreditFacilityId,
