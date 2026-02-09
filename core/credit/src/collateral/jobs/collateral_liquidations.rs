@@ -10,6 +10,7 @@ use core_custody::CoreCustodyEvent;
 use es_entity::{DbOp, Idempotent};
 use governance::GovernanceEvent;
 use job::*;
+use money::{Satoshis, UsdCents};
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
@@ -18,7 +19,11 @@ use super::{
     liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
     partial_liquidation::{PartialLiquidationJobConfig, PartialLiquidationJobSpawner},
 };
-use crate::{CoreCreditEvent, collateral::error::CollateralError, primitives::*};
+use crate::{
+    collateral::error::CollateralError,
+    event::CoreCreditEvent,
+    primitives::{CollateralId, CreditFacilityId, PriceOfOneBTC},
+};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct CreditFacilityLiquidationsJobData {
@@ -26,9 +31,7 @@ struct CreditFacilityLiquidationsJobData {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct CreditFacilityLiquidationsJobConfig<E> {
-    pub _phantom: std::marker::PhantomData<E>,
-}
+pub struct CreditFacilityLiquidationsJobConfig;
 
 pub struct CreditFacilityLiquidationsInit<E>
 where
@@ -71,7 +74,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    type Config = CreditFacilityLiquidationsJobConfig<E>;
+    type Config = CreditFacilityLiquidationsJobConfig;
     fn job_type(&self) -> JobType {
         CREDIT_FACILITY_LIQUIDATIONS_JOB
     }
@@ -161,7 +164,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(name = "outbox.core_credit.credit_facility_liquidations.process_message_in_op", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "outbox.core_credit.collateral_liquidations.process_message_in_op", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message_in_op(
         &self,
         db: &mut DbOp<'_>,
@@ -169,8 +172,8 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(
             event @ CoreCreditEvent::PartialLiquidationInitiated {
-                credit_facility_id,
                 collateral_id,
+                credit_facility_id,
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
@@ -184,10 +187,10 @@ where
             self.create_if_not_exist_in_op(
                 db,
                 *collateral_id,
+                *credit_facility_id,
                 *trigger_price,
                 *initially_expected_to_receive,
                 *initially_estimated_to_liquidate,
-                *credit_facility_id,
             )
             .await?;
         }
@@ -203,10 +206,10 @@ where
         &self,
         db: &mut DbOp<'_>,
         collateral_id: CollateralId,
+        credit_facility_id: CreditFacilityId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
-        credit_facility_id: CreditFacilityId,
     ) -> Result<(), CollateralError> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 

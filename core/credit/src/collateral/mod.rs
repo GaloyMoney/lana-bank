@@ -20,7 +20,10 @@ use governance::GovernanceEvent;
 use money::UsdCents;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject};
+use crate::{
+    collateral::ledger::CollateralLedgerAccountIds,
+    primitives::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject},
+};
 
 use es_entity::Idempotent;
 
@@ -30,7 +33,7 @@ use ledger::CollateralLedger;
 
 pub(super) use entity::*;
 use jobs::{
-    credit_facility_liquidations, liquidation_payment, partial_liquidation, wallet_collateral_sync,
+    collateral_liquidations, liquidation_payment, partial_liquidation, wallet_collateral_sync,
 };
 pub use {
     entity::Collateral,
@@ -133,8 +136,8 @@ where
                 credit_facility_repo,
             ));
 
-        let credit_facility_liquidations_job_spawner = jobs.add_initializer(
-            credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
+        let collateral_liquidations_job_spawner = jobs.add_initializer(
+            collateral_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
                 partial_liquidation_job_spawner,
@@ -142,12 +145,10 @@ where
             ),
         );
 
-        credit_facility_liquidations_job_spawner
+        collateral_liquidations_job_spawner
             .spawn_unique(
                 job::JobId::new(),
-                credit_facility_liquidations::CreditFacilityLiquidationsJobConfig::<E> {
-                    _phantom: std::marker::PhantomData,
-                },
+                collateral_liquidations::CreditFacilityLiquidationsJobConfig,
             )
             .await?;
 
@@ -172,7 +173,7 @@ where
         collateral_id: CollateralId,
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
-        account_ids: ledger::CollateralLedgerAccountIds,
+        account_ids: CollateralLedgerAccountIds,
     ) -> Result<Collateral, CollateralError> {
         self.ledger
             .create_collateral_accounts_in_op(db, collateral_id, account_ids)
@@ -246,11 +247,6 @@ where
         if let es_entity::Idempotent::Executed(data) =
             collateral.record_collateral_update_via_liquidation(amount_sent, effective)?
         {
-            let collateral_in_liquidation_account_id = collateral
-                .active_liquidation_account_ids
-                .ok_or(CollateralError::NoActiveLiquidation)?
-                .collateral_in_liquidation_account_id;
-
             self.repo.update_in_op(&mut db, &mut collateral).await?;
 
             self.ledger
@@ -259,7 +255,7 @@ where
                     data.tx_id,
                     amount_sent,
                     collateral.account_ids.collateral_account_id,
-                    collateral_in_liquidation_account_id,
+                    collateral.account_ids.collateral_in_liquidation_account_id,
                     initiated_by,
                 )
                 .await?;

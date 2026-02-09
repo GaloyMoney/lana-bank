@@ -69,7 +69,6 @@ const LiquidationsList = () => {
         <PublicIdBadge publicId={String(collateral.creditFacility.publicId)} />
       ),
     },
-
     {
       key: "expectedToReceive",
       label: t("table.headers.expectedToReceive"),

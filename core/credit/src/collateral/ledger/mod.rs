@@ -16,7 +16,7 @@ pub use accounts::CollateralLedgerAccountIds;
 pub use error::CollateralLedgerError;
 
 use crate::{
-    LiquidationAccountSets,
+    ledger::LiquidationAccountSets,
     primitives::{
         COLLATERAL_ENTITY_TYPE, CalaAccountId, CollateralDirection, CollateralId, CollateralUpdate,
         LedgerOmnibusAccountIds,
@@ -118,7 +118,7 @@ impl CollateralLedger {
         &self,
         op: &mut impl es_entity::AtomicOperation,
         id: impl Into<CalaAccountId>,
-        parent_account_set: crate::InternalAccountSetDetails,
+        parent_account_set: crate::ledger::InternalAccountSetDetails,
         reference: &str,
         name: &str,
         description: &str,
