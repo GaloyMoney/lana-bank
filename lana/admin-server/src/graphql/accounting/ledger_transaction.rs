@@ -90,7 +90,7 @@ impl LedgerTransaction {
         match &self.entity.initiated_by {
             DomainLedgerTransactionInitiator::User(id) => {
                 let loader = ctx.data_unchecked::<LanaDataLoader>();
-                match loader.load_one(UserId::from(*id)).await? {
+                match loader.load_one(*id).await? {
                     Some(user) => Ok(LedgerTransactionInitiator::User(user)),
                     None => Err("Initiator user not found".into()),
                 }
