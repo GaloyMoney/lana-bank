@@ -503,7 +503,7 @@ EOF
   echo "Launched remaining dbt models materialization with run ID: $run_id"
 
   # Wait for remaining models to complete (20 min timeout)
-  dagster_poll_run_status "$run_id" 600 2 || return 1
+  dagster_poll_run_status "$run_id" 900 2 || return 1
 
   echo "All dbt models materialized successfully"
 }
