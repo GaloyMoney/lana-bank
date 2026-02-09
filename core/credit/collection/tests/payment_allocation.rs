@@ -72,36 +72,37 @@ async fn payment_allocation_created_event_on_allocate() -> anyhow::Result<()> {
     // Create an obligation first
     create_obligation(&ctx, beneficiary_id, amount).await;
 
-    // Record a payment
+    // Record a payment and allocate it in a single transaction to avoid
+    // races with concurrent test processes that poll for PaymentCreated events.
     let payment_ledger_accounts = PaymentLedgerAccountIds {
         facility_payment_holding_account_id: ctx.accounts.payment_holding,
         facility_uncovered_outstanding_account_id: ctx.accounts.uncovered_outstanding,
         payment_source_account_id: PaymentSourceAccountId::new(ctx.accounts.payment_source),
     };
 
-    let payment = ctx
-        .collections
-        .payments()
-        .record(
-            PaymentId::new(),
-            beneficiary_id,
-            payment_ledger_accounts,
-            amount,
-            ctx.clock.today(),
-            LedgerTransactionInitiator::System,
-        )
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("payment was not created"))?;
-
-    let payment_details = PaymentDetailsForAllocation::from(payment);
+    let payments = ctx.collections.payments().clone();
     let obligations = ctx.collections.obligations().clone();
     let pool = ctx.pool.clone();
     let clock = ctx.clock.clone();
+    let effective = ctx.clock.today();
 
     let (_, recorded) = expect_event(
         &ctx.outbox,
         move || async move {
             let mut op = DbOp::init_with_clock(&pool, &clock).await?;
+            let payment = payments
+                .record_in_op(
+                    &mut op,
+                    PaymentId::new(),
+                    beneficiary_id,
+                    payment_ledger_accounts,
+                    amount,
+                    effective,
+                    LedgerTransactionInitiator::System,
+                )
+                .await?
+                .ok_or_else(|| anyhow::anyhow!("payment was not created"))?;
+            let payment_details = PaymentDetailsForAllocation::from(payment);
             obligations
                 .allocate_payment_in_op(
                     &mut op,
