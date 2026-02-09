@@ -57,22 +57,9 @@ config:
 #@ end
 
 #@ def exec_phase(pkgs):
-#@ pkg = pkgs[0]
 do:
 - #@ check_latest_commit()
-- in_parallel:
-  - #@ set_pr_status("Executing phase " + pkg)
-  - #@ set_pr_status("Running", context = pkg)
-  - #@ nix_build_and_cache(pkgs)
-  on_failure:
-    in_parallel:
-    - #@ set_pr_status("Failure (" + pkg + ")", status = "failure")
-    - #@ set_pr_status("Failed", context = pkg, status = "failure")
-  on_abort: #@ set_pr_status("Aborted", context = pkg, status = "failure")
-  on_error: #@ set_pr_status("Errored", context = pkg, status = "error")
-- in_parallel:
-  - #@ set_pr_status("Complete", context = pkg, status = "success")
-  - #@ set_pr_status("Awaiting next phase")
+- #@ nix_build_and_cache(pkgs)
 #@ end
 
 #@ def nix_build_and_cache(pkgs, resource_name="prs"):
@@ -101,15 +88,6 @@ config:
         done
 #@ end
 
-#@ def set_pr_status(description, context = "status", status = "pending"):
-put: prs-out
-params:
-  path: prs
-  status: #@ status
-  base_context: nix-cache
-  context: #@ context
-  description: #@ description
-#@ end
 
 #@ def check_latest_commit():
 task: check-latest-commit
@@ -134,5 +112,4 @@ config:
         cd repo
         cachix use $CACHIX_CACHE_NAME
         nix run ./ci#check-latest-commit
-on_failure: #@ set_pr_status("Aborted - old commit", status = "failure")
 #@ end
