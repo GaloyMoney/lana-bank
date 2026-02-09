@@ -39,14 +39,15 @@ where
         use CoreCreditEvent::*;
 
         match message.as_event() {
-            Some(event @ FacilityProposalCreated { id, .. })
-            | Some(
-                event @ FacilityProposalConcluded {
-                    id,
-                    status: crate::primitives::CreditFacilityProposalStatus::Approved,
-                },
-            ) => {
-                self.handle_credit_event(db, message, event, *id).await?;
+            Some(event @ FacilityProposalCreated { entity }) => {
+                self.handle_credit_event(db, message, event, entity.id)
+                    .await?;
+            }
+            Some(event @ FacilityProposalConcluded { entity })
+                if entity.status == crate::primitives::CreditFacilityProposalStatus::Approved =>
+            {
+                self.handle_credit_event(db, message, event, entity.id)
+                    .await?;
             }
             Some(event @ PendingCreditFacilityCollateralizationChanged { id, .. }) => {
                 self.handle_credit_event(db, message, event, *id).await?;

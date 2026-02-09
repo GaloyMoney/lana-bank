@@ -4,11 +4,12 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use core_credit_terms::{InterestPeriod, TermValues, collateralization::CollateralizationState};
+use core_credit_terms::{InterestPeriod, collateralization::CollateralizationState};
 use money::{Satoshis, UsdCents};
 
 use crate::{
     credit_facility::CreditFacilityReceivable, ledger::FacilityProceedsFromLiquidationAccountId,
+    public::PublicCreditFacilityProposal,
 };
 
 use super::primitives::*;
@@ -18,14 +19,10 @@ use super::primitives::*;
 #[serde(tag = "type")]
 pub enum CoreCreditEvent {
     FacilityProposalCreated {
-        id: CreditFacilityProposalId,
-        terms: TermValues,
-        amount: UsdCents,
-        created_at: DateTime<Utc>,
+        entity: PublicCreditFacilityProposal,
     },
     FacilityProposalConcluded {
-        id: CreditFacilityProposalId,
-        status: CreditFacilityProposalStatus,
+        entity: PublicCreditFacilityProposal,
     },
     PendingCreditFacilityCollateralizationChanged {
         id: PendingCreditFacilityId,

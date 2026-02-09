@@ -20,6 +20,7 @@ use crate::{
     pending_credit_facility::{
         PendingCreditFacility, PendingCreditFacilityEvent, error::PendingCreditFacilityError,
     },
+    public::PublicCreditFacilityProposal,
 };
 
 pub struct CreditFacilityPublisher<E>
@@ -126,18 +127,12 @@ where
         use CreditFacilityProposalEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { amount, terms, .. } => {
-                    Some(CoreCreditEvent::FacilityProposalCreated {
-                        id: entity.id,
-                        terms: *terms,
-                        amount: *amount,
-                        created_at: entity.created_at(),
-                    })
-                }
-                ApprovalProcessConcluded { status, .. } => {
+                Initialized { .. } => Some(CoreCreditEvent::FacilityProposalCreated {
+                    entity: PublicCreditFacilityProposal::from(entity),
+                }),
+                ApprovalProcessConcluded { .. } => {
                     Some(CoreCreditEvent::FacilityProposalConcluded {
-                        id: entity.id,
-                        status: *status,
+                        entity: PublicCreditFacilityProposal::from(entity),
                     })
                 }
                 _ => None,

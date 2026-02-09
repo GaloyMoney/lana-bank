@@ -163,9 +163,9 @@ impl CreditFacilityRepaymentPlan {
         let mut existing_obligations = self.existing_obligations();
 
         match event {
-            CoreCreditEvent::FacilityProposalCreated { terms, amount, .. } => {
-                self.terms = Some(*terms);
-                self.facility_amount = *amount;
+            CoreCreditEvent::FacilityProposalCreated { entity } => {
+                self.terms = Some(entity.terms);
+                self.facility_amount = entity.amount;
             }
             CoreCreditEvent::FacilityActivated { activated_at, .. } => {
                 self.activated_at = Some(*activated_at);
@@ -456,10 +456,14 @@ mod tests {
         plan.process_credit_event(
             Default::default(),
             &CoreCreditEvent::FacilityProposalCreated {
-                id: CreditFacilityProposalId::new(),
-                terms,
-                amount: default_facility_amount(),
-                created_at: default_start_date(),
+                entity: crate::PublicCreditFacilityProposal {
+                    id: CreditFacilityProposalId::new(),
+                    status: CreditFacilityProposalStatus::PendingCustomerApproval,
+                    terms,
+                    amount: default_facility_amount(),
+                    customer_id: CustomerId::new(),
+                    created_at: default_start_date(),
+                },
             },
             default_start_date(),
         );
@@ -1302,10 +1306,14 @@ mod tests {
         let mut plan = CreditFacilityRepaymentPlan::default();
 
         let proposal_event = CoreCreditEvent::FacilityProposalCreated {
-            id: CreditFacilityProposalId::new(),
-            amount: UsdCents::from(100_000_00),
-            terms: terms(0),
-            created_at: default_start_date(),
+            entity: crate::PublicCreditFacilityProposal {
+                id: CreditFacilityProposalId::new(),
+                status: CreditFacilityProposalStatus::PendingCustomerApproval,
+                amount: UsdCents::from(100_000_00),
+                terms: terms(0),
+                customer_id: CustomerId::new(),
+                created_at: default_start_date(),
+            },
         };
 
         // First processing

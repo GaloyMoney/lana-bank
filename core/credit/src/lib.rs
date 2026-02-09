@@ -15,6 +15,7 @@ pub mod ledger;
 mod pending_credit_facility;
 mod primitives;
 mod processes;
+pub mod public;
 mod publisher;
 mod repayment_plan;
 
@@ -63,6 +64,7 @@ pub use processes::{
     activate_credit_facility::*, allocate_credit_facility_payment::*,
     approve_credit_facility_proposal::*, approve_disbursal::*,
 };
+pub use public::*;
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 

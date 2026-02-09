@@ -2629,12 +2629,12 @@ impl Subscription {
             let payload = event.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
-                CoreCreditEvent::FacilityProposalConcluded { id, status }
-                    if *id == credit_facility_proposal_id =>
+                CoreCreditEvent::FacilityProposalConcluded { entity }
+                    if entity.id == credit_facility_proposal_id =>
                 {
                     Some(CreditFacilityProposalConcludedPayload {
                         credit_facility_proposal_id,
-                        status: *status,
+                        status: entity.status,
                     })
                 }
                 _ => None,
