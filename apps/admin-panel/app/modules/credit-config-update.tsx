@@ -23,7 +23,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@lana/web/ui/tooltip"
 import { cn } from "@lana/web/utils"
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
+import { FormEvent, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -32,6 +32,15 @@ import {
   CreditModuleConfigureInput,
   useCreditModuleConfigureMutation,
 } from "@/lib/graphql/generated"
+import {
+  CREDIT_CONFIG_FIELDS,
+  CREDIT_DEFAULT_FORM_DATA,
+  CREDIT_EMPTY_FORM_DATA,
+  CREDIT_FIELD_GROUPS,
+  CreditAccountCategoryKey,
+  buildCreditChanges,
+  buildCreditFormDataFromConfig,
+} from "./credit-config-fields"
 
 gql`
   mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
@@ -42,15 +51,6 @@ gql`
     }
   }
 `
-
-type CreditAccountCategoryKey =
-  | "offBalanceSheet"
-  | "asset"
-  | "liability"
-  | "equity"
-  | "revenue"
-  | "costOfRevenue"
-  | "expenses"
 
 type AccountSetOption = {
   code: string
@@ -66,352 +66,6 @@ type CreditConfigUpdateDialogProps = {
   accountSetOptions?: AccountSetOption[]
 }
 
-type CreditConfigField = {
-  key: keyof CreditModuleConfigureInput
-  defaultCode: string
-  category: CreditAccountCategoryKey
-  group: "omnibus" | "summary"
-}
-
-const CREDIT_CONFIG_FIELDS: CreditConfigField[] = [
-  {
-    key: "chartOfAccountFacilityOmnibusParentCode",
-    defaultCode: "9110.02.0201",
-    category: "offBalanceSheet",
-    group: "omnibus",
-  },
-  {
-    key: "chartOfAccountCollateralOmnibusParentCode",
-    defaultCode: "9220.08.0201",
-    category: "offBalanceSheet",
-    group: "omnibus",
-  },
-  {
-    key: "chartOfAccountLiquidationProceedsOmnibusParentCode",
-    defaultCode: "9170.00.0001",
-    category: "revenue",
-    group: "omnibus",
-  },
-  {
-    key: "chartOfAccountPaymentsMadeOmnibusParentCode",
-    defaultCode: "9110.02.0201",
-    category: "offBalanceSheet",
-    group: "omnibus",
-  },
-  {
-    key: "chartOfAccountInterestAddedToObligationsOmnibusParentCode",
-    defaultCode: "9110.02.0201",
-    category: "offBalanceSheet",
-    group: "omnibus",
-  },
-  {
-    key: "chartOfAccountFacilityParentCode",
-    defaultCode: "9110.02.0201",
-    category: "offBalanceSheet",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountCollateralParentCode",
-    defaultCode: "9220.08.0201",
-    category: "offBalanceSheet",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountCollateralInLiquidationParentCode",
-    defaultCode: "9220.08.0201",
-    category: "offBalanceSheet",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLiquidatedCollateralParentCode",
-    defaultCode: "9220.08.0201",
-    category: "offBalanceSheet",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountProceedsFromLiquidationParentCode",
-    defaultCode: "9220.08.0201",
-    category: "offBalanceSheet",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountInterestIncomeParentCode",
-    defaultCode: "6110.01.0100",
-    category: "revenue",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountFeeIncomeParentCode",
-    defaultCode: "6110.01.0300",
-    category: "revenue",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountPaymentHoldingParentCode",
-    defaultCode: "1141.99.0201",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountUncoveredOutstandingParentCode",
-    defaultCode: "9110.02.0201",
-    category: "offBalanceSheet",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountDisbursedDefaultedParentCode",
-    defaultCode: "1148.04.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountInterestDefaultedParentCode",
-    defaultCode: "1148.04.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermIndividualDisbursedReceivableParentCode",
-    defaultCode: "1141.04.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode",
-    defaultCode: "1141.02.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode",
-    defaultCode: "1141.03.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermBankDisbursedReceivableParentCode",
-    defaultCode: "1141.05.0401",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode",
-    defaultCode: "1141.06.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode",
-    defaultCode: "1141.07.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode",
-    defaultCode: "1141.08.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermIndividualDisbursedReceivableParentCode",
-    defaultCode: "1142.04.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode",
-    defaultCode: "1142.02.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode",
-    defaultCode: "1142.03.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermBankDisbursedReceivableParentCode",
-    defaultCode: "1142.05.0401",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode",
-    defaultCode: "1142.06.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode",
-    defaultCode: "1142.07.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode",
-    defaultCode: "1142.08.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermIndividualInterestReceivableParentCode",
-    defaultCode: "1141.04.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode",
-    defaultCode: "1141.02.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode",
-    defaultCode: "1141.03.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermBankInterestReceivableParentCode",
-    defaultCode: "1141.05.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode",
-    defaultCode: "1141.06.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode",
-    defaultCode: "1141.07.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode",
-    defaultCode: "1141.08.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermIndividualInterestReceivableParentCode",
-    defaultCode: "1142.04.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode",
-    defaultCode: "1142.02.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode",
-    defaultCode: "1142.03.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermBankInterestReceivableParentCode",
-    defaultCode: "1142.05.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode",
-    defaultCode: "1142.06.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode",
-    defaultCode: "1142.07.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode",
-    defaultCode: "1142.08.9901",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountOverdueIndividualDisbursedReceivableParentCode",
-    defaultCode: "1148.04.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode",
-    defaultCode: "1148.02.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode",
-    defaultCode: "1148.03.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountOverdueBankDisbursedReceivableParentCode",
-    defaultCode: "1148.05.0401",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode",
-    defaultCode: "1148.06.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode",
-    defaultCode: "1148.07.0101",
-    category: "asset",
-    group: "summary",
-  },
-  {
-    key: "chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode",
-    defaultCode: "1148.08.0101",
-    category: "asset",
-    group: "summary",
-  },
-]
-
-const defaultFormData = CREDIT_CONFIG_FIELDS.reduce(
-  (acc, field) => {
-    acc[field.key] = field.defaultCode
-    return acc
-  },
-  {} as CreditModuleConfigureInput,
-)
-
-const FIELD_GROUPS: Array<{
-  key: CreditConfigField["group"]
-  titleKey: "omnibus" | "summary"
-}> = [
-  { key: "omnibus", titleKey: "omnibus" },
-  { key: "summary", titleKey: "summary" },
-]
-
-const emptyFormData = CREDIT_CONFIG_FIELDS.reduce(
-  (acc, field) => {
-    acc[field.key] = ""
-    return acc
-  },
-  {} as CreditModuleConfigureInput,
-)
-
-type ChangeItem = {
-  field: CreditConfigField
-  from: string
-  to: string
-}
-
 type AccountSetComboboxProps = {
   id?: string
   value: string
@@ -421,6 +75,11 @@ type AccountSetComboboxProps = {
   placeholder: string
   searchPlaceholder: string
   emptyLabel: string
+}
+
+const getOptionLabel = (option: AccountSetOption) => {
+  const secondary = option.ref ?? option.code
+  return secondary ? `${option.name} - ${secondary}` : option.name
 }
 
 const AccountSetCombobox = ({
@@ -435,10 +94,7 @@ const AccountSetCombobox = ({
 }: AccountSetComboboxProps) => {
   const [open, setOpen] = useState(false)
   const selectedOption = options.find((option) => option.code === value)
-  const selectedSecondary = selectedOption?.ref ?? selectedOption?.code
-  const displayValue = selectedOption
-    ? `${selectedOption.name} - ${selectedSecondary ?? ""}`.trim()
-    : value
+  const displayValue = selectedOption ? getOptionLabel(selectedOption) : value
   const displayText = displayValue || placeholder
   const showTooltip = Boolean(displayValue)
 
@@ -480,10 +136,7 @@ const AccountSetCombobox = ({
             <CommandEmpty>{emptyLabel}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
-                const optionSecondary = option.ref ?? option.code
-                const optionLabel = optionSecondary
-                  ? `${option.name} - ${optionSecondary}`
-                  : option.name
+                const optionLabel = getOptionLabel(option)
                 const keywords = [option.name, option.ref, option.code].filter(
                   (keyword): keyword is string => Boolean(keyword),
                 )
@@ -516,39 +169,11 @@ const AccountSetCombobox = ({
   )
 }
 
-const buildFormDataFromConfig = (
-  creditModuleConfig?: CreditModuleConfig,
-): CreditModuleConfigureInput => {
-  const updatedFormData = { ...emptyFormData }
-  if (!creditModuleConfig) return updatedFormData
-
-  CREDIT_CONFIG_FIELDS.forEach((field) => {
-    const value = creditModuleConfig[field.key as keyof CreditModuleConfig]
-    if (value) {
-      updatedFormData[field.key] = value as string
-    }
-  })
-
-  return updatedFormData
-}
-
-const buildChanges = (
-  baseline: CreditModuleConfigureInput,
-  current: CreditModuleConfigureInput,
-): ChangeItem[] =>
-  CREDIT_CONFIG_FIELDS.flatMap((field) => {
-    const from = baseline[field.key] ?? ""
-    const to = current[field.key] ?? ""
-    if (from === to) return []
-    return [{ field, from, to }]
-  })
-
 const formatOptionValue = (value: string, options: AccountSetOption[]) => {
   if (!value) return ""
   const match = options.find((option) => option.code === value)
   if (!match) return value
-  const secondary = match.ref ?? match.code
-  return `${match.name} - ${secondary}`.trim()
+  return getOptionLabel(match)
 }
 
 export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> = ({
@@ -565,12 +190,10 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
       refetchQueries: [CreditConfigDocument],
     })
   const [step, setStep] = useState<"edit" | "confirm">("edit")
-  const [confirmationChanges, setConfirmationChanges] = useState<ChangeItem[]>([])
   const [baselineFormData, setBaselineFormData] =
-    useState<CreditModuleConfigureInput>(emptyFormData)
+    useState<CreditModuleConfigureInput>({ ...CREDIT_EMPTY_FORM_DATA })
   const [formData, setFormData] =
-    useState<CreditModuleConfigureInput>(emptyFormData)
-  const prevOpenRef = useRef(false)
+    useState<CreditModuleConfigureInput>({ ...CREDIT_EMPTY_FORM_DATA })
   const accountSetOptionsByCategory = useMemo(() => {
     const grouped: Record<CreditAccountCategoryKey, AccountSetOption[]> = {
       offBalanceSheet: [],
@@ -588,42 +211,36 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
 
     return grouped
   }, [accountSetOptions])
-  const editChanges = useMemo(
-    () => buildChanges(baselineFormData, formData),
+  const changes = useMemo(
+    () => buildCreditChanges(baselineFormData, formData),
     [baselineFormData, formData],
   )
-  const hasChanges = editChanges.length > 0
+  const hasChanges = changes.length > 0
 
   const close = () => {
     reset()
     setOpen(false)
-    setFormData({ ...emptyFormData })
-    setBaselineFormData({ ...emptyFormData })
-    setConfirmationChanges([])
+    setFormData({ ...CREDIT_EMPTY_FORM_DATA })
+    setBaselineFormData({ ...CREDIT_EMPTY_FORM_DATA })
     setStep("edit")
   }
 
   useEffect(() => {
-    if (open && !prevOpenRef.current) {
-      const updatedFormData = buildFormDataFromConfig(creditModuleConfig)
-      setBaselineFormData(updatedFormData)
-      setFormData(updatedFormData)
-      setConfirmationChanges([])
-      setStep("edit")
-    }
-    prevOpenRef.current = open
+    if (!open) return
+    const updatedFormData = buildCreditFormDataFromConfig(creditModuleConfig)
+    setBaselineFormData(updatedFormData)
+    setFormData(updatedFormData)
+    setStep("edit")
   }, [creditModuleConfig, open])
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault()
-    const changes = buildChanges(baselineFormData, formData)
     reset()
-    setConfirmationChanges(changes)
     setStep("confirm")
   }
 
   const autoPopulate = () => {
-    setFormData({ ...defaultFormData })
+    setFormData({ ...CREDIT_DEFAULT_FORM_DATA })
   }
 
   const handleDone = async () => {
@@ -658,13 +275,13 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
             <p className="text-sm text-muted-foreground">
               {t("credit.confirmationDescription")}
             </p>
-            {confirmationChanges.length === 0 ? (
+            {changes.length === 0 ? (
               <div className="mt-4 rounded-md border border-dashed border-border p-3 text-sm text-muted-foreground">
                 {t("credit.confirmationNoChanges")}
               </div>
             ) : (
               <div className="mt-4 space-y-3">
-                {confirmationChanges.map(({ field, from, to }) => {
+                {changes.map(({ field, from, to }) => {
                   const optionsForCategory = accountSetOptionsByCategory[field.category]
                   const previousLabel = formatOptionValue(from, optionsForCategory)
                   const updatedLabel = formatOptionValue(to, optionsForCategory)
@@ -729,7 +346,7 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
         ) : (
           <form onSubmit={submit}>
             <div className="flex flex-col space-y-6 w-full">
-              {FIELD_GROUPS.map((group) => {
+              {CREDIT_FIELD_GROUPS.map((group) => {
                 const fields = CREDIT_CONFIG_FIELDS.filter(
                   (field) => field.group === group.key,
                 )
