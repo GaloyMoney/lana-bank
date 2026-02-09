@@ -1284,7 +1284,6 @@ dependencies = [
  "core-ids",
  "derive_builder",
  "es-entity",
- "governance",
  "obix",
  "schemars 1.2.0",
  "serde",
