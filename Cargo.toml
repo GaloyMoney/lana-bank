@@ -165,11 +165,8 @@ sqlx-adapter = { version = "1.8", default-features = false, features = [
   "runtime-tokio-rustls",
 ] }
 cached = { version = "0.56.0", features = ["async"] }
-gcp_auth = { version = "0.12.2", default-features = false, features = ["webpki-roots"] }
-google-cloud-storage = { version = "0.24.0", default-features = false, features = [
-  "rustls-tls",
-  "auth",
-] }
+google-cloud-auth = "1.5.0"
+google-cloud-storage = "1.7.0"
 rand = "0.9"
 serial_test = { version = "3.3.1", features = ["file_locks"] }
 chacha20poly1305 = "0.10.1"
