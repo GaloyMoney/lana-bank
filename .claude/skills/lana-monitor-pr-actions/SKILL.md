@@ -5,7 +5,7 @@ description: Monitor PR CI checks, retry flaky failures, and fix real failures t
 
 # Monitor PR CI Actions
 
-Your goal is to get all checks passing by retrying flake failures and fixing real failures.
+Your goal is to get all checks passing by retrying flaky failures and fixing real failures.
 
 ## Workflow
 
