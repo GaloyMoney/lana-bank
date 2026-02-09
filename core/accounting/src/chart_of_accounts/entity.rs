@@ -1319,7 +1319,7 @@ mod test {
                 code: code("9.1"),
                 normal_balance_type: DebitOrCredit::Debit,
             });
-            // Leaf account (actual account, not an account set)
+            // Leaf account set (no children)
             specs.push(AccountSpec {
                 name: "Off Balance Sheet Leaf".parse().unwrap(),
                 parent: Some(code("9.1")),
@@ -1337,13 +1337,12 @@ mod test {
 
             assert!(result.is_some());
             let account_sets = result.unwrap();
-            // Should include account sets (nodes with children) under off-balance-sheet
+            // Should include all descendant account sets under off-balance-sheet
             // The method returns descendant account sets, not the category root itself
             assert!(!account_sets.is_empty());
-            // 9.1 has children, so it's an account set and should be included
             assert!(account_sets.iter().any(|a| a.code.to_string() == "9.1"));
-            // 9.1.1 is a leaf (no children), so it should NOT be included
-            assert!(!account_sets.iter().any(|a| a.code.to_string() == "9.1.1"));
+            // 9.1.1 is a leaf account set (no children) and should also be included
+            assert!(account_sets.iter().any(|a| a.code.to_string() == "9.1.1"));
         }
 
         #[test]
@@ -1365,7 +1364,7 @@ mod test {
             let journal_id = CalaJournalId::new();
 
             let mut specs = account_specs_for_base_config();
-            // Add children to statement categories to make them account sets
+            // Add children to statement categories
             specs.push(AccountSpec {
                 name: "Cash".parse().unwrap(),
                 parent: Some(code("1")),
@@ -1433,8 +1432,9 @@ mod test {
                 !codes.iter().any(|c| c.starts_with("6")),
                 "Should not contain expenses (code 6.x)"
             );
-            // Should contain the off-balance-sheet account set
+            // Should contain the off-balance-sheet account sets
             assert!(codes.contains(&"9.1".to_string()));
+            assert!(codes.contains(&"9.1.1".to_string()));
         }
 
         #[test]
@@ -1553,9 +1553,11 @@ mod test {
 
             assert!(result.is_some());
             let account_sets = result.unwrap();
-            // Descendant account sets (nodes with children) from both categories should be included
+            // Descendant account sets from both categories should be included
             assert!(account_sets.iter().any(|a| a.code.to_string() == "7.1"));
+            assert!(account_sets.iter().any(|a| a.code.to_string() == "7.1.1"));
             assert!(account_sets.iter().any(|a| a.code.to_string() == "9.1"));
+            assert!(account_sets.iter().any(|a| a.code.to_string() == "9.1.1"));
         }
     }
 

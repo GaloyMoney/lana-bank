@@ -56,20 +56,16 @@ impl TreeNode {
         result
     }
 
-    /// Returns all descendant account sets (non-leaf nodes) with their details
     pub fn descendant_account_sets(&self) -> Vec<AccountInfo> {
         let mut result = Vec::new();
         let mut stack: Vec<&TreeNode> = self.children.iter().rev().collect();
 
         while let Some(node) = stack.pop() {
-            // Only include nodes that have children (account sets, not leaf accounts)
-            if !node.children.is_empty() {
-                result.push(AccountInfo {
-                    account_set_id: node.id,
-                    code: node.code.clone(),
-                    name: node.name.clone(),
-                });
-            }
+            result.push(AccountInfo {
+                account_set_id: node.id,
+                code: node.code.clone(),
+                name: node.name.clone(),
+            });
             for child in node.children.iter().rev() {
                 stack.push(child);
             }
