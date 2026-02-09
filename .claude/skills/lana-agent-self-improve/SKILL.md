@@ -22,7 +22,7 @@ For each file, ask:
 - Was anything **wrong or outdated**?
 - Was anything **missing** that would have materially helped this session's work?
 - Was anything **confusing or misleading**?
-- Was anything **unnecessarily verbose** or duplicated elsewhere?
+- Was anything **unnecessarily verbose** or duplicated within the same file?
 - Could any section be **condensed** without losing meaning?
 
 Skip files where you have no actionable feedback.
@@ -39,7 +39,7 @@ This is the most important constraint. These files are loaded into agent context
 - **Additions must earn their place.** Only add what would have materially helped this session. "Might be useful someday" is not sufficient.
 - **Removals are first-class improvements.** Deleting outdated, redundant, or verbose content is as valuable as adding new content.
 - **Conciseness is a feature.** A paragraph rewritten as a sentence is a win.
-- **No duplication.** If information exists in one file, don't repeat it in another.
+- **Duplication across files is OK.** Different tools load different files, so each file must be self-contained. Only eliminate duplication within a single file.
 
 ## What NOT to Do
 
@@ -47,7 +47,7 @@ This is the most important constraint. These files are loaded into agent context
 - Don't expand examples when a principle suffices
 - Don't reorganize or reformat files for aesthetics
 - Don't add meta-commentary about the improvement process
-- Don't duplicate information that exists elsewhere in the repo
+- Don't deduplicate across files — each file must be self-contained for its consumer
 
 ## Output
 
