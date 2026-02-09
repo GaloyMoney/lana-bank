@@ -18,6 +18,14 @@ use crate::{
 
 use super::error::PendingCreditFacilityError;
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct PendingFacilityCollateralization {
+    pub state: PendingCreditFacilityCollateralizationState,
+    pub collateral: Option<Satoshis>,
+    pub price: Option<PriceOfOneBTC>,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -161,18 +169,37 @@ impl PendingCreditFacility {
             .unwrap_or(CollateralizationRatio::default())
     }
 
-    pub fn last_collateralization_state(&self) -> PendingCreditFacilityCollateralizationState {
+    pub fn last_collateralization_state(&self) -> PendingFacilityCollateralization {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 PendingCreditFacilityEvent::CollateralizationStateChanged {
                     collateralization_state,
-                    ..
-                } => Some(*collateralization_state),
+                    collateral,
+                    price,
+                } => Some(PendingFacilityCollateralization {
+                    state: *collateralization_state,
+                    collateral: Some(*collateral),
+                    price: Some(*price),
+                }),
                 _ => None,
             })
-            .unwrap_or(PendingCreditFacilityCollateralizationState::UnderCollateralized)
+            .unwrap_or(PendingFacilityCollateralization {
+                state: PendingCreditFacilityCollateralizationState::UnderCollateralized,
+                collateral: None,
+                price: None,
+            })
+    }
+
+    pub fn completed_at(&self) -> Option<DateTime<Utc>> {
+        self.events
+            .iter_persisted()
+            .rev()
+            .find_map(|pe| match &pe.event {
+                PendingCreditFacilityEvent::Completed {} => Some(pe.recorded_at),
+                _ => None,
+            })
     }
 
     pub(super) fn complete(
