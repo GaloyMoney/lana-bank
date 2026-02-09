@@ -107,8 +107,6 @@ const config = {
         docs: {
           sidebarPath: "./sidebars.js",
           routeBasePath: "/",
-          // Make "Next" (current) the default version. See CLAUDE.md "Versioning Structure".
-          lastVersion: "current",
           versions: {
             current: {
               label: "Next",
