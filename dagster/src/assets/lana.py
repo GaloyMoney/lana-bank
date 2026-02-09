@@ -21,7 +21,6 @@ from src.utils import (
 
 LANA_EL_TABLE_NAMES = (
     "core_chart_events_rollup",
-    "core_collateral_events_rollup",
     "core_credit_facility_events_rollup",
     "core_credit_facility_proposal_events_rollup",
     "core_customer_events_rollup",
@@ -29,7 +28,6 @@ LANA_EL_TABLE_NAMES = (
     "core_deposit_events_rollup",
     "core_disbursal_events_rollup",
     "core_interest_accrual_cycle_events_rollup",
-    "core_liquidation_events_rollup",
     "core_obligation_events_rollup",
     "core_payment_allocation_events_rollup",
     "core_payment_events_rollup",
