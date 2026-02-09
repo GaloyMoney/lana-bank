@@ -25,5 +25,3 @@ Your goal is to get all checks passing by retrying flake failures and fixing rea
 - Never switch branches, create additional PRs, or modify other branches
 - If pushing fails due to conflicts, stop and report — do not attempt to resolve them
 - If you've attempted several fixes without success, stop and report what's blocking progress
-
-The exception to the history rule: if a failure is due to a commit message not following conventional commit style, you may amend it.
