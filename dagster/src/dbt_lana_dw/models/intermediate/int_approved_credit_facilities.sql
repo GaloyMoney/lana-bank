@@ -17,7 +17,7 @@ with
     disbursals as (
         select credit_facility_id, sum(coalesce(amount_usd, 0)) as total_disbursed_usd
         from {{ ref("int_core_disbursal_events_rollup") }}
-        where collateralization_state_changed
+        where is_settled
         group by credit_facility_id
     ),
 
