@@ -6,7 +6,6 @@ mod audit_action;
 mod audit_object;
 mod object;
 
-use serde::{Deserialize, Serialize};
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 use uuid::{Uuid, uuid};
@@ -111,7 +110,7 @@ impl std::str::FromStr for PermissionSetName {
     }
 }
 
-#[derive(Clone, Copy, Debug, strum::EnumDiscriminants, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum Subject {

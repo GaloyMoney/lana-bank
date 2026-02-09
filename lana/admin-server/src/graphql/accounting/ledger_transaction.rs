@@ -1,13 +1,14 @@
 use async_graphql::*;
 
+use lana_app::primitives::Subject;
 pub use lana_app::{
-    accounting::ledger_transaction::{
-        LedgerTransaction as DomainLedgerTransaction, LedgerTransactionCursor,
-        LedgerTransactionInitiator as DomainLedgerTransactionInitiator,
-    },
+    accounting::ledger_transaction::LedgerTransactionCursor,
     credit::DISBURSAL_TRANSACTION_ENTITY_TYPE,
     deposit::{DEPOSIT_TRANSACTION_ENTITY_TYPE, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
 };
+
+pub type DomainLedgerTransaction =
+    lana_app::accounting::ledger_transaction::LedgerTransaction<Subject>;
 
 use crate::{
     graphql::{
@@ -87,15 +88,15 @@ impl LedgerTransaction {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<LedgerTransactionInitiator> {
-        match &self.entity.initiated_by {
-            DomainLedgerTransactionInitiator::User { id } => {
+        match self.entity.initiated_by {
+            Subject::User(id) => {
                 let loader = ctx.data_unchecked::<LanaDataLoader>();
-                match loader.load_one(UserId::from(*id)).await? {
+                match loader.load_one(id).await? {
                     Some(user) => Ok(LedgerTransactionInitiator::User(user)),
                     None => Err("Initiator user not found".into()),
                 }
             }
-            DomainLedgerTransactionInitiator::System => {
+            Subject::System | Subject::Customer(_) => {
                 Ok(LedgerTransactionInitiator::System(System::lana()))
             }
         }

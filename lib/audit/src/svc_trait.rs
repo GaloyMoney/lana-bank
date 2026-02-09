@@ -5,20 +5,13 @@ use std::{collections::HashMap, fmt, str::FromStr};
 
 use crate::{AuditEntry, error::AuditError, primitives::*};
 
-pub trait SystemSubject {
+pub trait SystemSubject: fmt::Display + fmt::Debug {
     fn system() -> Self;
 }
 
 #[async_trait]
 pub trait AuditSvc: Clone + Sync + Send + 'static {
-    type Subject: FromStr
-        + fmt::Display
-        + fmt::Debug
-        + Clone
-        + Send
-        + Sync
-        + SystemSubject
-        + 'static;
+    type Subject: FromStr<Err: fmt::Display> + Clone + Send + Sync + SystemSubject + 'static;
     type Object: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static;
     type Action: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static;
 

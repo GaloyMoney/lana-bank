@@ -12,17 +12,17 @@ use crate::{collateral::ledger::CollateralLedgerError, primitives::CalaAccountId
 pub const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";
 
 #[derive(Debug)]
-pub struct RemoveCollateralParams {
+pub struct RemoveCollateralParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
     pub collateral_account_id: CalaAccountId,
     pub bank_collateral_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl RemoveCollateralParams {
+impl<S: std::fmt::Display> RemoveCollateralParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -64,7 +64,7 @@ impl RemoveCollateralParams {
     }
 }
 
-impl From<RemoveCollateralParams> for Params {
+impl<S: std::fmt::Display> From<RemoveCollateralParams<S>> for Params {
     fn from(
         RemoveCollateralParams {
             journal_id,
@@ -74,7 +74,7 @@ impl From<RemoveCollateralParams> for Params {
             bank_collateral_account_id,
             effective,
             initiated_by,
-        }: RemoveCollateralParams,
+        }: RemoveCollateralParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -86,7 +86,7 @@ impl From<RemoveCollateralParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -131,7 +131,7 @@ impl RemoveCollateral {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RemoveCollateralParams::defs();
+        let params = RemoveCollateralParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(REMOVE_COLLATERAL_CODE)

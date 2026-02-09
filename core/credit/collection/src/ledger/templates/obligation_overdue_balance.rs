@@ -14,16 +14,16 @@ use crate::ledger::error::CollectionLedgerError;
 pub const RECORD_OBLIGATION_OVERDUE_BALANCE_CODE: &str = "RECORD_OBLIGATION_OVERDUE_BALANCE";
 
 #[derive(Debug)]
-pub struct RecordObligationOverdueBalanceParams {
+pub struct RecordObligationOverdueBalanceParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub amount: Decimal,
     pub receivable_due_account_id: CalaAccountId,
     pub receivable_overdue_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl RecordObligationOverdueBalanceParams {
+impl<S: std::fmt::Display> RecordObligationOverdueBalanceParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -59,7 +59,7 @@ impl RecordObligationOverdueBalanceParams {
         ]
     }
 }
-impl From<RecordObligationOverdueBalanceParams> for Params {
+impl<S: std::fmt::Display> From<RecordObligationOverdueBalanceParams<S>> for Params {
     fn from(
         RecordObligationOverdueBalanceParams {
             journal_id,
@@ -68,7 +68,7 @@ impl From<RecordObligationOverdueBalanceParams> for Params {
             receivable_overdue_account_id,
             effective,
             initiated_by,
-        }: RecordObligationOverdueBalanceParams,
+        }: RecordObligationOverdueBalanceParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -82,7 +82,7 @@ impl From<RecordObligationOverdueBalanceParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -127,7 +127,7 @@ impl RecordObligationOverdueBalance {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordObligationOverdueBalanceParams::defs();
+        let params = RecordObligationOverdueBalanceParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(RECORD_OBLIGATION_OVERDUE_BALANCE_CODE)

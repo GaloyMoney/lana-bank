@@ -9,7 +9,6 @@ use cala_ledger::{
 };
 
 use super::error::*;
-use crate::primitives::LedgerTransactionInitiator;
 
 #[derive(Debug)]
 pub struct EntryParams {
@@ -91,16 +90,16 @@ impl EntryParams {
 }
 
 #[derive(Debug)]
-pub struct ManualTransactionParams {
+pub struct ManualTransactionParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub description: String,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: LedgerTransactionInitiator,
+    pub initiated_by: S,
     pub entry_params: Vec<EntryParams>,
 }
 
-impl From<ManualTransactionParams> for Params {
-    fn from(input_params: ManualTransactionParams) -> Self {
+impl<S: std::fmt::Display> From<ManualTransactionParams<S>> for Params {
+    fn from(input_params: ManualTransactionParams<S>) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", input_params.journal_id);
         params.insert("description", input_params.description);
@@ -108,7 +107,7 @@ impl From<ManualTransactionParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": input_params.initiated_by,
+                "initiated_by": input_params.initiated_by.to_string(),
             }),
         );
 
@@ -120,7 +119,7 @@ impl From<ManualTransactionParams> for Params {
     }
 }
 
-impl ManualTransactionParams {
+impl<S: std::fmt::Display> ManualTransactionParams<S> {
     pub fn defs(n: usize) -> Vec<NewParamDefinition> {
         let mut params = vec![
             NewParamDefinition::builder()
@@ -187,7 +186,7 @@ impl ManualTransactionTemplate {
             .build()
             .expect("Couldn't build TxInput");
 
-        let params = ManualTransactionParams::defs(self.n_entries);
+        let params = ManualTransactionParams::<String>::defs(self.n_entries);
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(self.code())

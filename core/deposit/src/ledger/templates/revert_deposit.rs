@@ -15,7 +15,7 @@ use crate::{
 pub const REVERT_DEPOSIT_CODE: &str = "REVERT_DEPOSIT";
 
 #[derive(Debug)]
-pub struct RevertDepositParams {
+pub struct RevertDepositParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub deposit_omnibus_account_id: CalaAccountId,
@@ -24,11 +24,11 @@ pub struct RevertDepositParams {
     pub currency: Currency,
     pub correlation_id: String,
     pub external_id: String,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
     pub effective_date: chrono::NaiveDate,
 }
 
-impl RevertDepositParams {
+impl<S: std::fmt::Display> RevertDepositParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -80,7 +80,7 @@ impl RevertDepositParams {
     }
 }
 
-impl From<RevertDepositParams> for Params {
+impl<S: std::fmt::Display> From<RevertDepositParams<S>> for Params {
     fn from(
         RevertDepositParams {
             entity_id,
@@ -93,7 +93,7 @@ impl From<RevertDepositParams> for Params {
             external_id,
             initiated_by,
             effective_date,
-        }: RevertDepositParams,
+        }: RevertDepositParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -111,7 +111,7 @@ impl From<RevertDepositParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -153,7 +153,7 @@ impl RevertDeposit {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RevertDepositParams::defs();
+        let params = RevertDepositParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(REVERT_DEPOSIT_CODE)

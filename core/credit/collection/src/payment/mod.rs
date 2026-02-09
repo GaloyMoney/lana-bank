@@ -2,12 +2,12 @@ mod entity;
 pub mod error;
 mod repo;
 
+use audit::SystemSubject;
 use std::sync::Arc;
 use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_accounting::LedgerTransactionInitiator;
 use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
@@ -98,7 +98,7 @@ where
         payment_ledger_account_ids: PaymentLedgerAccountIds,
         amount: UsdCents,
         effective: chrono::NaiveDate,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<Option<Payment>, PaymentError> {
         let new_payment = NewPayment::builder()
             .id(payment_id)
@@ -135,7 +135,7 @@ where
         payment_ledger_account_ids: PaymentLedgerAccountIds,
         amount: UsdCents,
         effective: chrono::NaiveDate,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<Option<Payment>, PaymentError> {
         let mut db = self.repo.begin_op().await?;
         let res = self

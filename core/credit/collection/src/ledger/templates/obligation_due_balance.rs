@@ -14,16 +14,16 @@ use crate::ledger::error::CollectionLedgerError;
 pub const RECORD_OBLIGATION_DUE_BALANCE_CODE: &str = "RECORD_OBLIGATION_DUE_BALANCE";
 
 #[derive(Debug)]
-pub struct RecordObligationDueBalanceParams {
+pub struct RecordObligationDueBalanceParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub amount: Decimal,
     pub receivable_not_yet_due_account_id: CalaAccountId,
     pub receivable_due_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl RecordObligationDueBalanceParams {
+impl<S: std::fmt::Display> RecordObligationDueBalanceParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -59,7 +59,7 @@ impl RecordObligationDueBalanceParams {
         ]
     }
 }
-impl From<RecordObligationDueBalanceParams> for Params {
+impl<S: std::fmt::Display> From<RecordObligationDueBalanceParams<S>> for Params {
     fn from(
         RecordObligationDueBalanceParams {
             journal_id,
@@ -68,7 +68,7 @@ impl From<RecordObligationDueBalanceParams> for Params {
             receivable_due_account_id,
             effective,
             initiated_by,
-        }: RecordObligationDueBalanceParams,
+        }: RecordObligationDueBalanceParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -82,7 +82,7 @@ impl From<RecordObligationDueBalanceParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -127,7 +127,7 @@ impl RecordObligationDueBalance {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordObligationDueBalanceParams::defs();
+        let params = RecordObligationDueBalanceParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(RECORD_OBLIGATION_DUE_BALANCE_CODE)

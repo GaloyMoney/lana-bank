@@ -19,11 +19,11 @@ impl ManualTransactionLedger {
         Self { cala: cala.clone() }
     }
 
-    pub async fn execute_in_op(
+    pub async fn execute_in_op<S: std::fmt::Display + std::fmt::Debug>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         tx_id: CalaTxId,
-        params: ManualTransactionParams,
+        params: ManualTransactionParams<S>,
     ) -> Result<(), ManualTransactionLedgerError> {
         let template =
             ManualTransactionTemplate::init(&self.cala, params.entry_params.len()).await?;

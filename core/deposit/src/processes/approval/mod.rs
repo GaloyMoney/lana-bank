@@ -5,8 +5,7 @@ use governance::{ApprovalProcessType, GovernanceAction, GovernanceEvent, Governa
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
-use core_accounting::LedgerTransactionInitiator;
+use audit::{AuditSvc, SystemSubject};
 use governance::Governance;
 use obix::out::OutboxEventMarker;
 
@@ -101,7 +100,7 @@ where
                         denied_tx_id,
                         withdraw.amount,
                         withdraw.deposit_account_id,
-                        LedgerTransactionInitiator::System,
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
                     )
                     .await?;
                 op.commit().await?;

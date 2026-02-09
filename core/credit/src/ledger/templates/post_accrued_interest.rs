@@ -13,7 +13,7 @@ pub const CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE: &str =
     "CREDIT_FACILITY_POST_ACCRUED_INTEREST";
 
 #[derive(Debug)]
-pub struct CreditFacilityPostAccruedInterestParams {
+pub struct CreditFacilityPostAccruedInterestParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub credit_facility_interest_receivable_account: CalaAccountId,
     pub credit_facility_interest_income_account: CalaAccountId,
@@ -22,10 +22,10 @@ pub struct CreditFacilityPostAccruedInterestParams {
     pub interest_amount: Decimal,
     pub external_id: String,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl CreditFacilityPostAccruedInterestParams {
+impl<S: std::fmt::Display> CreditFacilityPostAccruedInterestParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -77,7 +77,7 @@ impl CreditFacilityPostAccruedInterestParams {
     }
 }
 
-impl From<CreditFacilityPostAccruedInterestParams> for Params {
+impl<S: std::fmt::Display> From<CreditFacilityPostAccruedInterestParams<S>> for Params {
     fn from(
         CreditFacilityPostAccruedInterestParams {
             journal_id,
@@ -89,7 +89,7 @@ impl From<CreditFacilityPostAccruedInterestParams> for Params {
             external_id,
             effective,
             initiated_by,
-        }: CreditFacilityPostAccruedInterestParams,
+        }: CreditFacilityPostAccruedInterestParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -115,7 +115,7 @@ impl From<CreditFacilityPostAccruedInterestParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
         params
@@ -196,7 +196,7 @@ impl CreditFacilityPostAccruedInterest {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = CreditFacilityPostAccruedInterestParams::defs();
+        let params = CreditFacilityPostAccruedInterestParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE)

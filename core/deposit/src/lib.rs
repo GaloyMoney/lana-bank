@@ -23,7 +23,6 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use core_accounting::LedgerTransactionInitiator;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
@@ -432,13 +431,7 @@ where
             .build()?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
         self.ledger
-            .record_deposit_in_op(
-                &mut op,
-                deposit_id,
-                amount,
-                deposit_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
-            )
+            .record_deposit_in_op(&mut op, deposit_id, amount, deposit_account_id, sub)
             .await?;
         op.commit().await?;
         Ok(deposit)
@@ -492,13 +485,7 @@ where
             .await?;
 
         self.ledger
-            .initiate_withdrawal_in_op(
-                &mut op,
-                withdrawal_id,
-                amount,
-                deposit_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
-            )
+            .initiate_withdrawal_in_op(&mut op, withdrawal_id, amount, deposit_account_id, sub)
             .await?;
 
         op.commit().await?;
@@ -530,11 +517,7 @@ where
             let mut op = self.deposits.begin_op().await?;
             self.deposits.update_in_op(&mut op, &mut deposit).await?;
             self.ledger
-                .revert_deposit_in_op(
-                    &mut op,
-                    deposit_reversal_data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
+                .revert_deposit_in_op(&mut op, deposit_reversal_data, sub)
                 .await?;
             op.commit().await?;
         }
@@ -569,11 +552,7 @@ where
                 .update_in_op(&mut op, &mut withdrawal)
                 .await?;
             self.ledger
-                .revert_withdrawal_in_op(
-                    &mut op,
-                    withdrawal_reversal_data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
+                .revert_withdrawal_in_op(&mut op, withdrawal_reversal_data, sub)
                 .await?;
             op.commit().await?;
         }
@@ -616,7 +595,7 @@ where
                 withdrawal.amount,
                 withdrawal.deposit_account_id,
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub,
             )
             .await?;
 
@@ -658,7 +637,7 @@ where
                 tx_id,
                 withdrawal.amount,
                 withdrawal.deposit_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub,
             )
             .await?;
         op.commit().await?;
@@ -690,11 +669,7 @@ where
                 .update_in_op(&mut op, &mut account)
                 .await?;
             self.ledger
-                .freeze_account_in_op(
-                    &mut op,
-                    &account,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
+                .freeze_account_in_op(&mut op, &account, sub)
                 .await?;
 
             op.commit().await?;
@@ -728,11 +703,7 @@ where
                 .update_in_op(&mut op, &mut account)
                 .await?;
             self.ledger
-                .unfreeze_account_in_op(
-                    &mut op,
-                    &account,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
+                .unfreeze_account_in_op(&mut op, &account, sub)
                 .await?;
 
             op.commit().await?;

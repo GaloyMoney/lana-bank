@@ -1,6 +1,7 @@
 mod helpers;
 
-use core_accounting::LedgerTransactionInitiator;
+use audit::SystemSubject;
+use authz::dummy::DummySubject;
 use core_credit_collection::{
     BeneficiaryId, CoreCreditCollectionEvent, PaymentId, PaymentLedgerAccountIds,
     PaymentSourceAccountId,
@@ -52,7 +53,7 @@ async fn payment_created_event_on_record() -> anyhow::Result<()> {
                         payment_ledger_accounts,
                         amount,
                         effective,
-                        LedgerTransactionInitiator::System,
+                        &DummySubject::system(),
                     )
                     .await?
                     .ok_or_else(|| anyhow::anyhow!("payment was not created"))

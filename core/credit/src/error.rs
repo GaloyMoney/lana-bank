@@ -26,10 +26,6 @@ pub enum CoreCreditError {
     ChartOfAccountsIntegrationError(
         #[from] super::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,
     ),
-    #[error("CoreCreditError - LedgerTransactionInitiatorParseError: {0}")]
-    LedgerTransactionInitiatorParseError(
-        #[from] core_accounting::LedgerTransactionInitiatorParseError,
-    ),
     #[error("CoreCreditError - CreditFacilityProposalError: {0}")]
     CreditFacilityProposalError(
         #[from] super::credit_facility_proposal::error::CreditFacilityProposalError,
@@ -91,7 +87,6 @@ impl ErrorSeverity for CoreCreditError {
             Self::PaymentError(e) => e.severity(),
             Self::PaymentAllocationError(e) => e.severity(),
             Self::ChartOfAccountsIntegrationError(e) => e.severity(),
-            Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
             Self::CreditFacilityProposalError(e) => e.severity(),
             Self::PendingCreditFacilityError(e) => e.severity(),
             Self::CreditFacilityError(e) => e.severity(),

@@ -10,11 +10,10 @@ use governance::{
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use obix::out::OutboxEventMarker;
-
-use core_accounting::LedgerTransactionInitiator;
+use audit::SystemSubject;
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
+use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, Disbursals,
@@ -126,7 +125,7 @@ where
                         disbursal.disbursal_credit_account_id,
                         obligation,
                         credit_facility.account_ids,
-                        LedgerTransactionInitiator::System,
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
                     )
                     .await?;
                 op.commit().await?;
@@ -145,7 +144,7 @@ where
                         disbursal.initiated_tx_id,
                         disbursal.amount,
                         credit_facility.account_ids,
-                        LedgerTransactionInitiator::System,
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
                     )
                     .await?;
                 op.commit().await?;

@@ -14,17 +14,17 @@ use crate::{
 pub const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL";
 
 #[derive(Debug)]
-pub struct CancelDisbursalParams {
+pub struct CancelDisbursalParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub facility_uncovered_outstanding_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub disbursed_amount: Decimal,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl CancelDisbursalParams {
+impl<S: std::fmt::Display> CancelDisbursalParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -61,7 +61,7 @@ impl CancelDisbursalParams {
     }
 }
 
-impl From<CancelDisbursalParams> for Params {
+impl<S: std::fmt::Display> From<CancelDisbursalParams<S>> for Params {
     fn from(
         CancelDisbursalParams {
             entity_id,
@@ -71,7 +71,7 @@ impl From<CancelDisbursalParams> for Params {
             disbursed_amount,
             effective,
             initiated_by,
-        }: CancelDisbursalParams,
+        }: CancelDisbursalParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -88,7 +88,7 @@ impl From<CancelDisbursalParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
         params
@@ -150,7 +150,7 @@ impl CancelDisbursal {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = CancelDisbursalParams::defs();
+        let params = CancelDisbursalParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(CANCEL_DISBURSAL_CODE)

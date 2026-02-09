@@ -9,7 +9,6 @@ use cala_ledger::{
 };
 
 use super::closing_metadata::AccountingClosingMetadata;
-use crate::primitives::LedgerTransactionInitiator;
 
 #[derive(Debug, Builder)]
 pub struct EntryParams {
@@ -84,23 +83,22 @@ impl EntryParams {
 }
 
 #[derive(Debug)]
-pub(super) struct ClosingTransactionParams {
+pub(super) struct ClosingTransactionParams<S: std::fmt::Display> {
     pub(super) journal_id: JournalId,
     pub(super) description: String,
     pub(super) effective: chrono::NaiveDate,
     pub(super) entries_params: Vec<EntryParams>,
-    pub(super) initiated_by: LedgerTransactionInitiator,
+    pub(super) initiated_by: S,
 }
 
-impl From<ClosingTransactionParams> for Params {
-    fn from(input_params: ClosingTransactionParams) -> Self {
+impl<S: std::fmt::Display> From<ClosingTransactionParams<S>> for Params {
+    fn from(input_params: ClosingTransactionParams<S>) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", input_params.journal_id);
         params.insert("description", input_params.description);
         params.insert("effective", input_params.effective);
         let mut meta = AccountingClosingMetadata::closing_tx_metadata_json();
-        meta["initiated_by"] =
-            serde_json::to_value(input_params.initiated_by).expect("initiated_by should serialize");
+        meta["initiated_by"] = serde_json::Value::String(input_params.initiated_by.to_string());
         params.insert("meta", meta);
 
         for (n, entry) in input_params.entries_params.into_iter().enumerate() {
@@ -111,14 +109,14 @@ impl From<ClosingTransactionParams> for Params {
     }
 }
 
-impl ClosingTransactionParams {
+impl<S: std::fmt::Display> ClosingTransactionParams<S> {
     pub(super) fn new(
         journal_id: JournalId,
         description: String,
         effective: NaiveDate,
         entries_params: Vec<EntryParams>,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> ClosingTransactionParams {
+        initiated_by: S,
+    ) -> ClosingTransactionParams<S> {
         Self {
             journal_id,
             description,
