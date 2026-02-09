@@ -57,11 +57,12 @@ impl StorageClient for GcpClient {
         &self,
         file: Vec<u8>,
         path_in_bucket: &str,
-        _mime_type: &str,
+        mime_type: &str,
     ) -> Result<(), StorageClientError> {
         let payload = bytes::Bytes::from(file);
         self.storage
             .write_object(self.bucket_path(), path_in_bucket, payload)
+            .set_content_type(mime_type)
             .send_unbuffered()
             .await?;
         Ok(())
