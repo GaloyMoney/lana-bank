@@ -62,7 +62,7 @@ Note: GraphQL APIs must be accessed through Oathkeeper (port 4455) which handles
 - Events flow between module boundaries
 
 ## Event Sourcing
-- Uses `es-entity` crate for event-driven architecture
+- Uses `es-entity` external crate for event-driven architecture (provides `EsEntity`, `EsRepo` derive macros)
 - Entity files define events and state transitions
 - Events are immutable, state rebuilt from event stream
 - EsEntity structs follow DDD with two method types:
