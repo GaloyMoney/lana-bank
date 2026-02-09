@@ -1,7 +1,8 @@
+use audit::SystemSubject;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use core_accounting::{EntityRef, LedgerTransactionInitiator};
+use core_accounting::EntityRef;
 use es_entity::clock::ClockHandle;
 
 mod deposit_accounts;
@@ -485,7 +486,7 @@ impl DepositLedger {
         entity_id: DepositId,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = entity_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
@@ -523,7 +524,7 @@ impl DepositLedger {
         entity_id: WithdrawalId,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = entity_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
@@ -564,7 +565,7 @@ impl DepositLedger {
         tx_id: impl Into<TransactionId>,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
@@ -599,7 +600,7 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         reversal_data: WithdrawalReversalData,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let params = templates::RevertWithdrawParams {
             entity_id: reversal_data.entity_id.into(),
@@ -632,7 +633,7 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         reversal_data: DepositReversalData,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let params = templates::RevertDepositParams {
             entity_id: reversal_data.entity_id.into(),
@@ -673,7 +674,7 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         account: &DepositAccount,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let balance = self.balance(account.id).await?;
 
@@ -720,7 +721,7 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         account: &DepositAccount,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let frozen_balance = self
             .balance(account.account_ids.frozen_deposit_account_id)
@@ -782,7 +783,7 @@ impl DepositLedger {
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
         external_id: String,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
@@ -825,7 +826,7 @@ impl DepositLedger {
         tx_id: impl Into<TransactionId>,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));

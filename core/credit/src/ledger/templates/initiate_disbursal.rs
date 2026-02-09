@@ -14,17 +14,17 @@ use crate::{
 pub const INITIATE_DISBURSAL_CODE: &str = "INITIATE_CREDIT_FACILITY_DISBURSAL";
 
 #[derive(Debug)]
-pub struct InitiateDisbursalParams {
+pub struct InitiateDisbursalParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub facility_uncovered_outstanding_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub disbursed_amount: Decimal,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl InitiateDisbursalParams {
+impl<S: std::fmt::Display> InitiateDisbursalParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -62,7 +62,7 @@ impl InitiateDisbursalParams {
     }
 }
 
-impl From<InitiateDisbursalParams> for Params {
+impl<S: std::fmt::Display> From<InitiateDisbursalParams<S>> for Params {
     fn from(
         InitiateDisbursalParams {
             entity_id,
@@ -72,7 +72,7 @@ impl From<InitiateDisbursalParams> for Params {
             facility_uncovered_outstanding_account,
             effective,
             initiated_by,
-        }: InitiateDisbursalParams,
+        }: InitiateDisbursalParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -89,7 +89,7 @@ impl From<InitiateDisbursalParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
         params
@@ -151,7 +151,7 @@ impl InitiateDisbursal {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = InitiateDisbursalParams::defs();
+        let params = InitiateDisbursalParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(INITIATE_DISBURSAL_CODE)

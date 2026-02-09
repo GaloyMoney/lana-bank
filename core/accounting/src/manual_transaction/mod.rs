@@ -17,10 +17,7 @@ use tracing_macros::record_error_severity;
 
 use crate::{
     chart_of_accounts::ChartOfAccounts,
-    primitives::{
-        CalaTxId, CoreAccountingAction, CoreAccountingObject, LedgerTransactionInitiator,
-        ManualTransactionId,
-    },
+    primitives::{CalaTxId, CoreAccountingAction, CoreAccountingObject, ManualTransactionId},
 };
 use error::*;
 
@@ -140,7 +137,6 @@ where
 
         let ledger_tx_id = CalaTxId::new();
         let manual_tx_id = ManualTransactionId::new();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
 
         let new_tx = NewManualTransaction::builder()
             .id(manual_tx_id)
@@ -181,7 +177,7 @@ where
                     description,
                     entry_params,
                     effective,
-                    initiated_by,
+                    initiated_by: sub,
                 },
             )
             .await?;

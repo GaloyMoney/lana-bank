@@ -16,16 +16,16 @@ use crate::collateral::ledger::CollateralLedgerError;
 pub const SEND_COLLATERAL_TO_LIQUIDATION: &str = "SEND_COLLATERAL_TO_LIQUIDATION";
 
 #[derive(Debug)]
-pub struct SendCollateralToLiquidationParams {
+pub struct SendCollateralToLiquidationParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub amount: Satoshis,
     pub collateral_account_id: CalaAccountId,
     pub collateral_in_liquidation_account_id: CalaAccountId,
     pub effective: NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl SendCollateralToLiquidationParams {
+impl<S: std::fmt::Display> SendCollateralToLiquidationParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -67,7 +67,7 @@ impl SendCollateralToLiquidationParams {
     }
 }
 
-impl From<SendCollateralToLiquidationParams> for Params {
+impl<S: std::fmt::Display> From<SendCollateralToLiquidationParams<S>> for Params {
     fn from(
         SendCollateralToLiquidationParams {
             journal_id,
@@ -76,7 +76,7 @@ impl From<SendCollateralToLiquidationParams> for Params {
             collateral_in_liquidation_account_id,
             effective,
             initiated_by,
-        }: SendCollateralToLiquidationParams,
+        }: SendCollateralToLiquidationParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -91,7 +91,7 @@ impl From<SendCollateralToLiquidationParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -134,7 +134,7 @@ impl SendCollateralToLiquidation {
                 .expect("Could not build entry"),
         ];
 
-        let params = SendCollateralToLiquidationParams::defs();
+        let params = SendCollateralToLiquidationParams::<String>::defs();
 
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())

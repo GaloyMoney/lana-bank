@@ -28,7 +28,6 @@ domain-config = { workspace = true }
 async-graphql = { workspace = true }
 strum = { workspace = true }
 uuid = { workspace = true }
-serde = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-utils = { workspace = true }

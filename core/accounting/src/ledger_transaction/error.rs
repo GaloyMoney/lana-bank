@@ -20,6 +20,8 @@ pub enum LedgerTransactionError {
     JournalError(#[from] crate::journal::error::JournalError),
     #[error("LedgerTransactionError - Metadata: {0}")]
     MetadataError(#[from] serde_json::Error),
+    #[error("LedgerTransactionError - InitiatedByParse: {0}")]
+    InitiatedByParse(String),
 }
 
 impl ErrorSeverity for LedgerTransactionError {
@@ -33,6 +35,7 @@ impl ErrorSeverity for LedgerTransactionError {
             Self::AuthorizationError(e) => e.severity(),
             Self::JournalError(e) => e.severity(),
             Self::MetadataError(_) => Level::ERROR,
+            Self::InitiatedByParse(_) => Level::ERROR,
         }
     }
 }

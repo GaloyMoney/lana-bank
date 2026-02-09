@@ -16,7 +16,7 @@ use crate::{
 pub const CONFIRM_WITHDRAW_CODE: &str = "CONFIRM_WITHDRAW";
 
 #[derive(Debug)]
-pub struct ConfirmWithdrawParams {
+pub struct ConfirmWithdrawParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub currency: Currency,
@@ -25,11 +25,11 @@ pub struct ConfirmWithdrawParams {
     pub credit_account_id: CalaAccountId,
     pub correlation_id: String,
     pub external_id: String,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
     pub effective_date: chrono::NaiveDate,
 }
 
-impl ConfirmWithdrawParams {
+impl<S: std::fmt::Display> ConfirmWithdrawParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -81,7 +81,7 @@ impl ConfirmWithdrawParams {
     }
 }
 
-impl From<ConfirmWithdrawParams> for Params {
+impl<S: std::fmt::Display> From<ConfirmWithdrawParams<S>> for Params {
     fn from(
         ConfirmWithdrawParams {
             entity_id,
@@ -94,7 +94,7 @@ impl From<ConfirmWithdrawParams> for Params {
             credit_account_id,
             initiated_by,
             effective_date,
-        }: ConfirmWithdrawParams,
+        }: ConfirmWithdrawParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -111,7 +111,7 @@ impl From<ConfirmWithdrawParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -154,7 +154,7 @@ impl ConfirmWithdraw {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = ConfirmWithdrawParams::defs();
+        let params = ConfirmWithdrawParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(CONFIRM_WITHDRAW_CODE)

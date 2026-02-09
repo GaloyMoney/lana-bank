@@ -15,7 +15,7 @@ use crate::{
 pub const INITIAL_DISBURSAL_CODE: &str = "INITIAL_DISBURSAL";
 
 #[derive(Debug)]
-pub struct InitialDisbursalParams {
+pub struct InitialDisbursalParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub facility_uncovered_outstanding_account: CalaAccountId,
@@ -26,10 +26,10 @@ pub struct InitialDisbursalParams {
     pub currency: Currency,
     pub external_id: String,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl InitialDisbursalParams {
+impl<S: std::fmt::Display> InitialDisbursalParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -86,7 +86,7 @@ impl InitialDisbursalParams {
     }
 }
 
-impl From<InitialDisbursalParams> for Params {
+impl<S: std::fmt::Display> From<InitialDisbursalParams<S>> for Params {
     fn from(
         InitialDisbursalParams {
             entity_id,
@@ -100,7 +100,7 @@ impl From<InitialDisbursalParams> for Params {
             external_id,
             effective,
             initiated_by,
-        }: InitialDisbursalParams,
+        }: InitialDisbursalParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -124,7 +124,7 @@ impl From<InitialDisbursalParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
         params
@@ -184,7 +184,7 @@ impl InitialDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
         ];
-        let params = InitialDisbursalParams::defs();
+        let params = InitialDisbursalParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(INITIAL_DISBURSAL_CODE)

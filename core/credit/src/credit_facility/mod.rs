@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use core_price::{CorePriceEvent, Price};
 use es_entity::clock::ClockHandle;
@@ -297,7 +297,7 @@ where
             .handle_activation_in_op(
                 &mut db,
                 activation_data,
-                core_accounting::LedgerTransactionInitiator::System,
+                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
             )
             .await?;
         db.commit().await?;

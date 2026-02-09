@@ -14,18 +14,18 @@ use crate::{
 pub const DENY_WITHDRAW_CODE: &str = "DENY_WITHDRAW";
 
 #[derive(Debug)]
-pub struct DenyWithdrawParams {
+pub struct DenyWithdrawParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub deposit_omnibus_account_id: CalaAccountId,
     pub credit_account_id: CalaAccountId,
     pub amount: Decimal,
     pub currency: Currency,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
     pub effective_date: chrono::NaiveDate,
 }
 
-impl DenyWithdrawParams {
+impl<S: std::fmt::Display> DenyWithdrawParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -67,7 +67,7 @@ impl DenyWithdrawParams {
     }
 }
 
-impl From<DenyWithdrawParams> for Params {
+impl<S: std::fmt::Display> From<DenyWithdrawParams<S>> for Params {
     fn from(
         DenyWithdrawParams {
             entity_id,
@@ -78,7 +78,7 @@ impl From<DenyWithdrawParams> for Params {
             currency,
             initiated_by,
             effective_date,
-        }: DenyWithdrawParams,
+        }: DenyWithdrawParams<S>,
     ) -> Self {
         let mut params = Self::default();
 
@@ -94,7 +94,7 @@ impl From<DenyWithdrawParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -153,7 +153,7 @@ impl DenyWithdraw {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = DenyWithdrawParams::defs();
+        let params = DenyWithdrawParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(DENY_WITHDRAW_CODE)

@@ -12,7 +12,7 @@ use crate::{ledger::error::*, primitives::CalaAccountId};
 pub const ADD_STRUCTURING_FEE_CODE: &str = "ADD_STRUCTURING_FEE";
 
 #[derive(Debug)]
-pub struct AddStructuringFeeParams {
+pub struct AddStructuringFeeParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub facility_fee_income_account: CalaAccountId,
     pub debit_account_id: CalaAccountId,
@@ -20,10 +20,10 @@ pub struct AddStructuringFeeParams {
     pub currency: Currency,
     pub external_id: String,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl AddStructuringFeeParams {
+impl<S: std::fmt::Display> AddStructuringFeeParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -70,7 +70,7 @@ impl AddStructuringFeeParams {
     }
 }
 
-impl From<AddStructuringFeeParams> for Params {
+impl<S: std::fmt::Display> From<AddStructuringFeeParams<S>> for Params {
     fn from(
         AddStructuringFeeParams {
             journal_id,
@@ -81,7 +81,7 @@ impl From<AddStructuringFeeParams> for Params {
             external_id,
             effective,
             initiated_by,
-        }: AddStructuringFeeParams,
+        }: AddStructuringFeeParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -94,7 +94,7 @@ impl From<AddStructuringFeeParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
         params
@@ -137,7 +137,7 @@ impl AddStructuringFee {
                 .build()
                 .expect("Couldn't build entry"),
         ];
-        let params = AddStructuringFeeParams::defs();
+        let params = AddStructuringFeeParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(ADD_STRUCTURING_FEE_CODE)

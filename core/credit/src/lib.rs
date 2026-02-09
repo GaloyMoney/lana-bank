@@ -23,7 +23,6 @@ use std::sync::Arc;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use core_accounting::LedgerTransactionInitiator;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -663,7 +662,7 @@ where
                 disbursal.initiated_tx_id,
                 disbursal.amount,
                 facility.account_ids,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub,
             )
             .await?;
 
@@ -671,6 +670,130 @@ where
 
         Ok(disbursal)
     }
+
+    pub async fn subject_can_update_collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CoreCreditError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERAL,
+                enforce,
+            )
+            .await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.update_pending_facility_collateral", skip(self, pending_credit_facility_id), fields(pending_credit_facility_id = tracing::field::Empty))]
+    pub async fn update_pending_facility_collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        pending_credit_facility_id: impl Into<PendingCreditFacilityId> + std::fmt::Debug + Copy,
+        updated_collateral: Satoshis,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    ) -> Result<PendingCreditFacility, CoreCreditError> {
+        let effective = effective.into();
+
+        self.subject_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let pending_facility = self
+            .pending_credit_facilities()
+            .find_by_id_without_audit(pending_credit_facility_id.into())
+            .await?;
+
+        tracing::Span::current().record(
+            "pending_credit_facility_id",
+            tracing::field::display(pending_facility.id),
+        );
+
+        let mut db = self.facilities.begin_op().await?;
+
+        let collateral_update = if let Some(collateral_update) = self
+            .collaterals
+            .record_collateral_update_via_manual_input_in_op(
+                &mut db,
+                pending_facility.collateral_id,
+                updated_collateral,
+                effective,
+            )
+            .await?
+        {
+            collateral_update
+        } else {
+            return Ok(pending_facility);
+        };
+
+        self.collateral_ledger
+            .update_collateral_amount_in_op(
+                &mut db,
+                collateral_update,
+                pending_facility.account_ids.collateral_account_id,
+                sub,
+            )
+            .await?;
+
+        db.commit().await?;
+
+        Ok(pending_facility)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.update_collateral", skip(self))]
+    pub async fn update_collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
+        updated_collateral: Satoshis,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    ) -> Result<CreditFacility, CoreCreditError> {
+        let credit_facility_id = credit_facility_id.into();
+        let effective = effective.into();
+
+        self.subject_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let credit_facility = self
+            .facilities
+            .find_by_id_without_audit(credit_facility_id)
+            .await?;
+
+        let mut db = self.facilities.begin_op().await?;
+
+        let collateral_update = if let Some(collateral_update) = self
+            .collaterals
+            .record_collateral_update_via_manual_input_in_op(
+                &mut db,
+                credit_facility.collateral_id,
+                updated_collateral,
+                effective,
+            )
+            .await?
+        {
+            collateral_update
+        } else {
+            return Ok(credit_facility);
+        };
+        self.collateral_ledger
+            .update_collateral_amount_in_op(
+                &mut db,
+                collateral_update,
+                credit_facility.account_ids.collateral_account_id,
+                sub,
+            )
+            .await?;
+
+        db.commit().await?;
+
+        Ok(credit_facility)
+    }
+
 
     pub async fn subject_can_record_payment(
         &self,
@@ -717,7 +840,7 @@ where
 
         let payment_id = PaymentId::new();
         let effective = self.clock.today();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = sub;
         self.collections
             .payments()
             .record(
@@ -779,7 +902,7 @@ where
             .await?;
 
         let payment_id = PaymentId::new();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = sub;
         self.collections
             .payments()
             .record(
@@ -851,11 +974,7 @@ where
                     .await?;
 
                 self.ledger
-                    .complete_credit_facility_in_op(
-                        &mut db,
-                        completion,
-                        LedgerTransactionInitiator::try_from_subject(sub)?,
-                    )
+                    .complete_credit_facility_in_op(&mut db, completion, sub)
                     .await?;
                 db.commit().await?;
 

@@ -12,18 +12,18 @@ use crate::{ledger::error::*, primitives::WITHDRAWAL_TRANSACTION_ENTITY_TYPE};
 pub const CANCEL_WITHDRAW_CODE: &str = "CANCEL_WITHDRAW";
 
 #[derive(Debug)]
-pub struct CancelWithdrawParams {
+pub struct CancelWithdrawParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
     pub deposit_omnibus_account_id: AccountId,
     pub credit_account_id: AccountId,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
     pub effective_date: chrono::NaiveDate,
 }
 
-impl CancelWithdrawParams {
+impl<S: std::fmt::Display> CancelWithdrawParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -65,7 +65,7 @@ impl CancelWithdrawParams {
     }
 }
 
-impl From<CancelWithdrawParams> for Params {
+impl<S: std::fmt::Display> From<CancelWithdrawParams<S>> for Params {
     fn from(
         CancelWithdrawParams {
             entity_id,
@@ -76,7 +76,7 @@ impl From<CancelWithdrawParams> for Params {
             credit_account_id,
             initiated_by,
             effective_date,
-        }: CancelWithdrawParams,
+        }: CancelWithdrawParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -91,7 +91,7 @@ impl From<CancelWithdrawParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -151,7 +151,7 @@ impl CancelWithdraw {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = CancelWithdrawParams::defs();
+        let params = CancelWithdrawParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(CANCEL_WITHDRAW_CODE)

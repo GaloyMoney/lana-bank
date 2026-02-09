@@ -15,18 +15,18 @@ use crate::{
 pub const RECORD_DEPOSIT_CODE: &str = "RECORD_DEPOSIT";
 
 #[derive(Debug)]
-pub struct RecordDepositParams {
+pub struct RecordDepositParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
     pub deposit_omnibus_account_id: CalaAccountId,
     pub credit_account_id: CalaAccountId,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
     pub effective_date: chrono::NaiveDate,
 }
 
-impl RecordDepositParams {
+impl<S: std::fmt::Display> RecordDepositParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -68,7 +68,7 @@ impl RecordDepositParams {
     }
 }
 
-impl From<RecordDepositParams> for Params {
+impl<S: std::fmt::Display> From<RecordDepositParams<S>> for Params {
     fn from(
         RecordDepositParams {
             entity_id,
@@ -79,7 +79,7 @@ impl From<RecordDepositParams> for Params {
             credit_account_id,
             initiated_by,
             effective_date,
-        }: RecordDepositParams,
+        }: RecordDepositParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -94,7 +94,7 @@ impl From<RecordDepositParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -136,7 +136,7 @@ impl RecordDeposit {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordDepositParams::defs();
+        let params = RecordDepositParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(RECORD_DEPOSIT_CODE)

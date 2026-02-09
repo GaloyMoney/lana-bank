@@ -1,12 +1,12 @@
 mod job;
 
+use audit::SystemSubject;
 use std::sync::Arc;
 
 use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_accounting::LedgerTransactionInitiator;
 use core_credit_collection::CoreCreditCollection;
 use obix::out::OutboxEventMarker;
 
@@ -59,7 +59,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CoreCreditError> {
         if let Some(payment) = self.collections.payments().find_by_id(payment_id).await? {
             self.collections

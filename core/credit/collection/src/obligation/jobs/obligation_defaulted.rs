@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use job::*;
 use obix::out::OutboxEventMarker;
@@ -153,7 +153,7 @@ where
                 .record_obligation_defaulted_in_op(
                     &mut op,
                     defaulted,
-                    core_accounting::LedgerTransactionInitiator::System,
+                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
                 )
                 .await?;
             op.commit().await?;
