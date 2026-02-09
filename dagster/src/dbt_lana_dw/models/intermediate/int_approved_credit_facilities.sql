@@ -6,19 +6,18 @@ with
     collateral_deposits as (
         select
             credit_facility_id,
-            max(collateral_modified_at) as most_recent_collateral_deposit_at,
+            max(credit_facility_modified_at) as most_recent_collateral_deposit_at,
             any_value(
-                collateral_amount_btc having max collateral_modified_at
+                collateral_amount_btc having max credit_facility_modified_at
             ) as most_recent_collateral_deposit_amount_btc
-        from {{ ref("int_core_collateral_events_rollup") }}
-        where direction = "Add"
+        from {{ ref("core_credit_facility_events_rollup_sequence") }}
         group by credit_facility_id
     ),
 
     disbursals as (
         select credit_facility_id, sum(coalesce(amount_usd, 0)) as total_disbursed_usd
         from {{ ref("int_core_disbursal_events_rollup") }}
-        where is_settled
+        where collateralization_state_changed
         group by credit_facility_id
     ),
 
