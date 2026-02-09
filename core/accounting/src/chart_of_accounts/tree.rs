@@ -56,7 +56,7 @@ impl TreeNode {
         result
     }
 
-    pub fn descendant_account_sets(&self) -> Vec<AccountInfo> {
+    pub fn descendants_with_set_info(&self) -> Vec<AccountInfo> {
         let mut result = Vec::new();
         let mut stack: Vec<&TreeNode> = self.children.iter().rev().collect();
 
