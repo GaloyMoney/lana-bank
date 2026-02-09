@@ -274,8 +274,16 @@ impl InternalDomainConfigs {
     }
 }
 
+/// Test utilities for domain configs, usable for both internal and exposed configs.
+///
+/// This struct provides storage-level operations for integration tests that need
+/// to reset event-sourced config state between runs. It is agnostic to config
+/// visibility (internal vs exposed).
 #[cfg(feature = "test-utils")]
-impl InternalDomainConfigs {
+pub struct DomainConfigTestUtils;
+
+#[cfg(feature = "test-utils")]
+impl DomainConfigTestUtils {
     /// Hard-delete a domain config and all its events by key.
     ///
     /// This is intended **only for integration tests** that need to reset
