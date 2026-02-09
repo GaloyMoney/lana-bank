@@ -438,6 +438,10 @@ impl CreditFacility {
         initiated_at < self.matures_at()
     }
 
+    pub(crate) fn check_payment_date(&self, effective: chrono::NaiveDate) -> bool {
+        effective >= self.activated_at.date_naive()
+    }
+
     fn last_started_accrual_cycle(&self) -> Option<InterestAccrualCycleInCreditFacility> {
         self.events.iter_all().rev().find_map(|event| match event {
             CreditFacilityEvent::InterestAccrualCycleStarted {
