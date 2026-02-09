@@ -54,7 +54,7 @@ impl ErrorSeverity for DomainConfigError {
             Self::NotConfigured => Level::WARN,
             Self::NoDefault(_) => Level::WARN,
             Self::InvalidType(_) => Level::ERROR,
-            Self::DuplicateKey => Level::WARN,
+            Self::DuplicateKey => Level::DEBUG,
             Self::Serde(_) => Level::ERROR,
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),
