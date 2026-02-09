@@ -94,13 +94,13 @@ const CREDIT_CONFIG_FIELDS: CreditConfigField[] = [
   },
   {
     key: "chartOfAccountPaymentsMadeOmnibusParentCode",
-    defaultCode: "9110",
+    defaultCode: "9110.02.0201",
     category: "offBalanceSheet",
     group: "omnibus",
   },
   {
     key: "chartOfAccountInterestAddedToObligationsOmnibusParentCode",
-    defaultCode: "9110",
+    defaultCode: "9110.02.0201",
     category: "offBalanceSheet",
     group: "omnibus",
   },
@@ -154,19 +154,19 @@ const CREDIT_CONFIG_FIELDS: CreditConfigField[] = [
   },
   {
     key: "chartOfAccountUncoveredOutstandingParentCode",
-    defaultCode: "9110",
+    defaultCode: "9110.02.0201",
     category: "offBalanceSheet",
     group: "summary",
   },
   {
     key: "chartOfAccountDisbursedDefaultedParentCode",
-    defaultCode: "11.02.0203",
+    defaultCode: "1148.04.0101",
     category: "asset",
     group: "summary",
   },
   {
     key: "chartOfAccountInterestDefaultedParentCode",
-    defaultCode: "11.02.0203",
+    defaultCode: "1148.04.0101",
     category: "asset",
     group: "summary",
   },
