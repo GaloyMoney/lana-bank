@@ -17,8 +17,6 @@ sources:
 
       - name: core_chart_events_rollup
 
-      - name: core_collateral_events_rollup
-
       - name: core_credit_facility_events_rollup
 
       - name: core_credit_facility_proposal_events_rollup
@@ -32,8 +30,6 @@ sources:
       - name: core_disbursal_events_rollup
 
       - name: core_interest_accrual_cycle_events_rollup
-
-      - name: core_liquidation_events_rollup
 
       - name: core_obligation_events_rollup
 

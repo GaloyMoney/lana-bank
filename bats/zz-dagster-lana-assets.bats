@@ -87,7 +87,6 @@ LANA_ASSETS=(
   "core_chart_events"
   "core_chart_node_events"
   "core_chart_events_rollup"
-  "core_collateral_events_rollup"
   "core_credit_facility_events_rollup"
   "core_credit_facility_proposal_events_rollup"
   "core_customer_events_rollup"
@@ -95,7 +94,6 @@ LANA_ASSETS=(
   "core_deposit_events_rollup"
   "core_disbursal_events_rollup"
   "core_interest_accrual_cycle_events_rollup"
-  "core_liquidation_events_rollup"
   "core_obligation_events_rollup"
   "core_payment_allocation_events_rollup"
   "core_payment_events_rollup"
@@ -505,7 +503,7 @@ EOF
   echo "Launched remaining dbt models materialization with run ID: $run_id"
 
   # Wait for remaining models to complete (20 min timeout)
-  dagster_poll_run_status "$run_id" 600 2 || return 1
+  dagster_poll_run_status "$run_id" 900 2 || return 1
 
   echo "All dbt models materialized successfully"
 }
