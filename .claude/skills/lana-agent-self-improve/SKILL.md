@@ -11,7 +11,7 @@ $ARGUMENTS
 
 ## Step 1: Identify Files Consulted
 
-Recall which instruction and context files you read or were influenced by during this session. These may include `CLAUDE.md`, skill files (`.claude/skills/`), command files (`.claude/commands/`), cursor rules (`.cursor/rules/`), documentation files (`AUTHN.md`, `AUTHZ.md`, `README.md`), or any other files that shaped your behavior.
+Recall which instruction and context files you read or were influenced by during this session. These may include `CLAUDE.md`, skill files (`.claude/skills/`), cursor rules (`.cursor/rules/`), documentation files (`AUTHN.md`, `AUTHZ.md`, `README.md`), or any other files that shaped your behavior.
 
 List them explicitly before proceeding.
 
