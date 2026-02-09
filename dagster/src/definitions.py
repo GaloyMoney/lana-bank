@@ -185,6 +185,13 @@ dbt_automation_sensor = build_dbt_automation_sensor(
 )
 definition_builder.add_sensor(dbt_automation_sensor)
 
+dbt_models_job = dg.define_asset_job(
+    name="dbt_models_job",
+    selection=dg.AssetSelection.assets(lana_dbt_models),
+)
+definition_builder.jobs.append(dbt_models_job)
+definition_builder.add_job_schedule(job=dbt_models_job, cron_expression="0 * * * *")
+
 lana_dbt_seeds = create_dbt_seed_assets()
 definition_builder.assets.append(lana_dbt_seeds)
 
