@@ -1,4 +1,7 @@
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
+
+pub const BITGO: audit::SystemActor = audit::SystemActor::new("bitgo");
+pub const KOMAINU: audit::SystemActor = audit::SystemActor::new("komainu");
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 

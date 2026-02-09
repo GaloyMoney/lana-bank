@@ -217,6 +217,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 op,
+                crate::primitives::DISBURSAL_JOB,
                 CoreCreditObject::disbursal(disbursal_id),
                 CoreCreditAction::DISBURSAL_SETTLE,
             )

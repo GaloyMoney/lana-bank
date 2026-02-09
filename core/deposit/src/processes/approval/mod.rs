@@ -86,6 +86,7 @@ where
         self.audit
             .record_system_entry_in_op(
                 &mut op,
+                crate::primitives::DEPOSIT_APPROVAL,
                 CoreDepositObject::withdrawal(id),
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
             )
@@ -100,7 +101,9 @@ where
                         denied_tx_id,
                         withdraw.amount,
                         withdraw.deposit_account_id,
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                            crate::primitives::DEPOSIT_APPROVAL,
+                        ),
                     )
                     .await?;
                 op.commit().await?;

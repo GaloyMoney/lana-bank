@@ -290,7 +290,9 @@ where
             .record_interest_accrual_in_op(
                 &mut db,
                 interest_accrual,
-                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                    crate::primitives::INTEREST_ACCRUAL,
+                ),
             )
             .await?;
 
@@ -336,6 +338,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 op,
+                crate::primitives::INTEREST_ACCRUAL,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
             )
@@ -417,6 +420,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                crate::primitives::INTEREST_ACCRUAL,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
             )
@@ -436,7 +440,9 @@ where
             .record_interest_accrual_cycle_in_op(
                 &mut op,
                 facility_accrual_cycle_data,
-                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                    crate::primitives::INTEREST_ACCRUAL,
+                ),
             )
             .await?;
 

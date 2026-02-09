@@ -141,7 +141,9 @@ where
                 .execute_in_op(
                     db,
                     entity.id,
-                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                        crate::primitives::CREDIT_FACILITY_JOB,
+                    ),
                 )
                 .await?;
         }

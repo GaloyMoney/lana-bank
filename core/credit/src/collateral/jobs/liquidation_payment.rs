@@ -189,7 +189,9 @@ where
                         payment_ledger_account_ids,
                         *amount,
                         clock.today(),
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                            crate::primitives::COLLATERALIZATION_SYNC,
+                        ),
                     )
                     .await?;
 

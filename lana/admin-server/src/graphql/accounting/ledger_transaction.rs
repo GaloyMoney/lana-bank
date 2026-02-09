@@ -88,17 +88,20 @@ impl LedgerTransaction {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<LedgerTransactionInitiator> {
-        match self.entity.initiated_by {
+        match &self.entity.initiated_by {
             Subject::User(id) => {
                 let loader = ctx.data_unchecked::<LanaDataLoader>();
-                match loader.load_one(id).await? {
+                match loader.load_one(*id).await? {
                     Some(user) => Ok(LedgerTransactionInitiator::User(user)),
                     None => Err("Initiator user not found".into()),
                 }
             }
-            Subject::System | Subject::Customer(_) => {
-                Ok(LedgerTransactionInitiator::System(System::lana()))
-            }
+            Subject::System(actor) => Ok(LedgerTransactionInitiator::System(System::from_actor(
+                actor,
+            ))),
+            Subject::Customer(_) => Ok(LedgerTransactionInitiator::System(System::from_actor(
+                &audit::SystemActor::new("unknown"),
+            ))),
         }
     }
 

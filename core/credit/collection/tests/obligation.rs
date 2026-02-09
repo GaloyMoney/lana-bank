@@ -343,13 +343,17 @@ async fn obligation_completed_event_on_full_payment() -> anyhow::Result<()> {
                     payment_ledger_accounts,
                     amount,
                     effective,
-                    &DummySubject::system(),
+                    &DummySubject::system(audit::SystemActor::new("test")),
                 )
                 .await?
                 .ok_or_else(|| anyhow::anyhow!("payment was not created"))?;
             let payment_details = PaymentDetailsForAllocation::from(payment);
             obligations
-                .allocate_payment_in_op(&mut op, payment_details, &DummySubject::system())
+                .allocate_payment_in_op(
+                    &mut op,
+                    payment_details,
+                    &DummySubject::system(audit::SystemActor::new("test")),
+                )
                 .await?;
             op.commit().await?;
             Ok::<_, anyhow::Error>(())

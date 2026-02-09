@@ -187,7 +187,7 @@ where
                     &mut db,
                     data,
                     collateral.account_ids.collateral_account_id,
-                    &S::system(),
+                    &S::system(crate::primitives::COLLATERALIZATION_SYNC),
                 )
                 .await?;
             db.commit().await?;

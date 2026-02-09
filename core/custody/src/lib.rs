@@ -177,6 +177,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
+                crate::primitives::BITGO,
                 CoreCustodyObject::wallet(wallet.id),
                 CoreCustodyAction::WALLET_UPDATE,
             )
@@ -403,6 +404,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                crate::primitives::BITGO,
                 CoreCustodyObject::all_custodians(),
                 CoreCustodyAction::CUSTODIAN_UPDATE,
             )

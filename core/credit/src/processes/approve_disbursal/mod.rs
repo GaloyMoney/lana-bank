@@ -125,7 +125,9 @@ where
                         disbursal.disbursal_credit_account_id,
                         obligation,
                         credit_facility.account_ids,
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                            crate::primitives::DISBURSAL_JOB,
+                        ),
                     )
                     .await?;
                 op.commit().await?;
@@ -144,7 +146,9 @@ where
                         disbursal.initiated_tx_id,
                         disbursal.amount,
                         credit_facility.account_ids,
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                            crate::primitives::DISBURSAL_JOB,
+                        ),
                     )
                     .await?;
                 op.commit().await?;

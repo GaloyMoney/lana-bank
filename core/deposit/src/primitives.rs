@@ -6,6 +6,8 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
+pub const DEPOSIT_APPROVAL: audit::SystemActor = audit::SystemActor::new("deposit-approval");
+
 pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};

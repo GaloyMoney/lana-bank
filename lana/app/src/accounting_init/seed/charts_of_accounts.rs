@@ -36,7 +36,7 @@ async fn create_chart_of_accounts(
         let chart = accounting
             .chart_of_accounts()
             .create_chart(
-                &Subject::System,
+                &Subject::System(audit::SystemActor::BOOTSTRAP),
                 CHART_NAME.to_string(),
                 CHART_REF.to_string(),
             )
@@ -44,7 +44,11 @@ async fn create_chart_of_accounts(
 
         accounting
             .fiscal_year()
-            .init_for_chart(&Subject::System, opening_date, chart.id)
+            .init_for_chart(
+                &Subject::System(audit::SystemActor::BOOTSTRAP),
+                opening_date,
+                chart.id,
+            )
             .await?;
     }
 
@@ -77,7 +81,7 @@ async fn seed_chart_of_accounts(
 
     let chart = accounting
         .import_csv_with_base_config(
-            &Subject::System,
+            &Subject::System(audit::SystemActor::BOOTSTRAP),
             CHART_REF,
             data,
             accounting_integration_config,

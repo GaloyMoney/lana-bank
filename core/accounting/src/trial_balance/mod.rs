@@ -61,6 +61,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                crate::primitives::ACCOUNTING_JOB,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_CREATE,
             )
@@ -98,6 +99,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                crate::primitives::ACCOUNTING_JOB,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_UPDATE,
             )

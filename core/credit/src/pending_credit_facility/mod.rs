@@ -222,7 +222,9 @@ where
                     .handle_pending_facility_creation_in_op(
                         &mut db,
                         &pending_credit_facility,
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                            crate::primitives::CREDIT_FACILITY_JOB,
+                        ),
                     )
                     .await?;
 

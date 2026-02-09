@@ -153,6 +153,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                crate::primitives::OBLIGATION_SYNC,
                 CoreCreditCollectionObject::obligation(id),
                 CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
             )
@@ -193,7 +194,9 @@ where
                 .record_obligation_due_in_op(
                     &mut op,
                     due_data,
-                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                        crate::primitives::OBLIGATION_SYNC,
+                    ),
                 )
                 .await?;
 

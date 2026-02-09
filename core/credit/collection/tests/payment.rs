@@ -53,7 +53,7 @@ async fn payment_created_event_on_record() -> anyhow::Result<()> {
                         payment_ledger_accounts,
                         amount,
                         effective,
-                        &DummySubject::system(),
+                        &DummySubject::system(audit::SystemActor::new("test")),
                     )
                     .await?
                     .ok_or_else(|| anyhow::anyhow!("payment was not created"))

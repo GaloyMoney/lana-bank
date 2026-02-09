@@ -60,6 +60,7 @@ pub async fn run(
     .await?;
     for (customer_id, deposit_account_id) in customers {
         for _ in 0..config.num_facilities {
+            let sub = sub.clone();
             let app = app.clone();
             let clock = clock.clone();
 

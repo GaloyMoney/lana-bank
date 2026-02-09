@@ -93,6 +93,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
+                crate::primitives::GOVERNANCE,
                 GovernanceObject::all_policies(),
                 GovernanceAction::POLICY_CREATE,
             )
@@ -223,6 +224,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                crate::primitives::GOVERNANCE,
                 GovernanceObject::all_approval_processes(),
                 GovernanceAction::APPROVAL_PROCESS_CREATE,
             )
@@ -360,6 +362,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 op,
+                crate::primitives::GOVERNANCE,
                 GovernanceObject::approval_process(process.id),
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )

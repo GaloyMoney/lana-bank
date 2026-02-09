@@ -269,6 +269,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                crate::primitives::SUMSUB,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_START_KYC,
             )
@@ -293,6 +294,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                crate::primitives::SUMSUB,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_START_KYC,
             )
@@ -319,6 +321,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                crate::primitives::SUMSUB,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_APPROVE_KYC,
             )
@@ -346,6 +349,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                crate::primitives::SUMSUB,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_APPROVE_KYC,
             )
@@ -375,6 +379,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                crate::primitives::SUMSUB,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_DECLINE_KYC,
             )
@@ -399,6 +404,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                crate::primitives::SUMSUB,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_DECLINE_KYC,
             )
