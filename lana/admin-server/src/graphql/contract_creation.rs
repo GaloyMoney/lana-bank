@@ -58,6 +58,12 @@ pub struct LoanAgreementGenerateInput {
 
 crate::mutation_payload! { LoanAgreementGeneratePayload, loan_agreement: LoanAgreement }
 
+impl From<lana_app::contract_creation::LoanAgreement> for LoanAgreementGeneratePayload {
+    fn from(domain: lana_app::contract_creation::LoanAgreement) -> Self {
+        Self::from(LoanAgreement::from(domain))
+    }
+}
+
 #[derive(InputObject)]
 pub struct LoanAgreementDownloadLinksGenerateInput {
     pub loan_agreement_id: UUID,

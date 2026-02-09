@@ -67,6 +67,7 @@ macro_rules! maybe_fetch_one {
 
 #[macro_export]
 macro_rules! exec_mutation {
+    ($payload:ty, $load:expr) => {{ Ok(<$payload>::from($load.await?)) }};
     ($payload:ty, $ty:ty, $ctx:expr, $load:expr) => {{
         let entity = <$ty>::from($load.await?);
         let loader = $ctx.data_unchecked::<LanaDataLoader>();

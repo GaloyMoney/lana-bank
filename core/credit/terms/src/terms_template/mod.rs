@@ -66,9 +66,13 @@ where
         name: String,
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
-        self.subject_can_create_terms_template(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditTermsObject::all_terms_templates(),
+                CoreCreditTermsAction::TERMS_TEMPLATE_CREATE,
+            )
+            .await?;
         let new_terms_template = NewTermsTemplate::builder()
             .id(TermsTemplateId::new())
             .name(name)
@@ -102,9 +106,13 @@ where
         id: TermsTemplateId,
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
-        self.subject_can_update_terms_template(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditTermsObject::all_terms_templates(),
+                CoreCreditTermsAction::TERMS_TEMPLATE_UPDATE,
+            )
+            .await?;
 
         let mut terms_template = self.repo.find_by_id(id).await?;
         if terms_template.update_values(values).did_execute() {

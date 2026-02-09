@@ -7,7 +7,8 @@ use walkdir::WalkDir;
 
 use custom_lints::rules::{
     ConstructorNamingRule, DbOpConventionRule, DependencyDagRule, EntityMutateIdempotentRule,
-    EntityQueryInfallibleRule, ReqwestInLibRule, TransactionCommitRule, UnwrapUsageRule,
+    EntityQueryInfallibleRule, MutationAuthzRule, ReqwestInLibRule, TransactionCommitRule,
+    UnwrapUsageRule,
 };
 use custom_lints::{LintRule, Violation, WorkspaceRule};
 
@@ -43,6 +44,7 @@ fn run() -> Result<(Vec<Violation>, String)> {
     let workspace_rules: Vec<Box<dyn WorkspaceRule>> = vec![
         Box::new(DependencyDagRule::new()),
         Box::new(ReqwestInLibRule::new()),
+        Box::new(MutationAuthzRule::new()),
     ];
 
     summary_lines.push(format!("\n  Workspace Rules ({}):", workspace_rules.len()));

@@ -519,9 +519,13 @@ where
         terms: TermValues,
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
     ) -> Result<CreditFacilityProposal, CoreCreditError> {
-        self.subject_can_create(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_CREATE,
+            )
+            .await?;
 
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         let require_verified = self
@@ -586,9 +590,13 @@ where
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<Disbursal, CoreCreditError> {
-        self.subject_can_initiate_disbursal(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_disbursals(),
+                CoreCreditAction::DISBURSAL_INITIATE,
+            )
+            .await?;
 
         let facility = self
             .facilities
@@ -699,9 +707,13 @@ where
     ) -> Result<PendingCreditFacility, CoreCreditError> {
         let effective = effective.into();
 
-        self.subject_can_update_collateral(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERAL,
+            )
+            .await?;
 
         let pending_facility = self
             .pending_credit_facilities()
@@ -756,9 +768,13 @@ where
         let credit_facility_id = credit_facility_id.into();
         let effective = effective.into();
 
-        self.subject_can_update_collateral(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERAL,
+            )
+            .await?;
 
         let credit_facility = self
             .facilities
@@ -821,9 +837,13 @@ where
         payment_source_account_id: impl es_entity::RetryableInto<PaymentSourceAccountId>,
         amount: UsdCents,
     ) -> Result<CreditFacility, CoreCreditError> {
-        self.subject_can_record_payment(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_obligations(),
+                CoreCreditAction::OBLIGATION_RECORD_PAYMENT,
+            )
+            .await?;
 
         let credit_facility_id = credit_facility_id.into();
         let payment_source_account_id = payment_source_account_id.into();
@@ -889,9 +909,13 @@ where
         amount: UsdCents,
         effective: impl es_entity::RetryableInto<chrono::NaiveDate>,
     ) -> Result<CreditFacility, CoreCreditError> {
-        self.subject_can_record_payment_with_date(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_obligations(),
+                CoreCreditAction::OBLIGATION_RECORD_PAYMENT_WITH_DATE,
+            )
+            .await?;
 
         let credit_facility_id = credit_facility_id.into();
         let payment_source_account_id = payment_source_account_id.into();
@@ -950,9 +974,13 @@ where
     ) -> Result<CreditFacility, CoreCreditError> {
         let id = credit_facility_id.into();
 
-        self.subject_can_complete(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_COMPLETE,
+            )
+            .await?;
 
         let mut db = self.facilities.begin_op().await?;
 

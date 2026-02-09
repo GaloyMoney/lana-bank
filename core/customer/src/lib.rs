@@ -129,9 +129,13 @@ where
         telegram_id: impl Into<String> + std::fmt::Debug,
         customer_type: impl Into<CustomerType> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
-        self.subject_can_create_customer(sub, true)
-            .await?
-            .expect("audit info missing");
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_customers(),
+                CoreCustomerAction::CUSTOMER_CREATE,
+            )
+            .await?;
 
         let customer_id = CustomerId::new();
         tracing::Span::current().record("customer_id", customer_id.to_string().as_str());
@@ -558,7 +562,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         document_id: impl Into<CustomerDocumentId> + std::fmt::Debug + Copy,
-    ) -> Result<(), CustomerError> {
+    ) -> Result<CustomerDocumentId, CustomerError> {
         let customer_document_id = document_id.into();
         self.authz
             .enforce_permission(
@@ -570,7 +574,7 @@ where
 
         self.document_storage.delete(customer_document_id).await?;
 
-        Ok(())
+        Ok(customer_document_id)
     }
 
     #[record_error_severity]

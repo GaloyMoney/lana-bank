@@ -79,6 +79,12 @@ pub struct ReportFileGenerateDownloadLinkPayload {
     pub url: String,
 }
 
+impl From<String> for ReportFileGenerateDownloadLinkPayload {
+    fn from(url: String) -> Self {
+        Self { url }
+    }
+}
+
 #[derive(InputObject)]
 pub struct ReportFileGenerateDownloadLinkInput {
     pub report_id: UUID,
