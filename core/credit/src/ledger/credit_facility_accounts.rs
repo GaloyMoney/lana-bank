@@ -22,14 +22,6 @@ pub struct CreditFacilityLedgerAccountIds {
     /// Holds BTC collateral for this credit facility.
     pub collateral_account_id: CalaAccountId,
 
-    /// Holds BTC collateral for this credit facility, that is being
-    /// liquidated.
-    pub collateral_in_liquidation_account_id: CalaAccountId,
-
-    /// Holds BTC collateral for this credit facility, that has
-    /// already been liquidated.
-    pub liquidated_collateral_account_id: CalaAccountId,
-
     /// Holds funds received from liquidation.
     pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
 
@@ -58,8 +50,6 @@ impl CreditFacilityLedgerAccountIds {
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
             disbursed_defaulted_account_id: CalaAccountId::new(),
             collateral_account_id: CalaAccountId::new(),
-            collateral_in_liquidation_account_id: CalaAccountId::new(),
-            liquidated_collateral_account_id: CalaAccountId::new(),
             proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId::new(),
             interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
             interest_receivable_due_account_id: CalaAccountId::new(),
@@ -74,25 +64,32 @@ impl CreditFacilityLedgerAccountIds {
 }
 
 impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
-    fn from(proposal_ids: PendingCreditFacilityAccountIds) -> Self {
+    fn from(
+        PendingCreditFacilityAccountIds {
+            facility_account_id,
+            collateral_account_id,
+            facility_proceeds_from_liquidation_account_id: proceeds_from_liquidation_account_id,
+            facility_uncovered_outstanding_account_id: uncovered_outstanding_account_id,
+            facility_payment_holding_account_id: payment_holding_account_id,
+        }: PendingCreditFacilityAccountIds,
+    ) -> Self {
         Self {
-            facility_account_id: proposal_ids.facility_account_id,
+            facility_account_id,
+            collateral_account_id,
+            proceeds_from_liquidation_account_id,
+            uncovered_outstanding_account_id,
+            payment_holding_account_id,
+
             disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
             disbursed_defaulted_account_id: CalaAccountId::new(),
-            collateral_account_id: proposal_ids.collateral_account_id,
-            collateral_in_liquidation_account_id: CalaAccountId::new(),
-            liquidated_collateral_account_id: CalaAccountId::new(),
-            proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId::new(),
             interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
             interest_receivable_due_account_id: CalaAccountId::new(),
             interest_receivable_overdue_account_id: CalaAccountId::new(),
             interest_defaulted_account_id: CalaAccountId::new(),
             interest_income_account_id: CalaAccountId::new(),
             fee_income_account_id: CalaAccountId::new(),
-            uncovered_outstanding_account_id: CalaAccountId::new(),
-            payment_holding_account_id: CalaAccountId::new(),
         }
     }
 }
@@ -102,6 +99,9 @@ impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
 pub struct PendingCreditFacilityAccountIds {
     pub facility_account_id: CalaAccountId,
     pub collateral_account_id: CalaAccountId,
+    pub facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
+    pub facility_uncovered_outstanding_account_id: CalaAccountId,
+    pub facility_payment_holding_account_id: CalaAccountId,
 }
 
 impl PendingCreditFacilityAccountIds {
@@ -110,6 +110,10 @@ impl PendingCreditFacilityAccountIds {
         Self {
             collateral_account_id: CalaAccountId::new(),
             facility_account_id: CalaAccountId::new(),
+            facility_proceeds_from_liquidation_account_id:
+                FacilityProceedsFromLiquidationAccountId::new(),
+            facility_uncovered_outstanding_account_id: CalaAccountId::new(),
+            facility_payment_holding_account_id: CalaAccountId::new(),
         }
     }
 }

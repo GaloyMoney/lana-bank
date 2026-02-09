@@ -69,11 +69,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "collateral_in_liquidation_account_id": {
-          "description": "Holds BTC collateral for this credit facility, that is being\nliquidated.",
-          "format": "uuid",
-          "type": "string"
-        },
         "disbursed_defaulted_account_id": {
           "format": "uuid",
           "type": "string"
@@ -118,11 +113,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "liquidated_collateral_account_id": {
-          "description": "Holds BTC collateral for this credit facility, that has\nalready been liquidated.",
-          "format": "uuid",
-          "type": "string"
-        },
         "payment_holding_account_id": {
           "description": "Holds funds meant for payment allocation.",
           "format": "uuid",
@@ -146,8 +136,6 @@
         "disbursed_receivable_overdue_account_id",
         "disbursed_defaulted_account_id",
         "collateral_account_id",
-        "collateral_in_liquidation_account_id",
-        "liquidated_collateral_account_id",
         "proceeds_from_liquidation_account_id",
         "interest_receivable_not_yet_due_account_id",
         "interest_receivable_due_account_id",

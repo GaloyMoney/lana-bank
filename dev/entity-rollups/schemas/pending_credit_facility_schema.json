@@ -152,11 +152,26 @@
         "facility_account_id": {
           "format": "uuid",
           "type": "string"
+        },
+        "facility_payment_holding_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_proceeds_from_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_uncovered_outstanding_account_id": {
+          "format": "uuid",
+          "type": "string"
         }
       },
       "required": [
         "facility_account_id",
-        "collateral_account_id"
+        "collateral_account_id",
+        "facility_proceeds_from_liquidation_account_id",
+        "facility_uncovered_outstanding_account_id",
+        "facility_payment_holding_account_id"
       ],
       "type": "object"
     },

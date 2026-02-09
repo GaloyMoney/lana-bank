@@ -18,6 +18,7 @@ use es_entity::clock::ClockHandle;
 
 use crate::{
     Collaterals, CreditFacilityProposals,
+    collateral::ledger::CollateralLedgerAccountIds,
     credit_facility::NewCreditFacilityBuilder,
     credit_facility_proposal::{CreditFacilityProposal, ProposalApprovalOutcome},
     disbursal::NewDisbursalBuilder,
@@ -199,7 +200,12 @@ where
                         new_pending_facility.collateral_id,
                         new_pending_facility.id,
                         wallet_id,
-                        new_pending_facility.account_ids.collateral_account_id,
+                        CollateralLedgerAccountIds::new(
+                            new_pending_facility.account_ids,
+                            self.ledger
+                                .liquidation_proceeds_omnibus_account_ids()
+                                .account_id,
+                        ),
                     )
                     .await?;
 
