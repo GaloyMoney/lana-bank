@@ -137,17 +137,17 @@ impl DomainConfig {
         self.store_value(key, new_value)
     }
 
-    fn current_decrypted_json(&self, key: &EncryptionKey) -> serde_json::Value {
+    fn current_decrypted_json(
+        &self,
+        key: &EncryptionKey,
+    ) -> Result<serde_json::Value, DomainConfigError> {
         let json = self.current_json_value();
         if self.encrypted && !json.is_null() {
-            let encrypted: EncryptedValue = serde_json::from_value(json.clone())
-                .expect("stored encrypted value should be valid");
-            let bytes = encrypted
-                .decrypt(key)
-                .expect("decryption should succeed with correct key");
-            serde_json::from_slice(&bytes).expect("decrypted bytes should be valid json")
+            let encrypted: EncryptedValue = serde_json::from_value(json.clone())?;
+            let bytes = encrypted.decrypt(key)?;
+            Ok(serde_json::from_slice(&bytes)?)
         } else {
-            json.clone()
+            Ok(json.clone())
         }
     }
 
@@ -156,7 +156,7 @@ impl DomainConfig {
         key: &EncryptionKey,
         plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        if self.current_decrypted_json(key) == plaintext {
+        if self.current_decrypted_json(key)? == plaintext {
             return Ok(Idempotent::AlreadyApplied);
         }
 
