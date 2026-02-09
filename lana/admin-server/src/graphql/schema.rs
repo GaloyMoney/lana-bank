@@ -825,6 +825,17 @@ impl Query {
         Ok(ChartOfAccounts::from(chart))
     }
 
+    #[cfg(feature = "dag-export")]
+    async fn account_set_dag(&self, ctx: &Context<'_>) -> async_graphql::Result<AccountSetDag> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let dag = app
+            .accounting()
+            .chart_of_accounts()
+            .build_dag(sub, CHART_REF.0)
+            .await?;
+        Ok(AccountSetDag::from(dag))
+    }
+
     async fn descendant_account_sets_by_category(
         &self,
         ctx: &Context<'_>,

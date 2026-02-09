@@ -6,6 +6,7 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
+dag-export = ["lana-app/dag-export"]
 mock-custodian = ["lana-app/mock-custodian"]
 sumsub-testing = ["lana-app/sumsub-testing"]
 

@@ -12,6 +12,7 @@ const nextConfig = {
     return config
   },
   transpilePackages: ["@lana/web"],
+  serverExternalPackages: ["@terrastruct/d2"],
   output: "standalone",
   turbopack: {
     rules: {

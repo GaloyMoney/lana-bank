@@ -287,7 +287,8 @@
       "transactionTemplates": "Transaction Templates",
       "rolesAndPermissions": "Roles & Permissions",
       "custodians": "Custodians",
-      "configurations": "Configurations"
+      "configurations": "Configurations",
+      "dagVisualization": "DAG Visualization"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -2035,6 +2036,10 @@
       "error": "An error occurred while fetching audit logs.",
       "emptyMessage": "No audit logs found."
     }
+  },
+  "DAGVisualization": {
+    "title": "Account Hierarchy",
+    "description": "Visual representation of the account set containment hierarchy as a directed acyclic graph."
   },
   "ChartOfAccounts": {
     "title": "Chart Of Accounts",

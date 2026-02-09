@@ -287,7 +287,8 @@
       "transactionTemplates": "Plantillas de transacciones",
       "rolesAndPermissions": "Roles y permisos",
       "custodians": "Custodios",
-      "configurations": "Configuraciones"
+      "configurations": "Configuraciones",
+      "dagVisualization": "DAG"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -2035,6 +2036,10 @@
       "error": "Ocurrió un error al obtener los registros de auditoría.",
       "emptyMessage": "No se encontraron registros de auditoría."
     }
+  },
+  "DAGVisualization": {
+    "title": "Jerarquía de Cuentas",
+    "description": "Representación visual de la jerarquía de conjuntos de cuentas como un grafo acíclico dirigido."
   },
   "ChartOfAccounts": {
     "title": "Catálogo de Cuentas",

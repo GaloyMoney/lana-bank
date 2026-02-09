@@ -4,6 +4,7 @@ schema:
   - "./lib/graphql/local-schema.gql"
 documents:
   - "app/**/*.{ts,tsx}"
+  - "!app/dag-visualization/**"
   - "lib/**/*.{ts,tsx}"
   - "components/**/*.{ts,tsx}"
   - "hooks/**/*.{ts,tsx}"

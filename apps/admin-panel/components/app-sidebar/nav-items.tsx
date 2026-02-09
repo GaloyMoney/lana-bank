@@ -26,6 +26,7 @@ import {
   FileSignature,
   Clock,
   Calendar,
+  GitBranch,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -99,6 +100,7 @@ export function useNavItems() {
       url: "/transaction-templates",
       icon: SquareAsterisk,
     },
+    { title: t("dagVisualization"), url: "/dag-visualization", icon: GitBranch },
   ]
 
   const allNavItems: NavItem[] = [
