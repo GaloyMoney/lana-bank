@@ -87,12 +87,10 @@ async fn process_facility_message(
     clock: &ClockHandle,
 ) -> anyhow::Result<bool> {
     match &message.payload {
-        Some(LanaEvent::Credit(
-            event @ CoreCreditEvent::FacilityProposalConcluded {
-                id,
-                status: CreditFacilityProposalStatus::Approved,
-            },
-        )) if cf_proposal.id == *id => {
+        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityProposalConcluded { entity }))
+            if entity.status == CreditFacilityProposalStatus::Approved
+                && cf_proposal.id == entity.id =>
+        {
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());

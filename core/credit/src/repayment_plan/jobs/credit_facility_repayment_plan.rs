@@ -103,18 +103,26 @@ where
         use CoreCreditEvent::*;
 
         match message.as_event() {
-            Some(event @ FacilityProposalCreated { id, .. })
-            | Some(
-                event @ FacilityProposalConcluded {
-                    id,
-                    status: crate::primitives::CreditFacilityProposalStatus::Approved,
-                },
-            ) => {
+            Some(event @ FacilityProposalCreated { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
-                let facility_id: crate::primitives::CreditFacilityId = (*id).into();
+                let facility_id: crate::primitives::CreditFacilityId = entity.id.into();
+                let mut repayment_plan = self.repo.load(facility_id).await?;
+                repayment_plan.process_credit_event(sequence, event, clock.now());
+                self.repo
+                    .persist_in_tx(db, facility_id, repayment_plan)
+                    .await?;
+            }
+            Some(event @ FacilityProposalConcluded { entity })
+                if entity.status == crate::primitives::CreditFacilityProposalStatus::Approved =>
+            {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                let facility_id: crate::primitives::CreditFacilityId = entity.id.into();
                 let mut repayment_plan = self.repo.load(facility_id).await?;
                 repayment_plan.process_credit_event(sequence, event, clock.now());
                 self.repo
