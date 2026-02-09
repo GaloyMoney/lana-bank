@@ -7,9 +7,9 @@ use core_credit_collection::{
     PaymentDetailsForAllocation, PaymentId, PaymentLedgerAccountIds, PaymentSourceAccountId,
 };
 use core_credit_terms::EffectiveDate;
-use core_money::UsdCents;
 use es_entity::DbOp;
 use helpers::event::{DummyEvent, expect_event};
+use money::UsdCents;
 
 use helpers::TestContext;
 
