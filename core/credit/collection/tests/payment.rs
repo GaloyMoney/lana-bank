@@ -5,8 +5,8 @@ use core_credit_collection::{
     BeneficiaryId, CoreCreditCollectionEvent, PaymentId, PaymentLedgerAccountIds,
     PaymentSourceAccountId,
 };
-use core_money::UsdCents;
 use helpers::event::{DummyEvent, expect_event};
+use money::UsdCents;
 
 /// `PaymentCreated` is published when a payment is recorded.
 ///
