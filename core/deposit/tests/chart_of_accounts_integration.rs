@@ -145,7 +145,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
                 chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "25"
                     .parse()
                     .unwrap(),
-                chart_of_account_foreign_agency_or_subsidiary_deposit_accounts_parent_code: "25"
+                chart_of_account_foreign_agency_or_subsidiary_deposit_accounts_parent_code: "26"
                     .parse()
                     .unwrap(),
                 chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27"
