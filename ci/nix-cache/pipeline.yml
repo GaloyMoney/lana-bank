@@ -46,7 +46,6 @@ jobs:
       params:
         integration_tool: rebase
     - in_parallel:
-      - #@ set_pr_status("Awaiting build slot")
       - task: cache-dev-profile
         config:
           platform: linux
@@ -161,22 +160,14 @@ jobs:
       - do:
         - #@ check_latest_commit()
         - in_parallel:
-          - #@ set_pr_status("Executing phase lana-cli-release")
           - #@ set_pr_status("Running", context = "lana-cli-release")
           - do:
             - #@ next_version_task(resource_name = "prs")
             - #@ build_release(resource_name = "prs")
-          on_failure:
-            in_parallel:
-            - #@ set_pr_status("Failure (lana-cli-release)", status = "failure")
-            - #@ set_pr_status("Failed", context = "lana-cli-release", status = "failure")
+          on_failure: #@ set_pr_status("Failed", context = "lana-cli-release", status = "failure")
           on_abort: #@ set_pr_status("Aborted", context = "lana-cli-release", status = "failure")
           on_error: #@ set_pr_status("Errored", context = "lana-cli-release", status = "error")
-    - in_parallel:
-      - #@ set_pr_status("Complete", context = "lana-cli-release", status = "success")
-      - #@ set_pr_status("Complete", status = "success")
-    on_abort: #@ set_pr_status("Aborted", status = "failure")
-    on_error: #@ set_pr_status("Errored", status = "error")
+    - #@ set_pr_status("Complete", context = "lana-cli-release", status = "success")
 
 
 resources:
