@@ -1,42 +1,42 @@
 {
-  "link.title.Docs": {
+  "link.title.Documentation": {
     "message": "Documentación",
-    "description": "The title of the footer links column with title=Docs in the footer"
+    "description": "The title of the footer links column with title=Documentation in the footer"
   },
-  "link.item.label.Introduction": {
-    "message": "Introducción",
-    "description": "The label of footer link with label=Introduction linking to /"
+  "link.item.label.Getting Started": {
+    "message": "Primeros Pasos",
+    "description": "The label of footer link with label=Getting Started linking to /getting-started"
   },
-  "link.item.label.Credit": {
-    "message": "Crédito",
-    "description": "The label of footer link with label=Credit linking to /credit"
+  "link.item.label.For Developers": {
+    "message": "Para Desarrolladores",
+    "description": "The label of footer link with label=For Developers linking to /for-developers"
   },
-  "link.item.label.Accounting": {
-    "message": "Contabilidad",
-    "description": "The label of footer link with label=Accounting linking to /accounting"
+  "link.item.label.For Operators": {
+    "message": "Para Operadores",
+    "description": "The label of footer link with label=For Operators linking to /for-operators"
+  },
+  "link.item.label.For Platform Engineers": {
+    "message": "Para Ingenieros de Plataforma",
+    "description": "The label of footer link with label=For Platform Engineers linking to /for-platform-engineers"
   },
   "copyright": {
     "message": "Copyright © 2026 Lana Bank. Construido con Docusaurus.",
     "description": "The footer copyright"
   },
-  "link.title.API": {
-    "message": "API",
-    "description": "The title of the footer links column with title=API in the footer"
-  },
-  "link.item.label.API Reference": {
-    "message": "API Reference",
-    "description": "The label of footer link with label=API Reference linking to /api"
+  "link.title.API Reference": {
+    "message": "Referencia API",
+    "description": "The title of the footer links column with title=API Reference in the footer"
   },
   "link.item.label.Admin API": {
     "message": "Admin API",
-    "description": "The label of footer link with label=Admin API linking to /api/admin"
+    "description": "The label of footer link with label=Admin API linking to /for-developers/admin-api"
   },
   "link.item.label.Customer API": {
     "message": "Customer API",
-    "description": "The label of footer link with label=Customer API linking to /api/customer"
+    "description": "The label of footer link with label=Customer API linking to /for-developers/customer-api"
   },
   "link.item.label.Domain Events": {
-    "message": "Domain Events",
-    "description": "The label of footer link with label=Domain Events linking to /api/events"
+    "message": "Eventos de Dominio",
+    "description": "The label of footer link with label=Domain Events linking to /for-developers/events"
   }
 }

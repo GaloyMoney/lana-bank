@@ -209,6 +209,10 @@
           echo "Snapshotting schemas for $VERSION..."
           npm run snapshot-schemas -- "$VERSION"
 
+          # Step 5: Prune old versions (keep max 5)
+          echo "Pruning old documentation versions (keeping max 5)..."
+          npm run prune-old-versions
+
           cd ..
 
           echo "=== Documentation updated for version $VERSION ==="
