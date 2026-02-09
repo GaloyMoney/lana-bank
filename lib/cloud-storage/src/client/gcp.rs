@@ -46,10 +46,6 @@ impl GcpClient {
         })
     }
 
-    pub fn bucket_name(&self) -> &str {
-        &self.config.bucket_name
-    }
-
     fn bucket_path(&self) -> String {
         format!("projects/_/buckets/{}", self.config.bucket_name)
     }
