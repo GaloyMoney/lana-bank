@@ -78,7 +78,7 @@ const depositModuleCodes = {
   chartOfAccountBankDepositAccountsParentCode: "2110.01.0501",
   chartOfAccountFinancialInstitutionDepositAccountsParentCode: "2110.01.0601",
   chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: "2110.01.0901",
-  chartOfAccountForeignAgencyOrSubsidiaryDepositAccountsParentCode: "2110.01.0901",
+  chartOfAccountForeignAgencyOrSubsidiaryDepositAccountsParentCode: "2110.01.0201",
   chartOfAccountsFrozenIndividualDepositAccountsParentCode: "2114.03.0401",
   chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: "2114.03.0201",
   chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: "2114.03.0301",
