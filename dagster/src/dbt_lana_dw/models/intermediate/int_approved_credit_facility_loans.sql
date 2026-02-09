@@ -10,7 +10,7 @@ with
             any_value(
                 collateral_amount_btc having max credit_facility_modified_at
             ) as most_recent_collateral_deposit_amount_btc
-        from {{ ref("core_credit_facility_events_rollup_sequence") }}
+        from {{ ref("int_core_credit_facility_events_rollup_sequence") }}
         group by credit_facility_id
     ),
 
