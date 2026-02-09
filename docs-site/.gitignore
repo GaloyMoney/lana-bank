@@ -18,6 +18,9 @@
 /versioned_docs/*/for-developers/admin-api
 /versioned_docs/*/for-developers/customer-api
 /versioned_docs/*/for-developers/events
+/i18n/es/docusaurus-plugin-content-docs/version-*/for-developers/admin-api
+/i18n/es/docusaurus-plugin-content-docs/version-*/for-developers/customer-api
+/i18n/es/docusaurus-plugin-content-docs/version-*/for-developers/events
 
 # Misc
 .DS_Store
