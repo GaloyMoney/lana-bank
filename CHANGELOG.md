@@ -1,3 +1,50 @@
+## [0.40.0] - 2026-02-10
+
+### 🚀 Features
+
+- Add dagster e2e bats test (#3654)
+
+### 🐛 Bug Fixes
+
+- Autofill values for credit module (#3687)
+- Core_money -> money (#3702)
+- *(domain-config)* Reduce DuplicateKey error severity to DEBUG (#3704)
+- Docs not showing the latest cut version (#3710)
+- Bump axios to 1.13.5 to resolve DoS vulnerability (GHSA-43fc-jf86-j433) (#3721)
+- *(accounting)* Include leaf account sets in descendant_account_sets() (#3717)
+- *(test)* Eliminate flaky payment allocation race condition (#3723)
+- *(deps)* Upgrade google-cloud-storage to fix jsonwebtoken vulnerability (#3724)
+- *(deps)* Regenerate entity-rollups lockfile to fix 3 vulnerabilities (#3737)
+- *(deps)* Update job crate to 0.6.4 (#3739)
+
+### 🚜 Refactor
+
+- Extract core utilities to lib and add custom lint (#3688)
+- Move collateral accounts (#3650)
+- Complete simplification of nested `Liquidation` entity (#3661)
+
+### 📚 Documentation
+
+- Improve documentation (#3705)
+
+### 🧪 Testing
+
+- Collection public events (#3669)
+- Add feature-gated GCS integration tests (#3735)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.39.0 [ci skip] (#3684)
+- Fix release and update docs (#3690)
+- Update nix flake inputs (#3692)
+- Temp fix dagster tests (#3701)
+- Remove status in ci
+- Add lana-agent-self-improve skill for claude (#3714)
+- Add lana-monitor-pr-actions skill for CI monitoring (#3711)
+- Combine liquidation completion into proceeds recording (#3664)
+- Schedule dbt model executions (#3709)
+- Remove redundant collateral update (#3679)
+- Refine claude skill files for CI monitoring and test writing (#3727)
 ## [0.39.0] - 2026-02-06
 
 ### 🚀 Features
