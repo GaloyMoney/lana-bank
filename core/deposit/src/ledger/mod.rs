@@ -23,57 +23,13 @@ use crate::{
     WithdrawalReversalData,
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
     primitives::{
-        CalaAccountId, CalaAccountSetId, DEPOSIT_ACCOUNT_ENTITY_TYPE, DepositAccountType,
-        DepositId, UsdCents, WithdrawalId,
+        CalaAccountId, CalaAccountSetId, DEPOSIT_ACCOUNT_ENTITY_TYPE, DepositAccountSetCatalog,
+        DepositAccountType, DepositId, UsdCents, WithdrawalId,
     },
 };
 
 pub(super) use deposit_accounts::*;
 use error::*;
-
-pub const DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str = "Deposit Individual Account Set";
-pub const DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF: &str = "deposit-individual-account-set";
-pub const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str =
-    "Deposit Government Entity Account Set";
-pub const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF: &str = "deposit-government-entity-account-set";
-pub const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str = "Deposit Private Company Account Set";
-pub const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF: &str = "deposit-private-company-account-set";
-pub const DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Deposit Bank Account Set";
-pub const DEPOSIT_BANK_ACCOUNT_SET_REF: &str = "deposit-bank-account-set";
-pub const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
-    "Deposit Financial Institution Account Set";
-pub const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF: &str =
-    "deposit-financial-institution-account-set";
-pub const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
-    "Deposit Non-Domiciled Company Account Set";
-pub const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
-    "deposit-non-domiciled-company-account-set";
-
-pub const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
-    "Frozen Deposit Individual Account Set";
-pub const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF: &str = "frozen-deposit-individual-account-set";
-pub const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str =
-    "Frozen Deposit Government Entity Account Set";
-pub const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF: &str =
-    "frozen-deposit-government-entity-account-set";
-pub const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str =
-    "Frozen Deposit Private Company Account Set";
-pub const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF: &str =
-    "frozen-deposit-private-company-account-set";
-pub const FROZEN_DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Frozen Deposit Bank Account Set";
-pub const FROZEN_DEPOSIT_BANK_ACCOUNT_SET_REF: &str = "frozen-deposit-bank-account-set";
-pub const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
-    "Frozen Deposit Financial Institution Account Set";
-pub const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF: &str =
-    "frozen-deposit-financial-institution-account-set";
-pub const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
-    "Frozen Deposit Non-Domiciled Company Account Set";
-pub const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
-    "frozen-deposit-non-domiciled-company-account-set";
-
-pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME: &str = "Deposit Omnibus Account Set";
-pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_REF: &str = "deposit-omnibus-account-set";
-pub const DEPOSIT_OMNIBUS_ACCOUNT_REF: &str = "deposit-omnibus-account";
 
 pub const DEPOSITS_VELOCITY_CONTROL_ID: uuid::Uuid =
     uuid::uuid!("00000000-0000-0000-0000-000000000001");
@@ -124,13 +80,18 @@ impl DepositLedger {
         templates::FreezeAccount::init(cala).await?;
         templates::UnfreezeAccount::init(cala).await?;
 
+        let catalog = DepositAccountSetCatalog::default();
+        let deposit = catalog.deposit();
+        let frozen = catalog.frozen();
+        let omnibus = catalog.omnibus();
+
         let deposits_normal_balance_type = DebitOrCredit::Credit;
 
         let individual_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF}"),
-            DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{}", deposit.individual.account_set_ref),
+            deposit.individual.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -138,8 +99,8 @@ impl DepositLedger {
         let government_entity_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF}"),
-            DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{}", deposit.government_entity.account_set_ref),
+            deposit.government_entity.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -147,8 +108,8 @@ impl DepositLedger {
         let private_company_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF}"),
-            DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{}", deposit.private_company.account_set_ref),
+            deposit.private_company.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -156,8 +117,8 @@ impl DepositLedger {
         let bank_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{DEPOSIT_BANK_ACCOUNT_SET_REF}"),
-            DEPOSIT_BANK_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{}", deposit.bank.account_set_ref),
+            deposit.bank.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -165,8 +126,11 @@ impl DepositLedger {
         let financial_institution_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF}"),
-            DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                deposit.financial_institution.account_set_ref
+            ),
+            deposit.financial_institution.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -174,8 +138,11 @@ impl DepositLedger {
         let non_domiciled_company_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF}"),
-            DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                deposit.non_domiciled_individual.account_set_ref
+            ),
+            deposit.non_domiciled_individual.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -183,8 +150,8 @@ impl DepositLedger {
         let frozen_individual_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF}"),
-            FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{}", frozen.individual.account_set_ref),
+            frozen.individual.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -192,8 +159,8 @@ impl DepositLedger {
         let frozen_government_entity_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF}"),
-            FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{}", frozen.government_entity.account_set_ref),
+            frozen.government_entity.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -201,8 +168,8 @@ impl DepositLedger {
         let frozen_private_company_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF}"),
-            FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{}", frozen.private_company.account_set_ref),
+            frozen.private_company.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -210,8 +177,8 @@ impl DepositLedger {
         let frozen_bank_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{FROZEN_DEPOSIT_BANK_ACCOUNT_SET_REF}"),
-            FROZEN_DEPOSIT_BANK_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{}", frozen.bank.account_set_ref),
+            frozen.bank.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -219,8 +186,11 @@ impl DepositLedger {
         let frozen_financial_institution_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF}"),
-            FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                frozen.financial_institution.account_set_ref
+            ),
+            frozen.financial_institution.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -228,8 +198,11 @@ impl DepositLedger {
         let frozen_non_domiciled_company_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF}"),
-            FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME.to_string(),
+            format!(
+                "{journal_id}:{}",
+                frozen.non_domiciled_individual.account_set_ref
+            ),
+            frozen.non_domiciled_individual.name.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -237,9 +210,9 @@ impl DepositLedger {
         let deposit_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
-            format!("{journal_id}:{DEPOSIT_OMNIBUS_ACCOUNT_SET_REF}"),
-            format!("{journal_id}:{DEPOSIT_OMNIBUS_ACCOUNT_REF}"),
-            DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{}", omnibus.account_set_ref),
+            format!("{journal_id}:{}", omnibus.account_ref),
+            omnibus.name.to_string(),
             DebitOrCredit::Debit,
         )
         .await?;
