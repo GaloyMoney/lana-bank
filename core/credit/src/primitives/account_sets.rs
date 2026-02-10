@@ -76,66 +76,61 @@ pub struct CreditAccountSetCatalog {
 
 #[derive(Debug, Clone)]
 pub struct CreditOmnibusAccountSetCatalog {
-    pub(crate) credit_collateral_omnibus: CreditOmnibusAccountSetSpec,
-    pub(crate) credit_interest_added_to_obligations_omnibus: CreditOmnibusAccountSetSpec,
-    pub(crate) credit_payments_made_omnibus: CreditOmnibusAccountSetSpec,
-    pub(crate) credit_facility_omnibus: CreditOmnibusAccountSetSpec,
-    pub(crate) credit_facility_liquidation_proceeds_omnibus: CreditOmnibusAccountSetSpec,
+    pub credit_collateral_omnibus: CreditOmnibusAccountSetSpec,
+    pub credit_interest_added_to_obligations_omnibus: CreditOmnibusAccountSetSpec,
+    pub credit_payments_made_omnibus: CreditOmnibusAccountSetSpec,
+    pub credit_facility_omnibus: CreditOmnibusAccountSetSpec,
+    pub credit_facility_liquidation_proceeds_omnibus: CreditOmnibusAccountSetSpec,
 }
 
 #[derive(Debug, Clone)]
 pub struct CreditSummaryAccountSetCatalog {
-    pub(crate) credit_facility_remaining: CreditSummaryAccountSetSpec,
-    pub(crate) credit_collateral: CreditSummaryAccountSetSpec,
-    pub(crate) credit_facility_collateral_in_liquidation: CreditSummaryAccountSetSpec,
-    pub(crate) credit_facility_liquidated_collateral: CreditSummaryAccountSetSpec,
-    pub(crate) credit_facility_proceeds_from_liquidation: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_individual_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_government_entity_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_private_company_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_bank_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_financial_institution_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_foreign_agency_or_subsidiary_disbursed_receivable:
-        CreditSummaryAccountSetSpec,
-    pub(crate) short_term_non_domiciled_company_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_individual_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_government_entity_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_private_company_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_bank_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_financial_institution_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_foreign_agency_or_subsidiary_disbursed_receivable:
-        CreditSummaryAccountSetSpec,
-    pub(crate) long_term_non_domiciled_company_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_individual_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_government_entity_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_private_company_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_bank_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_financial_institution_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) short_term_foreign_agency_or_subsidiary_interest_receivable:
-        CreditSummaryAccountSetSpec,
-    pub(crate) short_term_non_domiciled_company_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_individual_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_government_entity_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_private_company_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_bank_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_financial_institution_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) long_term_foreign_agency_or_subsidiary_interest_receivable:
-        CreditSummaryAccountSetSpec,
-    pub(crate) long_term_non_domiciled_company_interest_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) overdue_individual_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) overdue_government_entity_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) overdue_private_company_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) overdue_bank_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) overdue_financial_institution_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) overdue_foreign_agency_or_subsidiary_disbursed_receivable:
-        CreditSummaryAccountSetSpec,
-    pub(crate) overdue_non_domiciled_company_disbursed_receivable: CreditSummaryAccountSetSpec,
-    pub(crate) credit_disbursed_defaulted: CreditSummaryAccountSetSpec,
-    pub(crate) credit_interest_defaulted: CreditSummaryAccountSetSpec,
-    pub(crate) credit_interest_income: CreditSummaryAccountSetSpec,
-    pub(crate) credit_fee_income: CreditSummaryAccountSetSpec,
-    pub(crate) credit_uncovered_outstanding: CreditSummaryAccountSetSpec,
-    pub(crate) credit_payment_holding: CreditSummaryAccountSetSpec,
+    pub credit_facility_remaining: CreditSummaryAccountSetSpec,
+    pub credit_collateral: CreditSummaryAccountSetSpec,
+    pub credit_facility_collateral_in_liquidation: CreditSummaryAccountSetSpec,
+    pub credit_facility_liquidated_collateral: CreditSummaryAccountSetSpec,
+    pub credit_facility_proceeds_from_liquidation: CreditSummaryAccountSetSpec,
+    pub short_term_individual_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_government_entity_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_private_company_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_bank_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_financial_institution_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_foreign_agency_or_subsidiary_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_non_domiciled_company_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_individual_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_government_entity_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_private_company_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_bank_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_financial_institution_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_foreign_agency_or_subsidiary_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_non_domiciled_company_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_individual_interest_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_government_entity_interest_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_private_company_interest_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_bank_interest_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_financial_institution_interest_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_foreign_agency_or_subsidiary_interest_receivable: CreditSummaryAccountSetSpec,
+    pub short_term_non_domiciled_company_interest_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_individual_interest_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_government_entity_interest_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_private_company_interest_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_bank_interest_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_financial_institution_interest_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_foreign_agency_or_subsidiary_interest_receivable: CreditSummaryAccountSetSpec,
+    pub long_term_non_domiciled_company_interest_receivable: CreditSummaryAccountSetSpec,
+    pub overdue_individual_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub overdue_government_entity_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub overdue_private_company_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub overdue_bank_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub overdue_financial_institution_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub overdue_foreign_agency_or_subsidiary_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub overdue_non_domiciled_company_disbursed_receivable: CreditSummaryAccountSetSpec,
+    pub credit_disbursed_defaulted: CreditSummaryAccountSetSpec,
+    pub credit_interest_defaulted: CreditSummaryAccountSetSpec,
+    pub credit_interest_income: CreditSummaryAccountSetSpec,
+    pub credit_fee_income: CreditSummaryAccountSetSpec,
+    pub credit_uncovered_outstanding: CreditSummaryAccountSetSpec,
+    pub credit_payment_holding: CreditSummaryAccountSetSpec,
 }
 
 impl CreditAccountSetCatalog {
@@ -145,6 +140,85 @@ impl CreditAccountSetCatalog {
 
     pub fn summary(&self) -> &CreditSummaryAccountSetCatalog {
         &self.summary
+    }
+
+    pub fn omnibus_specs(&self) -> [CreditOmnibusAccountSetSpec; 5] {
+        [
+            self.omnibus.credit_collateral_omnibus,
+            self.omnibus.credit_interest_added_to_obligations_omnibus,
+            self.omnibus.credit_payments_made_omnibus,
+            self.omnibus.credit_facility_omnibus,
+            self.omnibus.credit_facility_liquidation_proceeds_omnibus,
+        ]
+    }
+
+    pub fn summary_specs(&self) -> [CreditSummaryAccountSetSpec; 46] {
+        [
+            self.summary.credit_facility_remaining,
+            self.summary.credit_collateral,
+            self.summary.credit_facility_collateral_in_liquidation,
+            self.summary.credit_facility_liquidated_collateral,
+            self.summary.credit_facility_proceeds_from_liquidation,
+            self.summary.short_term_individual_disbursed_receivable,
+            self.summary
+                .short_term_government_entity_disbursed_receivable,
+            self.summary.short_term_private_company_disbursed_receivable,
+            self.summary.short_term_bank_disbursed_receivable,
+            self.summary
+                .short_term_financial_institution_disbursed_receivable,
+            self.summary
+                .short_term_foreign_agency_or_subsidiary_disbursed_receivable,
+            self.summary
+                .short_term_non_domiciled_company_disbursed_receivable,
+            self.summary.long_term_individual_disbursed_receivable,
+            self.summary
+                .long_term_government_entity_disbursed_receivable,
+            self.summary.long_term_private_company_disbursed_receivable,
+            self.summary.long_term_bank_disbursed_receivable,
+            self.summary
+                .long_term_financial_institution_disbursed_receivable,
+            self.summary
+                .long_term_foreign_agency_or_subsidiary_disbursed_receivable,
+            self.summary
+                .long_term_non_domiciled_company_disbursed_receivable,
+            self.summary.short_term_individual_interest_receivable,
+            self.summary
+                .short_term_government_entity_interest_receivable,
+            self.summary.short_term_private_company_interest_receivable,
+            self.summary.short_term_bank_interest_receivable,
+            self.summary
+                .short_term_financial_institution_interest_receivable,
+            self.summary
+                .short_term_foreign_agency_or_subsidiary_interest_receivable,
+            self.summary
+                .short_term_non_domiciled_company_interest_receivable,
+            self.summary.long_term_individual_interest_receivable,
+            self.summary.long_term_government_entity_interest_receivable,
+            self.summary.long_term_private_company_interest_receivable,
+            self.summary.long_term_bank_interest_receivable,
+            self.summary
+                .long_term_financial_institution_interest_receivable,
+            self.summary
+                .long_term_foreign_agency_or_subsidiary_interest_receivable,
+            self.summary
+                .long_term_non_domiciled_company_interest_receivable,
+            self.summary.overdue_individual_disbursed_receivable,
+            self.summary.overdue_government_entity_disbursed_receivable,
+            self.summary.overdue_private_company_disbursed_receivable,
+            self.summary.overdue_bank_disbursed_receivable,
+            self.summary
+                .overdue_financial_institution_disbursed_receivable,
+            self.summary
+                .overdue_foreign_agency_or_subsidiary_disbursed_receivable,
+            self.summary
+                .overdue_non_domiciled_company_disbursed_receivable,
+            self.summary.credit_disbursed_defaulted,
+            self.summary.credit_interest_defaulted,
+            self.summary.credit_interest_income,
+            self.summary.credit_fee_income,
+            self.summary.credit_uncovered_outstanding,
+            self.summary.credit_payment_holding,
+        ]
     }
 }
 
