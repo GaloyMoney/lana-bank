@@ -4,7 +4,7 @@ use cala_ledger::CalaLedger;
 use core_accounting::{AccountingBaseConfig, CoreAccounting};
 use core_custody::{CustodyConfig, EncryptionConfig};
 use domain_config::{
-    DomainEncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly,
+    EncryptionConfig as DomainEncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly,
     InternalDomainConfigs, RequireVerifiedCustomerForAccount,
 };
 use rand::Rng;

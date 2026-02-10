@@ -3,8 +3,8 @@
 use cala_ledger::CalaLedger;
 use core_accounting::{AccountingBaseConfig, CoreAccounting};
 use domain_config::{
-    DomainEncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly,
-    InternalDomainConfigs, RequireVerifiedCustomerForAccount,
+    EncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
+    RequireVerifiedCustomerForAccount,
 };
 use rand::Rng;
 
@@ -18,7 +18,7 @@ pub async fn init_read_only_exposed_domain_configs(
     pool: &sqlx::PgPool,
     authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
 ) -> anyhow::Result<ExposedDomainConfigsReadOnly> {
-    let exposed_configs = ExposedDomainConfigs::new(pool, authz, DomainEncryptionConfig::default());
+    let exposed_configs = ExposedDomainConfigs::new(pool, authz, EncryptionConfig::default());
     exposed_configs.seed_registered().await?;
     // Disable the require verified customer check for tests
     // Ignore concurrent modification - all tests want the same value (false)
@@ -27,14 +27,14 @@ pub async fn init_read_only_exposed_domain_configs(
         .await;
     Ok(ExposedDomainConfigsReadOnly::new(
         pool,
-        DomainEncryptionConfig::default(),
+        EncryptionConfig::default(),
     ))
 }
 
 pub async fn init_internal_domain_configs(
     pool: &sqlx::PgPool,
 ) -> anyhow::Result<InternalDomainConfigs> {
-    let internal_configs = InternalDomainConfigs::new(pool, DomainEncryptionConfig::default());
+    let internal_configs = InternalDomainConfigs::new(pool, EncryptionConfig::default());
     internal_configs.seed_registered().await?;
     Ok(internal_configs)
 }

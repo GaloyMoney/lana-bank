@@ -164,7 +164,7 @@ use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-pub use config::DomainEncryptionConfig;
+pub use config::EncryptionConfig;
 pub use entity::DomainConfig;
 pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
@@ -194,7 +194,7 @@ pub mod event_schema {
 #[derive(Clone)]
 pub struct InternalDomainConfigs {
     repo: DomainConfigRepo,
-    config: DomainEncryptionConfig,
+    config: EncryptionConfig,
 }
 
 #[derive(Clone)]
@@ -204,7 +204,7 @@ where
 {
     repo: DomainConfigRepo,
     authz: Perms,
-    config: DomainEncryptionConfig,
+    config: EncryptionConfig,
 }
 
 /// Read-only access to exposed domain configs without authorization.
@@ -214,11 +214,11 @@ where
 #[derive(Clone)]
 pub struct ExposedDomainConfigsReadOnly {
     repo: DomainConfigRepo,
-    config: DomainEncryptionConfig,
+    config: EncryptionConfig,
 }
 
 impl InternalDomainConfigs {
-    pub fn new(pool: &sqlx::PgPool, config: DomainEncryptionConfig) -> Self {
+    pub fn new(pool: &sqlx::PgPool, config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
         Self { repo, config }
     }
@@ -287,7 +287,7 @@ impl InternalDomainConfigs {
 }
 
 impl ExposedDomainConfigsReadOnly {
-    pub fn new(pool: &sqlx::PgPool, config: DomainEncryptionConfig) -> Self {
+    pub fn new(pool: &sqlx::PgPool, config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
         Self { repo, config }
     }
@@ -309,7 +309,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, config: DomainEncryptionConfig) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
         Self {
             repo,
@@ -498,7 +498,7 @@ async fn seed_registered_for_visibility(
 #[instrument(name = "domain_config.apply_startup_configs", skip_all)]
 pub async fn apply_startup_configs<I, K>(
     pool: &sqlx::PgPool,
-    encryption_config: &DomainEncryptionConfig,
+    encryption_config: &EncryptionConfig,
     settings: I,
 ) -> Result<(), DomainConfigError>
 where
