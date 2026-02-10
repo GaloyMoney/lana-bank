@@ -44,6 +44,5 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 authz = { workspace = true, features = ["test-dummy"] }
-rand = { workspace = true }
 rust_decimal_macros = { workspace = true }
 cala-cel-interpreter = { workspace = true }

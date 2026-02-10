@@ -223,7 +223,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
 }
 
 async fn setup_test() -> anyhow::Result<Test> {
-    use rand::Rng;
+    use uuid::Uuid;
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
@@ -250,7 +250,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("ref-{}", Uuid::new_v4());
     let _ = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
