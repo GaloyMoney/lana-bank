@@ -32,9 +32,7 @@ use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPubl
 use ledger::CollateralLedger;
 
 pub(super) use entity::*;
-use jobs::{
-    collateral_liquidations, liquidation_payment, partial_liquidation, wallet_collateral_sync,
-};
+use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync};
 pub use {
     entity::Collateral,
     liquidation::{Liquidation, LiquidationError, RecordProceedsFromLiquidationData},
@@ -125,10 +123,6 @@ where
             clock.clone(),
         ));
 
-        let partial_liquidation_job_spawner = jobs.add_initializer(
-            partial_liquidation::PartialLiquidationInit::new(outbox, repo_arc.clone()),
-        );
-
         let liquidation_payment_job_spawner =
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
@@ -140,7 +134,6 @@ where
             collateral_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
-                partial_liquidation_job_spawner,
                 liquidation_payment_job_spawner,
             ),
         );
@@ -268,11 +261,11 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "collateral.record_liquidation_proceeds_received",
+        name = "collateral.record_proceeds_received_and_liquidation_completed",
         skip(self, sub),
         err
     )]
-    pub async fn record_liquidation_proceeds_received(
+    pub async fn record_proceeds_received_and_liquidation_completed(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
@@ -291,7 +284,7 @@ where
         let mut db = self.repo.begin_op().await?;
 
         if let Idempotent::Executed(data) =
-            collateral.record_liquidation_proceeds_received(amount_received)?
+            collateral.record_proceeds_received_and_liquidation_completed(amount_received)?
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
             self.ledger

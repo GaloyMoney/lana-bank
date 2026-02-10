@@ -16,11 +16,8 @@ use crate::primitives::{
 use super::{
     CollateralUpdate,
     error::CollateralError,
-    ledger::CollateralLedgerAccountIds,
-    liquidation::{
-        Liquidation, LiquidationProceedsAccountIds, NewLiquidation,
-        RecordProceedsFromLiquidationData,
-    },
+    ledger::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds},
+    liquidation::{Liquidation, NewLiquidation, RecordProceedsFromLiquidationData},
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -71,11 +68,6 @@ pub struct Collateral {
     pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
-
-    /// Account IDs for the current active liquidation (if any).
-    /// Temporary storage until CollateralLedgerAccountIds is implemented.
-    #[builder(default)]
-    pub(super) active_liquidation_account_ids: Option<LiquidationProceedsAccountIds>,
 
     #[es_entity(nested)]
     #[builder(default)]
@@ -202,36 +194,32 @@ impl Collateral {
         }))
     }
 
-    pub fn record_liquidation_proceeds_received(
+    pub fn record_proceeds_received_and_liquidation_completed(
         &mut self,
         amount_received: UsdCents,
     ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, CollateralError> {
-        let account_ids = self
-            .active_liquidation_account_ids
-            .ok_or(CollateralError::NoActiveLiquidation)?;
+        let (ledger_tx_id, liquidation_id, sent_total) = {
+            let liquidation = self
+                .active_liquidation()
+                .ok_or(CollateralError::NoActiveLiquidation)?;
 
-        let liquidation = self
-            .active_liquidation()
-            .ok_or(CollateralError::NoActiveLiquidation)?;
-
-        let ledger_tx_id = if let Idempotent::Executed(id) =
-            liquidation.record_proceeds_from_liquidation(amount_received)?
-        {
-            id
-        } else {
-            return Ok(Idempotent::AlreadyApplied);
+            let ledger_tx_id = liquidation
+                .record_proceeds_from_liquidation_and_complete(amount_received)
+                .expect("Active liquidation in incorrect \"completed\" state");
+            (ledger_tx_id, liquidation.id, liquidation.sent_total)
         };
 
-        Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
-            liquidation_proceeds_omnibus_account_id: account_ids
-                .liquidation_proceeds_omnibus_account_id,
-            proceeds_from_liquidation_account_id: account_ids.proceeds_from_liquidation_account_id,
-            collateral_in_liquidation_account_id: account_ids.collateral_in_liquidation_account_id,
-            liquidated_collateral_account_id: account_ids.liquidated_collateral_account_id,
-            amount_received,
-            amount_liquidated: liquidation.sent_total,
-            ledger_tx_id,
-        }))
+        self.events
+            .push(CollateralEvent::LiquidationCompleted { liquidation_id });
+
+        Ok(Idempotent::Executed(
+            RecordProceedsFromLiquidationData::new(
+                self.account_ids.into(),
+                amount_received,
+                sent_total,
+                ledger_tx_id,
+            ),
+        ))
     }
 
     fn active_liquidation_id(&self) -> Option<LiquidationId> {
@@ -279,53 +267,14 @@ impl Collateral {
             .build()
             .expect("all fields for new liquidation provided");
 
-        let account_ids = LiquidationProceedsAccountIds {
-            liquidation_proceeds_omnibus_account_id: self
-                .account_ids
-                .liquidation_proceeds_omnibus_account_id,
-            proceeds_from_liquidation_account_id: self
-                .account_ids
-                .facility_proceeds_from_liquidation_account_id,
-            collateral_in_liquidation_account_id: self
-                .account_ids
-                .collateral_in_liquidation_account_id,
-            liquidated_collateral_account_id: self.account_ids.liquidated_collateral_account_id,
-        };
-
-        self.active_liquidation_account_ids = Some(account_ids);
         self.liquidations.add_new(new_liquidation);
 
         self.events.push(CollateralEvent::LiquidationStarted {
             liquidation_id,
-            account_ids,
+            account_ids: self.account_ids.into(),
         });
 
         Idempotent::Executed(liquidation_id)
-    }
-
-    pub fn record_liquidation_completed(
-        &mut self,
-        liquidation_id: LiquidationId,
-    ) -> Result<Idempotent<()>, CollateralError> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            CollateralEvent::LiquidationCompleted { liquidation_id: id }
-                if *id == liquidation_id
-        );
-
-        let liquidation = match self.active_liquidation() {
-            Some(l) => l,
-            None => return Err(CollateralError::NoActiveLiquidation),
-        };
-        if liquidation.complete().was_already_applied() {
-            return Ok(Idempotent::AlreadyApplied);
-        }
-
-        self.active_liquidation_account_ids = None;
-        self.events
-            .push(CollateralEvent::LiquidationCompleted { liquidation_id });
-
-        Ok(Idempotent::Executed(()))
     }
 }
 
@@ -351,7 +300,6 @@ impl NewCollateral {
 impl TryFromEvents<CollateralEvent> for Collateral {
     fn try_from_events(events: EntityEvents<CollateralEvent>) -> Result<Self, EsEntityError> {
         let mut builder = CollateralBuilder::default();
-        let mut active_liquidation_account_ids: Option<LiquidationProceedsAccountIds> = None;
 
         for event in events.iter_all() {
             match event {
@@ -384,18 +332,11 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 } => {
                     builder = builder.amount(*new_value);
                 }
-                CollateralEvent::LiquidationStarted { account_ids, .. } => {
-                    active_liquidation_account_ids = Some(*account_ids);
-                }
-                CollateralEvent::LiquidationCompleted { .. } => {
-                    active_liquidation_account_ids = None;
-                }
+                CollateralEvent::LiquidationStarted { .. } => {}
+                CollateralEvent::LiquidationCompleted { .. } => {}
             }
         }
-        builder
-            .active_liquidation_account_ids(active_liquidation_account_ids)
-            .events(events)
-            .build()
+        builder.events(events).build()
     }
 }
 
@@ -502,47 +443,6 @@ mod tests {
         }
     }
 
-    mod record_liquidation_completed {
-        use super::*;
-
-        #[test]
-        fn completes_liquidation() {
-            let new_collateral = default_new_collateral();
-            let mut collateral = collateral_from(new_collateral);
-
-            let liquidation_id = start_liquidation(&mut collateral);
-
-            let result = collateral.record_liquidation_completed(liquidation_id);
-            assert!(result.is_ok());
-            assert!(result.unwrap().did_execute());
-            assert!(collateral.active_liquidation_id().is_none());
-        }
-
-        #[test]
-        fn is_idempotent() {
-            let new_collateral = default_new_collateral();
-            let mut collateral = collateral_from(new_collateral);
-
-            let liquidation_id = start_liquidation(&mut collateral);
-
-            let _ = collateral
-                .record_liquidation_completed(liquidation_id)
-                .unwrap();
-            let result = collateral.record_liquidation_completed(liquidation_id);
-            assert!(result.is_ok());
-            assert!(result.unwrap().was_already_applied());
-        }
-
-        #[test]
-        fn fails_if_no_active_liquidation() {
-            let new_collateral = default_new_collateral();
-            let mut collateral = collateral_from(new_collateral);
-
-            let result = collateral.record_liquidation_completed(LiquidationId::new());
-            assert!(matches!(result, Err(CollateralError::NoActiveLiquidation)));
-        }
-    }
-
     mod record_collateral_update_via_liquidation {
         use super::*;
 
@@ -610,20 +510,21 @@ mod tests {
         }
     }
 
-    mod record_liquidation_proceeds_received {
+    mod record_proceeds_received_and_liquidation_completed {
         use super::*;
 
         #[test]
-        fn records_proceeds() {
+        fn records_proceeds_and_completes_liquidation() {
             let new_collateral = default_new_collateral();
             let mut collateral = collateral_from(new_collateral);
 
             start_liquidation(&mut collateral);
 
             let amount = UsdCents::from(500);
-            let result = collateral.record_liquidation_proceeds_received(amount);
+            let result = collateral.record_proceeds_received_and_liquidation_completed(amount);
             assert!(result.is_ok());
             assert!(result.unwrap().did_execute());
+            assert!(collateral.active_liquidation_id().is_none());
         }
 
         #[test]
@@ -631,7 +532,8 @@ mod tests {
             let new_collateral = default_new_collateral();
             let mut collateral = collateral_from(new_collateral);
 
-            let result = collateral.record_liquidation_proceeds_received(UsdCents::from(500));
+            let result =
+                collateral.record_proceeds_received_and_liquidation_completed(UsdCents::from(500));
             assert!(matches!(result, Err(CollateralError::NoActiveLiquidation)));
         }
     }

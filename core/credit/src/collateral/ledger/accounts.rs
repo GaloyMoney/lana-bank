@@ -49,3 +49,26 @@ impl CollateralLedgerAccountIds {
         }
     }
 }
+
+/// Account IDs needed for recording proceeds from liquidation.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub struct LiquidationProceedsAccountIds {
+    pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
+    pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub liquidated_collateral_account_id: CalaAccountId,
+}
+
+impl From<CollateralLedgerAccountIds> for LiquidationProceedsAccountIds {
+    fn from(account_ids: CollateralLedgerAccountIds) -> Self {
+        Self {
+            liquidation_proceeds_omnibus_account_id: account_ids
+                .liquidation_proceeds_omnibus_account_id,
+            proceeds_from_liquidation_account_id: account_ids
+                .facility_proceeds_from_liquidation_account_id,
+            collateral_in_liquidation_account_id: account_ids.collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id: account_ids.liquidated_collateral_account_id,
+        }
+    }
+}
