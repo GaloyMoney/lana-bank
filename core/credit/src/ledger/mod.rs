@@ -156,19 +156,23 @@ impl CreditLedger {
         templates::CreateCreditFacilityProposal::init(cala).await?;
         templates::InitialDisbursal::init(cala).await?;
 
+        let catalog = account_sets::CreditAccountSetCatalog::default();
+        let summary = catalog.summary();
+        let omnibus = catalog.omnibus();
+
         let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_COLLATERAL_OMNIBUS.account_set_ref
+                omnibus.credit_collateral_omnibus.account_set_ref
             ),
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_COLLATERAL_OMNIBUS.account_ref
+                omnibus.credit_collateral_omnibus.account_ref
             ),
-            account_sets::CREDIT_COLLATERAL_OMNIBUS.name.to_string(),
+            omnibus.credit_collateral_omnibus.name.to_string(),
             collateral_omnibus_normal_balance_type,
         )
         .await?;
@@ -180,13 +184,18 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS.account_set_ref
+                    omnibus
+                        .credit_interest_added_to_obligations_omnibus
+                        .account_set_ref
                 ),
                 format!(
                     "{journal_id}:{}",
-                    account_sets::CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS.account_ref
+                    omnibus
+                        .credit_interest_added_to_obligations_omnibus
+                        .account_ref
                 ),
-                account_sets::CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS
+                omnibus
+                    .credit_interest_added_to_obligations_omnibus
                     .name
                     .to_string(),
                 interest_added_to_obligations_omnibus_normal_balance_type,
@@ -199,13 +208,13 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_PAYMENTS_MADE_OMNIBUS.account_set_ref
+                omnibus.credit_payments_made_omnibus.account_set_ref
             ),
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_PAYMENTS_MADE_OMNIBUS.account_ref
+                omnibus.credit_payments_made_omnibus.account_ref
             ),
-            account_sets::CREDIT_PAYMENTS_MADE_OMNIBUS.name.to_string(),
+            omnibus.credit_payments_made_omnibus.name.to_string(),
             payments_made_omnibus_normal_balance_type,
         )
         .await?;
@@ -216,13 +225,13 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_FACILITY_OMNIBUS.account_set_ref
+                omnibus.credit_facility_omnibus.account_set_ref
             ),
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_FACILITY_OMNIBUS.account_ref
+                omnibus.credit_facility_omnibus.account_ref
             ),
-            account_sets::CREDIT_FACILITY_OMNIBUS.name.to_string(),
+            omnibus.credit_facility_omnibus.name.to_string(),
             facility_omnibus_normal_balance_type,
         )
         .await?;
@@ -233,13 +242,18 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS.account_set_ref
+                omnibus
+                    .credit_facility_liquidation_proceeds_omnibus
+                    .account_set_ref
             ),
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS.account_ref
+                omnibus
+                    .credit_facility_liquidation_proceeds_omnibus
+                    .account_ref
             ),
-            account_sets::CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS
+            omnibus
+                .credit_facility_liquidation_proceeds_omnibus
                 .name
                 .to_string(),
             liquidation_proceeds_omnibus_normal_balance_type,
@@ -252,9 +266,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_FACILITY_REMAINING.external_ref
+                summary.credit_facility_remaining.external_ref
             ),
-            account_sets::CREDIT_FACILITY_REMAINING.name.to_string(),
+            summary.credit_facility_remaining.name.to_string(),
             facility_normal_balance_type,
         )
         .await?;
@@ -263,11 +277,8 @@ impl CreditLedger {
         let collateral_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!(
-                "{journal_id}:{}",
-                account_sets::CREDIT_COLLATERAL.external_ref
-            ),
-            account_sets::CREDIT_COLLATERAL.name.to_string(),
+            format!("{journal_id}:{}", summary.credit_collateral.external_ref),
+            summary.credit_collateral.name.to_string(),
             collateral_normal_balance_type,
         )
         .await?;
@@ -278,9 +289,12 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION.external_ref
+                summary
+                    .credit_facility_collateral_in_liquidation
+                    .external_ref
             ),
-            account_sets::CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION
+            summary
+                .credit_facility_collateral_in_liquidation
                 .name
                 .to_string(),
             collateral_in_liquidation_normal_balance_type,
@@ -293,9 +307,10 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_FACILITY_LIQUIDATED_COLLATERAL.external_ref
+                summary.credit_facility_liquidated_collateral.external_ref
             ),
-            account_sets::CREDIT_FACILITY_LIQUIDATED_COLLATERAL
+            summary
+                .credit_facility_liquidated_collateral
                 .name
                 .to_string(),
             liquidated_collateral_normal_balance_type,
@@ -308,9 +323,12 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION.external_ref
+                summary
+                    .credit_facility_proceeds_from_liquidation
+                    .external_ref
             ),
-            account_sets::CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION
+            summary
+                .credit_facility_proceeds_from_liquidation
                 .name
                 .to_string(),
             proceeds_from_liquidation_normal_balance_type,
@@ -324,9 +342,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .short_term_individual_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE
+                summary
+                    .short_term_individual_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -338,9 +359,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .short_term_government_entity_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE
+                summary
+                    .short_term_government_entity_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -352,9 +376,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .short_term_private_company_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE
+                summary
+                    .short_term_private_company_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -365,9 +392,10 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::SHORT_TERM_BANK_DISBURSED_RECEIVABLE.external_ref
+                summary.short_term_bank_disbursed_receivable.external_ref
             ),
-            account_sets::SHORT_TERM_BANK_DISBURSED_RECEIVABLE
+            summary
+                .short_term_bank_disbursed_receivable
                 .name
                 .to_string(),
             disbursed_receivable_normal_balance_type,
@@ -379,10 +407,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                    summary
+                        .short_term_financial_institution_disbursed_receivable
                         .external_ref
                 ),
-                account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                summary
+                    .short_term_financial_institution_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -394,10 +424,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                    summary
+                        .short_term_foreign_agency_or_subsidiary_disbursed_receivable
                         .external_ref
                 ),
-                account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                summary
+                    .short_term_foreign_agency_or_subsidiary_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -409,10 +441,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                    summary
+                        .short_term_non_domiciled_company_disbursed_receivable
                         .external_ref
                 ),
-                account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                summary
+                    .short_term_non_domiciled_company_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -425,9 +459,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .long_term_individual_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE
+                summary
+                    .long_term_individual_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -439,9 +476,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .long_term_government_entity_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE
+                summary
+                    .long_term_government_entity_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -453,9 +493,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .long_term_private_company_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE
+                summary
+                    .long_term_private_company_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -466,11 +509,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::LONG_TERM_BANK_DISBURSED_RECEIVABLE.external_ref
+                summary.long_term_bank_disbursed_receivable.external_ref
             ),
-            account_sets::LONG_TERM_BANK_DISBURSED_RECEIVABLE
-                .name
-                .to_string(),
+            summary.long_term_bank_disbursed_receivable.name.to_string(),
             disbursed_receivable_normal_balance_type,
         )
         .await?;
@@ -480,9 +521,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .long_term_financial_institution_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                summary
+                    .long_term_financial_institution_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -494,10 +538,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                    summary
+                        .long_term_foreign_agency_or_subsidiary_disbursed_receivable
                         .external_ref
                 ),
-                account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                summary
+                    .long_term_foreign_agency_or_subsidiary_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -509,9 +555,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .long_term_non_domiciled_company_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                summary
+                    .long_term_non_domiciled_company_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -524,9 +573,10 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE.external_ref
+                    summary.overdue_individual_disbursed_receivable.external_ref
                 ),
-                account_sets::OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE
+                summary
+                    .overdue_individual_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -538,9 +588,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .overdue_government_entity_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE
+                summary
+                    .overdue_government_entity_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -552,9 +605,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .overdue_private_company_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE
+                summary
+                    .overdue_private_company_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -565,11 +621,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::OVERDUE_BANK_DISBURSED_RECEIVABLE.external_ref
+                summary.overdue_bank_disbursed_receivable.external_ref
             ),
-            account_sets::OVERDUE_BANK_DISBURSED_RECEIVABLE
-                .name
-                .to_string(),
+            summary.overdue_bank_disbursed_receivable.name.to_string(),
             disbursed_receivable_normal_balance_type,
         )
         .await?;
@@ -579,9 +633,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .overdue_financial_institution_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE
+                summary
+                    .overdue_financial_institution_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -593,10 +650,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                    summary
+                        .overdue_foreign_agency_or_subsidiary_disbursed_receivable
                         .external_ref
                 ),
-                account_sets::OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE
+                summary
+                    .overdue_foreign_agency_or_subsidiary_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -608,9 +667,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE.external_ref
+                    summary
+                        .overdue_non_domiciled_company_disbursed_receivable
+                        .external_ref
                 ),
-                account_sets::OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE
+                summary
+                    .overdue_non_domiciled_company_disbursed_receivable
                     .name
                     .to_string(),
                 disbursed_receivable_normal_balance_type,
@@ -622,9 +684,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_DISBURSED_DEFAULTED.external_ref
+                summary.credit_disbursed_defaulted.external_ref
             ),
-            account_sets::CREDIT_DISBURSED_DEFAULTED.name.to_string(),
+            summary.credit_disbursed_defaulted.name.to_string(),
             disbursed_receivable_normal_balance_type,
         )
         .await?;
@@ -637,9 +699,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .short_term_individual_interest_receivable
+                        .external_ref
                 ),
-                account_sets::SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE
+                summary
+                    .short_term_individual_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -652,9 +717,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .short_term_government_entity_interest_receivable
+                        .external_ref
                 ),
-                account_sets::SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE
+                summary
+                    .short_term_government_entity_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -667,9 +735,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .short_term_private_company_interest_receivable
+                        .external_ref
                 ),
-                account_sets::SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE
+                summary
+                    .short_term_private_company_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -681,11 +752,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::SHORT_TERM_BANK_INTEREST_RECEIVABLE.external_ref
+                summary.short_term_bank_interest_receivable.external_ref
             ),
-            account_sets::SHORT_TERM_BANK_INTEREST_RECEIVABLE
-                .name
-                .to_string(),
+            summary.short_term_bank_interest_receivable.name.to_string(),
             interest_receivable_normal_balance_type,
         )
         .await?;
@@ -696,9 +765,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .short_term_financial_institution_interest_receivable
+                        .external_ref
                 ),
-                account_sets::SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE
+                summary
+                    .short_term_financial_institution_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -711,10 +783,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                    summary
+                        .short_term_foreign_agency_or_subsidiary_interest_receivable
                         .external_ref
                 ),
-                account_sets::SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                summary
+                    .short_term_foreign_agency_or_subsidiary_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -727,9 +801,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .short_term_non_domiciled_company_interest_receivable
+                        .external_ref
                 ),
-                account_sets::SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE
+                summary
+                    .short_term_non_domiciled_company_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -742,9 +819,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .long_term_individual_interest_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE
+                summary
+                    .long_term_individual_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -757,9 +837,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .long_term_government_entity_interest_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE
+                summary
+                    .long_term_government_entity_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -772,9 +855,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .long_term_private_company_interest_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE
+                summary
+                    .long_term_private_company_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -786,11 +872,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::LONG_TERM_BANK_INTEREST_RECEIVABLE.external_ref
+                summary.long_term_bank_interest_receivable.external_ref
             ),
-            account_sets::LONG_TERM_BANK_INTEREST_RECEIVABLE
-                .name
-                .to_string(),
+            summary.long_term_bank_interest_receivable.name.to_string(),
             interest_receivable_normal_balance_type,
         )
         .await?;
@@ -801,9 +885,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .long_term_financial_institution_interest_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE
+                summary
+                    .long_term_financial_institution_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -816,10 +903,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                    summary
+                        .long_term_foreign_agency_or_subsidiary_interest_receivable
                         .external_ref
                 ),
-                account_sets::LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE
+                summary
+                    .long_term_foreign_agency_or_subsidiary_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -832,9 +921,12 @@ impl CreditLedger {
                 journal_id,
                 format!(
                     "{journal_id}:{}",
-                    account_sets::LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE.external_ref
+                    summary
+                        .long_term_non_domiciled_company_interest_receivable
+                        .external_ref
                 ),
-                account_sets::LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE
+                summary
+                    .long_term_non_domiciled_company_interest_receivable
                     .name
                     .to_string(),
                 interest_receivable_normal_balance_type,
@@ -846,9 +938,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_INTEREST_DEFAULTED.external_ref
+                summary.credit_interest_defaulted.external_ref
             ),
-            account_sets::CREDIT_INTEREST_DEFAULTED.name.to_string(),
+            summary.credit_interest_defaulted.name.to_string(),
             interest_receivable_normal_balance_type,
         )
         .await?;
@@ -859,9 +951,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_INTEREST_INCOME.external_ref
+                summary.credit_interest_income.external_ref
             ),
-            account_sets::CREDIT_INTEREST_INCOME.name.to_string(),
+            summary.credit_interest_income.name.to_string(),
             interest_income_normal_balance_type,
         )
         .await?;
@@ -870,11 +962,8 @@ impl CreditLedger {
         let fee_income_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!(
-                "{journal_id}:{}",
-                account_sets::CREDIT_FEE_INCOME.external_ref
-            ),
-            account_sets::CREDIT_FEE_INCOME.name.to_string(),
+            format!("{journal_id}:{}", summary.credit_fee_income.external_ref),
+            summary.credit_fee_income.name.to_string(),
             fee_income_normal_balance_type,
         )
         .await?;
@@ -885,9 +974,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_UNCOVERED_OUTSTANDING.external_ref
+                summary.credit_uncovered_outstanding.external_ref
             ),
-            account_sets::CREDIT_UNCOVERED_OUTSTANDING.name.to_string(),
+            summary.credit_uncovered_outstanding.name.to_string(),
             uncovered_outstanding_normal_balance_type,
         )
         .await?;
@@ -898,9 +987,9 @@ impl CreditLedger {
             journal_id,
             format!(
                 "{journal_id}:{}",
-                account_sets::CREDIT_PAYMENT_HOLDING.external_ref
+                summary.credit_payment_holding.external_ref
             ),
-            account_sets::CREDIT_PAYMENT_HOLDING.name.to_string(),
+            summary.credit_payment_holding.name.to_string(),
             payment_holding_normal_balance_type,
         )
         .await?;
