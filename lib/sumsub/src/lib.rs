@@ -222,8 +222,20 @@ impl SumsubClient {
 
         let response_text = response.text().await?;
 
-        match serde_json::from_str::<wire::SumsubResponse<serde_json::Value>>(&response_text) {
-            Ok(wire::SumsubResponse::Success(applicant_data)) => {
+        // Parse as ApiError first to avoid the untagged enum issue where
+        // SumsubResponse::Success(serde_json::Value) swallows any valid JSON
+        if let Ok(api_error) = serde_json::from_str::<wire::ApiError>(&response_text) {
+            if api_error.error_name.is_some() || api_error.error_code.is_some() {
+                Self::record_sumsub_error_metadata(&api_error);
+                return Err(SumsubError::ApiError {
+                    description: api_error.description,
+                    code: api_error.code,
+                });
+            }
+        }
+
+        match serde_json::from_str::<serde_json::Value>(&response_text) {
+            Ok(applicant_data) => {
                 if let Some(applicant_id) = applicant_data.get("id").and_then(|id| id.as_str()) {
                     Ok(applicant_id.to_string())
                 } else {
@@ -231,13 +243,6 @@ impl SumsubClient {
                         "Applicant ID not found in response".to_string(),
                     ))
                 }
-            }
-            Ok(wire::SumsubResponse::Error(api_error)) => {
-                Self::record_sumsub_error_metadata(&api_error);
-                Err(SumsubError::ApiError {
-                    description: api_error.description,
-                    code: api_error.code,
-                })
             }
             Err(e) => Err(SumsubError::JsonFormat(e)),
         }
