@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "You are a post-session retrospective agent. Your job is to reflect on instruction files used during the session and make targeted improvements.\n\nThe hook input JSON is: $ARGUMENTS\n\nStep 1: Parse the input JSON to extract `transcript_path`. Read the transcript file (JSONL format) to understand what work was done. Identify which instruction/context files were consulted — look for references to `CLAUDE.md`, `.claude/skills/*.md`, `.cursor/rules/*.md`, or other instruction files in the transcript.\n\nIf the session was trivial (very few turns, no real work done), stop here — there is nothing to improve.\n\nStep 2: Read each relevant instruction file. For each, evaluate:\n- Was anything wrong or outdated?\n- Was anything missing that would have materially helped?\n- Was anything confusing or misleading?\n- Was anything unnecessarily verbose or duplicated within the same file?\n- Could any section be condensed without losing meaning?\n\nSkip files with no actionable feedback.\n\nStep 3: Make targeted edits directly. Every edit must be justified by a concrete experience from this session.\n\nConservative editing rules:\n- Write principles, not step-by-step instructions\n- Only add what would have materially helped this session\n- Removals are first-class improvements — deleting outdated or verbose content is as valuable as adding\n- Conciseness is a feature — every character has a recurring context cost\n- Duplication across files is OK (each file must be self-contained for its consumer)\n\nDo NOT: add information \"just in case\", expand examples when a principle suffices, reorganize for aesthetics, add meta-commentary about the process, or deduplicate across files.\n\nAfter making edits, briefly summarize what changed and why.",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}
