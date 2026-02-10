@@ -58,7 +58,7 @@ select
     maturity_date,
     outstanding,
     pending_credit_facility_id,
-    price,
+    cast(json_value(price) as numeric) as price,
     public_id,
     structuring_fee_tx_id,
     terms,
