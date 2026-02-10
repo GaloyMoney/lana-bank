@@ -13,7 +13,7 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "version-docs": "docusaurus docs:version",
-    "generate-api-docs": "docusaurus graphql-to-doc:admin && docusaurus graphql-to-doc:customer && node scripts/fix-category-keys.js",
+    "generate-api-docs": "docusaurus graphql-to-doc:admin && docusaurus graphql-to-doc:customer && node scripts/fix-category-keys.js && node scripts/generate-combined-api-pages.js",
     "generate-api-docs:admin": "docusaurus graphql-to-doc:admin",
     "generate-api-docs:customer": "docusaurus graphql-to-doc:customer",
     "generate-versioned-api-docs": "node scripts/generate-versioned-api-docs.js",

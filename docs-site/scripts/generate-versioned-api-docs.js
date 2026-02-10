@@ -444,34 +444,35 @@ async function main() {
         console.log(`    Warning: Customer API generation had issues`);
       }
 
-      // Copy generated docs to versioned docs
-      console.log("  Copying to versioned docs...");
       const adminDestDir = path.join(versionDocsDir, "for-developers", "admin-api");
       const customerDestDir = path.join(versionDocsDir, "for-developers", "customer-api");
 
-      // Remove existing versioned API docs first
+      // Combine individual API files into single pages
+      console.log("  Combining API docs into single pages...");
+      try {
+        execSync("node scripts/generate-combined-api-pages.js", {
+          cwd: DOCS_SITE_DIR,
+          stdio: "pipe",
+        });
+      } catch (e) {
+        console.log("    Warning: Combine step had issues");
+      }
+
+      // Copy combined docs to versioned docs (the combine script already
+      // cleaned up the operations/types dirs in the current docs folder)
+      console.log("  Copying combined docs to versioned docs...");
       rmDirSync(adminDestDir);
       rmDirSync(customerDestDir);
 
       if (fs.existsSync(GENERATED_ADMIN_DIR)) {
         const count = copyDirSync(GENERATED_ADMIN_DIR, adminDestDir);
-        console.log(`    Copied ${count} files to for-developers/admin-api`);
+        console.log(`    Copied ${count} combined files to for-developers/admin-api`);
       }
 
       if (fs.existsSync(GENERATED_CUSTOMER_DIR)) {
         const count = copyDirSync(GENERATED_CUSTOMER_DIR, customerDestDir);
-        console.log(`    Copied ${count} files to for-developers/customer-api`);
+        console.log(`    Copied ${count} combined files to for-developers/customer-api`);
       }
-
-      // Fix the generated.md files to have correct doc IDs for versioned sidebar
-      console.log("  Fixing overview page IDs...");
-      fixGeneratedOverview(path.join(adminDestDir, "generated.md"), "Admin");
-      fixGeneratedOverview(path.join(customerDestDir, "generated.md"), "Customer");
-
-      // Add unique keys to _category_.yml files to avoid i18n conflicts
-      console.log("  Adding version-specific category keys...");
-      addVersionedCategoryKeys(adminDestDir, version, "admin");
-      addVersionedCategoryKeys(customerDestDir, version, "customer");
 
       // Generate Events docs
       if (fs.existsSync(versionedEventsSchema)) {
