@@ -14,6 +14,7 @@ fn unique_path(name: &str) -> String {
 
 #[cfg(feature = "gcs-testing")]
 #[tokio::test]
+#[ignore = "requires GCS credentials"]
 async fn upload_and_download() -> anyhow::Result<()> {
     use cloud_storage::LocationInStorage;
 
@@ -39,6 +40,7 @@ async fn upload_and_download() -> anyhow::Result<()> {
 
 #[cfg(feature = "gcs-testing")]
 #[tokio::test]
+#[ignore = "requires GCS credentials"]
 async fn upload_preserves_content_type() -> anyhow::Result<()> {
     use cloud_storage::LocationInStorage;
 
@@ -72,6 +74,7 @@ async fn upload_preserves_content_type() -> anyhow::Result<()> {
 
 #[cfg(feature = "gcs-testing")]
 #[tokio::test]
+#[ignore = "requires GCS credentials"]
 async fn remove_nonexistent_file() -> anyhow::Result<()> {
     use cloud_storage::LocationInStorage;
 
@@ -87,6 +90,7 @@ async fn remove_nonexistent_file() -> anyhow::Result<()> {
 
 #[cfg(feature = "gcs-testing")]
 #[tokio::test]
+#[ignore = "requires GCS credentials"]
 async fn generate_download_link_for_missing_file() -> anyhow::Result<()> {
     use cloud_storage::LocationInStorage;
 
@@ -108,6 +112,7 @@ async fn generate_download_link_for_missing_file() -> anyhow::Result<()> {
 
 #[cfg(feature = "gcs-testing")]
 #[tokio::test]
+#[ignore = "requires GCS credentials"]
 async fn upload_nested_path() -> anyhow::Result<()> {
     use cloud_storage::LocationInStorage;
 
@@ -134,6 +139,7 @@ async fn upload_nested_path() -> anyhow::Result<()> {
 
 #[cfg(feature = "gcs-testing")]
 #[tokio::test]
+#[ignore = "requires GCS credentials"]
 async fn upload_binary_content() -> anyhow::Result<()> {
     use cloud_storage::LocationInStorage;
 
