@@ -70,6 +70,7 @@ wait_for_total_disbursed() {
 
   exec_admin_graphql 'credit-facility-create' "$variables"
   credit_facility_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.creditFacilityId')
+  collateral_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.collateralId')
 
   retry 60 wait_for_pending_facilities
 
@@ -80,18 +81,18 @@ wait_for_total_disbursed() {
 
   variables=$(
     jq -n \
-      --arg credit_facility_id "$credit_facility_id" \
+      --arg collateral_id "$collateral_id" \
       --arg effective "$(naive_now)" \
     '{
       input: {
-        creditFacilityId: $credit_facility_id,
+        collateralId: $collateral_id,
         collateral: 50000000,
         effective: $effective,
       }
     }'
 
   )
-  exec_admin_graphql 'credit-facility-collateral-update' "$variables"
+  exec_admin_graphql 'collateral-update' "$variables"
 
   retry 60 wait_for_active_facilities
 

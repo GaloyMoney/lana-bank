@@ -164,6 +164,7 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .credit()
+            .collaterals()
             .subject_can_update_collateral(sub, false)
             .await
             .is_ok())
@@ -298,14 +299,6 @@ impl CreditFacility {
         }
     }
 }
-
-#[derive(InputObject)]
-pub struct CreditFacilityCollateralUpdateInput {
-    pub credit_facility_id: UUID,
-    pub collateral: Satoshis,
-    pub effective: Date,
-}
-crate::mutation_payload! { CreditFacilityCollateralUpdatePayload, credit_facility: CreditFacility }
 
 #[derive(InputObject)]
 pub struct CreditFacilityPartialPaymentRecordInput {

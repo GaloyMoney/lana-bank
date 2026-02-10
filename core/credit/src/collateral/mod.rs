@@ -11,7 +11,7 @@ use std::sync::Arc;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
+use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
@@ -160,6 +160,10 @@ where
         self.repo.find_all(ids).await
     }
 
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CollateralError> {
+        Ok(self.repo.begin_op().await?)
+    }
+
     pub async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -182,6 +186,22 @@ where
             .expect("all fields for new collateral provided");
 
         self.repo.create_in_op(db, new_collateral).await
+    }
+
+    pub async fn subject_can_update_collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CollateralError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CoreCreditObject::all_collaterals(),
+                CoreCreditAction::COLLATERAL_RECORD_MANUAL_UPDATE,
+                enforce,
+            )
+            .await?)
     }
 
     #[record_error_severity]
@@ -208,6 +228,45 @@ where
         };
 
         Ok(res)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "collateral.update_collateral_by_id", skip(self, sub), err)]
+    pub async fn update_collateral_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        collateral_id: CollateralId,
+        updated_collateral: money::Satoshis,
+        effective: chrono::NaiveDate,
+    ) -> Result<Collateral, CollateralError> {
+        self.subject_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+
+        let mut db = self.repo.begin_op().await?;
+
+        let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
+
+        if let es_entity::Idempotent::Executed(collateral_update) =
+            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)?
+        {
+            self.repo.update_in_op(&mut db, &mut collateral).await?;
+
+            self.ledger
+                .update_collateral_amount_in_op(
+                    &mut db,
+                    collateral_update,
+                    collateral.account_ids.collateral_account_id,
+                    initiated_by,
+                )
+                .await?;
+        }
+
+        db.commit().await?;
+
+        Ok(collateral)
     }
 
     #[record_error_severity]

@@ -116,19 +116,25 @@ wait_for_collateral() {
 @test "credit-facility-custody: cannot update manually collateral with a custodian" {
   pending_credit_facility_id=$(read_value 'credit_facility_proposal_id')
 
+  # Get collateral_id from pending credit facility
+  variables=$(jq -n --arg id "$pending_credit_facility_id" '{ id: $id }')
+  exec_admin_graphql 'find-pending-credit-facility' "$variables"
+  collateral_id=$(graphql_output '.data.pendingCreditFacility.collateralId')
+  [[ "$collateral_id" != "null" ]] || exit 1
+
   variables=$(
     jq -n \
-      --arg pending_credit_facility_id "$pending_credit_facility_id" \
+      --arg collateral_id "$collateral_id" \
       --arg effective "$(naive_now)" \
     '{
       input: {
-        pendingCreditFacilityId: $pending_credit_facility_id,
+        collateralId: $collateral_id,
         collateral: 50000000,
         effective: $effective,
       }
     }'
   )
-  exec_admin_graphql 'pending-credit-facility-collateral-update' "$variables"
+  exec_admin_graphql 'collateral-update' "$variables"
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "ManualUpdateError" ]] || exit 1
 }

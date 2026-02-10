@@ -26,6 +26,7 @@ gql`
   fragment CreditFacilityLayoutFragment on CreditFacility {
     id
     creditFacilityId
+    collateralId
     status
     facilityAmount
     maturesAt
@@ -223,7 +224,6 @@ export default function CreditFacilityLayout({
   return (
     <main className="max-w-7xl m-auto">
       <CreditFacilityDetailsCard
-        creditFacilityId={data.creditFacilityByPublicId.creditFacilityId}
         creditFacilityDetails={data.creditFacilityByPublicId}
       />
       <div className="flex md:flex-row flex-col gap-2 my-2">

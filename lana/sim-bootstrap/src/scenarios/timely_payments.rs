@@ -72,10 +72,18 @@ pub async fn timely_payments_scenario(
         }
     }
 
+    let pending_facility = app
+        .credit()
+        .pending_credit_facilities()
+        .find_by_id(&sub, proposal_id)
+        .await?
+        .expect("pending facility exists");
+
     app.credit()
-        .update_pending_facility_collateral(
+        .collaterals()
+        .update_collateral_by_id(
             &sub,
-            proposal_id,
+            pending_facility.collateral_id,
             Satoshis::try_from_btc(dec!(230))?,
             clock.today(),
         )
