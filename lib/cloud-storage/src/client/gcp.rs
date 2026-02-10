@@ -1,11 +1,8 @@
 use async_trait::async_trait;
+use google_cloud_auth::signer::Signer;
 use google_cloud_storage::{
-    client::{Client, ClientConfig},
-    http::objects::{
-        delete::DeleteObjectRequest,
-        upload::{Media, UploadObjectRequest, UploadType},
-    },
-    sign::SignedURLOptions,
+    builder::storage::SignedUrlBuilder,
+    client::{Storage, StorageControl},
 };
 use serde::{Deserialize, Serialize};
 
@@ -22,21 +19,35 @@ pub struct GcpConfig {
 
 #[derive(Clone)]
 pub struct GcpClient {
-    client: Client,
+    storage: Storage,
+    control: StorageControl,
+    signer: Signer,
     config: GcpConfig,
 }
 
 impl GcpClient {
     pub async fn init(config: &GcpConfig) -> Result<Self, StorageClientError> {
-        let client_config = ClientConfig::default().with_auth().await?;
+        let storage = Storage::builder()
+            .build()
+            .await
+            .map_err(|e| StorageClientError::Init(Box::new(e)))?;
+        let control = StorageControl::builder()
+            .build()
+            .await
+            .map_err(|e| StorageClientError::Init(Box::new(e)))?;
+        let signer = google_cloud_auth::credentials::Builder::default()
+            .build_signer()
+            .map_err(|e| StorageClientError::Init(Box::new(e)))?;
         Ok(GcpClient {
-            client: Client::new(client_config),
+            storage,
+            control,
+            signer,
             config: config.clone(),
         })
     }
 
-    pub fn bucket_name(&self) -> &str {
-        &self.config.bucket_name
+    fn bucket_path(&self) -> String {
+        format!("projects/_/buckets/{}", self.config.bucket_name)
     }
 }
 
@@ -48,17 +59,12 @@ impl StorageClient for GcpClient {
         path_in_bucket: &str,
         mime_type: &str,
     ) -> Result<(), StorageClientError> {
-        let bucket = self.bucket_name();
-
-        let mut media = Media::new(path_in_bucket.to_string());
-        media.content_type = mime_type.to_owned().into();
-        let upload_type = UploadType::Simple(media);
-
-        let req = UploadObjectRequest {
-            bucket: bucket.to_owned(),
-            ..Default::default()
-        };
-        self.client.upload_object(&req, file, &upload_type).await?;
+        let payload = bytes::Bytes::from(file);
+        self.storage
+            .write_object(self.bucket_path(), path_in_bucket, payload)
+            .set_content_type(mime_type)
+            .send_unbuffered()
+            .await?;
         Ok(())
     }
 
@@ -66,12 +72,12 @@ impl StorageClient for GcpClient {
         &self,
         location_in_storage: super::r#trait::LocationInStorage<'a>,
     ) -> Result<(), StorageClientError> {
-        let req = DeleteObjectRequest {
-            bucket: self.bucket_name().to_owned(),
-            object: location_in_storage.path.to_string(),
-            ..Default::default()
-        };
-        self.client.delete_object(&req).await?;
+        self.control
+            .delete_object()
+            .set_bucket(self.bucket_path())
+            .set_object(location_in_storage.path)
+            .send()
+            .await?;
         Ok(())
     }
 
@@ -79,22 +85,10 @@ impl StorageClient for GcpClient {
         &self,
         location_in_storage: super::r#trait::LocationInStorage<'a>,
     ) -> Result<String, StorageClientError> {
-        let opts = SignedURLOptions {
-            expires: std::time::Duration::new(LINK_DURATION_IN_SECS, 0),
-            ..Default::default()
-        };
-
-        let signed_url = self
-            .client
-            .signed_url(
-                self.bucket_name(),
-                location_in_storage.path,
-                None,
-                None,
-                opts,
-            )
+        let signed_url = SignedUrlBuilder::for_object(self.bucket_path(), location_in_storage.path)
+            .with_expiration(std::time::Duration::new(LINK_DURATION_IN_SECS, 0))
+            .sign_with(&self.signer)
             .await?;
-
         Ok(signed_url)
     }
 }
