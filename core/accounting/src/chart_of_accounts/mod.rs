@@ -1,5 +1,7 @@
 mod bulk_import;
 pub mod chart_node;
+#[cfg(feature = "dag-export")]
+pub mod dag;
 mod entity;
 mod import;
 
@@ -549,5 +551,24 @@ where
         chart
             .descendant_account_sets_by_category(category)
             .ok_or(ChartOfAccountsError::BaseConfigNotInitialized)
+    }
+
+    #[cfg(feature = "dag-export")]
+    #[instrument(name = "core_accounting.chart_of_accounts.build_dag", skip(self))]
+    pub async fn build_dag(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+    ) -> Result<dag::AccountDag, ChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_LIST,
+            )
+            .await?;
+
+        let chart = self.find_by_reference(chart_ref).await?;
+        dag::build_account_dag(&self.cala, chart.account_set_id).await
     }
 }

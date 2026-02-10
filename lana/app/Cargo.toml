@@ -9,6 +9,7 @@ ignored = ["schemars"]
 [features]
 
 fail-on-warnings = []
+dag-export = ["core-accounting/dag-export"]
 mock-custodian = ["core-custody/mock-custodian", "core-credit/mock-custodian"]
 sumsub-testing = ["core-customer/sumsub-testing"]
 

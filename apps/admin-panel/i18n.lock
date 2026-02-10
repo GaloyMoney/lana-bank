@@ -190,6 +190,7 @@ checksums:
     Sidebar/navItems/rolesAndPermissions: 766190959c36bdfa5506b087f190707d
     Sidebar/navItems/custodians: c69cf14ea7b8332077f570c0c8b06585
     Sidebar/navItems/configurations: 073691963088b401d00d351cd4f6a58b
+    Sidebar/navItems/dagVisualization: 72f7cdfc5806d95f24b502c17c8a2ddd
     Sidebar/footer/appName: 7dfeb06f156f842109c07f26a73cb311
     Sidebar/footer/version: d640a8609bd8374f70e40f862250cb70
     UserBlock/settings: 8df6777277469c1fd88cc18dde2f1cc3
@@ -1170,6 +1171,8 @@ checksums:
     AuditLogs/table/filters/actionPlaceholder: 56a7acfd1632a3b67cda9aae9b631ecc
     AuditLogs/table/error: 4b43332fda54e1ec3fc1651af93c239d
     AuditLogs/table/emptyMessage: b3ef7a5a76768db254c867944b84b04c
+    DAGVisualization/title: eec9837272f420713acf461a95a0d610
+    DAGVisualization/description: c47ca9676f7282ada8f0a80e3a7fdb6e
     ChartOfAccounts/title: 785b8862f83c931ce85f5939e38be7c0
     ChartOfAccounts/description: d386b72a014828c82a6218385dd8c27a
     ChartOfAccounts/addRootNode: 180a55852a8b0f21e53512e344808a0a

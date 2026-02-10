@@ -1,6 +1,8 @@
 mod balance_sheet;
 mod chart_of_accounts;
 mod csv;
+#[cfg(feature = "dag-export")]
+mod dag;
 mod fiscal_year;
 mod journal_entry;
 mod ledger_account;
@@ -13,6 +15,8 @@ mod trial_balance;
 pub use balance_sheet::*;
 pub use chart_of_accounts::*;
 pub use csv::*;
+#[cfg(feature = "dag-export")]
+pub use dag::*;
 pub use fiscal_year::*;
 pub use journal_entry::*;
 pub use ledger_account::*;

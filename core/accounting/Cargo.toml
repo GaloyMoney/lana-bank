@@ -5,6 +5,7 @@ edition = "2024"
 
 [features]
 fail-on-warnings = []
+dag-export = []
 graphql = [ "dep:async-graphql" ]
 json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "document-storage/json-schema"]
 
