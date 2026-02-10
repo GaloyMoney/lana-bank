@@ -244,8 +244,6 @@ where
             .await?
             .expect("audit info missing");
 
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
-
         let mut db = self.repo.begin_op().await?;
 
         let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
@@ -260,7 +258,7 @@ where
                     &mut db,
                     collateral_update,
                     collateral.account_ids.collateral_account_id,
-                    initiated_by,
+                    sub,
                 )
                 .await?;
         }
