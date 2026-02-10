@@ -232,8 +232,12 @@ impl SumsubClient {
                     ))
                 }
             }
-            Ok(wire::SumsubResponse::Error(wire::ApiError { description, code })) => {
-                Err(SumsubError::ApiError { description, code })
+            Ok(wire::SumsubResponse::Error(api_error)) => {
+                Self::record_sumsub_error_metadata(&api_error);
+                Err(SumsubError::ApiError {
+                    description: api_error.description,
+                    code: api_error.code,
+                })
             }
             Err(e) => Err(SumsubError::JsonFormat(e)),
         }
@@ -314,9 +318,13 @@ impl SumsubClient {
             Ok(())
         } else {
             let response_text = response.text().await?;
-            match serde_json::from_str::<wire::SumsubResponse<serde_json::Value>>(&response_text) {
-                Ok(wire::SumsubResponse::Error(wire::ApiError { description, code })) => {
-                    Err(SumsubError::ApiError { description, code })
+            match serde_json::from_str::<wire::ApiError>(&response_text) {
+                Ok(api_error) => {
+                    Self::record_sumsub_error_metadata(&api_error);
+                    Err(SumsubError::ApiError {
+                        description: api_error.description,
+                        code: api_error.code,
+                    })
                 }
                 _ => Err(SumsubError::InvalidResponse(format!(
                     "Failed to simulate review: {response_text}"
@@ -605,17 +613,37 @@ impl SumsubClient {
             let parsed: wire::SumsubResponse<T> = response.json().await?;
             match parsed {
                 wire::SumsubResponse::Success(data) => Ok(data),
-                wire::SumsubResponse::Error(wire::ApiError { description, code }) => {
-                    Err(SumsubError::ApiError { description, code })
+                wire::SumsubResponse::Error(api_error) => {
+                    Self::record_sumsub_error_metadata(&api_error);
+                    Err(SumsubError::ApiError {
+                        description: api_error.description,
+                        code: api_error.code,
+                    })
                 }
             }
         } else {
             let status_code = response.status().as_u16();
             let response_text = response.text().await?;
-            Err(SumsubError::ApiError {
-                description: format!("{error_message}: {response_text}"),
-                code: status_code,
-            })
+            match serde_json::from_str::<wire::ApiError>(&response_text) {
+                Ok(api_error) => {
+                    Self::record_sumsub_error_metadata(&api_error);
+                    let description = format!(
+                        "{error_message}: {}",
+                        api_error
+                            .error_name
+                            .as_deref()
+                            .unwrap_or(&api_error.description)
+                    );
+                    Err(SumsubError::ApiError {
+                        description,
+                        code: status_code,
+                    })
+                }
+                Err(_) => Err(SumsubError::ApiError {
+                    description: format!("{error_message}: {response_text}"),
+                    code: status_code,
+                }),
+            }
         }
     }
 
@@ -634,14 +662,35 @@ impl SumsubClient {
     }
 
     fn handle_sumsub_error(&self, response_text: &str, fallback_message: &str) -> SumsubError {
-        match serde_json::from_str::<wire::SumsubResponse<serde_json::Value>>(response_text) {
-            Ok(wire::SumsubResponse::Error(wire::ApiError { description, code })) => {
-                SumsubError::ApiError { description, code }
+        match serde_json::from_str::<wire::ApiError>(response_text) {
+            Ok(api_error) => {
+                Self::record_sumsub_error_metadata(&api_error);
+                let description = format!(
+                    "{fallback_message}: {}",
+                    api_error
+                        .error_name
+                        .as_deref()
+                        .unwrap_or(&api_error.description)
+                );
+                SumsubError::ApiError {
+                    description,
+                    code: api_error.code,
+                }
             }
             _ => SumsubError::ApiError {
                 description: format!("{fallback_message}: {response_text}"),
                 code: 500,
             },
         }
+    }
+
+    fn record_sumsub_error_metadata(api_error: &wire::ApiError) {
+        tracing::info!(
+            sumsub.correlation_id = api_error.correlation_id.as_deref().unwrap_or(""),
+            sumsub.error_name = api_error.error_name.as_deref().unwrap_or(""),
+            sumsub.error_code = api_error.error_code.unwrap_or(0),
+            sumsub.description = %api_error.description,
+            "Sumsub API error details"
+        );
     }
 }

@@ -108,9 +108,16 @@ pub struct IdDocument {
 
 /// Internal API error response
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct ApiError {
     pub description: String,
     pub code: u16,
+    #[serde(default)]
+    pub correlation_id: Option<String>,
+    #[serde(default)]
+    pub error_code: Option<u32>,
+    #[serde(default)]
+    pub error_name: Option<String>,
 }
 
 /// Internal Sumsub API response wrapper
