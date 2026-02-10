@@ -1118,12 +1118,14 @@ dependencies = [
  "google-cloud-auth",
  "google-cloud-storage",
  "reqwest 0.12.28",
+ "rustls",
  "serde",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
  "tracing-utils",
+ "uuid",
  "workspace-hack",
 ]
 
@@ -3719,6 +3721,7 @@ dependencies = [
  "hex",
  "lana-app",
  "log",
+ "rustls",
  "serde",
  "serde_json",
  "serde_yaml",

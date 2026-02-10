@@ -6,6 +6,7 @@ edition = "2024"
 
 [features]
 fail-on-warnings = []
+gcs-testing = []
 
 [dependencies]
 bytes = { workspace = true }
@@ -23,3 +24,5 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 tempfile = { workspace = true }
+uuid = { workspace = true }
+rustls = { workspace = true }
