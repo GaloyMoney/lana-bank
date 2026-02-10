@@ -1,7 +1,11 @@
 #![allow(dead_code)] // Helper functions may not be used in all tests
 
-use cala_ledger::CalaLedger;
-use core_accounting::{AccountingBaseConfig, CoreAccounting};
+use std::collections::HashMap;
+
+use cala_ledger::account_set::AccountSetMemberId;
+use cala_ledger::{CalaLedger, JournalId};
+use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
+use core_credit::{CreditOmnibusAccountSetSpec, CreditSummaryAccountSetSpec};
 use core_custody::{CustodyConfig, EncryptionConfig};
 use domain_config::{
     ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
@@ -85,6 +89,112 @@ pub const BASE_ACCOUNTS_CSV: &str = r#"
 6,,,Expenses,Debit,
 8,,,Off Balance Sheet,Credit,
 "#;
+
+pub fn chart_account_set_id(chart: &Chart, code: &AccountCode) -> CalaAccountSetId {
+    chart
+        .maybe_account_set_id_from_code(code)
+        .unwrap_or_else(|| panic!("missing account set for code"))
+}
+
+pub async fn assert_attached_for_code(
+    cala: &CalaLedger,
+    chart: &Chart,
+    code: &AccountCode,
+    expected_child_id: CalaAccountSetId,
+) -> anyhow::Result<()> {
+    assert_account_sets_attached(
+        cala,
+        chart_account_set_id(chart, code),
+        &[expected_child_id],
+    )
+    .await
+}
+
+fn ledger_external_ref(journal_id: JournalId, external_ref: &str) -> String {
+    let mut reference = journal_id.to_string();
+    reference.push(':');
+    reference.push_str(external_ref);
+    reference
+}
+
+async fn account_set_id_by_ref(
+    cala: &CalaLedger,
+    journal_id: JournalId,
+    external_ref: &str,
+) -> anyhow::Result<CalaAccountSetId> {
+    Ok(cala
+        .account_sets()
+        .find_by_external_id(ledger_external_ref(journal_id, external_ref))
+        .await?
+        .id)
+}
+
+async fn account_exists(
+    cala: &CalaLedger,
+    journal_id: JournalId,
+    external_ref: &str,
+) -> anyhow::Result<()> {
+    cala.accounts()
+        .find_by_external_id(ledger_external_ref(journal_id, external_ref))
+        .await?;
+    Ok(())
+}
+
+pub async fn resolve_account_set_ids<I>(
+    cala: &CalaLedger,
+    journal_id: JournalId,
+    specs: I,
+) -> anyhow::Result<HashMap<&'static str, CalaAccountSetId>>
+where
+    I: IntoIterator<Item = CreditSummaryAccountSetSpec>,
+{
+    let mut ids = HashMap::new();
+    for spec in specs {
+        let id = account_set_id_by_ref(cala, journal_id, spec.external_ref).await?;
+        ids.insert(spec.external_ref, id);
+    }
+    Ok(ids)
+}
+
+pub async fn resolve_omnibus_account_set_ids<I>(
+    cala: &CalaLedger,
+    journal_id: JournalId,
+    specs: I,
+) -> anyhow::Result<HashMap<&'static str, CalaAccountSetId>>
+where
+    I: IntoIterator<Item = CreditOmnibusAccountSetSpec>,
+{
+    let mut ids = HashMap::new();
+    for spec in specs {
+        let id = account_set_id_by_ref(cala, journal_id, spec.account_set_ref).await?;
+        account_exists(cala, journal_id, spec.account_ref).await?;
+        ids.insert(spec.account_set_ref, id);
+    }
+    Ok(ids)
+}
+
+async fn assert_account_sets_attached(
+    cala: &CalaLedger,
+    parent_id: CalaAccountSetId,
+    expected_child_ids: &[CalaAccountSetId],
+) -> anyhow::Result<()> {
+    let members = cala
+        .account_sets()
+        .list_members_by_created_at(parent_id, Default::default())
+        .await?
+        .entities;
+
+    for expected_id in expected_child_ids {
+        assert!(
+            members
+                .iter()
+                .any(|member| member.id == AccountSetMemberId::AccountSet(*expected_id)),
+            "expected account set to be attached to parent account set",
+        );
+    }
+
+    Ok(())
+}
 
 pub async fn create_test_statements<Perms, E>(
     accounting: &CoreAccounting<Perms, E>,
