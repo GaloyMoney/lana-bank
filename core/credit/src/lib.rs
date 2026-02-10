@@ -794,7 +794,6 @@ where
         Ok(credit_facility)
     }
 
-
     pub async fn subject_can_record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
