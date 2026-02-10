@@ -3721,6 +3721,7 @@ dependencies = [
  "hex",
  "lana-app",
  "log",
+ "rustls",
  "serde",
  "serde_json",
  "serde_yaml",
