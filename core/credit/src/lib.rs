@@ -672,22 +672,6 @@ where
         Ok(disbursal)
     }
 
-    pub async fn subject_can_update_collateral(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        enforce: bool,
-    ) -> Result<Option<AuditInfo>, CoreCreditError> {
-        Ok(self
-            .authz
-            .evaluate_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERAL,
-                enforce,
-            )
-            .await?)
-    }
-
     pub async fn subject_can_record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

@@ -164,6 +164,7 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .credit()
+            .collaterals()
             .subject_can_update_collateral(sub, false)
             .await
             .is_ok())

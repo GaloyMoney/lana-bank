@@ -247,8 +247,6 @@ impl CoreCreditAction {
         CoreCreditAction::CreditFacility(CreditFacilityAction::RecordInterest);
     pub const CREDIT_FACILITY_COMPLETE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::Complete);
-    pub const CREDIT_FACILITY_UPDATE_COLLATERAL: Self =
-        CoreCreditAction::CreditFacility(CreditFacilityAction::UpdateCollateral);
     pub const CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::UpdateCollateralizationState);
 
@@ -261,6 +259,8 @@ impl CoreCreditAction {
             ChartOfAccountsIntegrationConfigAction::Update,
         );
 
+    pub const COLLATERAL_RECORD_MANUAL_UPDATE: Self =
+        CoreCreditAction::Collateral(CollateralAction::RecordManualUpdate);
     pub const COLLATERAL_RECORD_LIQUIDATION_UPDATE: Self =
         CoreCreditAction::Collateral(CollateralAction::RecordLiquidationUpdate);
     pub const COLLATERAL_RECORD_PAYMENT_RECEIVED_FROM_LIQUIDATION: Self =
@@ -349,7 +349,6 @@ pub enum CreditFacilityAction {
     List,
     ConcludeApprovalProcess,
     Activate,
-    UpdateCollateral,
     RecordInterest,
     Complete,
     UpdateCollateralizationState,
@@ -363,7 +362,6 @@ impl ActionPermission for CreditFacilityAction {
             Self::Create
             | Self::ConcludeApprovalProcess
             | Self::Activate
-            | Self::UpdateCollateral
             | Self::RecordInterest
             | Self::Complete
             | Self::CustomerApprove
@@ -405,6 +403,7 @@ impl From<DisbursalAction> for CoreCreditAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum CollateralAction {
+    RecordManualUpdate,
     RecordLiquidationUpdate,
     RecordPaymentReceived,
 }
@@ -412,9 +411,9 @@ pub enum CollateralAction {
 impl ActionPermission for CollateralAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            Self::RecordLiquidationUpdate | Self::RecordPaymentReceived => {
-                PERMISSION_SET_CREDIT_WRITER
-            }
+            Self::RecordManualUpdate
+            | Self::RecordLiquidationUpdate
+            | Self::RecordPaymentReceived => PERMISSION_SET_CREDIT_WRITER,
         }
     }
 }

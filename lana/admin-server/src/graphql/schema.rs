@@ -1969,8 +1969,12 @@ impl Mutation {
             CollateralUpdatePayload,
             Collateral,
             ctx,
-            app.credit()
-                .update_collateral_by_id(sub, collateral_id.into(), collateral, effective.into())
+            app.credit().collaterals().update_collateral_by_id(
+                sub,
+                collateral_id.into(),
+                collateral,
+                effective.into()
+            )
         )
     }
 

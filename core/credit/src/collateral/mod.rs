@@ -11,7 +11,7 @@ use std::sync::Arc;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
+use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
@@ -188,6 +188,22 @@ where
         self.repo.create_in_op(db, new_collateral).await
     }
 
+    pub async fn subject_can_update_collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CollateralError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CoreCreditObject::all_collaterals(),
+                CoreCreditAction::COLLATERAL_RECORD_MANUAL_UPDATE,
+                enforce,
+            )
+            .await?)
+    }
+
     #[record_error_severity]
     #[instrument(
         name = "collateral.record_collateral_update_via_manual_input_in_op",
@@ -215,11 +231,7 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(
-        name = "collateral.update_collateral_by_id",
-        skip(self, sub),
-        err
-    )]
+    #[instrument(name = "collateral.update_collateral_by_id", skip(self, sub), err)]
     pub async fn update_collateral_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -227,13 +239,9 @@ where
         updated_collateral: money::Satoshis,
         effective: chrono::NaiveDate,
     ) -> Result<Collateral, CollateralError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERAL,
-            )
-            .await?;
+        self.subject_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
 
