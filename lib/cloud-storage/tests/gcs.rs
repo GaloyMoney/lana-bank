@@ -2,7 +2,7 @@
 fn test_storage() -> cloud_storage::Storage {
     use cloud_storage::config::StorageConfig;
 
-    let _ = rustls::crypto::ring::default_provider().install_default();
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
     let bucket = std::env::var("GCS_TEST_BUCKET").unwrap_or_else(|_| "gha-lana-documents".into());
     cloud_storage::Storage::new(&StorageConfig::new_gcp(bucket))
 }
