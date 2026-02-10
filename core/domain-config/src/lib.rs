@@ -274,47 +274,6 @@ impl InternalDomainConfigs {
     }
 }
 
-/// Test utilities for domain configs, usable for both internal and exposed configs.
-///
-/// This struct provides storage-level operations for integration tests that need
-/// to reset event-sourced config state between runs. It is agnostic to config
-/// visibility (internal vs exposed).
-#[cfg(feature = "test-utils")]
-pub struct DomainConfigTestUtils;
-
-#[cfg(feature = "test-utils")]
-impl DomainConfigTestUtils {
-    /// Hard-delete a domain config and all its events by key.
-    ///
-    /// This is intended **only for integration tests** that need to reset
-    /// event-sourced config state between runs. The deletion is atomic and
-    /// uses `FOR UPDATE` row locking for concurrency safety.
-    pub async fn clear_config_by_key(
-        pool: &sqlx::PgPool,
-        key: &str,
-    ) -> Result<(), DomainConfigError> {
-        sqlx::query(
-            "WITH config_ids AS (
-                SELECT id FROM core_domain_configs WHERE key = $1 FOR UPDATE
-            ),
-            deleted_rollup AS (
-                DELETE FROM core_domain_config_events_rollup
-                WHERE id IN (SELECT id FROM config_ids)
-            ),
-            deleted_events AS (
-                DELETE FROM core_domain_config_events
-                WHERE id IN (SELECT id FROM config_ids)
-            )
-            DELETE FROM core_domain_configs WHERE id IN (SELECT id FROM config_ids)",
-        )
-        .bind(key)
-        .execute(pool)
-        .await?;
-
-        Ok(())
-    }
-}
-
 impl ExposedDomainConfigsReadOnly {
     pub fn new(pool: &sqlx::PgPool) -> Self {
         let repo = DomainConfigRepo::new(pool);
@@ -549,4 +508,45 @@ where
 
     db_tx.commit().await?;
     Ok(())
+}
+
+/// Test utilities for domain configs, usable for both internal and exposed configs.
+///
+/// This struct provides storage-level operations for integration tests that need
+/// to reset event-sourced config state between runs. It is agnostic to config
+/// visibility (internal vs exposed).
+#[cfg(feature = "test-utils")]
+pub struct DomainConfigTestUtils;
+
+#[cfg(feature = "test-utils")]
+impl DomainConfigTestUtils {
+    /// Hard-delete a domain config and all its events by key.
+    ///
+    /// This is intended **only for integration tests** that need to reset
+    /// event-sourced config state between runs. The deletion is atomic and
+    /// uses `FOR UPDATE` row locking for concurrency safety.
+    pub async fn clear_config_by_key(
+        pool: &sqlx::PgPool,
+        key: &str,
+    ) -> Result<(), DomainConfigError> {
+        sqlx::query(
+            "WITH config_ids AS (
+                SELECT id FROM core_domain_configs WHERE key = $1 FOR UPDATE
+            ),
+            deleted_rollup AS (
+                DELETE FROM core_domain_config_events_rollup
+                WHERE id IN (SELECT id FROM config_ids)
+            ),
+            deleted_events AS (
+                DELETE FROM core_domain_config_events
+                WHERE id IN (SELECT id FROM config_ids)
+            )
+            DELETE FROM core_domain_configs WHERE id IN (SELECT id FROM config_ids)",
+        )
+        .bind(key)
+        .execute(pool)
+        .await?;
+
+        Ok(())
+    }
 }
