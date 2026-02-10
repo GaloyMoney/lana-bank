@@ -1,8 +1,18 @@
+# Workstream support: read port offset and project name from environment
+port_offset = int(os.getenv("WORKSTREAM_PORT_OFFSET", "0"))
+project_name = os.getenv("COMPOSE_PROJECT_NAME", "lana-bank")
+
+# Build compose files list
 compose_files = ["../docker-compose.yml", "../docker-compose.docker.yml"]
+
+# Include workstream port overrides if present
+if os.path.exists("../docker-compose.workstream.yml"):
+    compose_files.append("../docker-compose.workstream.yml")
+
 if os.getenv("DAGSTER", "false") == "true":
     compose_files.append("../docker-compose.dagster.yml")
 
-docker_compose(compose_files, project_name = "lana-bank")
+docker_compose(compose_files, project_name = project_name)
 
 docker_groups = {
     "auth": ["keycloak", "keycloak-pg", "oathkeeper"],
@@ -18,7 +28,7 @@ if os.getenv("DAGSTER", "false") == "true":
     dagster_services = [
         {
             "service_name": "dagster_webserver",
-            "link": link("http://localhost:3000", "dagster-webserver")
+            "link": link("http://localhost:%d" % (3000 + port_offset), "dagster-webserver")
         },
         {
             "service_name": "dagster_daemon"
@@ -47,8 +57,8 @@ if os.getenv("DAGSTER", "false") == "true":
 
 
 serve_env_core = {
-    "PG_CON": "postgres://user:password@localhost:5433/pg?sslmode=disable",
-    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+    "PG_CON": "postgres://user:password@localhost:%d/pg?sslmode=disable" % (5433 + port_offset),
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:%d" % (4317 + port_offset),
 }
 local_resource(
     "core",
@@ -69,7 +79,7 @@ local_resource(
         "keycloak"
     ],
     links = [
-        link("http://admin.localhost:4455/graphql", "playground"),
+        link("http://admin.localhost:%d/graphql" % (4455 + port_offset), "playground"),
     ]
 )
 
@@ -90,7 +100,7 @@ local_resource(
     ),
     allow_parallel = True,
     links = [
-        link("http://admin.localhost:4455", "admin-panel"),
+        link("http://admin.localhost:%d" % (4455 + port_offset), "admin-panel"),
     ]
 )
 
@@ -111,6 +121,6 @@ local_resource(
     ),
     allow_parallel = True,
     links = [
-        link("http://app.localhost:4455", "customer-portal"),
+        link("http://app.localhost:%d" % (4455 + port_offset), "customer-portal"),
     ]
 )

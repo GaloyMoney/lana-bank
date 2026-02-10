@@ -59,3 +59,8 @@ vendor/
 **/__pycache__/
 
 notes/
+
+# Workstreams
+.workstream.conf
+docker-compose.workstream.yml
+.devcontainer/docker-compose.override.yml

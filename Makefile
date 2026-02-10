@@ -255,3 +255,111 @@ honeycomb-apply:
 
 honeycomb-destroy:
 	cd tf/honeycomb && tofu destroy
+
+# ── Workstream Management ─────────────────────────────────────────────────────
+# These targets help manage parallel development workstreams with isolated
+# devcontainers and git worktrees. Run from host machine.
+
+# One-time setup: configure workstreams directory
+setup-workstreams:
+	@chmod +x ./dev/workstream-setup.sh && ./dev/workstream-setup.sh
+
+# Create a new workstream: make workstream <name> [branch]
+# Examples:
+#   make workstream auth           -> creates feat/auth branch
+#   make workstream fix fix/bug-123 -> uses fix/bug-123 branch
+workstream:
+	@if [ -z "$(word 2,$(MAKECMDGOALS))" ]; then \
+		echo "Usage: make workstream <name> [branch]"; \
+		echo ""; \
+		echo "Examples:"; \
+		echo "  make workstream auth             # Creates feat/auth branch"; \
+		echo "  make workstream fix fix/bug-123  # Uses existing branch"; \
+		exit 1; \
+	fi
+	@chmod +x ./dev/workstream-create.sh && \
+		NAME="$(word 2,$(MAKECMDGOALS))" BRANCH="$(word 3,$(MAKECMDGOALS))" ./dev/workstream-create.sh
+
+# List all active workstreams
+list-workstreams:
+	@if [ ! -f ~/.workstreams.conf ]; then \
+		echo "Workstreams not configured. Run 'make setup-workstreams' first."; \
+		exit 1; \
+	fi
+	@. ~/.workstreams.conf && \
+	echo "Active workstreams:" && \
+	found=0 && \
+	for dir in "$$WORKSTREAM_BASE"/lana-bank-*/; do \
+		if [ -f "$$dir/.workstream.conf" ]; then \
+			. "$$dir/.workstream.conf" && \
+			branch=$$(cd "$$dir" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown") && \
+			echo "  $$WORKSTREAM_NAME ($$branch) - offset: +$$WORKSTREAM_PORT_OFFSET" && \
+			found=1; \
+		fi; \
+	done && \
+	if [ $$found -eq 0 ]; then echo "  (none)"; fi
+
+# Switch to a workstream directory: make shift <name>
+shift:
+	@if [ -z "$(word 2,$(MAKECMDGOALS))" ]; then \
+		echo "Usage: make shift <name>"; \
+		exit 1; \
+	fi
+	@if [ ! -f ~/.workstreams.conf ]; then \
+		echo "Workstreams not configured. Run 'make setup-workstreams' first."; \
+		exit 1; \
+	fi
+	@. ~/.workstreams.conf && \
+	DIR="$$WORKSTREAM_BASE/lana-bank-$(word 2,$(MAKECMDGOALS))" && \
+	if [ -d "$$DIR" ]; then \
+		cd "$$DIR" && exec $$SHELL; \
+	else \
+		echo "Workstream '$(word 2,$(MAKECMDGOALS))' not found"; \
+		exit 1; \
+	fi
+
+# Destroy a workstream: make destroy-workstream <name>
+destroy-workstream:
+	@if [ -z "$(word 2,$(MAKECMDGOALS))" ]; then \
+		echo "Usage: make destroy-workstream <name>"; \
+		exit 1; \
+	fi
+	@chmod +x ./dev/workstream-destroy.sh && \
+		NAME="$(word 2,$(MAKECMDGOALS))" ./dev/workstream-destroy.sh
+
+# Start devcontainer for current workstream (run from workstream directory)
+devcontainer-up:
+	@if [ ! -f .workstream.conf ]; then \
+		echo "Error: Not in a workstream directory"; \
+		exit 1; \
+	fi
+	@. ./.workstream.conf && \
+	docker compose -f .devcontainer/docker-compose.yml \
+	               -f docker-compose.yml \
+	               -f .devcontainer/docker-compose.override.yml \
+	               up -d devcontainer && \
+	echo "Devcontainer started: devcontainer-$$WORKSTREAM_NAME"
+
+# Stop devcontainer for current workstream
+devcontainer-down:
+	@if [ ! -f .workstream.conf ]; then \
+		echo "Error: Not in a workstream directory"; \
+		exit 1; \
+	fi
+	@. ./.workstream.conf && \
+	docker stop "devcontainer-$$WORKSTREAM_NAME" 2>/dev/null || true && \
+	docker rm "devcontainer-$$WORKSTREAM_NAME" 2>/dev/null || true && \
+	echo "Devcontainer stopped"
+
+# Enter the devcontainer for current workstream
+enter:
+	@if [ ! -f .workstream.conf ]; then \
+		echo "Error: Not in a workstream directory"; \
+		exit 1; \
+	fi
+	@. ./.workstream.conf && \
+	docker exec -it "devcontainer-$$WORKSTREAM_NAME" bash
+
+# Catch-all target to allow arguments like "make workstream foo"
+%:
+	@:
