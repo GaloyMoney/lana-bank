@@ -21,6 +21,7 @@ Your goal is to get all checks passing by retrying flaky failures and fixing rea
 - Make minimal, focused fixes — don't refactor unrelated code
 - If a failure requires significant rework, stop and report this rather than attempting it
 - Each fix should be a new commit with a conventional commit message
+- Before pushing, pull with rebase (`git pull --rebase`) to incorporate any commits added to the branch by external services (e.g., lingo.dev translation commits)
 - Never rewrite git history or force push
 - Never switch branches, create additional PRs, or modify other branches
 - If pushing fails due to conflicts, stop and report — do not attempt to resolve them

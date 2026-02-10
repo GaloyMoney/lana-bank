@@ -30,6 +30,11 @@ Do NOT write unit tests for:
 - Repository implementations
 - Adapter layers
 
+## What to Cover
+
+- All public methods on entities and value objects must have unit tests
+- Private methods should also have unit tests when their logic is complex enough to warrant dedicated coverage
+
 ## No Mocking Policy
 
 Unit tests should not use mocking frameworks. The architecture makes this unnecessary:
