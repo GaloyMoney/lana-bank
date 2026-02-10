@@ -80,6 +80,7 @@ pub async fn timely_payments_scenario(
         .expect("pending facility exists");
 
     app.credit()
+        .collaterals()
         .update_collateral_by_id(
             &sub,
             pending_facility.collateral_id,

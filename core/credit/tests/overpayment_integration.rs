@@ -115,6 +115,7 @@ async fn create_active_facility(
         .expect("pending facility exists");
     let collateral_satoshis = Satoshis::from(50_000_000); // 0.5 BTC
     credit
+        .collaterals()
         .update_collateral_by_id(
             &DummySubject,
             pending_facility.collateral_id,
