@@ -62,4 +62,3 @@ obix = { workspace = true, features = ["test-utils"] }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 rust_decimal_macros = { workspace = true }
-rand = { workspace = true }

@@ -23,8 +23,6 @@ const DEPOSIT_ACCOUNTS_CSV: &str = r#"
 
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
-    use rand::Rng;
-
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
@@ -96,7 +94,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("ref-{}", uuid::Uuid::new_v4());
     let chart_id = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -176,7 +174,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert_eq!(res.entities.len(), 1);
 
-    let chart_ref = format!("other-ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("other-ref-{}", uuid::Uuid::new_v4());
     let chart_id = accounting
         .chart_of_accounts()
         .create_chart(

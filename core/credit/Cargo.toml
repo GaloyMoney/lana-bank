@@ -67,7 +67,6 @@ document-storage = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 domain-config = { workspace = true, features = ["test-utils"] }
 anyhow = { workspace = true }
-rand = { workspace = true }
 serde_yaml = { workspace = true }
 core-access = { workspace = true }
 core-deposit = { workspace = true }
