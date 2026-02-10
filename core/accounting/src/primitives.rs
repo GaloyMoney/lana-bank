@@ -7,7 +7,8 @@ use tracing_utils::ErrorSeverity;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
-pub const ACCOUNTING_JOB: audit::SystemActor = audit::SystemActor::new("accounting-job");
+pub const ACCOUNTING_TRIAL_BALANCE: audit::SystemActor =
+    audit::SystemActor::new("accounting-trial-balance");
 
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,

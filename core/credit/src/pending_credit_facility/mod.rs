@@ -223,7 +223,7 @@ where
                         &mut db,
                         &pending_credit_facility,
                         &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                            crate::primitives::CREDIT_FACILITY_JOB,
+                            crate::primitives::PENDING_FACILITY_CREATION,
                         ),
                     )
                     .await?;

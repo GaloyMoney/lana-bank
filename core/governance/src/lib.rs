@@ -93,7 +93,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
-                crate::primitives::GOVERNANCE,
+                audit::SystemActor::BOOTSTRAP,
                 GovernanceObject::all_policies(),
                 GovernanceAction::POLICY_CREATE,
             )

@@ -126,7 +126,7 @@ where
                         obligation,
                         credit_facility.account_ids,
                         &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                            crate::primitives::DISBURSAL_JOB,
+                            crate::primitives::DISBURSAL_APPROVAL,
                         ),
                     )
                     .await?;
@@ -147,7 +147,7 @@ where
                         disbursal.amount,
                         credit_facility.account_ids,
                         &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                            crate::primitives::DISBURSAL_JOB,
+                            crate::primitives::DISBURSAL_APPROVAL,
                         ),
                     )
                     .await?;

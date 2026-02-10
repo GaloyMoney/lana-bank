@@ -142,7 +142,7 @@ where
                     db,
                     entity.id,
                     &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                        crate::primitives::CREDIT_FACILITY_JOB,
+                        crate::primitives::CREDIT_FACILITY_PAYMENT_ALLOCATION,
                     ),
                 )
                 .await?;

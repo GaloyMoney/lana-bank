@@ -410,7 +410,7 @@ where
                 .post_closing_transaction_in_op(
                     op,
                     closing_tx_parents_and_details,
-                    &Subject::<Perms>::system(crate::primitives::ACCOUNTING_JOB),
+                    &Subject::<Perms>::system(crate::primitives::ACCOUNTING_TRIAL_BALANCE),
                 )
                 .await?;
         }

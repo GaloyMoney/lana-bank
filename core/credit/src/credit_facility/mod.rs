@@ -196,7 +196,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
-                crate::primitives::CREDIT_FACILITY_JOB,
+                crate::primitives::CREDIT_FACILITY_ACTIVATION,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
             )
@@ -299,7 +299,7 @@ where
                 &mut db,
                 activation_data,
                 &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                    crate::primitives::CREDIT_FACILITY_JOB,
+                    crate::primitives::CREDIT_FACILITY_ACTIVATION,
                 ),
             )
             .await?;
