@@ -89,7 +89,6 @@ es_entity::entity_id! {
 pub struct LedgerOmnibusAccountIds {
     pub account_set_id: CalaAccountSetId,
     pub account_id: CalaAccountId,
-    pub account_category: account_sets::CreditAccountCategory,
 }
 
 pub const CREDIT_FACILITY_ENTITY_TYPE: core_accounting::EntityType =

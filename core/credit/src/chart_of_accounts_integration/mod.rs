@@ -91,7 +91,7 @@ where
         let mut op = self.domain_configs.begin_op().await?;
 
         let resolved_integration_config =
-            ResolvedChartOfAccountsIntegrationConfig::try_new(config, chart, self.ledger.as_ref())?;
+            ResolvedChartOfAccountsIntegrationConfig::try_new(config, chart)?;
 
         self.domain_configs
             .update_in_op::<ResolvedChartOfAccountsIntegrationConfig>(

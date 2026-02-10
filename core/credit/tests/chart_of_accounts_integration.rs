@@ -35,7 +35,7 @@ const CREDIT_ACCOUNTS_CSV: &str = r#"
 fn chart_account_set_id(chart: &core_accounting::Chart, code: &AccountCode) -> CalaAccountSetId {
     chart
         .maybe_account_set_id_from_code(code)
-        .unwrap_or_else(|| panic!("missing account set for code {code}"))
+        .unwrap_or_else(|| panic!("missing account set for code"))
 }
 
 async fn assert_attached_for_code(
@@ -128,7 +128,7 @@ async fn assert_account_sets_attached(
             members
                 .iter()
                 .any(|member| member.id == AccountSetMemberId::AccountSet(*expected_id)),
-            "expected account set {expected_id} to be attached to {parent_id}",
+            "expected account set to be attached to parent account set",
         );
     }
 

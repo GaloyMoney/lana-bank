@@ -44,7 +44,6 @@ use error::*;
 pub struct InternalAccountSetDetails {
     id: CalaAccountSetId,
     normal_balance_type: DebitOrCredit,
-    account_category: account_sets::CreditAccountCategory,
 }
 
 impl InternalAccountSetDetails {
@@ -54,10 +53,6 @@ impl InternalAccountSetDetails {
 
     pub fn normal_balance_type(&self) -> DebitOrCredit {
         self.normal_balance_type
-    }
-
-    pub fn account_category(&self) -> account_sets::CreditAccountCategory {
-        self.account_category
     }
 }
 
@@ -72,55 +67,11 @@ pub struct DisbursedReceivableAccountSets {
     non_domiciled_company: InternalAccountSetDetails,
 }
 
-impl DisbursedReceivableAccountSets {
-    pub(crate) fn individual(&self) -> InternalAccountSetDetails {
-        self.individual
-    }
-
-    pub(crate) fn government_entity(&self) -> InternalAccountSetDetails {
-        self.government_entity
-    }
-
-    pub(crate) fn private_company(&self) -> InternalAccountSetDetails {
-        self.private_company
-    }
-
-    pub(crate) fn bank(&self) -> InternalAccountSetDetails {
-        self.bank
-    }
-
-    pub(crate) fn financial_institution(&self) -> InternalAccountSetDetails {
-        self.financial_institution
-    }
-
-    pub(crate) fn foreign_agency_or_subsidiary(&self) -> InternalAccountSetDetails {
-        self.foreign_agency_or_subsidiary
-    }
-
-    pub(crate) fn non_domiciled_company(&self) -> InternalAccountSetDetails {
-        self.non_domiciled_company
-    }
-}
-
 #[derive(Clone, Copy)]
 pub struct DisbursedReceivable {
     short_term: DisbursedReceivableAccountSets,
     long_term: DisbursedReceivableAccountSets,
     overdue: DisbursedReceivableAccountSets,
-}
-
-impl DisbursedReceivable {
-    pub(crate) fn short_term(&self) -> DisbursedReceivableAccountSets {
-        self.short_term
-    }
-
-    pub(crate) fn long_term(&self) -> DisbursedReceivableAccountSets {
-        self.long_term
-    }
-
-    pub(crate) fn overdue(&self) -> DisbursedReceivableAccountSets {
-        self.overdue
-    }
 }
 
 #[derive(Clone, Copy)]
@@ -134,50 +85,10 @@ pub struct InterestReceivableAccountSets {
     non_domiciled_company: InternalAccountSetDetails,
 }
 
-impl InterestReceivableAccountSets {
-    pub(crate) fn individual(&self) -> InternalAccountSetDetails {
-        self.individual
-    }
-
-    pub(crate) fn government_entity(&self) -> InternalAccountSetDetails {
-        self.government_entity
-    }
-
-    pub(crate) fn private_company(&self) -> InternalAccountSetDetails {
-        self.private_company
-    }
-
-    pub(crate) fn bank(&self) -> InternalAccountSetDetails {
-        self.bank
-    }
-
-    pub(crate) fn financial_institution(&self) -> InternalAccountSetDetails {
-        self.financial_institution
-    }
-
-    pub(crate) fn foreign_agency_or_subsidiary(&self) -> InternalAccountSetDetails {
-        self.foreign_agency_or_subsidiary
-    }
-
-    pub(crate) fn non_domiciled_company(&self) -> InternalAccountSetDetails {
-        self.non_domiciled_company
-    }
-}
-
 #[derive(Clone, Copy)]
 pub struct InterestReceivable {
     short_term: InterestReceivableAccountSets,
     long_term: InterestReceivableAccountSets,
-}
-
-impl InterestReceivable {
-    pub(crate) fn short_term(&self) -> InterestReceivableAccountSets {
-        self.short_term
-    }
-
-    pub(crate) fn long_term(&self) -> InterestReceivableAccountSets {
-        self.long_term
-    }
 }
 
 #[derive(Clone, Copy)]
@@ -245,8 +156,6 @@ impl CreditLedger {
         templates::CreateCreditFacilityProposal::init(cala).await?;
         templates::InitialDisbursal::init(cala).await?;
 
-        let catalog = account_sets::CreditAccountSetCatalog::default();
-
         let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
@@ -261,7 +170,6 @@ impl CreditLedger {
             ),
             account_sets::CREDIT_COLLATERAL_OMNIBUS.name.to_string(),
             collateral_omnibus_normal_balance_type,
-            catalog.omnibus().credit_collateral_omnibus.account_category,
         )
         .await?;
 
@@ -282,10 +190,6 @@ impl CreditLedger {
                     .name
                     .to_string(),
                 interest_added_to_obligations_omnibus_normal_balance_type,
-                catalog
-                    .omnibus()
-                    .credit_interest_added_to_obligations_omnibus
-                    .account_category,
             )
             .await?;
 
@@ -303,10 +207,6 @@ impl CreditLedger {
             ),
             account_sets::CREDIT_PAYMENTS_MADE_OMNIBUS.name.to_string(),
             payments_made_omnibus_normal_balance_type,
-            catalog
-                .omnibus()
-                .credit_payments_made_omnibus
-                .account_category,
         )
         .await?;
 
@@ -324,7 +224,6 @@ impl CreditLedger {
             ),
             account_sets::CREDIT_FACILITY_OMNIBUS.name.to_string(),
             facility_omnibus_normal_balance_type,
-            catalog.omnibus().credit_facility_omnibus.account_category,
         )
         .await?;
 
@@ -344,10 +243,6 @@ impl CreditLedger {
                 .name
                 .to_string(),
             liquidation_proceeds_omnibus_normal_balance_type,
-            catalog
-                .omnibus()
-                .credit_facility_liquidation_proceeds_omnibus
-                .account_category,
         )
         .await?;
 
@@ -1015,174 +910,90 @@ impl CreditLedger {
                 individual: InternalAccountSetDetails {
                     id: short_term_individual_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_individual_disbursed_receivable
-                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: short_term_government_entity_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_government_entity_disbursed_receivable
-                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: short_term_private_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_private_company_disbursed_receivable
-                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: short_term_bank_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_bank_disbursed_receivable
-                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: short_term_financial_institution_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_financial_institution_disbursed_receivable
-                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: short_term_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_foreign_agency_or_subsidiary_disbursed_receivable
-                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: short_term_non_domiciled_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_non_domiciled_company_disbursed_receivable
-                        .account_category,
                 },
             },
             long_term: DisbursedReceivableAccountSets {
                 individual: InternalAccountSetDetails {
                     id: long_term_individual_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_individual_disbursed_receivable
-                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: long_term_government_entity_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_government_entity_disbursed_receivable
-                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: long_term_private_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_private_company_disbursed_receivable
-                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: long_term_bank_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_bank_disbursed_receivable
-                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: long_term_financial_institution_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_financial_institution_disbursed_receivable
-                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: long_term_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_foreign_agency_or_subsidiary_disbursed_receivable
-                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: long_term_non_domiciled_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_non_domiciled_company_disbursed_receivable
-                        .account_category,
                 },
             },
             overdue: DisbursedReceivableAccountSets {
                 individual: InternalAccountSetDetails {
                     id: overdue_individual_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .overdue_individual_disbursed_receivable
-                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: overdue_government_entity_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .overdue_government_entity_disbursed_receivable
-                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: overdue_private_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .overdue_private_company_disbursed_receivable
-                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: overdue_bank_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .overdue_bank_disbursed_receivable
-                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: overdue_financial_institution_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .overdue_financial_institution_disbursed_receivable
-                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: overdue_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .overdue_foreign_agency_or_subsidiary_disbursed_receivable
-                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: overdue_non_domiciled_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .overdue_non_domiciled_company_disbursed_receivable
-                        .account_category,
                 },
             },
         };
@@ -1192,116 +1003,60 @@ impl CreditLedger {
                 individual: InternalAccountSetDetails {
                     id: short_term_individual_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_individual_interest_receivable
-                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: short_term_government_entity_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_government_entity_interest_receivable
-                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: short_term_private_company_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_private_company_interest_receivable
-                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: short_term_bank_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_bank_interest_receivable
-                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: short_term_financial_institution_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_financial_institution_interest_receivable
-                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: short_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_foreign_agency_or_subsidiary_interest_receivable
-                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: short_term_non_domiciled_company_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .short_term_non_domiciled_company_interest_receivable
-                        .account_category,
                 },
             },
             long_term: InterestReceivableAccountSets {
                 individual: InternalAccountSetDetails {
                     id: long_term_individual_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_individual_interest_receivable
-                        .account_category,
                 },
                 government_entity: InternalAccountSetDetails {
                     id: long_term_government_entity_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_government_entity_interest_receivable
-                        .account_category,
                 },
                 private_company: InternalAccountSetDetails {
                     id: long_term_private_company_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_private_company_interest_receivable
-                        .account_category,
                 },
                 bank: InternalAccountSetDetails {
                     id: long_term_bank_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_bank_interest_receivable
-                        .account_category,
                 },
                 financial_institution: InternalAccountSetDetails {
                     id: long_term_financial_institution_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_financial_institution_interest_receivable
-                        .account_category,
                 },
                 foreign_agency_or_subsidiary: InternalAccountSetDetails {
                     id: long_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_foreign_agency_or_subsidiary_interest_receivable
-                        .account_category,
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: long_term_non_domiciled_company_interest_receivable_account_set_id,
                     normal_balance_type: interest_receivable_normal_balance_type,
-                    account_category: catalog
-                        .summary()
-                        .long_term_non_domiciled_company_interest_receivable
-                        .account_category,
                 },
             },
         };
@@ -1310,26 +1065,14 @@ impl CreditLedger {
             collateral_in_liquidation: InternalAccountSetDetails {
                 id: collateral_in_liquidation_account_set_id,
                 normal_balance_type: collateral_in_liquidation_normal_balance_type,
-                account_category: catalog
-                    .summary()
-                    .credit_facility_collateral_in_liquidation
-                    .account_category,
             },
             liquidated_collateral: InternalAccountSetDetails {
                 id: liquidated_collateral_account_set_id,
                 normal_balance_type: liquidated_collateral_normal_balance_type,
-                account_category: catalog
-                    .summary()
-                    .credit_facility_liquidated_collateral
-                    .account_category,
             },
             proceeds_from_liquidation: InternalAccountSetDetails {
                 id: proceeds_from_liquidation_account_set_id,
                 normal_balance_type: proceeds_from_liquidation_normal_balance_type,
-                account_category: catalog
-                    .summary()
-                    .credit_facility_proceeds_from_liquidation
-                    .account_category,
             },
         };
 
@@ -1337,51 +1080,37 @@ impl CreditLedger {
             facility: InternalAccountSetDetails {
                 id: facility_account_set_id,
                 normal_balance_type: facility_normal_balance_type,
-                account_category: catalog.summary().credit_facility_remaining.account_category,
             },
             collateral: InternalAccountSetDetails {
                 id: collateral_account_set_id,
                 normal_balance_type: collateral_normal_balance_type,
-                account_category: catalog.summary().credit_collateral.account_category,
             },
             liquidation: liquidation_account_sets,
             disbursed_receivable,
             disbursed_defaulted: InternalAccountSetDetails {
                 id: disbursed_defaulted_account_set_id,
                 normal_balance_type: disbursed_receivable_normal_balance_type,
-                account_category: catalog
-                    .summary()
-                    .credit_disbursed_defaulted
-                    .account_category,
             },
             interest_receivable,
             interest_defaulted: InternalAccountSetDetails {
                 id: interest_defaulted_account_set_id,
                 normal_balance_type: disbursed_receivable_normal_balance_type,
-                account_category: catalog.summary().credit_interest_defaulted.account_category,
             },
             interest_income: InternalAccountSetDetails {
                 id: interest_income_account_set_id,
                 normal_balance_type: interest_income_normal_balance_type,
-                account_category: catalog.summary().credit_interest_income.account_category,
             },
             fee_income: InternalAccountSetDetails {
                 id: fee_income_account_set_id,
                 normal_balance_type: fee_income_normal_balance_type,
-                account_category: catalog.summary().credit_fee_income.account_category,
             },
             uncovered_outstanding: InternalAccountSetDetails {
                 id: uncovered_outstanding_account_set_id,
                 normal_balance_type: uncovered_outstanding_normal_balance_type,
-                account_category: catalog
-                    .summary()
-                    .credit_uncovered_outstanding
-                    .account_category,
             },
             payment_holding: InternalAccountSetDetails {
                 id: payment_holding_account_set_id,
                 normal_balance_type: payment_holding_normal_balance_type,
-                account_category: catalog.summary().credit_payment_holding.account_category,
             },
         };
 
@@ -1487,7 +1216,6 @@ impl CreditLedger {
         reference: String,
         name: String,
         normal_balance_type: DebitOrCredit,
-        account_category: account_sets::CreditAccountCategory,
     ) -> Result<LedgerOmnibusAccountIds, CreditLedgerError> {
         let account_set_id = Self::find_or_create_account_set(
             cala,
@@ -1509,7 +1237,6 @@ impl CreditLedger {
                     return Ok(LedgerOmnibusAccountIds {
                         account_set_id,
                         account_id: id,
-                        account_category,
                     });
                 }
                 AccountSetMemberId::AccountSet(_) => {
@@ -1556,7 +1283,6 @@ impl CreditLedger {
         Ok(LedgerOmnibusAccountIds {
             account_set_id,
             account_id,
-            account_category,
         })
     }
 
@@ -3290,28 +3016,16 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub fn liquidation_proceeds_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
+    pub(crate) fn liquidation_proceeds_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
         &self.liquidation_proceeds_omnibus_account_ids
     }
 
-    pub fn collateral_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
+    pub(crate) fn collateral_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
         &self.collateral_omnibus_account_ids
     }
 
-    pub fn payments_made_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
+    pub(crate) fn payments_made_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
         &self.payments_made_omnibus_account_ids
-    }
-
-    pub fn facility_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
-        &self.facility_omnibus_account_ids
-    }
-
-    pub fn interest_added_to_obligations_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
-        &self.interest_added_to_obligations_omnibus_account_ids
-    }
-
-    pub fn internal_account_sets(&self) -> CreditFacilityInternalAccountSets {
-        self.internal_account_sets
     }
 
     pub fn liquidation_account_sets(&self) -> LiquidationAccountSets {
