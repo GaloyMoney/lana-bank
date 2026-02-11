@@ -327,8 +327,6 @@ pub struct NewPendingCreditFacility {
     pub(super) customer_type: CustomerType,
     #[builder(setter(into))]
     pub(super) collateral_id: CollateralId,
-    #[builder(setter(skip), default)]
-    pub(super) collateralization_state: PendingCreditFacilityCollateralizationState,
     pub(super) account_ids: PendingCreditFacilityAccountIds,
     #[builder(setter(into))]
     disbursal_credit_account_id: CalaAccountId,

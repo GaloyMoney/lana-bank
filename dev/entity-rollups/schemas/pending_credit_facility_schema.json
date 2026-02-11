@@ -176,11 +176,62 @@
       "type": "object"
     },
     "PendingCreditFacilityCollateralizationState": {
-      "enum": [
-        "FullyCollateralized",
-        "UnderCollateralized"
-      ],
-      "type": "string"
+      "oneOf": [
+        {
+          "enum": [
+            "NoCollateral"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "FullyCollateralized": {
+              "properties": {
+                "collateral": {
+                  "$ref": "#/$defs/Satoshis"
+                },
+                "price": {
+                  "$ref": "#/$defs/PriceOfOneBTC"
+                }
+              },
+              "required": [
+                "collateral",
+                "price"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "FullyCollateralized"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "UnderCollateralized": {
+              "properties": {
+                "collateral": {
+                  "$ref": "#/$defs/Satoshis"
+                },
+                "price": {
+                  "$ref": "#/$defs/PriceOfOneBTC"
+                }
+              },
+              "required": [
+                "collateral",
+                "price"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "UnderCollateralized"
+          ],
+          "type": "object"
+        }
+      ]
     },
     "PriceOfOneBTC": {
       "$ref": "#/$defs/UsdCents"
@@ -338,14 +389,8 @@
     },
     {
       "properties": {
-        "collateral": {
-          "$ref": "#/$defs/Satoshis"
-        },
         "collateralization_state": {
           "$ref": "#/$defs/PendingCreditFacilityCollateralizationState"
-        },
-        "price": {
-          "$ref": "#/$defs/PriceOfOneBTC"
         },
         "type": {
           "const": "collateralization_state_changed",
@@ -354,9 +399,7 @@
       },
       "required": [
         "type",
-        "collateralization_state",
-        "collateral",
-        "price"
+        "collateralization_state"
       ],
       "type": "object"
     },

@@ -24,11 +24,6 @@ use super::{entity::*, error::PendingCreditFacilityError};
             create(persist = false),
             update(accessor = "last_collateralization_ratio()")
         ),
-        collateralization_state(
-            ty = "PendingCreditFacilityCollateralizationState",
-            list_for,
-            update(accessor = "last_collateralization_state()")
-        ),
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"

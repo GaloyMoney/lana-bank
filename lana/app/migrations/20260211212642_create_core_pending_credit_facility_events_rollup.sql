@@ -8,15 +8,13 @@ CREATE TABLE core_pending_credit_facility_events_rollup (
   account_ids JSONB,
   amount BIGINT,
   approval_process_id UUID,
-  collateral BIGINT,
   collateral_id UUID,
   collateralization_ratio JSONB,
-  collateralization_state VARCHAR,
+  collateralization_state JSONB,
   credit_facility_proposal_id UUID,
   customer_id UUID,
   customer_type VARCHAR,
   disbursal_credit_account_id UUID,
-  price BIGINT,
   terms JSONB,
 
   -- Collection rollups
@@ -63,10 +61,9 @@ BEGIN
     new_row.account_ids := (NEW.event -> 'account_ids');
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
-    new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
     new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
-    new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
+    new_row.collateralization_state := (NEW.event -> 'collateralization_state');
     new_row.credit_facility_proposal_id := (NEW.event ->> 'credit_facility_proposal_id')::UUID;
     new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
     new_row.customer_type := (NEW.event ->> 'customer_type');
@@ -80,14 +77,12 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.price := (NEW.event ->> 'price')::BIGINT;
     new_row.terms := (NEW.event -> 'terms');
   ELSE
     -- Default all fields to current values
     new_row.account_ids := current_row.account_ids;
     new_row.amount := current_row.amount;
     new_row.approval_process_id := current_row.approval_process_id;
-    new_row.collateral := current_row.collateral;
     new_row.collateral_id := current_row.collateral_id;
     new_row.collateralization_ratio := current_row.collateralization_ratio;
     new_row.collateralization_state := current_row.collateralization_state;
@@ -99,7 +94,6 @@ BEGIN
     new_row.is_collateralization_state_changed := current_row.is_collateralization_state_changed;
     new_row.is_completed := current_row.is_completed;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.price := current_row.price;
     new_row.terms := current_row.terms;
   END IF;
 
@@ -117,10 +111,8 @@ BEGIN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.terms := (NEW.event -> 'terms');
     WHEN 'collateralization_state_changed' THEN
-      new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
-      new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
+      new_row.collateralization_state := (NEW.event -> 'collateralization_state');
       new_row.is_collateralization_state_changed := true;
-      new_row.price := (NEW.event ->> 'price')::BIGINT;
     WHEN 'collateralization_ratio_changed' THEN
       new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
       new_row.is_collateralization_ratio_changed := true;
@@ -136,7 +128,6 @@ BEGIN
     account_ids,
     amount,
     approval_process_id,
-    collateral,
     collateral_id,
     collateralization_ratio,
     collateralization_state,
@@ -148,7 +139,6 @@ BEGIN
     is_collateralization_state_changed,
     is_completed,
     ledger_tx_ids,
-    price,
     terms
   )
   VALUES (
@@ -159,7 +149,6 @@ BEGIN
     new_row.account_ids,
     new_row.amount,
     new_row.approval_process_id,
-    new_row.collateral,
     new_row.collateral_id,
     new_row.collateralization_ratio,
     new_row.collateralization_state,
@@ -171,7 +160,6 @@ BEGIN
     new_row.is_collateralization_state_changed,
     new_row.is_completed,
     new_row.ledger_tx_ids,
-    new_row.price,
     new_row.terms
   );
 

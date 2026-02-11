@@ -301,7 +301,6 @@ CREATE TABLE core_pending_credit_facilities (
   approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
   collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
   collateralization_ratio NUMERIC,
-  collateralization_state VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
