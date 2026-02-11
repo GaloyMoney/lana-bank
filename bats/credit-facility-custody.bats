@@ -149,6 +149,7 @@ wait_for_collateral() {
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
   collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
+  [[ "$collateral" != "null" ]] || exit 1
   [[ "$collateral" -eq 0 ]] || exit 1
 
   # external wallet ID 123 is hard coded in mock custodian
