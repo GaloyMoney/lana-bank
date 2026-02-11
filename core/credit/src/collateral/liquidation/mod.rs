@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
-pub use error::LiquidationError;
+pub(super) use error::LiquidationError;
 
 #[derive(Clone, Debug)]
 pub struct RecordProceedsFromLiquidationData {
