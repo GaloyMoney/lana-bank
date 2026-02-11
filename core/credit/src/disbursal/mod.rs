@@ -12,7 +12,7 @@ use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, primitives::*};
+use crate::{CoreCreditEvent, primitives::*};
 
 use core_credit_collection::{CoreCreditCollection, Obligation};
 

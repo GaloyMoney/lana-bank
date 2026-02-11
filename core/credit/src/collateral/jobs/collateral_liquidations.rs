@@ -19,8 +19,8 @@ use super::{
     liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
 };
 use crate::{
+    CoreCreditEvent,
     collateral::error::CollateralError,
-    event::CoreCreditEvent,
     primitives::{CollateralId, CreditFacilityId, PriceOfOneBTC},
 };
 

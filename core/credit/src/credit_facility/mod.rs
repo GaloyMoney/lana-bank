@@ -17,9 +17,8 @@ use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
-    PublicIds,
+    CoreCreditEvent, PublicIds,
     disbursal::Disbursals,
-    event::CoreCreditEvent,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
     primitives::*,

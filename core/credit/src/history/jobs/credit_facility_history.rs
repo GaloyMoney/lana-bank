@@ -9,7 +9,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, primitives::CreditFacilityId};
+use crate::{CoreCreditCollectionEvent, CoreCreditEvent, primitives::CreditFacilityId};
 
 use super::super::repo::HistoryRepo;
 
@@ -49,8 +49,9 @@ where
                 self.handle_credit_event(db, message, event, entity.id)
                     .await?;
             }
-            Some(event @ PendingCreditFacilityCollateralizationChanged { id, .. }) => {
-                self.handle_credit_event(db, message, event, *id).await?;
+            Some(event @ PendingCreditFacilityCollateralizationChanged { entity, .. }) => {
+                self.handle_credit_event(db, message, event, entity.id)
+                    .await?;
             }
             Some(event @ FacilityActivated { id, .. })
             | Some(event @ FacilityCompleted { id, .. })

@@ -20,11 +20,10 @@ use core_custody::CoreCustodyEvent;
 use core_price::{CorePriceEvent, Price};
 
 use crate::{
-    CoreCreditCollectionEvent,
+    CoreCreditCollectionEvent, CoreCreditEvent,
     credit_facility::{
         CreditFacilitiesByCollateralizationRatioCursor, CreditFacilityRepo, CreditFacilityStatus,
     },
-    event::CoreCreditEvent,
     ledger::*,
     primitives::*,
 };

@@ -17,7 +17,7 @@ use core_custody::CoreCustodyEvent;
 use core_price::{CorePriceEvent, Price};
 
 use crate::{
-    event::CoreCreditEvent,
+    CoreCreditEvent,
     ledger::*,
     pending_credit_facility::{
         PendingCreditFacilitiesByCollateralizationRatioCursor, PendingCreditFacility,

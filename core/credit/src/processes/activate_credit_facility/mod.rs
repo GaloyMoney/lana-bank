@@ -16,10 +16,10 @@ use public_id::PublicIds;
 pub use job::*;
 
 use crate::{
+    CoreCreditEvent,
     credit_facility::CreditFacilities,
     disbursal::Disbursals,
     error::CoreCreditError,
-    event::CoreCreditEvent,
     ledger::CreditLedger,
     primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId},
 };

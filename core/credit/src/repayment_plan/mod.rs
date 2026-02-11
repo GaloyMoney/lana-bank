@@ -12,7 +12,7 @@ use std::sync::Arc;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, primitives::*};
+use crate::{CoreCreditCollectionEvent, CoreCreditEvent, primitives::*};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use error::CreditFacilityRepaymentPlanError;

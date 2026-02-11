@@ -5,7 +5,7 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use crate::{event::CoreCreditEvent, primitives::*, publisher::*};
+use crate::{CoreCreditEvent, primitives::*, publisher::*};
 
 use super::{entity::*, error::PendingCreditFacilityError};
 
@@ -27,7 +27,7 @@ use super::{entity::*, error::PendingCreditFacilityError};
         collateralization_state(
             ty = "PendingCreditFacilityCollateralizationState",
             list_for,
-            update(accessor = "last_collateralization_state()")
+            update(accessor = "last_collateralization_state().state")
         ),
     ),
     tbl_prefix = "core",

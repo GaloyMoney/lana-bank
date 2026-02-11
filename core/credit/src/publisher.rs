@@ -16,11 +16,10 @@ use crate::{
         CreditFacilityProposal, CreditFacilityProposalEvent, error::CreditFacilityProposalError,
     },
     disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
-    event::*,
     pending_credit_facility::{
         PendingCreditFacility, PendingCreditFacilityEvent, error::PendingCreditFacilityError,
     },
-    public::{PublicCreditFacilityProposal, PublicPendingCreditFacility},
+    public::*,
 };
 
 pub struct CreditFacilityPublisher<E>
