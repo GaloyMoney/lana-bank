@@ -1417,7 +1417,6 @@ dependencies = [
  "authz",
  "cala-ledger",
  "chrono",
- "core-accounting",
  "core-credit-terms",
  "derive_builder",
  "es-entity",
