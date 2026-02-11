@@ -21,7 +21,7 @@
     "validate-api-descriptions": "node scripts/validate-api-descriptions.js",
     "snapshot-schemas": "node scripts/snapshot-schemas.js",
     "prune-old-versions": "node scripts/prune-old-versions.js",
-    "prebuild": "npm run generate-api-docs && npm run generate-versioned-api-docs"
+    "prebuild": "npm run generate-api-docs && npm run generate-events-docs && npm run generate-versioned-api-docs"
   },
   "dependencies": {
     "@docusaurus/core": "^3.7.0",

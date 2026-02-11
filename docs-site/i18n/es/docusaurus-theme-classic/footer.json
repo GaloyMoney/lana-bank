@@ -29,14 +29,14 @@
   },
   "link.item.label.Admin API": {
     "message": "Admin API",
-    "description": "The label of footer link with label=Admin API linking to /for-developers/admin-api"
+    "description": "The label of footer link with label=Admin API linking to /apis/admin-api"
   },
   "link.item.label.Customer API": {
     "message": "Customer API",
-    "description": "The label of footer link with label=Customer API linking to /for-developers/customer-api"
+    "description": "The label of footer link with label=Customer API linking to /apis/customer-api"
   },
   "link.item.label.Domain Events": {
     "message": "Eventos de Dominio",
-    "description": "The label of footer link with label=Domain Events linking to /for-developers/events"
+    "description": "The label of footer link with label=Domain Events linking to /apis/events"
   }
 }
