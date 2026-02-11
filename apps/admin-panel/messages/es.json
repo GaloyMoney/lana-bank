@@ -2375,7 +2375,6 @@
   },
   "Modules": {
     "notYetConfigured": "Aún no configurado",
-    "autoPopulate": "Autocompletar",
     "accountCategories": {
       "offBalanceSheet": "Cuentas de orden y contingencias",
       "asset": "Activo",

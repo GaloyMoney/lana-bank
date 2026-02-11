@@ -2375,7 +2375,6 @@
   },
   "Modules": {
     "notYetConfigured": "Not yet configured",
-    "autoPopulate": "Autofill",
     "accountCategories": {
       "offBalanceSheet": "Off Balance Sheet",
       "asset": "Asset",

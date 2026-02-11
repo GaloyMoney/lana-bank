@@ -28,7 +28,6 @@ import { toast } from "sonner"
 
 import {
   DEPOSIT_CONFIG_FIELDS,
-  DEPOSIT_DEFAULT_FORM_DATA,
   DEPOSIT_EMPTY_FORM_DATA,
   DEPOSIT_FIELD_GROUPS,
   DepositAccountCategoryKey,
@@ -249,10 +248,6 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
     setStep("confirm")
   }
 
-  const autoPopulate = () => {
-    setFormData({ ...DEPOSIT_DEFAULT_FORM_DATA })
-  }
-
   const handleDone = async () => {
     try {
       await updateDepositConfig({ variables: { input: formData } })
@@ -410,14 +405,6 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
             </div>
             {error && <div className="text-destructive">{error.message}</div>}
             <DialogFooter className="mt-4">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={autoPopulate}
-                className="mr-auto"
-              >
-                {t("autoPopulate")}
-              </Button>
               <Button variant="outline" type="button" onClick={close}>
                 {tCommon("cancel")}
               </Button>
