@@ -220,6 +220,7 @@ where
             journal_id,
             clock.clone(),
             *ledger_arc.collateral_omnibus_account_ids(),
+            ledger_arc.collateral_account_set(),
             ledger_arc.liquidation_account_sets(),
         )
         .await?;

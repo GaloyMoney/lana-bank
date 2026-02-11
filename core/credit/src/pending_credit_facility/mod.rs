@@ -199,12 +199,7 @@ where
                         new_pending_facility.collateral_id,
                         new_pending_facility.id,
                         wallet_id,
-                        CollateralLedgerAccountIds::new(
-                            new_pending_facility.account_ids,
-                            self.ledger
-                                .liquidation_proceeds_omnibus_account_ids()
-                                .account_id,
-                        ),
+                        CollateralLedgerAccountIds::new(),
                     )
                     .await?;
 

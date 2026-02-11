@@ -411,14 +411,10 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ledger::PendingCreditFacilityAccountIds;
     use crate::primitives::{CalaAccountId, PriceOfOneBTC, UsdCents};
 
     fn default_account_ids() -> CollateralLedgerAccountIds {
-        CollateralLedgerAccountIds::new(
-            PendingCreditFacilityAccountIds::new(),
-            CalaAccountId::new(),
-        )
+        CollateralLedgerAccountIds::new()
     }
 
     fn default_new_collateral() -> NewCollateral {
