@@ -26,6 +26,7 @@ generates:
         SignedUsdCents: "types#SignedUsdCents"
         SignedSatoshis: "types#SignedSatoshis"
         AuditSubjectId: string
+        AccountCode: string
   ./lib/graphql/generated/mocks.ts:
     plugins:
       - add:

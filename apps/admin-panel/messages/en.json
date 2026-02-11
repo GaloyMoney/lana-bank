@@ -2286,7 +2286,6 @@
       "confirmationDescription": "Review the updated values before closing.",
       "confirmationPrevious": "Previous",
       "confirmationUpdated": "Updated",
-      "confirmationNoChanges": "No changes detected.",
       "updateSuccess": "Credit configuration updated.",
       "groups": {
         "omnibus": "Omnibus Accounts",
