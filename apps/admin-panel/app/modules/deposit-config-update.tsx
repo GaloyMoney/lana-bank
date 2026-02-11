@@ -48,6 +48,19 @@ gql`
     depositModuleConfigure(input: $input) {
       depositConfig {
         chartOfAccountsId
+        chartOfAccountsOmnibusParentCode
+        chartOfAccountsIndividualDepositAccountsParentCode
+        chartOfAccountsGovernmentEntityDepositAccountsParentCode
+        chartOfAccountPrivateCompanyDepositAccountsParentCode
+        chartOfAccountBankDepositAccountsParentCode
+        chartOfAccountFinancialInstitutionDepositAccountsParentCode
+        chartOfAccountNonDomiciledIndividualDepositAccountsParentCode
+        chartOfAccountsFrozenIndividualDepositAccountsParentCode
+        chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode
+        chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode
+        chartOfAccountFrozenBankDepositAccountsParentCode
+        chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode
+        chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode
       }
     }
   }
@@ -251,6 +264,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
   }
 
   const handleBack = () => {
+    reset()
     setStep("edit")
   }
 
