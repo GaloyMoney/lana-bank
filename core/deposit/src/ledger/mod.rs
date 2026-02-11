@@ -135,7 +135,7 @@ impl DepositLedger {
         )
         .await?;
 
-        let non_domiciled_company_deposit_account_set_id = Self::find_or_create_account_set(
+        let non_domiciled_individual_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
             format!(
@@ -195,17 +195,18 @@ impl DepositLedger {
         )
         .await?;
 
-        let frozen_non_domiciled_company_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!(
-                "{journal_id}:{}",
-                frozen.non_domiciled_individual.account_set_ref
-            ),
-            frozen.non_domiciled_individual.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
+        let frozen_non_domiciled_individual_deposit_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{}",
+                    frozen.non_domiciled_individual.account_set_ref
+                ),
+                frozen.non_domiciled_individual.name.to_string(),
+                deposits_normal_balance_type,
+            )
+            .await?;
 
         let deposit_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
@@ -256,7 +257,7 @@ impl DepositLedger {
                     normal_balance_type: deposits_normal_balance_type,
                 },
                 non_domiciled_individual: InternalAccountSetDetails {
-                    id: non_domiciled_company_deposit_account_set_id,
+                    id: non_domiciled_individual_deposit_account_set_id,
                     normal_balance_type: deposits_normal_balance_type,
                 },
             },
@@ -282,7 +283,7 @@ impl DepositLedger {
                     normal_balance_type: deposits_normal_balance_type,
                 },
                 non_domiciled_individual: InternalAccountSetDetails {
-                    id: frozen_non_domiciled_company_deposit_account_set_id,
+                    id: frozen_non_domiciled_individual_deposit_account_set_id,
                     normal_balance_type: deposits_normal_balance_type,
                 },
             },
