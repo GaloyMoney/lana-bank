@@ -151,13 +151,18 @@ impl CreditFacility {
         let liquidations = app
             .credit()
             .collaterals()
-            .list_liquidations_for_collateral_by_created_at(sub, self.entity.collateral_id)
-            .await?
+            .list_liquidations_for_collateral_by_created_at(
+                sub,
+                self.entity.collateral_id,
+                Default::default(),
+            )
+            .await?;
+
+        Ok(liquidations
+            .entities
             .into_iter()
             .map(Liquidation::from)
-            .collect();
-
-        Ok(liquidations)
+            .collect())
     }
 
     async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
