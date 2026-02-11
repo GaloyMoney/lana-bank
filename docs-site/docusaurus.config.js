@@ -37,26 +37,7 @@ const config = {
     },
   },
 
-  themes: [
-    "@docusaurus/theme-mermaid",
-    [
-      "@easyops-cn/docusaurus-search-local",
-      {
-        // Search index options
-        hashed: true,
-        language: ["en", "es"],
-        indexDocs: true,
-        indexBlog: false,
-        indexPages: false,
-        docsRouteBasePath: "/",
-        // Highlight search terms on result pages
-        highlightSearchTermsOnTargetPage: true,
-        // Search result limits
-        searchResultLimits: 10,
-        searchResultContextMaxLength: 50,
-      },
-    ],
-  ],
+  themes: ["@docusaurus/theme-mermaid"],
 
   plugins: [
     [
@@ -204,6 +185,12 @@ const config = {
       },
       mermaid: {
         theme: { light: "neutral", dark: "dark" },
+      },
+      algolia: {
+        appId: "61TV6H03QM",
+        apiKey: "7103f73bed9ebf4c96e326e33ecf4a01",
+        indexName: "Lana Bank documentation",
+        contextualSearch: true,
       },
     }),
 };
