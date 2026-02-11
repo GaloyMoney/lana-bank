@@ -255,6 +255,7 @@
           cachix
           ps
           curl
+          fly
           tilt
           procps
           poppler-utils
