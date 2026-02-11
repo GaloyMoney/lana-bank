@@ -4425,7 +4425,7 @@ export type DepositModuleConfigureMutationVariables = Exact<{
 }>;
 
 
-export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null } } };
+export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountBankDepositAccountsParentCode?: string | null, chartOfAccountFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountNonDomiciledIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode?: string | null } } };
 
 export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -10154,6 +10154,19 @@ export const DepositModuleConfigureDocument = gql`
   depositModuleConfigure(input: $input) {
     depositConfig {
       chartOfAccountsId
+      chartOfAccountsOmnibusParentCode
+      chartOfAccountsIndividualDepositAccountsParentCode
+      chartOfAccountsGovernmentEntityDepositAccountsParentCode
+      chartOfAccountPrivateCompanyDepositAccountsParentCode
+      chartOfAccountBankDepositAccountsParentCode
+      chartOfAccountFinancialInstitutionDepositAccountsParentCode
+      chartOfAccountNonDomiciledIndividualDepositAccountsParentCode
+      chartOfAccountsFrozenIndividualDepositAccountsParentCode
+      chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode
+      chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode
+      chartOfAccountFrozenBankDepositAccountsParentCode
+      chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode
+      chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode
     }
   }
 }
