@@ -10,6 +10,7 @@ extend-exclude = [
 	"**/pnpm-lock.yaml",
 	"/apps/admin-panel/lib/graphql/generated/mocks.ts",
 	"/apps/admin-panel/messages/es.json",
+	"/apps/admin-panel/messages/permissions/es.json",
 	"/apps/admin-panel/cypress/manuals/*",
 	"dagster/src/dbt_lana_dw/macros/el-salvador-ssf/*",
 	"dagster/src/dbt_lana_dw/seeds/el-salvador-ssf/*",
