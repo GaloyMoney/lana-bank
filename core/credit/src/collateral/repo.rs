@@ -67,16 +67,21 @@ where
     pub async fn list_liquidations_for_collateral_id(
         &self,
         collateral_id: CollateralId,
-    ) -> Result<Vec<Liquidation>, LiquidationError> {
-        Ok(self
-            .liquidations
+        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            Liquidation,
+            liquidation_cursor::LiquidationsByCreatedAtCursor,
+        >,
+        LiquidationError,
+    > {
+        self.liquidations
             .list_for_collateral_id_by_created_at(
                 collateral_id,
-                Default::default(),
+                query,
                 es_entity::ListDirection::Descending,
             )
-            .await?
-            .entities)
+            .await
     }
 
     pub async fn find_liquidation_by_id(

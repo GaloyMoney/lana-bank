@@ -369,7 +369,14 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
-    ) -> Result<Vec<Liquidation>, CollateralError> {
+        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            Liquidation,
+            liquidation_cursor::LiquidationsByCreatedAtCursor,
+        >,
+        CollateralError,
+    > {
         self.authz
             .enforce_permission(
                 sub,
@@ -380,7 +387,7 @@ where
 
         Ok(self
             .repo
-            .list_liquidations_for_collateral_id(collateral_id)
+            .list_liquidations_for_collateral_id(collateral_id, query)
             .await?)
     }
 
