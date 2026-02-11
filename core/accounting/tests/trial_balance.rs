@@ -41,7 +41,7 @@ async fn atomic_import_adds_accounts_to_trial_balance() -> anyhow::Result<()> {
         &outbox,
     );
 
-    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -50,7 +50,7 @@ async fn atomic_import_adds_accounts_to_trial_balance() -> anyhow::Result<()> {
     let (balance_sheet_name, pl_name, trial_balance_name) =
         helpers::create_test_statements(&accounting).await?;
 
-    let rand_ref = format!("{:05}", rand::rng().random_range(0..100000));
+    let rand_ref = rand::rng().random_range(0..10_000_000_000u64).to_string();
     let import = format!(
         r#"{base}
     1{rand_ref},,,Current Assets,,

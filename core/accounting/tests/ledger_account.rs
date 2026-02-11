@@ -40,7 +40,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -188,7 +188,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -303,7 +303,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())

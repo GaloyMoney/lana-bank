@@ -7,7 +7,6 @@ use domain_config::{
     RequireVerifiedCustomerForAccount,
 };
 use rand::Rng;
-
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
@@ -34,30 +33,6 @@ pub async fn init_internal_domain_configs(
     let internal_configs = InternalDomainConfigs::new(pool);
     internal_configs.seed_registered().await?;
     Ok(internal_configs)
-}
-
-pub async fn clear_internal_domain_config(pool: &sqlx::PgPool, key: &str) -> anyhow::Result<()> {
-    // Use a CTE to perform all deletes atomically in dependency order.
-    // This prevents race conditions when tests run in parallel.
-    sqlx::query(
-        "WITH config_ids AS (
-            SELECT id FROM core_domain_configs WHERE key = $1 FOR UPDATE
-        ),
-        deleted_rollup AS (
-            DELETE FROM core_domain_config_events_rollup
-            WHERE id IN (SELECT id FROM config_ids)
-        ),
-        deleted_events AS (
-            DELETE FROM core_domain_config_events
-            WHERE id IN (SELECT id FROM config_ids)
-        )
-        DELETE FROM core_domain_configs WHERE id IN (SELECT id FROM config_ids)",
-    )
-    .bind(key)
-    .execute(pool)
-    .await?;
-
-    Ok(())
 }
 
 pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {
@@ -110,9 +85,9 @@ where
         From<core_accounting::CoreAccountingObject>,
     E: obix::out::OutboxEventMarker<core_accounting::CoreAccountingEvent>,
 {
-    let bs = format!("BS-{:08}", rand::rng().random_range(0..10000));
-    let pl = format!("PL-{:08}", rand::rng().random_range(0..10000));
-    let tb = format!("TB-{:08}", rand::rng().random_range(0..10000));
+    let bs = format!("BS-{:010}", rand::rng().random_range(0..10_000_000_000u64));
+    let pl = format!("PL-{:010}", rand::rng().random_range(0..10_000_000_000u64));
+    let tb = format!("TB-{:010}", rand::rng().random_range(0..10_000_000_000u64));
 
     accounting
         .balance_sheets()

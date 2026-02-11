@@ -250,7 +250,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     let _ = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())

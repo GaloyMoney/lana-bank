@@ -8,6 +8,7 @@ ignored = ["async-graphql"]
 
 [features]
 fail-on-warnings = []
+test-utils = []
 graphql = ["es-entity/graphql", "dep:async-graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
 

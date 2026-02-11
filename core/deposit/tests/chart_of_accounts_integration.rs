@@ -9,6 +9,7 @@ use core_deposit::*;
 use document_storage::DocumentStorage;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, event, object};
+use rand::Rng;
 
 const DEPOSIT_ACCOUNTS_CSV: &str = r#"
 11,,,Omnibus Parent,,
@@ -23,8 +24,6 @@ const DEPOSIT_ACCOUNTS_CSV: &str = r#"
 
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
-    use rand::Rng;
-
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
@@ -65,7 +64,11 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
     // Required to prevent the case there is an attempt to remove an account set member from
     // an account set that no longer exists.
-    helpers::clear_internal_domain_config(&pool, "deposit-chart-of-accounts-integration").await?;
+    domain_config::DomainConfigTestUtils::clear_config_by_key(
+        &pool,
+        "deposit-chart-of-accounts-integration",
+    )
+    .await?;
     let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
 
     let deposit = CoreDeposit::init(
@@ -92,7 +95,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     let chart_id = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -172,7 +175,10 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert_eq!(res.entities.len(), 1);
 
-    let chart_ref = format!("other-ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!(
+        "other-ref-{:010}",
+        rand::rng().random_range(0..10_000_000_000u64)
+    );
     let chart_id = accounting
         .chart_of_accounts()
         .create_chart(

@@ -55,10 +55,11 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 authz = { workspace = true, features = ["test-dummy"] }
+domain-config = { workspace = true, features = ["test-utils"] }
 document-storage = { workspace = true }
 obix = { workspace = true, features = ["test-utils"] }
+rand = { workspace = true }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }
 rust_decimal_macros = { workspace = true }
-rand = { workspace = true }

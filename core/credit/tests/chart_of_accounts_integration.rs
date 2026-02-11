@@ -1,16 +1,15 @@
 mod helpers;
 
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
-use rand::Rng;
-
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use core_credit::*;
 use document_storage::DocumentStorage;
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, event, object};
 use public_id::PublicIds;
+use rand::Rng;
 
 const CREDIT_ACCOUNTS_CSV: &str = r#"
 81,,,Facility Omnibus Parent,,
@@ -80,7 +79,11 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
     // Required to prevent the case there is an attempt to remove an account set member from
     // an account set that no longer exists.
-    helpers::clear_internal_domain_config(&pool, "credit-chart-of-accounts-integration").await?;
+    domain_config::DomainConfigTestUtils::clear_config_by_key(
+        &pool,
+        "credit-chart-of-accounts-integration",
+    )
+    .await?;
     let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
     let credit = CoreCredit::init(
         &pool,
@@ -110,7 +113,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     let chart_id = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -252,7 +255,10 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert_eq!(assets_account_sets.entities.len(), 3);
 
-    let chart_ref = format!("other-ref-{:08}", rand::rng().random_range(0..10000));
+    let chart_ref = format!(
+        "other-ref-{:010}",
+        rand::rng().random_range(0..10_000_000_000u64)
+    );
     let chart_id = accounting
         .chart_of_accounts()
         .create_chart(
