@@ -28,7 +28,6 @@ import { toast } from "sonner"
 
 import {
   CREDIT_CONFIG_FIELDS,
-  CREDIT_DEFAULT_FORM_DATA,
   CREDIT_EMPTY_FORM_DATA,
   CREDIT_FIELD_GROUPS,
   CreditAccountCategoryKey,
@@ -292,10 +291,6 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
     setStep("confirm")
   }
 
-  const autoPopulate = () => {
-    setFormData({ ...CREDIT_DEFAULT_FORM_DATA })
-  }
-
   const handleDone = async () => {
     try {
       await updateCreditConfig({ variables: { input: formData } })
@@ -452,14 +447,6 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
             </div>
             {error && <div className="text-destructive">{error.message}</div>}
             <DialogFooter className="mt-4">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={autoPopulate}
-                className="mr-auto"
-              >
-                {t("autoPopulate")}
-              </Button>
               <Button variant="outline" type="button" onClick={close}>
                 {tCommon("cancel")}
               </Button>
