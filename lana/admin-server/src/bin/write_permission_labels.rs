@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use heck::ToTitleCase;
 use serde_json::json;
 
 fn main() {
@@ -9,18 +10,7 @@ fn main() {
 
     let mut permissions = BTreeMap::new();
     for entry in permission_sets_macro::all_entries() {
-        let label = entry
-            .name
-            .split('_')
-            .map(|w| {
-                let mut c = w.chars();
-                match c.next() {
-                    None => String::new(),
-                    Some(f) => f.to_uppercase().to_string() + c.as_str(),
-                }
-            })
-            .collect::<Vec<_>>()
-            .join(" ");
+        let label = entry.name.to_title_case();
         permissions.insert(
             entry.name,
             json!({

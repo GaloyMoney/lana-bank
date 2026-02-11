@@ -10,7 +10,7 @@ ignored = ["proc-macro2"] # Required for span-locations feature used by syn
 [dependencies]
 syn = { version = "2", features = ["full", "visit"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
-walkdir = "2"
+walkdir = { workspace = true }
 rayon = "1"
 cargo_metadata = "0.23"
 anyhow = { workspace = true }
