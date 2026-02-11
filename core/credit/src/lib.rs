@@ -254,6 +254,9 @@ where
             authz_arc.clone(),
             &publisher,
             collateral_ledger_arc.clone(),
+            ledger_arc
+                .liquidation_proceeds_omnibus_account_ids()
+                .account_id,
             outbox,
             jobs,
             collections_arc.clone(),

@@ -15,17 +15,6 @@ pub struct CollateralLedgerAccountIds {
     /// Holds BTC collateral for this credit facility, that is being
     /// liquidated.
     pub collateral_in_liquidation_account_id: CalaAccountId,
-
-    pub(crate) liquidation_proceeds_omnibus_account_id: CalaAccountId,
-
-    /// Holds proceeds received from liquidator for the connected
-    /// facility.
-    pub(crate) facility_proceeds_from_liquidation_account_id:
-        FacilityProceedsFromLiquidationAccountId,
-
-    pub(crate) facility_uncovered_outstanding_account_id: CalaAccountId,
-
-    pub(crate) facility_payment_holding_account_id: CalaAccountId,
 }
 
 impl CollateralLedgerAccountIds {
@@ -34,11 +23,6 @@ impl CollateralLedgerAccountIds {
             collateral_account_id: CalaAccountId::new(),
             liquidated_collateral_account_id: CalaAccountId::new(),
             collateral_in_liquidation_account_id: CalaAccountId::new(),
-            liquidation_proceeds_omnibus_account_id: CalaAccountId::new(),
-            facility_proceeds_from_liquidation_account_id:
-                FacilityProceedsFromLiquidationAccountId::new(),
-            facility_uncovered_outstanding_account_id: CalaAccountId::new(),
-            facility_payment_holding_account_id: CalaAccountId::new(),
         }
     }
 }
@@ -65,19 +49,6 @@ impl LiquidationProceedsAccountIds {
             collateral_in_liquidation_account_id: collateral_accounts
                 .collateral_in_liquidation_account_id,
             liquidated_collateral_account_id: collateral_accounts.liquidated_collateral_account_id,
-        }
-    }
-}
-
-impl From<CollateralLedgerAccountIds> for LiquidationProceedsAccountIds {
-    fn from(account_ids: CollateralLedgerAccountIds) -> Self {
-        Self {
-            liquidation_proceeds_omnibus_account_id: account_ids
-                .liquidation_proceeds_omnibus_account_id,
-            proceeds_from_liquidation_account_id: account_ids
-                .facility_proceeds_from_liquidation_account_id,
-            collateral_in_liquidation_account_id: account_ids.collateral_in_liquidation_account_id,
-            liquidated_collateral_account_id: account_ids.liquidated_collateral_account_id,
         }
     }
 }

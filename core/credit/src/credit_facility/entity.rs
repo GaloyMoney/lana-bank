@@ -1240,6 +1240,7 @@ mod test {
                         interest_posted: UsdCents::from(1),
                         payments_unapplied: UsdCents::ZERO,
                     },
+                    CalaAccountId::new(),
                 )
                 .unwrap();
             assert!(credit_facility.is_completed());
@@ -1271,6 +1272,7 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
+                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_disbursed,
@@ -1298,6 +1300,7 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
+                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_interest,
@@ -1330,6 +1333,7 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
+                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_disbursed,
@@ -1357,6 +1361,7 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
+                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_interest,
@@ -1389,6 +1394,7 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
+                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_disbursed,
@@ -1416,6 +1422,7 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
+                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_interest,
@@ -1448,6 +1455,7 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
+                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_disbursed,
@@ -1475,6 +1483,7 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
+                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_interest,
