@@ -106,7 +106,7 @@ impl InitiateDisbursal {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .metadata("params.meta")
-            .description("'Initiate credit facility disbursal.'")
+            .description("'Initiate credit facility disbursal'")
             .build()
             .expect("Couldn't build TxInput");
 

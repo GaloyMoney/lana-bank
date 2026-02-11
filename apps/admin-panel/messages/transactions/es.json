@@ -1,0 +1,29 @@
+{
+  "TransactionDescriptions": {
+    "Accrue interest in accrual period for credit facility": "Acumular intereses en el período de acumulación para línea de crédito",
+    "Activate credit facility": "Activar línea de crédito",
+    "Add structuring fee": "Agregar comisión de estructuración",
+    "Cancel a Withdraw": "Cancelar un retiro",
+    "Cancel a disbursal": "Cancelar un desembolso",
+    "Confirm a withdraw": "Confirmar un retiro",
+    "Create credit facility": "Crear línea de crédito",
+    "Deny a withdraw": "Denegar un retiro",
+    "Freeze a deposit account": "Congelar una cuenta de depósito",
+    "Initial disbursal": "Desembolso inicial",
+    "Initiate a withdraw": "Iniciar un retiro",
+    "Initiate credit facility disbursal": "Iniciar desembolso de línea de crédito",
+    "Post accrued interest from accrual cycle for credit facility": "Registrar intereses acumulados del ciclo de acumulación para línea de crédito",
+    "Record a defaulted obligation balance": "Registrar un saldo de obligación en incumplimiento",
+    "Record a deposit": "Registrar un depósito",
+    "Record a due obligation balance": "Registrar un saldo de obligación vencida",
+    "Record a payment received": "Registrar un pago recibido",
+    "Record an overdue obligation balance": "Registrar un saldo de obligación atrasada",
+    "Record received proceeds from liquidation and collateral liquidated": "Registrar ingresos recibidos de la liquidación y garantía liquidada",
+    "Reserve an outstanding amount to be repaid via liquidation": "Reservar un monto pendiente a ser reembolsado mediante liquidación",
+    "Revert a deposit": "Revertir un depósito",
+    "Revert a withdraw": "Revertir un retiro",
+    "Send collateral to liquidation": "Enviar garantía a liquidación",
+    "Settle a disbursal": "Liquidar un desembolso",
+    "Unfreeze a deposit account": "Descongelar una cuenta de depósito"
+  }
+}

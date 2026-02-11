@@ -96,7 +96,8 @@
           || pkgs.lib.hasInfix "/lib/gotenberg/config/" path
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path
-          || pkgs.lib.hasInfix "/apps/admin-panel/messages/permissions/en.json" path;
+          || pkgs.lib.hasInfix "/apps/admin-panel/messages/permissions/en.json" path
+          || pkgs.lib.hasInfix "/apps/admin-panel/messages/transactions/en.json" path;
       };
 
       commonArgs = {
@@ -318,11 +319,11 @@
             }
           );
 
-          write_permission_labels = craneLib.buildPackage (
+          write_translation_labels = craneLib.buildPackage (
             individualCrateArgs
             // {
-              pname = "write_permission_labels";
-              cargoExtraArgs = "-p admin-server --bin write_permission_labels";
+              pname = "write_translation_labels";
+              cargoExtraArgs = "-p admin-server --bin write_translation_labels";
             }
           );
 
@@ -798,35 +799,50 @@
             '';
           };
 
-          check-permission-labels = pkgs.stdenv.mkDerivation {
-            name = "check-permission-labels";
+          check-translation-labels = pkgs.stdenv.mkDerivation {
+            name = "check-translation-labels";
             src = rustSource;
 
             nativeBuildInputs = with pkgs; [
               diffutils
+              coreutils
             ];
 
             buildInputs = [
-              self.packages.${system}.write_permission_labels
+              self.packages.${system}.write_translation_labels
             ];
 
             buildPhase = ''
-              echo "Generating permission labels..."
-              ${self.packages.${system}.write_permission_labels}/bin/write_permission_labels > permission-labels-generated.json
+              # Copy source to writable location so the binary can write output files
+              cp -r . $TMPDIR/workdir
+              cd $TMPDIR/workdir
+
+              echo "Generating translation labels..."
+              ${self.packages.${system}.write_translation_labels}/bin/write_translation_labels
+
+              # Switch back to read-only source for diffing committed versions
+              cd $NIX_BUILD_TOP/$sourceRoot
 
               echo "Comparing permission labels..."
-              if ! diff -u apps/admin-panel/messages/permissions/en.json permission-labels-generated.json; then
+              if ! diff -u apps/admin-panel/messages/permissions/en.json $TMPDIR/workdir/apps/admin-panel/messages/permissions/en.json; then
                 echo "ERROR: Permission labels are out of date!"
-                echo "Run 'make generate-permission-labels' to update"
+                echo "Run 'make generate-translation-labels' to update"
                 exit 1
               fi
 
-              echo "Permission labels are up to date"
+              echo "Comparing transaction descriptions..."
+              if ! diff -u apps/admin-panel/messages/transactions/en.json $TMPDIR/workdir/apps/admin-panel/messages/transactions/en.json; then
+                echo "ERROR: Transaction descriptions are out of date!"
+                echo "Run 'make generate-translation-labels' to update"
+                exit 1
+              fi
+
+              echo "Translation labels are up to date"
             '';
 
             installPhase = ''
               mkdir -p $out
-              echo "Permission labels check passed" > $out/result.txt
+              echo "Translation labels check passed" > $out/result.txt
             '';
           };
 

@@ -43,6 +43,7 @@ dependencies = [
  "tracing-utils",
  "url",
  "uuid",
+ "walkdir",
  "workspace-hack",
 ]
 

@@ -1,0 +1,29 @@
+{
+  "TransactionDescriptions": {
+    "Accrue interest in accrual period for credit facility": "Accrue interest in accrual period for credit facility",
+    "Activate credit facility": "Activate credit facility",
+    "Add structuring fee": "Add structuring fee",
+    "Cancel a Withdraw": "Cancel a Withdraw",
+    "Cancel a disbursal": "Cancel a disbursal",
+    "Confirm a withdraw": "Confirm a withdraw",
+    "Create credit facility": "Create credit facility",
+    "Deny a withdraw": "Deny a withdraw",
+    "Freeze a deposit account": "Freeze a deposit account",
+    "Initial disbursal": "Initial disbursal",
+    "Initiate a withdraw": "Initiate a withdraw",
+    "Initiate credit facility disbursal": "Initiate credit facility disbursal",
+    "Post accrued interest from accrual cycle for credit facility": "Post accrued interest from accrual cycle for credit facility",
+    "Record a defaulted obligation balance": "Record a defaulted obligation balance",
+    "Record a deposit": "Record a deposit",
+    "Record a due obligation balance": "Record a due obligation balance",
+    "Record a payment received": "Record a payment received",
+    "Record an overdue obligation balance": "Record an overdue obligation balance",
+    "Record received proceeds from liquidation and collateral liquidated": "Record received proceeds from liquidation and collateral liquidated",
+    "Reserve an outstanding amount to be repaid via liquidation": "Reserve an outstanding amount to be repaid via liquidation",
+    "Revert a deposit": "Revert a deposit",
+    "Revert a withdraw": "Revert a withdraw",
+    "Send collateral to liquidation": "Send collateral to liquidation",
+    "Settle a disbursal": "Settle a disbursal",
+    "Unfreeze a deposit account": "Unfreeze a deposit account"
+  }
+}

@@ -11,7 +11,13 @@ async function loadMessages(locale: string) {
   } catch {
     permissionMessages = (await import(`../messages/permissions/en.json`)).default
   }
-  return { ...messages, ...permissionMessages }
+  let transactionMessages = {}
+  try {
+    transactionMessages = (await import(`../messages/transactions/${locale}.json`)).default
+  } catch {
+    transactionMessages = (await import(`../messages/transactions/en.json`)).default
+  }
+  return { ...messages, ...permissionMessages, ...transactionMessages }
 }
 
 export default getRequestConfig(async () => {
