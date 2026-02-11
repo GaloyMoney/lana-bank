@@ -77,11 +77,6 @@ impl CollateralLedger {
             collateral_account_id,
             collateral_in_liquidation_account_id,
             liquidated_collateral_account_id,
-
-            liquidation_proceeds_omnibus_account_id: _,
-            facility_proceeds_from_liquidation_account_id: _,
-            facility_uncovered_outstanding_account_id: _,
-            facility_payment_holding_account_id: _,
         }: CollateralLedgerAccountIds,
     ) -> Result<(), CollateralLedgerError> {
         let entity_ref = EntityRef::new(COLLATERAL_ENTITY_TYPE, collateral_id);

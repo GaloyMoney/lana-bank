@@ -64,11 +64,6 @@
     },
     "CreditFacilityLedgerAccountIds": {
       "properties": {
-        "collateral_account_id": {
-          "description": "Holds BTC collateral for this credit facility.",
-          "format": "uuid",
-          "type": "string"
-        },
         "disbursed_defaulted_account_id": {
           "format": "uuid",
           "type": "string"
@@ -135,7 +130,6 @@
         "disbursed_receivable_due_account_id",
         "disbursed_receivable_overdue_account_id",
         "disbursed_defaulted_account_id",
-        "collateral_account_id",
         "proceeds_from_liquidation_account_id",
         "interest_receivable_not_yet_due_account_id",
         "interest_receivable_due_account_id",

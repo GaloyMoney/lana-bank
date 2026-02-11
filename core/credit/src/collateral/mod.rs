@@ -21,7 +21,8 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     FacilityProceedsFromLiquidationAccountId,
-    collateral::ledger::CollateralLedgerAccountIds,
+    collateral::ledger::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds},
+    credit_facility::CreditFacilityRepo,
     primitives::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject},
 };
 
@@ -55,7 +56,9 @@ where
 {
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
+    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ledger: Arc<CollateralLedger>,
+    liquidation_proceeds_omnibus_account_id: CalaAccountId,
     clock: ClockHandle,
 }
 
@@ -71,7 +74,9 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
+            credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
+            liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             clock: self.clock.clone(),
         }
     }
@@ -95,6 +100,7 @@ where
         authz: Arc<Perms>,
         publisher: &CreditFacilityPublisher<E>,
         ledger: Arc<CollateralLedger>,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
         collections: Arc<core_credit_collection::CoreCreditCollection<Perms, E>>,
@@ -128,13 +134,15 @@ where
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
                 collections,
-                credit_facility_repo,
+                credit_facility_repo.clone(),
             ));
 
         let collateral_liquidations_job_spawner = jobs.add_initializer(
             collateral_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
+                credit_facility_repo.clone(),
+                liquidation_proceeds_omnibus_account_id,
                 liquidation_payment_job_spawner,
             ),
         );
@@ -149,7 +157,9 @@ where
         Ok(Self {
             authz,
             repo: repo_arc,
+            credit_facility_repo,
             ledger,
+            liquidation_proceeds_omnibus_account_id,
             clock,
         })
     }
@@ -346,10 +356,25 @@ where
             )
             .await?;
 
+        let credit_facility = self
+            .credit_facility_repo
+            .find_by_id(collateral.credit_facility_id)
+            .await?;
+        let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(
+            &collateral.account_ids,
+            credit_facility
+                .account_ids
+                .proceeds_from_liquidation_account_id,
+            self.liquidation_proceeds_omnibus_account_id,
+        );
+
         let mut db = self.repo.begin_op().await?;
 
-        if let Idempotent::Executed(data) =
-            collateral.record_proceeds_received_and_liquidation_completed(amount_received)?
+        if let Idempotent::Executed(data) = collateral
+            .record_proceeds_received_and_liquidation_completed(
+                amount_received,
+                liquidation_proceeds_account_ids,
+            )?
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
             self.ledger
