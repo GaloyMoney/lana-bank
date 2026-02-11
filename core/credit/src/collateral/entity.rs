@@ -83,6 +83,10 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn collateral_account_id(&self) -> CalaAccountId {
+        self.account_ids.collateral_account_id
+    }
+
     pub fn record_collateral_update_via_custodian_sync(
         &mut self,
         new_amount: Satoshis,

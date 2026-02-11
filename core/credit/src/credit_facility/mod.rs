@@ -52,6 +52,7 @@ where
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
+    collateral_repo: Arc<crate::collateral::repo::CollateralRepo<E>>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     authz: Arc<Perms>,
@@ -76,6 +77,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            collateral_repo: self.collateral_repo.clone(),
             collections: self.collections.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             disbursals: self.disbursals.clone(),
@@ -127,8 +129,14 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
     ) -> Result<Self, CreditFacilityError> {
-        let repo = CreditFacilityRepo::new(pool, publisher, clock);
+        let repo = CreditFacilityRepo::new(pool, publisher, clock.clone());
         let repo_arc = Arc::new(repo);
+
+        let collateral_repo = Arc::new(crate::collateral::repo::CollateralRepo::new(
+            pool,
+            publisher,
+            clock.clone(),
+        ));
 
         let collateralization_from_events_spawner = jobs.add_initializer(
             jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
@@ -137,6 +145,7 @@ where
             >::new(
                 outbox,
                 repo_arc.clone(),
+                collateral_repo.clone(),
                 price.clone(),
                 ledger.clone(),
                 authz.clone(),
@@ -161,12 +170,14 @@ where
                 ledger.clone(),
                 collections.clone(),
                 repo_arc.clone(),
+                collateral_repo.clone(),
                 authz.clone(),
             ),
         );
 
         Ok(Self {
             repo: repo_arc,
+            collateral_repo,
             collections,
             pending_credit_facilities,
             disbursals,
@@ -319,6 +330,7 @@ where
         db: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         upgrade_buffer_cvl_pct: CVLPct,
+        collateral_account_id: CalaAccountId,
     ) -> Result<CompletionOutcome, CreditFacilityError> {
         let price = self.price.usd_cents_per_btc().await;
 
@@ -326,12 +338,16 @@ where
 
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
+            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
             .await?;
 
-        let completion = if let es_entity::Idempotent::Executed(completion) =
-            credit_facility.complete(price, upgrade_buffer_cvl_pct, balances)?
-        {
+        let completion = if let es_entity::Idempotent::Executed(completion) = credit_facility
+            .complete(
+                price,
+                upgrade_buffer_cvl_pct,
+                balances,
+                collateral_account_id,
+            )? {
             completion
         } else {
             return Ok(CompletionOutcome::AlreadyApplied(credit_facility));
@@ -520,9 +536,15 @@ where
 
         let credit_facility = self.repo.find_by_id(id).await?;
 
+        let collateral = self
+            .collateral_repo
+            .find_by_id(credit_facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_ids.collateral_account_id;
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
+            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
             .await?;
 
         Ok(balances)
@@ -552,9 +574,15 @@ where
             return Ok(true);
         }
 
+        let collateral = self
+            .collateral_repo
+            .find_by_id(credit_facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_ids.collateral_account_id;
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
+            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
             .await?;
         Ok(balances.any_outstanding_or_defaulted())
     }

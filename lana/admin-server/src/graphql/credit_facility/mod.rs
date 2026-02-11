@@ -243,8 +243,17 @@ impl CreditFacility {
         }
     }
 
-    async fn ledger_accounts(&self) -> CreditFacilityLedgerAccounts {
-        CreditFacilityLedgerAccounts {
+    async fn ledger_accounts(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<CreditFacilityLedgerAccounts> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let collateral = loader
+            .load_one(self.entity.collateral_id)
+            .await?
+            .expect("credit facility has collateral");
+
+        Ok(CreditFacilityLedgerAccounts {
             facility_account_id: self.entity.account_ids.facility_account_id.into(),
             disbursed_receivable_not_yet_due_account_id: self
                 .entity
@@ -266,7 +275,7 @@ impl CreditFacility {
                 .account_ids
                 .disbursed_defaulted_account_id
                 .into(),
-            collateral_account_id: self.entity.account_ids.collateral_account_id.into(),
+            collateral_account_id: collateral.entity.account_ids.collateral_account_id.into(),
             proceeds_from_liquidation_account_id: self
                 .entity
                 .account_ids
@@ -301,7 +310,7 @@ impl CreditFacility {
                 .account_ids
                 .uncovered_outstanding_account_id
                 .into(),
-        }
+        })
     }
 }
 
