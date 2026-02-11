@@ -47,6 +47,7 @@ gql`
   mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
     creditModuleConfigure(input: $input) {
       creditConfig {
+        chartOfAccountsId
         chartOfAccountFacilityOmnibusParentCode
         chartOfAccountCollateralOmnibusParentCode
         chartOfAccountLiquidationProceedsOmnibusParentCode
