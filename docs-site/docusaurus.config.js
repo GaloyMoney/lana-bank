@@ -15,6 +15,16 @@ const config = {
 
   onBrokenLinks: "throw",
 
+  headTags: [
+    {
+      tagName: "meta",
+      attributes: {
+        name: "algolia-site-verification",
+        content: "A5230FCBA573B91C",
+      },
+    },
+  ],
+
   i18n: {
     defaultLocale: "en",
     locales: ["en", "es"],
