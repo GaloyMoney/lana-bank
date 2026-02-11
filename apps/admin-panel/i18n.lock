@@ -6,6 +6,8 @@ checksums:
     Common/notFound: 58efcf2ecdcf18f0cd0253acc60eb812
     Common/back: f541015a827e37cb3b1234e56bc2aa3c
     Common/save: f7a2929f33bc420195e59ac5a8bcd454
+    Common/review: 299f75db25382980b2895622d7712927
+    Common/done: ffd408fa29d5bc9039ef8ea1b9b699bb
     Common/cancel: 2e2a849c2223911717de8caa2c71bade
     Common/delete: 8bcf303dd10a645b5baacb02b47d72c9
     Common/edit: eee7f39ff90b18852afc1671f21fbaa9
@@ -1316,6 +1318,13 @@ checksums:
     PaginatedTable/all: 5e2e93f8e2a5f315b6fecdd0a0e6f55f
     Modules/notYetConfigured: e53fce92eb14f228a880be973a193cf3
     Modules/autoPopulate: 20c7e93429022eac57aad3b06457ff53
+    Modules/accountCategories/offBalanceSheet: 6b84f41a7ced3ff1db94af889f8330ed
+    Modules/accountCategories/asset: ebad9812d55bf3d170664a38b83c7ca9
+    Modules/accountCategories/liability: fa84f8581ce18c0a8829e20665b6b452
+    Modules/accountCategories/equity: 36c0426cc91295817b8e032ddd7741e6
+    Modules/accountCategories/revenue: ff03ab827646d3027cc63ed72943c03d
+    Modules/accountCategories/costOfRevenue: 961c71d8f4f8ca818f2de8ecfdab0d76
+    Modules/accountCategories/expenses: 1746536359bb638c45a12980ab3aac3a
     Modules/deposit/title: e233d53e369427d12f87d610bcf56ccb
     Modules/deposit/description: 1b91952e5f865c70ee62eddff5ad096c
     Modules/deposit/setTitle: aa4df42c2727310fe363101551dbe3ec
@@ -1336,6 +1345,17 @@ checksums:
     Modules/credit/title: 2d447a71ec815a039f175e94fbb12a56
     Modules/credit/description: 7feb16939959a3c35f74761021ad60d7
     Modules/credit/setTitle: fc23ba4cd507ca596a84e05344b4411d
+    Modules/credit/accountSetSelectPlaceholder: 0f8687d81e446cf21a97ae5a28311b35
+    Modules/credit/accountSetSearchPlaceholder: 07e37cdd89c5d352af71466fd0d035c3
+    Modules/credit/accountSetEmpty: bcdb1f1ed5d4e305d4b5bde4ff4d3ed0
+    Modules/credit/confirmationTitle: ab5f7792aca43fd85879bfee034e642d
+    Modules/credit/confirmationDescription: 8e660e6da6465255e6e85bdcf8705b2e
+    Modules/credit/confirmationPrevious: 25c58dd62f190368a3d2c4c97b385ea9
+    Modules/credit/confirmationUpdated: 8aa8ff2dc2977ca4b269e80a513100b4
+    Modules/credit/confirmationNoChanges: d7aafc3661b14c4b7d8e1aec8c01bf5d
+    Modules/credit/updateSuccess: 004feb7944415caef9210cdc62ed0edc
+    Modules/credit/groups/omnibus: db91bcb3dd8b9f1a2eaae09c352c943a
+    Modules/credit/groups/summary: 86c482f2e49d7d96ee81eeea682f45f3
     Modules/credit/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
     Modules/credit/chartOfAccountFacilityOmnibusParentCode: bf703671363e0e235a983fe5a867859f
     Modules/credit/chartOfAccountCollateralOmnibusParentCode: 1ef5f1593be70bd9c306b0dc7144cf69
@@ -1343,12 +1363,16 @@ checksums:
     Modules/credit/chartOfAccountFacilityParentCode: 2f989fd7b573d6c58697bc7f3584bd6c
     Modules/credit/chartOfAccountCollateralParentCode: 0369fcbe2714bbef2ad97d2dcb74d021
     Modules/credit/chartOfAccountCollateralInLiquidationParentCode: 7f9de94d851accfb663db254ad1e7b96
+    Modules/credit/chartOfAccountLiquidatedCollateralParentCode: 248b6f8487a69fc19020caf561e04660
+    Modules/credit/chartOfAccountProceedsFromLiquidationParentCode: 40904a981e286ac38a4fa95f2c9da1a3
     Modules/credit/chartOfAccountInterestIncomeParentCode: 6f7bc91587039fec7e07edc8214be0b1
     Modules/credit/chartOfAccountFeeIncomeParentCode: 41eb6f093aee01175ddc0a61cb612efd
     Modules/credit/chartOfAccountPaymentHoldingParentCode: ca6f787a282ddad6b86f2eb24d50959a
     Modules/credit/chartOfAccountPaymentsMadeOmnibusParentCode: 01a4e7ece6ed80b3e65431f10928086d
     Modules/credit/chartOfAccountInterestAddedToObligationsOmnibusParentCode: d0b0446fc53ce13a53b91f028d36968c
     Modules/credit/chartOfAccountUncoveredOutstandingParentCode: 19d8294c2131a66ffed0f3f4f106ff3a
+    Modules/credit/chartOfAccountDisbursedDefaultedParentCode: 47270cfd49ce463d4eca86475ce4ce44
+    Modules/credit/chartOfAccountInterestDefaultedParentCode: 38c11bd212433f38c6cf6ff60cbca5fe
     Modules/credit/chartOfAccountShortTermIndividualInterestReceivableParentCode: 0ccd48b3ce1d6660158061b98833f6cb
     Modules/credit/chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: 4a90bcdd6a1a8d57a4c80c18914c5c3c
     Modules/credit/chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: df5d335adeb84083d130420018874fa8
