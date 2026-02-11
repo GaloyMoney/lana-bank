@@ -176,6 +176,15 @@ impl DomainConfig {
             )));
         }
 
+        if entity.encrypted != C::ENCRYPTED {
+            return Err(DomainConfigError::InvalidType(format!(
+                "Invalid encrypted flag for {key}: expected {expected}, found {found}",
+                key = entity.key,
+                expected = C::ENCRYPTED,
+                found = entity.encrypted
+            )));
+        }
+
         Ok(())
     }
 }
@@ -217,8 +226,6 @@ pub struct NewDomainConfig {
     pub(super) visibility: Visibility,
     #[builder(default)]
     pub(super) encrypted: bool,
-    #[builder(default)]
-    value: Option<serde_json::Value>,
 }
 
 impl NewDomainConfig {
@@ -244,50 +251,17 @@ impl NewDomainConfigBuilder {
 
         self
     }
-
-    pub fn with_value<C>(
-        mut self,
-        id: DomainConfigId,
-        value: <C::Kind as ValueKind>::Value,
-    ) -> Result<Self, DomainConfigError>
-    where
-        C: ConfigSpec,
-    {
-        if C::ENCRYPTED {
-            return Err(DomainConfigError::InvalidState(
-                "with_value cannot be used for encrypted configs, use seed + update_value"
-                    .to_string(),
-            ));
-        }
-        C::validate(&value)?;
-        let value_json = <C::Kind as ValueKind>::encode(&value)?;
-        let config_type = <C::Kind as ValueKind>::TYPE;
-
-        self.id(id);
-        self.key(C::KEY);
-        self.config_type(config_type);
-        self.visibility(C::VISIBILITY);
-        self.encrypted(C::ENCRYPTED);
-        self.value(Some(value_json));
-
-        Ok(self)
-    }
 }
 
 impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
     fn into_events(self) -> EntityEvents<DomainConfigEvent> {
-        let mut events = Vec::new();
-        events.push(DomainConfigEvent::Initialized {
+        let events = vec![DomainConfigEvent::Initialized {
             id: self.id,
             key: self.key,
             config_type: self.config_type,
             visibility: self.visibility,
             encrypted: self.encrypted,
-        });
-
-        if let Some(value) = self.value {
-            events.push(DomainConfigEvent::Updated { value });
-        }
+        }];
 
         EntityEvents::init(self.id, events)
     }
@@ -307,6 +281,21 @@ mod tests {
 
     fn encrypted_encryption() -> StorageEncryption {
         StorageEncryption::Encrypted(EncryptionKey::default())
+    }
+
+    fn seed_config<C: ConfigSpec>(id: DomainConfigId) -> DomainConfig {
+        let events = NewDomainConfig::builder()
+            .seed(
+                id,
+                C::KEY,
+                <C::Kind as ValueKind>::TYPE,
+                C::VISIBILITY,
+                C::ENCRYPTED,
+            )
+            .build()
+            .unwrap()
+            .into_events();
+        DomainConfig::try_from_events(events).unwrap()
     }
 
     crate::define_internal_config! {
@@ -361,19 +350,9 @@ mod tests {
     #[test]
     fn new_domain_config_emits_expected_init_metadata_for_sample_config() {
         let id = DomainConfigId::new();
-        let value = SampleComplexConfig {
-            enabled: true,
-            limit: 10,
-        };
+        let config = seed_config::<SampleComplexConfig>(id);
 
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleComplexConfig>(id, value)
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-
-        let init = events.iter_all().next().expect("init event exists");
+        let init = config.events.iter_all().next().expect("init event exists");
         let expected_type = <<SampleComplexConfig as ConfigSpec>::Kind as ValueKind>::TYPE;
         assert!(matches!(
             init,
@@ -393,14 +372,9 @@ mod tests {
     #[test]
     fn new_domain_config_emits_expected_init_metadata_for_simple_bool() {
         let id = DomainConfigId::new();
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleSimpleBool>(id, true)
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
+        let config = seed_config::<SampleSimpleBool>(id);
 
-        let init = events.iter_all().next().expect("init event exists");
+        let init = config.events.iter_all().next().expect("init event exists");
         let expected_type = <<SampleSimpleBool as ConfigSpec>::Kind as ValueKind>::TYPE;
         assert!(matches!(
             init,
@@ -420,28 +394,34 @@ mod tests {
     #[test]
     fn rehydrates_sample_config_from_events() {
         let id = DomainConfigId::new();
+        let mut config = seed_config::<SampleComplexConfig>(id);
+
         let value = SampleComplexConfig {
             enabled: true,
             limit: 10,
         };
 
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleComplexConfig>(id, value.clone())
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-        let config = DomainConfig::try_from_events(events).unwrap();
+        assert!(
+            config
+                .update_value::<SampleComplexConfig>(&plaintext_encryption(), value.clone())
+                .unwrap()
+                .did_execute()
+        );
 
-        assert_eq!(config.id, id);
-        assert_eq!(config.key, SampleComplexConfig::KEY);
+        let rehydrated_config = DomainConfig::try_from_events(config.events).unwrap();
+
+        assert_eq!(rehydrated_config.id, id);
+        assert_eq!(rehydrated_config.key, SampleComplexConfig::KEY);
         assert_eq!(
-            config.config_type,
+            rehydrated_config.config_type,
             <<SampleComplexConfig as ConfigSpec>::Kind as ValueKind>::TYPE
         );
-        assert_eq!(config.visibility, SampleComplexConfig::VISIBILITY);
         assert_eq!(
-            config
+            rehydrated_config.visibility,
+            SampleComplexConfig::VISIBILITY
+        );
+        assert_eq!(
+            rehydrated_config
                 .current_value::<SampleComplexConfig>(&plaintext_encryption())
                 .unwrap(),
             value
@@ -451,23 +431,26 @@ mod tests {
     #[test]
     fn rehydrates_simple_bool_from_events() {
         let id = DomainConfigId::new();
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleSimpleBool>(id, false)
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-        let config = DomainConfig::try_from_events(events).unwrap();
+        let mut config = seed_config::<SampleSimpleBool>(id);
 
-        assert_eq!(config.id, id);
-        assert_eq!(config.key, SampleSimpleBool::KEY);
+        assert!(
+            config
+                .update_value::<SampleSimpleBool>(&plaintext_encryption(), false)
+                .unwrap()
+                .did_execute()
+        );
+
+        let rehydrated_config = DomainConfig::try_from_events(config.events).unwrap();
+
+        assert_eq!(rehydrated_config.id, id);
+        assert_eq!(rehydrated_config.key, SampleSimpleBool::KEY);
         assert_eq!(
-            config.config_type,
+            rehydrated_config.config_type,
             <<SampleSimpleBool as ConfigSpec>::Kind as ValueKind>::TYPE
         );
-        assert_eq!(config.visibility, SampleSimpleBool::VISIBILITY);
+        assert_eq!(rehydrated_config.visibility, SampleSimpleBool::VISIBILITY);
         assert!(
-            !config
+            !rehydrated_config
                 .current_value::<SampleSimpleBool>(&plaintext_encryption())
                 .unwrap()
         );
@@ -475,7 +458,7 @@ mod tests {
 
     #[test]
     fn update_value_is_idempotent_for_sample_config() {
-        let id = DomainConfigId::new();
+        let mut config = seed_config::<SampleComplexConfig>(DomainConfigId::new());
         let initial = SampleComplexConfig {
             enabled: true,
             limit: 5,
@@ -485,13 +468,12 @@ mod tests {
             limit: 15,
         };
 
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleComplexConfig>(id, initial)
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-        let mut config = DomainConfig::try_from_events(events).unwrap();
+        assert!(
+            config
+                .update_value::<SampleComplexConfig>(&plaintext_encryption(), initial)
+                .unwrap()
+                .did_execute()
+        );
 
         assert!(
             config
@@ -523,14 +505,14 @@ mod tests {
 
     #[test]
     fn update_value_is_idempotent_for_simple_bool() {
-        let id = DomainConfigId::new();
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleSimpleBool>(id, false)
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-        let mut config = DomainConfig::try_from_events(events).unwrap();
+        let mut config = seed_config::<SampleSimpleBool>(DomainConfigId::new());
+
+        assert!(
+            config
+                .update_value::<SampleSimpleBool>(&plaintext_encryption(), false)
+                .unwrap()
+                .did_execute()
+        );
 
         assert!(
             config
@@ -559,40 +541,13 @@ mod tests {
     }
 
     #[test]
-    fn create_rejects_invalid_sample_config() {
-        let invalid = SampleComplexConfig {
-            enabled: true,
-            limit: 101,
-        };
-
-        let create_result = NewDomainConfig::builder()
-            .with_value::<SampleComplexConfig>(DomainConfigId::new(), invalid);
-        assert!(
-            matches!(create_result, Err(DomainConfigError::InvalidState(_))),
-            "invalid value should fail validation"
-        );
-    }
-
-    #[test]
     fn update_rejects_invalid_sample_config() {
         let invalid = SampleComplexConfig {
             enabled: true,
             limit: 101,
         };
 
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleComplexConfig>(
-                DomainConfigId::new(),
-                SampleComplexConfig {
-                    enabled: true,
-                    limit: 10,
-                },
-            )
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-        let mut config = DomainConfig::try_from_events(events).unwrap();
+        let mut config = seed_config::<SampleComplexConfig>(DomainConfigId::new());
 
         let update_result =
             config.update_value::<SampleComplexConfig>(&plaintext_encryption(), invalid);
@@ -604,13 +559,7 @@ mod tests {
 
     #[test]
     fn current_value_rejects_wrong_type() {
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleSimpleBool>(DomainConfigId::new(), true)
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-        let config = DomainConfig::try_from_events(events).unwrap();
+        let config = seed_config::<SampleSimpleBool>(DomainConfigId::new());
 
         let read_type = config.current_value::<SampleComplexConfig>(&plaintext_encryption());
         assert!(read_type.is_none());
@@ -618,13 +567,7 @@ mod tests {
 
     #[test]
     fn current_value_rejects_wrong_visibility() {
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleSimpleBool>(DomainConfigId::new(), true)
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-        let config = DomainConfig::try_from_events(events).unwrap();
+        let config = seed_config::<SampleSimpleBool>(DomainConfigId::new());
 
         let read_visibility = config.current_value::<SampleExposedBool>(&plaintext_encryption());
         assert!(read_visibility.is_none());
@@ -632,13 +575,7 @@ mod tests {
 
     #[test]
     fn update_rejects_wrong_type() {
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleSimpleBool>(DomainConfigId::new(), true)
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-        let mut config = DomainConfig::try_from_events(events).unwrap();
+        let mut config = seed_config::<SampleSimpleBool>(DomainConfigId::new());
 
         let update_type_error = config.update_value::<SampleComplexConfig>(
             &plaintext_encryption(),
@@ -653,24 +590,9 @@ mod tests {
         ));
     }
 
-    fn seed_encrypted_config() -> DomainConfig {
-        let events = NewDomainConfig::builder()
-            .seed(
-                DomainConfigId::new(),
-                SampleEncryptedConfig::KEY,
-                <<SampleEncryptedConfig as ConfigSpec>::Kind as ValueKind>::TYPE,
-                SampleEncryptedConfig::VISIBILITY,
-                SampleEncryptedConfig::ENCRYPTED,
-            )
-            .build()
-            .unwrap()
-            .into_events();
-        DomainConfig::try_from_events(events).unwrap()
-    }
-
     #[test]
     fn encrypted_config_roundtrip() {
-        let mut config = seed_encrypted_config();
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
         assert!(config.encrypted);
 
         let value = SampleEncryptedConfig {
@@ -689,7 +611,6 @@ mod tests {
             value
         );
 
-        // Stored JSON should be ciphertext, not plaintext
         let stored = config.current_json_value();
         assert!(
             stored.get("ciphertext").is_some(),
@@ -699,7 +620,7 @@ mod tests {
 
     #[test]
     fn encrypted_config_update_is_idempotent() {
-        let mut config = seed_encrypted_config();
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
 
         let value = SampleEncryptedConfig {
             secret: "my-secret".to_string(),
