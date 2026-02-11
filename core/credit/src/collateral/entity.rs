@@ -9,8 +9,8 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::primitives::{
-    CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    LiquidationId, PaymentId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
+    CalaAccountId, CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId,
+    LedgerTxId, LiquidationId, PaymentId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
 };
 
 use super::{
@@ -124,6 +124,10 @@ impl Collateral {
             }),
             _ => None,
         })
+    }
+
+    pub fn collateral_account_id(&self) -> CalaAccountId {
+        self.account_ids.collateral_account_id
     }
 
     pub fn record_collateral_update_via_custodian_sync(
@@ -411,7 +415,7 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::primitives::{CalaAccountId, PriceOfOneBTC, UsdCents};
+    use crate::primitives::{PriceOfOneBTC, UsdCents};
 
     fn default_account_ids() -> CollateralLedgerAccountIds {
         CollateralLedgerAccountIds::new()

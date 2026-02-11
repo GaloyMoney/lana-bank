@@ -484,9 +484,9 @@ impl CreditLedger {
         &self,
         PendingCreditFacilityAccountIds {
             facility_account_id,
-            collateral_account_id,
             ..
         }: PendingCreditFacilityAccountIds,
+        collateral_account_id: CalaAccountId,
     ) -> Result<PendingCreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
@@ -534,7 +534,6 @@ impl CreditLedger {
         &self,
         CreditFacilityLedgerAccountIds {
             facility_account_id,
-            collateral_account_id,
 
             disbursed_receivable_not_yet_due_account_id,
             disbursed_receivable_due_account_id,
@@ -551,6 +550,7 @@ impl CreditLedger {
             uncovered_outstanding_account_id: _,
             proceeds_from_liquidation_account_id: _,
         }: CreditFacilityLedgerAccountIds,
+        collateral_account_id: CalaAccountId,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
@@ -709,7 +709,8 @@ impl CreditLedger {
         CreditFacilityCompletion {
             tx_id,
             collateral,
-            credit_facility_account_ids,
+            collateral_account_id,
+            credit_facility_account_ids: _,
         }: CreditFacilityCompletion,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), CreditLedgerError> {
@@ -722,7 +723,7 @@ impl CreditLedger {
                     journal_id: self.journal_id,
                     currency: self.btc,
                     amount: collateral.to_btc(),
-                    collateral_account_id: credit_facility_account_ids.collateral_account_id,
+                    collateral_account_id,
                     bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
                     effective: self.clock.today(),
                     initiated_by,
@@ -1273,7 +1274,6 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         let PendingCreditFacilityAccountIds {
             facility_account_id,
-            collateral_account_id: _,
             facility_proceeds_from_liquidation_account_id,
             facility_uncovered_outstanding_account_id,
             facility_payment_holding_account_id,
@@ -1366,7 +1366,6 @@ impl CreditLedger {
             fee_income_account_id,
 
             // these accounts are created during proposal creation
-            collateral_account_id: _collateral_account_id,
             facility_account_id: _facility_account_id,
             uncovered_outstanding_account_id: _uncovered_outstanding_account_id,
             payment_holding_account_id: _payment_holding_account_id,

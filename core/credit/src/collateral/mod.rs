@@ -3,7 +3,7 @@ pub mod error;
 mod jobs;
 pub mod ledger;
 pub mod liquidation;
-mod repo;
+pub(crate) mod repo;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -36,7 +36,7 @@ use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync}
 pub use {
     entity::{Collateral, CollateralAdjustment},
     liquidation::Liquidation,
-    repo::liquidation_cursor,
+    repo::{CollateralRepo, liquidation_cursor},
 };
 
 #[cfg(feature = "json-schema")]
@@ -44,7 +44,6 @@ pub use entity::CollateralEvent;
 use error::CollateralError;
 #[cfg(feature = "json-schema")]
 pub use liquidation::LiquidationEvent;
-use repo::CollateralRepo;
 
 pub struct Collaterals<Perms, E>
 where
@@ -160,6 +159,13 @@ where
         ids: &[CollateralId],
     ) -> Result<HashMap<CollateralId, T>, CollateralError> {
         self.repo.find_all(ids).await
+    }
+
+    pub async fn find_by_id_without_audit(
+        &self,
+        id: CollateralId,
+    ) -> Result<Collateral, CollateralError> {
+        self.repo.find_by_id(id).await
     }
 
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CollateralError> {

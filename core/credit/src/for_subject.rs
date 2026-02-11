@@ -24,6 +24,7 @@ where
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilities<Perms, E>,
+    collaterals: &'a Collaterals<Perms, E>,
     collections: &'a CoreCreditCollection<Perms, E>,
     disbursals: &'a Disbursals<Perms, E>,
     histories: &'a Histories<Perms>,
@@ -53,6 +54,7 @@ where
         customer_id: CustomerId,
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilities<Perms, E>,
+        collaterals: &'a Collaterals<Perms, E>,
         collections: &'a CoreCreditCollection<Perms, E>,
         disbursals: &'a Disbursals<Perms, E>,
         history: &'a Histories<Perms>,
@@ -64,6 +66,7 @@ where
             subject,
             authz,
             credit_facilities,
+            collaterals,
             collections,
             disbursals,
             histories: history,
@@ -140,9 +143,15 @@ where
         )
         .await?;
 
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(credit_facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_ids.collateral_account_id;
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
+            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
             .await?;
 
         Ok(balances)

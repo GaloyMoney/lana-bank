@@ -488,6 +488,7 @@ where
             customer_id,
             &self.authz,
             &self.facilities,
+            &self.collaterals,
             &self.collections,
             &self.disbursals,
             &self.histories,
@@ -617,9 +618,16 @@ where
         if !facility.check_disbursal_date(now) {
             return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
         }
+
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_ids.collateral_account_id;
+
         let balance = self
             .ledger
-            .get_credit_facility_balance(facility.account_ids)
+            .get_credit_facility_balance(facility.account_ids, collateral_account_id)
             .await?;
 
         let price = self.price.usd_cents_per_btc().await;
@@ -871,18 +879,30 @@ where
     }
 
     pub async fn current_cvl(&self, entity: &CreditFacility) -> Result<CVLPct, CoreCreditError> {
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(entity.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_ids.collateral_account_id;
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(entity.account_ids)
+            .get_credit_facility_balance(entity.account_ids, collateral_account_id)
             .await?;
         let price = self.price.usd_cents_per_btc().await;
         Ok(balances.current_cvl(price))
     }
 
     pub async fn outstanding(&self, entity: &CreditFacility) -> Result<UsdCents, CoreCreditError> {
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(entity.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_ids.collateral_account_id;
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(entity.account_ids)
+            .get_credit_facility_balance(entity.account_ids, collateral_account_id)
             .await?;
         Ok(balances.total_outstanding_payable())
     }

@@ -18,6 +18,7 @@ use core_price::{CorePriceEvent, Price};
 
 use crate::{
     CoreCreditEvent,
+    collateral::CollateralRepo,
     ledger::*,
     pending_credit_facility::{
         PendingCreditFacilitiesByCollateralizationRatioCursor, PendingCreditFacility,
@@ -48,6 +49,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<PendingCreditFacilityRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     price: Arc<Price>,
     ledger: Arc<CreditLedger>,
 }
@@ -62,12 +64,14 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         repo: Arc<PendingCreditFacilityRepo<E>>,
+        collateral_repo: Arc<CollateralRepo<E>>,
         price: Arc<Price>,
         ledger: Arc<CreditLedger>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             repo,
+            collateral_repo,
             price,
             ledger,
         }
@@ -97,6 +101,7 @@ where
             PendingCreditFacilityCollateralizationFromEventsRunner::<E> {
                 outbox: self.outbox.clone(),
                 repo: self.repo.clone(),
+                collateral_repo: self.collateral_repo.clone(),
                 price: self.price.clone(),
                 ledger: self.ledger.clone(),
             },
@@ -127,6 +132,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<PendingCreditFacilityRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     price: Arc<Price>,
     ledger: Arc<CreditLedger>,
 }
@@ -200,9 +206,18 @@ where
             pending_facility.id.to_string(),
         );
 
+        let collateral = self
+            .collateral_repo
+            .find_by_id_in_op(&mut op, pending_facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_ids.collateral_account_id;
+
         let balances = self
             .ledger
-            .get_pending_credit_facility_balance(pending_facility.account_ids)
+            .get_pending_credit_facility_balance(
+                pending_facility.account_ids,
+                collateral_account_id,
+            )
             .await?;
 
         let price = self.price.usd_cents_per_btc().await;
@@ -261,9 +276,16 @@ where
                 if pending_facility.status() == PendingCreditFacilityStatus::Completed {
                     continue;
                 }
+                let collateral = self
+                    .collateral_repo
+                    .find_by_id_in_op(&mut op, pending_facility.collateral_id)
+                    .await?;
                 let balances = self
                     .ledger
-                    .get_pending_credit_facility_balance(pending_facility.account_ids)
+                    .get_pending_credit_facility_balance(
+                        pending_facility.account_ids,
+                        collateral.collateral_account_id(),
+                    )
                     .await?;
                 if pending_facility
                     .update_collateralization(price, balances)

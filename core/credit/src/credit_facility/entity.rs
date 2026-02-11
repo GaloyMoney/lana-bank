@@ -718,6 +718,7 @@ impl CreditFacility {
         _price: PriceOfOneBTC,
         _upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityBalanceSummary,
+        collateral_account_id: CalaAccountId,
     ) -> Result<Idempotent<CreditFacilityCompletion>, CreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all(),
@@ -730,6 +731,7 @@ impl CreditFacility {
         let res = CreditFacilityCompletion {
             tx_id: LedgerTxId::new(),
             collateral: balances.collateral(),
+            collateral_account_id,
             credit_facility_account_ids: self.account_ids,
         };
 
