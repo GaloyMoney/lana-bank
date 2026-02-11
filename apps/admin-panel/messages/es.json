@@ -2389,6 +2389,18 @@
       "title": "Depósito",
       "description": "Configuración de depósito",
       "setTitle": "Establecer configuración de depósito",
+      "accountSetSelectPlaceholder": "Selecciona un conjunto de cuentas...",
+      "accountSetSearchPlaceholder": "Buscar conjuntos de cuentas...",
+      "accountSetEmpty": "No se encontraron conjuntos de cuentas.",
+      "confirmationTitle": "Confirmar configuración de depósito",
+      "confirmationDescription": "Revisa los valores actualizados antes de cerrar.",
+      "confirmationPrevious": "Anterior",
+      "confirmationUpdated": "Actualizado",
+      "updateSuccess": "Configuración de depósito actualizada.",
+      "groups": {
+        "omnibus": "Cuentas Omnibus",
+        "summary": "Cuentas Resumen"
+      },
       "chartOfAccountsId": "ID del catálogo de cuentas",
       "chartOfAccountsOmnibusParentCode": "Código padre ómnibus",
       "chartOfAccountsIndividualDepositAccountsParentCode": "Código padre de cuentas de depósito individual",

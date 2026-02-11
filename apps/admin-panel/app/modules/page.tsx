@@ -21,6 +21,7 @@ import { DetailsGroup } from "@lana/web/components/details"
 import { DepositConfigUpdateDialog } from "./deposit-config-update"
 import { CreditConfigUpdateDialog } from "./credit-config-update"
 import { CreditAccountCategoryKey } from "./credit-config-fields"
+import { DepositAccountCategoryKey } from "./deposit-config-fields"
 
 import { DetailItem } from "@/components/details"
 import {
@@ -206,6 +207,18 @@ const Modules: React.FC = () => {
       }))
     })
   }, [accountSetOptionsData])
+  const depositAccountSetOptions = useMemo(
+    () =>
+      accountSetOptions.filter(
+        (
+          option,
+        ): option is (typeof accountSetOptions)[number] & {
+          category: DepositAccountCategoryKey
+        } =>
+          option.category === "asset" || option.category === "liability",
+      ),
+    [accountSetOptions],
+  )
 
   return (
     <>
@@ -213,6 +226,8 @@ const Modules: React.FC = () => {
         open={openDepositConfigUpdateDialog}
         setOpen={setOpenDepositConfigUpdateDialog}
         depositModuleConfig={depositConfig?.depositConfig || undefined}
+        accountSetOptions={depositAccountSetOptions}
+        accountSetOptionsError={Boolean(accountSetOptionsError)}
       />
       <CreditConfigUpdateDialog
         open={openCreditConfigUpdateDialog}
@@ -248,21 +263,18 @@ const Modules: React.FC = () => {
             <div>{t("notYetConfigured")}</div>
           )}
         </CardContent>
-        {!depositConfig?.depositConfig && (
-          <>
-            {" "}
-            <Separator className="mb-4" />
-            <CardFooter className="-mb-3 -mt-1 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setOpenDepositConfigUpdateDialog(true)}
-              >
-                <Pencil />
-                {t("deposit.setTitle")}
-              </Button>
-            </CardFooter>
-          </>
-        )}
+        <>
+          <Separator className="mb-4" />
+          <CardFooter className="-mb-3 -mt-1 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setOpenDepositConfigUpdateDialog(true)}
+            >
+              <Pencil />
+              {t("deposit.setTitle")}
+            </Button>
+          </CardFooter>
+        </>
       </Card>
       <Card className="mt-3">
         <CardHeader>
