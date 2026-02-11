@@ -306,6 +306,7 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
   }
 
   const handleBack = () => {
+    reset()
     setStep("edit")
   }
 
