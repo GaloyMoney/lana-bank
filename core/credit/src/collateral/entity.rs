@@ -53,7 +53,6 @@ pub enum CollateralEvent {
     },
     LiquidationStarted {
         liquidation_id: LiquidationId,
-        account_ids: LiquidationProceedsAccountIds,
     },
     LiquidationProceedsReceived {
         ledger_tx_id: LedgerTxId,
@@ -248,9 +247,8 @@ impl Collateral {
     pub fn record_proceeds_received_and_liquidation_completed(
         &mut self,
         amount_received: UsdCents,
-        liquidation_proceeds_account_ids: LiquidationProceedsAccountIds,
     ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, CollateralError> {
-        let (data, liquidation_id, sent_total) = {
+        let (data, liquidation_id, sent_total, account_ids) = {
             let liquidation = self
                 .active_liquidation()
                 .ok_or(CollateralError::NoActiveLiquidation)?;
@@ -258,7 +256,12 @@ impl Collateral {
             let data = liquidation
                 .record_proceeds_from_liquidation_and_complete(amount_received)
                 .expect("Active liquidation in incorrect \"completed\" state");
-            (data, liquidation.id, liquidation.sent_total)
+            (
+                data,
+                liquidation.id,
+                liquidation.sent_total,
+                liquidation.account_ids,
+            )
         };
 
         self.events
@@ -274,7 +277,7 @@ impl Collateral {
 
         Ok(Idempotent::Executed(
             RecordProceedsFromLiquidationData::new(
-                liquidation_proceeds_account_ids,
+                account_ids,
                 amount_received,
                 sent_total,
                 data.ledger_tx_id,
@@ -325,15 +328,14 @@ impl Collateral {
             .trigger_price(trigger_price)
             .initially_expected_to_receive(initially_expected_to_receive)
             .initially_estimated_to_liquidate(initially_estimated_to_liquidate)
+            .account_ids(liquidation_proceeds_account_ids)
             .build()
             .expect("all fields for new liquidation provided");
 
         self.liquidations.add_new(new_liquidation);
 
-        self.events.push(CollateralEvent::LiquidationStarted {
-            liquidation_id,
-            account_ids: liquidation_proceeds_account_ids,
-        });
+        self.events
+            .push(CollateralEvent::LiquidationStarted { liquidation_id });
 
         Idempotent::Executed(liquidation_id)
     }
@@ -594,10 +596,7 @@ mod tests {
             start_liquidation(&mut collateral);
 
             let amount = UsdCents::from(500);
-            let result = collateral.record_proceeds_received_and_liquidation_completed(
-                amount,
-                default_liquidation_proceeds_account_ids(),
-            );
+            let result = collateral.record_proceeds_received_and_liquidation_completed(amount);
             assert!(result.is_ok());
             assert!(result.unwrap().did_execute());
             assert!(collateral.active_liquidation_id().is_none());
@@ -608,10 +607,8 @@ mod tests {
             let new_collateral = default_new_collateral();
             let mut collateral = collateral_from(new_collateral);
 
-            let result = collateral.record_proceeds_received_and_liquidation_completed(
-                UsdCents::from(500),
-                default_liquidation_proceeds_account_ids(),
-            );
+            let result =
+                collateral.record_proceeds_received_and_liquidation_completed(UsdCents::from(500));
             assert!(matches!(result, Err(CollateralError::NoActiveLiquidation)));
         }
     }

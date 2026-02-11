@@ -350,25 +350,10 @@ where
             )
             .await?;
 
-        let credit_facility = self
-            .credit_facility_repo
-            .find_by_id(collateral.credit_facility_id)
-            .await?;
-        let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(
-            &collateral.account_ids,
-            credit_facility
-                .account_ids
-                .proceeds_from_liquidation_account_id,
-            self.liquidation_proceeds_omnibus_account_id,
-        );
-
         let mut db = self.repo.begin_op().await?;
 
-        if let Idempotent::Executed(data) = collateral
-            .record_proceeds_received_and_liquidation_completed(
-                amount_received,
-                liquidation_proceeds_account_ids,
-            )?
+        if let Idempotent::Executed(data) =
+            collateral.record_proceeds_received_and_liquidation_completed(amount_received)?
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
             self.ledger
