@@ -47,7 +47,57 @@ gql`
   mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
     creditModuleConfigure(input: $input) {
       creditConfig {
-        chartOfAccountsId
+        chartOfAccountFacilityOmnibusParentCode
+        chartOfAccountCollateralOmnibusParentCode
+        chartOfAccountLiquidationProceedsOmnibusParentCode
+        chartOfAccountPaymentsMadeOmnibusParentCode
+        chartOfAccountInterestAddedToObligationsOmnibusParentCode
+        chartOfAccountUncoveredOutstandingParentCode
+        chartOfAccountFacilityParentCode
+        chartOfAccountCollateralParentCode
+        chartOfAccountCollateralInLiquidationParentCode
+        chartOfAccountLiquidatedCollateralParentCode
+        chartOfAccountProceedsFromLiquidationParentCode
+        chartOfAccountInterestIncomeParentCode
+        chartOfAccountFeeIncomeParentCode
+        chartOfAccountPaymentHoldingParentCode
+        chartOfAccountDisbursedDefaultedParentCode
+        chartOfAccountInterestDefaultedParentCode
+        chartOfAccountShortTermIndividualDisbursedReceivableParentCode
+        chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
+        chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode
+        chartOfAccountShortTermBankDisbursedReceivableParentCode
+        chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode
+        chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+        chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode
+        chartOfAccountLongTermIndividualDisbursedReceivableParentCode
+        chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode
+        chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode
+        chartOfAccountLongTermBankDisbursedReceivableParentCode
+        chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode
+        chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+        chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode
+        chartOfAccountShortTermIndividualInterestReceivableParentCode
+        chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode
+        chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode
+        chartOfAccountShortTermBankInterestReceivableParentCode
+        chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode
+        chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+        chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode
+        chartOfAccountLongTermIndividualInterestReceivableParentCode
+        chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode
+        chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode
+        chartOfAccountLongTermBankInterestReceivableParentCode
+        chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode
+        chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+        chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode
+        chartOfAccountOverdueIndividualDisbursedReceivableParentCode
+        chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode
+        chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode
+        chartOfAccountOverdueBankDisbursedReceivableParentCode
+        chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode
+        chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+        chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode
       }
     }
   }
