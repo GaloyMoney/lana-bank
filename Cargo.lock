@@ -28,6 +28,7 @@ dependencies = [
  "domain-config",
  "es-entity",
  "futures",
+ "heck",
  "jwks-utils",
  "lana-app",
  "obix",
