@@ -130,6 +130,7 @@ where
             ..
         }: WebhookPayload,
     ) -> Result<(), CoreCustodyError> {
+        let provider_name = provider.clone();
         let custodian = self.custodians.find_by_provider(provider).await;
 
         let header_map: http::HeaderMap = headers
@@ -149,8 +150,13 @@ where
                     new_balance,
                     changed_at,
                 } => {
-                    self.update_wallet_balance(external_wallet_id, new_balance, changed_at)
-                        .await?;
+                    self.update_wallet_balance(
+                        provider_name.clone(),
+                        external_wallet_id,
+                        new_balance,
+                        changed_at,
+                    )
+                    .await?;
                 }
             }
         }
@@ -162,6 +168,7 @@ where
     #[instrument(name = "custody.update_wallet_balance", skip(self))]
     async fn update_wallet_balance(
         &self,
+        provider: String,
         external_wallet_id: String,
         new_balance: Satoshis,
         update_time: DateTime<Utc>,
@@ -177,6 +184,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
+                audit::SystemActor::from(provider),
                 CoreCustodyObject::wallet(wallet.id),
                 CoreCustodyAction::WALLET_UPDATE,
             )
@@ -403,6 +411,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                crate::primitives::CUSTODY_KEY_ROTATION,
                 CoreCustodyObject::all_custodians(),
                 CoreCustodyAction::CUSTODIAN_UPDATE,
             )

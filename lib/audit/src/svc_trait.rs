@@ -5,20 +5,13 @@ use std::{collections::HashMap, fmt, str::FromStr};
 
 use crate::{AuditEntry, error::AuditError, primitives::*};
 
-pub trait SystemSubject {
-    fn system() -> Self;
+pub trait SystemSubject: fmt::Display + fmt::Debug {
+    fn system(actor: crate::SystemActor) -> Self;
 }
 
 #[async_trait]
 pub trait AuditSvc: Clone + Sync + Send + 'static {
-    type Subject: FromStr
-        + fmt::Display
-        + fmt::Debug
-        + Clone
-        + Send
-        + Sync
-        + SystemSubject
-        + 'static;
+    type Subject: FromStr<Err: fmt::Display> + Clone + Send + Sync + SystemSubject + 'static;
     type Object: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static;
     type Action: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static;
 
@@ -26,10 +19,11 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
 
     async fn record_system_entry(
         &self,
+        actor: crate::SystemActor,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
-        let subject = Self::Subject::system();
+        let subject = Self::Subject::system(actor);
         let object = object.into();
         let action = action.into();
 
@@ -73,10 +67,11 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
     async fn record_system_entry_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
+        actor: crate::SystemActor,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
-        let subject = Self::Subject::system();
+        let subject = Self::Subject::system(actor);
         let object = object.into();
         let action = action.into();
 

@@ -80,7 +80,11 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
 
     match deposit
         .chart_of_accounts_integrations()
-        .set_config(&Subject::System, chart, config_values)
+        .set_config(
+            &Subject::System(audit::SystemActor::BOOTSTRAP),
+            chart,
+            config_values,
+        )
         .await
     {
         Ok(_) => (),

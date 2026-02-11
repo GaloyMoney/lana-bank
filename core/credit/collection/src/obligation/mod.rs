@@ -3,6 +3,7 @@ pub mod error;
 mod jobs;
 mod repo;
 
+use audit::SystemSubject;
 use std::sync::Arc;
 
 use tracing::{Span, instrument};
@@ -10,7 +11,6 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_accounting::LedgerTransactionInitiator;
 use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
@@ -162,7 +162,7 @@ where
             amount,
             ..
         }: PaymentDetailsForAllocation,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), ObligationError> {
         let span = Span::current();
         span.record("beneficiary_id", tracing::field::display(beneficiary_id));

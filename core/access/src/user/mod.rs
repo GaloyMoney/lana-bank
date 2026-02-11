@@ -258,6 +258,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut *op,
+                audit::SystemActor::BOOTSTRAP,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::USER_CREATE,
             )

@@ -73,6 +73,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                crate::primitives::ACCOUNTING_TRIAL_BALANCE,
                 CoreAccountingObject::all_profit_and_loss(),
                 CoreAccountingAction::PROFIT_AND_LOSS_CREATE,
             )

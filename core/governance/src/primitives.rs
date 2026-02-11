@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
+
+pub const GOVERNANCE: audit::SystemActor = audit::SystemActor::new("governance");
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]

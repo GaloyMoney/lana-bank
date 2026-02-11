@@ -13,7 +13,6 @@ use tracing_macros::record_error_severity;
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
-use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
@@ -104,16 +103,18 @@ where
         let repo_arc = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
 
         let wallet_collateral_sync_job_spawner =
-            jobs.add_initializer(wallet_collateral_sync::WalletCollateralSyncInit::new(
-                outbox,
-                ledger.clone(),
-                repo_arc.clone(),
-            ));
+            jobs.add_initializer(wallet_collateral_sync::WalletCollateralSyncInit::<
+                <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+                E,
+            >::new(outbox, ledger.clone(), repo_arc.clone()));
 
         wallet_collateral_sync_job_spawner
             .spawn_unique(
                 job::JobId::new(),
-                wallet_collateral_sync::WalletCollateralSyncJobConfig::new(),
+                wallet_collateral_sync::WalletCollateralSyncJobConfig::<
+                    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+                    E,
+                >::new(),
             )
             .await?;
 
@@ -243,8 +244,6 @@ where
             .await?
             .expect("audit info missing");
 
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
-
         let mut db = self.repo.begin_op().await?;
 
         let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
@@ -259,7 +258,7 @@ where
                     &mut db,
                     collateral_update,
                     collateral.account_ids.collateral_account_id,
-                    initiated_by,
+                    sub,
                 )
                 .await?;
         }
@@ -289,7 +288,7 @@ where
             )
             .await?;
 
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = sub;
         let effective = self.clock.today();
 
         let mut db = self.repo.begin_op().await?;
@@ -347,11 +346,7 @@ where
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
             self.ledger
-                .record_proceeds_from_liquidation_in_op(
-                    &mut db,
-                    data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
+                .record_proceeds_from_liquidation_in_op(&mut db, data, sub)
                 .await?;
         }
 

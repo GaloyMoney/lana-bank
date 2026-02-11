@@ -24,7 +24,9 @@ use closing_metadata::*;
 use error::*;
 use template::*;
 
-use crate::{Chart, ClockHandle, ClosingTxDetails, LedgerTransactionInitiator};
+use audit::SystemSubject;
+
+use crate::{Chart, ClockHandle, ClosingTxDetails};
 
 #[derive(Clone)]
 pub struct ChartLedger {
@@ -316,8 +318,11 @@ impl ChartLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "chart_ledger.post_closing_transaction_in_op", skip(self, op))]
-    pub async fn post_closing_transaction_in_op(
+    #[instrument(
+        name = "chart_ledger.post_closing_transaction_in_op",
+        skip(self, op, initiated_by)
+    )]
+    pub async fn post_closing_transaction_in_op<S: SystemSubject>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         ClosingTxParentIdsAndDetails {
@@ -325,6 +330,7 @@ impl ChartLedger {
             retained_earnings_parent_ids,
             tx_details,
         }: ClosingTxParentIdsAndDetails,
+        initiated_by: &S,
     ) -> Result<(), ChartLedgerError> {
         let balances = self
             .find_all_profit_and_loss_statement_effective_balances(
@@ -358,7 +364,7 @@ impl ChartLedger {
             description,
             effective_balances_until,
             balances.entries_params(net_income_recipient_account),
-            LedgerTransactionInitiator::System,
+            initiated_by,
         );
         let template_code = self
             .find_or_create_template_in_op(op, &closing_transaction_params)
@@ -479,10 +485,10 @@ impl ChartLedger {
         Ok(ledger_account)
     }
 
-    async fn find_or_create_template_in_op(
+    async fn find_or_create_template_in_op<S: std::fmt::Display>(
         &self,
         op: &mut es_entity::DbOp<'_>,
-        params: &ClosingTransactionParams,
+        params: &ClosingTransactionParams<S>,
     ) -> Result<String, TxTemplateError> {
         let n_entries = params.entries_params.len();
         let code = params.template_code();
@@ -510,7 +516,7 @@ impl ChartLedger {
             .build()
             .expect("Couldn't build TxInput for ClosingTransactionTemplate");
 
-        let params = ClosingTransactionParams::defs(n_entries);
+        let params = ClosingTransactionParams::<String>::defs(n_entries);
         let new_template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(&code)

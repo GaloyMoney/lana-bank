@@ -14,16 +14,16 @@ use crate::ledger::error::CollectionLedgerError;
 pub const RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE: &str = "RECORD_OBLIGATION_DEFAULTED_BALANCE";
 
 #[derive(Debug)]
-pub struct RecordObligationDefaultedBalanceParams {
+pub struct RecordObligationDefaultedBalanceParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub amount: Decimal,
     pub receivable_account_id: CalaAccountId,
     pub defaulted_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl RecordObligationDefaultedBalanceParams {
+impl<S: std::fmt::Display> RecordObligationDefaultedBalanceParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -59,7 +59,7 @@ impl RecordObligationDefaultedBalanceParams {
         ]
     }
 }
-impl From<RecordObligationDefaultedBalanceParams> for Params {
+impl<S: std::fmt::Display> From<RecordObligationDefaultedBalanceParams<S>> for Params {
     fn from(
         RecordObligationDefaultedBalanceParams {
             journal_id,
@@ -68,7 +68,7 @@ impl From<RecordObligationDefaultedBalanceParams> for Params {
             defaulted_account_id,
             effective,
             initiated_by,
-        }: RecordObligationDefaultedBalanceParams,
+        }: RecordObligationDefaultedBalanceParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -79,7 +79,7 @@ impl From<RecordObligationDefaultedBalanceParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -124,7 +124,7 @@ impl RecordObligationDefaultedBalance {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordObligationDefaultedBalanceParams::defs();
+        let params = RecordObligationDefaultedBalanceParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE)

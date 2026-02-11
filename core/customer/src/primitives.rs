@@ -3,6 +3,9 @@ use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
 pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
+
+pub const CUSTOMER_SYNC: audit::SystemActor = audit::SystemActor::new("customer-sync");
+pub const SUMSUB: audit::SystemActor = audit::SystemActor::new("sumsub");
 pub use public_id::PublicId;
 
 es_entity::entity_id! {

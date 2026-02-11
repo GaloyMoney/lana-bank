@@ -245,6 +245,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                crate::primitives::COLLATERALIZATION_SYNC,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
             )
@@ -304,6 +305,7 @@ where
                 .audit()
                 .record_system_entry_in_op(
                     &mut op,
+                    crate::primitives::COLLATERALIZATION_SYNC,
                     CoreCreditObject::all_credit_facilities(),
                     CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
                 )

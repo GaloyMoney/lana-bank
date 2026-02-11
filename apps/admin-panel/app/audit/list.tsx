@@ -42,7 +42,7 @@ gql`
               }
             }
             ... on System {
-              name
+              actor
             }
           }
           object
@@ -107,7 +107,7 @@ const AuditLogsList = () => {
           return <div>user: {subject.email}</div>
         }
         if (subject.__typename === "System") {
-          return <div>system</div>
+          return <div>system ({subject.actor})</div>
         }
         return <div>{subject.__typename}</div>
       },

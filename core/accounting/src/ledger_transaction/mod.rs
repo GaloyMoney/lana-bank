@@ -2,18 +2,16 @@ mod cursor;
 pub mod error;
 mod value;
 
-use tracing::instrument;
-
 use std::collections::HashMap;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, transaction::TransactionsByCreatedAtCursor};
+use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use crate::primitives::{CoreAccountingAction, CoreAccountingObject, LedgerTransactionId};
 
-pub use crate::primitives::LedgerTransactionInitiator;
 pub use cursor::LedgerTransactionCursor;
 use error::*;
 pub use value::*;
@@ -46,7 +44,10 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<LedgerTransactionId> + std::fmt::Debug,
-    ) -> Result<Option<LedgerTransaction>, LedgerTransactionError> {
+    ) -> Result<
+        Option<LedgerTransaction<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>>,
+        LedgerTransactionError,
+    > {
         let id = id.into();
         self.authz
             .enforce_permission(
@@ -70,7 +71,9 @@ where
 
     #[record_error_severity]
     #[instrument(name = "core_accounting.ledger_transaction.find_all", skip(self))]
-    pub async fn find_all<T: From<LedgerTransaction>>(
+    pub async fn find_all<
+        T: From<LedgerTransaction<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>>,
+    >(
         &self,
         ids: &[LedgerTransactionId],
     ) -> Result<HashMap<LedgerTransactionId, T>, LedgerTransactionError> {
@@ -113,6 +116,7 @@ where
         Ok(res)
     }
 
+    #[allow(clippy::type_complexity)]
     #[record_error_severity]
     #[instrument(
         name = "core_accounting.ledger_transaction.list_for_template_code",
@@ -124,7 +128,10 @@ where
         template_code: &str,
         args: es_entity::PaginatedQueryArgs<LedgerTransactionCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<LedgerTransaction, LedgerTransactionCursor>,
+        es_entity::PaginatedQueryRet<
+            LedgerTransaction<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+            LedgerTransactionCursor,
+        >,
         LedgerTransactionError,
     > {
         self.authz

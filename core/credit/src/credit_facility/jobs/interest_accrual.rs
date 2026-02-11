@@ -35,7 +35,7 @@ use tracing_macros::record_error_severity;
 
 use std::sync::Arc;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
@@ -290,7 +290,9 @@ where
             .record_interest_accrual_in_op(
                 &mut db,
                 interest_accrual,
-                core_accounting::LedgerTransactionInitiator::System,
+                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                    crate::primitives::INTEREST_ACCRUAL,
+                ),
             )
             .await?;
 
@@ -336,6 +338,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 op,
+                crate::primitives::INTEREST_ACCRUAL,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
             )
@@ -417,6 +420,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                crate::primitives::INTEREST_ACCRUAL,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
             )
@@ -436,7 +440,9 @@ where
             .record_interest_accrual_cycle_in_op(
                 &mut op,
                 facility_accrual_cycle_data,
-                core_accounting::LedgerTransactionInitiator::System,
+                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                    crate::primitives::INTEREST_ACCRUAL,
+                ),
             )
             .await?;
 

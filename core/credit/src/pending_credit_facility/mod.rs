@@ -5,7 +5,7 @@ mod repo;
 
 use std::sync::Arc;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::{CorePriceEvent, Price};
@@ -222,7 +222,9 @@ where
                     .handle_pending_facility_creation_in_op(
                         &mut db,
                         &pending_credit_facility,
-                        core_accounting::LedgerTransactionInitiator::System,
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                            crate::primitives::PENDING_FACILITY_CREATION,
+                        ),
                     )
                     .await?;
 

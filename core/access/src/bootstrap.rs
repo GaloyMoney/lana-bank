@@ -74,7 +74,9 @@ where
         // Subject::System also has the superuser role
         self.authz
             .assign_role_to_subject(
-                <<Audit as AuditSvc>::Subject as SystemSubject>::system(),
+                <<Audit as AuditSvc>::Subject as SystemSubject>::system(
+                    audit::SystemActor::BOOTSTRAP,
+                ),
                 superuser_role.id,
             )
             .await?;
@@ -124,6 +126,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 db,
+                audit::SystemActor::BOOTSTRAP,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::ROLE_CREATE,
             )

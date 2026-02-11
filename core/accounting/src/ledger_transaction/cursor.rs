@@ -29,8 +29,8 @@ impl From<LedgerTransactionCursor> for TransactionsByCreatedAtCursor {
     }
 }
 
-impl From<&LedgerTransaction> for LedgerTransactionCursor {
-    fn from(transaction: &LedgerTransaction) -> Self {
+impl<S> From<&LedgerTransaction<S>> for LedgerTransactionCursor {
+    fn from(transaction: &LedgerTransaction<S>) -> Self {
         Self {
             ledger_transaction_id: transaction.id,
             created_at: transaction.created_at,

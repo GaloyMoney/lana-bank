@@ -15,18 +15,18 @@ use crate::{
 pub const INITIATE_WITHDRAW_CODE: &str = "INITIATE_WITHDRAW";
 
 #[derive(Debug)]
-pub struct InitiateWithdrawParams {
+pub struct InitiateWithdrawParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub deposit_omnibus_account_id: CalaAccountId,
     pub credit_account_id: CalaAccountId,
     pub amount: Decimal,
     pub currency: Currency,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
     pub effective_date: chrono::NaiveDate,
 }
 
-impl InitiateWithdrawParams {
+impl<S: std::fmt::Display> InitiateWithdrawParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -68,7 +68,7 @@ impl InitiateWithdrawParams {
     }
 }
 
-impl From<InitiateWithdrawParams> for Params {
+impl<S: std::fmt::Display> From<InitiateWithdrawParams<S>> for Params {
     fn from(
         InitiateWithdrawParams {
             entity_id,
@@ -79,7 +79,7 @@ impl From<InitiateWithdrawParams> for Params {
             currency,
             initiated_by,
             effective_date,
-        }: InitiateWithdrawParams,
+        }: InitiateWithdrawParams<S>,
     ) -> Self {
         let mut params = Self::default();
 
@@ -95,7 +95,7 @@ impl From<InitiateWithdrawParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -155,7 +155,7 @@ impl InitiateWithdraw {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = InitiateWithdrawParams::defs();
+        let params = InitiateWithdrawParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(INITIATE_WITHDRAW_CODE)

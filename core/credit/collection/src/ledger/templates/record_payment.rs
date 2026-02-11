@@ -14,7 +14,7 @@ use crate::ledger::error::CollectionLedgerError;
 pub const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
 
 #[derive(Debug)]
-pub struct RecordPaymentParams {
+pub struct RecordPaymentParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -24,10 +24,10 @@ pub struct RecordPaymentParams {
     pub payments_made_omnibus_account_id: CalaAccountId,
     pub tx_ref: String,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl RecordPaymentParams {
+impl<S: std::fmt::Display> RecordPaymentParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -83,7 +83,7 @@ impl RecordPaymentParams {
         ]
     }
 }
-impl From<RecordPaymentParams> for Params {
+impl<S: std::fmt::Display> From<RecordPaymentParams<S>> for Params {
     fn from(
         RecordPaymentParams {
             journal_id,
@@ -96,7 +96,7 @@ impl From<RecordPaymentParams> for Params {
             tx_ref,
             effective,
             initiated_by,
-        }: RecordPaymentParams,
+        }: RecordPaymentParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("external_id", tx_ref);
@@ -117,7 +117,7 @@ impl From<RecordPaymentParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -178,7 +178,7 @@ impl RecordPayment {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordPaymentParams::defs();
+        let params = RecordPaymentParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(RECORD_PAYMENT_CODE)

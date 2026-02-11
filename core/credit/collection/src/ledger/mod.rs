@@ -1,6 +1,7 @@
 pub mod error;
 pub mod templates;
 
+use audit::SystemSubject;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -9,7 +10,6 @@ use cala_ledger::{
     error::LedgerError,
     velocity::error::{LimitExceededError, VelocityError},
 };
-use core_accounting::LedgerTransactionInitiator;
 
 pub use error::CollectionLedgerError;
 
@@ -73,7 +73,7 @@ impl CollectionLedger {
             effective,
             ..
         }: &Payment,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CollectionLedgerError> {
         let params = templates::RecordPaymentParams {
             journal_id: self.journal_id,
@@ -115,7 +115,7 @@ impl CollectionLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         payments: Vec<PaymentAllocation>,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CollectionLedgerError> {
         for payment in payments {
             self.record_obligation_repayment_in_op(op, payment, initiated_by)
@@ -137,7 +137,7 @@ impl CollectionLedger {
             effective,
             ..
         }: ObligationDueReallocationData,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CollectionLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -173,7 +173,7 @@ impl CollectionLedger {
             effective,
             ..
         }: ObligationOverdueReallocationData,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CollectionLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -209,7 +209,7 @@ impl CollectionLedger {
             effective,
             ..
         }: ObligationDefaultedReallocationData,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CollectionLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -240,7 +240,7 @@ impl CollectionLedger {
             effective,
             ..
         }: PaymentAllocation,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CollectionLedgerError> {
         let params = templates::RecordPaymentAllocationParams {
             journal_id: self.journal_id,

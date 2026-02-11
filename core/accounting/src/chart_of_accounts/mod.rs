@@ -11,7 +11,7 @@ pub mod tree;
 use es_entity::Idempotent;
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use tracing_macros::record_error_severity;
 
@@ -404,9 +404,14 @@ where
         if let Idempotent::Executed(closing_tx_parents_and_details) =
             chart.post_closing_tx_as_of(account_codes, tx_details)?
         {
+            type Subject<P> = <<P as PermissionCheck>::Audit as AuditSvc>::Subject;
             self.repo.update_in_op(op, &mut chart).await?;
             self.chart_ledger
-                .post_closing_transaction_in_op(op, closing_tx_parents_and_details)
+                .post_closing_transaction_in_op(
+                    op,
+                    closing_tx_parents_and_details,
+                    &Subject::<Perms>::system(crate::primitives::ACCOUNTING_TRIAL_BALANCE),
+                )
                 .await?;
         }
         Ok(())

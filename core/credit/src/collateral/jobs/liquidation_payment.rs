@@ -6,9 +6,8 @@ use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use core_accounting::LedgerTransactionInitiator;
 use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
@@ -190,7 +189,9 @@ where
                         payment_ledger_account_ids,
                         *amount,
                         clock.today(),
-                        LedgerTransactionInitiator::System,
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                            crate::primitives::COLLATERALIZATION_SYNC,
+                        ),
                     )
                     .await?;
 

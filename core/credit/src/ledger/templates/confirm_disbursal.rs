@@ -14,7 +14,7 @@ use crate::{
 pub const CONFIRM_DISBURSAL_CODE: &str = "CONFIRM_DISBURSAL";
 
 #[derive(Debug)]
-pub struct ConfirmDisbursalParams {
+pub struct ConfirmDisbursalParams<S: std::fmt::Display> {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub facility_uncovered_outstanding_account: CalaAccountId,
@@ -24,10 +24,10 @@ pub struct ConfirmDisbursalParams {
     pub disbursed_amount: Decimal,
     pub external_id: String,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl ConfirmDisbursalParams {
+impl<S: std::fmt::Display> ConfirmDisbursalParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -79,7 +79,7 @@ impl ConfirmDisbursalParams {
     }
 }
 
-impl From<ConfirmDisbursalParams> for Params {
+impl<S: std::fmt::Display> From<ConfirmDisbursalParams<S>> for Params {
     fn from(
         ConfirmDisbursalParams {
             entity_id,
@@ -92,7 +92,7 @@ impl From<ConfirmDisbursalParams> for Params {
             external_id,
             effective,
             initiated_by,
-        }: ConfirmDisbursalParams,
+        }: ConfirmDisbursalParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -115,7 +115,7 @@ impl From<ConfirmDisbursalParams> for Params {
             "meta",
             serde_json::json!({
                 "entity_ref": entity_ref,
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
         params
@@ -177,7 +177,7 @@ impl ConfirmDisbursal {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = ConfirmDisbursalParams::defs();
+        let params = ConfirmDisbursalParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(CONFIRM_DISBURSAL_CODE)

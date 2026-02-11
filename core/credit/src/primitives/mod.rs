@@ -9,6 +9,17 @@ use std::str::FromStr;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
+pub const INTEREST_ACCRUAL: audit::SystemActor = audit::SystemActor::new("interest-accrual");
+pub const COLLATERALIZATION_SYNC: audit::SystemActor =
+    audit::SystemActor::new("collateralization-sync");
+pub const CREDIT_FACILITY_ACTIVATION: audit::SystemActor =
+    audit::SystemActor::new("credit-facility-activation");
+pub const PENDING_FACILITY_CREATION: audit::SystemActor =
+    audit::SystemActor::new("pending-facility-creation");
+pub const CREDIT_FACILITY_PAYMENT_ALLOCATION: audit::SystemActor =
+    audit::SystemActor::new("credit-facility-payment-allocation");
+pub const DISBURSAL_APPROVAL: audit::SystemActor = audit::SystemActor::new("disbursal-approval");
+
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,

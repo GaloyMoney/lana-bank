@@ -7,6 +7,9 @@ use tracing_utils::ErrorSeverity;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
+pub const ACCOUNTING_TRIAL_BALANCE: audit::SystemActor =
+    audit::SystemActor::new("accounting-trial-balance");
+
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,
     account::Account as CalaAccount,
@@ -65,47 +68,6 @@ impl EntityRef {
             entity_type,
             entity_id: id.into(),
         }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum LedgerTransactionInitiator {
-    System,
-    User { id: uuid::Uuid },
-}
-
-#[derive(Debug, Error)]
-pub enum LedgerTransactionInitiatorParseError {
-    #[error("invalid user id")]
-    InvalidUserId,
-    #[error("unknown initiator")]
-    UnknownInitiator,
-}
-
-impl ErrorSeverity for LedgerTransactionInitiatorParseError {
-    fn severity(&self) -> Level {
-        Level::ERROR
-    }
-}
-
-impl LedgerTransactionInitiator {
-    pub fn try_from_subject<S>(subject: &S) -> Result<Self, LedgerTransactionInitiatorParseError>
-    where
-        S: std::fmt::Display + audit::SystemSubject,
-    {
-        let raw = subject.to_string();
-        if raw == S::system().to_string() {
-            return Ok(Self::System);
-        }
-
-        if let Some(id_str) = raw.strip_prefix("user:") {
-            let id = uuid::Uuid::parse_str(id_str)
-                .map_err(|_| LedgerTransactionInitiatorParseError::InvalidUserId)?;
-            return Ok(Self::User { id });
-        }
-
-        Err(LedgerTransactionInitiatorParseError::UnknownInitiator)
     }
 }
 

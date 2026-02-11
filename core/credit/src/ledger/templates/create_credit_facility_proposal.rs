@@ -12,7 +12,7 @@ use crate::{ledger::error::*, primitives::CalaAccountId};
 pub const CREATE_CREDIT_FACILITY_PROPOSAL_CODE: &str = "CREATE_CREDIT_FACILITY_PROPOSAL";
 
 #[derive(Debug)]
-pub struct CreateCreditFacilityProposalParams {
+pub struct CreateCreditFacilityProposalParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
@@ -20,10 +20,10 @@ pub struct CreateCreditFacilityProposalParams {
     pub currency: Currency,
     pub external_id: String,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl CreateCreditFacilityProposalParams {
+impl<S: std::fmt::Display> CreateCreditFacilityProposalParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -70,7 +70,7 @@ impl CreateCreditFacilityProposalParams {
     }
 }
 
-impl From<CreateCreditFacilityProposalParams> for Params {
+impl<S: std::fmt::Display> From<CreateCreditFacilityProposalParams<S>> for Params {
     fn from(
         CreateCreditFacilityProposalParams {
             journal_id,
@@ -81,7 +81,7 @@ impl From<CreateCreditFacilityProposalParams> for Params {
             external_id,
             effective,
             initiated_by,
-        }: CreateCreditFacilityProposalParams,
+        }: CreateCreditFacilityProposalParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -94,7 +94,7 @@ impl From<CreateCreditFacilityProposalParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
         params
@@ -136,7 +136,7 @@ impl CreateCreditFacilityProposal {
                 .build()
                 .expect("Couldn't build entry"),
         ];
-        let params = CreateCreditFacilityProposalParams::defs();
+        let params = CreateCreditFacilityProposalParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(CREATE_CREDIT_FACILITY_PROPOSAL_CODE)

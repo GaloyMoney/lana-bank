@@ -5,9 +5,8 @@ use tracing::{Span, instrument};
 
 use futures::StreamExt;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use core_accounting::LedgerTransactionInitiator;
 use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
@@ -138,9 +137,14 @@ where
                 tracing::field::display(&entity.beneficiary_id),
             );
 
-            let initiated_by = LedgerTransactionInitiator::System;
             self.process
-                .execute_in_op(db, entity.id, initiated_by)
+                .execute_in_op(
+                    db,
+                    entity.id,
+                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                        crate::primitives::CREDIT_FACILITY_PAYMENT_ALLOCATION,
+                    ),
+                )
                 .await?;
         }
         Ok(())

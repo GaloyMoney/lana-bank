@@ -2,13 +2,14 @@ mod accounts;
 mod error;
 pub mod templates;
 
+use audit::SystemSubject;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use cala_ledger::{
     CalaLedger, Currency, JournalId, TransactionId as CalaTransactionId, account::NewAccount,
 };
-use core_accounting::{EntityRef, LedgerTransactionInitiator};
+use core_accounting::EntityRef;
 use es_entity::clock::ClockHandle;
 use money::Satoshis;
 
@@ -165,7 +166,7 @@ impl CollateralLedger {
             effective,
         }: CollateralUpdate,
         collateral_account_id: CalaAccountId,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CollateralLedgerError> {
         match direction {
             CollateralDirection::Add => {
@@ -224,7 +225,7 @@ impl CollateralLedger {
         amount: Satoshis,
         collateral_account_id: CalaAccountId,
         collateral_in_liquidation_account_id: CalaAccountId,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CollateralLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -254,7 +255,7 @@ impl CollateralLedger {
         &self,
         db: &mut es_entity::DbOp<'_>,
         data: RecordProceedsFromLiquidationData,
-        initiated_by: LedgerTransactionInitiator,
+        initiated_by: &impl SystemSubject,
     ) -> Result<(), CollateralLedgerError> {
         self.cala
             .post_transaction_in_op(

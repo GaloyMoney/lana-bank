@@ -28,7 +28,7 @@ use crate::{
 pub const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUIDATION";
 
 #[derive(Debug)]
-pub struct ReceiveProceedsFromLiquidationParams {
+pub struct ReceiveProceedsFromLiquidationParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub fiat_liquidation_proceeds_omnibus_account_id: CalaAccountId,
     pub fiat_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
@@ -38,10 +38,10 @@ pub struct ReceiveProceedsFromLiquidationParams {
     pub btc_liquidated_account_id: CalaAccountId,
     pub amount_liquidated: Satoshis,
     pub effective: NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl ReceiveProceedsFromLiquidationParams {
+impl<S: std::fmt::Display> ReceiveProceedsFromLiquidationParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -98,7 +98,7 @@ impl ReceiveProceedsFromLiquidationParams {
     }
 }
 
-impl From<ReceiveProceedsFromLiquidationParams> for Params {
+impl<S: std::fmt::Display> From<ReceiveProceedsFromLiquidationParams<S>> for Params {
     fn from(
         ReceiveProceedsFromLiquidationParams {
             journal_id,
@@ -111,7 +111,7 @@ impl From<ReceiveProceedsFromLiquidationParams> for Params {
             amount_liquidated,
             effective,
             initiated_by,
-        }: ReceiveProceedsFromLiquidationParams,
+        }: ReceiveProceedsFromLiquidationParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -132,7 +132,7 @@ impl From<ReceiveProceedsFromLiquidationParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -196,7 +196,7 @@ impl ReceiveProceedsFromLiquidation {
                 .expect("Could not build entry"),
         ];
 
-        let params = ReceiveProceedsFromLiquidationParams::defs();
+        let params = ReceiveProceedsFromLiquidationParams::<String>::defs();
 
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())

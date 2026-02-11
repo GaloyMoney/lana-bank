@@ -8,12 +8,14 @@ use super::{access::User, loader::*};
 
 #[derive(SimpleObject)]
 pub struct System {
-    name: &'static str,
+    actor: String,
 }
 
 impl System {
-    pub fn lana() -> Self {
-        Self { name: "lana" }
+    pub fn from_actor(actor: &audit::SystemActor) -> Self {
+        Self {
+            actor: actor.to_string(),
+        }
     }
 }
 
@@ -42,15 +44,15 @@ impl AuditEntry {
     async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<AuditSubject> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
 
-        match self.subject {
+        match &self.subject {
             DomainSubject::User(id) => {
-                let user = loader.load_one(id).await?;
+                let user = loader.load_one(*id).await?;
                 match user {
                     None => Err("User not found".into()),
                     Some(user) => Ok(AuditSubject::User(user)),
                 }
             }
-            DomainSubject::System => Ok(AuditSubject::System(System::lana())),
+            DomainSubject::System(actor) => Ok(AuditSubject::System(System::from_actor(actor))),
             DomainSubject::Customer(_) => {
                 panic!("Whoops - have we gone live yet?");
             }

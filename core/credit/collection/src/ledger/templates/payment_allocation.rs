@@ -14,7 +14,7 @@ use crate::ledger::error::CollectionLedgerError;
 pub const RECORD_PAYMENT_ALLOCATION_CODE: &str = "RECORD_PAYMENT_ALLOCATION";
 
 #[derive(Debug)]
-pub struct RecordPaymentAllocationParams {
+pub struct RecordPaymentAllocationParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -22,10 +22,10 @@ pub struct RecordPaymentAllocationParams {
     pub receivable_account_id: CalaAccountId,
     pub tx_ref: String,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl RecordPaymentAllocationParams {
+impl<S: std::fmt::Display> RecordPaymentAllocationParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -71,7 +71,7 @@ impl RecordPaymentAllocationParams {
         ]
     }
 }
-impl From<RecordPaymentAllocationParams> for Params {
+impl<S: std::fmt::Display> From<RecordPaymentAllocationParams<S>> for Params {
     fn from(
         RecordPaymentAllocationParams {
             journal_id,
@@ -82,7 +82,7 @@ impl From<RecordPaymentAllocationParams> for Params {
             tx_ref,
             effective,
             initiated_by,
-        }: RecordPaymentAllocationParams,
+        }: RecordPaymentAllocationParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("external_id", tx_ref);
@@ -95,7 +95,7 @@ impl From<RecordPaymentAllocationParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
 
@@ -138,7 +138,7 @@ impl RecordPaymentAllocation {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordPaymentAllocationParams::defs();
+        let params = RecordPaymentAllocationParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(RECORD_PAYMENT_ALLOCATION_CODE)

@@ -23,7 +23,6 @@ use std::sync::Arc;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use core_accounting::LedgerTransactionInitiator;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -663,7 +662,7 @@ where
                 disbursal.initiated_tx_id,
                 disbursal.amount,
                 facility.account_ids,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                sub,
             )
             .await?;
 
@@ -717,7 +716,7 @@ where
 
         let payment_id = PaymentId::new();
         let effective = self.clock.today();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = sub;
         self.collections
             .payments()
             .record(
@@ -779,7 +778,7 @@ where
             .await?;
 
         let payment_id = PaymentId::new();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = sub;
         self.collections
             .payments()
             .record(
@@ -851,11 +850,7 @@ where
                     .await?;
 
                 self.ledger
-                    .complete_credit_facility_in_op(
-                        &mut db,
-                        completion,
-                        LedgerTransactionInitiator::try_from_subject(sub)?,
-                    )
+                    .complete_credit_facility_in_op(&mut db, completion, sub)
                     .await?;
                 db.commit().await?;
 

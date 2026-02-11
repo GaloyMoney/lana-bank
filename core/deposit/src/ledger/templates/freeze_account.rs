@@ -15,17 +15,17 @@ use crate::ledger::error::DepositLedgerError;
 pub const FREEZE_ACCOUNT_CODE: &str = "FREEZE_ACCOUNT";
 
 #[derive(Debug)]
-pub struct FreezeAccountParams {
+pub struct FreezeAccountParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub account_id: CalaAccountId,
     pub frozen_accounts_account_id: CalaAccountId,
     pub amount: Decimal,
     pub currency: Currency,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
     pub effective_date: chrono::NaiveDate,
 }
 
-impl FreezeAccountParams {
+impl<S: std::fmt::Display> FreezeAccountParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -67,7 +67,7 @@ impl FreezeAccountParams {
     }
 }
 
-impl From<FreezeAccountParams> for Params {
+impl<S: std::fmt::Display> From<FreezeAccountParams<S>> for Params {
     fn from(
         FreezeAccountParams {
             journal_id,
@@ -77,7 +77,7 @@ impl From<FreezeAccountParams> for Params {
             currency,
             initiated_by,
             effective_date,
-        }: FreezeAccountParams,
+        }: FreezeAccountParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -89,7 +89,7 @@ impl From<FreezeAccountParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
         params
@@ -131,7 +131,7 @@ impl FreezeAccount {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = FreezeAccountParams::defs();
+        let params = FreezeAccountParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(FREEZE_ACCOUNT_CODE)

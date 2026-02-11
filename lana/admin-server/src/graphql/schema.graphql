@@ -2408,7 +2408,7 @@ type SumsubPermalinkCreatePayload {
 }
 
 type System {
-	name: String!
+	actor: String!
 }
 
 type SystemApproval {

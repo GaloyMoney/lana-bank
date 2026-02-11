@@ -8,6 +8,8 @@ use schemars::JsonSchema;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
+pub const OBLIGATION_SYNC: audit::SystemActor = audit::SystemActor::new("obligation-sync");
+
 pub use cala_ledger::primitives::{AccountId as CalaAccountId, TransactionId as LedgerTxId};
 pub use core_credit_terms::EffectiveDate;
 pub use money::*;

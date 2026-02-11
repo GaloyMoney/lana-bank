@@ -12,7 +12,7 @@ use crate::{ledger::error::*, primitives::CalaAccountId};
 pub const ACTIVATE_CREDIT_FACILITY_CODE: &str = "ACTIVATE_CREDIT_FACILITY";
 
 #[derive(Debug)]
-pub struct ActivateCreditFacilityParams {
+pub struct ActivateCreditFacilityParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
@@ -20,10 +20,10 @@ pub struct ActivateCreditFacilityParams {
     pub currency: Currency,
     pub external_id: String,
     pub effective: chrono::NaiveDate,
-    pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub initiated_by: S,
 }
 
-impl ActivateCreditFacilityParams {
+impl<S: std::fmt::Display> ActivateCreditFacilityParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -70,7 +70,7 @@ impl ActivateCreditFacilityParams {
     }
 }
 
-impl From<ActivateCreditFacilityParams> for Params {
+impl<S: std::fmt::Display> From<ActivateCreditFacilityParams<S>> for Params {
     fn from(
         ActivateCreditFacilityParams {
             journal_id,
@@ -81,7 +81,7 @@ impl From<ActivateCreditFacilityParams> for Params {
             external_id,
             effective,
             initiated_by,
-        }: ActivateCreditFacilityParams,
+        }: ActivateCreditFacilityParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -94,7 +94,7 @@ impl From<ActivateCreditFacilityParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": initiated_by,
+                "initiated_by": initiated_by.to_string(),
             }),
         );
         params
@@ -154,7 +154,7 @@ impl ActivateCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
         ];
-        let params = ActivateCreditFacilityParams::defs();
+        let params = ActivateCreditFacilityParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(ACTIVATE_CREDIT_FACILITY_CODE)

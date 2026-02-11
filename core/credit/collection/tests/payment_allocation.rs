@@ -1,7 +1,8 @@
 mod helpers;
 
+use audit::SystemSubject;
+use authz::dummy::DummySubject;
 use cala_ledger::primitives::TransactionId as LedgerTxId;
-use core_accounting::LedgerTransactionInitiator;
 use core_credit_collection::{
     BeneficiaryId, CoreCreditCollectionEvent, NewObligation, ObligationId, ObligationType,
     PaymentDetailsForAllocation, PaymentId, PaymentLedgerAccountIds, PaymentSourceAccountId,
@@ -98,7 +99,7 @@ async fn payment_allocation_created_event_on_allocate() -> anyhow::Result<()> {
                     payment_ledger_accounts,
                     amount,
                     effective,
-                    LedgerTransactionInitiator::System,
+                    &DummySubject::system(audit::SystemActor::new("test")),
                 )
                 .await?
                 .ok_or_else(|| anyhow::anyhow!("payment was not created"))?;
@@ -107,7 +108,7 @@ async fn payment_allocation_created_event_on_allocate() -> anyhow::Result<()> {
                 .allocate_payment_in_op(
                     &mut op,
                     payment_details,
-                    LedgerTransactionInitiator::System,
+                    &DummySubject::system(audit::SystemActor::new("test")),
                 )
                 .await?;
             op.commit().await?;
