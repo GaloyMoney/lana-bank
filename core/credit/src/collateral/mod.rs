@@ -35,7 +35,7 @@ pub(super) use entity::*;
 use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync};
 pub use {
     entity::Collateral,
-    liquidation::{Liquidation, LiquidationError, RecordProceedsFromLiquidationData},
+    liquidation::{Liquidation, RecordProceedsFromLiquidationData},
     repo::liquidation_cursor,
 };
 
@@ -369,7 +369,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
-    ) -> Result<Vec<Liquidation>, LiquidationError> {
+    ) -> Result<Vec<Liquidation>, CollateralError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -378,9 +378,10 @@ where
             )
             .await?;
 
-        self.repo
+        Ok(self
+            .repo
             .list_liquidations_for_collateral_id(collateral_id)
-            .await
+            .await?)
     }
 
     #[record_error_severity]
@@ -389,7 +390,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         liquidation_id: impl Into<LiquidationId> + std::fmt::Debug,
-    ) -> Result<Option<Liquidation>, LiquidationError> {
+    ) -> Result<Option<Liquidation>, CollateralError> {
         let id = liquidation_id.into();
         self.authz
             .enforce_permission(
@@ -399,14 +400,14 @@ where
             )
             .await?;
 
-        self.repo.find_liquidation_by_id(id).await
+        Ok(self.repo.find_liquidation_by_id(id).await?)
     }
 
     pub async fn find_all_liquidations<T: From<Liquidation>>(
         &self,
         ids: &[LiquidationId],
-    ) -> Result<HashMap<LiquidationId, T>, LiquidationError> {
-        self.repo.find_all_liquidations(ids).await
+    ) -> Result<HashMap<LiquidationId, T>, CollateralError> {
+        Ok(self.repo.find_all_liquidations(ids).await?)
     }
 
     #[record_error_severity]
@@ -417,7 +418,7 @@ where
         query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByIdCursor>,
     ) -> Result<
         es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsByIdCursor>,
-        LiquidationError,
+        CollateralError,
     > {
         self.authz
             .enforce_permission(
@@ -427,6 +428,6 @@ where
             )
             .await?;
 
-        self.repo.list_liquidations(query).await
+        Ok(self.repo.list_liquidations(query).await?)
     }
 }

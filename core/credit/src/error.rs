@@ -52,8 +52,6 @@ pub enum CoreCreditError {
     CustodyError(#[from] core_custody::error::CoreCustodyError),
     #[error("CoreCreditError - DisbursalError: {0}")]
     DisbursalError(#[from] super::disbursal::error::DisbursalError),
-    #[error("CoreCreditError - LiquidationError: {0}")]
-    LiquidationError(#[from] super::collateral::liquidation::LiquidationError),
     #[error("CoreCreditError - InterestAccrualCycleError: {0}")]
     InterestAccrualCycleError(
         #[from] super::interest_accrual_cycle::error::InterestAccrualCycleError,
@@ -101,7 +99,6 @@ impl ErrorSeverity for CoreCreditError {
             Self::CollateralLedgerError(e) => e.severity(),
             Self::CustodyError(e) => e.severity(),
             Self::DisbursalError(e) => e.severity(),
-            Self::LiquidationError(e) => e.severity(),
             Self::InterestAccrualCycleError(e) => e.severity(),
             Self::PriceError(e) => e.severity(),
             Self::GovernanceError(e) => e.severity(),
