@@ -25,7 +25,6 @@ use tracing_macros::record_error_severity;
 
 use crate::{
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
-    collateral::ledger::templates as collateral_templates,
     primitives::{
         CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, CalaAccountId,
         CalaAccountSetId, CreditFacilityId, CustomerType, DisbursalId,
@@ -701,36 +700,6 @@ impl CreditLedger {
 
             payments_unapplied,
         })
-    }
-
-    pub async fn complete_credit_facility_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        CreditFacilityCompletion {
-            tx_id,
-            collateral,
-            collateral_account_id,
-            credit_facility_account_ids: _,
-        }: CreditFacilityCompletion,
-        initiated_by: &impl SystemSubject,
-    ) -> Result<(), CreditLedgerError> {
-        self.cala
-            .post_transaction_in_op(
-                op,
-                tx_id,
-                collateral_templates::REMOVE_COLLATERAL_CODE,
-                collateral_templates::RemoveCollateralParams {
-                    journal_id: self.journal_id,
-                    currency: self.btc,
-                    amount: collateral.to_btc(),
-                    collateral_account_id,
-                    bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
-                    effective: self.clock.today(),
-                    initiated_by,
-                },
-            )
-            .await?;
-        Ok(())
     }
 
     async fn create_credit_facility_proposal_in_op(

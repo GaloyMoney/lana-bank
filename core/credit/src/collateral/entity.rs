@@ -156,6 +156,7 @@ impl Collateral {
 
         Idempotent::Executed(CollateralUpdate {
             tx_id,
+            collateral_account_id: self.collateral_account_id(),
             abs_diff,
             direction,
             effective,
@@ -192,6 +193,7 @@ impl Collateral {
 
         Ok(Idempotent::Executed(CollateralUpdate {
             tx_id,
+            collateral_account_id: self.collateral_account_id(),
             abs_diff,
             direction,
             effective,
@@ -236,6 +238,7 @@ impl Collateral {
 
         Ok(Idempotent::Executed(CollateralUpdate {
             tx_id,
+            collateral_account_id: self.collateral_account_id(),
             abs_diff: amount_sent,
             direction: CollateralDirection::Remove,
             effective,

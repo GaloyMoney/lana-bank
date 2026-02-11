@@ -592,6 +592,7 @@ pub enum CollateralDirection {
 
 pub struct CollateralUpdate {
     pub tx_id: LedgerTxId,
+    pub collateral_account_id: CalaAccountId,
     pub abs_diff: Satoshis,
     pub direction: CollateralDirection,
     pub effective: chrono::NaiveDate,

@@ -718,7 +718,6 @@ impl CreditFacility {
         _price: PriceOfOneBTC,
         _upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityBalanceSummary,
-        collateral_account_id: CalaAccountId,
     ) -> Result<Idempotent<CreditFacilityCompletion>, CreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all(),
@@ -730,9 +729,6 @@ impl CreditFacility {
 
         let res = CreditFacilityCompletion {
             tx_id: LedgerTxId::new(),
-            collateral: balances.collateral(),
-            collateral_account_id,
-            credit_facility_account_ids: self.account_ids,
         };
 
         self.events.push(CreditFacilityEvent::Completed {});
@@ -1307,7 +1303,6 @@ mod test {
                         interest_posted: UsdCents::from(1),
                         payments_unapplied: UsdCents::ZERO,
                     },
-                    CalaAccountId::new(),
                 )
                 .unwrap();
             assert!(credit_facility.is_completed());
@@ -1339,7 +1334,6 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
-                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_disbursed,
@@ -1367,7 +1361,6 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
-                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_interest,
@@ -1400,7 +1393,6 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
-                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_disbursed,
@@ -1428,7 +1420,6 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
-                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_interest,
@@ -1461,7 +1452,6 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
-                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_disbursed,
@@ -1489,7 +1479,6 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
-                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_interest,
@@ -1522,7 +1511,6 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
-                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_disbursed,
@@ -1550,7 +1538,6 @@ mod test {
                     interest_posted: UsdCents::from(1),
                     payments_unapplied: UsdCents::ZERO,
                 },
-                CalaAccountId::new(),
             );
             assert!(matches!(
                 res_interest,

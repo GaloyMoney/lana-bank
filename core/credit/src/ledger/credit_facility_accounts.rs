@@ -7,7 +7,7 @@ use core_credit_collection::PaymentSourceAccountId;
 
 use crate::{
     FacilityDurationType, InterestPeriod,
-    primitives::{CreditFacilityId, CustomerType, DisbursalId, LedgerTxId, Satoshis, UsdCents},
+    primitives::{CreditFacilityId, CustomerType, DisbursalId, LedgerTxId, UsdCents},
 };
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
@@ -176,9 +176,6 @@ pub struct InterestPostingAccountIds {
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCompletion {
     pub tx_id: LedgerTxId,
-    pub collateral: Satoshis,
-    pub collateral_account_id: CalaAccountId,
-    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
 }
 
 #[derive(Debug, Clone)]

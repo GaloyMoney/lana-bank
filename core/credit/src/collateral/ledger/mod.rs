@@ -173,11 +173,11 @@ impl CollateralLedger {
         op: &mut es_entity::DbOp<'_>,
         CollateralUpdate {
             tx_id,
+            collateral_account_id,
             abs_diff,
             direction,
             effective,
         }: CollateralUpdate,
-        collateral_account_id: CalaAccountId,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), CollateralLedgerError> {
         match direction {

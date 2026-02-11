@@ -21,7 +21,6 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     FacilityProceedsFromLiquidationAccountId,
-    collateral::ledger::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds},
     credit_facility::CreditFacilityRepo,
     primitives::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject},
 };
@@ -30,7 +29,7 @@ use es_entity::Idempotent;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
-use ledger::{CollateralLedger, LiquidationProceedsAccountIds};
+use ledger::{CollateralLedger, CollateralLedgerAccountIds, LiquidationProceedsAccountIds};
 
 pub(super) use entity::*;
 use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync};
@@ -271,12 +270,7 @@ where
             self.repo.update_in_op(&mut db, &mut collateral).await?;
 
             self.ledger
-                .update_collateral_amount_in_op(
-                    &mut db,
-                    collateral_update,
-                    collateral.account_ids.collateral_account_id,
-                    sub,
-                )
+                .update_collateral_amount_in_op(&mut db, collateral_update, sub)
                 .await?;
         }
 

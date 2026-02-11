@@ -345,13 +345,9 @@ where
             .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
             .await?;
 
-        let completion = if let es_entity::Idempotent::Executed(completion) = credit_facility
-            .complete(
-                price,
-                upgrade_buffer_cvl_pct,
-                balances,
-                collateral_account_id,
-            )? {
+        let completion = if let es_entity::Idempotent::Executed(completion) =
+            credit_facility.complete(price, upgrade_buffer_cvl_pct, balances)?
+        {
             completion
         } else {
             return Ok(CompletionOutcome::AlreadyApplied(credit_facility));
