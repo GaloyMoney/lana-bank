@@ -2,6 +2,7 @@
 sidebar_position: 2
 title: Domain Events
 description: Public domain events published by Lana Bank
+slug: /apis/events
 ---
 
 # Domain Events

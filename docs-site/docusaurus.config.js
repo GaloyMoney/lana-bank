@@ -56,7 +56,7 @@ const config = {
         id: "admin",
         schema: "../lana/admin-server/src/graphql/schema.graphql",
         rootPath: "./docs",
-        baseURL: "for-developers/admin-api",
+        baseURL: "apis/admin-api",
         docOptions: {
           index: true,
           pagination: true,
@@ -75,7 +75,7 @@ const config = {
         id: "customer",
         schema: "../lana/customer-server/src/graphql/schema.graphql",
         rootPath: "./docs",
-        baseURL: "for-developers/customer-api",
+        baseURL: "apis/customer-api",
         docOptions: {
           index: true,
           pagination: true,
@@ -125,7 +125,7 @@ const config = {
             label: "Documentation",
           },
           {
-            to: "/for-developers",
+            to: "/apis",
             label: "API Reference",
             position: "left",
           },
@@ -173,15 +173,15 @@ const config = {
             items: [
               {
                 label: "Admin API",
-                to: "/for-developers/admin-api",
+                to: "/apis/admin-api",
               },
               {
                 label: "Customer API",
-                to: "/for-developers/customer-api",
+                to: "/apis/customer-api",
               },
               {
                 label: "Domain Events",
-                to: "/for-developers/events",
+                to: "/apis/events",
               },
             ],
           },

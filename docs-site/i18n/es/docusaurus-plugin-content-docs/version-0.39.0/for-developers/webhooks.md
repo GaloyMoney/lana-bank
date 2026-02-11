@@ -42,7 +42,7 @@ Los eventos se entregan como JSON:
 
 ## Eventos Disponibles
 
-Consulta la [Referencia de Eventos](events/) para el catálogo completo de eventos de dominio.
+Consulta la [Referencia de Eventos](../apis/events) para el catálogo completo de eventos de dominio.
 
 ## Seguridad
 
