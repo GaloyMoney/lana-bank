@@ -25,8 +25,8 @@ use crate::{
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
     collateral::ledger::templates as collateral_templates,
     primitives::{
-        COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE,
-        CalaAccountId, CalaAccountSetId, CollateralId, CreditFacilityId, CustomerType, DisbursalId,
+        CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, CalaAccountId,
+        CalaAccountSetId, CreditFacilityId, CustomerType, DisbursalId,
         DisbursedReceivableAccountCategory, DisbursedReceivableAccountType, FacilityDurationType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId,
         PendingCreditFacilityId, Satoshis, UsdCents,
@@ -1782,7 +1782,6 @@ impl CreditLedger {
         self.create_accounts_for_credit_facility_proposal_in_op(
             op,
             pending_credit_facility.id,
-            pending_credit_facility.collateral_id,
             pending_credit_facility.account_ids,
         )
         .await?;
@@ -1808,31 +1807,17 @@ impl CreditLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         credit_facility_id: PendingCreditFacilityId,
-        collateral_id: CollateralId,
         account_ids: PendingCreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
         let PendingCreditFacilityAccountIds {
             facility_account_id,
-            collateral_account_id,
+            collateral_account_id: _,
             facility_proceeds_from_liquidation_account_id,
             facility_uncovered_outstanding_account_id,
             facility_payment_holding_account_id,
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, credit_facility_id);
-        let collateral_reference = &format!("credit-facility-collateral:{credit_facility_id}");
-        let collateral_name =
-            &format!("Credit Facility Collateral Account for {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            collateral_account_id,
-            self.internal_account_sets.collateral,
-            collateral_reference,
-            collateral_name,
-            collateral_name,
-            EntityRef::new(COLLATERAL_ENTITY_TYPE, collateral_id),
-        )
-        .await?;
 
         let facility_reference = &format!("credit-facility-obs-facility:{credit_facility_id}");
         let facility_name =
@@ -2754,6 +2739,10 @@ impl CreditLedger {
 
     pub fn collateral_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
         &self.collateral_omnibus_account_ids
+    }
+
+    pub fn collateral_account_set(&self) -> InternalAccountSetDetails {
+        self.internal_account_sets.collateral
     }
 
     pub fn payments_made_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
