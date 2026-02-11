@@ -10,7 +10,7 @@ import {
   CardContent,
   CardFooter,
 } from "@lana/web/ui/card"
-import { gql, useQuery } from "@apollo/client"
+import { gql } from "@apollo/client"
 
 import { Button } from "@lana/web/ui/button"
 import { Separator } from "@lana/web/ui/separator"
@@ -24,7 +24,6 @@ import { CreditAccountCategoryKey } from "./credit-config-fields"
 
 import { DetailItem } from "@/components/details"
 import {
-  AccountInfo,
   useDepositConfigQuery,
   useCreditConfigQuery,
   useChartAccountingBaseConfigQuery,
