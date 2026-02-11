@@ -4342,7 +4342,7 @@ export type CreditModuleConfigureMutationVariables = Exact<{
 }>;
 
 
-export type CreditModuleConfigureMutation = { __typename?: 'Mutation', creditModuleConfigure: { __typename?: 'CreditModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null } } };
+export type CreditModuleConfigureMutation = { __typename?: 'Mutation', creditModuleConfigure: { __typename?: 'CreditModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountLiquidatedCollateralParentCode?: string | null, chartOfAccountProceedsFromLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountDisbursedDefaultedParentCode?: string | null, chartOfAccountInterestDefaultedParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } } };
 
 export type DepositModuleConfigureMutationVariables = Exact<{
   input: DepositModuleConfigureInput;
@@ -10013,7 +10013,57 @@ export const CreditModuleConfigureDocument = gql`
     mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
   creditModuleConfigure(input: $input) {
     creditConfig {
-      chartOfAccountsId
+      chartOfAccountFacilityOmnibusParentCode
+      chartOfAccountCollateralOmnibusParentCode
+      chartOfAccountLiquidationProceedsOmnibusParentCode
+      chartOfAccountPaymentsMadeOmnibusParentCode
+      chartOfAccountInterestAddedToObligationsOmnibusParentCode
+      chartOfAccountUncoveredOutstandingParentCode
+      chartOfAccountFacilityParentCode
+      chartOfAccountCollateralParentCode
+      chartOfAccountCollateralInLiquidationParentCode
+      chartOfAccountLiquidatedCollateralParentCode
+      chartOfAccountProceedsFromLiquidationParentCode
+      chartOfAccountInterestIncomeParentCode
+      chartOfAccountFeeIncomeParentCode
+      chartOfAccountPaymentHoldingParentCode
+      chartOfAccountDisbursedDefaultedParentCode
+      chartOfAccountInterestDefaultedParentCode
+      chartOfAccountShortTermIndividualDisbursedReceivableParentCode
+      chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountShortTermBankDisbursedReceivableParentCode
+      chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode
+      chartOfAccountLongTermIndividualDisbursedReceivableParentCode
+      chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountLongTermBankDisbursedReceivableParentCode
+      chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode
+      chartOfAccountShortTermIndividualInterestReceivableParentCode
+      chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode
+      chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode
+      chartOfAccountShortTermBankInterestReceivableParentCode
+      chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode
+      chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+      chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode
+      chartOfAccountLongTermIndividualInterestReceivableParentCode
+      chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode
+      chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode
+      chartOfAccountLongTermBankInterestReceivableParentCode
+      chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode
+      chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+      chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode
+      chartOfAccountOverdueIndividualDisbursedReceivableParentCode
+      chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountOverdueBankDisbursedReceivableParentCode
+      chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode
     }
   }
 }
