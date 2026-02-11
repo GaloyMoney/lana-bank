@@ -129,14 +129,14 @@ function readCategory(apiDir, relativeDir) {
  * Build a mapping from every known file-path reference to its in-page anchor.
  *
  * Links in the generated MDX look like:
- *   (/for-developers/admin-api/types/objects/approval-process.mdx)
+ *   (/apis/admin-api/types/objects/approval-process.mdx)
  *
  * We map these to anchors like:
  *   (#object-ApprovalProcess)
  */
 function buildLinkMap(apiId, allCategories) {
   const map = {};
-  const basePath = `/for-developers/${apiId}-api`;
+  const basePath = `/apis/${apiId}-api`;
 
   for (const cat of allCategories) {
     for (const file of cat.files) {
@@ -179,7 +179,7 @@ function rmDir(dir) {
  * Process one API: read individual files → generate combined page → cleanup.
  */
 function processApi(apiId) {
-  const apiDir = path.join(DOCS_DIR, "for-developers", `${apiId}-api`);
+  const apiDir = path.join(DOCS_DIR, "apis", `${apiId}-api`);
   if (!fs.existsSync(apiDir)) {
     console.log(`  Skipping ${apiId}: directory not found`);
     return;
@@ -203,7 +203,7 @@ function processApi(apiId) {
   // 3. Assemble the combined page
   let page = `---
 title: ${apiLabel} API Reference
-slug: /for-developers/${apiId}-api
+slug: /apis/${apiId}-api
 sidebar_label: ${apiLabel} API
 pagination_next: null
 pagination_prev: null

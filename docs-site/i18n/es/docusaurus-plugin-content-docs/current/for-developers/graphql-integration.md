@@ -342,6 +342,6 @@ Content-Type: application/json
 
 ## Documentación de APIs
 
-- [Admin API](admin-api/) - Referencia completa de la API de administración
-- [Customer API](customer-api/) - Referencia completa de la API de clientes
+- [Admin API](../apis/admin-api) - Referencia completa de la API de administración
+- [Customer API](../apis/customer-api) - Referencia completa de la API de clientes
 

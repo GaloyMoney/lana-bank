@@ -37,9 +37,19 @@ const sidebars = {
             "for-developers/frontend/credit-ui",
           ],
         },
-        "for-developers/admin-api/api-reference",
-        "for-developers/customer-api/api-reference",
-        "for-developers/events/events",
+      ],
+    },
+    {
+      type: "category",
+      label: "APIs",
+      link: {
+        type: "doc",
+        id: "apis/index",
+      },
+      items: [
+        "apis/admin-api/api-reference",
+        "apis/customer-api/api-reference",
+        "apis/events/events",
       ],
     },
     {

@@ -28,8 +28,8 @@ const ADMIN_SCHEMA_PATH = path.join(DOCS_SITE_DIR, "..", "lana", "admin-server",
 const CUSTOMER_SCHEMA_PATH = path.join(DOCS_SITE_DIR, "..", "lana", "customer-server", "src", "graphql", "schema.graphql");
 
 // Generated docs paths (matches docusaurus.config.js baseURL settings)
-const GENERATED_ADMIN_DIR = path.join(DOCS_SITE_DIR, "docs", "for-developers", "admin-api");
-const GENERATED_CUSTOMER_DIR = path.join(DOCS_SITE_DIR, "docs", "for-developers", "customer-api");
+const GENERATED_ADMIN_DIR = path.join(DOCS_SITE_DIR, "docs", "apis", "admin-api");
+const GENERATED_CUSTOMER_DIR = path.join(DOCS_SITE_DIR, "docs", "apis", "customer-api");
 
 /**
  * Get all versions from versions.json
@@ -301,6 +301,7 @@ function generateEventsDocs(eventsSchemaPath, outputPath) {
 sidebar_position: 2
 title: ${t.title || "Domain Events"}
 description: ${t.description || "Public domain events published by Lana Bank"}
+slug: /apis/events
 ---
 
 # ${t.title || "Domain Events"}
@@ -423,7 +424,7 @@ async function main() {
       rmDirSync(GENERATED_ADMIN_DIR);
       rmDirSync(GENERATED_CUSTOMER_DIR);
 
-      // Run docusaurus graphql-to-doc commands (generates to for-developers/admin-api, for-developers/customer-api)
+      // Run docusaurus graphql-to-doc commands (generates to apis/admin-api, apis/customer-api)
       console.log("  Generating Admin API docs...");
       try {
         execSync("npm run generate-api-docs:admin", {
@@ -444,8 +445,8 @@ async function main() {
         console.log(`    Warning: Customer API generation had issues`);
       }
 
-      const adminDestDir = path.join(versionDocsDir, "for-developers", "admin-api");
-      const customerDestDir = path.join(versionDocsDir, "for-developers", "customer-api");
+      const adminDestDir = path.join(versionDocsDir, "apis", "admin-api");
+      const customerDestDir = path.join(versionDocsDir, "apis", "customer-api");
 
       // Combine individual API files into single pages
       console.log("  Combining API docs into single pages...");
@@ -466,18 +467,18 @@ async function main() {
 
       if (fs.existsSync(GENERATED_ADMIN_DIR)) {
         const count = copyDirSync(GENERATED_ADMIN_DIR, adminDestDir);
-        console.log(`    Copied ${count} combined files to for-developers/admin-api`);
+        console.log(`    Copied ${count} combined files to apis/admin-api`);
       }
 
       if (fs.existsSync(GENERATED_CUSTOMER_DIR)) {
         const count = copyDirSync(GENERATED_CUSTOMER_DIR, customerDestDir);
-        console.log(`    Copied ${count} combined files to for-developers/customer-api`);
+        console.log(`    Copied ${count} combined files to apis/customer-api`);
       }
 
       // Generate Events docs
       if (fs.existsSync(versionedEventsSchema)) {
         console.log("  Generating Events docs...");
-        const eventsOutputPath = path.join(versionDocsDir, "for-developers", "events", "events.md");
+        const eventsOutputPath = path.join(versionDocsDir, "apis", "events", "events.md");
         if (generateEventsDocs(versionedEventsSchema, eventsOutputPath)) {
           console.log("    Generated events.md");
         }
