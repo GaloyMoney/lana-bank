@@ -858,19 +858,27 @@ where
         {
             CompletionOutcome::AlreadyApplied(facility) => facility,
 
-            CompletionOutcome::Completed((facility, completion)) => {
-                self.collaterals
+            CompletionOutcome::Completed((facility, _completion)) => {
+                if let Some(collateral_update) = self
+                    .collaterals
                     .record_collateral_update_via_manual_input_in_op(
                         &mut db,
                         facility.collateral_id,
                         Satoshis::ZERO,
                         self.clock.today(),
                     )
-                    .await?;
+                    .await?
+                {
+                    self.collateral_ledger
+                        .update_collateral_amount_in_op(
+                            &mut db,
+                            collateral_update,
+                            collateral_account_id,
+                            sub,
+                        )
+                        .await?;
+                }
 
-                self.ledger
-                    .complete_credit_facility_in_op(&mut db, completion, sub)
-                    .await?;
                 db.commit().await?;
 
                 facility

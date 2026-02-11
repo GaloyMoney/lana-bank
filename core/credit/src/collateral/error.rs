@@ -21,10 +21,6 @@ pub enum CollateralError {
     LiquidationError(#[from] super::liquidation::LiquidationError),
     #[error("CollateralError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("CollateralError - LedgerTransactionInitiatorParseError: {0}")]
-    LedgerTransactionInitiatorParseError(
-        #[from] core_accounting::LedgerTransactionInitiatorParseError,
-    ),
     #[error("CollateralError - CreditFacilityError: {0}")]
     CreditFacilityError(Box<crate::credit_facility::error::CreditFacilityError>),
 }
@@ -47,7 +43,6 @@ impl ErrorSeverity for CollateralError {
             Self::JobError(_) => Level::ERROR,
             Self::LiquidationError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
-            Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
             Self::CreditFacilityError(e) => e.severity(),
         }
     }
