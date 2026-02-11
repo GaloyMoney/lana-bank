@@ -13,8 +13,8 @@ use core_custody::CoreCustodyEvent;
 use core_price::CorePriceEvent;
 
 use crate::{
+    CoreCreditEvent,
     credit_facility::{CreditFacilityError, CreditFacilityRepo},
-    event::CoreCreditEvent,
     primitives::*,
 };
 

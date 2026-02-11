@@ -13,7 +13,7 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject, event::CoreCreditEvent,
+    CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
     primitives::CreditFacilityId,
 };
 pub use entry::*;
@@ -130,23 +130,27 @@ impl CreditFacilityHistory {
                 ));
             }
             PendingCreditFacilityCollateralizationChanged {
-                state,
-                collateral,
-                price,
+                entity,
                 recorded_at,
                 effective,
-                ..
-            } => self.entries.push(
-                CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
-                    PendingCreditFacilityCollateralizationUpdated {
-                        state: *state,
-                        collateral: *collateral,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                        price: *price,
-                    },
-                ),
-            ),
+            } => {
+                let collateralization = &entity.collateralization;
+                self.entries.push(
+                    CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
+                        PendingCreditFacilityCollateralizationUpdated {
+                            state: collateralization.state,
+                            collateral: collateralization.collateral.expect(
+                                "collateralization change event must include collateral amount",
+                            ),
+                            recorded_at: *recorded_at,
+                            effective: *effective,
+                            price: collateralization
+                                .price
+                                .expect("collateralization change event must include price"),
+                        },
+                    ),
+                )
+            }
             PendingCreditFacilityCompleted { .. } => {}
             FacilityCompleted { .. } => {}
             PartialLiquidationInitiated { .. } => {}

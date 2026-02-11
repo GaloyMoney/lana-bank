@@ -123,7 +123,7 @@ impl PendingCreditFacility {
             PendingCreditFacilityCollateralizationState::UnderCollateralized
         };
 
-        if calculated_collateralization_state != self.last_collateralization_state() {
+        if calculated_collateralization_state != self.last_collateralization_state().state {
             self.events
                 .push(PendingCreditFacilityEvent::CollateralizationStateChanged {
                     collateralization_state: calculated_collateralization_state,

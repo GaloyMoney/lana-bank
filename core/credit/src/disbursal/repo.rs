@@ -5,7 +5,7 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
+use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
 use super::{entity::*, error::DisbursalError};
 

@@ -2546,19 +2546,16 @@ impl Subscription {
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
                 CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
-                    id,
-                    state,
-                    collateral,
-                    price,
+                    entity,
                     recorded_at,
                     effective,
-                } if *id == pending_credit_facility_id => {
+                } if entity.id == pending_credit_facility_id => {
                     Some(PendingCreditFacilityCollateralizationPayload {
                         pending_credit_facility_id,
                         update: PendingCreditFacilityCollateralizationUpdated {
-                            state: *state,
-                            collateral: *collateral,
-                            price: price.into_inner(),
+                            state: entity.collateralization.state,
+                            collateral: entity.collateralization.collateral?,
+                            price: entity.collateralization.price?.into_inner(),
                             recorded_at: (*recorded_at).into(),
                             effective: (*effective).into(),
                         },
@@ -2589,16 +2586,14 @@ impl Subscription {
             let payload = event.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
-                CoreCreditEvent::PendingCreditFacilityCompleted {
-                    id,
-                    status,
-                    recorded_at,
-                } if *id == pending_credit_facility_id => {
+                CoreCreditEvent::PendingCreditFacilityCompleted { entity }
+                    if entity.id == pending_credit_facility_id =>
+                {
                     Some(PendingCreditFacilityCompletedPayload {
                         pending_credit_facility_id,
                         update: PendingCreditFacilityCompleted {
-                            status: *status,
-                            recorded_at: (*recorded_at).into(),
+                            status: entity.status,
+                            recorded_at: entity.completed_at?.into(),
                         },
                     })
                 }

@@ -9,10 +9,10 @@ use money::{Satoshis, UsdCents};
 
 use crate::{
     credit_facility::CreditFacilityReceivable, ledger::FacilityProceedsFromLiquidationAccountId,
-    public::{PublicCreditFacilityProposal, PublicPendingCreditFacility},
+    primitives::*,
 };
 
-use super::primitives::*;
+use super::{PublicCreditFacilityProposal, PublicPendingCreditFacility};
 
 #[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

@@ -12,7 +12,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 
-use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, repayment_plan::*};
+use crate::{CoreCreditCollectionEvent, CoreCreditEvent, repayment_plan::*};
 
 #[derive(Serialize, Deserialize)]
 pub struct RepaymentPlanProjectionConfig<E> {

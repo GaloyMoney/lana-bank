@@ -26,7 +26,7 @@ use crate::{
 
 use es_entity::Idempotent;
 
-use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
+use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
 use ledger::CollateralLedger;
 

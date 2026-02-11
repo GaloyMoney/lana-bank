@@ -6,7 +6,7 @@ use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    event::CoreCreditEvent,
+    CoreCreditEvent,
     primitives::{CollateralId, CustodyWalletId, LiquidationId},
     publisher::CreditFacilityPublisher,
 };
