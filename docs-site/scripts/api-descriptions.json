@@ -143,7 +143,8 @@
       "chartOfAccountsCsvImportWithBaseConfig": "Imports a chart of accounts from a CSV file with base configuration settings",
       "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file",
       "collateralLiquidationRecordProceedsReceived": "Records proceeds received from a collateral liquidation",
-      "collateralRecordSentToLiquidation": "Records collateral sent to liquidation"
+      "collateralRecordSentToLiquidation": "Records collateral sent to liquidation",
+      "collateralUpdate": "TODO: Add description"
     }
   },
   "customer": {
