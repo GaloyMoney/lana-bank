@@ -2400,7 +2400,6 @@
       "confirmationDescription": "Revisa los valores actualizados antes de cerrar.",
       "confirmationPrevious": "Anterior",
       "confirmationUpdated": "Actualizado",
-      "confirmationNoChanges": "No se detectaron cambios.",
       "updateSuccess": "Configuración de crédito actualizada.",
       "groups": {
         "omnibus": "Cuentas Omnibus",

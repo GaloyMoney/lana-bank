@@ -10,7 +10,7 @@ import {
   CardContent,
   CardFooter,
 } from "@lana/web/ui/card"
-import { gql, useQuery } from "@apollo/client"
+import { gql } from "@apollo/client"
 
 import { Button } from "@lana/web/ui/button"
 import { Separator } from "@lana/web/ui/separator"
@@ -24,10 +24,11 @@ import { CreditAccountCategoryKey } from "./credit-config-fields"
 
 import { DetailItem } from "@/components/details"
 import {
-  AccountInfo,
   useDepositConfigQuery,
   useCreditConfigQuery,
   useChartAccountingBaseConfigQuery,
+  useCreditAccountSetOptionsQuery,
+  type CreditAccountSetOptionsQuery,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -123,7 +124,7 @@ gql`
   }
 `
 
-const CREDIT_ACCOUNT_SET_OPTIONS_QUERY = gql`
+gql`
   query CreditAccountSetOptions {
     offBalanceSheet: descendantAccountSetsByCategory(category: OFF_BALANCE_SHEET) {
       accountSetId
@@ -163,16 +164,6 @@ const CREDIT_ACCOUNT_SET_OPTIONS_QUERY = gql`
   }
 `
 
-type CreditAccountSetOptionsData = {
-  offBalanceSheet: AccountInfo[]
-  asset: AccountInfo[]
-  liability: AccountInfo[]
-  equity: AccountInfo[]
-  revenue: AccountInfo[]
-  costOfRevenue: AccountInfo[]
-  expenses: AccountInfo[]
-}
-
 const Modules: React.FC = () => {
   const t = useTranslations("Modules")
 
@@ -184,14 +175,18 @@ const Modules: React.FC = () => {
   const { data: creditConfig, loading: creditConfigLoading } = useCreditConfigQuery()
   const { data: chartData, loading: chartLoading } = useChartAccountingBaseConfigQuery()
   const { data: accountSetOptionsData, error: accountSetOptionsError } =
-    useQuery<CreditAccountSetOptionsData>(CREDIT_ACCOUNT_SET_OPTIONS_QUERY)
+    useCreditAccountSetOptionsQuery()
 
   const accountingBaseConfig = chartData?.chartOfAccounts?.accountingBaseConfig
   const accountSetOptions = useMemo(() => {
     if (!accountSetOptionsData) return []
 
+    type AccountSetOptionsKey = Exclude<
+      keyof CreditAccountSetOptionsQuery,
+      "__typename"
+    >
     const categoryMap: Array<{
-      key: keyof CreditAccountSetOptionsData
+      key: AccountSetOptionsKey
       category: CreditAccountCategoryKey
     }> = [
       { key: "offBalanceSheet", category: "offBalanceSheet" },
@@ -203,14 +198,16 @@ const Modules: React.FC = () => {
       { key: "expenses", category: "expenses" },
     ]
 
-    return categoryMap.flatMap(({ key, category }) =>
-      (accountSetOptionsData[key] || []).map((option) => ({
+    return categoryMap.flatMap(({ key, category }) => {
+      const options = accountSetOptionsData[key] ?? []
+
+      return options.map((option) => ({
         accountSetId: option.accountSetId,
         code: option.code,
         name: option.name,
         category,
-      })),
-    )
+      }))
+    })
   }, [accountSetOptionsData])
 
   return (

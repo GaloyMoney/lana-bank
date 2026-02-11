@@ -277,11 +277,7 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
             <p className="text-sm text-muted-foreground">
               {t("credit.confirmationDescription")}
             </p>
-            {changes.length === 0 ? (
-              <div className="mt-4 rounded-md border border-dashed border-border p-3 text-sm text-muted-foreground">
-                {t("credit.confirmationNoChanges")}
-              </div>
-            ) : (
+            {changes.length > 0 && (
               <div className="mt-4 space-y-3">
                 {changes.map(({ field, from, to }) => {
                   const optionsForCategory = accountSetOptionsByCategory[field.category]

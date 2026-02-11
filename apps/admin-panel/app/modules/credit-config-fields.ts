@@ -40,7 +40,7 @@ export const CREDIT_CONFIG_FIELDS: CreditConfigField[] = [
   },
   {
     key: "chartOfAccountLiquidationProceedsOmnibusParentCode",
-    defaultCode: "9220.08.0201",
+    defaultCode: "9170.00.0001",
     category: "offBalanceSheet",
     group: "omnibus",
   },
