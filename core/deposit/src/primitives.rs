@@ -199,9 +199,9 @@ const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET: DepositAccountSetSpec = Deposit
 );
 
 const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
-    "Deposit Non-Domiciled Company Account Set";
+    "Deposit Non-Domiciled Individual Account Set";
 const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
-    "deposit-non-domiciled-company-account-set";
+    "deposit-non-domiciled-individual-account-set";
 const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET: DepositAccountSetSpec =
     DepositAccountSetSpec::new(
         DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME,
