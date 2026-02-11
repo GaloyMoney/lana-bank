@@ -15,7 +15,7 @@ use job::{JobSvcConfig, Jobs};
 
 #[tokio::test]
 async fn ledger_account_ancestors() -> anyhow::Result<()> {
-    use uuid::Uuid;
+    use rand::Rng;
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let cala_config = CalaLedgerConfig::builder()
@@ -40,7 +40,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{}", Uuid::new_v4());
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -163,7 +163,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn ledger_account_children() -> anyhow::Result<()> {
-    use uuid::Uuid;
+    use rand::Rng;
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let cala_config = CalaLedgerConfig::builder()
@@ -188,7 +188,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{}", Uuid::new_v4());
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -279,7 +279,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
-    use uuid::Uuid;
+    use rand::Rng;
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let cala_config = CalaLedgerConfig::builder()
@@ -303,7 +303,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{}", Uuid::new_v4());
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())

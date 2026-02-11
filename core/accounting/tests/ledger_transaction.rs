@@ -186,7 +186,7 @@ async fn prepare_test() -> anyhow::Result<(
     CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>, helpers::event::TestEvent>,
     Chart,
 )> {
-    use uuid::Uuid;
+    use rand::Rng;
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let cala_config = CalaLedgerConfig::builder()
@@ -211,7 +211,7 @@ async fn prepare_test() -> anyhow::Result<(
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{}", Uuid::new_v4());
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())

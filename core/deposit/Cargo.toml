@@ -58,6 +58,7 @@ authz = { workspace = true, features = ["test-dummy"] }
 domain-config = { workspace = true, features = ["test-utils"] }
 document-storage = { workspace = true }
 obix = { workspace = true, features = ["test-utils"] }
+rand = { workspace = true }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }

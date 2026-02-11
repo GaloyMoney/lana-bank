@@ -6,6 +6,7 @@ use domain_config::{
     ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
     RequireVerifiedCustomerForAccount,
 };
+use rand::Rng;
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
@@ -84,9 +85,9 @@ where
         From<core_accounting::CoreAccountingObject>,
     E: obix::out::OutboxEventMarker<core_accounting::CoreAccountingEvent>,
 {
-    let bs = format!("BS-{}", uuid::Uuid::new_v4());
-    let pl = format!("PL-{}", uuid::Uuid::new_v4());
-    let tb = format!("TB-{}", uuid::Uuid::new_v4());
+    let bs = format!("BS-{:010}", rand::rng().random_range(0..10_000_000_000u64));
+    let pl = format!("PL-{:010}", rand::rng().random_range(0..10_000_000_000u64));
+    let tb = format!("TB-{:010}", rand::rng().random_range(0..10_000_000_000u64));
 
     accounting
         .balance_sheets()

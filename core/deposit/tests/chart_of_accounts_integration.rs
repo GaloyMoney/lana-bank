@@ -9,6 +9,7 @@ use core_deposit::*;
 use document_storage::DocumentStorage;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, event, object};
+use rand::Rng;
 
 const DEPOSIT_ACCOUNTS_CSV: &str = r#"
 11,,,Omnibus Parent,,
@@ -94,7 +95,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &mut jobs,
         &outbox,
     );
-    let chart_ref = format!("ref-{}", uuid::Uuid::new_v4());
+    let chart_ref = format!("ref-{:010}", rand::rng().random_range(0..10_000_000_000u64));
     let chart_id = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -174,7 +175,10 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert_eq!(res.entities.len(), 1);
 
-    let chart_ref = format!("other-ref-{}", uuid::Uuid::new_v4());
+    let chart_ref = format!(
+        "other-ref-{:010}",
+        rand::rng().random_range(0..10_000_000_000u64)
+    );
     let chart_id = accounting
         .chart_of_accounts()
         .create_chart(

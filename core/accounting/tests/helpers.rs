@@ -1,6 +1,6 @@
 use cala_ledger::CalaLedger;
 use obix::out::Outbox;
-use uuid::Uuid;
+use rand::Rng;
 
 use core_accounting::{AccountingBaseConfig, CoreAccounting};
 
@@ -66,9 +66,9 @@ where
         From<core_accounting::CoreAccountingObject>,
     E: obix::out::OutboxEventMarker<core_accounting::CoreAccountingEvent>,
 {
-    let bs = format!("BS-{}", Uuid::new_v4());
-    let pl = format!("PL-{}", Uuid::new_v4());
-    let tb = format!("TB-{}", Uuid::new_v4());
+    let bs = format!("BS-{:010}", rand::rng().random_range(0..10_000_000_000u64));
+    let pl = format!("PL-{:010}", rand::rng().random_range(0..10_000_000_000u64));
+    let tb = format!("TB-{:010}", rand::rng().random_range(0..10_000_000_000u64));
 
     accounting
         .balance_sheets()
