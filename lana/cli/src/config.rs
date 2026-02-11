@@ -102,7 +102,7 @@ impl Config {
         let key_bytes = hex::decode(encryption_key)?;
         if key_bytes.len() != 32 {
             return Err(anyhow::anyhow!(
-                "Custodian encryption key must be 32 bytes, got {}",
+                "Encryption key must be 32 bytes, got {}",
                 key_bytes.len()
             ));
         }

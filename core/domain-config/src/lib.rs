@@ -182,7 +182,7 @@ pub use spec::{
 };
 pub use typed_domain_config::TypedDomainConfig;
 
-use encryption::EncryptionKey;
+use encryption::StorageEncryption;
 use entity::NewDomainConfig;
 use repo::DomainConfigRepo;
 
@@ -230,7 +230,8 @@ impl InternalDomainConfigs {
         C: InternalConfig,
     {
         let config = self.repo.find_by_key(C::KEY).await?;
-        TypedDomainConfig::try_new(config, self.config.key)
+        let encryption = StorageEncryption::from_config(&config, &self.config);
+        TypedDomainConfig::try_new(config, encryption)
     }
 
     #[record_error_severity]
@@ -243,10 +244,8 @@ impl InternalDomainConfigs {
         C: InternalConfig,
     {
         let mut config = self.repo.find_by_key(C::KEY).await?;
-        if config
-            .update_value::<C>(&self.config.key, value)?
-            .did_execute()
-        {
+        let encryption = StorageEncryption::from_config(&config, &self.config);
+        if config.update_value::<C>(&encryption, value)?.did_execute() {
             self.repo.update(&mut config).await?;
         }
 
@@ -276,10 +275,8 @@ impl InternalDomainConfigs {
         C: InternalConfig,
     {
         let mut config = self.repo.find_by_key_in_op(&mut *op, C::KEY).await?;
-        if config
-            .update_value::<C>(&self.config.key, value)?
-            .did_execute()
-        {
+        let encryption = StorageEncryption::from_config(&config, &self.config);
+        if config.update_value::<C>(&encryption, value)?.did_execute() {
             self.repo.update_in_op(op, &mut config).await?;
         }
         Ok(())
@@ -299,7 +296,8 @@ impl ExposedDomainConfigsReadOnly {
         C: ExposedConfig,
     {
         let config = self.repo.find_by_key(C::KEY).await?;
-        TypedDomainConfig::try_new(config, self.config.key)
+        let encryption = StorageEncryption::from_config(&config, &self.config);
+        TypedDomainConfig::try_new(config, encryption)
     }
 }
 
@@ -329,7 +327,8 @@ where
     {
         self.ensure_read_permission(sub).await?;
         let config = self.repo.find_by_key(C::KEY).await?;
-        TypedDomainConfig::try_new(config, self.config.key)
+        let encryption = StorageEncryption::from_config(&config, &self.config);
+        TypedDomainConfig::try_new(config, encryption)
     }
 
     #[record_error_severity]
@@ -344,10 +343,9 @@ where
     {
         self.ensure_write_permission(sub).await?;
         let mut config = self.repo.find_by_key(C::KEY).await?;
-        if config
-            .update_value::<C>(&self.config.key, value)?
-            .did_execute()
-        {
+        let encryption = StorageEncryption::from_config(&config, &self.config);
+
+        if config.update_value::<C>(&encryption, value)?.did_execute() {
             self.repo.update(&mut config).await?;
         }
 
@@ -404,9 +402,10 @@ where
                 config.key
             ))
         })?;
+        let encryption = StorageEncryption::from_config(&config, &self.config);
 
         if config
-            .apply_exposed_update_from_json(entry, &self.config.key, value)?
+            .apply_exposed_update_from_json(entry, &encryption, value)?
             .did_execute()
         {
             self.repo.update(&mut config).await?;
@@ -519,8 +518,10 @@ where
         };
 
         let mut config = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
+        let encryption = StorageEncryption::from_config(&config, encryption_config);
+
         let changed = config
-            .apply_update_from_json(entry, &encryption_config.key, value)?
+            .apply_update_from_json(entry, &encryption, value)?
             .did_execute();
 
         if changed {
