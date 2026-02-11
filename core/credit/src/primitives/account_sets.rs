@@ -749,7 +749,7 @@ const CREDIT_FEE_INCOME: CreditSummaryAccountSetSpec = CreditSummaryAccountSetSp
 );
 
 const CREDIT_UNCOVERED_OUTSTANDING_NAME: &str = "Credit Uncovered Outstanding Account Set";
-const CREDIT_UNCOVERED_OUTSTANDING_REF: &str = "credit-unconvered-outstanding-account-set";
+const CREDIT_UNCOVERED_OUTSTANDING_REF: &str = "credit-uncovered-outstanding-account-set";
 const CREDIT_UNCOVERED_OUTSTANDING: CreditSummaryAccountSetSpec = CreditSummaryAccountSetSpec::new(
     CREDIT_UNCOVERED_OUTSTANDING_NAME,
     CREDIT_UNCOVERED_OUTSTANDING_REF,

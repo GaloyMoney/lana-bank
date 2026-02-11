@@ -7,6 +7,7 @@ use core_accounting::{AccountCode, CalaAccountSetId, CoreAccounting};
 use core_credit::*;
 use document_storage::DocumentStorage;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use std::collections::HashMap;
 
 use helpers::{
     BASE_ACCOUNTS_CSV, action, assert_attached_for_code, default_accounting_base_config, event,
