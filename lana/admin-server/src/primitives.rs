@@ -18,7 +18,7 @@ pub use lana_app::{
     },
     public_id::PublicId,
     report::ReportRunId,
-    terms::{CollateralizationState, PendingCreditFacilityCollateralizationState},
+    terms::CollateralizationState,
 };
 
 pub use std::sync::Arc;

@@ -14,7 +14,7 @@ use tracing_macros::record_error_severity;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
-    primitives::CreditFacilityId,
+    primitives::{CreditFacilityId, PendingCreditFacilityCollateralizationState},
 };
 pub use entry::*;
 use error::CreditFacilityHistoryError;
@@ -134,19 +134,27 @@ impl CreditFacilityHistory {
                 recorded_at,
                 effective,
             } => {
-                let collateralization = &entity.collateralization;
+                let (collateral, price) = match entity.collateralization {
+                    PendingCreditFacilityCollateralizationState::FullyCollateralized {
+                        collateral,
+                        price,
+                    }
+                    | PendingCreditFacilityCollateralizationState::UnderCollateralized {
+                        collateral,
+                        price,
+                    } => (collateral, price),
+                    PendingCreditFacilityCollateralizationState::NoCollateral => {
+                        panic!("collateralization change event must not be NoCollateral")
+                    }
+                };
                 self.entries.push(
                     CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
                         PendingCreditFacilityCollateralizationUpdated {
-                            state: collateralization.state,
-                            collateral: collateralization.collateral.expect(
-                                "collateralization change event must include collateral amount",
-                            ),
+                            state: entity.collateralization,
+                            collateral,
                             recorded_at: *recorded_at,
                             effective: *effective,
-                            price: collateralization
-                                .price
-                                .expect("collateralization change event must include price"),
+                            price,
                         },
                     ),
                 )

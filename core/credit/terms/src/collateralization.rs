@@ -1,3 +1,5 @@
+use core_price::PriceOfOneBTC;
+use money::Satoshis;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
@@ -46,24 +48,29 @@ impl CollateralizationState {
     }
 }
 
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Serialize,
-    Deserialize,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize, Eq)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum PendingCreditFacilityCollateralizationState {
-    FullyCollateralized,
+    FullyCollateralized {
+        collateral: Satoshis,
+        price: PriceOfOneBTC,
+    },
+    UnderCollateralized {
+        collateral: Satoshis,
+        price: PriceOfOneBTC,
+    },
     #[default]
-    UnderCollateralized,
+    NoCollateral,
+}
+
+impl PendingCreditFacilityCollateralizationState {
+    pub fn is_fully_collateralized(&self) -> bool {
+        matches!(self, Self::FullyCollateralized { .. })
+    }
+
+    pub fn is_same_variant(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
 }
 
 // SQLx implementations for database storage
@@ -152,9 +159,15 @@ mod collateralization_ratio_sqlx {
 }
 
 mod pending_collateralization_state_sqlx {
+    use core_price::PriceOfOneBTC;
+    use money::Satoshis;
     use sqlx::{Type, postgres::*};
 
     use super::PendingCreditFacilityCollateralizationState;
+
+    const FULLY_COLLATERALIZED: &str = "FullyCollateralized";
+    const UNDER_COLLATERALIZED: &str = "UnderCollateralized";
+    const NO_COLLATERAL: &str = "NoCollateral";
 
     impl Type<Postgres> for PendingCreditFacilityCollateralizationState {
         fn type_info() -> PgTypeInfo {
@@ -171,14 +184,41 @@ mod pending_collateralization_state_sqlx {
             &self,
             buf: &mut PgArgumentBuffer,
         ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
-            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
+            let s = match self {
+                PendingCreditFacilityCollateralizationState::FullyCollateralized { .. } => {
+                    FULLY_COLLATERALIZED
+                }
+                PendingCreditFacilityCollateralizationState::UnderCollateralized { .. } => {
+                    UNDER_COLLATERALIZED
+                }
+                PendingCreditFacilityCollateralizationState::NoCollateral => NO_COLLATERAL,
+            };
+            <String as sqlx::Encode<'_, Postgres>>::encode(s.to_string(), buf)
         }
     }
 
     impl<'r> sqlx::Decode<'r, Postgres> for PendingCreditFacilityCollateralizationState {
         fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
             let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
-            Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
+            match s.as_str() {
+                FULLY_COLLATERALIZED => Ok(
+                    PendingCreditFacilityCollateralizationState::FullyCollateralized {
+                        collateral: Satoshis::ZERO,
+                        price: PriceOfOneBTC::ZERO,
+                    },
+                ),
+                UNDER_COLLATERALIZED => Ok(
+                    PendingCreditFacilityCollateralizationState::UnderCollateralized {
+                        collateral: Satoshis::ZERO,
+                        price: PriceOfOneBTC::ZERO,
+                    },
+                ),
+                NO_COLLATERAL => Ok(PendingCreditFacilityCollateralizationState::NoCollateral),
+                other => Err(format!(
+                    "Unknown PendingCreditFacilityCollateralizationState: {other}"
+                )
+                .into()),
+            }
         }
     }
 

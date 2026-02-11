@@ -18,14 +18,6 @@ use crate::{
 
 use super::error::PendingCreditFacilityError;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct PendingFacilityCollateralization {
-    pub state: PendingCreditFacilityCollateralizationState,
-    pub collateral: Option<Satoshis>,
-    pub price: Option<PriceOfOneBTC>,
-}
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -46,8 +38,6 @@ pub enum PendingCreditFacilityEvent {
     },
     CollateralizationStateChanged {
         collateralization_state: PendingCreditFacilityCollateralizationState,
-        collateral: Satoshis,
-        price: PriceOfOneBTC,
     },
     CollateralizationRatioChanged {
         collateralization_ratio: CollateralizationRatio,
@@ -117,20 +107,24 @@ impl PendingCreditFacility {
 
         let is_fully_collateralized = balances.current_cvl(price) >= self.terms.margin_call_cvl;
 
-        let calculated_collateralization_state = if is_fully_collateralized {
-            PendingCreditFacilityCollateralizationState::FullyCollateralized
+        let calculated = if is_fully_collateralized {
+            PendingCreditFacilityCollateralizationState::FullyCollateralized {
+                collateral: balances.collateral(),
+                price,
+            }
         } else {
-            PendingCreditFacilityCollateralizationState::UnderCollateralized
+            PendingCreditFacilityCollateralizationState::UnderCollateralized {
+                collateral: balances.collateral(),
+                price,
+            }
         };
 
-        if calculated_collateralization_state != self.last_collateralization_state().state {
+        if !calculated.is_same_variant(&self.last_collateralization_state()) {
             self.events
                 .push(PendingCreditFacilityEvent::CollateralizationStateChanged {
-                    collateralization_state: calculated_collateralization_state,
-                    collateral: balances.collateral(),
-                    price,
+                    collateralization_state: calculated,
                 });
-            Idempotent::Executed(Some(calculated_collateralization_state))
+            Idempotent::Executed(Some(calculated))
         } else if ratio_changed {
             Idempotent::Executed(None)
         } else {
@@ -169,27 +163,17 @@ impl PendingCreditFacility {
             .unwrap_or(CollateralizationRatio::default())
     }
 
-    pub fn last_collateralization_state(&self) -> PendingFacilityCollateralization {
+    pub fn last_collateralization_state(&self) -> PendingCreditFacilityCollateralizationState {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 PendingCreditFacilityEvent::CollateralizationStateChanged {
                     collateralization_state,
-                    collateral,
-                    price,
-                } => Some(PendingFacilityCollateralization {
-                    state: *collateralization_state,
-                    collateral: Some(*collateral),
-                    price: Some(*price),
-                }),
+                } => Some(*collateralization_state),
                 _ => None,
             })
-            .unwrap_or(PendingFacilityCollateralization {
-                state: PendingCreditFacilityCollateralizationState::UnderCollateralized,
-                collateral: None,
-                price: None,
-            })
+            .unwrap_or_default()
     }
 
     pub fn completed_at(&self) -> Option<DateTime<Utc>> {

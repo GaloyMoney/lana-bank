@@ -3,6 +3,31 @@ use async_graphql::*;
 use crate::primitives::*;
 pub use lana_app::primitives::CollateralDirection;
 
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PendingCreditFacilityCollateralizationState {
+    FullyCollateralized,
+    UnderCollateralized,
+    NoCollateral,
+}
+
+impl From<lana_app::terms::PendingCreditFacilityCollateralizationState>
+    for PendingCreditFacilityCollateralizationState
+{
+    fn from(state: lana_app::terms::PendingCreditFacilityCollateralizationState) -> Self {
+        match state {
+            lana_app::terms::PendingCreditFacilityCollateralizationState::FullyCollateralized {
+                ..
+            } => Self::FullyCollateralized,
+            lana_app::terms::PendingCreditFacilityCollateralizationState::UnderCollateralized {
+                ..
+            } => Self::UnderCollateralized,
+            lana_app::terms::PendingCreditFacilityCollateralizationState::NoCollateral => {
+                Self::NoCollateral
+            }
+        }
+    }
+}
+
 #[derive(async_graphql::Union)]
 pub enum CreditFacilityHistoryEntry {
     Payment(CreditFacilityIncrementalPayment),
@@ -171,7 +196,7 @@ impl From<lana_app::credit::PendingCreditFacilityCollateralizationUpdated>
         collateralization: lana_app::credit::PendingCreditFacilityCollateralizationUpdated,
     ) -> Self {
         Self {
-            state: collateralization.state,
+            state: collateralization.state.into(),
             collateral: collateralization.collateral,
             recorded_at: collateralization.recorded_at.into(),
             effective: collateralization.effective.into(),
