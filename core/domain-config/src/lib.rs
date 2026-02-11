@@ -452,6 +452,10 @@ async fn seed_registered_for_visibility(
         }
 
         let key = DomainConfigKey::new(spec.key);
+        if repo.maybe_find_by_key(key.clone()).await?.is_some() {
+            continue;
+        }
+
         let config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
             .seed(config_id, key, spec.config_type, spec.visibility)
