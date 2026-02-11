@@ -60,7 +60,8 @@ fn discover_transaction_descriptions() -> BTreeSet<String> {
             .filter_map(|e| e.ok())
         {
             if entry.path().extension().is_some_and(|ext| ext == "rs") {
-                let content = std::fs::read_to_string(entry.path()).unwrap();
+                let content =
+                    std::fs::read_to_string(entry.path()).expect("failed to read template file");
                 for line in content.lines() {
                     if let Some(start) = line.find(pattern) {
                         let after = &line[start + pattern.len()..];
@@ -76,7 +77,8 @@ fn discover_transaction_descriptions() -> BTreeSet<String> {
 }
 
 fn write_json(path: &str, value: serde_json::Value) {
-    let content = serde_json::to_string_pretty(&value).unwrap();
-    std::fs::create_dir_all(Path::new(path).parent().unwrap()).unwrap();
-    std::fs::write(path, format!("{content}\n")).unwrap();
+    let content = serde_json::to_string_pretty(&value).expect("failed to serialize JSON");
+    std::fs::create_dir_all(Path::new(path).parent().expect("path has no parent"))
+        .expect("failed to create directory");
+    std::fs::write(path, format!("{content}\n")).expect("failed to write file");
 }
