@@ -151,6 +151,17 @@ where
                     .persist_in_tx(db, entity.id, repayment_plan)
                     .await?;
             }
+            Some(event @ DisbursalSettled { entity }) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                let mut repayment_plan = self.repo.load(entity.credit_facility_id).await?;
+                repayment_plan.process_credit_event(sequence, event, clock.now());
+                self.repo
+                    .persist_in_tx(db, entity.credit_facility_id, repayment_plan)
+                    .await?;
+            }
             Some(
                 event @ FacilityCollateralUpdated {
                     credit_facility_id: id,
@@ -158,12 +169,6 @@ where
                 },
             )
             | Some(event @ FacilityCollateralizationChanged { id, .. })
-            | Some(
-                event @ DisbursalSettled {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
             | Some(
                 event @ AccrualPosted {
                     credit_facility_id: id,
