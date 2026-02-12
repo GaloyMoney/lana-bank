@@ -84,21 +84,6 @@ impl Customer {
         self.applicant_id.is_some()
     }
 
-    pub(crate) fn update_account_kyc_verification(
-        &mut self,
-        kyc_verification: KycVerification,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CustomerEvent::KycVerificationUpdated { kyc_verification: existing_kyc_verification, .. } if existing_kyc_verification == &kyc_verification,
-            => CustomerEvent::KycVerificationUpdated { .. }
-        );
-        self.events
-            .push(CustomerEvent::KycVerificationUpdated { kyc_verification });
-        self.kyc_verification = kyc_verification;
-        Idempotent::Executed(())
-    }
-
     pub(crate) fn update_activity(&mut self, activity: Activity) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),

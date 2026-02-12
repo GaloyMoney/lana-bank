@@ -440,7 +440,7 @@ where
             }
             es_entity::Idempotent::AlreadyApplied => {
                 let customer_id = CustomerId::from(prospect_id);
-                self.repo.find_by_id(customer_id).await.map_err(Into::into)
+                Ok(self.repo.find_by_id(customer_id).await?)
             }
         }
     }
