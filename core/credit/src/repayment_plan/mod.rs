@@ -569,6 +569,7 @@ mod tests {
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
+                completed_at: None,
             },
         }];
         process_credit_events(&mut plan, events);
@@ -599,6 +600,7 @@ mod tests {
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
+                    completed_at: None,
                 },
             },
             CoreCreditEvent::AccrualPosted {
@@ -640,6 +642,7 @@ mod tests {
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
+                    completed_at: None,
                 },
             },
             CoreCreditEvent::AccrualPosted {
@@ -689,6 +692,7 @@ mod tests {
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
+                    completed_at: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -735,6 +739,7 @@ mod tests {
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
+                    completed_at: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -797,6 +802,7 @@ mod tests {
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
+                    completed_at: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -885,6 +891,7 @@ mod tests {
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
+                    completed_at: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -1009,6 +1016,7 @@ mod tests {
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
+                    completed_at: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -1115,6 +1123,7 @@ mod tests {
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
+                    completed_at: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -1215,6 +1224,7 @@ mod tests {
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
+                completed_at: None,
             },
         };
         plan.process_credit_event(Default::default(), &activate_event, default_start_date());
@@ -1275,6 +1285,7 @@ mod tests {
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
+                completed_at: None,
             },
         };
         plan.process_credit_event(Default::default(), &activate_event, default_start_date());
@@ -1362,6 +1373,7 @@ mod tests {
                 activation_tx_id: LedgerTxId::new(),
                 activated_at,
                 amount: default_facility_amount(),
+                completed_at: None,
             },
         };
 
@@ -1404,6 +1416,7 @@ mod tests {
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
+                    completed_at: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {

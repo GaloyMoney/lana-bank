@@ -36,8 +36,7 @@ pub enum CoreCreditEvent {
         entity: PublicCreditFacility,
     },
     FacilityCompleted {
-        id: CreditFacilityId,
-        completed_at: DateTime<Utc>,
+        entity: PublicCreditFacility,
     },
     FacilityCollateralUpdated {
         credit_facility_id: CreditFacilityId,

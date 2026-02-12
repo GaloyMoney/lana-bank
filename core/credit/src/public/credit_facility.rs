@@ -18,6 +18,7 @@ pub struct PublicCreditFacility {
     pub activation_tx_id: LedgerTxId,
     pub activated_at: DateTime<Utc>,
     pub amount: UsdCents,
+    pub completed_at: Option<DateTime<Utc>>,
 }
 
 impl From<&CreditFacility> for PublicCreditFacility {
@@ -27,6 +28,7 @@ impl From<&CreditFacility> for PublicCreditFacility {
             activation_tx_id: entity.activation_tx_id(),
             activated_at: entity.activated_at,
             amount: entity.amount,
+            completed_at: entity.completed_at(),
         }
     }
 }

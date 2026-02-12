@@ -131,8 +131,8 @@ pub async fn principal_late_scenario(
                     obligation_queue.push_back((entity.obligation_type, entity.outstanding_amount));
                 }
 
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) = &msg.payload
-                    && *id == cf_id
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { entity })) = &msg.payload
+                    && entity.id == cf_id
                 {
                     msg.inject_trace_parent();
                     facility_completed = true;
