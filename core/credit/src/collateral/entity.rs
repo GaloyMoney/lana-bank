@@ -9,8 +9,8 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::primitives::{
-    CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    LiquidationId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
+    CalaAccountId, CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId,
+    LedgerTxId, LiquidationId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
 };
 
 use super::{
