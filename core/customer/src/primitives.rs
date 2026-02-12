@@ -123,8 +123,10 @@ impl From<CustomerType> for String {
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 
-pub const PERMISSION_SET_CUSTOMER_VIEWER: &str = "customer_viewer";
-pub const PERMISSION_SET_CUSTOMER_WRITER: &str = "customer_writer";
+permission_sets_macro::permission_sets! {
+    CustomerViewer("Can view customer profiles and account details"),
+    CustomerWriter("Can create, update, and manage customers, including initiating and approving KYC processes"),
+}
 
 pub const CUSTOMER_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("customer");

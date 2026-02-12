@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "apps/admin-panel/messages/en.json"
+      - "apps/admin-panel/messages/permissions/en.json"
 
 permissions:
   contents: write

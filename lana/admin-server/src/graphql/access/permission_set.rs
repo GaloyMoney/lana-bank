@@ -1,10 +1,8 @@
 use async_graphql::*;
 
 use crate::primitives::*;
+use lana_app::access::permission_set::PermissionSet as DomainPermissionSet;
 pub use lana_app::access::permission_set::PermissionSetsByIdCursor;
-use lana_app::{
-    access::permission_set::PermissionSet as DomainPermissionSet, rbac::PermissionSetName,
-};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -18,11 +16,14 @@ pub struct PermissionSet {
 
 #[ComplexObject]
 impl PermissionSet {
-    async fn name(&self) -> PermissionSetName {
-        self.entity
-            .name
-            .parse()
-            .unwrap_or_else(|_| panic!("Invalid permission set name {}", self.entity.name))
+    async fn name(&self) -> &str {
+        &self.entity.name
+    }
+
+    async fn description(&self) -> &str {
+        permission_sets_macro::find_by_name(&self.entity.name)
+            .map(|e| e.description)
+            .unwrap_or("")
     }
 }
 

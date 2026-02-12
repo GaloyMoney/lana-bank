@@ -38,8 +38,10 @@ pub enum WalletNetwork {
     Mainnet,
 }
 
-pub const PERMISSION_SET_CUSTODY_VIEWER: &str = "custody_viewer";
-pub const PERMISSION_SET_CUSTODY_WRITER: &str = "custody_writer";
+permission_sets_macro::permission_sets! {
+    CustodyViewer("Can view custodian configurations"),
+    CustodyWriter("Can create and manage custodian configurations"),
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]

@@ -28,9 +28,11 @@ dependencies = [
  "domain-config",
  "es-entity",
  "futures",
+ "heck",
  "jwks-utils",
  "lana-app",
  "obix",
+ "permission-sets-macro",
  "rust_decimal",
  "serde",
  "serde_json",
@@ -1264,6 +1266,7 @@ dependencies = [
  "handlebars",
  "job",
  "obix",
+ "permission-sets-macro",
  "rendering",
  "schemars 1.2.0",
  "serde",
@@ -1300,6 +1303,7 @@ dependencies = [
  "es-entity",
  "governance",
  "obix",
+ "permission-sets-macro",
  "schemars 1.2.0",
  "serde",
  "serde_json",
@@ -1335,6 +1339,7 @@ dependencies = [
  "job",
  "money",
  "obix",
+ "permission-sets-macro",
  "rand 0.9.2",
  "rust_decimal",
  "rust_decimal_macros",
@@ -1381,6 +1386,7 @@ dependencies = [
  "job",
  "money",
  "obix",
+ "permission-sets-macro",
  "public-id",
  "rand 0.9.2",
  "rust_decimal",
@@ -1417,6 +1423,7 @@ dependencies = [
  "job",
  "money",
  "obix",
+ "permission-sets-macro",
  "rust_decimal",
  "schemars 1.2.0",
  "serde",
@@ -1444,6 +1451,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "money",
+ "permission-sets-macro",
  "rust_decimal",
  "rust_decimal_macros",
  "schemars 1.2.0",
@@ -1479,6 +1487,7 @@ dependencies = [
  "komainu",
  "money",
  "obix",
+ "permission-sets-macro",
  "schemars 1.2.0",
  "serde",
  "serde_json",
@@ -1512,6 +1521,7 @@ dependencies = [
  "governance",
  "job",
  "obix",
+ "permission-sets-macro",
  "public-id",
  "schemars 1.2.0",
  "serde",
@@ -1552,6 +1562,7 @@ dependencies = [
  "job",
  "money",
  "obix",
+ "permission-sets-macro",
  "public-id",
  "rand 0.9.2",
  "rust_decimal",
@@ -1637,6 +1648,7 @@ dependencies = [
  "es-entity",
  "job",
  "obix",
+ "permission-sets-macro",
  "schemars 1.2.0",
  "serde",
  "sqlx",
@@ -2019,6 +2031,7 @@ dependencies = [
  "lana-events",
  "money",
  "obix",
+ "permission-sets-macro",
  "schemars 1.2.0",
  "serde",
  "serde_json",
@@ -2171,6 +2184,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "inventory",
+ "permission-sets-macro",
  "rust_decimal",
  "rust_decimal_macros",
  "schemars 1.2.0",
@@ -2910,6 +2924,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "obix",
+ "permission-sets-macro",
  "schemars 1.2.0",
  "serde",
  "sqlx",
@@ -4391,6 +4406,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
+
+[[package]]
 name = "pbkdf2"
 version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4414,6 +4435,15 @@ name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
+
+[[package]]
+name = "permission-sets-macro"
+version = "0.0.0"
+dependencies = [
+ "inventory",
+ "paste",
+ "workspace-hack",
+]
 
 [[package]]
 name = "pest"
@@ -5084,7 +5114,6 @@ name = "rbac-types"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "async-graphql",
  "audit",
  "authz",
  "contract-creation",
@@ -5100,6 +5129,7 @@ dependencies = [
  "dashboard",
  "domain-config",
  "governance",
+ "permission-sets-macro",
  "strum",
  "thiserror 2.0.18",
  "tracing",

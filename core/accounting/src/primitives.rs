@@ -640,8 +640,10 @@ pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if ther
 // option
 pub type FiscalYearAllOrOne = AllOrOne<FiscalYearId>;
 
-pub const PERMISSION_SET_ACCOUNTING_VIEWER: &str = "accounting_viewer";
-pub const PERMISSION_SET_ACCOUNTING_WRITER: &str = "accounting_writer";
+permission_sets_macro::permission_sets! {
+    AccountingViewer("Can view accounting reports, journal entries, ledger accounts, and transactions"),
+    AccountingWriter("Can create and manage charts of accounts, ledger and manual transactions, balance sheets, profit-and-loss reports, and related accounting data"),
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]

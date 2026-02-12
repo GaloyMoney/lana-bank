@@ -4,10 +4,9 @@ import { Label } from "@lana/web/ui/label"
 import { ScrollArea } from "@lana/web/ui/scroll-area"
 
 import { usePermissionDisplay } from "@/hooks/use-permission-display"
-import { PermissionSetName } from "@/lib/graphql/generated"
 
 type Permission = {
-  name: PermissionSetName
+  name: string
 }
 
 type PermissionsDisplayProps = {

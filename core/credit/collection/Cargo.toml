@@ -16,6 +16,7 @@ json-schema = [
 
 [dependencies]
 money = { workspace = true }
+permission-sets-macro = { workspace = true }
 core-credit-terms = { path = "../terms" }
 
 audit = { workspace = true }

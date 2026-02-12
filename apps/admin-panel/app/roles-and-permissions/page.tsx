@@ -24,6 +24,7 @@ gql`
     id
     permissionSetId
     name
+    description
   }
 
   fragment RoleFields on Role {

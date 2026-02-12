@@ -193,8 +193,10 @@ pub type CommitteeAllOrOne = AllOrOne<CommitteeId>;
 pub type PolicyAllOrOne = AllOrOne<PolicyId>;
 pub type ApprovalProcessAllOrOne = AllOrOne<ApprovalProcessId>;
 
-pub const PERMISSION_SET_GOVERNANCE_WRITER: &str = "governance_writer";
-pub const PERMISSION_SET_GOVERNANCE_VIEWER: &str = "governance_viewer";
+permission_sets_macro::permission_sets! {
+    GovernanceWriter("Can create and manage committees and policies, and control approval processes (create, approve, deny, conclude)"),
+    GovernanceViewer("Can view governance committees, policies, and approval processes"),
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

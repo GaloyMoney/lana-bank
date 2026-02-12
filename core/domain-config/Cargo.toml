@@ -13,6 +13,7 @@ graphql = ["es-entity/graphql", "dep:async-graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
+permission-sets-macro = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 es-entity = { workspace = true }

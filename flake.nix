@@ -95,7 +95,8 @@
           || pkgs.lib.hasInfix "/lana/contract-creation/src/templates/" path
           || pkgs.lib.hasInfix "/lib/gotenberg/config/" path
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
-          || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path;
+          || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path
+          || pkgs.lib.hasInfix "/apps/admin-panel/messages/permissions/en.json" path;
       };
 
       commonArgs = {
@@ -313,6 +314,14 @@
             // {
               pname = "write_customer_sdl";
               cargoExtraArgs = "-p customer-server --bin write_customer_sdl";
+            }
+          );
+
+          write_permission_labels = craneLib.buildPackage (
+            individualCrateArgs
+            // {
+              pname = "write_permission_labels";
+              cargoExtraArgs = "-p admin-server --bin write_permission_labels";
             }
           );
 
@@ -785,6 +794,38 @@
             installPhase = ''
               mkdir -p $out
               echo "SDL check passed" > $out/result.txt
+            '';
+          };
+
+          check-permission-labels = pkgs.stdenv.mkDerivation {
+            name = "check-permission-labels";
+            src = rustSource;
+
+            nativeBuildInputs = with pkgs; [
+              diffutils
+            ];
+
+            buildInputs = [
+              self.packages.${system}.write_permission_labels
+            ];
+
+            buildPhase = ''
+              echo "Generating permission labels..."
+              ${self.packages.${system}.write_permission_labels}/bin/write_permission_labels > permission-labels-generated.json
+
+              echo "Comparing permission labels..."
+              if ! diff -u apps/admin-panel/messages/permissions/en.json permission-labels-generated.json; then
+                echo "ERROR: Permission labels are out of date!"
+                echo "Run 'make generate-permission-labels' to update"
+                exit 1
+              fi
+
+              echo "Permission labels are up to date"
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "Permission labels check passed" > $out/result.txt
             '';
           };
 

@@ -50,10 +50,12 @@ pub type DepositAllOrOne = AllOrOne<DepositId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
-pub const PERMISSION_SET_DEPOSIT_VIEWER: &str = "deposit_viewer";
-pub const PERMISSION_SET_DEPOSIT_WRITER: &str = "deposit_writer";
-pub const PERMISSION_SET_DEPOSIT_FREEZE: &str = "deposit_freeze";
-pub const PERMISSION_SET_DEPOSIT_UNFREEZE: &str = "deposit_unfreeze";
+permission_sets_macro::permission_sets! {
+    DepositViewer("Can view deposit accounts, balances, transaction history, and withdrawal details"),
+    DepositWriter("Can create and manage deposits, deposit accounts, and withdrawals, including initiating, confirming, cancelling, and approving withdrawals"),
+    DepositFreeze("Can freeze deposit accounts"),
+    DepositUnfreeze("Can unfreeze deposit accounts"),
+}
 
 pub const DEPOSIT_ACCOUNT_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("deposit_account");
