@@ -20,26 +20,19 @@ The Admin Panel is the main interface for bank staff:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    ADMIN PANEL                                  │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    Next.js App Router                     │  │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐         │  │
-│  │  │ Dashboard  │  │ Customers  │  │  Credit    │         │  │
-│  │  └────────────┘  └────────────┘  └────────────┘         │  │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐         │  │
-│  │  │ Deposits   │  │ Approvals  │  │  Reports   │         │  │
-│  │  └────────────┘  └────────────┘  └────────────┘         │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    Apollo Client                          │  │
-│  │                 (Admin GraphQL API)                       │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Panel["Admin Panel"]
+        subgraph Router["Next.js App Router"]
+            DASH["Dashboard"]
+            CUST["Customers"]
+            CRED["Credit"]
+            DEP["Deposits"]
+            APPR["Approvals"]
+            RPT["Reports"]
+        end
+        Router --> APOLLO["Apollo Client<br/>(Admin GraphQL API)"]
+    end
 ```
 
 ## Project Structure

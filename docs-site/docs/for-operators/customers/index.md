@@ -52,11 +52,9 @@ graph TD
 
 ## Customer Lifecycle
 
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Initial   │───▶│     KYC     │───▶│   Deposit   │───▶│   Active    │
-│Registration │    │ Verification│    │   Account   │    │  Customer   │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+```mermaid
+graph LR
+    REG["Initial<br/>Registration"] --> KYC["KYC<br/>Verification"] --> DEP["Deposit<br/>Account"] --> ACT["Active<br/>Customer"]
 ```
 
 The system establishes the fundamental identity layer required before customers can access financial products:

@@ -20,26 +20,19 @@ The Customer Portal allows bank customers to:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    CUSTOMER PORTAL                              │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    Next.js App Router                     │  │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐         │  │
-│  │  │  Home      │  │  Account   │  │  Credit    │         │  │
-│  │  └────────────┘  └────────────┘  └────────────┘         │  │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐         │  │
-│  │  │Transactions│  │ Documents  │  │  Profile   │         │  │
-│  │  └────────────┘  └────────────┘  └────────────┘         │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    Apollo Client                          │  │
-│  │                (Customer GraphQL API)                     │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Portal["Customer Portal"]
+        subgraph Router["Next.js App Router"]
+            HOME["Home"]
+            ACCT["Account"]
+            CRED["Credit"]
+            TXN["Transactions"]
+            DOCS["Documents"]
+            PROF["Profile"]
+        end
+        Router --> APOLLO["Apollo Client<br/>(Customer GraphQL API)"]
+    end
 ```
 
 ## Project Structure
@@ -67,17 +60,10 @@ apps/customer-portal/
 
 ### Disbursement Request
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  View credit │───▶│   Request    │───▶│   Pending    │
-│   facility   │    │  disbursement│    │   approval   │
-└──────────────┘    └──────────────┘    └──────────────┘
-                                               │
-                                               ▼
-                    ┌──────────────┐    ┌──────────────┐
-                    │ Disbursement │◀───│   Approved   │
-                    │   received   │    │              │
-                    └──────────────┘    └──────────────┘
+```mermaid
+graph LR
+    VIEW["View credit facility"] --> REQ["Request disbursement"] --> PEND["Pending approval"]
+    PEND --> APPR["Approved"] --> RECV["Disbursement received"]
 ```
 
 ## Authentication

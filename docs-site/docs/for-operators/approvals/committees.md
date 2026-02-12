@@ -93,11 +93,9 @@ Quorum defines the minimum number of votes needed for a decision.
 
 ### Voting Flow
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Request    │───▶│   Active     │───▶│   Decision   │
-│   submitted  │    │   voting     │    │   reached    │
-└──────────────┘    └──────────────┘    └──────────────┘
+```mermaid
+graph LR
+    SUB["Request submitted"] --> VOTE["Active voting"] --> DEC["Decision reached"]
 ```
 
 ### Cast a Vote
