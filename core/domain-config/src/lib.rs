@@ -149,6 +149,7 @@ mod config;
 mod encryption;
 mod entity;
 pub mod error;
+mod flavor;
 mod macros;
 mod primitives;
 pub mod registry;
@@ -177,6 +178,7 @@ pub use primitives::{
 };
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use shared_config::RequireVerifiedCustomerForAccount;
+pub use flavor::FlavorDispatch;
 pub use spec::{
     Complex, ConfigFlavor, ConfigSpec, DefaultedConfig, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, ExposedConfig, InternalConfig, Simple, ValueKind,

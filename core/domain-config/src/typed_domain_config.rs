@@ -4,39 +4,10 @@ use crate::{
     ConfigSpec, ConfigType, DefaultedConfig, DomainConfigError, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, DomainConfigKey, ValueKind, Visibility,
     encryption::{EncryptionKey, StorageEncryption},
+    flavor::FlavorDispatch,
 };
 
 use crate::entity::DomainConfig;
-
-mod sealed {
-    pub trait Sealed {}
-    impl Sealed for super::DomainConfigFlavorPlaintext {}
-    impl Sealed for super::DomainConfigFlavorEncrypted {}
-}
-
-/// Trait for compile-time dispatch based on config flavor.
-/// This allows unified `maybe_value()` and `value()` methods on TypedDomainConfig.
-pub trait FlavorDispatch: sealed::Sealed {
-    fn maybe_value<C: ConfigSpec<Flavor = Self>>(
-        config: &TypedDomainConfig<C>,
-    ) -> Option<<C::Kind as ValueKind>::Value>;
-}
-
-impl FlavorDispatch for DomainConfigFlavorPlaintext {
-    fn maybe_value<C: ConfigSpec<Flavor = Self>>(
-        config: &TypedDomainConfig<C>,
-    ) -> Option<<C::Kind as ValueKind>::Value> {
-        config.maybe_value_plain()
-    }
-}
-
-impl FlavorDispatch for DomainConfigFlavorEncrypted {
-    fn maybe_value<C: ConfigSpec<Flavor = Self>>(
-        config: &TypedDomainConfig<C>,
-    ) -> Option<<C::Kind as ValueKind>::Value> {
-        config.maybe_value_encrypted()
-    }
-}
 
 pub struct TypedDomainConfig<C: ConfigSpec> {
     entity: DomainConfig,

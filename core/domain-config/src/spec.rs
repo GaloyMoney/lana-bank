@@ -3,39 +3,17 @@ use std::{marker::PhantomData, str::FromStr};
 
 use crate::{ConfigType, DomainConfigError, DomainConfigKey, Visibility};
 
+// Re-export flavor types from the flavor module
+pub use crate::flavor::{ConfigFlavor, DomainConfigFlavorEncrypted, DomainConfigFlavorPlaintext};
+
 pub struct Simple<T>(PhantomData<T>);
 pub struct Complex<T>(PhantomData<T>);
 
-/// Marker type for plaintext (unencrypted) domain configs.
-/// This is the default flavor for all configs.
-pub struct DomainConfigFlavorPlaintext;
-
-/// Marker type for encrypted domain configs.
-/// Configs with this flavor will have their values encrypted at rest.
-pub struct DomainConfigFlavorEncrypted;
-
-// Prevent downstream crates from defining new config kinds or flavors
+// Prevent downstream crates from defining new config kinds
 mod sealed {
     pub trait Sealed {}
     impl<T> Sealed for super::Simple<T> {}
     impl<T> Sealed for super::Complex<T> {}
-
-    pub trait FlavorSealed {}
-    impl FlavorSealed for super::DomainConfigFlavorPlaintext {}
-    impl FlavorSealed for super::DomainConfigFlavorEncrypted {}
-}
-
-/// Trait for domain config flavors (plaintext or encrypted).
-pub trait ConfigFlavor: sealed::FlavorSealed {
-    const IS_ENCRYPTED: bool;
-}
-
-impl ConfigFlavor for DomainConfigFlavorPlaintext {
-    const IS_ENCRYPTED: bool = false;
-}
-
-impl ConfigFlavor for DomainConfigFlavorEncrypted {
-    const IS_ENCRYPTED: bool = true;
 }
 
 pub trait ValueKind: sealed::Sealed {
