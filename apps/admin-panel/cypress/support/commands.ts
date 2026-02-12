@@ -186,16 +186,63 @@ Cypress.Commands.add(
             },
           })
           .then(() => {
-            // Customer is created with the same ID as the prospect
+            // Customer is created asynchronously from webhook processing.
+            // Poll until the customer exists before creating deposit account.
             const customerId = prospectId
-            return cy
-              .createDepositAccount(customerId)
-              .then(() =>
-                cy.graphqlRequest<CustomerQueryResponse>(customerQuery, {
-                  id: customerId,
-                }),
-              )
-              .then((resp) => resp.data.customer)
+            const pollForCustomer = (
+              attempt: number,
+              maxAttempts: number,
+            ): Cypress.Chainable<Customer> => {
+              return cy
+                .request({
+                  method: "POST",
+                  url: `http://localhost:8081/realms/internal/protocol/openid-connect/token`,
+                  form: true,
+                  body: {
+                    client_id: "admin-panel",
+                    grant_type: "password",
+                    username: "admin@galoy.io",
+                  },
+                })
+                .then(({ body: tokenBody }) =>
+                  cy
+                    .request({
+                      method: "POST",
+                      url: "http://admin.localhost:4455/graphql",
+                      body: {
+                        query: customerQuery,
+                        variables: { id: customerId },
+                      },
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${tokenBody.access_token}`,
+                      },
+                      failOnStatusCode: false,
+                    })
+                    .then((response) => {
+                      if (response.body?.data?.customer?.customerId) {
+                        return cy
+                          .createDepositAccount(customerId)
+                          .then(() =>
+                            cy.graphqlRequest<CustomerQueryResponse>(
+                              customerQuery,
+                              { id: customerId },
+                            ),
+                          )
+                          .then((resp) => resp.data.customer)
+                      }
+                      if (attempt >= maxAttempts) {
+                        throw new Error(
+                          `Customer ${customerId} not found after ${maxAttempts} attempts`,
+                        )
+                      }
+                      return cy
+                        .wait(1000)
+                        .then(() => pollForCustomer(attempt + 1, maxAttempts))
+                    }),
+                )
+            }
+            return pollForCustomer(1, 15)
           })
       })
   },
