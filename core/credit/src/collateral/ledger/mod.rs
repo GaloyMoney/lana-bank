@@ -239,8 +239,11 @@ impl CollateralLedger {
         db: &mut es_entity::DbOp<'_>,
         tx_id: CalaTransactionId,
         amount: Satoshis,
-        collateral_account_id: CalaAccountId,
-        collateral_in_liquidation_account_id: CalaAccountId,
+        CollateralLedgerAccountIds {
+            collateral_account_id,
+            collateral_in_liquidation_account_id,
+            ..
+        }: CollateralLedgerAccountIds,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), CollateralLedgerError> {
         self.cala

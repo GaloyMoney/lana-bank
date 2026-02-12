@@ -273,7 +273,7 @@ where
                 .update_collateral_amount_in_op(
                     &mut db,
                     collateral_update,
-                    collateral.account_ids.collateral_account_id,
+                    collateral.account_id(),
                     sub,
                 )
                 .await?;
@@ -321,8 +321,7 @@ where
                     &mut db,
                     data.tx_id,
                     amount_sent,
-                    collateral.account_ids.collateral_account_id,
-                    collateral.account_ids.collateral_in_liquidation_account_id,
+                    collateral.account_ids,
                     initiated_by,
                 )
                 .await?;

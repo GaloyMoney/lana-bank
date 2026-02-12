@@ -82,7 +82,7 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn collateral_account_id(&self) -> CalaAccountId {
+    pub fn account_id(&self) -> CalaAccountId {
         self.account_ids.collateral_account_id
     }
 
