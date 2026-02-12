@@ -468,7 +468,7 @@
           "newTelegramId": "Nuevo handle de Telegram"
         },
         "placeholders": {
-          "newTelegramId": "Por favor ingrese el nuevo handle de Telegram"
+          "newTelegramId": "Ingrese el nuevo handle de Telegram"
         },
         "errors": {
           "emptyTelegramId": "El handle de Telegram no puede estar vacío",
@@ -476,7 +476,7 @@
           "updateFailed": "Error al actualizar el handle de Telegram: {error}"
         },
         "messages": {
-          "updateSuccess": "Handle de Telegram actualizado exitosamente"
+          "updateSuccess": "Handle de Telegram actualizado correctamente"
         },
         "actions": {
           "update": "Actualizar",

@@ -100,6 +100,7 @@ checksums:
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
     period/months: ae7bef950efc406ff0980affabc1a64c
+    Sidebar/labels/customers: c31a0dfd0d92496ba6f5673781db24ef
     Sidebar/labels/loans: 799b76634ee27191b9e0072482c2a6b9
     Sidebar/labels/transactions: 59973447457c6bd57c161d594f551651
     Sidebar/labels/administration: 2ac17b11fbfddf3617b3754acc55534c
@@ -173,6 +174,7 @@ checksums:
     CommandMenu/actions/createRole: f085b4f05432198e6eb1d87ca8caf6b7
     CommandMenu/keyboardInstructions/commandPalette: 27374fec801ecad6a2a5c58d98c7f531
     CommandMenu/searchResultTypes/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    CommandMenu/searchResultTypes/prospect: 461df0adcbe6fef86c68f0d1a3b07356
     CommandMenu/searchResultTypes/depositAccount: 23d240412c0bf14efcff84a2325587be
     CommandMenu/searchResultTypes/creditFacility: d96f87cd95639f3ba97b53f681f2fb5f
     CommandMenu/searchResultTypes/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
@@ -290,7 +292,7 @@ checksums:
     Customers/CustomerDetails/details/title: 846b48bb14b3d62c75cde5031e6bbfd7
     Customers/CustomerDetails/details/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     Customers/CustomerDetails/details/customerDetails: 485fc4d04d3466ee971a1b73d2a5ee6f
-    Customers/CustomerDetails/details/updateTelegramId: eae68442cc96d8e9715e82d49633eb65
+    Customers/CustomerDetails/details/updateTelegramHandle: 12ed74e25ce3d7a91cb9281c3b868215
     Customers/CustomerDetails/details/customerType/individual: 52ebce389ed97a13b6089802055ed667
     Customers/CustomerDetails/details/customerType/company: 9e36d11fa82d1bd4563eef2abc4fcfba
     Customers/CustomerDetails/details/customerType/governmentEntity: f528833b92b299e24071fe069cf3ed82
@@ -308,7 +310,7 @@ checksums:
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
-    Customers/CustomerDetails/details/actions/editTelegram: f75713ea7482c56d5fd7dc78ce25c6e1
+    Customers/CustomerDetails/details/actions/editTelegram: 4ae315a304c3159b982b203be81a5f98
     Customers/CustomerDetails/kycStatus/title: 4bd5d2fae73d8ec19511c2d011a48025
     Customers/CustomerDetails/kycStatus/verified: 9566bd61c1f754dd5082eea5101f15a8
     Customers/CustomerDetails/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
@@ -329,14 +331,14 @@ checksums:
     Customers/CustomerDetails/createDepositAccount/descriptionWithEmail: 02e111a8283e5a6da27d0e1971c3a7f4
     Customers/CustomerDetails/createDepositAccount/buttons/submit: 89687f36e355fae00975f44da877d957
     Customers/CustomerDetails/createDepositAccount/success: a58ca013b6330ebae5598833a85b1cb6
-    Customers/CustomerDetails/updateTelegram/title: eae68442cc96d8e9715e82d49633eb65
-    Customers/CustomerDetails/updateTelegram/description: 6a3e0dee99c56a34368e8fef03646670
-    Customers/CustomerDetails/updateTelegram/labels/newTelegramId: aff61550ac71d9a4edcd78d5fe719ed9
-    Customers/CustomerDetails/updateTelegram/placeholders/newTelegramId: 7d975b0f6be339db626d749092eec8cb
-    Customers/CustomerDetails/updateTelegram/errors/emptyTelegramId: 6e492e3ce41015988526f2a56a8f8d6e
+    Customers/CustomerDetails/updateTelegram/title: 12ed74e25ce3d7a91cb9281c3b868215
+    Customers/CustomerDetails/updateTelegram/description: 0fdfe8991b6982bc0fd6f9d6247b7914
+    Customers/CustomerDetails/updateTelegram/labels/newTelegramId: 4252db822712321d1a77484bede820b0
+    Customers/CustomerDetails/updateTelegram/placeholders/newTelegramId: fd1eb820bfd574b8df671d8e55a91b25
+    Customers/CustomerDetails/updateTelegram/errors/emptyTelegramId: 10bc4b5c58b31b3268c4d484f56535a2
     Customers/CustomerDetails/updateTelegram/errors/unexpected: fe07b9cdb1fc3f7397f6d89c102c60af
-    Customers/CustomerDetails/updateTelegram/errors/updateFailed: facab8c73dc5fabafaab3863da23b1dc
-    Customers/CustomerDetails/updateTelegram/messages/updateSuccess: 3a58f8918e96f48cd20f72f96388674c
+    Customers/CustomerDetails/updateTelegram/errors/updateFailed: d5bd3f5fc00ba430e37f58136ba7ee9a
+    Customers/CustomerDetails/updateTelegram/messages/updateSuccess: 30ff99f195417cb9582a53a017a14f53
     Customers/CustomerDetails/updateTelegram/actions/update: 079fc039262fd31b10532929685c2d1b
     Customers/CustomerDetails/updateTelegram/actions/updating: 0d59644e851a6a76f1fb45de9353c447
     Customers/CustomerDetails/updateEmail/title: b520b3755d6f79cc294c4d5e9590c90e
@@ -1360,7 +1362,6 @@ checksums:
     CreateButton/disabledMessages/fiscalYearCannotOpenNextYet: 0fe3c5608a6550671e7491fbf4bc3f56
     CreateButton/menuItems/deposit: e233d53e369427d12f87d610bcf56ccb
     CreateButton/menuItems/withdrawal: 90991ef39c923572c15cac977346ee77
-    CreateButton/menuItems/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     CreateButton/menuItems/prospect: 461df0adcbe6fef86c68f0d1a3b07356
     CreateButton/menuItems/creditFacility: 062cd96fc0ef418286ef0edddf72b3e7
     CreateButton/menuItems/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
