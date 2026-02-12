@@ -64,7 +64,7 @@ Note: The `release` and `bump-image-in-chart` jobs exist for tagging formal rele
 Resolve the target commit using one of these approaches, in priority order:
 
 1. **`$ARGUMENTS` contains a commit SHA, PR number, or PR URL** — resolve it to a commit on `main`.
-   - For an already-merged PR: use `gh pr view <number> --json mergeCommit` to get the merge commit SHA.
+   - For an already-merged PR: use `gh pr view <number> --json mergeCommit` to get the resulting commit SHA.
    - For an unmerged PR: see the "merge current PR" flow below.
 2. **`$ARGUMENTS` is empty and the current branch has an open PR** — detect with `gh pr view --json number,state,reviewDecision,mergeCommit`. If an open PR exists, use the "merge current PR" flow below.
 3. **`$ARGUMENTS` is empty and no open PR** — use the latest commit on `main`: `git log origin/main -1 --format='%H'` (fetch first with `git fetch origin main`).
@@ -74,8 +74,8 @@ When the target is an open (unmerged) PR:
 1. Check approval status with `gh pr view --json reviewDecision`.
 2. If `reviewDecision` is **not** `APPROVED`, stop and tell the user the PR is not yet approved — do not merge.
 3. If approved, merge with `gh pr merge --squash`.
-4. After merge completes, fetch main and resolve the merge commit SHA with `gh pr view --json mergeCommit`.
-5. Continue to Step 2 with the merge commit.
+4. After merge completes, fetch main and resolve the resulting commit SHA with `gh pr view --json mergeCommit`.
+5. Continue to Step 2 with the resulting commit SHA.
 
 Display the commit SHA and its message to the user.
 
