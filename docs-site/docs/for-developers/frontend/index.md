@@ -19,20 +19,20 @@ Lana includes two main frontend applications:
 
 ## Technology Stack
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    FRONTEND STACK                               │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │    Next.js      │  │     React       │  │   TypeScript    │ │
-│  │    (Framework)  │  │    (UI Library) │  │   (Language)    │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │  Apollo Client  │  │   Tailwind CSS  │  │  shadcn/ui      │ │
-│  │  (GraphQL)      │  │   (Styles)      │  │  (Components)   │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Stack["Frontend Stack"]
+        subgraph Frameworks
+            NEXT["Next.js<br/>(Framework)"]
+            REACT["React<br/>(UI Library)"]
+            TS["TypeScript<br/>(Language)"]
+        end
+        subgraph Libraries
+            APOLLO["Apollo Client<br/>(GraphQL)"]
+            TW["Tailwind CSS<br/>(Styles)"]
+            SHAD["shadcn/ui<br/>(Components)"]
+        end
+    end
 ```
 
 ## Directory Structure

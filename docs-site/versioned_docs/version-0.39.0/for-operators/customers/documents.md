@@ -28,29 +28,11 @@ This document describes the document management system for customers, including 
 
 ## Storage Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Admin Panel                                   │
-│                    (Document upload)                             │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    GraphQL API                                   │
-│               (Mutation: uploadDocument)                         │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                 document-storage                                 │
-│           (Storage service)                                      │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Google Cloud Storage / S3                           │
-│            (File storage)                                        │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    AP["Admin Panel<br/>(Document upload)"] --> GQL["GraphQL API<br/>(Mutation: uploadDocument)"]
+    GQL --> DS["document-storage<br/>(Storage service)"]
+    DS --> GCS["Google Cloud Storage / S3<br/>(File storage)"]
 ```
 
 ## Document Operations
@@ -82,11 +64,9 @@ This document describes the document management system for customers, including 
 
 ## Approval Flow
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Uploaded   │───▶│  In Review   │───▶│  Approved/   │
-│   (PENDING)  │    │              │    │  Rejected    │
-└──────────────┘    └──────────────┘    └──────────────┘
+```mermaid
+graph LR
+    UP["Uploaded<br/>(PENDING)"] --> REV["In Review"] --> DEC["Approved /<br/>Rejected"]
 ```
 
 ## Permissions Required

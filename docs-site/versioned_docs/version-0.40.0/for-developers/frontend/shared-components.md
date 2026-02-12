@@ -10,27 +10,10 @@ This document describes shared UI components and utilities used across Lana's fr
 
 ## Component Stack
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    COMPONENT LIBRARY                            │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                      shadcn/ui                            │  │
-│  │            (Accessible base components)                   │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    Radix UI Primitives                    │  │
-│  │               (Unstyled primitives)                       │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                      Tailwind CSS                         │  │
-│  │                    (Style system)                         │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    SHAD["shadcn/ui<br/>(Accessible base components)"] --> RADIX["Radix UI Primitives<br/>(Unstyled primitives)"]
+    RADIX --> TW["Tailwind CSS<br/>(Style system)"]
 ```
 
 ## Base Components

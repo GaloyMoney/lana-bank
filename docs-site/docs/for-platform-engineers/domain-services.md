@@ -19,21 +19,13 @@ Lana implements DDD principles:
 
 ## Domain Structure
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    DOMAIN MODULE                                │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │     Entity      │  │   Repository    │  │    Service      │ │
-│  │  (Aggregate)    │  │  (Persistence)  │  │ (Business Logic)│ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│           │                   │                    │            │
-│           ▼                   ▼                    ▼            │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │     Events      │  │   Primitives    │  │    Publisher    │ │
-│  │  (State Changes)│  │ (Value Objects) │  │  (Outbox)       │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph MODULE["Domain Module"]
+        ENT["Entity<br/>(Aggregate)"] --> EVT["Events<br/>(State Changes)"]
+        REPO["Repository<br/>(Persistence)"] --> PRIM["Primitives<br/>(Value Objects)"]
+        SVC["Service<br/>(Business Logic)"] --> PUB["Publisher<br/>(Outbox)"]
+    end
 ```
 
 ## File Organization
@@ -225,15 +217,10 @@ pub struct InterestRate(Decimal);
 
 Domains communicate through events and the outbox pattern:
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Customer   │───▶│    Outbox    │───▶│   Deposit    │
-│   Domain     │    │    Table     │    │   Domain     │
-└──────────────┘    └──────────────┘    └──────────────┘
-        │                                      │
-        │           CustomerActivated          │
-        └──────────────────────────────────────┘
-                Creates Deposit Account
+```mermaid
+graph LR
+    CUST["Customer Domain"] -->|"CustomerActivated"| OUTBOX["Outbox Table"]
+    OUTBOX -->|"Creates Deposit Account"| DEP["Deposit Domain"]
 ```
 
 ## Testing Patterns

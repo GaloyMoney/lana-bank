@@ -10,32 +10,18 @@ This document describes the complete customer onboarding flow, from initial regi
 
 ## Onboarding Flow
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                    1. CUSTOMER CREATION                            │
-│  ┌──────────────┐                                                  │
-│  │ Admin creates│───▶ Customer in PENDING status                   │
-│  │   customer   │                                                  │
-│  └──────────────┘                                                  │
-└────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                    2. KYC VERIFICATION                             │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐         │
-│  │   Request    │───▶│    Sumsub    │───▶│   Result     │         │
-│  │    sent      │    │   Verifies   │    │  received    │         │
-│  └──────────────┘    └──────────────┘    └──────────────┘         │
-└────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                    3. PROVISIONING                                 │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐         │
-│  │ Keycloak     │───▶│   Deposit    │───▶│   Customer   │         │
-│  │   user       │    │   account    │    │   ACTIVE     │         │
-│  └──────────────┘    └──────────────┘    └──────────────┘         │
-└────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph S1["1. Customer Creation"]
+        CREATE["Admin creates customer"] --> PENDING["Customer in PENDING status"]
+    end
+    subgraph S2["2. KYC Verification"]
+        REQ["Request sent"] --> SUMSUB["Sumsub Verifies"] --> RESULT["Result received"]
+    end
+    subgraph S3["3. Provisioning"]
+        KC["Keycloak user"] --> DEPACC["Deposit account"] --> ACTIVE["Customer ACTIVE"]
+    end
+    S1 --> S2 --> S3
 ```
 
 ## Step 1: Customer Creation

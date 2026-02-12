@@ -14,15 +14,9 @@ This document describes deposit and withdrawal operations, including workflows a
 
 Deposits are recorded when external funds are received into a customer account.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    DEPOSIT FLOW                                  │
-│                                                                  │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
-│  │ Receive      │───▶│   Record     │───▶│   Funds      │       │
-│  │   funds      │    │   deposit    │    │   available  │       │
-│  └──────────────┘    └──────────────┘    └──────────────┘       │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    RCV["Receive funds"] --> REC["Record deposit"] --> AVL["Funds available"]
 ```
 
 ### Create a Deposit
@@ -59,21 +53,11 @@ mutation RecordDeposit($input: DepositRecordInput!) {
 
 Withdrawals require an approval process before execution.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    WITHDRAWAL FLOW                              │
-│                                                                  │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
-│  │  Withdrawal  │───▶│   Approval   │───▶│   Execute    │       │
-│  │   request    │    │   required   │    │   withdrawal │       │
-│  └──────────────┘    └──────────────┘    └──────────────┘       │
-│                              │                                   │
-│                              ▼                                   │
-│                      ┌──────────────┐                           │
-│                      │   Rejected   │                           │
-│                      │   (optional) │                           │
-│                      └──────────────┘                           │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    REQ["Withdrawal request"] --> APPR["Approval required"]
+    APPR --> EXEC["Execute withdrawal"]
+    APPR --> REJ["Rejected<br/>(optional)"]
 ```
 
 ### Initiate a Withdrawal

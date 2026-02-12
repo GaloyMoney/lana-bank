@@ -19,33 +19,11 @@ The audit system provides:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    AUDIT SYSTEM                                 │
-│                                                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                  Application Layer                       │   │
-│  │        (GraphQL Resolvers, Domain Services)              │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                   Audit Service                          │   │
-│  │           (Intercepts and logs operations)               │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                   Audit Repository                       │   │
-│  │              (Persistent storage)                        │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                     PostgreSQL                           │   │
-│  │                  (audit_entries table)                   │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    APP["Application Layer<br/>(GraphQL Resolvers, Domain Services)"] --> SVC["Audit Service<br/>(Intercepts and logs operations)"]
+    SVC --> REPO["Audit Repository<br/>(Persistent storage)"]
+    REPO --> PG["PostgreSQL<br/>(audit_entries table)"]
 ```
 
 ## Audit Entry Structure

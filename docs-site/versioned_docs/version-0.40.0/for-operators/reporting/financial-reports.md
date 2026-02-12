@@ -48,23 +48,17 @@ Presents the institution's financial position at a given date.
 
 ### Structure
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    BALANCE SHEET                                │
-│                                                                  │
-│  ASSETS                          │  LIABILITIES AND EQUITY      │
-│  ─────────────────────────────────┼───────────────────────────  │
-│  Current Assets                  │  Current Liabilities         │
-│    Cash                          │    Deposits                  │
-│    Short-term Loans              │    Obligations               │
-│                                  │                              │
-│  Non-Current Assets              │  Non-Current Liabilities     │
-│    Long-term Loans               │    Long-term Debt            │
-│    Fixed Assets                  │                              │
-│                                  │  Equity                      │
-│                                  │    Capital                   │
-│                                  │    Retained Earnings         │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph Assets
+        CA["**Current Assets**<br/>Cash<br/>Short-term Loans"]
+        NCA["**Non-Current Assets**<br/>Long-term Loans<br/>Fixed Assets"]
+    end
+    subgraph LiabilitiesAndEquity["Liabilities & Equity"]
+        CL["**Current Liabilities**<br/>Deposits<br/>Obligations"]
+        NCL["**Non-Current Liabilities**<br/>Long-term Debt"]
+        EQ["**Equity**<br/>Capital<br/>Retained Earnings"]
+    end
 ```
 
 ## Income Statement

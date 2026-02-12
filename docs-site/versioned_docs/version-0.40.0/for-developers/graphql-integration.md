@@ -19,26 +19,14 @@ Lana exposes two GraphQL APIs:
 
 ## Client Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    GRAPHQL CLIENT                               │
-│                                                                  │
-│  ┌─────────────────┐    ┌─────────────────┐                    │
-│  │ Apollo Client   │───▶│ HTTP Transport  │                    │
-│  └─────────────────┘    └─────────────────┘                    │
-│           │                     │                               │
-│           ▼                     ▼                               │
-│  ┌─────────────────┐    ┌─────────────────┐                    │
-│  │ Cache Layer     │    │ Auth Headers    │                    │
-│  │ (InMemoryCache) │    │ (JWT Token)     │                    │
-│  └─────────────────┘    └─────────────────┘                    │
-│                                │                               │
-│                                ▼                               │
-│                    ┌─────────────────┐                         │
-│                    │   Oathkeeper    │                         │
-│                    │   (Gateway)     │                         │
-│                    └─────────────────┘                         │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph CLIENT["GraphQL Client"]
+        AC["Apollo Client"] --> HTTP["HTTP Transport"]
+        AC --> CACHE["Cache Layer<br/>(InMemoryCache)"]
+        HTTP --> AUTH["Auth Headers<br/>(JWT Token)"]
+        AUTH --> OAT["Oathkeeper<br/>(Gateway)"]
+    end
 ```
 
 ## Apollo Client Setup
@@ -79,18 +67,10 @@ const client = new ApolloClient({
 
 ### Authentication Flow
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   User       │───▶│   Keycloak   │───▶│  JWT Token   │
-│   Login      │    │   Auth       │    │  Received    │
-└──────────────┘    └──────────────┘    └──────────────┘
-                                               │
-                                               ▼
-                                        ┌──────────────┐
-                                        │  GraphQL     │
-                                        │  Request     │
-                                        │  with Token  │
-                                        └──────────────┘
+```mermaid
+graph LR
+    LOGIN["User Login"] --> KC["Keycloak Auth"] --> JWT["JWT Token Received"]
+    JWT --> GQL["GraphQL Request<br/>with Token"]
 ```
 
 ### Keycloak Configuration

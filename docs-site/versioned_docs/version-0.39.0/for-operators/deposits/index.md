@@ -48,25 +48,15 @@ All financial operations are integrated with Cala Ledger for double-entry accoun
 
 ## System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                       CoreDeposit                               │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │DepositAccountRepo│  │   DepositRepo   │  │  WithdrawalRepo │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    DepositLedger                         │   │
-│  │              (Accounting operations)                     │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                 ApproveWithdrawal                        │   │
-│  │              (Approval process)                          │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph CoreDeposit
+        DAR["DepositAccountRepo"]
+        DR["DepositRepo"]
+        WR["WithdrawalRepo"]
+    end
+    CoreDeposit --> DL["DepositLedger<br/>(Accounting operations)"]
+    DL --> AW["ApproveWithdrawal<br/>(Approval process)"]
 ```
 
 ## Main Entities

@@ -72,11 +72,9 @@ mutation CreateApprovalPolicy($input: ApprovalPolicyCreateInput!) {
 
 ### Escalation Flow
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Level 1    │───▶│   Level 2    │───▶│   Level 3    │
-│   (Auto)     │    │ (Approver)   │    │  (Committee) │
-└──────────────┘    └──────────────┘    └──────────────┘
+```mermaid
+graph LR
+    L1["Level 1<br/>(Auto)"] --> L2["Level 2<br/>(Approver)"] --> L3["Level 3<br/>(Committee)"]
 ```
 
 ### Escalation Conditions
