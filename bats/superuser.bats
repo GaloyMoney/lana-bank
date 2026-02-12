@@ -41,7 +41,7 @@ teardown_file() {
 }
 
 
-@test "superuser: can create customer" {
+@test "superuser: can create prospect and approve KYC" {
   customer_email=$(generate_email)
   telegramHandle=$(generate_email)
   customer_type="INDIVIDUAL"
@@ -60,7 +60,31 @@ teardown_file() {
     }'
   )
 
-  exec_admin_graphql 'customer-create' "$variables"
-  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
-  [[ "$customer_id" != "null" ]] || exit 1
+  exec_admin_graphql 'prospect-create' "$variables"
+  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
+  [[ "$prospect_id" != "null" ]] || exit 1
+
+  # Simulate KYC approval via SumSub webhook
+  webhook_id="req-$(date +%s%N)"
+  curl -s -X POST http://localhost:5253/webhook/sumsub \
+    -H "Content-Type: application/json" \
+    -d '{
+      "applicantId": "test-applicant-'"$webhook_id"'",
+      "inspectionId": "test-inspection-'"$webhook_id"'",
+      "correlationId": "'"$webhook_id"'",
+      "externalUserId": "'"$prospect_id"'",
+      "levelName": "basic-kyc-level",
+      "type": "applicantReviewed",
+      "reviewResult": { "reviewAnswer": "GREEN" },
+      "reviewStatus": "completed",
+      "createdAtMs": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'",
+      "sandboxMode": true
+    }' > /dev/null
+
+  # Customer has the same ID as the prospect
+  customer_id="$prospect_id"
+  variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
+  exec_admin_graphql 'customer' "$variables"
+  fetched_id=$(graphql_output .data.customer.customerId)
+  [[ "$fetched_id" != "null" ]] || exit 1
 }
