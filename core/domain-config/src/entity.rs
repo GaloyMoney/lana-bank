@@ -7,8 +7,9 @@ use serde::{Deserialize, Serialize};
 use crate::{
     ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError,
     DomainConfigFlavorEncrypted, DomainConfigFlavorPlaintext, ValueKind,
-    encryption::{EncryptedValue, EncryptionKey},
+    encryption::EncryptionKey,
     primitives::{DomainConfigId, DomainConfigKey, Visibility},
+    value::DomainConfigValue,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -24,7 +25,7 @@ pub enum DomainConfigEvent {
         encrypted: bool,
     },
     Updated {
-        value: serde_json::Value,
+        value: DomainConfigValue,
     },
 }
 
@@ -45,11 +46,9 @@ impl DomainConfig {
         C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>,
     {
         Self::assert_compatible::<C>(self).ok()?;
-        let value = self.current_json_value();
-        if value.is_null() {
-            return None;
-        }
-        <C::Kind as ValueKind>::decode(value.clone()).ok()
+        let stored = self.current_stored_value()?;
+        let json = stored.as_plain()?;
+        <C::Kind as ValueKind>::decode(json.clone()).ok()
     }
 
     pub(super) fn current_value_encrypted<C>(
@@ -60,13 +59,8 @@ impl DomainConfig {
         C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>,
     {
         Self::assert_compatible::<C>(self).ok()?;
-        let value = self.current_json_value();
-        if value.is_null() {
-            return None;
-        }
-        let encrypted: EncryptedValue = serde_json::from_value(value.clone()).ok()?;
-        let bytes = encrypted.decrypt(key).ok()?;
-        let plaintext: serde_json::Value = serde_json::from_slice(&bytes).ok()?;
+        let stored = self.current_stored_value()?;
+        let plaintext = stored.decrypt(key).ok()?;
         <C::Kind as ValueKind>::decode(plaintext).ok()
     }
 
@@ -213,12 +207,17 @@ impl DomainConfig {
         &mut self,
         plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        if self.current_json_value() == &plaintext {
+        // Check idempotency
+        if let Some(current) = self.current_stored_value()
+            && let Some(current_plain) = current.as_plain()
+            && current_plain == &plaintext
+        {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        self.events
-            .push(DomainConfigEvent::Updated { value: plaintext });
+        self.events.push(DomainConfigEvent::Updated {
+            value: DomainConfigValue::plain(plaintext),
+        });
 
         Ok(Idempotent::Executed(()))
     }
@@ -229,21 +228,16 @@ impl DomainConfig {
         plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
         // Check idempotency by decrypting and comparing
-        let current = self.current_json_value();
-        if !current.is_null()
-            && let Ok(encrypted) = serde_json::from_value::<EncryptedValue>(current.clone())
-            && let Ok(bytes) = encrypted.decrypt(key)
-            && let Ok(current_plain) = serde_json::from_slice::<serde_json::Value>(&bytes)
+        if let Some(current) = self.current_stored_value()
+            && let Ok(current_plain) = current.decrypt(key)
             && current_plain == plaintext
         {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        let bytes = serde_json::to_vec(&plaintext)?;
-        let encrypted = EncryptedValue::encrypt(key, &bytes);
-        let stored = serde_json::to_value(encrypted)?;
-        self.events
-            .push(DomainConfigEvent::Updated { value: stored });
+        self.events.push(DomainConfigEvent::Updated {
+            value: DomainConfigValue::encrypted(key, &plaintext),
+        });
 
         Ok(Idempotent::Executed(()))
     }
@@ -278,14 +272,12 @@ impl DomainConfig {
         }
     }
 
-    pub fn current_json_value(&self) -> &serde_json::Value {
-        const NULL_JSON_VALUE: serde_json::Value = serde_json::Value::Null;
-        let value = self.events.iter_all().rev().find_map(|event| match event {
+    /// Returns the current stored value from the event stream.
+    pub fn current_stored_value(&self) -> Option<&DomainConfigValue> {
+        self.events.iter_all().rev().find_map(|event| match event {
             DomainConfigEvent::Updated { value } => Some(value),
             _ => None,
-        });
-
-        value.unwrap_or(&NULL_JSON_VALUE)
+        })
     }
 
     pub(crate) fn assert_compatible<C: ConfigSpec>(entity: &Self) -> Result<(), DomainConfigError> {
@@ -616,7 +608,7 @@ mod tests {
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(
             last_event,
-            DomainConfigEvent::Updated { value } if value == &updated_json
+            DomainConfigEvent::Updated { value: DomainConfigValue::Plain { value } } if value == &updated_json
         ));
         assert_eq!(
             config
@@ -654,7 +646,7 @@ mod tests {
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(
             last_event,
-            DomainConfigEvent::Updated { value } if value == &updated_json
+            DomainConfigEvent::Updated { value: DomainConfigValue::Plain { value } } if value == &updated_json
         ));
         assert!(
             config
@@ -733,9 +725,9 @@ mod tests {
             value
         );
 
-        let stored = config.current_json_value();
+        let stored = config.current_stored_value().unwrap();
         assert!(
-            stored.get("ciphertext").is_some(),
+            stored.is_encrypted(),
             "stored value should be encrypted"
         );
     }

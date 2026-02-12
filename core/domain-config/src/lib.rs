@@ -157,6 +157,7 @@ mod repo;
 mod shared_config;
 mod spec;
 mod typed_domain_config;
+mod value;
 
 use std::collections::{HashMap, HashSet};
 
@@ -184,6 +185,7 @@ pub use spec::{
     DomainConfigFlavorPlaintext, ExposedConfig, InternalConfig, Simple, ValueKind,
 };
 pub use typed_domain_config::TypedDomainConfig;
+pub use value::DomainConfigValue;
 
 use entity::NewDomainConfig;
 use repo::DomainConfigRepo;

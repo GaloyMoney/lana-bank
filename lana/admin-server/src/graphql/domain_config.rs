@@ -64,10 +64,10 @@ impl DomainConfig {
     }
 
     async fn value(&self) -> Json {
-        if self.encrypted {
-            return Json::from(serde_json::Value::Null);
+        match self.entity.current_stored_value() {
+            Some(stored) => Json::from(stored.plain_or_null()),
+            None => Json::from(serde_json::Value::Null),
         }
-        Json::from(self.entity.current_json_value().clone())
     }
 }
 
