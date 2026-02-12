@@ -5,8 +5,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError, ValueKind,
-    encryption::StorageEncryption,
+    ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError,
+    DomainConfigFlavorEncrypted, DomainConfigFlavorPlaintext, ValueKind,
+    encryption::{EncryptionKey, StorageEncryption},
     primitives::{DomainConfigId, DomainConfigKey, Visibility},
 };
 
@@ -55,6 +56,35 @@ impl DomainConfig {
         <C::Kind as ValueKind>::decode(plaintext).ok()
     }
 
+    pub(super) fn current_value_plain<C>(&self) -> Option<<C::Kind as ValueKind>::Value>
+    where
+        C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>,
+    {
+        Self::assert_compatible::<C>(self).ok()?;
+        let value = self.current_json_value();
+        if value.is_null() {
+            return None;
+        }
+        <C::Kind as ValueKind>::decode(value.clone()).ok()
+    }
+
+    pub(super) fn current_value_encrypted<C>(
+        &self,
+        key: &EncryptionKey,
+    ) -> Option<<C::Kind as ValueKind>::Value>
+    where
+        C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>,
+    {
+        Self::assert_compatible::<C>(self).ok()?;
+        let value = self.current_json_value();
+        if value.is_null() {
+            return None;
+        }
+        let encryption = StorageEncryption::Encrypted(key.clone());
+        let plaintext = encryption.decrypt_from_storage(value).ok()?;
+        <C::Kind as ValueKind>::decode(plaintext).ok()
+    }
+
     pub(super) fn update_value<C>(
         &mut self,
         encryption: &StorageEncryption,
@@ -67,6 +97,33 @@ impl DomainConfig {
         C::validate(&new_value)?;
         let encoded = <C::Kind as ValueKind>::encode(&new_value)?;
         self.store_value(encryption, encoded)
+    }
+
+    pub(super) fn update_value_plain<C>(
+        &mut self,
+        new_value: <C::Kind as ValueKind>::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError>
+    where
+        C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>,
+    {
+        Self::assert_compatible::<C>(self)?;
+        C::validate(&new_value)?;
+        let encoded = <C::Kind as ValueKind>::encode(&new_value)?;
+        self.store_value_plain(encoded)
+    }
+
+    pub(super) fn update_value_encrypted<C>(
+        &mut self,
+        key: &EncryptionKey,
+        new_value: <C::Kind as ValueKind>::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError>
+    where
+        C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>,
+    {
+        Self::assert_compatible::<C>(self)?;
+        C::validate(&new_value)?;
+        let encoded = <C::Kind as ValueKind>::encode(&new_value)?;
+        self.store_value_encrypted(key, encoded)
     }
 
     pub(super) fn apply_exposed_update_from_json(
@@ -101,6 +158,69 @@ impl DomainConfig {
         self.store_value(encryption, new_value)
     }
 
+    pub(super) fn apply_exposed_update_from_json_plain(
+        &mut self,
+        entry: &crate::registry::ConfigSpecEntry,
+        new_value: serde_json::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        if self.visibility != crate::Visibility::Exposed {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Config {} is not exposed",
+                self.key
+            )));
+        }
+
+        if self.visibility != entry.visibility {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Invalid visibility for {}: expected {}, found={}",
+                self.key, entry.visibility, self.visibility
+            )));
+        }
+
+        if self.config_type != entry.config_type {
+            return Err(DomainConfigError::InvalidType(format!(
+                "Invalid config type for {}: expected {}, found {}",
+                self.key, entry.config_type, self.config_type
+            )));
+        }
+
+        (entry.validate_json)(&new_value)?;
+
+        self.store_value_plain(new_value)
+    }
+
+    pub(super) fn apply_exposed_update_from_json_encrypted(
+        &mut self,
+        entry: &crate::registry::ConfigSpecEntry,
+        key: &EncryptionKey,
+        new_value: serde_json::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        if self.visibility != crate::Visibility::Exposed {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Config {} is not exposed",
+                self.key
+            )));
+        }
+
+        if self.visibility != entry.visibility {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Invalid visibility for {}: expected {}, found={}",
+                self.key, entry.visibility, self.visibility
+            )));
+        }
+
+        if self.config_type != entry.config_type {
+            return Err(DomainConfigError::InvalidType(format!(
+                "Invalid config type for {}: expected {}, found {}",
+                self.key, entry.config_type, self.config_type
+            )));
+        }
+
+        (entry.validate_json)(&new_value)?;
+
+        self.store_value_encrypted(key, new_value)
+    }
+
     /// Apply update from JSON for any config (CLI startup, no auth required).
     ///
     /// Unlike `apply_exposed_update_from_json`, this method works for any config
@@ -130,11 +250,91 @@ impl DomainConfig {
         self.store_value(encryption, new_value)
     }
 
+    pub(super) fn apply_update_from_json_plain(
+        &mut self,
+        entry: &crate::registry::ConfigSpecEntry,
+        new_value: serde_json::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        if self.config_type != entry.config_type {
+            return Err(DomainConfigError::InvalidType(format!(
+                "Invalid config type for {}: expected {}, found {}",
+                self.key, entry.config_type, self.config_type
+            )));
+        }
+
+        if self.visibility != entry.visibility {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Invalid visibility for {}: expected {}, found {}",
+                self.key, entry.visibility, self.visibility
+            )));
+        }
+
+        (entry.validate_json)(&new_value)?;
+
+        self.store_value_plain(new_value)
+    }
+
+    pub(super) fn apply_update_from_json_encrypted(
+        &mut self,
+        entry: &crate::registry::ConfigSpecEntry,
+        key: &EncryptionKey,
+        new_value: serde_json::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        if self.config_type != entry.config_type {
+            return Err(DomainConfigError::InvalidType(format!(
+                "Invalid config type for {}: expected {}, found {}",
+                self.key, entry.config_type, self.config_type
+            )));
+        }
+
+        if self.visibility != entry.visibility {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Invalid visibility for {}: expected {}, found {}",
+                self.key, entry.visibility, self.visibility
+            )));
+        }
+
+        (entry.validate_json)(&new_value)?;
+
+        self.store_value_encrypted(key, new_value)
+    }
+
     fn store_value(
         &mut self,
         encryption: &StorageEncryption,
         plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
+        if encryption.decrypt_from_storage(self.current_json_value())? == plaintext {
+            return Ok(Idempotent::AlreadyApplied);
+        }
+
+        let stored = encryption.encrypt_for_storage(plaintext)?;
+        self.events
+            .push(DomainConfigEvent::Updated { value: stored });
+
+        Ok(Idempotent::Executed(()))
+    }
+
+    fn store_value_plain(
+        &mut self,
+        plaintext: serde_json::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        if self.current_json_value() == &plaintext {
+            return Ok(Idempotent::AlreadyApplied);
+        }
+
+        self.events
+            .push(DomainConfigEvent::Updated { value: plaintext });
+
+        Ok(Idempotent::Executed(()))
+    }
+
+    fn store_value_encrypted(
+        &mut self,
+        key: &EncryptionKey,
+        plaintext: serde_json::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        let encryption = StorageEncryption::Encrypted(key.clone());
         if encryption.decrypt_from_storage(self.current_json_value())? == plaintext {
             return Ok(Idempotent::AlreadyApplied);
         }
