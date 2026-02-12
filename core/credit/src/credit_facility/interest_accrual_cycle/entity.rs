@@ -151,6 +151,22 @@ impl InterestAccrualCycle {
         .truncate(self.accrual_cycle_ends_at().end_of_day())
     }
 
+    pub fn posting(&self) -> Option<crate::public::AccrualPosting> {
+        self.events.iter_all().find_map(|event| match event {
+            InterestAccrualCycleEvent::InterestAccrualsPosted {
+                ledger_tx_id,
+                total,
+                effective,
+                ..
+            } => Some(crate::public::AccrualPosting {
+                tx_id: *ledger_tx_id,
+                amount: *total,
+                effective: *effective,
+            }),
+            _ => None,
+        })
+    }
+
     pub(crate) fn is_completed(&self) -> bool {
         self.events.iter_all().rev().any(|event| {
             matches!(
