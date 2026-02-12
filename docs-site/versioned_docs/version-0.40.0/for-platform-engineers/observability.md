@@ -59,27 +59,12 @@ Lana implements comprehensive observability through:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    OBSERVABILITY STACK                          │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │   Application   │  │   Application   │  │   Application   │ │
-│  │    (Traces)     │  │    (Logs)       │  │   (Metrics)     │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│           │                   │                    │            │
-│           ▼                   ▼                    ▼            │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                  OpenTelemetry SDK                       │   │
-│  │           (Unified Telemetry Collection)                 │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                 Telemetry Backend                        │   │
-│  │        (Jaeger / Prometheus / Loki)                      │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    TRACES["Application<br/>(Traces)"] --> OTEL
+    LOGS["Application<br/>(Logs)"] --> OTEL
+    METRICS["Application<br/>(Metrics)"] --> OTEL
+    OTEL["OpenTelemetry SDK<br/>(Unified Telemetry Collection)"] --> BACKEND["Telemetry Backend<br/>(Jaeger / Prometheus / Loki)"]
 ```
 
 ## OpenTelemetry Integration
