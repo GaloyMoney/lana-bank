@@ -67,6 +67,7 @@ const LedgerTransactionsForTemplateCode: React.FC<
 > = ({ params }) => {
   const { "transaction-template-code": transactionTemplateCode } = use(params)
   const t = useTranslations("LedgerTransactionsForTemplateCode")
+  const tCode = useTranslations("TemplateCodes")
 
   const { data, loading, error, fetchMore } = useLedgerTransactionsForTemplateCodeQuery({
     variables: {
@@ -90,7 +91,11 @@ const LedgerTransactionsForTemplateCode: React.FC<
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("title", { code: `"${transactionTemplateCode}"` })}</CardTitle>
+        <CardTitle>
+          {t("title", {
+            code: `"${tCode.has(transactionTemplateCode) ? tCode(transactionTemplateCode) : transactionTemplateCode}"`,
+          })}
+        </CardTitle>
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
