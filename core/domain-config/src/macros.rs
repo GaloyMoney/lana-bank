@@ -9,6 +9,7 @@ macro_rules! __define_config_spec {
         visibility_marker: $marker:path,
         kind: $kind:ty,
         value_ty: $value_ty:ty,
+        flavor: $flavor:ty,
         encrypted: $encrypted:expr,
         default: $default:expr;
         $(validate: $validate:expr;)?
@@ -16,8 +17,8 @@ macro_rules! __define_config_spec {
         impl $crate::ConfigSpec for $name {
             const KEY: $crate::DomainConfigKey = $crate::DomainConfigKey::new($key);
             const VISIBILITY: $crate::Visibility = $visibility;
-            const ENCRYPTED: bool = $encrypted;
             type Kind = $kind;
+            type Flavor = $flavor;
 
             fn default_value() -> Option<$value_ty> { ($default)() }
             $(fn validate(value: &$value_ty) -> Result<(), $crate::DomainConfigError> {
@@ -46,14 +47,15 @@ macro_rules! __define_config_spec {
         visibility_marker: $marker:path,
         kind: $kind:ty,
         value_ty: $value_ty:ty,
+        flavor: $flavor:ty,
         encrypted: $encrypted:expr,
         $(validate: $validate:expr;)?
     ) => {
         impl $crate::ConfigSpec for $name {
             const KEY: $crate::DomainConfigKey = $crate::DomainConfigKey::new($key);
             const VISIBILITY: $crate::Visibility = $visibility;
-            const ENCRYPTED: bool = $encrypted;
             type Kind = $kind;
+            type Flavor = $flavor;
 
             $(fn validate(value: &$value_ty) -> Result<(), $crate::DomainConfigError> {
                 ($validate)(value)
@@ -78,24 +80,38 @@ macro_rules! __define_config_spec {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __with_encrypted {
-    // encrypted: present
+    // encrypted: true
     (
         [$($prefix:tt)*]
-        encrypted: $encrypted:literal; $($rest:tt)*
+        encrypted: true; $($rest:tt)*
     ) => {
         $crate::__define_config_spec! {
             $($prefix)*
-            encrypted: $encrypted,
+            flavor: $crate::DomainConfigFlavorEncrypted,
+            encrypted: true,
             $($rest)*
         }
     };
-    // encrypted: absent — default to false
+    // encrypted: false
+    (
+        [$($prefix:tt)*]
+        encrypted: false; $($rest:tt)*
+    ) => {
+        $crate::__define_config_spec! {
+            $($prefix)*
+            flavor: $crate::DomainConfigFlavorPlaintext,
+            encrypted: false,
+            $($rest)*
+        }
+    };
+    // encrypted: absent — default to false/plaintext
     (
         [$($prefix:tt)*]
         $($rest:tt)*
     ) => {
         $crate::__define_config_spec! {
             $($prefix)*
+            flavor: $crate::DomainConfigFlavorPlaintext,
             encrypted: false,
             $($rest)*
         }

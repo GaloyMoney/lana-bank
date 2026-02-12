@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    ConfigSpec, ConfigType, DomainConfigError, ValueKind,
+    ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError, ValueKind,
     encryption::StorageEncryption,
     primitives::{DomainConfigId, DomainConfigKey, Visibility},
 };
@@ -176,11 +176,11 @@ impl DomainConfig {
             )));
         }
 
-        if entity.encrypted != C::ENCRYPTED {
+        if entity.encrypted != <C::Flavor as ConfigFlavor>::IS_ENCRYPTED {
             return Err(DomainConfigError::InvalidType(format!(
                 "Invalid encrypted flag for {key}: expected {expected}, found {found}",
                 key = entity.key,
-                expected = C::ENCRYPTED,
+                expected = <C::Flavor as ConfigFlavor>::IS_ENCRYPTED,
                 found = entity.encrypted
             )));
         }
@@ -290,7 +290,7 @@ mod tests {
                 C::KEY,
                 <C::Kind as ValueKind>::TYPE,
                 C::VISIBILITY,
-                C::ENCRYPTED,
+                <C::Flavor as crate::ConfigFlavor>::IS_ENCRYPTED,
             )
             .build()
             .unwrap()

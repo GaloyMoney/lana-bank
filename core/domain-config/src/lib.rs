@@ -178,7 +178,8 @@ pub use primitives::{
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use shared_config::RequireVerifiedCustomerForAccount;
 pub use spec::{
-    Complex, ConfigSpec, DefaultedConfig, ExposedConfig, InternalConfig, Simple, ValueKind,
+    Complex, ConfigFlavor, ConfigSpec, DefaultedConfig, DomainConfigFlavorEncrypted,
+    DomainConfigFlavorPlaintext, ExposedConfig, InternalConfig, Simple, ValueKind,
 };
 pub use typed_domain_config::TypedDomainConfig;
 

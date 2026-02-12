@@ -6,11 +6,36 @@ use crate::{ConfigType, DomainConfigError, DomainConfigKey, Visibility};
 pub struct Simple<T>(PhantomData<T>);
 pub struct Complex<T>(PhantomData<T>);
 
-// Prevent downstream crates from defining new config kinds
+/// Marker type for plaintext (unencrypted) domain configs.
+/// This is the default flavor for all configs.
+pub struct DomainConfigFlavorPlaintext;
+
+/// Marker type for encrypted domain configs.
+/// Configs with this flavor will have their values encrypted at rest.
+pub struct DomainConfigFlavorEncrypted;
+
+// Prevent downstream crates from defining new config kinds or flavors
 mod sealed {
     pub trait Sealed {}
     impl<T> Sealed for super::Simple<T> {}
     impl<T> Sealed for super::Complex<T> {}
+
+    pub trait FlavorSealed {}
+    impl FlavorSealed for super::DomainConfigFlavorPlaintext {}
+    impl FlavorSealed for super::DomainConfigFlavorEncrypted {}
+}
+
+/// Trait for domain config flavors (plaintext or encrypted).
+pub trait ConfigFlavor: sealed::FlavorSealed {
+    const IS_ENCRYPTED: bool;
+}
+
+impl ConfigFlavor for DomainConfigFlavorPlaintext {
+    const IS_ENCRYPTED: bool = false;
+}
+
+impl ConfigFlavor for DomainConfigFlavorEncrypted {
+    const IS_ENCRYPTED: bool = true;
 }
 
 pub trait ValueKind: sealed::Sealed {
@@ -180,8 +205,8 @@ where
 pub trait ConfigSpec {
     const KEY: DomainConfigKey;
     const VISIBILITY: Visibility;
-    const ENCRYPTED: bool = false;
     type Kind: ValueKind;
+    type Flavor: ConfigFlavor;
 
     fn default_value() -> Option<<Self::Kind as ValueKind>::Value> {
         None
