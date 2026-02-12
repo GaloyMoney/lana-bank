@@ -192,6 +192,7 @@ checksums:
     Prospects/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
     Prospects/kycStatus/approved: e5231b13f1fb9008823144a21a81a1b3
     Prospects/kycStatus/declined: d9330b2f64bfd767cfcfedd9afe86c77
+    Prospects/kycStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     Prospects/create/title: b92b78626e6273c7179849cad229cb95
     Prospects/create/confirmTitle: ef0363bb83f6367fbec32fc16c3d26c1
     Prospects/create/description: 3e97a4b3316f5cbd63b851bd355b641b
@@ -240,6 +241,7 @@ checksums:
     Prospects/ProspectDetails/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
     Prospects/ProspectDetails/kycStatus/approved: e5231b13f1fb9008823144a21a81a1b3
     Prospects/ProspectDetails/kycStatus/declined: d9330b2f64bfd767cfcfedd9afe86c77
+    Prospects/ProspectDetails/kycStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     Prospects/ProspectDetails/kycStatus/labels/level: 1e3bf31d5c6083e898dd3e3359fbb0c2
     Prospects/ProspectDetails/kycStatus/labels/status: 4e1fcce15854d824919b4a582c697c90
     Prospects/ProspectDetails/kycStatus/labels/kycApplicationLink: c7544d6cfc5e07b0fb4998c9b861c2fa
