@@ -1,10 +1,4 @@
-# Docker, Podman and Tilt
-dev-up:
-	cd dev && tilt up
-
-dev-down:
-	cd dev && tilt down
-
+# Docker and Podman
 podman-service-start:
 	@./dev/bin/podman-service-start.sh
 
@@ -56,7 +50,7 @@ run-server-normal:
 	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana-normal.yml > >(tee .e2e-logs) 2>&1
 
 run-server:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml > >(tee .e2e-logs) 2>&1
+	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config $${LANA_CONFIG:-./bats/lana.yml} > >(tee .e2e-logs) 2>&1
 
 run-server-nix:
 	nix run . -- --config ./bats/lana.yml 2>&1 | tee .e2e-logs
