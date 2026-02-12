@@ -233,6 +233,13 @@ impl CreditFacility {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn activation_tx_id(&self) -> LedgerTxId {
+        match self.events.iter_all().next() {
+            Some(CreditFacilityEvent::Initialized { ledger_tx_id, .. }) => *ledger_tx_id,
+            _ => unreachable!("Initialized event must be the first event"),
+        }
+    }
+
     pub fn matures_at(&self) -> DateTime<Utc> {
         self.maturity_date.start_of_day()
     }

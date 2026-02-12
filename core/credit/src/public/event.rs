@@ -12,7 +12,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{PublicCreditFacilityProposal, PublicPendingCreditFacility};
+use super::{PublicCreditFacility, PublicCreditFacilityProposal, PublicPendingCreditFacility};
 
 #[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -33,10 +33,7 @@ pub enum CoreCreditEvent {
         entity: PublicPendingCreditFacility,
     },
     FacilityActivated {
-        id: CreditFacilityId,
-        activation_tx_id: LedgerTxId,
-        activated_at: DateTime<Utc>,
-        amount: UsdCents,
+        entity: PublicCreditFacility,
     },
     FacilityCompleted {
         id: CreditFacilityId,
