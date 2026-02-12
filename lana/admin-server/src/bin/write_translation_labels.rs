@@ -41,9 +41,7 @@ fn main() {
     );
 }
 
-/// Discover `templates/` directories under `core/**/ledger/` paths.
-/// This ensures any new module following the convention (enforced by the
-/// `template-placement` lint) is automatically picked up.
+/// Discover all `templates/` directories under `core/`.
 fn discover_template_dirs() -> Vec<std::path::PathBuf> {
     let mut dirs = Vec::new();
     for entry in walkdir::WalkDir::new("core")
@@ -51,13 +49,7 @@ fn discover_template_dirs() -> Vec<std::path::PathBuf> {
         .filter_map(|e| e.ok())
     {
         if entry.file_type().is_dir() && entry.file_name() == "templates" {
-            let parent = entry.path().parent();
-            if parent.is_some_and(|p| {
-                p.file_name()
-                    .is_some_and(|name| name == "ledger" || name == "src")
-            }) {
-                dirs.push(entry.path().to_path_buf());
-            }
+            dirs.push(entry.path().to_path_buf());
         }
     }
     dirs
