@@ -306,7 +306,7 @@
             individualCrateArgs
             // {
               pname = "write_sdl";
-              cargoExtraArgs = "-p admin-server --bin write_sdl";
+              cargoExtraArgs = "-p codegen --bin write_sdl";
             }
           );
 
@@ -314,7 +314,7 @@
             individualCrateArgs
             // {
               pname = "write_customer_sdl";
-              cargoExtraArgs = "-p customer-server --bin write_customer_sdl";
+              cargoExtraArgs = "-p codegen --bin write_customer_sdl";
             }
           );
 
@@ -322,7 +322,7 @@
             individualCrateArgs
             // {
               pname = "write_translation_labels";
-              cargoExtraArgs = "-p admin-server --bin write_translation_labels";
+              cargoExtraArgs = "-p codegen --bin write_translation_labels";
             }
           );
 

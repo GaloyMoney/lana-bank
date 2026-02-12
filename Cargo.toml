@@ -5,6 +5,7 @@ members = [
   "core/*",
   "core/credit/*",
   "lib/*",
+  "dev/codegen",
   "dev/entity-rollups",
   "dev/custom-lints",
   "dev/public-events-schema",

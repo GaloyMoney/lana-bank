@@ -406,6 +406,11 @@ crate = "public-events-schema"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
+[[licenses.clarify]]
+crate = "codegen"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
 [licenses.private]
 # If true, ignores workspace crates that aren't published, or are only
 # published to private registries.
