@@ -16,4 +16,4 @@ Lana Bank exposes two GraphQL APIs and publishes domain events for integration.
 
 ## Domain Events
 
-- **[Domain Events](events/events)** — Public domain events published via the transactional outbox pattern, available for integration, analytics, and audit purposes.
+- **[Domain Events](events/events.md)** — Public domain events published via the transactional outbox pattern, available for integration, analytics, and audit purposes.
