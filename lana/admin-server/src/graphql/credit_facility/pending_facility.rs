@@ -14,6 +14,31 @@ pub use lana_app::credit::{
     PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility as DomainPendingCreditFacility,
 };
 
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PendingCreditFacilityCollateralizationState {
+    FullyCollateralized,
+    UnderCollateralized,
+    NoCollateral,
+}
+
+impl From<lana_app::terms::PendingCreditFacilityCollateralizationState>
+    for PendingCreditFacilityCollateralizationState
+{
+    fn from(state: lana_app::terms::PendingCreditFacilityCollateralizationState) -> Self {
+        match state {
+            lana_app::terms::PendingCreditFacilityCollateralizationState::FullyCollateralized {
+                ..
+            } => Self::FullyCollateralized,
+            lana_app::terms::PendingCreditFacilityCollateralizationState::UnderCollateralized {
+                ..
+            } => Self::UnderCollateralized,
+            lana_app::terms::PendingCreditFacilityCollateralizationState::NoCollateral => {
+                Self::NoCollateral
+            }
+        }
+    }
+}
+
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct PendingCreditFacility {
@@ -106,7 +131,9 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
             approval_process_id: UUID::from(pending_credit_facility.approval_process_id),
             created_at: created_at.into(),
             facility_amount: pending_credit_facility.amount,
-            collateralization_state: pending_credit_facility.last_collateralization_state().state,
+            collateralization_state: pending_credit_facility
+                .last_collateralization_state()
+                .into(),
             status: pending_credit_facility.status(),
 
             entity: Arc::new(pending_credit_facility),

@@ -13,10 +13,7 @@ use core_price::CorePriceEvent;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{
-    CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
-    PendingCreditFacilityCollateralizationState,
-};
+use crate::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject};
 
 use super::ActivateCreditFacility;
 
@@ -164,8 +161,7 @@ where
 
         if let Some(event @ PendingCreditFacilityCollateralizationChanged { entity, .. }) =
             message.as_event()
-            && entity.collateralization.state
-                == PendingCreditFacilityCollateralizationState::FullyCollateralized
+            && entity.collateralization.is_fully_collateralized()
         {
             message.inject_trace_parent();
             Span::current().record("handled", true);

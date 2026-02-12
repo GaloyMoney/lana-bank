@@ -2550,12 +2550,17 @@ impl Subscription {
                     recorded_at,
                     effective,
                 } if entity.id == pending_credit_facility_id => {
+                    let (collateral, price) = match entity.collateralization {
+                        lana_app::terms::PendingCreditFacilityCollateralizationState::FullyCollateralized { collateral, price } => (collateral, price),
+                        lana_app::terms::PendingCreditFacilityCollateralizationState::UnderCollateralized { collateral, price } => (collateral, price),
+                        lana_app::terms::PendingCreditFacilityCollateralizationState::NoCollateral => return None,
+                    };
                     Some(PendingCreditFacilityCollateralizationPayload {
                         pending_credit_facility_id,
                         update: PendingCreditFacilityCollateralizationUpdated {
-                            state: entity.collateralization.state,
-                            collateral: entity.collateralization.collateral?,
-                            price: entity.collateralization.price?.into_inner(),
+                            state: entity.collateralization.into(),
+                            collateral,
+                            price: price.into_inner(),
                             recorded_at: (*recorded_at).into(),
                             effective: (*effective).into(),
                         },
