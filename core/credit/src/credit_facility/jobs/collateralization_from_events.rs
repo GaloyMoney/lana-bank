@@ -165,19 +165,19 @@ where
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(
-            event @ CoreCreditEvent::FacilityCollateralUpdated {
-                credit_facility_id: id,
-                ..
-            },
-        ) = message.as_event()
+        if let Some(event @ CoreCreditEvent::FacilityCollateralUpdated { entity }) =
+            message.as_event()
         {
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
-            Span::current().record("credit_facility_id", tracing::field::display(id));
+            Span::current().record(
+                "credit_facility_id",
+                tracing::field::display(entity.credit_facility_id),
+            );
 
-            self.update_collateralization_from_events(*id).await?;
+            self.update_collateralization_from_events(entity.credit_facility_id)
+                .await?;
         }
 
         if let Some(

@@ -53,21 +53,18 @@ impl CreditFacilityHistory {
                     },
                 ));
             }
-            FacilityCollateralUpdated {
-                abs_diff,
-                recorded_at,
-                effective,
-                direction,
-                ledger_tx_id,
-                ..
-            } => {
+            FacilityCollateralUpdated { entity } => {
+                let adjustment = entity
+                    .adjustment
+                    .as_ref()
+                    .expect("adjustment must be set for FacilityCollateralUpdated");
                 self.entries
                     .push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
-                        satoshis: *abs_diff,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                        direction: *direction,
-                        tx_id: *ledger_tx_id,
+                        satoshis: adjustment.abs_diff,
+                        recorded_at,
+                        effective: recorded_at.date_naive(),
+                        direction: adjustment.direction,
+                        tx_id: adjustment.tx_id,
                     }));
             }
             FacilityCollateralizationChanged {

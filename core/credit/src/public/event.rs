@@ -13,7 +13,7 @@ use crate::{
 };
 
 use super::{
-    PublicCreditFacility, PublicCreditFacilityProposal, PublicDisbursal,
+    PublicCollateral, PublicCreditFacility, PublicCreditFacilityProposal, PublicDisbursal,
     PublicInterestAccrualCycle, PublicPendingCreditFacility,
 };
 
@@ -41,15 +41,10 @@ pub enum CoreCreditEvent {
     FacilityCompleted {
         entity: PublicCreditFacility,
     },
+    // NOTE: `entity.adjustment` comes from collateral's latest update.
+    // Current flows persist at most one manual/custodian collateral update per operation.
     FacilityCollateralUpdated {
-        credit_facility_id: CreditFacilityId,
-        pending_credit_facility_id: PendingCreditFacilityId,
-        ledger_tx_id: LedgerTxId,
-        new_amount: Satoshis,
-        abs_diff: Satoshis,
-        direction: CollateralDirection,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
+        entity: PublicCollateral,
     },
     FacilityCollateralizationChanged {
         id: CreditFacilityId,

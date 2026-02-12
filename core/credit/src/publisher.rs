@@ -180,27 +180,11 @@ where
         use CollateralEvent::*;
         let events = new_events
             .filter_map(|event| match &event.event {
-                UpdatedViaManualInput {
-                    abs_diff,
-                    direction,
-                    ledger_tx_id,
-                    ..
+                UpdatedViaManualInput { .. } | UpdatedViaCustodianSync { .. } => {
+                    Some(CoreCreditEvent::FacilityCollateralUpdated {
+                        entity: PublicCollateral::from(entity),
+                    })
                 }
-                | UpdatedViaCustodianSync {
-                    abs_diff,
-                    direction,
-                    ledger_tx_id,
-                    ..
-                } => Some(CoreCreditEvent::FacilityCollateralUpdated {
-                    ledger_tx_id: *ledger_tx_id,
-                    abs_diff: *abs_diff,
-                    direction: *direction,
-                    recorded_at: event.recorded_at,
-                    effective: event.recorded_at.date_naive(),
-                    new_amount: entity.amount,
-                    credit_facility_id: entity.credit_facility_id,
-                    pending_credit_facility_id: entity.pending_credit_facility_id,
-                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

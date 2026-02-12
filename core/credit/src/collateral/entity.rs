@@ -83,6 +83,28 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn last_adjustment(&self) -> Option<crate::public::CollateralAdjustment> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            CollateralEvent::UpdatedViaManualInput {
+                ledger_tx_id,
+                abs_diff,
+                direction,
+                ..
+            }
+            | CollateralEvent::UpdatedViaCustodianSync {
+                ledger_tx_id,
+                abs_diff,
+                direction,
+                ..
+            } => Some(crate::public::CollateralAdjustment {
+                tx_id: *ledger_tx_id,
+                abs_diff: *abs_diff,
+                direction: *direction,
+            }),
+            _ => None,
+        })
+    }
+
     pub fn record_collateral_update_via_custodian_sync(
         &mut self,
         new_amount: Satoshis,
