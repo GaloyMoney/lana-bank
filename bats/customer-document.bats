@@ -16,27 +16,8 @@ teardown_file() {
     skip "Skipping test because SA_CREDS_BASE64 is not defined"
   fi
 
-  # Create a customer
-  customer_email=$(generate_email)
-  telegramHandle=$(generate_email)
-  customer_type="INDIVIDUAL"
-
-  variables=$(
-    jq -n \
-    --arg email "$customer_email" \
-    --arg telegramHandle "$telegramHandle" \
-    --arg customerType "$customer_type" \
-    '{
-      input: {
-        email: $email,
-        telegramHandle: $telegramHandle,
-        customerType: $customerType
-      }
-    }'
-  )
-  
-  exec_admin_graphql 'customer-create' "$variables"
-  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
+  # Create a customer via prospect flow
+  customer_id=$(create_customer)
   [[ "$customer_id" != "null" ]] || exit 1
 
   # Generate a temporary file

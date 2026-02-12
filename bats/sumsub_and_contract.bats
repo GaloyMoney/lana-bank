@@ -44,21 +44,21 @@ wait_for_loan_agreement_completion() {
       }
     }'
   )
-  
-  exec_admin_graphql 'customer-create' "$variables"
-  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
 
-  echo "customer_id: $customer_id"
-  [[ "$customer_id" != "null" ]] || exit 1
+  exec_admin_graphql 'prospect-create' "$variables"
+  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
+
+  echo "prospect_id: $prospect_id"
+  [[ "$prospect_id" != "null" ]] || exit 1
 
   # Create permalink (for reference and fallback testing)
 
   variables=$(
     jq -n \
-    --arg customerId "$customer_id" \
+    --arg prospectId "$prospect_id" \
     '{
       input: {
-        customerId: $customerId
+        prospectId: $prospectId
       }
     }'
   )
@@ -88,7 +88,7 @@ wait_for_loan_agreement_completion() {
       "inspectionId": "test-inspection-id",
       "correlationId": "'"$(uuidgen)"'",
       "levelName": "basic-kyc-level",
-      "externalUserId": "'"$customer_id"'",
+      "externalUserId": "'"$prospect_id"'",
       "type": "applicantCreated",
       "sandboxMode": true,
       "reviewStatus": "init",
@@ -103,7 +103,7 @@ wait_for_loan_agreement_completion() {
       "applicantId": "'"$test_applicant_id"'",
       "inspectionId": "test-inspection-id",
       "correlationId": "'"$(uuidgen)"'",
-      "externalUserId": "'"$customer_id"'",
+      "externalUserId": "'"$prospect_id"'",
       "levelName": "basic-kyc-level",
       "type": "applicantReviewed",
       "reviewResult": {
@@ -117,6 +117,9 @@ wait_for_loan_agreement_completion() {
   # Wait briefly for webhook processing
   echo "Waiting for webhook processing..."
   sleep 1
+
+  # Customer has the same ID as the prospect
+  customer_id="$prospect_id"
 
   # Verify the customer kyc verification after the complete KYC flow
   variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')

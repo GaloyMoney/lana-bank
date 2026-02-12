@@ -1,0 +1,10 @@
+mutation ProspectCreate($input: ProspectCreateInput!) {
+  prospectCreate(input: $input) {
+    prospect {
+      prospectId
+      publicId
+      email
+      customerType
+    }
+  }
+}

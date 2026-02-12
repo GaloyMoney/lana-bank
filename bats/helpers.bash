@@ -444,10 +444,29 @@ create_customer() {
     }'
   )
 
-  exec_admin_graphql 'customer-create' "$variables"
-  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
-  [[ "$customer_id" != "null" ]] || exit 1
-  echo $customer_id
+  exec_admin_graphql 'prospect-create' "$variables"
+  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
+  [[ "$prospect_id" != "null" ]] || exit 1
+
+  # Simulate KYC approval via SumSub webhook
+  local webhook_id="req-$(date +%s%N)"
+  curl -s -X POST http://localhost:5253/webhook/sumsub \
+    -H "Content-Type: application/json" \
+    -d '{
+      "applicantId": "test-applicant-'"$webhook_id"'",
+      "inspectionId": "test-inspection-'"$webhook_id"'",
+      "correlationId": "'"$webhook_id"'",
+      "externalUserId": "'"$prospect_id"'",
+      "levelName": "basic-kyc-level",
+      "type": "applicantReviewed",
+      "reviewResult": { "reviewAnswer": "GREEN" },
+      "reviewStatus": "completed",
+      "createdAtMs": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'",
+      "sandboxMode": true
+    }' > /dev/null
+
+  # Customer has the same ID as the prospect
+  echo $prospect_id
 }
 
 create_deposit_account_for_customer() {
