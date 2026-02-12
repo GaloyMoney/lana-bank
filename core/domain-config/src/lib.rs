@@ -232,7 +232,7 @@ impl InternalDomainConfigs {
     {
         let config = self.repo.find_by_key(C::KEY).await?;
         let encryption = StorageEncryption::from_config(&config, &self.config);
-        TypedDomainConfig::try_new(config, encryption)
+        TypedDomainConfig::try_new_old(config, encryption)
     }
 
     #[record_error_severity]
@@ -298,7 +298,7 @@ impl ExposedDomainConfigsReadOnly {
     {
         let config = self.repo.find_by_key(C::KEY).await?;
         let encryption = StorageEncryption::from_config(&config, &self.config);
-        TypedDomainConfig::try_new(config, encryption)
+        TypedDomainConfig::try_new_old(config, encryption)
     }
 }
 
@@ -329,7 +329,7 @@ where
         self.ensure_read_permission(sub).await?;
         let config = self.repo.find_by_key(C::KEY).await?;
         let encryption = StorageEncryption::from_config(&config, &self.config);
-        TypedDomainConfig::try_new(config, encryption)
+        TypedDomainConfig::try_new_old(config, encryption)
     }
 
     #[record_error_severity]
