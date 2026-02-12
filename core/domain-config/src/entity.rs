@@ -124,6 +124,13 @@ impl DomainConfig {
             )));
         }
 
+        if self.encrypted != entry.encrypted {
+            return Err(DomainConfigError::InvalidType(format!(
+                "Invalid encrypted flag for {}: expected {}, found {}",
+                self.key, self.encrypted, entry.encrypted
+            )));
+        }
+
         (entry.validate_json)(new_value)?;
 
         Ok(())
