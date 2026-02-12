@@ -4,7 +4,7 @@ use crate::{
     ConfigSpec, DefaultedConfig, DomainConfigError, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, ValueKind,
     encryption::EncryptionKey,
-    flavor::FlavorDispatch,
+    flavor::ConfigFlavor,
 };
 
 use crate::entity::DomainConfig;
@@ -42,7 +42,7 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>> TypedDomainConfig<C> {
 
 impl<C: ConfigSpec> TypedDomainConfig<C>
 where
-    C::Flavor: FlavorDispatch,
+    C::Flavor: ConfigFlavor,
 {
     /// Returns the config value as `Option<T>`.
     ///
@@ -55,7 +55,7 @@ where
 
 impl<C: DefaultedConfig> TypedDomainConfig<C>
 where
-    C::Flavor: FlavorDispatch,
+    C::Flavor: ConfigFlavor,
 {
     /// Returns the config value directly.
     ///

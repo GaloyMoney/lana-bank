@@ -20,33 +20,24 @@ mod sealed {
 }
 
 /// Trait for domain config flavors (plaintext or encrypted).
+///
+/// This trait is sealed - only `DomainConfigFlavorPlaintext` and
+/// `DomainConfigFlavorEncrypted` implement it.
 pub trait ConfigFlavor: sealed::Sealed {
     const IS_ENCRYPTED: bool;
-}
 
-impl ConfigFlavor for DomainConfigFlavorPlaintext {
-    const IS_ENCRYPTED: bool = false;
-}
-
-impl ConfigFlavor for DomainConfigFlavorEncrypted {
-    const IS_ENCRYPTED: bool = true;
-}
-
-/// Trait for compile-time dispatch based on config flavor.
-///
-/// This enables unified method signatures in the public API while routing
-/// to flavor-specific implementations internally. All methods that differ
-/// between plaintext and encrypted configs are dispatched through this trait.
-pub trait FlavorDispatch: sealed::Sealed {
+    #[doc(hidden)]
     fn try_new<C: ConfigSpec<Flavor = Self>>(
         entity: DomainConfig,
         config: &EncryptionConfig,
     ) -> Result<TypedDomainConfig<C>, DomainConfigError>;
 
+    #[doc(hidden)]
     fn maybe_value<C: ConfigSpec<Flavor = Self>>(
         typed_config: &TypedDomainConfig<C>,
     ) -> Option<<C::Kind as ValueKind>::Value>;
 
+    #[doc(hidden)]
     fn update_value<C: ConfigSpec<Flavor = Self>>(
         entity: &mut DomainConfig,
         config: &EncryptionConfig,
@@ -54,7 +45,9 @@ pub trait FlavorDispatch: sealed::Sealed {
     ) -> Result<Idempotent<()>, DomainConfigError>;
 }
 
-impl FlavorDispatch for DomainConfigFlavorPlaintext {
+impl ConfigFlavor for DomainConfigFlavorPlaintext {
+    const IS_ENCRYPTED: bool = false;
+
     fn try_new<C: ConfigSpec<Flavor = Self>>(
         entity: DomainConfig,
         _config: &EncryptionConfig,
@@ -80,7 +73,9 @@ impl FlavorDispatch for DomainConfigFlavorPlaintext {
     }
 }
 
-impl FlavorDispatch for DomainConfigFlavorEncrypted {
+impl ConfigFlavor for DomainConfigFlavorEncrypted {
+    const IS_ENCRYPTED: bool = true;
+
     fn try_new<C: ConfigSpec<Flavor = Self>>(
         entity: DomainConfig,
         config: &EncryptionConfig,
