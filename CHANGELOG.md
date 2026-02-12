@@ -1,3 +1,13 @@
+## [0.41.0] - 2026-02-12
+
+### 🚀 Features
+
+- Type-safe encrypted domain config (#3769)
+
+### ⚙️ Miscellaneous Tasks
+
+- Adding fly to flake (#3756)
+- Create skills for testing PR on staging (#3764)
 ## [0.40.0] - 2026-02-11
 
 ### 🚀 Features
