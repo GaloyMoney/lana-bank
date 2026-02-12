@@ -5,6 +5,7 @@ mod repo;
 
 use std::sync::Arc;
 
+use chrono::{DateTime, Utc};
 use obix::out::{Outbox, OutboxEventMarker};
 
 use audit::AuditSvc;
@@ -36,7 +37,7 @@ impl IntoIterator for CreditFacilityHistory {
 }
 
 impl CreditFacilityHistory {
-    pub fn process_credit_event(&mut self, event: &CoreCreditEvent) {
+    pub fn process_credit_event(&mut self, event: &CoreCreditEvent, recorded_at: DateTime<Utc>) {
         use CoreCreditEvent::*;
 
         match event {
@@ -91,19 +92,17 @@ impl CreditFacilityHistory {
                         },
                     ));
             }
-            DisbursalSettled {
-                amount,
-                recorded_at,
-                effective,
-                ledger_tx_id,
-                ..
-            } => {
+            DisbursalSettled { entity } => {
+                let settlement = entity
+                    .settlement
+                    .as_ref()
+                    .expect("settlement must be set for DisbursalSettled");
                 self.entries
                     .push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
-                        cents: *amount,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                        tx_id: *ledger_tx_id,
+                        cents: entity.amount,
+                        recorded_at,
+                        effective: settlement.effective,
+                        tx_id: settlement.tx_id,
                     }));
             }
             AccrualPosted {

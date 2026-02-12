@@ -12,7 +12,10 @@ use crate::{
     primitives::*,
 };
 
-use super::{PublicCreditFacility, PublicCreditFacilityProposal, PublicPendingCreditFacility};
+use super::{
+    PublicCreditFacility, PublicCreditFacilityProposal, PublicDisbursal,
+    PublicPendingCreditFacility,
+};
 
 #[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -59,11 +62,7 @@ pub enum CoreCreditEvent {
         price: PriceOfOneBTC,
     },
     DisbursalSettled {
-        credit_facility_id: CreditFacilityId,
-        ledger_tx_id: LedgerTxId,
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
+        entity: PublicDisbursal,
     },
     AccrualPosted {
         credit_facility_id: CreditFacilityId,

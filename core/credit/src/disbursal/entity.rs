@@ -131,6 +131,20 @@ impl Disbursal {
         }
     }
 
+    pub fn settlement(&self) -> Option<crate::public::DisbursalSettlement> {
+        self.events.iter_all().find_map(|event| match event {
+            DisbursalEvent::Settled {
+                ledger_tx_id,
+                effective,
+                ..
+            } => Some(crate::public::DisbursalSettlement {
+                tx_id: *ledger_tx_id,
+                effective: *effective,
+            }),
+            _ => None,
+        })
+    }
+
     pub fn obligation_id(&self) -> Option<ObligationId> {
         self.events.iter_all().find_map(|event| match event {
             DisbursalEvent::Settled { obligation_id, .. } => Some(*obligation_id),

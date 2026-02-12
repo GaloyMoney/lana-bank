@@ -222,17 +222,8 @@ where
         use DisbursalEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Settled {
-                    amount,
-                    ledger_tx_id,
-                    effective,
-                    ..
-                } => Some(CoreCreditEvent::DisbursalSettled {
-                    credit_facility_id: entity.facility_id,
-                    amount: *amount,
-                    recorded_at: event.recorded_at,
-                    effective: *effective,
-                    ledger_tx_id: *ledger_tx_id,
+                Settled { .. } => Some(CoreCreditEvent::DisbursalSettled {
+                    entity: PublicDisbursal::from(entity),
                 }),
 
                 _ => None,

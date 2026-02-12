@@ -61,6 +61,10 @@ where
                 self.handle_credit_event(db, message, event, entity.id)
                     .await?;
             }
+            Some(event @ DisbursalSettled { entity }) => {
+                self.handle_credit_event(db, message, event, entity.credit_facility_id)
+                    .await?;
+            }
             Some(
                 event @ FacilityCollateralUpdated {
                     credit_facility_id: id,
@@ -68,12 +72,6 @@ where
                 },
             )
             | Some(event @ FacilityCollateralizationChanged { id, .. })
-            | Some(
-                event @ DisbursalSettled {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
             | Some(
                 event @ AccrualPosted {
                     credit_facility_id: id,
@@ -131,7 +129,7 @@ where
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
         let mut history = self.repo.load(id).await?;
-        history.process_credit_event(event);
+        history.process_credit_event(event, message.recorded_at);
         self.repo.persist_in_tx(db, id, history).await?;
         Ok(())
     }
