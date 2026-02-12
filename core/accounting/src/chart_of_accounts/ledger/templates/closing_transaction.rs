@@ -86,12 +86,12 @@ impl EntryParams {
 }
 
 #[derive(Debug)]
-pub(in crate::chart_of_accounts::ledger) struct ClosingTransactionParams<S: std::fmt::Display> {
-    pub(in crate::chart_of_accounts::ledger) journal_id: JournalId,
-    pub(in crate::chart_of_accounts::ledger) description: String,
-    pub(in crate::chart_of_accounts::ledger) effective: chrono::NaiveDate,
-    pub(in crate::chart_of_accounts::ledger) entries_params: Vec<EntryParams>,
-    pub(in crate::chart_of_accounts::ledger) initiated_by: S,
+pub struct ClosingTransactionParams<S: std::fmt::Display> {
+    pub journal_id: JournalId,
+    pub description: String,
+    pub effective: chrono::NaiveDate,
+    pub entries_params: Vec<EntryParams>,
+    pub initiated_by: S,
 }
 
 impl<S: std::fmt::Display> From<ClosingTransactionParams<S>> for Params {
@@ -113,7 +113,7 @@ impl<S: std::fmt::Display> From<ClosingTransactionParams<S>> for Params {
 }
 
 impl<S: std::fmt::Display> ClosingTransactionParams<S> {
-    pub(in crate::chart_of_accounts::ledger) fn new(
+    pub fn new(
         journal_id: JournalId,
         description: String,
         effective: NaiveDate,
@@ -129,7 +129,7 @@ impl<S: std::fmt::Display> ClosingTransactionParams<S> {
         }
     }
 
-    pub(in crate::chart_of_accounts::ledger) fn defs(n: usize) -> Vec<NewParamDefinition> {
+    pub fn defs(n: usize) -> Vec<NewParamDefinition> {
         let mut params = vec![
             NewParamDefinition::builder()
                 .name("journal_id")
@@ -158,18 +158,16 @@ impl<S: std::fmt::Display> ClosingTransactionParams<S> {
         params
     }
 
-    pub(in crate::chart_of_accounts::ledger) fn template_code(&self) -> String {
+    pub fn template_code(&self) -> String {
         format!("CLOSING_TRANSACTION_{}", self.description)
     }
 
-    pub(in crate::chart_of_accounts::ledger) fn tx_entry_type(&self, i: usize) -> String {
+    pub fn tx_entry_type(&self, i: usize) -> String {
         format!("'CLOSING_TRANSACTION_{}_ENTRY_{}'", self.description, i)
     }
 }
 
-pub(in crate::chart_of_accounts::ledger) async fn find_or_create_template_in_op<
-    S: std::fmt::Display,
->(
+pub async fn find_or_create_template_in_op<S: std::fmt::Display>(
     op: &mut es_entity::DbOp<'_>,
     cala: &cala_ledger::CalaLedger,
     params: &ClosingTransactionParams<S>,

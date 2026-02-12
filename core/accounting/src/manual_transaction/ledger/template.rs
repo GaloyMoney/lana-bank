@@ -8,7 +8,7 @@ use cala_ledger::{
     *,
 };
 
-use super::super::error::*;
+use super::error::*;
 
 #[derive(Debug)]
 pub struct EntryParams {
@@ -150,7 +150,7 @@ impl<S: std::fmt::Display> ManualTransactionParams<S> {
     }
 }
 
-pub(in crate::manual_transaction::ledger) struct ManualTransactionTemplate {
+pub(super) struct ManualTransactionTemplate {
     pub n_entries: usize,
 }
 
