@@ -73,7 +73,7 @@ Resolve the target commit using one of these approaches, in priority order:
 When the target is an open (unmerged) PR:
 1. Check approval status with `gh pr view --json reviewDecision`.
 2. If `reviewDecision` is **not** `APPROVED`, stop and tell the user the PR is not yet approved — do not merge.
-3. If approved, merge with `gh pr merge --squash` (or `--merge` if the user prefers).
+3. If approved, merge with `gh pr merge --squash`.
 4. After merge completes, fetch main and resolve the merge commit SHA with `gh pr view --json mergeCommit`.
 5. Continue to Step 2 with the merge commit.
 
