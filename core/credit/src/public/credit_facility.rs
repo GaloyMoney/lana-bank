@@ -4,23 +4,13 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use money::{Satoshis, UsdCents};
+use money::UsdCents;
 
+pub use crate::credit_facility::LiquidationTrigger;
 use crate::{
     credit_facility::CreditFacility,
-    primitives::{
-        CollateralId, CreditFacilityId, CustomerId, LedgerTxId, LiquidationId, PriceOfOneBTC,
-    },
+    primitives::{CollateralId, CreditFacilityId, CustomerId, LedgerTxId},
 };
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct LiquidationTrigger {
-    pub liquidation_id: LiquidationId,
-    pub trigger_price: PriceOfOneBTC,
-    pub initially_expected_to_receive: UsdCents,
-    pub initially_estimated_to_liquidate: Satoshis,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

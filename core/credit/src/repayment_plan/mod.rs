@@ -486,11 +486,13 @@ mod tests {
                 credit_facility_id: CreditFacilityId::new(),
                 period,
                 due_at: EffectiveDate::from(period.end),
-                posting: Some(crate::public::AccrualPosting {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::ZERO,
-                    effective: period.end.date_naive(),
-                }),
+                posting: Some(
+                    crate::credit_facility::interest_accrual_cycle::AccrualPosting {
+                        tx_id: LedgerTxId::new(),
+                        amount: UsdCents::ZERO,
+                        effective: period.end.date_naive(),
+                    },
+                ),
             },
         }
     }

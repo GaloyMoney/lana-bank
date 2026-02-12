@@ -107,6 +107,13 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct DisbursalSettlement {
+    pub tx_id: LedgerTxId,
+    pub effective: chrono::NaiveDate,
+}
+
 impl Disbursal {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
@@ -131,13 +138,13 @@ impl Disbursal {
         }
     }
 
-    pub fn settlement(&self) -> Option<crate::public::DisbursalSettlement> {
+    pub fn settlement(&self) -> Option<DisbursalSettlement> {
         self.events.iter_all().find_map(|event| match event {
             DisbursalEvent::Settled {
                 ledger_tx_id,
                 effective,
                 ..
-            } => Some(crate::public::DisbursalSettlement {
+            } => Some(DisbursalSettlement {
                 tx_id: *ledger_tx_id,
                 effective: *effective,
             }),

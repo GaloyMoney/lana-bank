@@ -28,8 +28,8 @@ use core_credit_collection::CoreCreditCollection;
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
-pub use entity::CreditFacility;
 pub(crate) use entity::*;
+pub use entity::{CreditFacility, LiquidationTrigger};
 use interest_accrual_cycle::NewInterestAccrualCycleData;
 
 #[cfg(feature = "json-schema")]

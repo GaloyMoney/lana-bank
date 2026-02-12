@@ -1,4 +1,3 @@
-use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "json-schema")]
@@ -6,17 +5,11 @@ use schemars::JsonSchema;
 
 use money::UsdCents;
 
+pub use crate::disbursal::DisbursalSettlement;
 use crate::{
     disbursal::Disbursal,
-    primitives::{CreditFacilityId, DisbursalId, LedgerTxId},
+    primitives::{CreditFacilityId, DisbursalId},
 };
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct DisbursalSettlement {
-    pub tx_id: LedgerTxId,
-    pub effective: NaiveDate,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

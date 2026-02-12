@@ -3,21 +3,11 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
+pub use crate::collateral::CollateralAdjustment;
 use crate::{
     collateral::Collateral,
-    primitives::{
-        CollateralDirection, CollateralId, CreditFacilityId, LedgerTxId, PendingCreditFacilityId,
-        Satoshis,
-    },
+    primitives::{CollateralId, CreditFacilityId, PendingCreditFacilityId, Satoshis},
 };
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct CollateralAdjustment {
-    pub tx_id: LedgerTxId,
-    pub abs_diff: Satoshis,
-    pub direction: CollateralDirection,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

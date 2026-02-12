@@ -1,24 +1,15 @@
-use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
 use core_credit_terms::InterestPeriod;
-use money::UsdCents;
 
+pub use crate::credit_facility::interest_accrual_cycle::AccrualPosting;
 use crate::{
     credit_facility::interest_accrual_cycle::InterestAccrualCycle,
-    primitives::{CreditFacilityId, EffectiveDate, InterestAccrualCycleId, LedgerTxId},
+    primitives::{CreditFacilityId, EffectiveDate, InterestAccrualCycleId},
 };
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct AccrualPosting {
-    pub tx_id: LedgerTxId,
-    pub amount: UsdCents,
-    pub effective: NaiveDate,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

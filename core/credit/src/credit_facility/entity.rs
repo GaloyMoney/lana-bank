@@ -191,6 +191,15 @@ pub struct CreditFacility {
     events: EntityEvents<CreditFacilityEvent>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct LiquidationTrigger {
+    pub liquidation_id: LiquidationId,
+    pub trigger_price: PriceOfOneBTC,
+    pub initially_expected_to_receive: UsdCents,
+    pub initially_estimated_to_liquidate: Satoshis,
+}
+
 impl CreditFacility {
     pub(crate) fn activation_data(
         &self,
@@ -250,14 +259,14 @@ impl CreditFacility {
             })
     }
 
-    pub fn last_liquidation_trigger(&self) -> Option<crate::public::LiquidationTrigger> {
+    pub fn last_liquidation_trigger(&self) -> Option<LiquidationTrigger> {
         self.events.iter_all().rev().find_map(|event| match event {
             CreditFacilityEvent::PartialLiquidationInitiated {
                 liquidation_id,
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
-            } => Some(crate::public::LiquidationTrigger {
+            } => Some(LiquidationTrigger {
                 liquidation_id: *liquidation_id,
                 trigger_price: *trigger_price,
                 initially_expected_to_receive: *initially_expected_to_receive,
