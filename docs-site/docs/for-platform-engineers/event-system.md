@@ -57,18 +57,11 @@ Lana uses an event-driven architecture with:
 
 ## Event Types
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    EVENT TYPES                                  │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │  Entity Events  │  │  Domain Events  │  │ Public Events   │ │
-│  │  (Internal)     │  │ (Cross-domain)  │  │ (External)      │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                                                                  │
-│  State changes        Business processes    Webhooks/APIs       │
-│  within aggregate     within application    external consumers  │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    EE["**Entity Events**<br/>(Internal)<br/>State changes<br/>within aggregate"]
+    DE["**Domain Events**<br/>(Cross-domain)<br/>Business processes<br/>within application"]
+    PE["**Public Events**<br/>(External)<br/>Webhooks/APIs<br/>external consumers"]
 ```
 
 ## Entity Events
@@ -101,32 +94,16 @@ pub enum CreditFacilityEvent {
 
 The outbox ensures reliable event delivery:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    OUTBOX PATTERN                               │
-│                                                                  │
-│  ┌─────────────────┐                                            │
-│  │ Domain Service  │                                            │
-│  │   Operation     │                                            │
-│  └─────────────────┘                                            │
-│           │                                                      │
-│           ▼ (Single Transaction)                                │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    PostgreSQL                            │   │
-│  │  ┌─────────────────┐  ┌─────────────────┐              │   │
-│  │  │  Entity Table   │  │  Outbox Table   │              │   │
-│  │  │  (State)        │  │  (Events)       │              │   │
-│  │  └─────────────────┘  └─────────────────┘              │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼ (Background Process)             │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                  Event Processor                         │   │
-│  │  - Reads pending events                                  │   │
-│  │  - Dispatches to handlers                                │   │
-│  │  - Marks as processed                                    │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    DS["Domain Service<br/>Operation"] -->|"Single Transaction"| PG
+
+    subgraph PG["PostgreSQL"]
+        ET["Entity Table<br/>(State)"]
+        OT["Outbox Table<br/>(Events)"]
+    end
+
+    PG -->|"Background Process"| EP["Event Processor<br/>Reads pending events<br/>Dispatches to handlers<br/>Marks as processed"]
 ```
 
 ### Outbox Table Structure
@@ -220,23 +197,11 @@ impl EventHandler for CustomerActivationHandler {
 
 ## Cross-Domain Communication
 
-```
-┌──────────────┐                              ┌──────────────┐
-│   Customer   │                              │   Deposit    │
-│   Domain     │                              │   Domain     │
-└──────────────┘                              └──────────────┘
-       │                                              ▲
-       │ CustomerActivated                            │
-       ▼                                              │
-┌──────────────────────────────────────────────────────────────┐
-│                        Outbox                                 │
-│                  (Event Queue)                                │
-└──────────────────────────────────────────────────────────────┘
-       │                                              │
-       │            Event Processor                   │
-       │                                              │
-       └──────────────────────────────────────────────┘
-                    Creates Deposit Account
+```mermaid
+graph TD
+    CUST["Customer Domain"] -->|"CustomerActivated"| OUTBOX["Outbox<br/>(Event Queue)"]
+    OUTBOX --> EP["Event Processor"]
+    EP -->|"Creates Deposit Account"| DEP["Deposit Domain"]
 ```
 
 ## Event Correlation

@@ -27,50 +27,29 @@ Cala Ledger provides:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    LEDGER INTEGRATION                           │
-│                                                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    Lana Domain Services                  │   │
-│  │    (Credit, Deposit, Accounting)                         │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    LedgerAdapter                         │   │
-│  │              (Domain-specific operations)                │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                      Cala Ledger                         │   │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐        │   │
-│  │  │  Accounts  │  │ Transactions│  │  Balances  │        │   │
-│  │  └────────────┘  └────────────┘  └────────────┘        │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    DOMAIN["Lana Domain Services<br/>(Credit, Deposit, Accounting)"] --> ADAPTER["LedgerAdapter<br/>(Domain-specific operations)"]
+    ADAPTER --> CALA
+
+    subgraph CALA["Cala Ledger"]
+        ACCTS["Accounts"]
+        TXS["Transactions"]
+        BAL["Balances"]
+    end
 ```
 
 ## Account Hierarchy
 
-```
-                    ┌──────────────┐
-                    │     Root     │
-                    │   Account    │
-                    └──────────────┘
-                           │
-          ┌────────────────┼────────────────┐
-          ▼                ▼                ▼
-    ┌──────────┐     ┌──────────┐     ┌──────────┐
-    │  Assets  │     │Liabilities│    │  Equity  │
-    └──────────┘     └──────────┘     └──────────┘
-          │                │
-    ┌─────┴─────┐    ┌─────┴─────┐
-    ▼           ▼    ▼           ▼
-┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-│  Cash  │ │ Loans  │ │Deposits│ │ Debt   │
-└────────┘ └────────┘ └────────┘ └────────┘
+```mermaid
+graph TD
+    ROOT["Root Account"] --> ASSETS["Assets"]
+    ROOT --> LIAB["Liabilities"]
+    ROOT --> EQUITY["Equity"]
+    ASSETS --> CASH["Cash"]
+    ASSETS --> LOANS["Loans"]
+    LIAB --> DEPOSITS["Deposits"]
+    LIAB --> DEBT["Debt"]
 ```
 
 ## Account Types

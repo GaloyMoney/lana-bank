@@ -70,28 +70,11 @@ Lana integrates with cryptocurrency custody providers:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    CUSTODY INTEGRATION                          │
-│                                                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    Lana Core                             │   │
-│  │              (Credit Collateral Module)                  │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                  Custody Adapter                         │   │
-│  │           (Provider-agnostic interface)                  │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│               ┌──────────────┴──────────────┐                  │
-│               ▼                             ▼                  │
-│  ┌─────────────────┐              ┌─────────────────┐         │
-│  │     BitGo       │              │    Komainu      │         │
-│  │   (Provider)    │              │   (Provider)    │         │
-│  └─────────────────┘              └─────────────────┘         │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    CORE["Lana Core<br/>(Credit Collateral Module)"] --> ADAPTER["Custody Adapter<br/>(Provider-agnostic interface)"]
+    ADAPTER --> BITGO["BitGo<br/>(Provider)"]
+    ADAPTER --> KOMAINU["Komainu<br/>(Provider)"]
 ```
 
 ## Custody Provider Interface
@@ -119,17 +102,9 @@ pub trait CustodyProvider {
 
 ### Wallet Lifecycle
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Request    │───▶│   Create     │───▶│   Active     │
-│   Wallet     │    │   Wallet     │    │   Wallet     │
-└──────────────┘    └──────────────┘    └──────────────┘
-                                               │
-                                               ▼
-                                        ┌──────────────┐
-                                        │   Archive    │
-                                        │   Wallet     │
-                                        └──────────────┘
+```mermaid
+graph LR
+    REQ["Request Wallet"] --> CREATE["Create Wallet"] --> ACTIVE["Active Wallet"] --> ARCHIVE["Archive Wallet"]
 ```
 
 ## Collateral Management
@@ -222,19 +197,13 @@ pub async fn calculate_ltv(&self, facility_id: CreditFacilityId) -> Result<Decim
 
 ### Margin Call Process
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   LTV > 70%  │───▶│   Notify     │───▶│   Customer   │
-│   Detected   │    │   Customer   │    │   Adds       │
-└──────────────┘    └──────────────┘    │   Collateral │
-                                        └──────────────┘
-                                               │
-       ┌───────────────────────────────────────┘
-       ▼
-┌──────────────┐    ┌──────────────┐
-│   LTV > 90%  │───▶│  Liquidate   │
-│   No Action  │    │  Collateral  │
-└──────────────┘    └──────────────┘
+```mermaid
+graph TD
+    DETECT["LTV > 70%<br/>Detected"] --> NOTIFY["Notify Customer"]
+    NOTIFY --> ADD["Customer Adds<br/>Collateral"]
+    ADD --> RESOLVE["LTV Restored"]
+    ADD --> NOACT["LTV > 90%<br/>No Action"]
+    NOACT --> LIQ["Liquidate Collateral"]
 ```
 
 ## Security

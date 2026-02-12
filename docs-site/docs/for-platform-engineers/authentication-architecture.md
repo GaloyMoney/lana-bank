@@ -34,33 +34,13 @@ Lana's security architecture consists of:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    AUTHENTICATION FLOW                          │
-│                                                                  │
-│  ┌─────────────────┐                                            │
-│  │     Client      │                                            │
-│  │  (Browser/App)  │                                            │
-│  └─────────────────┘                                            │
-│           │                                                      │
-│           ▼                                                      │
-│  ┌─────────────────┐    ┌─────────────────┐                    │
-│  │    Keycloak     │◀───│   Login Form    │                    │
-│  │   (Auth Server) │    │                 │                    │
-│  └─────────────────┘    └─────────────────┘                    │
-│           │                                                      │
-│           ▼ JWT Token                                           │
-│  ┌─────────────────┐                                            │
-│  │   Oathkeeper    │                                            │
-│  │   (Gateway)     │                                            │
-│  └─────────────────┘                                            │
-│           │                                                      │
-│           ▼ Validated Request                                   │
-│  ┌─────────────────┐    ┌─────────────────┐                    │
-│  │  GraphQL Server │───▶│     Casbin      │                    │
-│  │                 │    │   (RBAC Check)  │                    │
-│  └─────────────────┘    └─────────────────┘                    │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    CLIENT["Client<br/>(Browser/App)"] --> LOGIN["Login Form"]
+    LOGIN --> KC["Keycloak<br/>(Auth Server)"]
+    KC -->|"JWT Token"| OAT["Oathkeeper<br/>(Gateway)"]
+    OAT -->|"Validated Request"| GQL["GraphQL Server"]
+    GQL --> CASBIN["Casbin<br/>(RBAC Check)"]
 ```
 
 ## Keycloak Configuration
@@ -193,27 +173,14 @@ impl Query {
 
 ## Permission Hierarchy
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PERMISSION HIERARCHY                         │
-│                                                                  │
-│                      ┌──────────────┐                           │
-│                      │  SUPERUSER   │                           │
-│                      └──────────────┘                           │
-│                             │                                    │
-│              ┌──────────────┴──────────────┐                    │
-│              ▼                             ▼                    │
-│      ┌──────────────┐              ┌──────────────┐            │
-│      │ BANK_MANAGER │              │  ADMIN       │            │
-│      └──────────────┘              └──────────────┘            │
-│              │                             │                    │
-│       ┌──────┴──────┐               ┌──────┴──────┐            │
-│       ▼             ▼               ▼             ▼            │
-│ ┌──────────┐ ┌──────────┐   ┌──────────┐  ┌──────────┐        │
-│ │ CREDIT   │ │ CUSTOMER │   │ REPORT   │  │ CONFIG   │        │
-│ │ OFFICER  │ │ SERVICE  │   │ VIEWER   │  │ ADMIN    │        │
-│ └──────────┘ └──────────┘   └──────────┘  └──────────┘        │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    SU["SUPERUSER"] --> BM["BANK_MANAGER"]
+    SU --> ADM["ADMIN"]
+    BM --> CO["CREDIT OFFICER"]
+    BM --> CS["CUSTOMER SERVICE"]
+    ADM --> RV["REPORT VIEWER"]
+    ADM --> CA["CONFIG ADMIN"]
 ```
 
 ## Audit Logging
