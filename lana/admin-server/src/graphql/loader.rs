@@ -27,7 +27,7 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
     customer::*, deposit::*, deposit_account::*, document::*, domain_config::*, policy::*,
-    reports::*, terms_template::*, withdrawal::*,
+    prospect::*, reports::*, terms_template::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -183,6 +183,23 @@ impl Loader<CustomerId> for LanaLoader {
         keys: &[CustomerId],
     ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
         self.app.customers().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<ProspectId> for LanaLoader {
+    type Value = Prospect;
+    type Error = Arc<lana_app::customer::error::CustomerError>;
+
+    #[instrument(name = "loader.prospects", skip(self), fields(count = keys.len()), err)]
+    async fn load(
+        &self,
+        keys: &[ProspectId],
+    ) -> Result<HashMap<ProspectId, Prospect>, Self::Error> {
+        self.app
+            .customers()
+            .find_all_prospects(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

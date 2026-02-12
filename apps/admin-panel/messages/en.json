@@ -175,7 +175,8 @@
       "transactionTemplates": "Transaction Templates",
       "rolesAndPermissions": "Roles & Permissions",
       "custodians": "Custodians",
-      "configurations": "Configurations"
+      "configurations": "Configurations",
+      "prospects": "Prospects"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -235,6 +236,100 @@
       "withdrawal": "Withdrawal",
       "amount": "Amount",
       "facilityAmount": "Facility Amount"
+    }
+  },
+  "Prospects": {
+    "title": "Prospects",
+    "description": "Individuals or entities who are awaiting KYC verification",
+    "columns": {
+      "email": "Email",
+      "telegramId": "Telegram",
+      "kycStatus": "KYC Status",
+      "customerType": "Type"
+    },
+    "kycStatus": {
+      "notStarted": "Not Started",
+      "pending": "Pending",
+      "approved": "Approved",
+      "declined": "Declined"
+    },
+    "create": {
+      "title": "Add new prospect",
+      "confirmTitle": "Confirm Prospect Details",
+      "description": "Add a new Prospect by providing their email address and Telegram ID",
+      "confirmDescription": "Please review the details before submitting",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Please enter the email address",
+      "telegramLabel": "Telegram ID",
+      "telegramPlaceholder": "Please enter the Telegram ID",
+      "customerTypeLabel": "Customer Type",
+      "individualLabel": "Individual",
+      "companyLabel": "Company",
+      "companyTypeLabel": "Company Type",
+      "governmentEntityLabel": "Government Entity",
+      "privateCompanyLabel": "Private Company",
+      "bankLabel": "Bank",
+      "financialInstitutionLabel": "Financial Institution",
+      "foreignAgencyLabel": "Foreign Agency or Subsidiary",
+      "nonDomiciledCompanyLabel": "Non-Domiciled Company",
+      "selectCompanyType": "Select a company type",
+      "reviewButton": "Review Details",
+      "backButton": "Back",
+      "confirmButton": "Confirm and Submit",
+      "successMessage": "Prospect created successfully",
+      "errorMessage": "Failed to create prospect",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "failedToCreate": "Failed to create prospect. Please try again."
+    },
+    "ProspectDetails": {
+      "layout": {
+        "tabs": {
+          "documents": "Documents"
+        },
+        "errors": {
+          "loading": "Loading...",
+          "error": "An error occurred"
+        }
+      },
+      "details": {
+        "title": "Prospect",
+        "labels": {
+          "email": "Email",
+          "createdOn": "Created on",
+          "telegram": "Telegram",
+          "customerType": "Type",
+          "publicId": "Public ID"
+        },
+        "customerType": {
+          "individual": "Individual",
+          "company": "Company",
+          "governmentEntity": "Government Entity",
+          "privateCompany": "Private Company",
+          "bank": "Bank",
+          "financialInstitution": "Financial Institution",
+          "foreignAgency": "Foreign Agency or Subsidiary",
+          "nonDomiciledCompany": "Non-Domiciled Company"
+        }
+      },
+      "kycStatus": {
+        "title": "KYC",
+        "notStarted": "Not Started",
+        "pending": "Pending",
+        "approved": "Approved",
+        "declined": "Declined",
+        "labels": {
+          "level": "Level",
+          "status": "Status",
+          "kycApplicationLink": "KYC Application Link"
+        },
+        "actions": {
+          "createLink": "Create link",
+          "creatingLink": "Creating link..."
+        },
+        "messages": {
+          "copied": "Copied to clipboard"
+        }
+      }
     }
   },
   "Customers": {
@@ -2218,6 +2313,7 @@
       "deposit": "Deposit",
       "withdrawal": "Withdrawal",
       "customer": "Customer",
+      "prospect": "Prospect",
       "creditFacility": "Credit Facility Proposal",
       "disbursal": "Disbursal",
       "payment": "Payment",

@@ -175,7 +175,8 @@
       "transactionTemplates": "Plantillas de transacciones",
       "rolesAndPermissions": "Roles y permisos",
       "custodians": "Custodios",
-      "configurations": "Configuraciones"
+      "configurations": "Configuraciones",
+      "prospects": "Prospectos"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -235,6 +236,100 @@
       "withdrawal": "Retiro",
       "amount": "Monto",
       "facilityAmount": "Monto de línea"
+    }
+  },
+  "Prospects": {
+    "title": "Prospectos",
+    "description": "Individuos o entidades que esperan verificación KYC",
+    "columns": {
+      "email": "Correo electrónico",
+      "telegramId": "Telegram",
+      "kycStatus": "Estado KYC",
+      "customerType": "Tipo"
+    },
+    "kycStatus": {
+      "notStarted": "No iniciado",
+      "pending": "Pendiente",
+      "approved": "Aprobado",
+      "declined": "Rechazado"
+    },
+    "create": {
+      "title": "Agregar nuevo prospecto",
+      "confirmTitle": "Confirmar detalles del prospecto",
+      "description": "Agregar un nuevo prospecto proporcionando su correo electrónico y Telegram ID",
+      "confirmDescription": "Por favor revise los detalles antes de enviar",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "Ingrese el correo electrónico",
+      "telegramLabel": "Telegram ID",
+      "telegramPlaceholder": "Ingrese el Telegram ID",
+      "customerTypeLabel": "Tipo de cliente",
+      "individualLabel": "Individual",
+      "companyLabel": "Empresa",
+      "companyTypeLabel": "Tipo de empresa",
+      "governmentEntityLabel": "Entidad gubernamental",
+      "privateCompanyLabel": "Empresa privada",
+      "bankLabel": "Banco",
+      "financialInstitutionLabel": "Institución financiera",
+      "foreignAgencyLabel": "Agencia o subsidiaria extranjera",
+      "nonDomiciledCompanyLabel": "Empresa no domiciliada",
+      "selectCompanyType": "Seleccione un tipo de empresa",
+      "reviewButton": "Revisar detalles",
+      "backButton": "Atrás",
+      "confirmButton": "Confirmar y enviar",
+      "successMessage": "Prospecto creado exitosamente",
+      "errorMessage": "Error al crear prospecto",
+      "unexpectedError": "Ocurrió un error inesperado. Por favor intente de nuevo.",
+      "failedToCreate": "Error al crear prospecto. Por favor intente de nuevo."
+    },
+    "ProspectDetails": {
+      "layout": {
+        "tabs": {
+          "documents": "Documentos"
+        },
+        "errors": {
+          "loading": "Cargando...",
+          "error": "Ocurrió un error"
+        }
+      },
+      "details": {
+        "title": "Prospecto",
+        "labels": {
+          "email": "Correo electrónico",
+          "createdOn": "Creado el",
+          "telegram": "Telegram",
+          "customerType": "Tipo",
+          "publicId": "ID Público"
+        },
+        "customerType": {
+          "individual": "Individual",
+          "company": "Empresa",
+          "governmentEntity": "Entidad gubernamental",
+          "privateCompany": "Empresa privada",
+          "bank": "Banco",
+          "financialInstitution": "Institución financiera",
+          "foreignAgency": "Agencia o subsidiaria extranjera",
+          "nonDomiciledCompany": "Empresa no domiciliada"
+        }
+      },
+      "kycStatus": {
+        "title": "KYC",
+        "notStarted": "No iniciado",
+        "pending": "Pendiente",
+        "approved": "Aprobado",
+        "declined": "Rechazado",
+        "labels": {
+          "level": "Nivel",
+          "status": "Estado",
+          "kycApplicationLink": "Enlace de aplicación KYC"
+        },
+        "actions": {
+          "createLink": "Crear enlace",
+          "creatingLink": "Creando enlace..."
+        },
+        "messages": {
+          "copied": "Copiado al portapapeles"
+        }
+      }
     }
   },
   "Customers": {
@@ -2218,6 +2313,7 @@
       "deposit": "Depósito",
       "withdrawal": "Retiro",
       "customer": "Cliente",
+      "prospect": "Prospecto",
       "creditFacility": "Propuesta de facilidad de crédito",
       "disbursal": "Desembolso",
       "payment": "Pago",

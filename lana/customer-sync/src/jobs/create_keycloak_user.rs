@@ -103,7 +103,7 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(event @ CoreCustomerEvent::CustomerCreated { entity }) => {
+            Some(event @ CoreCustomerEvent::ProspectCreated { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());

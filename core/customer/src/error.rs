@@ -2,6 +2,8 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use crate::prospect;
+
 #[derive(Error, Debug)]
 pub enum CustomerError {
     #[error("CustomerError - Sqlx: {0}")]
@@ -22,6 +24,8 @@ pub enum CustomerError {
     DocumentStorageError(#[from] document_storage::error::DocumentStorageError),
     #[error("CustomerError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
+    #[error("CustomerError - ProspectError: {0}")]
+    ProspectError(#[from] prospect::ProspectError),
 }
 
 es_entity::from_es_entity_error!(CustomerError);
@@ -38,6 +42,7 @@ impl ErrorSeverity for CustomerError {
             Self::SubjectIsNotCustomer => Level::WARN,
             Self::DocumentStorageError(e) => e.severity(),
             Self::PublicIdError(e) => e.severity(),
+            Self::ProspectError(e) => e.severity(),
         }
     }
 }

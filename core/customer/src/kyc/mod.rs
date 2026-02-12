@@ -17,7 +17,7 @@ use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, CustomerType, Customers,
+    CoreCustomerAction, CoreCustomerEvent, CustomerObject, CustomerType, Customers, ProspectId,
 };
 use callback::{KycCallbackPayload, ReviewAnswer, ReviewResult};
 use error::KycError;
@@ -113,7 +113,7 @@ where
         payload["externalUserId"]
             .as_str()
             .ok_or_else(|| KycError::MissingExternalUserId(payload.to_string()))?
-            .parse::<CustomerId>()?;
+            .parse::<ProspectId>()?;
 
         match self.process_payload(payload).await {
             Ok(_) => (),
@@ -389,24 +389,27 @@ where
     pub async fn create_verification_link(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        prospect_id: impl Into<ProspectId> + std::fmt::Debug,
     ) -> Result<PermalinkResponse, KycError> {
-        let customer_id: CustomerId = customer_id.into();
+        let prospect_id: ProspectId = prospect_id.into();
 
         self.authz
             .enforce_permission(
                 sub,
-                CustomerObject::customer(customer_id),
-                CoreCustomerAction::CUSTOMER_READ,
+                CustomerObject::prospect(prospect_id),
+                CoreCustomerAction::PROSPECT_READ,
             )
             .await?;
 
-        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
-        let level: KycLevel = customer.customer_type.into();
+        let prospect = self
+            .customers
+            .find_prospect_by_id_without_audit(prospect_id)
+            .await?;
+        let level: KycLevel = prospect.customer_type.into();
 
         Ok(self
             .sumsub_client
-            .create_permalink(customer_id, &level.to_string())
+            .create_permalink(prospect_id, &level.to_string())
             .await?)
     }
 
@@ -414,16 +417,17 @@ where
     #[instrument(name = "kyc.get_applicant_info_without_audit", skip(self))]
     pub async fn get_applicant_info_without_audit(
         &self,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        prospect_id: impl Into<ProspectId> + std::fmt::Debug,
     ) -> Result<ApplicantInfo, KycError> {
-        let customer_id: CustomerId = customer_id.into();
+        let prospect_id: ProspectId = prospect_id.into();
 
-        // will return error if customer not found
-        self.customers.find_by_id_without_audit(customer_id).await?;
+        self.customers
+            .find_prospect_by_id_without_audit(prospect_id)
+            .await?;
 
         let applicant_details = self
             .sumsub_client
-            .get_applicant_details(customer_id)
+            .get_applicant_details(prospect_id)
             .await?;
 
         Ok(applicant_details.info)
@@ -436,23 +440,25 @@ where
     #[instrument(name = "kyc.create_complete_test_applicant", skip(self))]
     pub async fn create_complete_test_applicant(
         &self,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        prospect_id: impl Into<ProspectId> + std::fmt::Debug,
     ) -> Result<String, KycError> {
-        let customer_id: CustomerId = customer_id.into();
+        let prospect_id: ProspectId = prospect_id.into();
 
-        // will return error if customer not found
-        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
-        let level: KycLevel = customer.customer_type.into();
+        let prospect = self
+            .customers
+            .find_prospect_by_id_without_audit(prospect_id)
+            .await?;
+        let level: KycLevel = prospect.customer_type.into();
 
         tracing::info!(
-            customer_id = %customer_id,
+            prospect_id = %prospect_id,
             "Creating complete test applicant with full KYC flow"
         );
 
         // Step 1: Create applicant via API
         let applicant_id = self
             .sumsub_client
-            .create_applicant(customer_id, &level.to_string())
+            .create_applicant(prospect_id, &level.to_string())
             .await?;
 
         tracing::info!(applicant_id = %applicant_id, "Applicant created");
@@ -591,7 +597,7 @@ where
 
         tracing::info!(
             applicant_id = %applicant_id,
-            customer_id = %customer_id,
+            prospect_id = %prospect_id,
             "Complete test applicant created and approved successfully"
         );
 

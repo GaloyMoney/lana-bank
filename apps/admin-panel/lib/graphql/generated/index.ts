@@ -1639,6 +1639,13 @@ export enum KycLevel {
   NotKyced = 'NOT_KYCED'
 }
 
+export enum KycStatus {
+  Approved = 'APPROVED',
+  Declined = 'DECLINED',
+  NotStarted = 'NOT_STARTED',
+  Pending = 'PENDING'
+}
+
 export enum KycVerification {
   PendingVerification = 'PENDING_VERIFICATION',
   Rejected = 'REJECTED',
@@ -1839,6 +1846,7 @@ export type Me = {
   __typename?: 'Me';
   user: User;
   userCanCreateCustomer: Scalars['Boolean']['output'];
+  userCanCreateProspect: Scalars['Boolean']['output'];
   userCanCreateTermsTemplate: Scalars['Boolean']['output'];
   userCanCreateUser: Scalars['Boolean']['output'];
   visibleNavigationItems: VisibleNavigationItems;
@@ -1892,6 +1900,7 @@ export type Mutation = {
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
+  prospectCreate: ProspectCreatePayload;
   reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
   roleCreate: RoleCreatePayload;
@@ -2140,6 +2149,11 @@ export type MutationPolicyAssignCommitteeArgs = {
 };
 
 
+export type MutationProspectCreateArgs = {
+  input: ProspectCreateInput;
+};
+
+
 export type MutationReportFileGenerateDownloadLinkArgs = {
   input: ReportFileGenerateDownloadLinkInput;
 };
@@ -2384,6 +2398,50 @@ export type ProfitAndLossStatement = {
   total: LedgerAccountBalanceRangeByCurrency;
 };
 
+export type Prospect = {
+  __typename?: 'Prospect';
+  applicantId?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['Timestamp']['output'];
+  customerType: CustomerType;
+  email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  kycStatus: KycStatus;
+  level: KycLevel;
+  prospectId: Scalars['UUID']['output'];
+  publicId: Scalars['PublicId']['output'];
+  telegramId: Scalars['String']['output'];
+};
+
+export type ProspectConnection = {
+  __typename?: 'ProspectConnection';
+  /** A list of edges. */
+  edges: Array<ProspectEdge>;
+  /** A list of nodes. */
+  nodes: Array<Prospect>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+export type ProspectCreateInput = {
+  customerType: CustomerType;
+  email: Scalars['String']['input'];
+  telegramId: Scalars['String']['input'];
+};
+
+export type ProspectCreatePayload = {
+  __typename?: 'ProspectCreatePayload';
+  prospect: Prospect;
+};
+
+/** An edge in a connection. */
+export type ProspectEdge = {
+  __typename?: 'ProspectEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Prospect;
+};
+
 export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Withdrawal;
 
 export type Query = {
@@ -2440,6 +2498,9 @@ export type Query = {
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
   profitAndLossStatement: ProfitAndLossStatement;
+  prospect?: Maybe<Prospect>;
+  prospectByPublicId?: Maybe<Prospect>;
+  prospects: ProspectConnection;
   publicIdTarget?: Maybe<PublicIdTarget>;
   realtimePrice: RealtimePrice;
   reportRun?: Maybe<ReportRun>;
@@ -2717,6 +2778,22 @@ export type QueryProfitAndLossStatementArgs = {
 };
 
 
+export type QueryProspectArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryProspectByPublicIdArgs = {
+  id: Scalars['PublicId']['input'];
+};
+
+
+export type QueryProspectsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+
 export type QueryPublicIdTargetArgs = {
   id: Scalars['PublicId']['input'];
 };
@@ -2971,7 +3048,7 @@ export type SubscriptionPendingCreditFacilityCompletedArgs = {
 };
 
 export type SumsubPermalinkCreateInput = {
-  customerId: Scalars['UUID']['input'];
+  prospectId: Scalars['UUID']['input'];
 };
 
 export type SumsubPermalinkCreatePayload = {
@@ -4498,6 +4575,30 @@ export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossS
           | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
          }> }> } };
 
+export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramId: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
+
+export type GetProspectBasicDetailsQueryVariables = Exact<{
+  id: Scalars['PublicId']['input'];
+}>;
+
+
+export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramId: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
+
+export type ProspectCreateMutationVariables = Exact<{
+  input: ProspectCreateInput;
+}>;
+
+
+export type ProspectCreateMutation = { __typename?: 'Mutation', prospectCreate: { __typename?: 'ProspectCreatePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, email: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null } } };
+
+export type ProspectsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, kycStatus: KycStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, customerType: CustomerType, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
 export type ReportRunByIdQueryVariables = Exact<{
   reportRunId: Scalars['UUID']['input'];
 }>;
@@ -5680,6 +5781,20 @@ export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
   }
 }
     ${ApprovalProcessFieldsFragmentDoc}`;
+export const ProspectDetailsFragmentFragmentDoc = gql`
+    fragment ProspectDetailsFragment on Prospect {
+  id
+  prospectId
+  email
+  telegramId
+  kycStatus
+  level
+  applicantId
+  customerType
+  createdAt
+  publicId
+}
+    `;
 export const TermsTemplateFieldsFragmentDoc = gql`
     fragment TermsTemplateFields on TermsTemplate {
   id
@@ -10911,6 +11026,154 @@ export type ProfitAndLossStatementQueryHookResult = ReturnType<typeof useProfitA
 export type ProfitAndLossStatementLazyQueryHookResult = ReturnType<typeof useProfitAndLossStatementLazyQuery>;
 export type ProfitAndLossStatementSuspenseQueryHookResult = ReturnType<typeof useProfitAndLossStatementSuspenseQuery>;
 export type ProfitAndLossStatementQueryResult = Apollo.QueryResult<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>;
+export const GetProspectBasicDetailsDocument = gql`
+    query GetProspectBasicDetails($id: PublicId!) {
+  prospectByPublicId(id: $id) {
+    ...ProspectDetailsFragment
+  }
+}
+    ${ProspectDetailsFragmentFragmentDoc}`;
+
+/**
+ * __useGetProspectBasicDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetProspectBasicDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProspectBasicDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProspectBasicDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetProspectBasicDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables> & ({ variables: GetProspectBasicDetailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>(GetProspectBasicDetailsDocument, options);
+      }
+export function useGetProspectBasicDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>(GetProspectBasicDetailsDocument, options);
+        }
+// @ts-ignore
+export function useGetProspectBasicDetailsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>): Apollo.UseSuspenseQueryResult<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>;
+export function useGetProspectBasicDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>): Apollo.UseSuspenseQueryResult<GetProspectBasicDetailsQuery | undefined, GetProspectBasicDetailsQueryVariables>;
+export function useGetProspectBasicDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>(GetProspectBasicDetailsDocument, options);
+        }
+export type GetProspectBasicDetailsQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsQuery>;
+export type GetProspectBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsLazyQuery>;
+export type GetProspectBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsSuspenseQuery>;
+export type GetProspectBasicDetailsQueryResult = Apollo.QueryResult<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>;
+export const ProspectCreateDocument = gql`
+    mutation ProspectCreate($input: ProspectCreateInput!) {
+  prospectCreate(input: $input) {
+    prospect {
+      id
+      prospectId
+      publicId
+      email
+      kycStatus
+      level
+      applicantId
+    }
+  }
+}
+    `;
+export type ProspectCreateMutationFn = Apollo.MutationFunction<ProspectCreateMutation, ProspectCreateMutationVariables>;
+
+/**
+ * __useProspectCreateMutation__
+ *
+ * To run a mutation, you first call `useProspectCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProspectCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [prospectCreateMutation, { data, loading, error }] = useProspectCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useProspectCreateMutation(baseOptions?: Apollo.MutationHookOptions<ProspectCreateMutation, ProspectCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProspectCreateMutation, ProspectCreateMutationVariables>(ProspectCreateDocument, options);
+      }
+export type ProspectCreateMutationHookResult = ReturnType<typeof useProspectCreateMutation>;
+export type ProspectCreateMutationResult = Apollo.MutationResult<ProspectCreateMutation>;
+export type ProspectCreateMutationOptions = Apollo.BaseMutationOptions<ProspectCreateMutation, ProspectCreateMutationVariables>;
+export const ProspectsDocument = gql`
+    query Prospects($first: Int!, $after: String) {
+  prospects(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        prospectId
+        publicId
+        kycStatus
+        level
+        email
+        telegramId
+        applicantId
+        customerType
+        createdAt
+      }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useProspectsQuery__
+ *
+ * To run a query within a React component, call `useProspectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProspectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProspectsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useProspectsQuery(baseOptions: Apollo.QueryHookOptions<ProspectsQuery, ProspectsQueryVariables> & ({ variables: ProspectsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProspectsQuery, ProspectsQueryVariables>(ProspectsDocument, options);
+      }
+export function useProspectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProspectsQuery, ProspectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProspectsQuery, ProspectsQueryVariables>(ProspectsDocument, options);
+        }
+// @ts-ignore
+export function useProspectsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ProspectsQuery, ProspectsQueryVariables>): Apollo.UseSuspenseQueryResult<ProspectsQuery, ProspectsQueryVariables>;
+export function useProspectsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProspectsQuery, ProspectsQueryVariables>): Apollo.UseSuspenseQueryResult<ProspectsQuery | undefined, ProspectsQueryVariables>;
+export function useProspectsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProspectsQuery, ProspectsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ProspectsQuery, ProspectsQueryVariables>(ProspectsDocument, options);
+        }
+export type ProspectsQueryHookResult = ReturnType<typeof useProspectsQuery>;
+export type ProspectsLazyQueryHookResult = ReturnType<typeof useProspectsLazyQuery>;
+export type ProspectsSuspenseQueryHookResult = ReturnType<typeof useProspectsSuspenseQuery>;
+export type ProspectsQueryResult = Apollo.QueryResult<ProspectsQuery, ProspectsQueryVariables>;
 export const ReportRunByIdDocument = gql`
     query ReportRunById($reportRunId: UUID!) {
   reportRun(id: $reportRunId) {

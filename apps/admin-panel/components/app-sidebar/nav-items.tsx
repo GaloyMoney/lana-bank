@@ -4,6 +4,7 @@ import {
   Home,
   TriangleAlert,
   Users,
+  UserPlus,
   ClipboardList,
   UserCircle,
   ArrowDownCircle,
@@ -38,6 +39,7 @@ export function useNavItems() {
     { title: t("dashboard"), url: "/dashboard", icon: Home },
     { title: t("actions"), url: "/actions", icon: TriangleAlert },
     { title: t("customers"), url: "/customers", icon: Users },
+    { title: t("prospects"), url: "/prospects", icon: UserPlus },
   ]
 
   const navLoansItems: NavItem[] = [

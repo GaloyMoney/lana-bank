@@ -8,7 +8,7 @@ use obix::out::OutboxEventMarker;
 
 use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
-use lana_app::customer::CoreCustomerEvent;
+use lana_app::customer::{CoreCustomerEvent, prospect_cursor::ProspectsByCreatedAtCursor};
 use lana_app::price::CorePriceEvent;
 use lana_app::report::CoreReportEvent;
 use lana_app::{
@@ -25,7 +25,7 @@ use super::{
     access::*, accounting::*, approval_process::*, audit::*, committee::*, contract_creation::*,
     credit_config::*, credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*,
     deposit_config::*, document::*, domain_config::*, loader::*, me::*, policy::*, price::*,
-    public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
+    prospect::*, public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -158,6 +158,55 @@ impl Query {
             after,
             first,
             |query| app.customers().list(sub, query, filter, sort)
+        )
+    }
+
+    async fn prospect(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Prospect>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Prospect,
+            ProspectId,
+            ctx,
+            app.customers().find_prospect_by_id(sub, id)
+        )
+    }
+
+    async fn prospect_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<Prospect>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Prospect,
+            ctx,
+            app.customers().find_prospect_by_public_id(sub, id)
+        )
+    }
+
+    async fn prospects(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<ProspectsByCreatedAtCursor, Prospect, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor_and_id!(
+            ProspectsByCreatedAtCursor,
+            Prospect,
+            ProspectId,
+            ctx,
+            after,
+            first,
+            |query| app
+                .customers()
+                .list_prospects(sub, query, ListDirection::Descending)
         )
     }
 
@@ -1151,7 +1200,7 @@ impl Mutation {
             .customer_kyc()
             .create_verification_link(
                 sub,
-                lana_app::primitives::CustomerId::from(input.customer_id),
+                lana_app::primitives::ProspectId::from(input.prospect_id),
             )
             .await?;
         Ok(SumsubPermalinkCreatePayload { url: permalink.url })
@@ -1168,8 +1217,8 @@ impl Mutation {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
         let applicant_id = app
             .customer_kyc()
-            .create_complete_test_applicant(lana_app::primitives::CustomerId::from(
-                input.customer_id,
+            .create_complete_test_applicant(lana_app::primitives::ProspectId::from(
+                input.prospect_id,
             ))
             .await?;
         Ok(SumsubTestApplicantCreatePayload { applicant_id })
@@ -1269,6 +1318,26 @@ impl Mutation {
             ctx,
             app.customers()
                 .create(sub, input.email, input.telegram_id, input.customer_type)
+        )
+    }
+
+    async fn prospect_create(
+        &self,
+        ctx: &Context<'_>,
+        input: ProspectCreateInput,
+    ) -> async_graphql::Result<ProspectCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ProspectCreatePayload,
+            Prospect,
+            ProspectId,
+            ctx,
+            app.customers().create_prospect(
+                sub,
+                input.email,
+                input.telegram_id,
+                input.customer_type
+            )
         )
     }
 

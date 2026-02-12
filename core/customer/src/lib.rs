@@ -7,6 +7,7 @@ mod entity;
 pub mod error;
 pub mod kyc;
 mod primitives;
+pub mod prospect;
 pub mod public;
 mod publisher;
 mod repo;
@@ -31,6 +32,7 @@ pub use entity::Customer;
 use entity::*;
 use error::*;
 pub use primitives::*;
+pub use prospect::{Prospect, ProspectRepo, ProspectsSortBy, prospect_cursor};
 pub use public::*;
 pub use repo::{CustomerRepo, CustomersFilters, CustomersSortBy, Sort, customer_cursor::*};
 
@@ -41,6 +43,7 @@ pub mod event_schema {
     pub use crate::entity::CustomerEvent;
 }
 
+use prospect::publisher::ProspectPublisher;
 use publisher::*;
 
 pub struct Customers<Perms, E>
@@ -51,6 +54,7 @@ where
     authz: Perms,
     outbox: Outbox<E>,
     repo: CustomerRepo<E>,
+    prospect_repo: ProspectRepo<E>,
     customer_activity_repo: CustomerActivityRepo,
     document_storage: DocumentStorage,
     public_ids: PublicIds,
@@ -67,6 +71,7 @@ where
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
+            prospect_repo: self.prospect_repo.clone(),
             customer_activity_repo: self.customer_activity_repo.clone(),
             document_storage: self.document_storage.clone(),
             public_ids: self.public_ids.clone(),
@@ -91,10 +96,13 @@ where
         clock: ClockHandle,
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
-        let repo = CustomerRepo::new(pool, &publisher, clock);
+        let repo = CustomerRepo::new(pool, &publisher, clock.clone());
+        let prospect_publisher = ProspectPublisher::new(outbox);
+        let prospect_repo = ProspectRepo::new(pool, &prospect_publisher, clock);
         let customer_activity_repo = CustomerActivityRepo::new(pool.clone());
         Self {
             repo,
+            prospect_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
             customer_activity_repo,
@@ -115,6 +123,22 @@ where
                 sub,
                 CustomerObject::all_customers(),
                 CoreCustomerAction::CUSTOMER_CREATE,
+                enforce,
+            )
+            .await?)
+    }
+
+    pub async fn subject_can_create_prospect(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CustomerError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CustomerObject::all_prospects(),
+                CoreCustomerAction::PROSPECT_CREATE,
                 enforce,
             )
             .await?)
@@ -157,6 +181,48 @@ where
         db.commit().await?;
 
         Ok(customer)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.create_prospect", fields(prospect_id = tracing::field::Empty), skip(self))]
+    pub async fn create_prospect(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        email: impl Into<String> + std::fmt::Debug,
+        telegram_id: impl Into<String> + std::fmt::Debug,
+        customer_type: impl Into<CustomerType> + std::fmt::Debug,
+    ) -> Result<Prospect, CustomerError> {
+        self.subject_can_create_prospect(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let prospect_id = ProspectId::new();
+        tracing::Span::current().record("prospect_id", prospect_id.to_string().as_str());
+
+        let mut db = self.prospect_repo.begin_op().await?;
+
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut db, PROSPECT_REF_TARGET, prospect_id)
+            .await?;
+
+        let new_prospect = prospect::NewProspect::builder()
+            .id(prospect_id)
+            .email(email.into())
+            .telegram_id(telegram_id.into())
+            .customer_type(customer_type)
+            .public_id(public_id.id)
+            .build()
+            .expect("Could not build prospect");
+
+        let prospect = self
+            .prospect_repo
+            .create_in_op(&mut db, new_prospect)
+            .await?;
+
+        db.commit().await?;
+
+        Ok(prospect)
     }
 
     #[record_error_severity]
@@ -259,10 +325,10 @@ where
     #[instrument(name = "customer.handle_kyc_started_if_exists", skip(self))]
     pub async fn handle_kyc_started_if_exists(
         &self,
-        customer_id: CustomerId,
+        prospect_id: ProspectId,
         applicant_id: String,
-    ) -> Result<Option<Customer>, CustomerError> {
-        let Some(mut customer) = self.repo.maybe_find_by_id(customer_id).await? else {
+    ) -> Result<Option<Prospect>, CustomerError> {
+        let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
         };
 
@@ -270,51 +336,51 @@ where
             .audit()
             .record_system_entry(
                 crate::primitives::SUMSUB,
-                CustomerObject::customer(customer.id),
-                CoreCustomerAction::CUSTOMER_START_KYC,
+                CustomerObject::prospect(prospect.id),
+                CoreCustomerAction::PROSPECT_START_KYC,
             )
             .await?;
 
-        if customer.start_kyc(applicant_id).did_execute() {
-            self.repo.update(&mut customer).await?;
+        if prospect.start_kyc(applicant_id).did_execute() {
+            self.prospect_repo.update(&mut prospect).await?;
         }
 
-        Ok(Some(customer))
+        Ok(Some(prospect))
     }
 
     #[record_error_severity]
     #[instrument(name = "customer.handle_kyc_started", skip(self))]
     pub async fn handle_kyc_started(
         &self,
-        customer_id: CustomerId,
+        prospect_id: ProspectId,
         applicant_id: String,
-    ) -> Result<Customer, CustomerError> {
-        let mut customer = self.repo.find_by_id(customer_id).await?;
+    ) -> Result<Prospect, CustomerError> {
+        let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
         self.authz
             .audit()
             .record_system_entry(
                 crate::primitives::SUMSUB,
-                CustomerObject::customer(customer.id),
-                CoreCustomerAction::CUSTOMER_START_KYC,
+                CustomerObject::prospect(prospect.id),
+                CoreCustomerAction::PROSPECT_START_KYC,
             )
             .await?;
 
-        if customer.start_kyc(applicant_id).did_execute() {
-            self.repo.update(&mut customer).await?;
+        if prospect.start_kyc(applicant_id).did_execute() {
+            self.prospect_repo.update(&mut prospect).await?;
         }
 
-        Ok(customer)
+        Ok(prospect)
     }
 
     #[record_error_severity]
     #[instrument(name = "customer.handle_kyc_approved_if_exists", skip(self))]
     pub async fn handle_kyc_approved_if_exists(
         &self,
-        customer_id: CustomerId,
+        prospect_id: ProspectId,
         applicant_id: String,
     ) -> Result<Option<Customer>, CustomerError> {
-        let Some(mut customer) = self.repo.maybe_find_by_id(customer_id).await? else {
+        let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
         };
 
@@ -322,57 +388,71 @@ where
             .audit()
             .record_system_entry(
                 crate::primitives::SUMSUB,
-                CustomerObject::customer(customer.id),
-                CoreCustomerAction::CUSTOMER_APPROVE_KYC,
+                CustomerObject::prospect(prospect.id),
+                CoreCustomerAction::PROSPECT_APPROVE_KYC,
             )
             .await?;
 
-        if customer
-            .approve_kyc(KycLevel::Basic, applicant_id)
-            .did_execute()
-        {
-            self.repo.update(&mut customer).await?;
+        match prospect.approve_kyc(KycLevel::Basic, applicant_id) {
+            es_entity::Idempotent::Executed(new_customer) => {
+                let mut db = self.prospect_repo.begin_op().await?;
+                self.prospect_repo
+                    .update_in_op(&mut db, &mut prospect)
+                    .await?;
+                let customer = self.repo.create_in_op(&mut db, new_customer).await?;
+                db.commit().await?;
+                Ok(Some(customer))
+            }
+            es_entity::Idempotent::AlreadyApplied => {
+                let customer_id = CustomerId::from(prospect_id);
+                Ok(self.repo.maybe_find_by_id(customer_id).await?)
+            }
         }
-
-        Ok(Some(customer))
     }
 
     #[record_error_severity]
     #[instrument(name = "customer.handle_kyc_approved", skip(self))]
     pub async fn handle_kyc_approved(
         &self,
-        customer_id: CustomerId,
+        prospect_id: ProspectId,
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
-        let mut customer = self.repo.find_by_id(customer_id).await?;
+        let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
         self.authz
             .audit()
             .record_system_entry(
                 crate::primitives::SUMSUB,
-                CustomerObject::customer(customer.id),
-                CoreCustomerAction::CUSTOMER_APPROVE_KYC,
+                CustomerObject::prospect(prospect.id),
+                CoreCustomerAction::PROSPECT_APPROVE_KYC,
             )
             .await?;
 
-        if customer
-            .approve_kyc(KycLevel::Basic, applicant_id)
-            .did_execute()
-        {
-            self.repo.update(&mut customer).await?;
+        match prospect.approve_kyc(KycLevel::Basic, applicant_id) {
+            es_entity::Idempotent::Executed(new_customer) => {
+                let mut db = self.prospect_repo.begin_op().await?;
+                self.prospect_repo
+                    .update_in_op(&mut db, &mut prospect)
+                    .await?;
+                let customer = self.repo.create_in_op(&mut db, new_customer).await?;
+                db.commit().await?;
+                Ok(customer)
+            }
+            es_entity::Idempotent::AlreadyApplied => {
+                let customer_id = CustomerId::from(prospect_id);
+                self.repo.find_by_id(customer_id).await.map_err(Into::into)
+            }
         }
-
-        Ok(customer)
     }
 
     #[record_error_severity]
     #[instrument(name = "customer.handle_kyc_declined_if_exists", skip(self))]
     pub async fn handle_kyc_declined_if_exists(
         &self,
-        customer_id: CustomerId,
+        prospect_id: ProspectId,
         applicant_id: String,
-    ) -> Result<Option<Customer>, CustomerError> {
-        let Some(mut customer) = self.repo.maybe_find_by_id(customer_id).await? else {
+    ) -> Result<Option<Prospect>, CustomerError> {
+        let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
         };
 
@@ -380,41 +460,117 @@ where
             .audit()
             .record_system_entry(
                 crate::primitives::SUMSUB,
-                CustomerObject::customer(customer.id),
-                CoreCustomerAction::CUSTOMER_DECLINE_KYC,
+                CustomerObject::prospect(prospect.id),
+                CoreCustomerAction::PROSPECT_DECLINE_KYC,
             )
             .await?;
 
-        if customer.decline_kyc(applicant_id).did_execute() {
-            self.repo.update(&mut customer).await?;
+        if prospect.decline_kyc(applicant_id).did_execute() {
+            self.prospect_repo.update(&mut prospect).await?;
         }
 
-        Ok(Some(customer))
+        Ok(Some(prospect))
     }
 
     #[record_error_severity]
     #[instrument(name = "customer.handle_kyc_declined", skip(self))]
     pub async fn handle_kyc_declined(
         &self,
-        customer_id: CustomerId,
+        prospect_id: ProspectId,
         applicant_id: String,
-    ) -> Result<Customer, CustomerError> {
-        let mut customer = self.repo.find_by_id(customer_id).await?;
+    ) -> Result<Prospect, CustomerError> {
+        let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
         self.authz
             .audit()
             .record_system_entry(
                 crate::primitives::SUMSUB,
-                CustomerObject::customer(customer.id),
-                CoreCustomerAction::CUSTOMER_DECLINE_KYC,
+                CustomerObject::prospect(prospect.id),
+                CoreCustomerAction::PROSPECT_DECLINE_KYC,
             )
             .await?;
 
-        if customer.decline_kyc(applicant_id).did_execute() {
-            self.repo.update(&mut customer).await?;
+        if prospect.decline_kyc(applicant_id).did_execute() {
+            self.prospect_repo.update(&mut prospect).await?;
         }
 
-        Ok(customer)
+        Ok(prospect)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_prospect_by_id", skip(self))]
+    pub async fn find_prospect_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ProspectId> + std::fmt::Debug,
+    ) -> Result<Option<Prospect>, CustomerError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::prospect(id),
+                CoreCustomerAction::PROSPECT_READ,
+            )
+            .await?;
+
+        Ok(self.prospect_repo.maybe_find_by_id(id).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_prospect_by_id_without_audit", skip(self))]
+    pub async fn find_prospect_by_id_without_audit(
+        &self,
+        id: impl Into<ProspectId> + std::fmt::Debug,
+    ) -> Result<Prospect, CustomerError> {
+        Ok(self.prospect_repo.find_by_id(id.into()).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_prospect_by_public_id", skip(self))]
+    pub async fn find_prospect_by_public_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
+    ) -> Result<Option<Prospect>, CustomerError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_prospects(),
+                CoreCustomerAction::PROSPECT_READ,
+            )
+            .await?;
+
+        Ok(self
+            .prospect_repo
+            .maybe_find_by_public_id(public_id.into())
+            .await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.list_prospects", skip(self))]
+    pub async fn list_prospects(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<prospect::prospect_cursor::ProspectsByCreatedAtCursor>,
+        direction: es_entity::ListDirection,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            Prospect,
+            prospect::prospect_cursor::ProspectsByCreatedAtCursor,
+        >,
+        CustomerError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_prospects(),
+                CoreCustomerAction::PROSPECT_LIST,
+            )
+            .await?;
+        Ok(self
+            .prospect_repo
+            .list_by_created_at(query, direction)
+            .await?)
     }
 
     #[record_error_severity]
@@ -424,6 +580,15 @@ where
         ids: &[CustomerId],
     ) -> Result<HashMap<CustomerId, T>, CustomerError> {
         self.repo.find_all(ids).await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_all_prospects", skip(self))]
+    pub async fn find_all_prospects<T: From<Prospect>>(
+        &self,
+        ids: &[ProspectId],
+    ) -> Result<HashMap<ProspectId, T>, CustomerError> {
+        Ok(self.prospect_repo.find_all(ids).await?)
     }
 
     #[record_error_severity]

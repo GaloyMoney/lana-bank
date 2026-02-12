@@ -6,7 +6,7 @@ use document_storage::DocumentStorage;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use uuid::Uuid;
 
-use core_customer::{CoreCustomerEvent, CustomerType, Customers, KycVerification};
+use core_customer::{CoreCustomerEvent, CustomerType, Customers, KycStatus, KycVerification};
 use helpers::{action, event, object};
 
 /// Creates a test setup with all required dependencies for customer tests.
@@ -89,31 +89,32 @@ async fn customer_created_event_on_create() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// CustomerKycUpdated event is published when a customer's KYC is approved
+/// CustomerCreated event is published when a prospect's KYC is approved
 /// via `Customers::handle_kyc_approved()`.
 ///
 /// This typically happens when an external KYC provider (e.g., SumSub) notifies
-/// the system that identity verification has passed.
+/// the system that identity verification has passed. The prospect is converted
+/// into a customer.
 ///
-/// The event contains a snapshot with kyc_verification set to Verified.
+/// The event contains a snapshot of the newly created customer with kyc_verification set to Verified.
 #[tokio::test]
-async fn customer_kyc_updated_event_on_kyc_approved() -> anyhow::Result<()> {
+async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
     let (customers, outbox) = setup().await?;
 
-    // First create a customer
+    // First create a prospect
     let email = format!("test-{}@example.com", Uuid::new_v4());
     let telegram_id = format!("telegram-{}", Uuid::new_v4());
-    let customer = customers
-        .create(&DummySubject, email, telegram_id, CustomerType::Individual)
+    let prospect = customers
+        .create_prospect(&DummySubject, email, telegram_id, CustomerType::Individual)
         .await?;
 
     let applicant_id = format!("applicant-{}", Uuid::new_v4());
 
-    let (updated_customer, recorded) = event::expect_event(
+    let (created_customer, recorded) = event::expect_event(
         &outbox,
-        || customers.handle_kyc_approved(customer.id, applicant_id.clone()),
+        || customers.handle_kyc_approved(prospect.id, applicant_id.clone()),
         |result, e| match e {
-            CoreCustomerEvent::CustomerKycUpdated { entity } if entity.id == result.id => {
+            CoreCustomerEvent::CustomerCreated { entity } if entity.id == result.id => {
                 Some(entity.clone())
             }
             _ => None,
@@ -121,37 +122,37 @@ async fn customer_kyc_updated_event_on_kyc_approved() -> anyhow::Result<()> {
     )
     .await?;
 
-    assert_eq!(recorded.id, updated_customer.id);
+    assert_eq!(recorded.id, created_customer.id);
     assert_eq!(recorded.kyc_verification, KycVerification::Verified);
 
     Ok(())
 }
 
-/// CustomerKycUpdated event is published when a customer's KYC is declined
+/// ProspectKycUpdated event is published when a prospect's KYC is declined
 /// via `Customers::handle_kyc_declined()`.
 ///
 /// This typically happens when an external KYC provider notifies the system
 /// that identity verification has failed.
 ///
-/// The event contains a snapshot with kyc_verification set to Rejected.
+/// The event contains a snapshot with kyc_status set to Declined.
 #[tokio::test]
-async fn customer_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
+async fn prospect_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
     let (customers, outbox) = setup().await?;
 
-    // First create a customer
+    // First create a prospect
     let email = format!("test-{}@example.com", Uuid::new_v4());
     let telegram_id = format!("telegram-{}", Uuid::new_v4());
-    let customer = customers
-        .create(&DummySubject, email, telegram_id, CustomerType::Individual)
+    let prospect = customers
+        .create_prospect(&DummySubject, email, telegram_id, CustomerType::Individual)
         .await?;
 
     let applicant_id = format!("applicant-{}", Uuid::new_v4());
 
-    let (updated_customer, recorded) = event::expect_event(
+    let (updated_prospect, recorded) = event::expect_event(
         &outbox,
-        || customers.handle_kyc_declined(customer.id, applicant_id.clone()),
+        || customers.handle_kyc_declined(prospect.id, applicant_id.clone()),
         |result, e| match e {
-            CoreCustomerEvent::CustomerKycUpdated { entity } if entity.id == result.id => {
+            CoreCustomerEvent::ProspectKycUpdated { entity } if entity.id == result.id => {
                 Some(entity.clone())
             }
             _ => None,
@@ -159,8 +160,8 @@ async fn customer_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
     )
     .await?;
 
-    assert_eq!(recorded.id, updated_customer.id);
-    assert_eq!(recorded.kyc_verification, KycVerification::Rejected);
+    assert_eq!(recorded.id, updated_prospect.id);
+    assert_eq!(recorded.kyc_status, KycStatus::Declined);
 
     Ok(())
 }

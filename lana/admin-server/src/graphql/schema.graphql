@@ -1644,6 +1644,13 @@ enum KycLevel {
 	ADVANCED
 }
 
+enum KycStatus {
+	NOT_STARTED
+	PENDING
+	APPROVED
+	DECLINED
+}
+
 enum KycVerification {
 	PENDING_VERIFICATION
 	VERIFIED
@@ -1841,6 +1848,7 @@ type Me {
 	user: User!
 	visibleNavigationItems: VisibleNavigationItems!
 	userCanCreateCustomer: Boolean!
+	userCanCreateProspect: Boolean!
 	userCanCreateUser: Boolean!
 	userCanCreateTermsTemplate: Boolean!
 }
@@ -1854,6 +1862,7 @@ type Mutation {
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
+	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
@@ -2117,6 +2126,58 @@ type ProfitAndLossStatement {
 	categories: [LedgerAccount!]!
 }
 
+type Prospect {
+	id: ID!
+	prospectId: UUID!
+	kycStatus: KycStatus!
+	level: KycLevel!
+	createdAt: Timestamp!
+	customerType: CustomerType!
+	email: String!
+	telegramId: String!
+	publicId: PublicId!
+	applicantId: String
+}
+
+type ProspectConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ProspectEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Prospect!]!
+}
+
+input ProspectCreateInput {
+	email: String!
+	telegramId: String!
+	customerType: CustomerType!
+}
+
+type ProspectCreatePayload {
+	prospect: Prospect!
+}
+
+"""
+An edge in a connection.
+"""
+type ProspectEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Prospect!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 scalar PublicId
 
 union PublicIdTarget = Customer | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
@@ -2133,6 +2194,9 @@ type Query {
 	customerByEmail(email: String!): Customer
 	customerByPublicId(id: PublicId!): Customer
 	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}, filter: CustomersFilter): CustomerConnection!
+	prospect(id: UUID!): Prospect
+	prospectByPublicId(id: PublicId!): Prospect
+	prospects(first: Int!, after: String): ProspectConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawalByPublicId(id: PublicId!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
@@ -2365,7 +2429,7 @@ type Subscription {
 }
 
 input SumsubPermalinkCreateInput {
-	customerId: UUID!
+	prospectId: UUID!
 }
 
 type SumsubPermalinkCreatePayload {
