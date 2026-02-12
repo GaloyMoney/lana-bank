@@ -136,6 +136,7 @@
   },
   "Sidebar": {
     "labels": {
+      "customers": "Customers",
       "loans": "Loans",
       "transactions": "Transactions",
       "administration": "Administration",
@@ -227,6 +228,7 @@
     },
     "searchResultTypes": {
       "customer": "Customer",
+      "prospect": "Prospect",
       "depositAccount": "Deposit Account",
       "creditFacility": "Credit Facility",
       "disbursal": "Disbursal",
@@ -241,7 +243,7 @@
     "description": "Individuals or entities who are awaiting KYC verification",
     "columns": {
       "email": "Email",
-      "telegramId": "Telegram",
+      "telegramHandle": "Telegram",
       "kycStatus": "KYC Status",
       "customerType": "Type"
     },
@@ -335,7 +337,7 @@
     "description": "Individuals or entities who hold accounts, loans, or credit facilities with the bank",
     "columns": {
       "email": "Email",
-      "telegramId": "Telegram",
+      "telegramHandle": "Telegram",
       "status": "Status",
       "kycVerification": "KYC Verification",
       "depositAccount": "USD Balance"
@@ -391,7 +393,7 @@
         "title": "Customer",
         "customer": "Customer",
         "customerDetails": "Customer Details",
-        "updateTelegramId": "Update Telegram ID",
+        "updateTelegramHandle": "Update Telegram Handle",
         "customerType": {
           "individual": "Individual",
           "company": "Company",
@@ -416,7 +418,7 @@
           "suspended": "Suspended"
         },
         "actions": {
-          "editTelegram": "Edit Telegram ID"
+          "editTelegram": "Edit Telegram Handle"
         }
       },
       "kycStatus": {
@@ -458,21 +460,21 @@
         "success": "Deposit account created successfully"
       },
       "updateTelegram": {
-        "title": "Update Telegram ID",
-        "description": "Update the Telegram ID for this customer",
+        "title": "Update Telegram Handle",
+        "description": "Update the Telegram handle for this customer",
         "labels": {
-          "newTelegramId": "New Telegram ID"
+          "newTelegramId": "New Telegram Handle"
         },
         "placeholders": {
-          "newTelegramId": "Please enter the new Telegram ID"
+          "newTelegramId": "Please enter the new Telegram handle"
         },
         "errors": {
-          "emptyTelegramId": "Telegram ID cannot be empty",
+          "emptyTelegramId": "Telegram handle cannot be empty",
           "unexpected": "An unexpected error occurred",
-          "updateFailed": "Failed to update Telegram ID: {error}"
+          "updateFailed": "Failed to update Telegram handle: {error}"
         },
         "messages": {
-          "updateSuccess": "Telegram ID updated successfully"
+          "updateSuccess": "Telegram handle updated successfully"
         },
         "actions": {
           "update": "Update",
@@ -2310,7 +2312,6 @@
     "menuItems": {
       "deposit": "Deposit",
       "withdrawal": "Withdrawal",
-      "customer": "Customer",
       "prospect": "Prospect",
       "creditFacility": "Credit Facility Proposal",
       "disbursal": "Disbursal",

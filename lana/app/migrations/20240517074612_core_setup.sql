@@ -102,7 +102,7 @@ CREATE SEQUENCE core_public_id_counter START 1000;
 CREATE TABLE core_customers (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
-  telegram_id VARCHAR NOT NULL UNIQUE,
+  telegram_handle VARCHAR NOT NULL UNIQUE,
   kyc_verification VARCHAR NOT NULL,
   activity VARCHAR NOT NULL DEFAULT 'disabled',
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),

@@ -129,7 +129,7 @@ erDiagram
     customers {
         UUID id PK
         VARCHAR email UK
-        VARCHAR telegram_id UK
+        VARCHAR telegram_handle UK
         VARCHAR status
         TIMESTAMPTZ created_at
     }

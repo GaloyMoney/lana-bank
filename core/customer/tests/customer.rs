@@ -57,7 +57,7 @@ async fn customer_created_event_on_create() -> anyhow::Result<()> {
     let (customers, outbox) = setup().await?;
 
     let email = format!("test-{}@example.com", Uuid::new_v4());
-    let telegram_id = format!("telegram-{}", Uuid::new_v4());
+    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
 
     let (customer, recorded) = event::expect_event(
         &outbox,
@@ -65,7 +65,7 @@ async fn customer_created_event_on_create() -> anyhow::Result<()> {
             customers.create(
                 &DummySubject,
                 email.clone(),
-                telegram_id.clone(),
+                telegram_handle.clone(),
                 CustomerType::Individual,
             )
         },
@@ -103,9 +103,14 @@ async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
 
     // First create a prospect
     let email = format!("test-{}@example.com", Uuid::new_v4());
-    let telegram_id = format!("telegram-{}", Uuid::new_v4());
+    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
     let prospect = customers
-        .create_prospect(&DummySubject, email, telegram_id, CustomerType::Individual)
+        .create_prospect(
+            &DummySubject,
+            email,
+            telegram_handle,
+            CustomerType::Individual,
+        )
         .await?;
 
     let applicant_id = format!("applicant-{}", Uuid::new_v4());
@@ -141,9 +146,14 @@ async fn prospect_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
 
     // First create a prospect
     let email = format!("test-{}@example.com", Uuid::new_v4());
-    let telegram_id = format!("telegram-{}", Uuid::new_v4());
+    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
     let prospect = customers
-        .create_prospect(&DummySubject, email, telegram_id, CustomerType::Individual)
+        .create_prospect(
+            &DummySubject,
+            email,
+            telegram_handle,
+            CustomerType::Individual,
+        )
         .await?;
 
     let applicant_id = format!("applicant-{}", Uuid::new_v4());
@@ -179,12 +189,12 @@ async fn customer_email_updated_event_on_email_change() -> anyhow::Result<()> {
 
     // First create a customer
     let original_email = format!("test-{}@example.com", Uuid::new_v4());
-    let telegram_id = format!("telegram-{}", Uuid::new_v4());
+    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
     let customer = customers
         .create(
             &DummySubject,
             original_email,
-            telegram_id,
+            telegram_handle,
             CustomerType::Individual,
         )
         .await?;

@@ -165,7 +165,7 @@ type Customer {
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
-	telegramId: String!
+	telegramHandle: String!
 	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
 }

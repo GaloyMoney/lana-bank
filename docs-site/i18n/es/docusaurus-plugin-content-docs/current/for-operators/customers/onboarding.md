@@ -54,7 +54,7 @@ Este documento describe el flujo completo de incorporación de clientes, desde e
 | Campo | Tipo | Requerido | Descripción |
 |-------|------|-----------|-------------|
 | email | String | Sí | Email único del cliente |
-| telegramId | String | No | ID de Telegram para notificaciones |
+| telegramHandle | String | No | ID de Telegram para notificaciones |
 | customerType | Enum | Sí | Clasificación del cliente |
 
 ### Via API GraphQL

@@ -13,7 +13,7 @@ CREATE TABLE core_customer_events_rollup (
   kyc_verification VARCHAR,
   level VARCHAR,
   public_id VARCHAR,
-  telegram_id VARCHAR,
+  telegram_handle VARCHAR,
 
   -- Toggle fields
   is_kyc_approved BOOLEAN DEFAULT false
@@ -40,7 +40,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'kyc_verification_updated', 'telegram_id_updated', 'email_updated', 'activity_updated') THEN
+  IF event_type NOT IN ('initialized', 'kyc_verification_updated', 'telegram_handle_updated', 'email_updated', 'activity_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -61,7 +61,7 @@ BEGIN
     new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
     new_row.level := (NEW.event ->> 'level');
     new_row.public_id := (NEW.event ->> 'public_id');
-    new_row.telegram_id := (NEW.event ->> 'telegram_id');
+    new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
   ELSE
     -- Default all fields to current values
     new_row.activity := current_row.activity;
@@ -72,7 +72,7 @@ BEGIN
     new_row.kyc_verification := current_row.kyc_verification;
     new_row.level := current_row.level;
     new_row.public_id := current_row.public_id;
-    new_row.telegram_id := current_row.telegram_id;
+    new_row.telegram_handle := current_row.telegram_handle;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -85,11 +85,11 @@ BEGIN
       new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
       new_row.level := (NEW.event ->> 'level');
       new_row.public_id := (NEW.event ->> 'public_id');
-      new_row.telegram_id := (NEW.event ->> 'telegram_id');
+      new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
     WHEN 'kyc_verification_updated' THEN
       new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
-    WHEN 'telegram_id_updated' THEN
-      new_row.telegram_id := (NEW.event ->> 'telegram_id');
+    WHEN 'telegram_handle_updated' THEN
+      new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
     WHEN 'email_updated' THEN
       new_row.email := (NEW.event ->> 'email');
     WHEN 'activity_updated' THEN
@@ -110,7 +110,7 @@ BEGIN
     kyc_verification,
     level,
     public_id,
-    telegram_id
+    telegram_handle
   )
   VALUES (
     new_row.id,
@@ -126,7 +126,7 @@ BEGIN
     new_row.kyc_verification,
     new_row.level,
     new_row.public_id,
-    new_row.telegram_id
+    new_row.telegram_handle
   );
 
   RETURN NEW;

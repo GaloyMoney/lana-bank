@@ -19,7 +19,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       takeScreenshot(filename: string): Chainable<null>
-      createCustomer(email: string, telegramId: string): Chainable<Customer>
+      createCustomer(email: string, telegramHandle: string): Chainable<Customer>
       createTermsTemplate(input: TermsTemplateCreateInput): Chainable<string>
       graphqlRequest<T>(query: string, variables?: Record<string, unknown>): Chainable<T>
       getIdFromUrl(pathSegment: string): Chainable<string>
@@ -129,7 +129,7 @@ interface CustomerQueryResponse {
 
 Cypress.Commands.add(
   "createCustomer",
-  (email: string, telegramId: string): Cypress.Chainable<Customer> => {
+  (email: string, telegramHandle: string): Cypress.Chainable<Customer> => {
     const mutation = `
       mutation CustomerCreate($input: CustomerCreateInput!) {
         customerCreate(input: $input) {
@@ -162,7 +162,7 @@ Cypress.Commands.add(
     `
     return cy
       .graphqlRequest<CustomerCreateResponse>(mutation, {
-        input: { email, telegramId, customerType: CustomerType.Individual },
+        input: { email, telegramHandle, customerType: CustomerType.Individual },
       })
       .then((response) => {
         const customerId = response.data.customerCreate.customer.customerId

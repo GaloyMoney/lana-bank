@@ -16,7 +16,7 @@ pub enum ProspectEvent {
     Initialized {
         id: ProspectId,
         email: String,
-        telegram_id: String,
+        telegram_handle: String,
         customer_type: CustomerType,
         public_id: PublicId,
     },
@@ -30,8 +30,8 @@ pub enum ProspectEvent {
     KycDeclined {
         applicant_id: String,
     },
-    TelegramIdUpdated {
-        telegram_id: String,
+    TelegramHandleUpdated {
+        telegram_handle: String,
     },
     EmailUpdated {
         email: String,
@@ -43,7 +43,7 @@ pub enum ProspectEvent {
 pub struct Prospect {
     pub id: ProspectId,
     pub email: String,
-    pub telegram_id: String,
+    pub telegram_handle: String,
     pub customer_type: CustomerType,
     #[builder(default)]
     pub kyc_status: KycStatus,
@@ -106,7 +106,7 @@ impl Prospect {
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
             .email(self.email.clone())
-            .telegram_id(self.telegram_id.clone())
+            .telegram_handle(self.telegram_handle.clone())
             .customer_type(self.customer_type)
             .public_id(self.public_id.clone())
             .applicant_id(applicant_id)
@@ -131,15 +131,15 @@ impl Prospect {
         Idempotent::Executed(())
     }
 
-    pub fn update_telegram_id(&mut self, new_telegram_id: String) -> Idempotent<()> {
+    pub fn update_telegram_handle(&mut self, new_telegram_handle: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::TelegramIdUpdated { telegram_id: existing_telegram_id , ..} if existing_telegram_id == &new_telegram_id
+            ProspectEvent::TelegramHandleUpdated { telegram_handle: existing_telegram_handle , ..} if existing_telegram_handle == &new_telegram_handle
         );
-        self.events.push(ProspectEvent::TelegramIdUpdated {
-            telegram_id: new_telegram_id.clone(),
+        self.events.push(ProspectEvent::TelegramHandleUpdated {
+            telegram_handle: new_telegram_handle.clone(),
         });
-        self.telegram_id = new_telegram_id;
+        self.telegram_handle = new_telegram_handle;
         Idempotent::Executed(())
     }
 
@@ -166,7 +166,7 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                 ProspectEvent::Initialized {
                     id,
                     email,
-                    telegram_id,
+                    telegram_handle,
                     customer_type,
                     public_id,
                     ..
@@ -174,7 +174,7 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     builder = builder
                         .id(*id)
                         .email(email.clone())
-                        .telegram_id(telegram_id.clone())
+                        .telegram_handle(telegram_handle.clone())
                         .customer_type(*customer_type)
                         .public_id(public_id.clone())
                         .level(KycLevel::NotKyced);
@@ -197,8 +197,10 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                 ProspectEvent::KycDeclined { .. } => {
                     builder = builder.kyc_status(KycStatus::Declined);
                 }
-                ProspectEvent::TelegramIdUpdated { telegram_id, .. } => {
-                    builder = builder.telegram_id(telegram_id.clone());
+                ProspectEvent::TelegramHandleUpdated {
+                    telegram_handle, ..
+                } => {
+                    builder = builder.telegram_handle(telegram_handle.clone());
                 }
                 ProspectEvent::EmailUpdated { email, .. } => {
                     builder = builder.email(email.clone());
@@ -217,7 +219,7 @@ pub struct NewProspect {
     #[builder(setter(into))]
     pub(super) email: String,
     #[builder(setter(into))]
-    pub(super) telegram_id: String,
+    pub(super) telegram_handle: String,
     #[builder(setter(into))]
     pub(super) customer_type: CustomerType,
     #[builder(setter(into))]
@@ -237,7 +239,7 @@ impl IntoEvents<ProspectEvent> for NewProspect {
             [ProspectEvent::Initialized {
                 id: self.id,
                 email: self.email,
-                telegram_id: self.telegram_id,
+                telegram_handle: self.telegram_handle,
                 customer_type: self.customer_type,
                 public_id: self.public_id,
             }],

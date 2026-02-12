@@ -18,7 +18,7 @@ with
             kyc_verification,
             level,
             public_id,
-            telegram_id,
+            telegram_handle,
             is_kyc_approved,
             _dlt_load_id,
             _dlt_id
@@ -36,7 +36,7 @@ select
     kyc_verification,
     level,
     public_id,
-    telegram_id,
+    telegram_handle,
     is_kyc_approved,
     timestamp_micros(
         cast(cast(_dlt_load_id as decimal) * 1e6 as int64)

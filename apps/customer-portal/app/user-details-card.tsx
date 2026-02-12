@@ -49,7 +49,7 @@ function UserDetailsCard({
     },
     {
       label: "Telegram",
-      value: customer.telegramId,
+      value: customer.telegramHandle,
     },
     {
       label: "Joined on",

@@ -38,8 +38,11 @@ export function useNavItems() {
   const navDashboardItems: NavItem[] = [
     { title: t("dashboard"), url: "/dashboard", icon: Home },
     { title: t("actions"), url: "/actions", icon: TriangleAlert },
-    { title: t("customers"), url: "/customers", icon: Users },
+  ]
+
+  const navCustomerItems: NavItem[] = [
     { title: t("prospects"), url: "/prospects", icon: UserPlus },
+    { title: t("customers"), url: "/customers", icon: Users },
   ]
 
   const navLoansItems: NavItem[] = [
@@ -105,6 +108,7 @@ export function useNavItems() {
 
   const allNavItems: NavItem[] = [
     ...navDashboardItems,
+    ...navCustomerItems,
     ...navLoansItems,
     ...navTransactionItems,
     ...navAdminItems,
@@ -124,6 +128,7 @@ export function useNavItems() {
 
   return {
     navDashboardItems,
+    navCustomerItems,
     navLoansItems,
     navTransactionItems,
     navAdminItems,

@@ -171,7 +171,7 @@ where
 
         let loan_data = LoanAgreementData::new(
             customer.email.clone(),
-            customer.telegram_id.clone(),
+            customer.telegram_handle.clone(),
             self.config.customer_id,
             full_name,
             address,

@@ -28,7 +28,7 @@ gql`
           kycStatus
           level
           email
-          telegramId
+          telegramHandle
           applicantId
           customerType
           createdAt
@@ -61,8 +61,8 @@ const ProspectsList = () => {
       labelClassName: "w-[30%]",
     },
     {
-      key: "telegramId",
-      label: t("columns.telegramId"),
+      key: "telegramHandle",
+      label: t("columns.telegramHandle"),
       labelClassName: "w-[30%]",
     },
     {

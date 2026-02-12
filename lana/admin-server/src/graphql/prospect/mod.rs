@@ -40,8 +40,8 @@ impl Prospect {
         &self.entity.email
     }
 
-    async fn telegram_id(&self) -> &str {
-        &self.entity.telegram_id
+    async fn telegram_handle(&self) -> &str {
+        &self.entity.telegram_handle
     }
 
     async fn public_id(&self) -> &PublicId {
@@ -56,7 +56,7 @@ impl Prospect {
 #[derive(InputObject)]
 pub struct ProspectCreateInput {
     pub email: String,
-    pub telegram_id: String,
+    pub telegram_handle: String,
     pub customer_type: CustomerType,
 }
 crate::mutation_payload! { ProspectCreatePayload, prospect: Prospect }

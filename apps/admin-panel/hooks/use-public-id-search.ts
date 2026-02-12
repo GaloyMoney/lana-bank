@@ -17,6 +17,12 @@ gql`
         publicId
         email
       }
+      ... on Prospect {
+        id
+        prospectId
+        publicId
+        email
+      }
       ... on DepositAccount {
         id
         customer {

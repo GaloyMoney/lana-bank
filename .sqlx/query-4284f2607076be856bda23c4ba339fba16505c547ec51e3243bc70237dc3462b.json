@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE core_prospects SET email = $2, telegram_id = $3, public_id = $4 WHERE id = $1",
+  "query": "UPDATE core_prospects SET email = $2, telegram_handle = $3, public_id = $4 WHERE id = $1",
   "describe": {
     "columns": [],
     "parameters": {
@@ -13,5 +13,5 @@
     },
     "nullable": []
   },
-  "hash": "ae037a96faabbe9a0fa97e6d0a555b12808403e85595ee11f0cfee7d3046b235"
+  "hash": "4284f2607076be856bda23c4ba339fba16505c547ec51e3243bc70237dc3462b"
 }

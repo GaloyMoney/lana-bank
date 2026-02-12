@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT kyc_verification, telegram_id, id FROM core_customers WHERE ((kyc_verification = $1) AND (COALESCE((telegram_id, id) > ($4, $3), $3 IS NULL))) ORDER BY telegram_id ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.telegram_id asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT activity, telegram_handle, id FROM core_customers WHERE ((activity = $1) AND (COALESCE((telegram_handle, id) < ($4, $3), $3 IS NULL))) ORDER BY telegram_handle DESC, id DESC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.telegram_handle desc, i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -46,5 +46,5 @@
       false
     ]
   },
-  "hash": "ec00d63887de06c628cb1b64c332ea39298d3872edb65730fc133e35342996bb"
+  "hash": "b85c2d3e8ec7e59af8f16e46db9fec05128e83b734190da1625ef3c23b03a253"
 }

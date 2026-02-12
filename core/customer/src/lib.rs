@@ -150,7 +150,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         email: impl Into<String> + std::fmt::Debug,
-        telegram_id: impl Into<String> + std::fmt::Debug,
+        telegram_handle: impl Into<String> + std::fmt::Debug,
         customer_type: impl Into<CustomerType> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
         self.subject_can_create_customer(sub, true)
@@ -170,7 +170,7 @@ where
         let new_customer = NewCustomer::builder()
             .id(customer_id)
             .email(email.into())
-            .telegram_id(telegram_id.into())
+            .telegram_handle(telegram_handle.into())
             .customer_type(customer_type)
             .public_id(public_id.id)
             .build()
@@ -189,7 +189,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         email: impl Into<String> + std::fmt::Debug,
-        telegram_id: impl Into<String> + std::fmt::Debug,
+        telegram_handle: impl Into<String> + std::fmt::Debug,
         customer_type: impl Into<CustomerType> + std::fmt::Debug,
     ) -> Result<Prospect, CustomerError> {
         self.subject_can_create_prospect(sub, true)
@@ -209,7 +209,7 @@ where
         let new_prospect = prospect::NewProspect::builder()
             .id(prospect_id)
             .email(email.into())
-            .telegram_id(telegram_id.into())
+            .telegram_handle(telegram_handle.into())
             .customer_type(customer_type)
             .public_id(public_id.id)
             .build()
@@ -592,12 +592,12 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "customer.update_telegram_id", skip(self))]
-    pub async fn update_telegram_id(
+    #[instrument(name = "customer.update_telegram_handle", skip(self))]
+    pub async fn update_telegram_handle(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-        new_telegram_id: String,
+        new_telegram_handle: String,
     ) -> Result<Customer, CustomerError> {
         let customer_id = customer_id.into();
         self.authz
@@ -609,7 +609,10 @@ where
             .await?;
 
         let mut customer = self.repo.find_by_id(customer_id).await?;
-        if customer.update_telegram_id(new_telegram_id).did_execute() {
+        if customer
+            .update_telegram_handle(new_telegram_handle)
+            .did_execute()
+        {
             self.repo.update(&mut customer).await?;
         }
 
