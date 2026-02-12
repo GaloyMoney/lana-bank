@@ -105,21 +105,18 @@ impl CreditFacilityHistory {
                         tx_id: settlement.tx_id,
                     }));
             }
-            AccrualPosted {
-                amount,
-                period,
-                ledger_tx_id,
-                recorded_at,
-                effective,
-                ..
-            } => {
+            AccrualPosted { entity } => {
+                let posting = entity
+                    .posting
+                    .as_ref()
+                    .expect("posting must be set for AccrualPosted");
                 self.entries.push(CreditFacilityHistoryEntry::Interest(
                     InterestAccrualsPosted {
-                        cents: *amount,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                        tx_id: *ledger_tx_id,
-                        days: period.days(),
+                        cents: posting.amount,
+                        recorded_at,
+                        effective: posting.effective,
+                        tx_id: posting.tx_id,
+                        days: entity.period.days(),
                     },
                 ));
             }

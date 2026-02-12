@@ -170,16 +170,16 @@ impl CreditFacilityRepaymentPlan {
             CoreCreditEvent::FacilityActivated { entity } => {
                 self.activated_at = Some(entity.activated_at);
             }
-            CoreCreditEvent::AccrualPosted {
-                ledger_tx_id,
-                amount,
-                due_at,
-                effective,
-                recorded_at,
-                ..
-            } if amount.is_zero() => {
+            CoreCreditEvent::AccrualPosted { entity } => {
+                let posting = entity
+                    .posting
+                    .as_ref()
+                    .expect("posting must be set for AccrualPosted");
+                if !posting.amount.is_zero() {
+                    return false;
+                }
                 // Skip if already processed (idempotent for replay)
-                if !self.applied_accruals.insert(*ledger_tx_id) {
+                if !self.applied_accruals.insert(posting.tx_id) {
                     return false;
                 }
 
@@ -191,14 +191,14 @@ impl CreditFacilityRepaymentPlan {
                     initial: UsdCents::ZERO,
                     outstanding: UsdCents::ZERO,
 
-                    due_at: *due_at,
+                    due_at: entity.due_at,
                     overdue_at: None,
                     defaulted_at: None,
-                    recorded_at: *recorded_at,
-                    effective: *effective,
+                    recorded_at: now,
+                    effective: posting.effective,
                 };
 
-                let effective = EffectiveDate::from(*effective);
+                let effective = EffectiveDate::from(posting.effective);
                 self.last_interest_accrual_at = Some(effective.end_of_day());
 
                 existing_obligations.push(entry);
@@ -479,6 +479,22 @@ mod tests {
         plan(terms(0))
     }
 
+    fn accrual_posted_event(period: InterestPeriod) -> CoreCreditEvent {
+        CoreCreditEvent::AccrualPosted {
+            entity: crate::PublicInterestAccrualCycle {
+                id: InterestAccrualCycleId::new(),
+                credit_facility_id: CreditFacilityId::new(),
+                period,
+                due_at: EffectiveDate::from(period.end),
+                posting: Some(crate::public::AccrualPosting {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::ZERO,
+                    effective: period.end.date_naive(),
+                }),
+            },
+        }
+    }
+
     fn process_credit_events(plan: &mut CreditFacilityRepaymentPlan, events: Vec<CoreCreditEvent>) {
         for event in events {
             plan.process_credit_event(Default::default(), &event, default_start_date());
@@ -603,15 +619,7 @@ mod tests {
                     completed_at: None,
                 },
             },
-            CoreCreditEvent::AccrualPosted {
-                credit_facility_id: CreditFacilityId::new(),
-                ledger_tx_id: LedgerTxId::new(),
-                amount: UsdCents::ZERO,
-                period,
-                due_at: EffectiveDate::from(period.end),
-                recorded_at: period.end,
-                effective: period.end.date_naive(),
-            },
+            accrual_posted_event(period),
         ];
         process_credit_events(&mut plan, events);
 
@@ -645,24 +653,8 @@ mod tests {
                     completed_at: None,
                 },
             },
-            CoreCreditEvent::AccrualPosted {
-                credit_facility_id: CreditFacilityId::new(),
-                ledger_tx_id: LedgerTxId::new(),
-                amount: UsdCents::ZERO,
-                period: period_1,
-                due_at: EffectiveDate::from(period_1.end),
-                recorded_at: period_1.end,
-                effective: period_1.end.date_naive(),
-            },
-            CoreCreditEvent::AccrualPosted {
-                credit_facility_id: CreditFacilityId::new(),
-                ledger_tx_id: LedgerTxId::new(),
-                amount: UsdCents::ZERO,
-                period: period_2,
-                due_at: EffectiveDate::from(period_2.end),
-                recorded_at: period_2.end,
-                effective: period_2.end.date_naive(),
-            },
+            accrual_posted_event(period_1),
+            accrual_posted_event(period_2),
         ];
         process_credit_events(&mut plan, events);
 
@@ -1291,15 +1283,7 @@ mod tests {
         plan.process_credit_event(Default::default(), &activate_event, default_start_date());
 
         let period = InterestInterval::EndOfMonth.period_from(default_start_date());
-        let accrual_event = CoreCreditEvent::AccrualPosted {
-            credit_facility_id: CreditFacilityId::new(),
-            ledger_tx_id: LedgerTxId::new(),
-            amount: UsdCents::ZERO,
-            period,
-            due_at: EffectiveDate::from(period.end),
-            recorded_at: period.end,
-            effective: period.end.date_naive(),
-        };
+        let accrual_event = accrual_posted_event(period);
 
         // First processing should create the accrual entry
         let first_result =

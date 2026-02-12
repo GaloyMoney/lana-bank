@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use core_credit_terms::{InterestPeriod, collateralization::CollateralizationState};
+use core_credit_terms::collateralization::CollateralizationState;
 use money::{Satoshis, UsdCents};
 
 use crate::{
@@ -14,7 +14,7 @@ use crate::{
 
 use super::{
     PublicCreditFacility, PublicCreditFacilityProposal, PublicDisbursal,
-    PublicPendingCreditFacility,
+    PublicInterestAccrualCycle, PublicPendingCreditFacility,
 };
 
 #[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
@@ -65,13 +65,7 @@ pub enum CoreCreditEvent {
         entity: PublicDisbursal,
     },
     AccrualPosted {
-        credit_facility_id: CreditFacilityId,
-        ledger_tx_id: LedgerTxId,
-        amount: UsdCents,
-        period: InterestPeriod,
-        due_at: EffectiveDate,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
+        entity: PublicInterestAccrualCycle,
     },
     PartialLiquidationInitiated {
         liquidation_id: LiquidationId,

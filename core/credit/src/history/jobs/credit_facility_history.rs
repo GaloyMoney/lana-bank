@@ -65,6 +65,10 @@ where
                 self.handle_credit_event(db, message, event, entity.credit_facility_id)
                     .await?;
             }
+            Some(event @ AccrualPosted { entity }) => {
+                self.handle_credit_event(db, message, event, entity.credit_facility_id)
+                    .await?;
+            }
             Some(
                 event @ FacilityCollateralUpdated {
                     credit_facility_id: id,
@@ -72,12 +76,6 @@ where
                 },
             )
             | Some(event @ FacilityCollateralizationChanged { id, .. })
-            | Some(
-                event @ AccrualPosted {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
             | Some(
                 event @ PartialLiquidationInitiated {
                     credit_facility_id: id,

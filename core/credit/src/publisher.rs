@@ -3,7 +3,6 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    EffectiveDate,
     collateral::{Collateral, CollateralEvent, error::CollateralError},
     credit_facility::{
         CreditFacility, CreditFacilityEvent,
@@ -249,19 +248,8 @@ where
         use InterestAccrualCycleEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                InterestAccrualsPosted {
-                    total,
-                    ledger_tx_id: tx_id,
-                    effective,
-                    ..
-                } => Some(CoreCreditEvent::AccrualPosted {
-                    credit_facility_id: entity.credit_facility_id,
-                    ledger_tx_id: *tx_id,
-                    amount: *total,
-                    period: entity.period,
-                    due_at: EffectiveDate::from(entity.period.end),
-                    recorded_at: event.recorded_at,
-                    effective: *effective,
+                InterestAccrualsPosted { .. } => Some(CoreCreditEvent::AccrualPosted {
+                    entity: PublicInterestAccrualCycle::from(entity),
                 }),
 
                 _ => None,
