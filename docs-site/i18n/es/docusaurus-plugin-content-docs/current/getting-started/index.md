@@ -12,9 +12,10 @@ Esta guía te ayudará a empezar rápidamente con la Plataforma Bancaria Lana.
 
 Dependiendo de tu rol, sigue la guía apropiada:
 
-- **Desarrolladores**: [Inicio Rápido para Desarrolladores](../for-developers/quickstart) - Configura el acceso a la API y haz tu primera llamada
-- **Operadores del Banco**: [Guía del Operador](../for-operators/) - Aprende a gestionar clientes y facilidades de crédito
-- **Ingenieros de Plataforma**: [Guía de Plataforma](../for-platform-engineers/) - Entiende el diseño del sistema y el despliegue
+- **Personal del Banco**: [Documentación Técnica](../technical-documentation/) - Procesos de negocio y procedimientos del panel de administración
+- **Desarrolladores Externos**: [Inicio Rápido para Desarrolladores Externos](../for-external-developers/quickstart) - Configura el acceso a la API y haz tu primera llamada
+- **Desarrolladores Internos**: [Guía del Desarrollador Interno](../for-internal-developers/) - Configuración local y desarrollo del código base
+- **Ingenieros de Plataforma**: [Guía de Plataforma](../for-platform-engineers/) - Arquitectura del sistema y despliegue
 
 ## Prerrequisitos
 

@@ -12,30 +12,149 @@
     },
     {
       "type": "category",
-      "label": "For Developers",
+      "label": "Technical Documentation",
       "link": {
         "type": "doc",
-        "id": "for-developers/index"
+        "id": "technical-documentation/index"
       },
       "items": [
-        "for-developers/quickstart",
-        "for-developers/authentication",
-        "for-developers/graphql-integration",
-        "for-developers/webhooks",
+        {
+          "type": "category",
+          "label": "Customer Management",
+          "link": {
+            "type": "doc",
+            "id": "technical-documentation/customers/index"
+          },
+          "items": [
+            "technical-documentation/customers/onboarding",
+            "technical-documentation/customers/documents"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Deposits and Withdrawals",
+          "link": {
+            "type": "doc",
+            "id": "technical-documentation/deposits/index"
+          },
+          "items": [
+            "technical-documentation/deposits/operations"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Credit Management",
+          "link": {
+            "type": "doc",
+            "id": "technical-documentation/credit/index"
+          },
+          "items": [
+            "technical-documentation/credit/facility",
+            "technical-documentation/credit/disbursal",
+            "technical-documentation/credit/obligation",
+            "technical-documentation/credit/payment",
+            "technical-documentation/credit/terms",
+            "technical-documentation/credit/interest-process"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Accounting",
+          "link": {
+            "type": "doc",
+            "id": "technical-documentation/accounting/index"
+          },
+          "items": [
+            "technical-documentation/accounting/closing",
+            "technical-documentation/accounting/fiscal-year"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Approvals and Governance",
+          "link": {
+            "type": "doc",
+            "id": "technical-documentation/approvals/index"
+          },
+          "items": [
+            "technical-documentation/approvals/committees",
+            "technical-documentation/approvals/policies"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Financial Reports",
+          "link": {
+            "type": "doc",
+            "id": "technical-documentation/reporting/index"
+          },
+          "items": [
+            "technical-documentation/reporting/financial-reports"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "category",
+      "label": "For Internal Developers",
+      "link": {
+        "type": "doc",
+        "id": "for-internal-developers/index"
+      },
+      "items": [
+        "for-internal-developers/local-development",
+        "for-internal-developers/authentication-local",
+        "for-internal-developers/authorization",
+        "for-internal-developers/graphql-development",
+        "for-internal-developers/configuration",
         {
           "type": "category",
           "label": "Frontend Applications",
           "link": {
             "type": "doc",
-            "id": "for-developers/frontend/index"
+            "id": "for-internal-developers/frontend/index"
           },
           "items": [
-            "for-developers/frontend/admin-panel",
-            "for-developers/frontend/customer-portal",
-            "for-developers/frontend/shared-components",
-            "for-developers/frontend/credit-ui"
+            "for-internal-developers/frontend/admin-panel",
+            "for-internal-developers/frontend/customer-portal",
+            "for-internal-developers/frontend/shared-components",
+            "for-internal-developers/frontend/credit-ui"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Domain Architecture",
+          "items": [
+            "for-internal-developers/domain-services",
+            "for-internal-developers/event-system",
+            "for-internal-developers/background-jobs",
+            "for-internal-developers/cala-ledger-integration",
+            "for-internal-developers/custody-portfolio"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Infrastructure",
+          "items": [
+            "for-internal-developers/infrastructure-services",
+            "for-internal-developers/observability",
+            "for-internal-developers/audit-system"
           ]
         }
+      ]
+    },
+    {
+      "type": "category",
+      "label": "For External Developers",
+      "link": {
+        "type": "doc",
+        "id": "for-external-developers/index"
+      },
+      "items": [
+        "for-external-developers/quickstart",
+        "for-external-developers/authentication",
+        "for-external-developers/graphql-integration",
+        "for-external-developers/webhooks"
       ]
     },
     {
@@ -53,99 +172,6 @@
     },
     {
       "type": "category",
-      "label": "For Operators",
-      "link": {
-        "type": "doc",
-        "id": "for-operators/index"
-      },
-      "items": [
-        {
-          "type": "category",
-          "label": "Customer Management",
-          "link": {
-            "type": "doc",
-            "id": "for-operators/customers/index"
-          },
-          "items": [
-            "for-operators/customers/onboarding",
-            "for-operators/customers/documents"
-          ]
-        },
-        {
-          "type": "category",
-          "label": "Deposits and Withdrawals",
-          "link": {
-            "type": "doc",
-            "id": "for-operators/deposits/index"
-          },
-          "items": [
-            "for-operators/deposits/operations"
-          ]
-        },
-        {
-          "type": "category",
-          "label": "Credit Management",
-          "link": {
-            "type": "doc",
-            "id": "for-operators/credit/index"
-          },
-          "items": [
-            "for-operators/credit/facility",
-            "for-operators/credit/disbursal",
-            "for-operators/credit/obligation",
-            "for-operators/credit/payment",
-            "for-operators/credit/terms",
-            "for-operators/credit/interest-process"
-          ]
-        },
-        {
-          "type": "category",
-          "label": "Accounting",
-          "link": {
-            "type": "doc",
-            "id": "for-operators/accounting/index"
-          },
-          "items": [
-            "for-operators/accounting/closing",
-            "for-operators/accounting/fiscal-year"
-          ]
-        },
-        {
-          "type": "category",
-          "label": "Approvals and Governance",
-          "link": {
-            "type": "doc",
-            "id": "for-operators/approvals/index"
-          },
-          "items": [
-            "for-operators/approvals/committees",
-            "for-operators/approvals/policies"
-          ]
-        },
-        {
-          "type": "category",
-          "label": "Financial Reports",
-          "link": {
-            "type": "doc",
-            "id": "for-operators/reporting/index"
-          },
-          "items": [
-            "for-operators/reporting/financial-reports"
-          ]
-        },
-        {
-          "type": "category",
-          "label": "Configuration",
-          "link": {
-            "type": "doc",
-            "id": "for-operators/configuration/index"
-          },
-          "items": []
-        }
-      ]
-    },
-    {
-      "type": "category",
       "label": "For Platform Engineers",
       "link": {
         "type": "doc",
@@ -157,31 +183,11 @@
           "label": "System Architecture",
           "items": [
             "for-platform-engineers/system-architecture",
-            "for-platform-engineers/domain-services",
-            "for-platform-engineers/functional-architecture"
+            "for-platform-engineers/functional-architecture",
+            "for-platform-engineers/authentication-architecture"
           ]
         },
-        {
-          "type": "category",
-          "label": "Technical Infrastructure",
-          "items": [
-            "for-platform-engineers/authentication-architecture",
-            "for-platform-engineers/event-system",
-            "for-platform-engineers/background-jobs",
-            "for-platform-engineers/infrastructure-services",
-            "for-platform-engineers/observability",
-            "for-platform-engineers/audit-system"
-          ]
-        },
-        {
-          "type": "category",
-          "label": "Integrations",
-          "items": [
-            "for-platform-engineers/cala-ledger-integration",
-            "for-platform-engineers/custody-portfolio",
-            "for-platform-engineers/data-pipelines"
-          ]
-        },
+        "for-platform-engineers/data-pipelines",
         {
           "type": "category",
           "label": "Data Models (ERDs)",
