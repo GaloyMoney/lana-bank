@@ -1,0 +1,31 @@
+[package]
+name = "codegen"
+version = "0.1.0"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+
+[[bin]]
+name = "write_sdl"
+path = "src/bin/write_sdl.rs"
+
+[[bin]]
+name = "write_customer_sdl"
+path = "src/bin/write_customer_sdl.rs"
+
+[[bin]]
+name = "write_translation_labels"
+path = "src/bin/write_translation_labels.rs"
+
+[dependencies]
+admin-server = { workspace = true }
+customer-server = { workspace = true }
+permission-sets-macro = { workspace = true }
+
+heck = { workspace = true }
+serde_json = { workspace = true }
+walkdir = { workspace = true }
+
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }

@@ -28,7 +28,6 @@ dependencies = [
  "domain-config",
  "es-entity",
  "futures",
- "heck",
  "jwks-utils",
  "lana-app",
  "obix",
@@ -43,7 +42,6 @@ dependencies = [
  "tracing-utils",
  "url",
  "uuid",
- "walkdir",
  "workspace-hack",
 ]
 
@@ -1150,6 +1148,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7caa3f9de89ddbe2c607f4101924c5abec803763ae9534e4f4d7d8f84aa81f0"
 dependencies = [
  "cc",
+]
+
+[[package]]
+name = "codegen"
+version = "0.1.0"
+dependencies = [
+ "admin-server",
+ "customer-server",
+ "heck",
+ "permission-sets-macro",
+ "serde_json",
+ "walkdir",
+ "workspace-hack",
 ]
 
 [[package]]
