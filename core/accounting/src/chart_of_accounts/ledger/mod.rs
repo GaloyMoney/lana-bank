@@ -1,16 +1,13 @@
 mod closing_balances;
 pub(crate) mod closing_metadata;
 pub mod error;
-mod template;
+mod templates;
 
 use cala_ledger::{
-    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, TxTemplateId,
-    VelocityControlId, VelocityLimitId,
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, VelocityControlId,
+    VelocityLimitId,
     account::Account,
     account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
-    tx_template::{
-        NewTxTemplate, NewTxTemplateEntry, NewTxTemplateTransaction, error::TxTemplateError,
-    },
     velocity::{NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params},
 };
 
@@ -22,7 +19,7 @@ use tracing_macros::record_error_severity;
 pub(super) use closing_balances::*;
 use closing_metadata::*;
 use error::*;
-use template::*;
+use templates::*;
 
 use audit::SystemSubject;
 
@@ -366,9 +363,8 @@ impl ChartLedger {
             balances.entries_params(net_income_recipient_account),
             initiated_by,
         );
-        let template_code = self
-            .find_or_create_template_in_op(op, &closing_transaction_params)
-            .await?;
+        let template_code =
+            find_or_create_template_in_op(op, &self.cala, &closing_transaction_params).await?;
 
         self.cala
             .post_transaction_in_op(op, tx_id, &template_code, closing_transaction_params)
@@ -483,61 +479,5 @@ impl ChartLedger {
             .await?;
 
         Ok(ledger_account)
-    }
-
-    async fn find_or_create_template_in_op<S: std::fmt::Display>(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        params: &ClosingTransactionParams<S>,
-    ) -> Result<String, TxTemplateError> {
-        let n_entries = params.entries_params.len();
-        let code = params.template_code();
-
-        let mut entries = vec![];
-        for i in 0..n_entries {
-            entries.push(
-                NewTxTemplateEntry::builder()
-                    .entry_type(params.tx_entry_type(i))
-                    .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
-                    .units(format!("params.{}", EntryParams::amount_param_name(i)))
-                    .currency(format!("params.{}", EntryParams::currency_param_name(i)))
-                    .layer(format!("params.{}", EntryParams::layer_param_name(i)))
-                    .direction(format!("params.{}", EntryParams::direction_param_name(i)))
-                    .build()
-                    .expect("Couldn't build entry for ClosingTransactionTemplate"),
-            );
-        }
-
-        let tx_input = NewTxTemplateTransaction::builder()
-            .journal_id("params.journal_id")
-            .description("params.description")
-            .effective("params.effective")
-            .metadata("params.meta")
-            .build()
-            .expect("Couldn't build TxInput for ClosingTransactionTemplate");
-
-        let params = ClosingTransactionParams::<String>::defs(n_entries);
-        let new_template = NewTxTemplate::builder()
-            .id(TxTemplateId::new())
-            .code(&code)
-            .transaction(tx_input)
-            .entries(entries)
-            .params(params)
-            .description(format!(
-                "Template to execute a closing transaction with {} entries.",
-                n_entries
-            ))
-            .build()
-            .expect("Couldn't build template for ClosingTransactionTemplate");
-        match self
-            .cala
-            .tx_templates()
-            .create_in_op(op, new_template)
-            .await
-        {
-            Err(TxTemplateError::DuplicateCode) => Ok(code),
-            Err(e) => Err(e),
-            Ok(template) => Ok(template.into_values().code),
-        }
     }
 }

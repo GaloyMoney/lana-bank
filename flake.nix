@@ -96,8 +96,7 @@
           || pkgs.lib.hasInfix "/lib/gotenberg/config/" path
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path
-          || pkgs.lib.hasInfix "/apps/admin-panel/messages/permissions/en.json" path
-          || pkgs.lib.hasInfix "/apps/admin-panel/messages/transactions/en.json" path;
+          || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path;
       };
 
       commonArgs = {
@@ -823,16 +822,9 @@
               # Switch back to read-only source for diffing committed versions
               cd $NIX_BUILD_TOP/$sourceRoot
 
-              echo "Comparing permission labels..."
-              if ! diff -u apps/admin-panel/messages/permissions/en.json $TMPDIR/workdir/apps/admin-panel/messages/permissions/en.json; then
-                echo "ERROR: Permission labels are out of date!"
-                echo "Run 'make generate-translation-labels' to update"
-                exit 1
-              fi
-
-              echo "Comparing transaction descriptions..."
-              if ! diff -u apps/admin-panel/messages/transactions/en.json $TMPDIR/workdir/apps/admin-panel/messages/transactions/en.json; then
-                echo "ERROR: Transaction descriptions are out of date!"
+              echo "Comparing generated translation labels..."
+              if ! diff -u apps/admin-panel/messages/generated/en.json $TMPDIR/workdir/apps/admin-panel/messages/generated/en.json; then
+                echo "ERROR: Generated translation labels are out of date!"
                 echo "Run 'make generate-translation-labels' to update"
                 exit 1
               fi

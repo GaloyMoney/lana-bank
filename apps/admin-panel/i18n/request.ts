@@ -5,19 +5,13 @@ const locales = ["en", "es"]
 
 async function loadMessages(locale: string) {
   const messages = (await import(`../messages/${locale}.json`)).default
-  let permissionMessages = {}
+  let generatedMessages = {}
   try {
-    permissionMessages = (await import(`../messages/permissions/${locale}.json`)).default
+    generatedMessages = (await import(`../messages/generated/${locale}.json`)).default
   } catch {
-    permissionMessages = (await import(`../messages/permissions/en.json`)).default
+    generatedMessages = (await import(`../messages/generated/en.json`)).default
   }
-  let transactionMessages = {}
-  try {
-    transactionMessages = (await import(`../messages/transactions/${locale}.json`)).default
-  } catch {
-    transactionMessages = (await import(`../messages/transactions/en.json`)).default
-  }
-  return { ...messages, ...permissionMessages, ...transactionMessages }
+  return { ...messages, ...generatedMessages }
 }
 
 export default getRequestConfig(async () => {

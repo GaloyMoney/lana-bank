@@ -6,13 +6,6 @@ use std::{
 use heck::ToTitleCase;
 use serde_json::json;
 
-const TEMPLATE_DIRS: &[&str] = &[
-    "core/deposit/src/ledger/templates",
-    "core/credit/src/ledger/templates",
-    "core/credit/src/collateral/ledger/templates",
-    "core/credit/collection/src/ledger/templates",
-];
-
 fn main() {
     // Reference admin_server to ensure all domain crates are linked,
     // which registers their permission set entries via inventory.
@@ -30,10 +23,6 @@ fn main() {
             }),
         );
     }
-    write_json(
-        "apps/admin-panel/messages/permissions/en.json",
-        json!({ "Permissions": permissions }),
-    );
 
     // 2. Transaction descriptions (parsed from CALA template source files)
     let descriptions = discover_transaction_descriptions();
@@ -41,10 +30,37 @@ fn main() {
     for desc in &descriptions {
         desc_map.insert(desc.as_str(), desc.as_str());
     }
+
+    // Write both sections into a single generated file
     write_json(
-        "apps/admin-panel/messages/transactions/en.json",
-        json!({ "TransactionDescriptions": desc_map }),
+        "apps/admin-panel/messages/generated/en.json",
+        json!({
+            "Permissions": permissions,
+            "TransactionDescriptions": desc_map,
+        }),
     );
+}
+
+/// Discover `templates/` directories under `core/**/ledger/` paths.
+/// This ensures any new module following the convention (enforced by the
+/// `template-placement` lint) is automatically picked up.
+fn discover_template_dirs() -> Vec<std::path::PathBuf> {
+    let mut dirs = Vec::new();
+    for entry in walkdir::WalkDir::new("core")
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
+        if entry.file_type().is_dir() && entry.file_name() == "templates" {
+            let parent = entry.path().parent();
+            if parent.is_some_and(|p| {
+                p.file_name()
+                    .is_some_and(|name| name == "ledger" || name == "src")
+            }) {
+                dirs.push(entry.path().to_path_buf());
+            }
+        }
+    }
+    dirs
 }
 
 /// Parse CALA template files for `.description("'...'")` patterns.
@@ -54,7 +70,7 @@ fn discover_transaction_descriptions() -> BTreeSet<String> {
     let mut descriptions = BTreeSet::new();
     let pattern = ".description(\"'";
 
-    for dir in TEMPLATE_DIRS {
+    for dir in discover_template_dirs() {
         for entry in walkdir::WalkDir::new(dir)
             .into_iter()
             .filter_map(|e| e.ok())

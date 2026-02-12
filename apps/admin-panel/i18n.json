@@ -8,8 +8,7 @@
     "json": {
       "include": [
         "messages/[locale].json",
-        "messages/permissions/[locale].json",
-        "messages/transactions/[locale].json"
+        "messages/generated/[locale].json"
       ]
     }
   },

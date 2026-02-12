@@ -3,12 +3,15 @@ use derive_builder::Builder;
 use rust_decimal::Decimal;
 
 use cala_ledger::{
-    AccountId as CalaAccountId, Currency, JournalId,
+    AccountId as CalaAccountId, Currency, JournalId, TxTemplateId,
     primitives::DebitOrCredit,
-    tx_template::{NewParamDefinition, ParamDataType, Params},
+    tx_template::{
+        NewParamDefinition, NewTxTemplate, NewTxTemplateEntry, NewTxTemplateTransaction,
+        ParamDataType, Params, error::TxTemplateError,
+    },
 };
 
-use super::closing_metadata::AccountingClosingMetadata;
+use super::super::closing_metadata::AccountingClosingMetadata;
 
 #[derive(Debug, Builder)]
 pub struct EntryParams {
@@ -83,12 +86,12 @@ impl EntryParams {
 }
 
 #[derive(Debug)]
-pub(super) struct ClosingTransactionParams<S: std::fmt::Display> {
-    pub(super) journal_id: JournalId,
-    pub(super) description: String,
-    pub(super) effective: chrono::NaiveDate,
-    pub(super) entries_params: Vec<EntryParams>,
-    pub(super) initiated_by: S,
+pub(in crate::chart_of_accounts::ledger) struct ClosingTransactionParams<S: std::fmt::Display> {
+    pub(in crate::chart_of_accounts::ledger) journal_id: JournalId,
+    pub(in crate::chart_of_accounts::ledger) description: String,
+    pub(in crate::chart_of_accounts::ledger) effective: chrono::NaiveDate,
+    pub(in crate::chart_of_accounts::ledger) entries_params: Vec<EntryParams>,
+    pub(in crate::chart_of_accounts::ledger) initiated_by: S,
 }
 
 impl<S: std::fmt::Display> From<ClosingTransactionParams<S>> for Params {
@@ -110,7 +113,7 @@ impl<S: std::fmt::Display> From<ClosingTransactionParams<S>> for Params {
 }
 
 impl<S: std::fmt::Display> ClosingTransactionParams<S> {
-    pub(super) fn new(
+    pub(in crate::chart_of_accounts::ledger) fn new(
         journal_id: JournalId,
         description: String,
         effective: NaiveDate,
@@ -126,7 +129,7 @@ impl<S: std::fmt::Display> ClosingTransactionParams<S> {
         }
     }
 
-    pub(super) fn defs(n: usize) -> Vec<NewParamDefinition> {
+    pub(in crate::chart_of_accounts::ledger) fn defs(n: usize) -> Vec<NewParamDefinition> {
         let mut params = vec![
             NewParamDefinition::builder()
                 .name("journal_id")
@@ -155,11 +158,64 @@ impl<S: std::fmt::Display> ClosingTransactionParams<S> {
         params
     }
 
-    pub(super) fn template_code(&self) -> String {
+    pub(in crate::chart_of_accounts::ledger) fn template_code(&self) -> String {
         format!("CLOSING_TRANSACTION_{}", self.description)
     }
 
-    pub(super) fn tx_entry_type(&self, i: usize) -> String {
+    pub(in crate::chart_of_accounts::ledger) fn tx_entry_type(&self, i: usize) -> String {
         format!("'CLOSING_TRANSACTION_{}_ENTRY_{}'", self.description, i)
+    }
+}
+
+pub(in crate::chart_of_accounts::ledger) async fn find_or_create_template_in_op<
+    S: std::fmt::Display,
+>(
+    op: &mut es_entity::DbOp<'_>,
+    cala: &cala_ledger::CalaLedger,
+    params: &ClosingTransactionParams<S>,
+) -> Result<String, TxTemplateError> {
+    let n_entries = params.entries_params.len();
+    let code = params.template_code();
+
+    let mut entries = vec![];
+    for i in 0..n_entries {
+        entries.push(
+            NewTxTemplateEntry::builder()
+                .entry_type(params.tx_entry_type(i))
+                .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
+                .units(format!("params.{}", EntryParams::amount_param_name(i)))
+                .currency(format!("params.{}", EntryParams::currency_param_name(i)))
+                .layer(format!("params.{}", EntryParams::layer_param_name(i)))
+                .direction(format!("params.{}", EntryParams::direction_param_name(i)))
+                .build()
+                .expect("Couldn't build entry for ClosingTransactionTemplate"),
+        );
+    }
+
+    let tx_input = NewTxTemplateTransaction::builder()
+        .journal_id("params.journal_id")
+        .description("params.description")
+        .effective("params.effective")
+        .metadata("params.meta")
+        .build()
+        .expect("Couldn't build TxInput for ClosingTransactionTemplate");
+
+    let params = ClosingTransactionParams::<String>::defs(n_entries);
+    let new_template = NewTxTemplate::builder()
+        .id(TxTemplateId::new())
+        .code(&code)
+        .transaction(tx_input)
+        .entries(entries)
+        .params(params)
+        .description(format!(
+            "Template to execute a closing transaction with {} entries.",
+            n_entries
+        ))
+        .build()
+        .expect("Couldn't build template for ClosingTransactionTemplate");
+    match cala.tx_templates().create_in_op(op, new_template).await {
+        Err(TxTemplateError::DuplicateCode) => Ok(code),
+        Err(e) => Err(e),
+        Ok(template) => Ok(template.into_values().code),
     }
 }

@@ -1,13 +1,13 @@
 pub mod error;
-mod template;
+mod templates;
 
 use cala_ledger::CalaLedger;
 
 use crate::primitives::CalaTxId;
 
 use error::*;
-use template::*;
-pub use template::{EntryParams, ManualTransactionParams};
+use templates::*;
+pub use templates::{EntryParams, ManualTransactionParams};
 
 #[derive(Clone)]
 pub struct ManualTransactionLedger {
