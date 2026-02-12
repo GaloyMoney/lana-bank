@@ -56,33 +56,12 @@ Lana uses a job system for:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    JOB SYSTEM                                   │
-│                                                                  │
-│  ┌─────────────────┐                                            │
-│  │   Job Creator   │                                            │
-│  │  (Domain Service)│                                           │
-│  └─────────────────┘                                            │
-│           │                                                      │
-│           ▼                                                      │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    Job Queue                             │   │
-│  │                 (PostgreSQL Table)                       │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│           │                                                      │
-│           ▼                                                      │
-│  ┌─────────────────┐    ┌─────────────────┐                    │
-│  │  Job Dispatcher │───▶│   Job Executor  │                    │
-│  │                 │    │                 │                    │
-│  └─────────────────┘    └─────────────────┘                    │
-│                                │                                │
-│                                ▼                                │
-│                        ┌──────────────┐                        │
-│                        │  Job Result  │                        │
-│                        │ (Success/Fail)│                       │
-│                        └──────────────┘                        │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    CREATOR["Job Creator<br/>(Domain Service)"] --> QUEUE["Job Queue<br/>(PostgreSQL Table)"]
+    QUEUE --> DISPATCH["Job Dispatcher"]
+    DISPATCH --> EXEC["Job Executor"]
+    EXEC --> RESULT["Job Result<br/>(Success/Fail)"]
 ```
 
 ## Job Types
