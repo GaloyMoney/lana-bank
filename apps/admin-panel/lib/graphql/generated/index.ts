@@ -1648,6 +1648,7 @@ export enum KycLevel {
 
 export enum KycStatus {
   Approved = 'APPROVED',
+  Closed = 'CLOSED',
   Declined = 'DECLINED',
   NotStarted = 'NOT_STARTED',
   Pending = 'PENDING'
@@ -1852,7 +1853,6 @@ export type ManualTransactionExecutePayload = {
 export type Me = {
   __typename?: 'Me';
   user: User;
-  userCanCreateCustomer: Scalars['Boolean']['output'];
   userCanCreateProspect: Scalars['Boolean']['output'];
   userCanCreateTermsTemplate: Scalars['Boolean']['output'];
   userCanCreateUser: Scalars['Boolean']['output'];
