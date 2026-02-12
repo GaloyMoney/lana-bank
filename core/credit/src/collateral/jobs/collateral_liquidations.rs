@@ -19,7 +19,7 @@ use super::{
     liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
 };
 use crate::{
-    collateral::{error::CollateralError, ledger::LiquidationProceedsAccountIds},
+    collateral::ledger::LiquidationProceedsAccountIds,
     credit_facility::CreditFacilityRepo,
     event::CoreCreditEvent,
     primitives::{CalaAccountId, CollateralId, CreditFacilityId, PriceOfOneBTC},
@@ -215,7 +215,7 @@ where
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
-    ) -> Result<(), CollateralError> {
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
         let credit_facility = self
@@ -224,9 +224,7 @@ where
             .await?;
         let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(
             &collateral.account_ids,
-            credit_facility
-                .account_ids
-                .proceeds_from_liquidation_account_id,
+            credit_facility.proceeds_from_liquidation_account_id(),
             self.liquidation_proceeds_omnibus_account_id,
         );
 
