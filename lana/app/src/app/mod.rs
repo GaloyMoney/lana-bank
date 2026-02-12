@@ -66,6 +66,7 @@ pub struct LanaApp {
     contract_creation: ContractCreation,
     reports: Reports,
     terms_templates: TermsTemplates,
+    storage: Storage,
     _time_events: TimeEvents,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
@@ -282,6 +283,7 @@ impl LanaApp {
             contract_creation,
             reports,
             terms_templates,
+            storage,
             _time_events,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
@@ -303,6 +305,10 @@ impl LanaApp {
 
     pub fn reports(&self) -> &Reports {
         &self.reports
+    }
+
+    pub fn storage(&self) -> &Storage {
+        &self.storage
     }
 
     pub fn customers(&self) -> &Customers {

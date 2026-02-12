@@ -8,6 +8,8 @@ app:
   storage:
     provider: local
     root_folder: ".lana"
+    server_url: http://localhost:5253
+    signing_secret: bats-test-signing-secret
   notification:
     email:
       admin_panel_url: "http://admin.localhost:4455"

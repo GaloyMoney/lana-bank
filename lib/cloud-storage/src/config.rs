@@ -21,9 +21,11 @@ impl StorageConfig {
         StorageConfig::Gcp(GcpConfig { bucket_name })
     }
 
-    pub fn new_local(root_folder: String) -> Self {
+    pub fn new_local(root_folder: String, server_url: String, signing_secret: String) -> Self {
         StorageConfig::Local(LocalConfig {
             root_folder: root_folder.into(),
+            server_url,
+            signing_secret,
         })
     }
 

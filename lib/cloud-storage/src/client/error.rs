@@ -14,6 +14,14 @@ pub enum StorageClientError {
     Init(Box<dyn std::error::Error + Send + Sync>),
     #[error("StorageClientError - StdIo: {0}")]
     StdIo(#[from] std::io::Error),
+    #[error("Signed URL has expired")]
+    SignatureExpired,
+    #[error("Invalid signature")]
+    InvalidSignature,
+    #[error("Invalid path")]
+    InvalidPath,
+    #[error("StorageClientError - Other: {0}")]
+    Other(#[from] anyhow::Error),
 }
 
 impl ErrorSeverity for StorageClientError {
@@ -24,6 +32,10 @@ impl ErrorSeverity for StorageClientError {
             Self::GcsWrite(_) => Level::ERROR,
             Self::Init(_) => Level::ERROR,
             Self::StdIo(_) => Level::ERROR,
+            Self::SignatureExpired => Level::WARN,
+            Self::InvalidSignature => Level::WARN,
+            Self::InvalidPath => Level::WARN,
+            Self::Other(_) => Level::ERROR,
         }
     }
 }
