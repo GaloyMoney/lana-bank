@@ -42,11 +42,11 @@ query {
 
 ### 3. Explorar el Esquema
 
-Usa la introspección de GraphQL o navega la [Referencia de API de Administración](admin-api/) para descubrir las operaciones disponibles.
+Usa la introspección de GraphQL o navega la [Referencia de API de Administración](../apis/admin-api/api-reference) para descubrir las operaciones disponibles.
 
 ## Siguientes Pasos
 
-- [Referencia de API de Administración](admin-api/) - Documentación completa de la API
-- [Referencia de API de Cliente](customer-api/) - Operaciones orientadas al cliente
-- [Eventos de Dominio](events/) - Suscríbete a eventos del sistema
+- [Referencia de API de Administración](../apis/admin-api/api-reference) - Documentación completa de la API
+- [Referencia de API de Cliente](../apis/customer-api/api-reference) - Operaciones orientadas al cliente
+- [Eventos de Dominio](../apis/events/events) - Suscríbete a eventos del sistema
 - [Autenticación](authentication) - Configuración detallada de autenticación
