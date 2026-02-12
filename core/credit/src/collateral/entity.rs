@@ -125,7 +125,7 @@ impl Collateral {
         })
     }
 
-    pub fn collateral_account_id(&self) -> CalaAccountId {
+    pub fn account_id(&self) -> CalaAccountId {
         self.account_ids.collateral_account_id
     }
 
@@ -155,7 +155,7 @@ impl Collateral {
 
         Idempotent::Executed(CollateralUpdate {
             tx_id,
-            collateral_account_id: self.collateral_account_id(),
+            collateral_account_id: self.account_id(),
             abs_diff,
             direction,
             effective,
@@ -192,7 +192,7 @@ impl Collateral {
 
         Ok(Idempotent::Executed(CollateralUpdate {
             tx_id,
-            collateral_account_id: self.collateral_account_id(),
+            collateral_account_id: self.account_id(),
             abs_diff,
             direction,
             effective,
@@ -237,7 +237,7 @@ impl Collateral {
 
         Ok(Idempotent::Executed(CollateralUpdate {
             tx_id,
-            collateral_account_id: self.collateral_account_id(),
+            collateral_account_id: self.account_id(),
             abs_diff: amount_sent,
             direction: CollateralDirection::Remove,
             effective,

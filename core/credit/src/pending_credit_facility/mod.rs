@@ -261,7 +261,7 @@ where
             .collaterals
             .find_by_id_without_audit(pending_facility.collateral_id)
             .await?;
-        let collateral_account_id = collateral.account_ids.collateral_account_id;
+        let collateral_account_id = collateral.account_id();
 
         let balances = self
             .ledger
@@ -403,7 +403,7 @@ where
             .collaterals
             .find_by_id_without_audit(pending_credit_facility.collateral_id)
             .await?;
-        let collateral_account_id = collateral_entity.account_ids.collateral_account_id;
+        let collateral_account_id = collateral_entity.account_id();
 
         let collateral = self
             .ledger

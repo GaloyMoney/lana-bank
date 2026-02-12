@@ -625,7 +625,7 @@ where
             .collaterals
             .find_by_id_without_audit(facility.collateral_id)
             .await?;
-        let collateral_account_id = collateral.account_ids.collateral_account_id;
+        let collateral_account_id = collateral.account_id();
 
         let balance = self
             .ledger
@@ -888,7 +888,7 @@ where
             .collaterals
             .find_by_id_without_audit(entity.collateral_id)
             .await?;
-        let collateral_account_id = collateral.account_ids.collateral_account_id;
+        let collateral_account_id = collateral.account_id();
 
         let balances = self
             .ledger
@@ -903,7 +903,7 @@ where
             .collaterals
             .find_by_id_without_audit(entity.collateral_id)
             .await?;
-        let collateral_account_id = collateral.account_ids.collateral_account_id;
+        let collateral_account_id = collateral.account_id();
 
         let balances = self
             .ledger

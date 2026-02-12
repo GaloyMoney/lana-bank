@@ -210,7 +210,7 @@ where
             .collateral_repo
             .find_by_id_in_op(&mut op, pending_facility.collateral_id)
             .await?;
-        let collateral_account_id = collateral.account_ids.collateral_account_id;
+        let collateral_account_id = collateral.account_id();
 
         let balances = self
             .ledger
@@ -284,7 +284,7 @@ where
                     .ledger
                     .get_pending_credit_facility_balance(
                         pending_facility.account_ids,
-                        collateral.collateral_account_id(),
+                        collateral.account_id(),
                     )
                     .await?;
                 if pending_facility

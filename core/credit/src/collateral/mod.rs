@@ -316,8 +316,7 @@ where
                     &mut db,
                     data.tx_id,
                     amount_sent,
-                    collateral.account_ids.collateral_account_id,
-                    collateral.account_ids.collateral_in_liquidation_account_id,
+                    collateral.account_ids,
                     initiated_by,
                 )
                 .await?;
