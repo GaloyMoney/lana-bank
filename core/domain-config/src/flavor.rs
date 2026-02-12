@@ -38,8 +38,6 @@ impl ConfigFlavor for DomainConfigFlavorEncrypted {
 /// to flavor-specific implementations internally. All methods that differ
 /// between plaintext and encrypted configs are dispatched through this trait.
 pub trait FlavorDispatch: sealed::Sealed {
-    // === TypedDomainConfig operations ===
-
     fn try_new<C: ConfigSpec<Flavor = Self>>(
         entity: DomainConfig,
         config: &EncryptionConfig,
@@ -48,8 +46,6 @@ pub trait FlavorDispatch: sealed::Sealed {
     fn maybe_value<C: ConfigSpec<Flavor = Self>>(
         typed_config: &TypedDomainConfig<C>,
     ) -> Option<<C::Kind as ValueKind>::Value>;
-
-    // === Entity operations ===
 
     fn update_value<C: ConfigSpec<Flavor = Self>>(
         entity: &mut DomainConfig,
@@ -69,7 +65,10 @@ impl FlavorDispatch for DomainConfigFlavorPlaintext {
     fn maybe_value<C: ConfigSpec<Flavor = Self>>(
         typed_config: &TypedDomainConfig<C>,
     ) -> Option<<C::Kind as ValueKind>::Value> {
-        typed_config.maybe_value_plain()
+        typed_config
+            .entity
+            .current_value_plain::<C>()
+            .or_else(C::default_value)
     }
 
     fn update_value<C: ConfigSpec<Flavor = Self>>(
@@ -92,7 +91,11 @@ impl FlavorDispatch for DomainConfigFlavorEncrypted {
     fn maybe_value<C: ConfigSpec<Flavor = Self>>(
         typed_config: &TypedDomainConfig<C>,
     ) -> Option<<C::Kind as ValueKind>::Value> {
-        typed_config.maybe_value_encrypted()
+        let key = typed_config.encryption_key.as_ref()?;
+        typed_config
+            .entity
+            .current_value_encrypted::<C>(key)
+            .or_else(C::default_value)
     }
 
     fn update_value<C: ConfigSpec<Flavor = Self>>(

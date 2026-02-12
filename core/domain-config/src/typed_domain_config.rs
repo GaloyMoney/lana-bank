@@ -2,15 +2,17 @@ use std::marker::PhantomData;
 
 use crate::{
     ConfigSpec, DefaultedConfig, DomainConfigError, DomainConfigFlavorEncrypted,
-    DomainConfigFlavorPlaintext, ValueKind, encryption::EncryptionKey, flavor::FlavorDispatch,
+    DomainConfigFlavorPlaintext, ValueKind,
+    encryption::EncryptionKey,
+    flavor::FlavorDispatch,
 };
 
 use crate::entity::DomainConfig;
 
 pub struct TypedDomainConfig<C: ConfigSpec> {
-    entity: DomainConfig,
-    _marker: PhantomData<C>,
-    encryption_key: Option<EncryptionKey>,
+    pub(crate) entity: DomainConfig,
+    pub(crate) _marker: PhantomData<C>,
+    pub(crate) encryption_key: Option<EncryptionKey>,
 }
 
 impl<C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>> TypedDomainConfig<C> {
@@ -21,12 +23,6 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>> TypedDomainConfig<C> {
             _marker: PhantomData,
             encryption_key: None,
         })
-    }
-
-    pub(crate) fn maybe_value_plain(&self) -> Option<<C::Kind as ValueKind>::Value> {
-        self.entity
-            .current_value_plain::<C>()
-            .or_else(C::default_value)
     }
 }
 
@@ -41,13 +37,6 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>> TypedDomainConfig<C> {
             _marker: PhantomData,
             encryption_key: Some(key),
         })
-    }
-
-    pub(crate) fn maybe_value_encrypted(&self) -> Option<<C::Kind as ValueKind>::Value> {
-        let key = self.encryption_key.as_ref()?;
-        self.entity
-            .current_value_encrypted::<C>(key)
-            .or_else(C::default_value)
     }
 }
 
