@@ -42,18 +42,13 @@ impl CreditFacilityHistory {
         match event {
             FacilityProposalCreated { .. } => {}
             FacilityProposalConcluded { .. } => {}
-            FacilityActivated {
-                activation_tx_id,
-                activated_at,
-                amount,
-                ..
-            } => {
+            FacilityActivated { entity } => {
                 self.entries.push(CreditFacilityHistoryEntry::Approved(
                     CreditFacilityApproved {
-                        cents: *amount,
-                        recorded_at: *activated_at,
-                        effective: activated_at.date_naive(),
-                        tx_id: *activation_tx_id,
+                        cents: entity.amount,
+                        recorded_at: entity.activated_at,
+                        effective: entity.activated_at.date_naive(),
+                        tx_id: entity.activation_tx_id,
                     },
                 ));
             }

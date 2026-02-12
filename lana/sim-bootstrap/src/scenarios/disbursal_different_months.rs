@@ -98,8 +98,8 @@ pub async fn disbursal_different_months_scenario(
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. })) = &msg.payload
-                    && *id == cf_id
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { entity })) = &msg.payload
+                    && entity.id == cf_id
                 {
                     msg.inject_trace_parent();
                     activation_date = clock.today();

@@ -167,8 +167,8 @@ impl CreditFacilityRepaymentPlan {
                 self.terms = Some(entity.terms);
                 self.facility_amount = entity.amount;
             }
-            CoreCreditEvent::FacilityActivated { activated_at, .. } => {
-                self.activated_at = Some(*activated_at);
+            CoreCreditEvent::FacilityActivated { entity } => {
+                self.activated_at = Some(entity.activated_at);
             }
             CoreCreditEvent::AccrualPosted {
                 ledger_tx_id,
@@ -564,10 +564,12 @@ mod tests {
         let mut plan = initial_plan_no_structuring_fee();
 
         let events = vec![CoreCreditEvent::FacilityActivated {
-            id: CreditFacilityId::new(),
-            activation_tx_id: LedgerTxId::new(),
-            activated_at: default_start_date(),
-            amount: default_facility_amount(),
+            entity: crate::PublicCreditFacility {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
         }];
         process_credit_events(&mut plan, events);
 
@@ -592,10 +594,12 @@ mod tests {
         let period = InterestInterval::EndOfMonth.period_from(default_start_date());
         let events = vec![
             CoreCreditEvent::FacilityActivated {
-                id: CreditFacilityId::new(),
-                activation_tx_id: LedgerTxId::new(),
-                activated_at: default_start_date(),
-                amount: default_facility_amount(),
+                entity: crate::PublicCreditFacility {
+                    id: CreditFacilityId::new(),
+                    activation_tx_id: LedgerTxId::new(),
+                    activated_at: default_start_date(),
+                    amount: default_facility_amount(),
+                },
             },
             CoreCreditEvent::AccrualPosted {
                 credit_facility_id: CreditFacilityId::new(),
@@ -631,10 +635,12 @@ mod tests {
         let period_2 = period_1.next();
         let events = vec![
             CoreCreditEvent::FacilityActivated {
-                id: CreditFacilityId::new(),
-                activation_tx_id: LedgerTxId::new(),
-                activated_at: default_start_date(),
-                amount: default_facility_amount(),
+                entity: crate::PublicCreditFacility {
+                    id: CreditFacilityId::new(),
+                    activation_tx_id: LedgerTxId::new(),
+                    activated_at: default_start_date(),
+                    amount: default_facility_amount(),
+                },
             },
             CoreCreditEvent::AccrualPosted {
                 credit_facility_id: CreditFacilityId::new(),
@@ -678,10 +684,12 @@ mod tests {
         let recorded_at = default_start_date();
         let events = vec![
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
-                id: CreditFacilityId::new(),
-                activation_tx_id: LedgerTxId::new(),
-                activated_at: default_start_date(),
-                amount: default_facility_amount(),
+                entity: crate::PublicCreditFacility {
+                    id: CreditFacilityId::new(),
+                    activation_tx_id: LedgerTxId::new(),
+                    activated_at: default_start_date(),
+                    amount: default_facility_amount(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 entity: PublicObligation {
@@ -722,10 +730,12 @@ mod tests {
         let interest_recorded_at = default_start_date_with_days(30);
         let events = vec![
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
-                id: CreditFacilityId::new(),
-                activation_tx_id: LedgerTxId::new(),
-                activated_at: default_start_date(),
-                amount: default_facility_amount(),
+                entity: crate::PublicCreditFacility {
+                    id: CreditFacilityId::new(),
+                    activation_tx_id: LedgerTxId::new(),
+                    activated_at: default_start_date(),
+                    amount: default_facility_amount(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 entity: PublicObligation {
@@ -782,10 +792,12 @@ mod tests {
         let interest_recorded_at = default_start_date_with_days(30);
         let events = vec![
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
-                id: CreditFacilityId::new(),
-                activation_tx_id: LedgerTxId::new(),
-                activated_at: default_start_date(),
-                amount: default_facility_amount(),
+                entity: crate::PublicCreditFacility {
+                    id: CreditFacilityId::new(),
+                    activation_tx_id: LedgerTxId::new(),
+                    activated_at: default_start_date(),
+                    amount: default_facility_amount(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 entity: PublicObligation {
@@ -868,10 +880,12 @@ mod tests {
         let interest_recorded_at = default_start_date_with_days(30);
         let events = vec![
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
-                id: CreditFacilityId::new(),
-                activation_tx_id: LedgerTxId::new(),
-                activated_at: default_start_date(),
-                amount: default_facility_amount(),
+                entity: crate::PublicCreditFacility {
+                    id: CreditFacilityId::new(),
+                    activation_tx_id: LedgerTxId::new(),
+                    activated_at: default_start_date(),
+                    amount: default_facility_amount(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 entity: PublicObligation {
@@ -990,10 +1004,12 @@ mod tests {
         let interest_4_recorded_at = default_start_date_with_days(30 + 28 + 31 + 1);
         let events = vec![
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
-                id: CreditFacilityId::new(),
-                activation_tx_id: LedgerTxId::new(),
-                activated_at: default_start_date(),
-                amount: default_facility_amount(),
+                entity: crate::PublicCreditFacility {
+                    id: CreditFacilityId::new(),
+                    activation_tx_id: LedgerTxId::new(),
+                    activated_at: default_start_date(),
+                    amount: default_facility_amount(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 entity: PublicObligation {
@@ -1094,10 +1110,12 @@ mod tests {
 
         let events = vec![
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
-                id: CreditFacilityId::new(),
-                activation_tx_id: LedgerTxId::new(),
-                activated_at: default_start_date(),
-                amount: default_facility_amount(),
+                entity: crate::PublicCreditFacility {
+                    id: CreditFacilityId::new(),
+                    activation_tx_id: LedgerTxId::new(),
+                    activated_at: default_start_date(),
+                    amount: default_facility_amount(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 entity: PublicObligation {
@@ -1192,10 +1210,12 @@ mod tests {
         let recorded_at = default_start_date();
 
         let activate_event = CoreCreditEvent::FacilityActivated {
-            id: CreditFacilityId::new(),
-            activation_tx_id: LedgerTxId::new(),
-            activated_at: default_start_date(),
-            amount: default_facility_amount(),
+            entity: crate::PublicCreditFacility {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
         };
         plan.process_credit_event(Default::default(), &activate_event, default_start_date());
 
@@ -1250,10 +1270,12 @@ mod tests {
         let mut plan = initial_plan_no_structuring_fee();
 
         let activate_event = CoreCreditEvent::FacilityActivated {
-            id: CreditFacilityId::new(),
-            activation_tx_id: LedgerTxId::new(),
-            activated_at: default_start_date(),
-            amount: default_facility_amount(),
+            entity: crate::PublicCreditFacility {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
         };
         plan.process_credit_event(Default::default(), &activate_event, default_start_date());
 
@@ -1335,10 +1357,12 @@ mod tests {
         let activated_at = default_start_date();
 
         let activate_event = CoreCreditEvent::FacilityActivated {
-            id: CreditFacilityId::new(),
-            activation_tx_id: LedgerTxId::new(),
-            activated_at,
-            amount: default_facility_amount(),
+            entity: crate::PublicCreditFacility {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at,
+                amount: default_facility_amount(),
+            },
         };
 
         // First processing
@@ -1375,10 +1399,12 @@ mod tests {
         // Setup: activate and create obligation
         let events = vec![
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
-                id: CreditFacilityId::new(),
-                activation_tx_id: LedgerTxId::new(),
-                activated_at: default_start_date(),
-                amount: default_facility_amount(),
+                entity: crate::PublicCreditFacility {
+                    id: CreditFacilityId::new(),
+                    activation_tx_id: LedgerTxId::new(),
+                    activated_at: default_start_date(),
+                    amount: default_facility_amount(),
+                },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
                 entity: obligation_entity.clone(),
