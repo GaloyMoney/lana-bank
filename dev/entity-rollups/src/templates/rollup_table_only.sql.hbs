@@ -3,7 +3,8 @@ CREATE TABLE {{rollup_table_name}} (
   id UUID NOT NULL,
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
-  modified_at TIMESTAMPTZ NOT NULL{{#if regular_fields}},
+  modified_at TIMESTAMPTZ NOT NULL,
+  event_type TEXT NOT NULL{{#if regular_fields}},
   -- Flattened fields from the event JSON
 {{#each regular_fields}}
   {{this.name}} {{this.sql_type}}{{#if ../collection_fields}},{{else if ../toggle_fields}},{{else}}{{#unless @last}},{{/unless}}{{/if}}
