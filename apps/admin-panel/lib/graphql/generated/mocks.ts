@@ -1822,6 +1822,7 @@ export const mockDomainConfig = (overrides?: Partial<DomainConfig>, _relationshi
         __typename: 'DomainConfig',
         configType: overrides && overrides.hasOwnProperty('configType') ? overrides.configType! : ConfigType.Bool,
         domainConfigId: overrides && overrides.hasOwnProperty('domainConfigId') ? overrides.domainConfigId! : generateMockValue.uuid(),
+        encrypted: overrides && overrides.hasOwnProperty('encrypted') ? overrides.encrypted! : faker.datatype.boolean(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         key: overrides && overrides.hasOwnProperty('key') ? overrides.key! : faker.lorem.word(),
         value: overrides && overrides.hasOwnProperty('value') ? overrides.value! : faker.lorem.word(),

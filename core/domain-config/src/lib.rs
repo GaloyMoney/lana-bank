@@ -145,8 +145,11 @@
 //! - `Some(value)` if the config has been explicitly set via `update`
 //! - `None` if no value is set
 
+mod config;
+mod encryption;
 mod entity;
 pub mod error;
+mod flavor;
 mod macros;
 mod primitives;
 pub mod registry;
@@ -154,6 +157,7 @@ mod repo;
 mod shared_config;
 mod spec;
 mod typed_domain_config;
+mod value;
 
 use std::collections::{HashMap, HashSet};
 
@@ -162,6 +166,7 @@ use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+pub use config::EncryptionConfig;
 pub use entity::DomainConfig;
 pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
@@ -175,12 +180,13 @@ pub use primitives::{
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use shared_config::RequireVerifiedCustomerForAccount;
 pub use spec::{
-    Complex, ConfigSpec, DefaultedConfig, ExposedConfig, InternalConfig, Simple, ValueKind,
+    Complex, ConfigFlavor, ConfigSpec, DefaultedConfig, DomainConfigFlavorEncrypted,
+    DomainConfigFlavorPlaintext, ExposedConfig, InternalConfig, Simple, ValueKind,
 };
 pub use typed_domain_config::TypedDomainConfig;
+pub use value::DomainConfigValue;
 
 use entity::NewDomainConfig;
-
 use repo::DomainConfigRepo;
 
 #[cfg(feature = "json-schema")]
@@ -191,6 +197,7 @@ pub mod event_schema {
 #[derive(Clone)]
 pub struct InternalDomainConfigs {
     repo: DomainConfigRepo,
+    config: EncryptionConfig,
 }
 
 #[derive(Clone)]
@@ -200,6 +207,7 @@ where
 {
     repo: DomainConfigRepo,
     authz: Perms,
+    config: EncryptionConfig,
 }
 
 /// Read-only access to exposed domain configs without authorization.
@@ -209,12 +217,13 @@ where
 #[derive(Clone)]
 pub struct ExposedDomainConfigsReadOnly {
     repo: DomainConfigRepo,
+    config: EncryptionConfig,
 }
 
 impl InternalDomainConfigs {
-    pub fn new(pool: &sqlx::PgPool) -> Self {
+    pub fn new(pool: &sqlx::PgPool, config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
-        Self { repo }
+        Self { repo, config }
     }
 
     #[record_error_severity]
@@ -223,8 +232,8 @@ impl InternalDomainConfigs {
     where
         C: InternalConfig,
     {
-        let config = self.repo.find_by_key(C::KEY).await?;
-        TypedDomainConfig::try_new(config)
+        let entity = self.repo.find_by_key(C::KEY).await?;
+        C::Flavor::try_new::<C>(entity, &self.config)
     }
 
     #[record_error_severity]
@@ -236,9 +245,9 @@ impl InternalDomainConfigs {
     where
         C: InternalConfig,
     {
-        let mut config = self.repo.find_by_key(C::KEY).await?;
-        if config.update_value::<C>(value)?.did_execute() {
-            self.repo.update(&mut config).await?;
+        let mut entity = self.repo.find_by_key(C::KEY).await?;
+        if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
+            self.repo.update(&mut entity).await?;
         }
 
         Ok(())
@@ -266,18 +275,18 @@ impl InternalDomainConfigs {
     where
         C: InternalConfig,
     {
-        let mut config = self.repo.find_by_key_in_op(&mut *op, C::KEY).await?;
-        if config.update_value::<C>(value)?.did_execute() {
-            self.repo.update_in_op(op, &mut config).await?;
+        let mut entity = self.repo.find_by_key_in_op(&mut *op, C::KEY).await?;
+        if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
+            self.repo.update_in_op(op, &mut entity).await?;
         }
         Ok(())
     }
 }
 
 impl ExposedDomainConfigsReadOnly {
-    pub fn new(pool: &sqlx::PgPool) -> Self {
+    pub fn new(pool: &sqlx::PgPool, config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
-        Self { repo }
+        Self { repo, config }
     }
 
     #[record_error_severity]
@@ -286,8 +295,8 @@ impl ExposedDomainConfigsReadOnly {
     where
         C: ExposedConfig,
     {
-        let config = self.repo.find_by_key(C::KEY).await?;
-        TypedDomainConfig::try_new(config)
+        let entity = self.repo.find_by_key(C::KEY).await?;
+        C::Flavor::try_new::<C>(entity, &self.config)
     }
 }
 
@@ -297,11 +306,12 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
         Self {
             repo,
             authz: authz.clone(),
+            config,
         }
     }
 
@@ -315,8 +325,8 @@ where
         C: ExposedConfig,
     {
         self.ensure_read_permission(sub).await?;
-        let config = self.repo.find_by_key(C::KEY).await?;
-        TypedDomainConfig::try_new(config)
+        let entity = self.repo.find_by_key(C::KEY).await?;
+        C::Flavor::try_new::<C>(entity, &self.config)
     }
 
     #[record_error_severity]
@@ -330,9 +340,10 @@ where
         C: ExposedConfig,
     {
         self.ensure_write_permission(sub).await?;
-        let mut config = self.repo.find_by_key(C::KEY).await?;
-        if config.update_value::<C>(value)?.did_execute() {
-            self.repo.update(&mut config).await?;
+        let mut entity = self.repo.find_by_key(C::KEY).await?;
+
+        if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
+            self.repo.update(&mut entity).await?;
         }
 
         Ok(())
@@ -381,22 +392,22 @@ where
     ) -> Result<DomainConfig, DomainConfigError> {
         self.ensure_write_permission(sub).await?;
         let id = id.into();
-        let mut config = self.repo.find_by_id(id).await?;
-        let entry = registry::maybe_find_by_key(config.key.as_str()).ok_or_else(|| {
+        let mut entity = self.repo.find_by_id(id).await?;
+        let entry = registry::maybe_find_by_key(entity.key.as_str()).ok_or_else(|| {
             DomainConfigError::InvalidKey(format!(
                 "Registry entry missing for config key: {}",
-                config.key
+                entity.key
             ))
         })?;
 
-        if config
-            .apply_exposed_update_from_json(entry, value)?
+        if entity
+            .apply_exposed_update_from_json(entry, &self.config, value)?
             .did_execute()
         {
-            self.repo.update(&mut config).await?;
+            self.repo.update(&mut entity).await?;
         }
 
-        Ok(config)
+        Ok(entity)
     }
 
     #[record_error_severity]
@@ -458,7 +469,13 @@ async fn seed_registered_for_visibility(
 
         let config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
-            .seed(config_id, key, spec.config_type, spec.visibility)
+            .seed(
+                config_id,
+                key,
+                spec.config_type,
+                spec.visibility,
+                spec.encrypted,
+            )
             .build()?;
         match repo.create(new).await {
             Ok(_) => {}
@@ -480,6 +497,7 @@ async fn seed_registered_for_visibility(
 #[instrument(name = "domain_config.apply_startup_configs", skip_all)]
 pub async fn apply_startup_configs<I, K>(
     pool: &sqlx::PgPool,
+    encryption_config: &EncryptionConfig,
     settings: I,
 ) -> Result<(), DomainConfigError>
 where
@@ -499,11 +517,14 @@ where
             }
         };
 
-        let mut config = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
-        let changed = config.apply_update_from_json(entry, value)?.did_execute();
+        let mut entity = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
+
+        let changed = entity
+            .apply_update_from_json(entry, encryption_config, value)?
+            .did_execute();
 
         if changed {
-            repo.update_in_op(&mut db_tx, &mut config).await?;
+            repo.update_in_op(&mut db_tx, &mut entity).await?;
             tracing::info!(key = %key, "Applied domain config at startup");
         } else {
             tracing::info!(key = %key, "Domain config already set");

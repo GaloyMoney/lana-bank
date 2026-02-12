@@ -3,6 +3,9 @@ use std::{marker::PhantomData, str::FromStr};
 
 use crate::{ConfigType, DomainConfigError, DomainConfigKey, Visibility};
 
+// Re-export flavor types from the flavor module
+pub use crate::flavor::{ConfigFlavor, DomainConfigFlavorEncrypted, DomainConfigFlavorPlaintext};
+
 pub struct Simple<T>(PhantomData<T>);
 pub struct Complex<T>(PhantomData<T>);
 
@@ -181,6 +184,7 @@ pub trait ConfigSpec {
     const KEY: DomainConfigKey;
     const VISIBILITY: Visibility;
     type Kind: ValueKind;
+    type Flavor: ConfigFlavor;
 
     fn default_value() -> Option<<Self::Kind as ValueKind>::Value> {
         None

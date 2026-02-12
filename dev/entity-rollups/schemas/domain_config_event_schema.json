@@ -13,6 +13,65 @@
       ],
       "type": "string"
     },
+    "DomainConfigValue": {
+      "description": "Represents a domain config value that can be either plaintext or encrypted.",
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "plain",
+              "type": "string"
+            },
+            "value": true
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "$ref": "#/$defs/EncryptedValue",
+          "properties": {
+            "type": {
+              "const": "encrypted",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "EncryptedValue": {
+      "properties": {
+        "ciphertext": {
+          "items": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "nonce": {
+          "items": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "ciphertext",
+        "nonce"
+      ],
+      "type": "object"
+    },
     "Visibility": {
       "enum": [
         "exposed",
@@ -27,6 +86,9 @@
       "properties": {
         "config_type": {
           "$ref": "#/$defs/ConfigType"
+        },
+        "encrypted": {
+          "type": "boolean"
         },
         "id": {
           "format": "uuid",
@@ -48,7 +110,8 @@
         "id",
         "key",
         "config_type",
-        "visibility"
+        "visibility",
+        "encrypted"
       ],
       "type": "object"
     },
@@ -58,7 +121,9 @@
           "const": "updated",
           "type": "string"
         },
-        "value": true
+        "value": {
+          "$ref": "#/$defs/DomainConfigValue"
+        }
       },
       "required": [
         "type",

@@ -102,13 +102,14 @@ impl Config {
         let key_bytes = hex::decode(encryption_key)?;
         if key_bytes.len() != 32 {
             return Err(anyhow::anyhow!(
-                "Custodian encryption key must be 32 bytes, got {}",
+                "Encryption key must be 32 bytes, got {}",
                 key_bytes.len()
             ));
         }
 
         let key_array: [u8; 32] = key_bytes.as_slice().try_into().expect("key is 32 bytes");
         config.app.custody.encryption.key = key_array.into();
+        config.app.encryption.key = key_array.into();
 
         Ok(config)
     }

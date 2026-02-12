@@ -1420,6 +1420,7 @@ type DomainConfig {
 	id: ID!
 	domainConfigId: UUID!
 	configType: ConfigType!
+	encrypted: Boolean!
 	key: String!
 	value: Json!
 }

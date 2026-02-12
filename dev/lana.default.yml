@@ -59,6 +59,7 @@ app:
       repository_name: __repository__
   gotenberg:
     url: http://localhost:3030/
+  encryption: {}
 tracing:
   service_name: lana-dev
 time:
