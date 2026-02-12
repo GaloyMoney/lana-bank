@@ -49,8 +49,8 @@ impl Customer {
         &self.entity.email
     }
 
-    async fn telegram_id(&self) -> &str {
-        &self.entity.telegram_id
+    async fn telegram_handle(&self) -> &str {
+        &self.entity.telegram_handle
     }
 
     async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {

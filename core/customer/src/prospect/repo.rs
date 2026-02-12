@@ -15,7 +15,7 @@ use super::{entity::*, error::*, publisher::*};
     err = "ProspectError",
     columns(
         email(ty = "String", list_by),
-        telegram_id(ty = "String", list_by),
+        telegram_handle(ty = "String", list_by),
         public_id(ty = "PublicId", list_by),
     ),
     tbl_prefix = "core",
@@ -75,8 +75,8 @@ impl From<(ProspectsSortBy, &Prospect)> for prospect_cursor::ProspectsCursor {
             ProspectsSortBy::Email => {
                 prospect_cursor::ProspectsByEmailCursor::from(prospect).into()
             }
-            ProspectsSortBy::TelegramId => {
-                prospect_cursor::ProspectsByTelegramIdCursor::from(prospect).into()
+            ProspectsSortBy::TelegramHandle => {
+                prospect_cursor::ProspectsByTelegramHandleCursor::from(prospect).into()
             }
             ProspectsSortBy::Id => prospect_cursor::ProspectsByIdCursor::from(prospect).into(),
             ProspectsSortBy::PublicId => {

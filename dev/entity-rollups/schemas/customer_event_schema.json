@@ -72,7 +72,7 @@
         "public_id": {
           "type": "string"
         },
-        "telegram_id": {
+        "telegram_handle": {
           "type": "string"
         },
         "type": {
@@ -84,7 +84,7 @@
         "type",
         "id",
         "email",
-        "telegram_id",
+        "telegram_handle",
         "customer_type",
         "activity",
         "public_id"
@@ -109,17 +109,17 @@
     },
     {
       "properties": {
-        "telegram_id": {
+        "telegram_handle": {
           "type": "string"
         },
         "type": {
-          "const": "telegram_id_updated",
+          "const": "telegram_handle_updated",
           "type": "string"
         }
       },
       "required": [
         "type",
-        "telegram_id"
+        "telegram_handle"
       ],
       "type": "object"
     },

@@ -19,7 +19,7 @@ gql`
     id
     prospectId
     email
-    telegramId
+    telegramHandle
     kycStatus
     level
     applicantId

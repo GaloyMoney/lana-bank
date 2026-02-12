@@ -49,8 +49,8 @@ impl Customer {
         &self.entity.email
     }
 
-    async fn telegram_id(&self) -> &str {
-        &self.entity.telegram_id
+    async fn telegram_handle(&self) -> &str {
+        &self.entity.telegram_handle
     }
 
     async fn public_id(&self) -> &PublicId {
@@ -169,17 +169,17 @@ impl Customer {
 #[derive(InputObject)]
 pub struct CustomerCreateInput {
     pub email: String,
-    pub telegram_id: String,
+    pub telegram_handle: String,
     pub customer_type: CustomerType,
 }
 crate::mutation_payload! { CustomerCreatePayload, customer: Customer }
 
 #[derive(InputObject)]
-pub struct CustomerTelegramIdUpdateInput {
+pub struct CustomerTelegramHandleUpdateInput {
     pub customer_id: UUID,
-    pub telegram_id: String,
+    pub telegram_handle: String,
 }
-crate::mutation_payload! { CustomerTelegramIdUpdatePayload, customer: Customer }
+crate::mutation_payload! { CustomerTelegramHandleUpdatePayload, customer: Customer }
 
 #[derive(InputObject)]
 pub struct CustomerEmailUpdateInput {
@@ -193,7 +193,7 @@ pub enum CustomersSortBy {
     CreatedAt,
     #[default]
     Email,
-    TelegramId,
+    TelegramHandle,
 }
 
 impl From<CustomersSortBy> for DomainCustomersSortBy {
@@ -201,7 +201,7 @@ impl From<CustomersSortBy> for DomainCustomersSortBy {
         match by {
             CustomersSortBy::CreatedAt => DomainCustomersSortBy::CreatedAt,
             CustomersSortBy::Email => DomainCustomersSortBy::Email,
-            CustomersSortBy::TelegramId => DomainCustomersSortBy::TelegramId,
+            CustomersSortBy::TelegramHandle => DomainCustomersSortBy::TelegramHandle,
         }
     }
 }

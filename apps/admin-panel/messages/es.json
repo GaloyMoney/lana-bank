@@ -138,6 +138,7 @@
   },
   "Sidebar": {
     "labels": {
+      "customers": "Clientes",
       "loans": "Préstamos",
       "transactions": "Transacciones",
       "administration": "Administración",
@@ -229,6 +230,7 @@
     },
     "searchResultTypes": {
       "customer": "Cliente",
+      "prospect": "Prospecto",
       "depositAccount": "Cuenta de depósito",
       "creditFacility": "Línea de crédito",
       "disbursal": "Desembolso",
@@ -243,7 +245,7 @@
     "description": "Individuos o entidades que esperan verificación KYC",
     "columns": {
       "email": "Correo electrónico",
-      "telegramId": "Telegram",
+      "telegramHandle": "Telegram",
       "kycStatus": "Estado KYC",
       "customerType": "Tipo"
     },
@@ -337,7 +339,7 @@
     "description": "Individuos o entidades que tienen cuentas, préstamos o líneas de crédito con el banco",
     "columns": {
       "email": "Correo electrónico",
-      "telegramId": "Telegram",
+      "telegramHandle": "Telegram",
       "status": "Estado",
       "kycVerification": "Estado KYC",
       "depositAccount": "Saldo USD"
@@ -393,7 +395,7 @@
         "title": "Cliente",
         "customer": "Cliente",
         "customerDetails": "Detalles del cliente",
-        "updateTelegramId": "Actualizar ID de Telegram",
+        "updateTelegramHandle": "Actualizar handle de Telegram",
         "customerType": {
           "individual": "Particular",
           "company": "Empresa",
@@ -418,7 +420,7 @@
           "suspended": "Suspendido"
         },
         "actions": {
-          "editTelegram": "Editar ID de Telegram"
+          "editTelegram": "Editar handle de Telegram"
         }
       },
       "kycStatus": {
@@ -460,21 +462,21 @@
         "success": "Cuenta de depósito creada exitosamente"
       },
       "updateTelegram": {
-        "title": "Actualizar ID de Telegram",
-        "description": "Actualizar el ID de Telegram para este cliente",
+        "title": "Actualizar handle de Telegram",
+        "description": "Actualizar el handle de Telegram para este cliente",
         "labels": {
-          "newTelegramId": "Nuevo ID de Telegram"
+          "newTelegramId": "Nuevo handle de Telegram"
         },
         "placeholders": {
-          "newTelegramId": "Por favor ingrese el nuevo ID de Telegram"
+          "newTelegramId": "Por favor ingrese el nuevo handle de Telegram"
         },
         "errors": {
-          "emptyTelegramId": "El ID de Telegram no puede estar vacío",
+          "emptyTelegramId": "El handle de Telegram no puede estar vacío",
           "unexpected": "Ocurrió un error inesperado",
-          "updateFailed": "Error al actualizar el ID de Telegram: {error}"
+          "updateFailed": "Error al actualizar el handle de Telegram: {error}"
         },
         "messages": {
-          "updateSuccess": "ID de Telegram actualizado exitosamente"
+          "updateSuccess": "Handle de Telegram actualizado exitosamente"
         },
         "actions": {
           "update": "Actualizar",
@@ -2312,7 +2314,6 @@
     "menuItems": {
       "deposit": "Depósito",
       "withdrawal": "Retiro",
-      "customer": "Cliente",
       "prospect": "Prospecto",
       "creditFacility": "Propuesta de facilidad de crédito",
       "disbursal": "Desembolso",

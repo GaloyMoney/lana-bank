@@ -2,13 +2,13 @@ import { t } from "../support/translation"
 
 describe("Customers", () => {
   let testEmail: string
-  let testTelegramId: string
+  let testTelegramHandle: string
   let testCustomerId: string
   let testCustomerPublicId: string
 
   it("should successfully create a new customer", () => {
     testEmail = `t${Date.now().toString().slice(-6)}@example.com`
-    testTelegramId = `t${Date.now().toString().slice(-6)}`
+    testTelegramHandle = `t${Date.now().toString().slice(-6)}`
 
     cy.visit("/customers")
     cy.takeScreenshot("2_list_all_customers")
@@ -27,13 +27,13 @@ describe("Customers", () => {
       .should("have.value", testEmail)
     cy.takeScreenshot("5_enter_email")
 
-    cy.get('[data-testid="customer-create-telegram-id"]')
+    cy.get('[data-testid="customer-create-telegram-handle"]')
       .should("be.visible")
       .should("be.enabled")
       .clear()
-      .type(testTelegramId)
-      .should("have.value", testTelegramId)
-    cy.takeScreenshot("6_enter_telegram_id")
+      .type(testTelegramHandle)
+      .should("have.value", testTelegramHandle)
+    cy.takeScreenshot("6_enter_telegram_handle")
 
     cy.get('[data-testid="customer-create-submit-button"]')
       .contains(t("Customers.create.reviewButton"))
@@ -41,7 +41,7 @@ describe("Customers", () => {
     cy.takeScreenshot("7_click_review_details")
 
     cy.contains(testEmail).should("be.visible")
-    cy.contains(testTelegramId).should("be.visible")
+    cy.contains(testTelegramHandle).should("be.visible")
     cy.takeScreenshot("8_verify_details")
 
     cy.get('[data-testid="customer-create-submit-button"]')

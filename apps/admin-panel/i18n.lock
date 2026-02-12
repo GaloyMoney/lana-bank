@@ -183,7 +183,7 @@ checksums:
     Prospects/title: 8fd9acd1c9f666b0afa89fa9a1af3b96
     Prospects/description: a73f70ba16073481ad0ec5b88368a760
     Prospects/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5
-    Prospects/columns/telegramId: 0719cb55ded3146892d106733a8431b2
+    Prospects/columns/telegramHandle: 0719cb55ded3146892d106733a8431b2
     Prospects/columns/kycStatus: 0812527db67eb37688eb605718471c6c
     Prospects/columns/customerType: f04471a7ddac844b9ad145eb9911ef75
     Prospects/kycStatus/notStarted: 5d3574bf6f78fdcb400c5e8a6a034111
@@ -247,7 +247,7 @@ checksums:
     Customers/title: c31a0dfd0d92496ba6f5673781db24ef
     Customers/description: 38b688862c41b7af092a0dc32856806f
     Customers/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5
-    Customers/columns/telegramId: 0719cb55ded3146892d106733a8431b2
+    Customers/columns/telegramHandle: 0719cb55ded3146892d106733a8431b2
     Customers/columns/status: 4e1fcce15854d824919b4a582c697c90
     Customers/columns/kycVerification: 150eea9193777cbe2aed03e4dc774f8c
     Customers/columns/depositAccount: 857ee8a777580666ef3e60098e442c11

@@ -40,7 +40,7 @@ gql`
           activity
           level
           email
-          telegramId
+          telegramHandle
           applicantId
           depositAccount {
             balance {
@@ -83,8 +83,8 @@ const CustomersList = () => {
       labelClassName: "w-[30%]",
     },
     {
-      key: "telegramId",
-      label: t("columns.telegramId"),
+      key: "telegramHandle",
+      label: t("columns.telegramHandle"),
       sortable: true,
       labelClassName: "w-[30%]",
     },

@@ -208,7 +208,7 @@ export type Customer = {
   id: Scalars['ID']['output'];
   kycVerification: KycVerification;
   level: KycLevel;
-  telegramId: Scalars['String']['output'];
+  telegramHandle: Scalars['String']['output'];
 };
 
 export enum CustomerType {
@@ -490,7 +490,7 @@ export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', id: string, customerId: any, kycVerification: KycVerification, level: KycLevel, createdAt: any, email: string, telegramId: string, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: any, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }> } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', id: string, customerId: any, kycVerification: KycVerification, level: KycLevel, createdAt: any, email: string, telegramHandle: string, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: any, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }> } } };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -701,7 +701,7 @@ export const MeDocument = gql`
       level
       createdAt
       email
-      telegramId
+      telegramHandle
       depositAccount {
         id
         depositAccountId

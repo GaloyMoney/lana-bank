@@ -16,7 +16,7 @@ pub enum CustomerEvent {
     Initialized {
         id: CustomerId,
         email: String,
-        telegram_id: String,
+        telegram_handle: String,
         customer_type: CustomerType,
         activity: Activity,
         public_id: PublicId,
@@ -30,8 +30,8 @@ pub enum CustomerEvent {
     KycVerificationUpdated {
         kyc_verification: KycVerification,
     },
-    TelegramIdUpdated {
-        telegram_id: String,
+    TelegramHandleUpdated {
+        telegram_handle: String,
     },
     EmailUpdated {
         email: String,
@@ -46,7 +46,7 @@ pub enum CustomerEvent {
 pub struct Customer {
     pub id: CustomerId,
     pub email: String,
-    pub telegram_id: String,
+    pub telegram_handle: String,
     #[builder(default)]
     pub kyc_verification: KycVerification,
     #[builder(default)]
@@ -96,15 +96,15 @@ impl Customer {
         Idempotent::Executed(())
     }
 
-    pub fn update_telegram_id(&mut self, new_telegram_id: String) -> Idempotent<()> {
+    pub fn update_telegram_handle(&mut self, new_telegram_handle: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustomerEvent::TelegramIdUpdated { telegram_id: existing_telegram_id , ..} if existing_telegram_id == &new_telegram_id
+            CustomerEvent::TelegramHandleUpdated { telegram_handle: existing_telegram_handle , ..} if existing_telegram_handle == &new_telegram_handle
         );
-        self.events.push(CustomerEvent::TelegramIdUpdated {
-            telegram_id: new_telegram_id.clone(),
+        self.events.push(CustomerEvent::TelegramHandleUpdated {
+            telegram_handle: new_telegram_handle.clone(),
         });
-        self.telegram_id = new_telegram_id;
+        self.telegram_handle = new_telegram_handle;
         Idempotent::Executed(())
     }
 
@@ -131,7 +131,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 CustomerEvent::Initialized {
                     id,
                     email,
-                    telegram_id,
+                    telegram_handle,
                     customer_type,
                     public_id,
                     activity,
@@ -143,7 +143,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     builder = builder
                         .id(*id)
                         .email(email.clone())
-                        .telegram_id(telegram_id.clone())
+                        .telegram_handle(telegram_handle.clone())
                         .customer_type(*customer_type)
                         .public_id(public_id.clone())
                         .activity(*activity)
@@ -158,8 +158,10 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 } => {
                     builder = builder.kyc_verification(*kyc_verification);
                 }
-                CustomerEvent::TelegramIdUpdated { telegram_id, .. } => {
-                    builder = builder.telegram_id(telegram_id.clone());
+                CustomerEvent::TelegramHandleUpdated {
+                    telegram_handle, ..
+                } => {
+                    builder = builder.telegram_handle(telegram_handle.clone());
                 }
                 CustomerEvent::EmailUpdated { email, .. } => {
                     builder = builder.email(email.clone());
@@ -181,7 +183,7 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(crate) email: String,
     #[builder(setter(into))]
-    pub(crate) telegram_id: String,
+    pub(crate) telegram_handle: String,
     #[builder(setter(into))]
     pub(crate) customer_type: CustomerType,
     #[builder(default)]
@@ -209,7 +211,7 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
             [CustomerEvent::Initialized {
                 id: self.id,
                 email: self.email,
-                telegram_id: self.telegram_id,
+                telegram_handle: self.telegram_handle,
                 customer_type: self.customer_type,
                 activity: self.activity,
                 public_id: self.public_id,

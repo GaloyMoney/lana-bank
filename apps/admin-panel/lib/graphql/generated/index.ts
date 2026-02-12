@@ -1017,7 +1017,7 @@ export type Customer = {
   level: KycLevel;
   pendingCreditFacilities: Array<PendingCreditFacility>;
   publicId: Scalars['PublicId']['output'];
-  telegramId: Scalars['String']['output'];
+  telegramHandle: Scalars['String']['output'];
   transactions: Array<Transaction>;
   userCanCreateCreditFacility: Scalars['Boolean']['output'];
 };
@@ -1035,7 +1035,7 @@ export type CustomerConnection = {
 export type CustomerCreateInput = {
   customerType: CustomerType;
   email: Scalars['String']['input'];
-  telegramId: Scalars['String']['input'];
+  telegramHandle: Scalars['String']['input'];
 };
 
 export type CustomerCreatePayload = {
@@ -1115,13 +1115,13 @@ export type CustomerKycUpdatedPayload = {
   kycVerification: KycVerification;
 };
 
-export type CustomerTelegramIdUpdateInput = {
+export type CustomerTelegramHandleUpdateInput = {
   customerId: Scalars['UUID']['input'];
-  telegramId: Scalars['String']['input'];
+  telegramHandle: Scalars['String']['input'];
 };
 
-export type CustomerTelegramIdUpdatePayload = {
-  __typename?: 'CustomerTelegramIdUpdatePayload';
+export type CustomerTelegramHandleUpdatePayload = {
+  __typename?: 'CustomerTelegramHandleUpdatePayload';
   customer: Customer;
 };
 
@@ -1147,7 +1147,7 @@ export type CustomersSort = {
 export enum CustomersSortBy {
   CreatedAt = 'CREATED_AT',
   Email = 'EMAIL',
-  TelegramId = 'TELEGRAM_ID'
+  TelegramHandle = 'TELEGRAM_HANDLE'
 }
 
 export type Cvlpct = FiniteCvlPct | InfiniteCvlPct;
@@ -1882,7 +1882,7 @@ export type Mutation = {
   customerDocumentDelete: CustomerDocumentDeletePayload;
   customerDocumentDownloadLinkGenerate: CustomerDocumentDownloadLinksGeneratePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
-  customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
+  customerTelegramHandleUpdate: CustomerTelegramHandleUpdatePayload;
   depositAccountClose: DepositAccountClosePayload;
   depositAccountCreate: DepositAccountCreatePayload;
   depositAccountFreeze: DepositAccountFreezePayload;
@@ -2059,8 +2059,8 @@ export type MutationCustomerEmailUpdateArgs = {
 };
 
 
-export type MutationCustomerTelegramIdUpdateArgs = {
-  input: CustomerTelegramIdUpdateInput;
+export type MutationCustomerTelegramHandleUpdateArgs = {
+  input: CustomerTelegramHandleUpdateInput;
 };
 
 
@@ -2409,7 +2409,7 @@ export type Prospect = {
   level: KycLevel;
   prospectId: Scalars['UUID']['output'];
   publicId: Scalars['PublicId']['output'];
-  telegramId: Scalars['String']['output'];
+  telegramHandle: Scalars['String']['output'];
 };
 
 export type ProspectConnection = {
@@ -2425,7 +2425,7 @@ export type ProspectConnection = {
 export type ProspectCreateInput = {
   customerType: CustomerType;
   email: Scalars['String']['input'];
-  telegramId: Scalars['String']['input'];
+  telegramHandle: Scalars['String']['input'];
 };
 
 export type ProspectCreatePayload = {
@@ -2442,7 +2442,7 @@ export type ProspectEdge = {
   node: Prospect;
 };
 
-export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Withdrawal;
+export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Prospect | Withdrawal;
 
 export type Query = {
   __typename?: 'Query';
@@ -3971,21 +3971,21 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
-export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
+export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
 
 export type GetCustomerBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
 
 export type CustomerKycUpdatedSubscriptionVariables = Exact<{
   customerId: Scalars['UUID']['input'];
 }>;
 
 
-export type CustomerKycUpdatedSubscription = { __typename?: 'Subscription', customerKycUpdated: { __typename?: 'CustomerKycUpdatedPayload', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } };
+export type CustomerKycUpdatedSubscription = { __typename?: 'Subscription', customerKycUpdated: { __typename?: 'CustomerKycUpdatedPayload', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } };
 
 export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4008,12 +4008,12 @@ export type CustomerEmailUpdateMutationVariables = Exact<{
 
 export type CustomerEmailUpdateMutation = { __typename?: 'Mutation', customerEmailUpdate: { __typename?: 'CustomerEmailUpdatePayload', customer: { __typename?: 'Customer', id: string, email: string } } };
 
-export type CustomerTelegramIdUpdateMutationVariables = Exact<{
-  input: CustomerTelegramIdUpdateInput;
+export type CustomerTelegramHandleUpdateMutationVariables = Exact<{
+  input: CustomerTelegramHandleUpdateInput;
 }>;
 
 
-export type CustomerTelegramIdUpdateMutation = { __typename?: 'Mutation', customerTelegramIdUpdate: { __typename?: 'CustomerTelegramIdUpdatePayload', customer: { __typename?: 'Customer', id: string, telegramId: string } } };
+export type CustomerTelegramHandleUpdateMutation = { __typename?: 'Mutation', customerTelegramHandleUpdate: { __typename?: 'CustomerTelegramHandleUpdatePayload', customer: { __typename?: 'Customer', id: string, telegramHandle: string } } };
 
 export type CustomerCreateMutationVariables = Exact<{
   input: CustomerCreateInput;
@@ -4030,7 +4030,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, kycVerification: KycVerification, activity: Activity, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, kycVerification: KycVerification, activity: Activity, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4081,7 +4081,7 @@ export type DepositAccountCreateMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
+export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
 
 export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
 
@@ -4575,14 +4575,14 @@ export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossS
           | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
          }> }> } };
 
-export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramId: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
+export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
 
 export type GetProspectBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramId: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
+export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
 
 export type ProspectCreateMutationVariables = Exact<{
   input: ProspectCreateInput;
@@ -4597,7 +4597,7 @@ export type ProspectsQueryVariables = Exact<{
 }>;
 
 
-export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, kycStatus: KycStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, customerType: CustomerType, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, kycStatus: KycStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ReportRunByIdQueryVariables = Exact<{
   reportRunId: Scalars['UUID']['input'];
@@ -4924,6 +4924,7 @@ export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?:
     | { __typename: 'Customer', id: string, customerId: string, publicId: any, email: string }
     | { __typename: 'Deposit', id: string, amount: UsdCents, publicId: any, depositId: string }
     | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string } }
+    | { __typename: 'Prospect', id: string, prospectId: string, publicId: any, email: string }
     | { __typename: 'Withdrawal', id: string, amount: UsdCents, publicId: any, withdrawalId: string }
    | null };
 
@@ -5394,7 +5395,7 @@ export const CustomerDetailsFragmentFragmentDoc = gql`
   id
   customerId
   email
-  telegramId
+  telegramHandle
   kycVerification
   activity
   level
@@ -5786,7 +5787,7 @@ export const ProspectDetailsFragmentFragmentDoc = gql`
   id
   prospectId
   email
-  telegramId
+  telegramHandle
   kycStatus
   level
   applicantId
@@ -8198,42 +8199,42 @@ export function useCustomerEmailUpdateMutation(baseOptions?: Apollo.MutationHook
 export type CustomerEmailUpdateMutationHookResult = ReturnType<typeof useCustomerEmailUpdateMutation>;
 export type CustomerEmailUpdateMutationResult = Apollo.MutationResult<CustomerEmailUpdateMutation>;
 export type CustomerEmailUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerEmailUpdateMutation, CustomerEmailUpdateMutationVariables>;
-export const CustomerTelegramIdUpdateDocument = gql`
-    mutation CustomerTelegramIdUpdate($input: CustomerTelegramIdUpdateInput!) {
-  customerTelegramIdUpdate(input: $input) {
+export const CustomerTelegramHandleUpdateDocument = gql`
+    mutation CustomerTelegramHandleUpdate($input: CustomerTelegramHandleUpdateInput!) {
+  customerTelegramHandleUpdate(input: $input) {
     customer {
       id
-      telegramId
+      telegramHandle
     }
   }
 }
     `;
-export type CustomerTelegramIdUpdateMutationFn = Apollo.MutationFunction<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>;
+export type CustomerTelegramHandleUpdateMutationFn = Apollo.MutationFunction<CustomerTelegramHandleUpdateMutation, CustomerTelegramHandleUpdateMutationVariables>;
 
 /**
- * __useCustomerTelegramIdUpdateMutation__
+ * __useCustomerTelegramHandleUpdateMutation__
  *
- * To run a mutation, you first call `useCustomerTelegramIdUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCustomerTelegramIdUpdateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCustomerTelegramHandleUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerTelegramHandleUpdateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [customerTelegramIdUpdateMutation, { data, loading, error }] = useCustomerTelegramIdUpdateMutation({
+ * const [customerTelegramHandleUpdateMutation, { data, loading, error }] = useCustomerTelegramHandleUpdateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCustomerTelegramIdUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>) {
+export function useCustomerTelegramHandleUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerTelegramHandleUpdateMutation, CustomerTelegramHandleUpdateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>(CustomerTelegramIdUpdateDocument, options);
+        return Apollo.useMutation<CustomerTelegramHandleUpdateMutation, CustomerTelegramHandleUpdateMutationVariables>(CustomerTelegramHandleUpdateDocument, options);
       }
-export type CustomerTelegramIdUpdateMutationHookResult = ReturnType<typeof useCustomerTelegramIdUpdateMutation>;
-export type CustomerTelegramIdUpdateMutationResult = Apollo.MutationResult<CustomerTelegramIdUpdateMutation>;
-export type CustomerTelegramIdUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>;
+export type CustomerTelegramHandleUpdateMutationHookResult = ReturnType<typeof useCustomerTelegramHandleUpdateMutation>;
+export type CustomerTelegramHandleUpdateMutationResult = Apollo.MutationResult<CustomerTelegramHandleUpdateMutation>;
+export type CustomerTelegramHandleUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerTelegramHandleUpdateMutation, CustomerTelegramHandleUpdateMutationVariables>;
 export const CustomerCreateDocument = gql`
     mutation CustomerCreate($input: CustomerCreateInput!) {
   customerCreate(input: $input) {
@@ -8287,7 +8288,7 @@ export const CustomersDocument = gql`
         activity
         level
         email
-        telegramId
+        telegramHandle
         applicantId
         depositAccount {
           balance {
@@ -11121,7 +11122,7 @@ export const ProspectsDocument = gql`
         kycStatus
         level
         email
-        telegramId
+        telegramHandle
         applicantId
         customerType
         createdAt
@@ -12599,6 +12600,12 @@ export const SearchPublicIdTargetDocument = gql`
     ... on Customer {
       id
       customerId
+      publicId
+      email
+    }
+    ... on Prospect {
+      id
+      prospectId
       publicId
       email
     }

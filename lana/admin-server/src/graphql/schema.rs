@@ -1099,7 +1099,11 @@ impl Query {
                 .disbursal(ctx, public_id.target_id.into())
                 .await?
                 .map(PublicIdTarget::CreditFacilityDisbursal),
-            _ => unreachable!(),
+            "prospect" => self
+                .prospect(ctx, public_id.target_id.into())
+                .await?
+                .map(PublicIdTarget::Prospect),
+            _ => None,
         };
         Ok(res)
     }
@@ -1317,7 +1321,7 @@ impl Mutation {
             Customer,
             ctx,
             app.customers()
-                .create(sub, input.email, input.telegram_id, input.customer_type)
+                .create(sub, input.email, input.telegram_handle, input.customer_type)
         )
     }
 
@@ -1335,24 +1339,24 @@ impl Mutation {
             app.customers().create_prospect(
                 sub,
                 input.email,
-                input.telegram_id,
+                input.telegram_handle,
                 input.customer_type
             )
         )
     }
 
-    async fn customer_telegram_id_update(
+    async fn customer_telegram_handle_update(
         &self,
         ctx: &Context<'_>,
-        input: CustomerTelegramIdUpdateInput,
-    ) -> async_graphql::Result<CustomerTelegramIdUpdatePayload> {
+        input: CustomerTelegramHandleUpdateInput,
+    ) -> async_graphql::Result<CustomerTelegramHandleUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CustomerTelegramIdUpdatePayload,
+            CustomerTelegramHandleUpdatePayload,
             Customer,
             ctx,
             app.customers()
-                .update_telegram_id(sub, input.customer_id, input.telegram_id)
+                .update_telegram_handle(sub, input.customer_id, input.telegram_handle)
         )
     }
 

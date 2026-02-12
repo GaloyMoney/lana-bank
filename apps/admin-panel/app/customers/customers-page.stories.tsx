@@ -27,7 +27,7 @@ const baseMocks = [
                 kycVerification: KycVerification.Verified,
                 level: 1,
                 email: "customer1@example.com",
-                telegramId: "@customer1",
+                telegramHandle: "@customer1",
                 applicantId: "APP001",
                 balance: {
                   checking: {
@@ -48,7 +48,7 @@ const baseMocks = [
                 kycVerification: KycVerification.Rejected,
                 level: 1,
                 email: "customer2@example.com",
-                telegramId: "@customer2",
+                telegramHandle: "@customer2",
                 applicantId: "APP002",
                 balance: {
                   checking: {

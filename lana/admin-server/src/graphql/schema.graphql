@@ -987,7 +987,7 @@ type Customer {
 	createdAt: Timestamp!
 	customerType: CustomerType!
 	email: String!
-	telegramId: String!
+	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String
 	depositAccount: DepositAccount
@@ -1015,7 +1015,7 @@ type CustomerConnection {
 
 input CustomerCreateInput {
 	email: String!
-	telegramId: String!
+	telegramHandle: String!
 	customerType: CustomerType!
 }
 
@@ -1093,12 +1093,12 @@ type CustomerKycUpdatedPayload {
 	customer: Customer!
 }
 
-input CustomerTelegramIdUpdateInput {
+input CustomerTelegramHandleUpdateInput {
 	customerId: UUID!
-	telegramId: String!
+	telegramHandle: String!
 }
 
-type CustomerTelegramIdUpdatePayload {
+type CustomerTelegramHandleUpdatePayload {
 	customer: Customer!
 }
 
@@ -1124,7 +1124,7 @@ input CustomersSort {
 enum CustomersSortBy {
 	CREATED_AT
 	EMAIL
-	TELEGRAM_ID
+	TELEGRAM_HANDLE
 }
 
 union Cvlpct = FiniteCVLPct | InfiniteCVLPct
@@ -1863,7 +1863,7 @@ type Mutation {
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
-	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
+	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
@@ -2134,7 +2134,7 @@ type Prospect {
 	createdAt: Timestamp!
 	customerType: CustomerType!
 	email: String!
-	telegramId: String!
+	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String
 }
@@ -2156,7 +2156,7 @@ type ProspectConnection {
 
 input ProspectCreateInput {
 	email: String!
-	telegramId: String!
+	telegramHandle: String!
 	customerType: CustomerType!
 }
 
@@ -2180,7 +2180,7 @@ type ProspectEdge {
 
 scalar PublicId
 
-union PublicIdTarget = Customer | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
+union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
 	me: Me!

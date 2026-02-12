@@ -45,7 +45,7 @@ gql`
 
 type FormData = {
   email: string
-  telegramId: string
+  telegramHandle: string
   customerType: CustomerType
 }
 
@@ -56,7 +56,7 @@ type CreateProspectDialogProps = {
 
 const InitialFormData: FormData = {
   email: "",
-  telegramId: "",
+  telegramHandle: "",
   customerType: CustomerType.Individual,
 }
 
@@ -96,15 +96,15 @@ const DetailsForm = ({
       />
     </div>
     <div>
-      <Label htmlFor="telegramId">{t("telegramLabel")}</Label>
+      <Label htmlFor="telegramHandle">{t("telegramLabel")}</Label>
       <Input
-        id="telegramId"
-        name="telegramId"
+        id="telegramHandle"
+        name="telegramHandle"
         type="text"
         required
         data-testid="prospect-create-telegram-id"
         placeholder={t("telegramPlaceholder")}
-        value={formData.telegramId}
+        value={formData.telegramHandle}
         onChange={handleInputChange}
         disabled={isLoading}
       />
@@ -248,7 +248,7 @@ const ConfirmationForm = ({
     </div>
     <div>
       <Label>{t("telegramLabel")}</Label>
-      <p>{formData.telegramId}</p>
+      <p>{formData.telegramHandle}</p>
     </div>
     <div>
       <Label>{t("customerTypeLabel")}</Label>

@@ -173,9 +173,16 @@ where
                         tracing::Span::current().record("ignore_for_sandbox", true);
                     }
                 } else {
-                    self.customers
-                        .handle_kyc_started(external_user_id, applicant_id)
+                    let res = self
+                        .customers
+                        .handle_kyc_started_if_exists(external_user_id, applicant_id)
                         .await?;
+                    if res.is_none() {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            "No prospect found for KYC started callback"
+                        );
+                    }
                 }
             }
             KycCallbackPayload::ApplicantReviewed {
@@ -207,9 +214,16 @@ where
                         tracing::Span::current().record("ignore_for_sandbox", true);
                     }
                 } else {
-                    self.customers
-                        .handle_kyc_declined(external_user_id, applicant_id)
+                    let res = self
+                        .customers
+                        .handle_kyc_declined_if_exists(external_user_id, applicant_id)
                         .await?;
+                    if res.is_none() {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            "No prospect found for KYC declined callback"
+                        );
+                    }
                 }
             }
             KycCallbackPayload::ApplicantReviewed {
@@ -248,9 +262,16 @@ where
                         tracing::Span::current().record("ignore_for_sandbox", true);
                     }
                 } else {
-                    self.customers
-                        .handle_kyc_approved(external_user_id, applicant_id)
+                    let res = self
+                        .customers
+                        .handle_kyc_approved_if_exists(external_user_id, applicant_id)
                         .await?;
+                    if res.is_none() {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            "No prospect found for KYC approved callback"
+                        );
+                    }
                 }
             }
             KycCallbackPayload::ApplicantPending {

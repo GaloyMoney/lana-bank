@@ -216,14 +216,14 @@ pub struct LoanAgreementData {
     pub address: Option<String>,
     pub country: Option<String>,
     pub customer_id: String,
-    pub telegram_id: String,
+    pub telegram_handle: String,
     pub date: String,
 }
 
 impl LoanAgreementData {
     pub fn new(
         email: String,
-        telegram_id: String,
+        telegram_handle: String,
         customer_id: CustomerId,
         full_name: String,
         address: Option<String>,
@@ -237,7 +237,7 @@ impl LoanAgreementData {
             address,
             country,
             customer_id: customer_id.to_string(),
-            telegram_id,
+            telegram_handle,
             date,
         }
     }
@@ -278,7 +278,7 @@ mod tests {
             "full_name": "Test User",
             "email": "test@example.com",
             "customer_id": "test-123",
-            "telegram_id": "test_telegram",
+            "telegram_handle": "test_telegram",
             "date": "2025-01-01"
         });
 

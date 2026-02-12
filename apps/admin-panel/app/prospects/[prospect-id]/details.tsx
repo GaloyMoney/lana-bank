@@ -44,7 +44,7 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
     },
     {
       label: t("labels.telegram"),
-      value: prospect.telegramId,
+      value: prospect.telegramHandle,
     },
     { label: t("labels.createdOn"), value: formatDate(prospect.createdAt) },
     {

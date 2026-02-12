@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_prospects (id, email, telegram_id, public_id, created_at) VALUES ($1, $2, $3, $4, COALESCE($5, NOW()))",
+  "query": "INSERT INTO core_prospects (id, email, telegram_handle, public_id, created_at) VALUES ($1, $2, $3, $4, COALESCE($5, NOW()))",
   "describe": {
     "columns": [],
     "parameters": {
@@ -14,5 +14,5 @@
     },
     "nullable": []
   },
-  "hash": "2f367ab00749705edbcf04b6074ac8b3583c96d653525f299d2cac4193328b6f"
+  "hash": "91eb11bf5a5aff9ae594e0113be90af92c2947043999779268e0fa8d4476e435"
 }
