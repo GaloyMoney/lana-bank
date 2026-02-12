@@ -2,9 +2,7 @@ use std::marker::PhantomData;
 
 use crate::{
     ConfigSpec, DefaultedConfig, DomainConfigError, DomainConfigFlavorEncrypted,
-    DomainConfigFlavorPlaintext, ValueKind,
-    encryption::EncryptionKey,
-    flavor::ConfigFlavor,
+    DomainConfigFlavorPlaintext, ValueKind, encryption::EncryptionKey, flavor::ConfigFlavor,
 };
 
 use crate::entity::DomainConfig;
