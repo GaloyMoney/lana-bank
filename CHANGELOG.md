@@ -1,3 +1,17 @@
+## [0.40.1] - 2026-02-12
+
+### 🐛 Bug Fixes
+
+- Use tag-push trigger with ref:main for docs deployment (#3765)
+- *(domain-config)* Avoid DuplicateKey errors during seeding (#3752)
+
+### 🚜 Refactor
+
+- Replace PermissionSetName enum with inventory-based strings (#3694)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.40.0 [ci skip] (#3762)
 ## [0.40.0] - 2026-02-11
 
 ### 🚀 Features
