@@ -1689,6 +1689,34 @@ checksums:
     Permissions/report_viewer/label: a66689c6ed940e3e6a26e703a04851e6
     Permissions/report_writer/description: d0bb9b9ba3824a2e4c9fadb87d926881
     Permissions/report_writer/label: abba08c361cb57585c6bf6dde57051db
+    TemplateCodes/ACTIVATE_CREDIT_FACILITY: b44ca9f1659595136b905238b03c4d77
+    TemplateCodes/ADD_COLLATERAL: cc3bf6de4106e46c6776cba01bddf8b6
+    TemplateCodes/ADD_STRUCTURING_FEE: 7f55bf9e8be39d687ed5dee3452d1bf9
+    TemplateCodes/CANCEL_DISBURSAL: 63782fc795faf5806c3bcc2637e37f6a
+    TemplateCodes/CANCEL_WITHDRAW: 7c50b6b11488f4f3070a49e209e8d154
+    TemplateCodes/CONFIRM_DISBURSAL: b4db04ddbe79411a4f19d06dd8aba918
+    TemplateCodes/CONFIRM_WITHDRAW: cde0ccd1d4d5f127a9e50569bdba5aee
+    TemplateCodes/CREATE_CREDIT_FACILITY_PROPOSAL: 8449763934cb1988457098bccf0a9506
+    TemplateCodes/CREDIT_FACILITY_ACCRUE_INTEREST: d158f772d160a14fd2291f5e32f73e0e
+    TemplateCodes/CREDIT_FACILITY_POST_ACCRUED_INTEREST: c5d78cb952cdce1d3663c5c9f2578bcf
+    TemplateCodes/DENY_WITHDRAW: a50d1ebc2397df8a635cf6c1fa84b89b
+    TemplateCodes/FREEZE_ACCOUNT: 21fbbd763d20c0e6833e6a314fd2431b
+    TemplateCodes/INITIAL_DISBURSAL: e4c7c6c24553c24286e69380da6e16aa
+    TemplateCodes/INITIATE_CREDIT_FACILITY_DISBURSAL: 2712512bf354da679d57a3ddd3ba6ced
+    TemplateCodes/INITIATE_WITHDRAW: 451a958c1b8059781ce2b09814e8c88a
+    TemplateCodes/RECEIVE_PROCEEDS_FROM_LIQUIDATION: 2ae704354585ac13f3ebfdd453550c13
+    TemplateCodes/RECORD_DEPOSIT: 3dee372e8445097f4557d8075a441832
+    TemplateCodes/RECORD_OBLIGATION_DEFAULTED_BALANCE: a9038a14688f9b3edc0bebd10ef0b52e
+    TemplateCodes/RECORD_OBLIGATION_DUE_BALANCE: 5abd1a444fa319947f63b6f2f95d6014
+    TemplateCodes/RECORD_OBLIGATION_OVERDUE_BALANCE: f20258ddb7b50a3c4d657daec8770008
+    TemplateCodes/RECORD_PAYMENT: 9d1feaad902e1740b85388e099a80094
+    TemplateCodes/RECORD_PAYMENT_ALLOCATION: f67a41e391b510ce255b56b0da4519c1
+    TemplateCodes/REMOVE_COLLATERAL: 03c2ff10c2ae657c29bc75a145bca59e
+    TemplateCodes/RESERVE_FOR_LIQUIDATION: e3a8ce1e7794b147e2e5c268106db353
+    TemplateCodes/REVERT_DEPOSIT: 3b086b4b0164b5b98222d7ba72f76c81
+    TemplateCodes/REVERT_WITHDRAW: 719babaaf36f190dde508a01a25ceb63
+    TemplateCodes/SEND_COLLATERAL_TO_LIQUIDATION: f1130c36ac5680b6719c06fbdba6fea9
+    TemplateCodes/UNFREEZE_ACCOUNT: e6ac5996c0a69156d315b35d9438ed32
     TransactionDescriptions/Accrue%20interest%20in%20accrual%20period%20for%20credit%20facility: af58f5bf4e1bb8cc85716dbbaa97596c
     TransactionDescriptions/Activate%20credit%20facility: 861020d7302388298dcd71df60521194
     TransactionDescriptions/Add%20structuring%20fee: 822f4cded0b837c93ca349e909dc5bc8
