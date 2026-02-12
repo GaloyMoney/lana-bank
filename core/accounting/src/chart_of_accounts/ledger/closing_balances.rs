@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::primitives::{ClosingAccountSetIds, ClosingTxDetails};
 
-use super::templates::EntryParams;
+use super::template::EntryParams;
 
 use cala_ledger::{
     AccountId, BalanceId, Currency as CalaCurrency, DebitOrCredit,
