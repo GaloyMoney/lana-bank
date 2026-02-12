@@ -2,8 +2,7 @@ use es_entity::Idempotent;
 
 use crate::{
     ConfigSpec, DomainConfigError, EncryptionConfig, TypedDomainConfig, ValueKind,
-    entity::DomainConfig,
-    registry::ConfigSpecEntry,
+    entity::DomainConfig, registry::ConfigSpecEntry,
 };
 
 /// Marker type for plaintext (unencrypted) domain configs.
@@ -154,4 +153,3 @@ impl FlavorDispatch for DomainConfigFlavorEncrypted {
         entity.apply_exposed_update_from_json_encrypted(entry, &config.key, value)
     }
 }
-

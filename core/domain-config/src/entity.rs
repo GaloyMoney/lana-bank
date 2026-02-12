@@ -5,8 +5,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError,
-    DomainConfigFlavorEncrypted, DomainConfigFlavorPlaintext, ValueKind,
+    ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError, DomainConfigFlavorEncrypted,
+    DomainConfigFlavorPlaintext, ValueKind,
     encryption::EncryptionKey,
     primitives::{DomainConfigId, DomainConfigKey, Visibility},
     value::DomainConfigValue,
@@ -96,29 +96,7 @@ impl DomainConfig {
         entry: &crate::registry::ConfigSpecEntry,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        if self.visibility != crate::Visibility::Exposed {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Config {} is not exposed",
-                self.key
-            )));
-        }
-
-        if self.visibility != entry.visibility {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Invalid visibility for {}: expected {}, found={}",
-                self.key, entry.visibility, self.visibility
-            )));
-        }
-
-        if self.config_type != entry.config_type {
-            return Err(DomainConfigError::InvalidType(format!(
-                "Invalid config type for {}: expected {}, found {}",
-                self.key, entry.config_type, self.config_type
-            )));
-        }
-
-        (entry.validate_json)(&new_value)?;
-
+        self.validate_exposed_update(entry, &new_value)?;
         self.store_value_plain(new_value)
     }
 
@@ -128,29 +106,7 @@ impl DomainConfig {
         key: &EncryptionKey,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        if self.visibility != crate::Visibility::Exposed {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Config {} is not exposed",
-                self.key
-            )));
-        }
-
-        if self.visibility != entry.visibility {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Invalid visibility for {}: expected {}, found={}",
-                self.key, entry.visibility, self.visibility
-            )));
-        }
-
-        if self.config_type != entry.config_type {
-            return Err(DomainConfigError::InvalidType(format!(
-                "Invalid config type for {}: expected {}, found {}",
-                self.key, entry.config_type, self.config_type
-            )));
-        }
-
-        (entry.validate_json)(&new_value)?;
-
+        self.validate_exposed_update(entry, &new_value)?;
         self.store_value_encrypted(key, new_value)
     }
 
@@ -159,22 +115,7 @@ impl DomainConfig {
         entry: &crate::registry::ConfigSpecEntry,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        if self.config_type != entry.config_type {
-            return Err(DomainConfigError::InvalidType(format!(
-                "Invalid config type for {}: expected {}, found {}",
-                self.key, entry.config_type, self.config_type
-            )));
-        }
-
-        if self.visibility != entry.visibility {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Invalid visibility for {}: expected {}, found {}",
-                self.key, entry.visibility, self.visibility
-            )));
-        }
-
-        (entry.validate_json)(&new_value)?;
-
+        self.validate_update(entry, &new_value)?;
         self.store_value_plain(new_value)
     }
 
@@ -184,6 +125,29 @@ impl DomainConfig {
         key: &EncryptionKey,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
+        self.validate_update(entry, &new_value)?;
+        self.store_value_encrypted(key, new_value)
+    }
+
+    fn validate_exposed_update(
+        &self,
+        entry: &crate::registry::ConfigSpecEntry,
+        new_value: &serde_json::Value,
+    ) -> Result<(), DomainConfigError> {
+        if self.visibility != crate::Visibility::Exposed {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Config {} is not exposed",
+                self.key
+            )));
+        }
+        self.validate_update(entry, new_value)
+    }
+
+    fn validate_update(
+        &self,
+        entry: &crate::registry::ConfigSpecEntry,
+        new_value: &serde_json::Value,
+    ) -> Result<(), DomainConfigError> {
         if self.config_type != entry.config_type {
             return Err(DomainConfigError::InvalidType(format!(
                 "Invalid config type for {}: expected {}, found {}",
@@ -198,9 +162,9 @@ impl DomainConfig {
             )));
         }
 
-        (entry.validate_json)(&new_value)?;
+        (entry.validate_json)(new_value)?;
 
-        self.store_value_encrypted(key, new_value)
+        Ok(())
     }
 
     fn store_value_plain(
@@ -611,9 +575,7 @@ mod tests {
             DomainConfigEvent::Updated { value: DomainConfigValue::Plain { value } } if value == &updated_json
         ));
         assert_eq!(
-            config
-                .current_value_plain::<SampleComplexConfig>()
-                .unwrap(),
+            config.current_value_plain::<SampleComplexConfig>().unwrap(),
             updated
         );
     }
@@ -648,11 +610,7 @@ mod tests {
             last_event,
             DomainConfigEvent::Updated { value: DomainConfigValue::Plain { value } } if value == &updated_json
         ));
-        assert!(
-            config
-                .current_value_plain::<SampleSimpleBool>()
-                .unwrap()
-        );
+        assert!(config.current_value_plain::<SampleSimpleBool>().unwrap());
     }
 
     #[test]
@@ -691,12 +649,11 @@ mod tests {
     fn update_rejects_wrong_type() {
         let mut config = seed_config::<SampleSimpleBool>(DomainConfigId::new());
 
-        let update_type_error = config.update_value_plain::<SampleComplexConfig>(
-            SampleComplexConfig {
+        let update_type_error =
+            config.update_value_plain::<SampleComplexConfig>(SampleComplexConfig {
                 enabled: true,
                 limit: 1,
-            },
-        );
+            });
         assert!(matches!(
             update_type_error,
             Err(DomainConfigError::InvalidType(message)) if message.contains("config type")
@@ -726,10 +683,7 @@ mod tests {
         );
 
         let stored = config.current_stored_value().unwrap();
-        assert!(
-            stored.is_encrypted(),
-            "stored value should be encrypted"
-        );
+        assert!(stored.is_encrypted(), "stored value should be encrypted");
     }
 
     #[test]

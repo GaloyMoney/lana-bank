@@ -170,6 +170,7 @@ pub use config::EncryptionConfig;
 pub use entity::DomainConfig;
 pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
+pub use flavor::FlavorDispatch;
 #[doc(hidden)]
 pub use inventory;
 pub use primitives::{
@@ -179,7 +180,6 @@ pub use primitives::{
 };
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use shared_config::RequireVerifiedCustomerForAccount;
-pub use flavor::FlavorDispatch;
 pub use spec::{
     Complex, ConfigFlavor, ConfigSpec, DefaultedConfig, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, ExposedConfig, InternalConfig, Simple, ValueKind,
