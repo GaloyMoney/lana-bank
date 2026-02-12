@@ -91,44 +91,6 @@ impl DomainConfig {
         self.store_value_encrypted(key, encoded)
     }
 
-    pub(super) fn apply_exposed_update_from_json_plain(
-        &mut self,
-        entry: &crate::registry::ConfigSpecEntry,
-        new_value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        self.validate_exposed_update(entry, &new_value)?;
-        self.store_value_plain(new_value)
-    }
-
-    pub(super) fn apply_exposed_update_from_json_encrypted(
-        &mut self,
-        entry: &crate::registry::ConfigSpecEntry,
-        key: &EncryptionKey,
-        new_value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        self.validate_exposed_update(entry, &new_value)?;
-        self.store_value_encrypted(key, new_value)
-    }
-
-    pub(super) fn apply_update_from_json_plain(
-        &mut self,
-        entry: &crate::registry::ConfigSpecEntry,
-        new_value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        self.validate_update(entry, &new_value)?;
-        self.store_value_plain(new_value)
-    }
-
-    pub(super) fn apply_update_from_json_encrypted(
-        &mut self,
-        entry: &crate::registry::ConfigSpecEntry,
-        key: &EncryptionKey,
-        new_value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        self.validate_update(entry, &new_value)?;
-        self.store_value_encrypted(key, new_value)
-    }
-
     fn validate_exposed_update(
         &self,
         entry: &crate::registry::ConfigSpecEntry,
@@ -208,31 +170,33 @@ impl DomainConfig {
 
     /// Runtime-dispatched version for cases where the config type is not known at compile time.
     /// Uses `self.encrypted` to decide whether to encrypt.
-    pub(super) fn apply_exposed_update_from_json_dispatch(
+    pub(super) fn apply_exposed_update_from_json(
         &mut self,
         entry: &crate::registry::ConfigSpecEntry,
         config: &crate::EncryptionConfig,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
+        self.validate_exposed_update(entry, &new_value)?;
         if self.encrypted {
-            self.apply_exposed_update_from_json_encrypted(entry, &config.key, new_value)
+            self.store_value_encrypted(&config.key, new_value)
         } else {
-            self.apply_exposed_update_from_json_plain(entry, new_value)
+            self.store_value_plain(new_value)
         }
     }
 
     /// Runtime-dispatched version for cases where the config type is not known at compile time.
     /// Uses `self.encrypted` to decide whether to encrypt.
-    pub(super) fn apply_update_from_json_dispatch(
+    pub(super) fn apply_update_from_json(
         &mut self,
         entry: &crate::registry::ConfigSpecEntry,
         config: &crate::EncryptionConfig,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
+        self.validate_update(entry, &new_value)?;
         if self.encrypted {
-            self.apply_update_from_json_encrypted(entry, &config.key, new_value)
+            self.store_value_encrypted(&config.key, new_value)
         } else {
-            self.apply_update_from_json_plain(entry, new_value)
+            self.store_value_plain(new_value)
         }
     }
 

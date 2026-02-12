@@ -408,7 +408,7 @@ where
         })?;
 
         if entity
-            .apply_exposed_update_from_json_dispatch(entry, &self.config, value)?
+            .apply_exposed_update_from_json(entry, &self.config, value)?
             .did_execute()
         {
             self.repo.update(&mut entity).await?;
@@ -523,7 +523,7 @@ where
         let mut entity = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
 
         let changed = entity
-            .apply_update_from_json_dispatch(entry, encryption_config, value)?
+            .apply_update_from_json(entry, encryption_config, value)?
             .did_execute();
 
         if changed {

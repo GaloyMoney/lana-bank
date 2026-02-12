@@ -2,7 +2,7 @@ use es_entity::Idempotent;
 
 use crate::{
     ConfigSpec, DomainConfigError, EncryptionConfig, TypedDomainConfig, ValueKind,
-    entity::DomainConfig, registry::ConfigSpecEntry,
+    entity::DomainConfig,
 };
 
 /// Marker type for plaintext (unencrypted) domain configs.
@@ -56,20 +56,6 @@ pub trait FlavorDispatch: sealed::Sealed {
         config: &EncryptionConfig,
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<Idempotent<()>, DomainConfigError>;
-
-    fn apply_update_from_json(
-        entity: &mut DomainConfig,
-        entry: &ConfigSpecEntry,
-        config: &EncryptionConfig,
-        value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError>;
-
-    fn apply_exposed_update_from_json(
-        entity: &mut DomainConfig,
-        entry: &ConfigSpecEntry,
-        config: &EncryptionConfig,
-        value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError>;
 }
 
 impl FlavorDispatch for DomainConfigFlavorPlaintext {
@@ -93,24 +79,6 @@ impl FlavorDispatch for DomainConfigFlavorPlaintext {
     ) -> Result<Idempotent<()>, DomainConfigError> {
         entity.update_value_plain::<C>(value)
     }
-
-    fn apply_update_from_json(
-        entity: &mut DomainConfig,
-        entry: &ConfigSpecEntry,
-        _config: &EncryptionConfig,
-        value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        entity.apply_update_from_json_plain(entry, value)
-    }
-
-    fn apply_exposed_update_from_json(
-        entity: &mut DomainConfig,
-        entry: &ConfigSpecEntry,
-        _config: &EncryptionConfig,
-        value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        entity.apply_exposed_update_from_json_plain(entry, value)
-    }
 }
 
 impl FlavorDispatch for DomainConfigFlavorEncrypted {
@@ -133,23 +101,5 @@ impl FlavorDispatch for DomainConfigFlavorEncrypted {
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
         entity.update_value_encrypted::<C>(&config.key, value)
-    }
-
-    fn apply_update_from_json(
-        entity: &mut DomainConfig,
-        entry: &ConfigSpecEntry,
-        config: &EncryptionConfig,
-        value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        entity.apply_update_from_json_encrypted(entry, &config.key, value)
-    }
-
-    fn apply_exposed_update_from_json(
-        entity: &mut DomainConfig,
-        entry: &ConfigSpecEntry,
-        config: &EncryptionConfig,
-        value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        entity.apply_exposed_update_from_json_encrypted(entry, &config.key, value)
     }
 }
