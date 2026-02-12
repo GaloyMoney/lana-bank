@@ -17,7 +17,7 @@ pub use accounts::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds};
 pub use error::CollateralLedgerError;
 
 use crate::{
-    ledger::{InternalAccountSetDetails, LiquidationAccountSets},
+    ledger::InternalAccountSetDetails,
     primitives::{
         COLLATERAL_ENTITY_TYPE, CalaAccountId, CollateralDirection, CollateralId, CollateralUpdate,
         LedgerOmnibusAccountIds,
@@ -26,14 +26,20 @@ use crate::{
 
 use super::RecordProceedsFromLiquidationData;
 
+#[derive(Clone, Copy)]
+pub struct CollateralAccountSets {
+    pub collateral: InternalAccountSetDetails,
+    pub collateral_in_liquidation: InternalAccountSetDetails,
+    pub liquidated_collateral: InternalAccountSetDetails,
+}
+
 #[derive(Clone)]
 pub struct CollateralLedger {
     cala: CalaLedger,
     journal_id: JournalId,
     clock: ClockHandle,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
-    collateral_account_set: InternalAccountSetDetails,
-    liquidation_account_sets: LiquidationAccountSets,
+    account_sets: CollateralAccountSets,
     btc: Currency,
 }
 
@@ -45,8 +51,7 @@ impl CollateralLedger {
         journal_id: JournalId,
         clock: ClockHandle,
         collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
-        collateral_account_set: InternalAccountSetDetails,
-        liquidation_account_sets: LiquidationAccountSets,
+        account_sets: CollateralAccountSets,
     ) -> Result<Self, CollateralLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
@@ -58,8 +63,7 @@ impl CollateralLedger {
             journal_id,
             clock,
             collateral_omnibus_account_ids,
-            collateral_account_set,
-            liquidation_account_sets,
+            account_sets,
             btc: Currency::BTC,
         })
     }
@@ -87,7 +91,7 @@ impl CollateralLedger {
         self.create_account_in_op(
             op,
             collateral_account_id,
-            self.collateral_account_set,
+            self.account_sets.collateral,
             collateral_reference,
             collateral_name,
             collateral_name,
@@ -102,7 +106,7 @@ impl CollateralLedger {
         self.create_account_in_op(
             op,
             collateral_in_liquidation_account_id,
-            self.liquidation_account_sets.collateral_in_liquidation,
+            self.account_sets.collateral_in_liquidation,
             collateral_in_liquidation_reference,
             collateral_in_liquidation_name,
             collateral_in_liquidation_name,
@@ -116,7 +120,7 @@ impl CollateralLedger {
         self.create_account_in_op(
             op,
             liquidated_collateral_account_id,
-            self.liquidation_account_sets.liquidated_collateral,
+            self.account_sets.liquidated_collateral,
             liquidated_collateral_reference,
             liquidated_collateral_name,
             liquidated_collateral_name,
