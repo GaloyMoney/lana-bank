@@ -201,7 +201,7 @@ impl Collateral {
         &mut self,
         amount_received: UsdCents,
     ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, CollateralError> {
-        let (ledger_tx_id, liquidation_id, sent_total, account_ids) = {
+        let (liquidation_id, data) = {
             let liquidation = self
                 .active_liquidation()
                 .ok_or(CollateralError::NoActiveLiquidation)?;
@@ -209,25 +209,20 @@ impl Collateral {
             let ledger_tx_id = liquidation
                 .record_proceeds_from_liquidation_and_complete(amount_received)
                 .expect("Active liquidation in incorrect \"completed\" state");
-            (
-                ledger_tx_id,
-                liquidation.id,
-                liquidation.sent_total,
+
+            let data = RecordProceedsFromLiquidationData::new(
                 liquidation.account_ids,
-            )
+                amount_received,
+                liquidation.sent_total,
+                ledger_tx_id,
+            );
+            (liquidation.id, data)
         };
 
         self.events
             .push(CollateralEvent::LiquidationCompleted { liquidation_id });
 
-        Ok(Idempotent::Executed(
-            RecordProceedsFromLiquidationData::new(
-                account_ids,
-                amount_received,
-                sent_total,
-                ledger_tx_id,
-            ),
-        ))
+        Ok(Idempotent::Executed(data))
     }
 
     fn active_liquidation_id(&self) -> Option<LiquidationId> {
