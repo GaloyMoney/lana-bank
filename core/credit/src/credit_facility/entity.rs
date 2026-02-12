@@ -250,6 +250,23 @@ impl CreditFacility {
             })
     }
 
+    pub fn last_liquidation_trigger(&self) -> Option<crate::public::LiquidationTrigger> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            CreditFacilityEvent::PartialLiquidationInitiated {
+                liquidation_id,
+                trigger_price,
+                initially_expected_to_receive,
+                initially_estimated_to_liquidate,
+            } => Some(crate::public::LiquidationTrigger {
+                liquidation_id: *liquidation_id,
+                trigger_price: *trigger_price,
+                initially_expected_to_receive: *initially_expected_to_receive,
+                initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
+            }),
+            _ => None,
+        })
+    }
+
     pub fn matures_at(&self) -> DateTime<Utc> {
         self.maturity_date.start_of_day()
     }

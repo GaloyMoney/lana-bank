@@ -164,27 +164,23 @@ where
         db: &mut DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(
-            event @ CoreCreditEvent::PartialLiquidationInitiated {
-                collateral_id,
-                credit_facility_id,
-                trigger_price,
-                initially_expected_to_receive,
-                initially_estimated_to_liquidate,
-                ..
-            },
-        ) = message.as_event()
+        if let Some(event @ CoreCreditEvent::PartialLiquidationInitiated { entity }) =
+            message.as_event()
         {
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
+            let trigger = entity
+                .liquidation_trigger
+                .as_ref()
+                .expect("liquidation_trigger must be set for PartialLiquidationInitiated");
             self.create_if_not_exist_in_op(
                 db,
-                *collateral_id,
-                *credit_facility_id,
-                *trigger_price,
-                *initially_expected_to_receive,
-                *initially_estimated_to_liquidate,
+                entity.collateral_id,
+                entity.id,
+                trigger.trigger_price,
+                trigger.initially_expected_to_receive,
+                trigger.initially_estimated_to_liquidate,
             )
             .await?;
         }

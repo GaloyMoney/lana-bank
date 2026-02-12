@@ -82,20 +82,11 @@ where
                     outstanding: *outstanding,
                     price: *price,
                 }),
-                PartialLiquidationInitiated {
-                    liquidation_id,
-                    trigger_price,
-                    initially_expected_to_receive,
-                    initially_estimated_to_liquidate,
-                } => Some(CoreCreditEvent::PartialLiquidationInitiated {
-                    credit_facility_id: entity.id,
-                    collateral_id: entity.collateral_id,
-                    liquidation_id: *liquidation_id,
-                    customer_id: entity.customer_id,
-                    trigger_price: *trigger_price,
-                    initially_expected_to_receive: *initially_expected_to_receive,
-                    initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
-                }),
+                PartialLiquidationInitiated { .. } => {
+                    Some(CoreCreditEvent::PartialLiquidationInitiated {
+                        entity: PublicCreditFacility::from(entity),
+                    })
+                }
 
                 _ => None,
             })

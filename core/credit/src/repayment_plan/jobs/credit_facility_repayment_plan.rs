@@ -184,13 +184,18 @@ where
                     .persist_in_tx(db, entity.credit_facility_id, repayment_plan)
                     .await?;
             }
+            Some(event @ PartialLiquidationInitiated { entity }) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                let mut repayment_plan = self.repo.load(entity.id).await?;
+                repayment_plan.process_credit_event(sequence, event, clock.now());
+                self.repo
+                    .persist_in_tx(db, entity.id, repayment_plan)
+                    .await?;
+            }
             Some(event @ FacilityCollateralizationChanged { id, .. })
-            | Some(
-                event @ PartialLiquidationInitiated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
             | Some(
                 event @ PartialLiquidationCompleted {
                     credit_facility_id: id,

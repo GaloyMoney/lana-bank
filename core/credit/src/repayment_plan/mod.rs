@@ -582,10 +582,13 @@ mod tests {
         let events = vec![CoreCreditEvent::FacilityActivated {
             entity: crate::PublicCreditFacility {
                 id: CreditFacilityId::new(),
+                customer_id: CustomerId::new(),
+                collateral_id: CollateralId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
                 completed_at: None,
+                liquidation_trigger: None,
             },
         }];
         process_credit_events(&mut plan, events);
@@ -613,10 +616,13 @@ mod tests {
             CoreCreditEvent::FacilityActivated {
                 entity: crate::PublicCreditFacility {
                     id: CreditFacilityId::new(),
+                    customer_id: CustomerId::new(),
+                    collateral_id: CollateralId::new(),
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
                     completed_at: None,
+                    liquidation_trigger: None,
                 },
             },
             accrual_posted_event(period),
@@ -647,10 +653,13 @@ mod tests {
             CoreCreditEvent::FacilityActivated {
                 entity: crate::PublicCreditFacility {
                     id: CreditFacilityId::new(),
+                    customer_id: CustomerId::new(),
+                    collateral_id: CollateralId::new(),
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
                     completed_at: None,
+                    liquidation_trigger: None,
                 },
             },
             accrual_posted_event(period_1),
@@ -681,10 +690,13 @@ mod tests {
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 entity: crate::PublicCreditFacility {
                     id: CreditFacilityId::new(),
+                    customer_id: CustomerId::new(),
+                    collateral_id: CollateralId::new(),
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
                     completed_at: None,
+                    liquidation_trigger: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -728,10 +740,13 @@ mod tests {
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 entity: crate::PublicCreditFacility {
                     id: CreditFacilityId::new(),
+                    customer_id: CustomerId::new(),
+                    collateral_id: CollateralId::new(),
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
                     completed_at: None,
+                    liquidation_trigger: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -791,10 +806,13 @@ mod tests {
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 entity: crate::PublicCreditFacility {
                     id: CreditFacilityId::new(),
+                    customer_id: CustomerId::new(),
+                    collateral_id: CollateralId::new(),
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
                     completed_at: None,
+                    liquidation_trigger: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -880,10 +898,13 @@ mod tests {
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 entity: crate::PublicCreditFacility {
                     id: CreditFacilityId::new(),
+                    customer_id: CustomerId::new(),
+                    collateral_id: CollateralId::new(),
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
                     completed_at: None,
+                    liquidation_trigger: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -1005,10 +1026,13 @@ mod tests {
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 entity: crate::PublicCreditFacility {
                     id: CreditFacilityId::new(),
+                    customer_id: CustomerId::new(),
+                    collateral_id: CollateralId::new(),
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
                     completed_at: None,
+                    liquidation_trigger: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -1112,10 +1136,13 @@ mod tests {
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 entity: crate::PublicCreditFacility {
                     id: CreditFacilityId::new(),
+                    customer_id: CustomerId::new(),
+                    collateral_id: CollateralId::new(),
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
                     completed_at: None,
+                    liquidation_trigger: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -1213,10 +1240,13 @@ mod tests {
         let activate_event = CoreCreditEvent::FacilityActivated {
             entity: crate::PublicCreditFacility {
                 id: CreditFacilityId::new(),
+                customer_id: CustomerId::new(),
+                collateral_id: CollateralId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
                 completed_at: None,
+                liquidation_trigger: None,
             },
         };
         plan.process_credit_event(Default::default(), &activate_event, default_start_date());
@@ -1274,10 +1304,13 @@ mod tests {
         let activate_event = CoreCreditEvent::FacilityActivated {
             entity: crate::PublicCreditFacility {
                 id: CreditFacilityId::new(),
+                customer_id: CustomerId::new(),
+                collateral_id: CollateralId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
                 completed_at: None,
+                liquidation_trigger: None,
             },
         };
         plan.process_credit_event(Default::default(), &activate_event, default_start_date());
@@ -1354,10 +1387,13 @@ mod tests {
         let activate_event = CoreCreditEvent::FacilityActivated {
             entity: crate::PublicCreditFacility {
                 id: CreditFacilityId::new(),
+                customer_id: CustomerId::new(),
+                collateral_id: CollateralId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at,
                 amount: default_facility_amount(),
                 completed_at: None,
+                liquidation_trigger: None,
             },
         };
 
@@ -1397,10 +1433,13 @@ mod tests {
             TestEvent::Credit(CoreCreditEvent::FacilityActivated {
                 entity: crate::PublicCreditFacility {
                     id: CreditFacilityId::new(),
+                    customer_id: CustomerId::new(),
+                    collateral_id: CollateralId::new(),
                     activation_tx_id: LedgerTxId::new(),
                     activated_at: default_start_date(),
                     amount: default_facility_amount(),
                     completed_at: None,
+                    liquidation_trigger: None,
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {

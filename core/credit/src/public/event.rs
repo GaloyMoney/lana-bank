@@ -63,13 +63,7 @@ pub enum CoreCreditEvent {
         entity: PublicInterestAccrualCycle,
     },
     PartialLiquidationInitiated {
-        liquidation_id: LiquidationId,
-        credit_facility_id: CreditFacilityId,
-        collateral_id: CollateralId,
-        customer_id: CustomerId,
-        trigger_price: PriceOfOneBTC,
-        initially_expected_to_receive: UsdCents,
-        initially_estimated_to_liquidate: Satoshis,
+        entity: PublicCreditFacility,
     },
     PartialLiquidationCollateralSentOut {
         liquidation_id: LiquidationId,
