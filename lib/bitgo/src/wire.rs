@@ -301,7 +301,7 @@ mod xpub {
     use bip32::{Prefix, XPub};
     use serde::{Deserialize, Deserializer, Serializer, de::Error};
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<XPub, D::Error>
+    pub(super) fn deserialize<'de, D>(deserializer: D) -> Result<XPub, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -309,7 +309,7 @@ mod xpub {
         XPub::from_str(&s).map_err(|_| D::Error::custom("not serialized xpub"))
     }
 
-    pub fn serialize<S>(value: &XPub, serializer: S) -> Result<S::Ok, S::Error>
+    pub(super) fn serialize<S>(value: &XPub, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {

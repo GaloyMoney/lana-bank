@@ -7,6 +7,9 @@ edition = "2024"
 [package.metadata.cargo-machete]
 ignored = ["proc-macro2"] # Required for span-locations feature used by syn
 
+[lints]
+workspace = true
+
 [dependencies]
 syn = { version = "2", features = ["full", "visit"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }

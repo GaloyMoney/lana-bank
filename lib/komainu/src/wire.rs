@@ -147,26 +147,26 @@ pub enum TransactionStatus {
 }
 
 #[derive(Clone, Serialize)]
-pub struct GetToken {
+pub(crate) struct GetToken {
     pub api_user: String,
     pub api_secret: String,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct GetTokenResponse {
+pub(crate) struct GetTokenResponse {
     pub access_token: String,
     pub expires_in: u64,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Many<T> {
+pub(crate) struct Many<T> {
     pub data: Vec<T>,
     pub has_next: bool,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
-pub enum Fallible<T> {
+pub(crate) enum Fallible<T> {
     Error {
         error_code: String,
         errors: Vec<String>,

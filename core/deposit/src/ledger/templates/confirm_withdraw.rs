@@ -13,7 +13,7 @@ use crate::{
     primitives::{CalaAccountId, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
 };
 
-pub const CONFIRM_WITHDRAW_CODE: &str = "CONFIRM_WITHDRAW";
+pub(crate) const CONFIRM_WITHDRAW_CODE: &str = "CONFIRM_WITHDRAW";
 
 #[derive(Debug)]
 pub struct ConfirmWithdrawParams<S: std::fmt::Display> {
@@ -119,7 +119,7 @@ impl<S: std::fmt::Display> From<ConfirmWithdrawParams<S>> for Params {
     }
 }
 
-pub struct ConfirmWithdraw;
+pub(crate) struct ConfirmWithdraw;
 
 impl ConfirmWithdraw {
     #[record_error_severity]

@@ -7,7 +7,7 @@ use crate::{
     withdrawal::{Withdrawal, WithdrawalEvent, error::WithdrawalError},
 };
 
-pub struct DepositPublisher<E>
+pub(crate) struct DepositPublisher<E>
 where
     E: OutboxEventMarker<CoreDepositEvent>,
 {
@@ -29,13 +29,13 @@ impl<E> DepositPublisher<E>
 where
     E: OutboxEventMarker<CoreDepositEvent>,
 {
-    pub fn new(outbox: &Outbox<E>) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>) -> Self {
         Self {
             outbox: outbox.clone(),
         }
     }
 
-    pub async fn publish_deposit_account_in_op(
+    pub(crate) async fn publish_deposit_account_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &DepositAccount,
@@ -56,7 +56,7 @@ where
         Ok(())
     }
 
-    pub async fn publish_withdrawal_in_op(
+    pub(crate) async fn publish_withdrawal_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Withdrawal,
@@ -77,7 +77,7 @@ where
         Ok(())
     }
 
-    pub async fn publish_deposit_in_op(
+    pub(crate) async fn publish_deposit_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Deposit,

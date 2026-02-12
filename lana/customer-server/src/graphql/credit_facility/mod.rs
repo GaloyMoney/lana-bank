@@ -1,12 +1,12 @@
 mod balance;
-pub mod disbursal;
+pub(super) mod disbursal;
 mod history;
 pub(super) mod payment_allocation;
 mod repayment;
 
 use async_graphql::*;
 
-pub use lana_app::credit::{
+pub(super) use lana_app::credit::{
     CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
     ListDirection, Sort,
 };
@@ -22,7 +22,7 @@ use repayment::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct CreditFacility {
+pub(super) struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
     facility_amount: UsdCents,

@@ -9,7 +9,7 @@ use cala_ledger::{
 
 use crate::{collateral::ledger::CollateralLedgerError, primitives::CalaAccountId};
 
-pub const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";
+pub(crate) const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";
 
 #[derive(Debug)]
 pub struct RemoveCollateralParams<S: std::fmt::Display> {
@@ -94,7 +94,7 @@ impl<S: std::fmt::Display> From<RemoveCollateralParams<S>> for Params {
     }
 }
 
-pub struct RemoveCollateral;
+pub(crate) struct RemoveCollateral;
 
 impl RemoveCollateral {
     #[record_error_severity]

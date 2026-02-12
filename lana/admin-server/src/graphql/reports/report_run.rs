@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 use super::report::Report;
 
-pub use lana_app::report::{
+pub(crate) use lana_app::report::{
     ReportRun as DomainReportRun, ReportRunState as DomainReportRunState,
     ReportRunType as DomainReportRunType, ReportRunsByCreatedAtCursor,
 };
@@ -45,7 +45,7 @@ impl From<DomainReportRunType> for ReportRunType {
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct ReportRun {
+pub(crate) struct ReportRun {
     id: ID,
     report_run_id: UUID,
     state: ReportRunState,
@@ -87,11 +87,11 @@ impl ReportRun {
 }
 
 #[derive(SimpleObject)]
-pub struct ReportRunCreatePayload {
+pub(crate) struct ReportRunCreatePayload {
     pub run_id: Option<String>,
 }
 
 #[derive(SimpleObject)]
-pub struct ReportRunUpdatedPayload {
+pub(crate) struct ReportRunUpdatedPayload {
     pub report_run_id: UUID,
 }

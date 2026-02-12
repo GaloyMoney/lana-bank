@@ -10,12 +10,12 @@ pub struct LocalConfig {
     pub root_folder: PathBuf,
 }
 
-pub struct LocalClient {
+pub(crate) struct LocalClient {
     root_folder: PathBuf,
 }
 
 impl LocalClient {
-    pub fn new(config: &LocalConfig) -> Self {
+    pub(crate) fn new(config: &LocalConfig) -> Self {
         LocalClient {
             root_folder: config.root_folder.clone(),
         }

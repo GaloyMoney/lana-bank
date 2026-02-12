@@ -9,7 +9,9 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+#[allow(unreachable_pub)] // Re-exported via custodian/mod.rs -> lib.rs
 pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
+#[allow(unreachable_pub)] // Re-exported via custodian/mod.rs -> lib.rs
 pub use komainu::{KomainuConfig, KomainuDirectoryConfig};
 
 use super::{
@@ -17,7 +19,7 @@ use super::{
     error::CustodianError,
 };
 
-pub type EncryptionKey = chacha20poly1305::Key;
+pub(crate) type EncryptionKey = chacha20poly1305::Key;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
@@ -27,7 +29,7 @@ pub struct ConfigCypher(pub(super) Vec<u8>);
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct Nonce(pub(super) Vec<u8>);
 
-pub type EncryptedCustodianConfig = (ConfigCypher, Nonce);
+pub(crate) type EncryptedCustodianConfig = (ConfigCypher, Nonce);
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(into = "RawEncryptionConfig")]
@@ -189,7 +191,7 @@ impl std::fmt::Debug for EncryptionConfig {
 
 #[cfg(test)]
 mod tests {
-    pub use super::*;
+    use super::*;
 
     fn gen_encryption_key() -> EncryptionKey {
         ChaCha20Poly1305::generate_key(&mut OsRng)

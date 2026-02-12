@@ -5,7 +5,7 @@ use lana_app::dashboard::DashboardValues;
 use crate::primitives::{Satoshis, UsdCents};
 
 #[derive(SimpleObject)]
-pub struct Dashboard {
+pub(super) struct Dashboard {
     active_facilities: u32,
     pending_facilities: u32,
     total_disbursed: UsdCents,

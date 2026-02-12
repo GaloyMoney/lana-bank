@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum CustomerError {
+pub(crate) enum CustomerError {
     #[error("CustomerError - MissingValueForFilterField: {0}")]
     MissingValueForFilterField(String),
 }

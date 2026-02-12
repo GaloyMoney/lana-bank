@@ -4,11 +4,11 @@ use crate::primitives::*;
 
 use super::super::loader::LanaDataLoader;
 
-pub use lana_app::report::{Report as DomainReport, ReportFile as DomainReportFile};
+pub(crate) use lana_app::report::{Report as DomainReport, ReportFile as DomainReportFile};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Report {
+pub(crate) struct Report {
     id: ID,
     report_id: UUID,
     external_id: String,
@@ -35,7 +35,7 @@ impl From<lana_app::report::Report> for Report {
 }
 
 #[derive(SimpleObject)]
-pub struct ReportFile {
+pub(crate) struct ReportFile {
     extension: String,
 }
 
@@ -75,12 +75,12 @@ impl Report {
 }
 
 #[derive(SimpleObject)]
-pub struct ReportFileGenerateDownloadLinkPayload {
+pub(crate) struct ReportFileGenerateDownloadLinkPayload {
     pub url: String,
 }
 
 #[derive(InputObject)]
-pub struct ReportFileGenerateDownloadLinkInput {
+pub(crate) struct ReportFileGenerateDownloadLinkInput {
     pub report_id: UUID,
     pub extension: String,
 }

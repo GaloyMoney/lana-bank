@@ -6,7 +6,7 @@ use super::customer::*;
 
 #[derive(SimpleObject)]
 #[graphql(name = "Me")]
-pub struct MeCustomer {
+pub(super) struct MeCustomer {
     customer: Customer,
 }
 

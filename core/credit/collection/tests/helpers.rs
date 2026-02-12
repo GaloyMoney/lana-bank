@@ -11,9 +11,9 @@ use obix::Outbox;
 
 use event::DummyEvent;
 
-pub type TestPerms = authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>;
+pub(crate) type TestPerms = authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>;
 
-pub struct TestAccounts {
+pub(crate) struct TestAccounts {
     pub receivable: ObligationReceivableAccountIds,
     pub defaulted: CalaAccountId,
     pub payment_source: CalaAccountId,
@@ -22,7 +22,7 @@ pub struct TestAccounts {
     pub payments_made_omnibus: CalaAccountId,
 }
 
-pub struct TestContext {
+pub(crate) struct TestContext {
     pub pool: sqlx::PgPool,
     pub clock: ClockHandle,
     pub outbox: Outbox<DummyEvent>,
@@ -31,13 +31,13 @@ pub struct TestContext {
     pub accounts: TestAccounts,
 }
 
-pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
+pub(crate) async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
     Ok(pool)
 }
 
-pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {
+pub(crate) async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {
     use cala_ledger::journal::*;
 
     let id = JournalId::new();
@@ -51,7 +51,10 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
     Ok(journal.id)
 }
 
-pub async fn create_account(cala: &CalaLedger, prefix: &str) -> anyhow::Result<CalaAccountId> {
+pub(crate) async fn create_account(
+    cala: &CalaLedger,
+    prefix: &str,
+) -> anyhow::Result<CalaAccountId> {
     let id = CalaAccountId::new();
     let new_account = NewAccount::builder()
         .id(id)
@@ -63,7 +66,7 @@ pub async fn create_account(cala: &CalaLedger, prefix: &str) -> anyhow::Result<C
     Ok(account.id)
 }
 
-pub async fn setup() -> anyhow::Result<TestContext> {
+pub(crate) async fn setup() -> anyhow::Result<TestContext> {
     let pool = init_pool().await?;
     let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
@@ -139,11 +142,11 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     })
 }
 
-pub mod action {
+pub(crate) mod action {
     use core_credit_collection::CoreCreditCollectionAction;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
-    pub struct DummyAction;
+    pub(crate) struct DummyAction;
 
     impl From<CoreCreditCollectionAction> for DummyAction {
         fn from(_: CoreCreditCollectionAction) -> Self {
@@ -167,11 +170,11 @@ pub mod action {
     }
 }
 
-pub mod object {
+pub(crate) mod object {
     use core_credit_collection::CoreCreditCollectionObject;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
-    pub struct DummyObject;
+    pub(crate) struct DummyObject;
 
     impl From<CoreCreditCollectionObject> for DummyObject {
         fn from(_: CoreCreditCollectionObject) -> Self {
@@ -195,18 +198,18 @@ pub mod object {
     }
 }
 
-pub mod event {
+pub(crate) mod event {
     use serde::{Deserialize, Serialize};
 
     use core_credit_collection::CoreCreditCollectionEvent;
 
     #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
-    pub enum DummyEvent {
+    pub(crate) enum DummyEvent {
         CoreCreditCollection(CoreCreditCollectionEvent),
         #[serde(other)]
         Unknown,
     }
 
-    pub use obix::test_utils::expect_event;
+    pub(crate) use obix::test_utils::expect_event;
 }

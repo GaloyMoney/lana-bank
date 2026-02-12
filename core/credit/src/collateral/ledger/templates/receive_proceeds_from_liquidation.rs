@@ -25,7 +25,7 @@ use crate::{
     collateral::ledger::CollateralLedgerError, ledger::FacilityProceedsFromLiquidationAccountId,
 };
 
-pub const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUIDATION";
+pub(crate) const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUIDATION";
 
 #[derive(Debug)]
 pub struct ReceiveProceedsFromLiquidationParams<S: std::fmt::Display> {
@@ -140,7 +140,7 @@ impl<S: std::fmt::Display> From<ReceiveProceedsFromLiquidationParams<S>> for Par
     }
 }
 
-pub struct ReceiveProceedsFromLiquidation;
+pub(crate) struct ReceiveProceedsFromLiquidation;
 
 impl ReceiveProceedsFromLiquidation {
     #[record_error_severity]

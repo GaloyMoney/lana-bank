@@ -23,7 +23,7 @@ async fn webhook(
         .unwrap_or(())
 }
 
-pub fn routes() -> Router<JwtDecoderState> {
+pub(crate) fn routes() -> Router<JwtDecoderState> {
     Router::new()
         .route("/webhook/custodian/{provider}", post(webhook))
         .layer(DefaultBodyLimit::max(10 * 1024 * 1024))

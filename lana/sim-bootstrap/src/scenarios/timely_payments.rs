@@ -18,7 +18,7 @@ const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(100);
     skip(app, clock, clock_ctrl),
     err
 )]
-pub async fn timely_payments_scenario(
+pub(super) async fn timely_payments_scenario(
     sub: Subject,
     app: &LanaApp,
     clock: &ClockHandle,

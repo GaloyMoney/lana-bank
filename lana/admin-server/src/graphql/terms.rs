@@ -1,14 +1,14 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
-pub use lana_app::terms::{
+pub(super) use lana_app::terms::{
     AnnualRatePct, CVLPct as DomainCVLPct, DisbursalPolicy, FacilityDuration as DomainDuration,
     InterestInterval, ObligationDuration as DomainObligationDuration, OneTimeFeeRatePct,
     TermValues as DomainTermValues,
 };
 
 #[derive(SimpleObject, Clone)]
-pub struct TermValues {
+pub(super) struct TermValues {
     annual_rate: AnnualRatePct,
     accrual_interval: InterestInterval,
     accrual_cycle_interval: InterestInterval,
@@ -129,18 +129,18 @@ impl From<CVLPctValue> for DomainCVLPct {
 }
 
 #[derive(async_graphql::Union, Clone)]
-pub enum CVLPct {
+pub(super) enum CVLPct {
     Finite(FiniteCVLPct),
     Infinite(InfiniteCVLPct),
 }
 
 #[derive(SimpleObject, Clone)]
-pub struct FiniteCVLPct {
+pub(super) struct FiniteCVLPct {
     value: CVLPctValue,
 }
 
 #[derive(SimpleObject, Clone)]
-pub struct InfiniteCVLPct {
+pub(super) struct InfiniteCVLPct {
     is_infinite: bool,
 }
 

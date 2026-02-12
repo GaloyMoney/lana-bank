@@ -1,13 +1,13 @@
 use async_graphql::*;
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
-pub use lana_app::credit::Liquidation as DomainLiquidation;
+pub(crate) use lana_app::credit::Liquidation as DomainLiquidation;
 
 use super::Collateral;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Liquidation {
+pub(crate) struct Liquidation {
     id: ID,
     liquidation_id: UUID,
     collateral_id: UUID,
@@ -38,13 +38,13 @@ impl From<DomainLiquidation> for Liquidation {
 }
 
 #[derive(SimpleObject)]
-pub struct LiquidationCollateralSent {
+pub(crate) struct LiquidationCollateralSent {
     amount: Satoshis,
     ledger_tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
-pub struct LiquidationProceedsReceived {
+pub(crate) struct LiquidationProceedsReceived {
     amount: UsdCents,
     ledger_tx_id: UUID,
 }

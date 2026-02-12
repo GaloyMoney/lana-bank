@@ -18,7 +18,7 @@ pub struct GcpConfig {
 }
 
 #[derive(Clone)]
-pub struct GcpClient {
+pub(crate) struct GcpClient {
     storage: Storage,
     control: StorageControl,
     signer: Signer,
@@ -26,7 +26,7 @@ pub struct GcpClient {
 }
 
 impl GcpClient {
-    pub async fn init(config: &GcpConfig) -> Result<Self, StorageClientError> {
+    pub(crate) async fn init(config: &GcpConfig) -> Result<Self, StorageClientError> {
         let storage = Storage::builder()
             .build()
             .await

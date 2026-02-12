@@ -13,7 +13,7 @@ use tracing_macros::record_error_severity;
 
 use crate::collateral::ledger::CollateralLedgerError;
 
-pub const SEND_COLLATERAL_TO_LIQUIDATION: &str = "SEND_COLLATERAL_TO_LIQUIDATION";
+pub(crate) const SEND_COLLATERAL_TO_LIQUIDATION: &str = "SEND_COLLATERAL_TO_LIQUIDATION";
 
 #[derive(Debug)]
 pub struct SendCollateralToLiquidationParams<S: std::fmt::Display> {
@@ -99,7 +99,7 @@ impl<S: std::fmt::Display> From<SendCollateralToLiquidationParams<S>> for Params
     }
 }
 
-pub struct SendCollateralToLiquidation;
+pub(crate) struct SendCollateralToLiquidation;
 
 impl SendCollateralToLiquidation {
     #[record_error_severity]

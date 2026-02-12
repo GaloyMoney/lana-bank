@@ -2,7 +2,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use super::{entity::*, error::*, public::*};
 
-pub struct CustomerPublisher<E>
+pub(crate) struct CustomerPublisher<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
@@ -24,13 +24,13 @@ impl<E> CustomerPublisher<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    pub fn new(outbox: &Outbox<E>) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>) -> Self {
         Self {
             outbox: outbox.clone(),
         }
     }
 
-    pub async fn publish_in_op(
+    pub(crate) async fn publish_in_op(
         &self,
         db: &mut impl es_entity::AtomicOperation,
         entity: &Customer,

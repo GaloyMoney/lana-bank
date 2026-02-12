@@ -9,7 +9,7 @@ use crate::graphql::{
 };
 
 #[derive(Union)]
-pub enum PublicIdTarget {
+pub(super) enum PublicIdTarget {
     Customer(Customer),
     DepositAccount(DepositAccount),
     Deposit(Deposit),

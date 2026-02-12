@@ -11,7 +11,7 @@ use cala_ledger::{
 use super::closing_metadata::AccountingClosingMetadata;
 
 #[derive(Debug, Builder)]
-pub struct EntryParams {
+pub(super) struct EntryParams {
     pub account_id: CalaAccountId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -19,11 +19,11 @@ pub struct EntryParams {
 }
 
 impl EntryParams {
-    pub fn builder() -> EntryParamsBuilder {
+    pub(super) fn builder() -> EntryParamsBuilder {
         EntryParamsBuilder::default()
     }
 
-    pub fn populate_params(&self, params: &mut Params, n: usize) {
+    pub(super) fn populate_params(&self, params: &mut Params, n: usize) {
         params.insert(Self::account_id_param_name(n), self.account_id);
         params.insert(Self::currency_param_name(n), self.currency);
         params.insert(Self::amount_param_name(n), self.amount);
@@ -61,23 +61,23 @@ impl EntryParams {
         ]
     }
 
-    pub fn account_id_param_name(n: usize) -> String {
+    pub(super) fn account_id_param_name(n: usize) -> String {
         format!("entry_{n}_account_id")
     }
 
-    pub fn currency_param_name(n: usize) -> String {
+    pub(super) fn currency_param_name(n: usize) -> String {
         format!("entry_{n}_currency")
     }
 
-    pub fn amount_param_name(n: usize) -> String {
+    pub(super) fn amount_param_name(n: usize) -> String {
         format!("entry_{n}_amount")
     }
 
-    pub fn direction_param_name(n: usize) -> String {
+    pub(super) fn direction_param_name(n: usize) -> String {
         format!("entry_{n}_direction")
     }
 
-    pub fn layer_param_name(n: usize) -> String {
+    pub(super) fn layer_param_name(n: usize) -> String {
         format!("entry_{n}_layer")
     }
 }

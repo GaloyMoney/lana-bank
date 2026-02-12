@@ -4,6 +4,9 @@ name = "permission-sets-macro"
 license = "LicenseRef-BUSL-1.1"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [dependencies]
 inventory = { workspace = true }
 paste = { workspace = true }

@@ -2,15 +2,15 @@ use serde::{Deserialize, Serialize};
 
 use core_customer::CoreCustomerEvent;
 
-pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
+pub(crate) async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON")?;
     let pool = sqlx::PgPool::connect(&pg_con).await?;
     Ok(pool)
 }
 
-pub mod action {
+pub(crate) mod action {
     #[derive(Clone, Copy, Debug, PartialEq)]
-    pub struct DummyAction;
+    pub(crate) struct DummyAction;
 
     impl From<core_customer::CoreCustomerAction> for DummyAction {
         fn from(_: core_customer::CoreCustomerAction) -> Self {
@@ -33,9 +33,9 @@ pub mod action {
     }
 }
 
-pub mod object {
+pub(crate) mod object {
     #[derive(Clone, Copy, Debug, PartialEq)]
-    pub struct DummyObject;
+    pub(crate) struct DummyObject;
 
     impl From<core_customer::CustomerObject> for DummyObject {
         fn from(_: core_customer::CustomerObject) -> Self {
@@ -58,16 +58,16 @@ pub mod object {
     }
 }
 
-pub mod event {
+pub(crate) mod event {
     use super::*;
 
     #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
-    pub enum DummyEvent {
+    pub(crate) enum DummyEvent {
         CoreCustomer(CoreCustomerEvent),
         #[serde(other)]
         Unknown,
     }
 
-    pub use obix::test_utils::expect_event;
+    pub(crate) use obix::test_utils::expect_event;
 }

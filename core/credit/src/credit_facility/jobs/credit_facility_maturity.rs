@@ -19,7 +19,7 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize)]
-pub struct CreditFacilityMaturityJobConfig<E> {
+pub(crate) struct CreditFacilityMaturityJobConfig<E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<E>,
 }
@@ -33,7 +33,7 @@ impl<E> Clone for CreditFacilityMaturityJobConfig<E> {
     }
 }
 
-pub struct CreditFacilityMaturityInit<E>
+pub(crate) struct CreditFacilityMaturityInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -50,7 +50,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    pub fn new(credit_facility_repo: Arc<CreditFacilityRepo<E>>) -> Self {
+    pub(crate) fn new(credit_facility_repo: Arc<CreditFacilityRepo<E>>) -> Self {
         Self {
             repo: credit_facility_repo,
         }
@@ -82,7 +82,7 @@ where
     }
 }
 
-pub struct CreditFacilityMaturityJobRunner<E>
+pub(crate) struct CreditFacilityMaturityJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -138,4 +138,5 @@ where
     }
 }
 
-pub type CreditFacilityMaturityJobSpawner<E> = JobSpawner<CreditFacilityMaturityJobConfig<E>>;
+pub(crate) type CreditFacilityMaturityJobSpawner<E> =
+    JobSpawner<CreditFacilityMaturityJobConfig<E>>;

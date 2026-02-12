@@ -10,15 +10,15 @@ use obix::out::PersistentOutboxEvent;
 use crate::{Outbox, repo::DashboardRepo, values::*};
 
 #[derive(Serialize, Deserialize)]
-pub struct DashboardProjectionJobConfig;
+pub(crate) struct DashboardProjectionJobConfig;
 
-pub struct DashboardProjectionInit {
+pub(crate) struct DashboardProjectionInit {
     outbox: Outbox,
     repo: DashboardRepo,
 }
 
 impl DashboardProjectionInit {
-    pub fn new(outbox: &Outbox, repo: &DashboardRepo) -> Self {
+    pub(crate) fn new(outbox: &Outbox, repo: &DashboardRepo) -> Self {
         Self {
             repo: repo.clone(),
             outbox: outbox.clone(),
@@ -55,7 +55,7 @@ struct DashboardProjectionJobData {
     dashboard: DashboardValues,
 }
 
-pub struct DashboardProjectionJobRunner {
+pub(crate) struct DashboardProjectionJobRunner {
     outbox: Outbox,
     repo: DashboardRepo,
 }

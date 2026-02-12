@@ -20,7 +20,7 @@ use super::{entity::*, error::CreditFacilityProposalError};
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub struct CreditFacilityProposalRepo<E>
+pub(super) struct CreditFacilityProposalRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -46,7 +46,11 @@ impl<E> CreditFacilityProposalRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
+    pub(super) fn new(
+        pool: &PgPool,
+        publisher: &CreditFacilityPublisher<E>,
+        clock: ClockHandle,
+    ) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),

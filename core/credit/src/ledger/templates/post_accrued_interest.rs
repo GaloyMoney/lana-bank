@@ -9,7 +9,7 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE: &str =
+pub(crate) const CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE: &str =
     "CREDIT_FACILITY_POST_ACCRUED_INTEREST";
 
 #[derive(Debug)]
@@ -122,7 +122,7 @@ impl<S: std::fmt::Display> From<CreditFacilityPostAccruedInterestParams<S>> for 
     }
 }
 
-pub struct CreditFacilityPostAccruedInterest;
+pub(crate) struct CreditFacilityPostAccruedInterest;
 
 impl CreditFacilityPostAccruedInterest {
     #[record_error_severity]

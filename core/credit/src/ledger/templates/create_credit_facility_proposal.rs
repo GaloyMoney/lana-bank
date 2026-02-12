@@ -9,7 +9,7 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const CREATE_CREDIT_FACILITY_PROPOSAL_CODE: &str = "CREATE_CREDIT_FACILITY_PROPOSAL";
+pub(crate) const CREATE_CREDIT_FACILITY_PROPOSAL_CODE: &str = "CREATE_CREDIT_FACILITY_PROPOSAL";
 
 #[derive(Debug)]
 pub struct CreateCreditFacilityProposalParams<S: std::fmt::Display> {
@@ -101,7 +101,7 @@ impl<S: std::fmt::Display> From<CreateCreditFacilityProposalParams<S>> for Param
     }
 }
 
-pub struct CreateCreditFacilityProposal;
+pub(crate) struct CreateCreditFacilityProposal;
 
 impl CreateCreditFacilityProposal {
     #[record_error_severity]

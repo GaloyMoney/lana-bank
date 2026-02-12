@@ -155,7 +155,7 @@ pub(super) struct ManualTransactionTemplate {
 }
 
 impl ManualTransactionTemplate {
-    pub fn code(&self) -> String {
+    pub(super) fn code(&self) -> String {
         format!("MANUAL_TRANSACTION_{}", self.n_entries)
     }
 

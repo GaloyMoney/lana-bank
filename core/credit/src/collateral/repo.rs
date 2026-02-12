@@ -25,7 +25,7 @@ use super::{
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub struct CollateralRepo<E>
+pub(super) struct CollateralRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -41,7 +41,11 @@ impl<E> CollateralRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
+    pub(super) fn new(
+        pool: &PgPool,
+        publisher: &CreditFacilityPublisher<E>,
+        clock: ClockHandle,
+    ) -> Self {
         let liquidations = LiquidationRepo::new(pool, clock.clone());
         Self {
             pool: pool.clone(),
@@ -64,7 +68,7 @@ where
             .await
     }
 
-    pub async fn list_liquidations_for_collateral_id(
+    pub(super) async fn list_liquidations_for_collateral_id(
         &self,
         collateral_id: CollateralId,
         query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByCreatedAtCursor>,
@@ -84,14 +88,14 @@ where
             .await
     }
 
-    pub async fn find_liquidation_by_id(
+    pub(super) async fn find_liquidation_by_id(
         &self,
         liquidation_id: LiquidationId,
     ) -> Result<Option<Liquidation>, LiquidationError> {
         self.liquidations.maybe_find_by_id(liquidation_id).await
     }
 
-    pub async fn list_liquidations(
+    pub(super) async fn list_liquidations(
         &self,
         query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByIdCursor>,
     ) -> Result<
@@ -103,7 +107,7 @@ where
             .await
     }
 
-    pub async fn find_all_liquidations<T: From<Liquidation>>(
+    pub(super) async fn find_all_liquidations<T: From<Liquidation>>(
         &self,
         ids: &[LiquidationId],
     ) -> Result<std::collections::HashMap<LiquidationId, T>, LiquidationError> {
@@ -154,7 +158,7 @@ impl Clone for LiquidationRepo {
 }
 
 impl LiquidationRepo {
-    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+    pub(crate) fn new(pool: &PgPool, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             clock,

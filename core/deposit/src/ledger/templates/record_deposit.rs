@@ -12,7 +12,7 @@ use crate::{
     primitives::{CalaAccountId, DEPOSIT_TRANSACTION_ENTITY_TYPE},
 };
 
-pub const RECORD_DEPOSIT_CODE: &str = "RECORD_DEPOSIT";
+pub(crate) const RECORD_DEPOSIT_CODE: &str = "RECORD_DEPOSIT";
 
 #[derive(Debug)]
 pub struct RecordDepositParams<S: std::fmt::Display> {
@@ -102,7 +102,7 @@ impl<S: std::fmt::Display> From<RecordDepositParams<S>> for Params {
     }
 }
 
-pub struct RecordDeposit;
+pub(crate) struct RecordDeposit;
 
 impl RecordDeposit {
     #[record_error_severity]

@@ -1,13 +1,13 @@
 use async_graphql::*;
 
 use lana_app::primitives::Subject;
-pub use lana_app::{
+pub(crate) use lana_app::{
     accounting::ledger_transaction::LedgerTransactionCursor,
     credit::DISBURSAL_TRANSACTION_ENTITY_TYPE,
     deposit::{DEPOSIT_TRANSACTION_ENTITY_TYPE, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
 };
 
-pub type DomainLedgerTransaction =
+pub(crate) type DomainLedgerTransaction =
     lana_app::accounting::ledger_transaction::LedgerTransaction<Subject>;
 
 use crate::{
@@ -31,14 +31,14 @@ pub struct LedgerTransaction {
     pub entity: Arc<DomainLedgerTransaction>,
 }
 #[derive(Union)]
-pub enum LedgerTransactionEntity {
+pub(crate) enum LedgerTransactionEntity {
     Deposit(Deposit),
     Withdrawal(Withdrawal),
     Disbursal(CreditFacilityDisbursal),
 }
 
 #[derive(Union)]
-pub enum LedgerTransactionInitiator {
+pub(crate) enum LedgerTransactionInitiator {
     User(User),
     System(System),
 }

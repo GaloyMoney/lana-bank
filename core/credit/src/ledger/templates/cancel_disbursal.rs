@@ -11,7 +11,7 @@ use crate::{
     primitives::{CalaAccountId, DISBURSAL_TRANSACTION_ENTITY_TYPE},
 };
 
-pub const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL";
+pub(crate) const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL";
 
 #[derive(Debug)]
 pub struct CancelDisbursalParams<S: std::fmt::Display> {
@@ -95,7 +95,7 @@ impl<S: std::fmt::Display> From<CancelDisbursalParams<S>> for Params {
     }
 }
 
-pub struct CancelDisbursal;
+pub(crate) struct CancelDisbursal;
 
 impl CancelDisbursal {
     #[record_error_severity]

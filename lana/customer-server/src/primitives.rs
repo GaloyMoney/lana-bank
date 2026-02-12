@@ -1,9 +1,9 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
-pub use std::sync::Arc;
+pub(crate) use std::sync::Arc;
 
-pub use lana_app::{
+pub(crate) use lana_app::{
     primitives::{
         CreditFacilityId, CreditFacilityStatus, CustomerId, DepositAccountId, DepositId,
         DisbursalId, DisbursalStatus, PaymentAllocationId,
@@ -12,10 +12,10 @@ pub use lana_app::{
     terms::CollateralizationState,
 };
 
-pub use es_entity::graphql::UUID;
+pub(crate) use es_entity::graphql::UUID;
 
 #[derive(Debug, Clone)]
-pub struct CustomerAuthContext {
+pub(crate) struct CustomerAuthContext {
     pub sub: Subject,
 }
 
@@ -29,7 +29,7 @@ impl CustomerAuthContext {
 
 #[derive(Clone, Copy, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct Timestamp(chrono::DateTime<chrono::Utc>);
+pub(crate) struct Timestamp(chrono::DateTime<chrono::Utc>);
 scalar!(Timestamp);
 impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
     fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
@@ -58,7 +58,7 @@ impl Date {
     }
 }
 
-pub trait ToGlobalId {
+pub(crate) trait ToGlobalId {
     fn to_global_id(&self) -> async_graphql::types::ID;
 }
 

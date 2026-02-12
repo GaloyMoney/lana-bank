@@ -1,3 +1,4 @@
+#![allow(unreachable_pub)]
 mod obligation_defaulted_balance;
 mod obligation_due_balance;
 mod obligation_overdue_balance;

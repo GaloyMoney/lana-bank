@@ -7,7 +7,7 @@ use super::{
     deposit_account::DepositAccount, loader::LanaDataLoader,
 };
 
-pub use lana_app::{
+pub(super) use lana_app::{
     deposit::{Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor},
     public_id::PublicId,
 };

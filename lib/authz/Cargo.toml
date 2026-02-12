@@ -7,6 +7,9 @@ edition = "2024"
 [package.metadata.cargo-machete]
 ignored = ["schemars"]
 
+[lints]
+workspace = true
+
 [features]
 
 fail-on-warnings = []

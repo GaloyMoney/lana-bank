@@ -18,7 +18,7 @@ struct HistoryProjectionJobData {
     sequence: EventSequence,
 }
 
-pub struct HistoryProjectionJobRunner<
+pub(crate) struct HistoryProjectionJobRunner<
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 > {
     outbox: Outbox<E>,
@@ -194,7 +194,7 @@ where
     }
 }
 
-pub struct HistoryProjectionInit<
+pub(crate) struct HistoryProjectionInit<
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 > {
     outbox: Outbox<E>,
@@ -205,7 +205,7 @@ impl<E> HistoryProjectionInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, repo: Arc<HistoryRepo>) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>, repo: Arc<HistoryRepo>) -> Self {
         Self {
             outbox: outbox.clone(),
             repo,
@@ -216,7 +216,7 @@ where
 const HISTORY_PROJECTION: JobType = JobType::new("outbox.credit-facility-history-projection");
 
 #[derive(Serialize, Deserialize)]
-pub struct HistoryProjectionConfig<E> {
+pub(crate) struct HistoryProjectionConfig<E> {
     pub _phantom: std::marker::PhantomData<E>,
 }
 

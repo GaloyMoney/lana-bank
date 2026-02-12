@@ -10,7 +10,7 @@ use lana_app::primitives::{AccountingBaseConfig, DebitOrCredit};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct ChartOfAccounts {
+pub(crate) struct ChartOfAccounts {
     id: ID,
     chart_id: UUID,
     name: String,
@@ -49,7 +49,7 @@ impl ChartOfAccounts {
 }
 
 #[derive(SimpleObject)]
-pub struct AccountingBaseConfigOutput {
+pub(crate) struct AccountingBaseConfigOutput {
     pub assets_code: String,
     pub liabilities_code: String,
     pub equity_code: String,
@@ -80,7 +80,7 @@ impl From<AccountingBaseConfig> for AccountingBaseConfigOutput {
 }
 
 #[derive(SimpleObject)]
-pub struct ChartNode {
+pub(crate) struct ChartNode {
     name: String,
     account_code: AccountCode,
     children: Vec<ChartNode>,
@@ -105,7 +105,7 @@ pub struct ChartOfAccountsAddRootNodeInput {
 crate::mutation_payload! { ChartOfAccountsAddRootNodePayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(InputObject)]
-pub struct ChartOfAccountsAddChildNodeInput {
+pub(crate) struct ChartOfAccountsAddChildNodeInput {
     pub parent: AccountCode,
     pub code: AccountCode,
     pub name: String,
@@ -162,7 +162,7 @@ impl TryFrom<AccountingBaseConfigInput> for AccountingBaseConfig {
 }
 
 #[derive(InputObject)]
-pub struct ChartOfAccountsCsvImportWithBaseConfigInput {
+pub(crate) struct ChartOfAccountsCsvImportWithBaseConfigInput {
     pub file: Upload,
     pub base_config: AccountingBaseConfigInput,
 }
@@ -170,14 +170,14 @@ pub struct ChartOfAccountsCsvImportWithBaseConfigInput {
 crate::mutation_payload! { ChartOfAccountsCsvImportWithBaseConfigPayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(InputObject)]
-pub struct ChartOfAccountsCsvImportInput {
+pub(crate) struct ChartOfAccountsCsvImportInput {
     pub file: Upload,
 }
 
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(SimpleObject, Clone)]
-pub struct AccountInfo {
+pub(crate) struct AccountInfo {
     pub account_set_id: UUID,
     pub code: AccountCode,
     pub name: String,

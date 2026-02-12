@@ -4,11 +4,13 @@ use crate::primitives::*;
 
 use super::{approval_process::*, approval_rules::*};
 
-pub use lana_app::governance::{Policy as DomainPolicy, policy_cursor::PoliciesByCreatedAtCursor};
+pub(super) use lana_app::governance::{
+    Policy as DomainPolicy, policy_cursor::PoliciesByCreatedAtCursor,
+};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Policy {
+pub(super) struct Policy {
     id: ID,
     policy_id: UUID,
     approval_process_type: ApprovalProcessType,
@@ -36,7 +38,7 @@ impl Policy {
 }
 
 #[derive(InputObject)]
-pub struct PolicyAssignCommitteeInput {
+pub(super) struct PolicyAssignCommitteeInput {
     pub policy_id: UUID,
     pub committee_id: UUID,
     pub threshold: usize,

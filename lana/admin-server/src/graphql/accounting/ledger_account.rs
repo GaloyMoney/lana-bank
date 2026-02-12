@@ -25,7 +25,7 @@ use crate::{
 use super::JournalEntry;
 
 #[derive(Union)]
-pub enum LedgerAccountEntity {
+pub(crate) enum LedgerAccountEntity {
     DepositAccount(DepositAccount),
     CreditFacility(CreditFacility),
     Collateral(Collateral),
@@ -33,7 +33,7 @@ pub enum LedgerAccountEntity {
 
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
-pub struct LedgerAccount {
+pub(crate) struct LedgerAccount {
     id: ID,
     ledger_account_id: UUID,
     code: Option<AccountCode>,

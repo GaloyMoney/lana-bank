@@ -1,5 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+// TODO: Fix unreachable_pub warnings from mutation_payload! macro (33 items)
+#![allow(unreachable_pub)]
 
 mod config;
 pub mod graphql;

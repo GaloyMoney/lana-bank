@@ -19,7 +19,7 @@ const ONE_MONTH_DAYS: i64 = 30;
     skip(app, clock, clock_ctrl),
     err
 )]
-pub async fn disbursal_different_months_scenario(
+pub(super) async fn disbursal_different_months_scenario(
     sub: Subject,
     app: &LanaApp,
     clock: &ClockHandle,

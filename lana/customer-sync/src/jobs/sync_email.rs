@@ -11,12 +11,12 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use job::*;
 
 #[derive(Serialize, Deserialize)]
-pub struct SyncEmailJobConfig<E> {
+pub(crate) struct SyncEmailJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
 
 impl<E> SyncEmailJobConfig<E> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
@@ -31,7 +31,7 @@ impl<E> Clone for SyncEmailJobConfig<E> {
     }
 }
 
-pub struct SyncEmailInit<E>
+pub(crate) struct SyncEmailInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
@@ -43,7 +43,7 @@ impl<E> SyncEmailInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
             outbox: outbox.clone(),
             keycloak_client,
@@ -85,7 +85,7 @@ struct SyncEmailJobData {
     sequence: obix::EventSequence,
 }
 
-pub struct SyncEmailJobRunner<E>
+pub(crate) struct SyncEmailJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {

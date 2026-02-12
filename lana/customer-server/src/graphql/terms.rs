@@ -1,12 +1,12 @@
 use async_graphql::*;
 
-pub use lana_app::terms::{
+pub(super) use lana_app::terms::{
     AnnualRatePct, CVLPct, FacilityDuration as DomainDuration, InterestInterval, OneTimeFeeRatePct,
     TermValues as DomainTermValues,
 };
 
 #[derive(SimpleObject, Clone)]
-pub struct TermValues {
+pub(super) struct TermValues {
     annual_rate: AnnualRatePct,
     accrual_interval: InterestInterval,
     accrual_cycle_interval: InterestInterval,

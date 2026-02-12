@@ -1,5 +1,6 @@
-pub mod error;
-pub mod templates;
+#![allow(unreachable_pub)]
+pub(crate) mod error;
+pub(crate) mod templates;
 
 use audit::SystemSubject;
 use tracing::instrument;

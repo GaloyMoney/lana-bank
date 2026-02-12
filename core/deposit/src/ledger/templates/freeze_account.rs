@@ -12,7 +12,7 @@ use cala_ledger::{
 
 use crate::ledger::error::DepositLedgerError;
 
-pub const FREEZE_ACCOUNT_CODE: &str = "FREEZE_ACCOUNT";
+pub(crate) const FREEZE_ACCOUNT_CODE: &str = "FREEZE_ACCOUNT";
 
 #[derive(Debug)]
 pub struct FreezeAccountParams<S: std::fmt::Display> {
@@ -96,7 +96,7 @@ impl<S: std::fmt::Display> From<FreezeAccountParams<S>> for Params {
     }
 }
 
-pub struct FreezeAccount;
+pub(crate) struct FreezeAccount;
 
 impl FreezeAccount {
     #[record_error_severity]

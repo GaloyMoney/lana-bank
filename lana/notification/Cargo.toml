@@ -3,6 +3,9 @@ name = "notification"
 
 edition = "2024"
 
+[lints]
+workspace = true
+
 [features]
 
 fail-on-warnings = []

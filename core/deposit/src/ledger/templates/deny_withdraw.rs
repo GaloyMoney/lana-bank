@@ -11,7 +11,7 @@ use crate::{
     primitives::{CalaAccountId, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
 };
 
-pub const DENY_WITHDRAW_CODE: &str = "DENY_WITHDRAW";
+pub(crate) const DENY_WITHDRAW_CODE: &str = "DENY_WITHDRAW";
 
 #[derive(Debug)]
 pub struct DenyWithdrawParams<S: std::fmt::Display> {
@@ -102,11 +102,11 @@ impl<S: std::fmt::Display> From<DenyWithdrawParams<S>> for Params {
     }
 }
 
-pub struct DenyWithdraw;
+pub(crate) struct DenyWithdraw;
 
 impl DenyWithdraw {
     #[instrument(name = "ledger.deny_withdraw.init", skip_all)]
-    pub async fn init(ledger: &CalaLedger) -> Result<(), DepositLedgerError> {
+    pub(crate) async fn init(ledger: &CalaLedger) -> Result<(), DepositLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")

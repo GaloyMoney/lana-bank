@@ -22,7 +22,7 @@ pub(crate) struct PermissionSetRepo {
 }
 
 impl PermissionSetRepo {
-    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+    pub(crate) fn new(pool: &PgPool, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             clock,

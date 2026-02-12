@@ -1,3 +1,4 @@
+#![allow(unreachable_pub)]
 use std::str::FromStr;
 
 use chrono::{DateTime, Utc};

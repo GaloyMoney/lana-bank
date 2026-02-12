@@ -14,7 +14,7 @@ use super::{SyncReportsJobConfig, SyncReportsJobSpawner};
 const SYNC_REPORTS_DELAY_SECS: u64 = 10;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TriggerReportRunJobConfig<E>
+pub(crate) struct TriggerReportRunJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
@@ -37,14 +37,14 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     #[allow(dead_code)]
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
 
-pub struct TriggerReportRunJobInit<E>
+pub(crate) struct TriggerReportRunJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
@@ -57,7 +57,7 @@ impl<E> TriggerReportRunJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         dagster: Dagster,
         sync_reports_spawner: SyncReportsJobSpawner<E>,
         report_runs: ReportRunRepo<E>,
@@ -100,7 +100,7 @@ where
     }
 }
 
-pub struct TriggerReportRunJobRunner<E>
+pub(crate) struct TriggerReportRunJobRunner<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
@@ -155,4 +155,4 @@ where
     }
 }
 
-pub type TriggerReportRunJobSpawner<E> = JobSpawner<TriggerReportRunJobConfig<E>>;
+pub(crate) type TriggerReportRunJobSpawner<E> = JobSpawner<TriggerReportRunJobConfig<E>>;

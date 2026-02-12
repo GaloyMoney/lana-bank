@@ -9,7 +9,7 @@ use super::{
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct TrialBalance {
+pub(crate) struct TrialBalance {
     name: String,
 
     #[graphql(skip)]
@@ -39,7 +39,10 @@ impl TrialBalance {
         })
     }
 
-    pub async fn accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
+    pub(crate) async fn accounts(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<LedgerAccount>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let accounts = app
             .accounting()

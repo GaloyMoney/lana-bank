@@ -6,6 +6,9 @@ edition = "2024"
 [package.metadata.cargo-machete]
 ignored = ["governance"]
 
+[lints]
+workspace = true
+
 [features]
 
 default = ["governance"]

@@ -18,7 +18,7 @@ use super::{
     approval_process::ApprovalProcess, custody::Wallet, customer::*, loader::LanaDataLoader,
     primitives::SortDirection, terms::*,
 };
-pub use lana_app::{
+pub(super) use lana_app::{
     credit::{
         CreditFacilitiesCursor, CreditFacilitiesFilter as DomainCreditFacilitiesFilter,
         CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
@@ -30,16 +30,16 @@ pub use lana_app::{
     public_id::PublicId,
 };
 
-pub use balance::*;
-pub use collateral::*;
-pub use disbursal::*;
-pub use error::*;
-pub use history::*;
+pub(super) use balance::*;
+pub(super) use collateral::*;
+pub(super) use disbursal::*;
+pub(super) use error::*;
+pub(super) use history::*;
 use ledger_accounts::*;
-pub use liquidation::*;
-pub use pending_facility::*;
-pub use proposal::*;
-pub use repayment::*;
+pub(super) use liquidation::*;
+pub(super) use pending_facility::*;
+pub(super) use proposal::*;
+pub(super) use repayment::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -320,7 +320,7 @@ pub struct CreditFacilityPartialPaymentWithDateRecordInput {
 crate::mutation_payload! { CreditFacilityPartialPaymentRecordPayload, credit_facility: CreditFacility }
 
 #[derive(InputObject)]
-pub struct CreditFacilityCompleteInput {
+pub(super) struct CreditFacilityCompleteInput {
     pub credit_facility_id: UUID,
 }
 crate::mutation_payload! { CreditFacilityCompletePayload, credit_facility: CreditFacility }
@@ -371,7 +371,7 @@ pub enum CreditFacilitiesFilterBy {
 }
 
 #[derive(InputObject)]
-pub struct CreditFacilitiesFilter {
+pub(super) struct CreditFacilitiesFilter {
     pub field: CreditFacilitiesFilterBy,
     pub status: Option<CreditFacilityStatus>,
     pub collateralization_state: Option<CollateralizationState>,
@@ -379,7 +379,7 @@ pub struct CreditFacilitiesFilter {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct CreditFacilityCollateralizationPayload {
+pub(super) struct CreditFacilityCollateralizationPayload {
     #[graphql(flatten)]
     pub update: CreditFacilityCollateralizationUpdated,
     #[graphql(skip)]

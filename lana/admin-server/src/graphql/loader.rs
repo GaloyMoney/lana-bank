@@ -31,16 +31,16 @@ use super::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ChartRef(pub &'static str);
-pub const CHART_REF: ChartRef = ChartRef(lana_app::accounting_init::constants::CHART_REF);
+pub(super) struct ChartRef(pub &'static str);
+pub(super) const CHART_REF: ChartRef = ChartRef(lana_app::accounting_init::constants::CHART_REF);
 
-pub type LanaDataLoader = DataLoader<LanaLoader>;
-pub struct LanaLoader {
+pub(super) type LanaDataLoader = DataLoader<LanaLoader>;
+pub(super) struct LanaLoader {
     pub app: LanaApp,
 }
 
 impl LanaLoader {
-    pub fn new(app: &LanaApp) -> LanaDataLoader {
+    pub(super) fn new(app: &LanaApp) -> LanaDataLoader {
         DataLoader::new(Self { app: app.clone() }, tokio::task::spawn)
             // Set delay to 0 as per https://github.com/async-graphql/async-graphql/issues/1306
             .delay(std::time::Duration::from_millis(5))

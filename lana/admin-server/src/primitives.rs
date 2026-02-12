@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use domain_config::DomainConfigId;
 
-pub use lana_app::{
+pub(crate) use lana_app::{
     accounting::LedgerAccountId,
     primitives::{
         AccountSpec, ApprovalProcessId, ChartId, CollateralId, CommitteeId, CreditFacilityId,
@@ -21,26 +21,26 @@ pub use lana_app::{
     terms::{CollateralizationState, PendingCreditFacilityCollateralizationState},
 };
 
-pub use std::sync::Arc;
+pub(crate) use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-pub struct AdminAuthContext {
+pub(crate) struct AdminAuthContext {
     pub sub: Subject,
 }
 
 impl AdminAuthContext {
-    pub fn new(sub: impl Into<UserId>) -> Self {
+    pub(crate) fn new(sub: impl Into<UserId>) -> Self {
         Self {
             sub: Subject::User(sub.into()),
         }
     }
 }
 
-pub use es_entity::graphql::UUID;
+pub(crate) use es_entity::graphql::UUID;
 
 #[derive(Clone, Copy, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct Timestamp(chrono::DateTime<chrono::Utc>);
+pub(crate) struct Timestamp(chrono::DateTime<chrono::Utc>);
 scalar!(Timestamp);
 impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
     fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
@@ -49,7 +49,7 @@ impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
 }
 impl Timestamp {
     #[allow(dead_code)]
-    pub fn into_inner(self) -> chrono::DateTime<chrono::Utc> {
+    pub(crate) fn into_inner(self) -> chrono::DateTime<chrono::Utc> {
         self.0
     }
 }
@@ -77,7 +77,7 @@ impl Date {
 
 #[derive(Clone, Copy, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct AuditEntryId(audit::AuditEntryId);
+pub(crate) struct AuditEntryId(audit::AuditEntryId);
 scalar!(AuditEntryId);
 impl From<audit::AuditEntryId> for AuditEntryId {
     fn from(value: audit::AuditEntryId) -> Self {
@@ -100,7 +100,7 @@ impl From<AuditSubjectId> for String {
     }
 }
 
-pub trait ToGlobalId {
+pub(crate) trait ToGlobalId {
     fn to_global_id(&self) -> async_graphql::types::ID;
 }
 

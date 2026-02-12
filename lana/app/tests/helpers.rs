@@ -7,13 +7,13 @@ use lana_app::{
     primitives::Subject,
 };
 
-pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
+pub(crate) async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
     Ok(pool)
 }
 
-pub async fn init_access(
+pub(crate) async fn init_access(
     pool: &sqlx::PgPool,
     authz: &Authorization,
 ) -> anyhow::Result<(Access, Subject)> {

@@ -11,7 +11,7 @@ use super::{
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct ProfitAndLossStatement {
+pub(crate) struct ProfitAndLossStatement {
     pub name: String,
     #[graphql(skip)]
     pub entity: Arc<DomainProfitAndLossStatement>,

@@ -16,18 +16,18 @@ use crate::{CoreDepositAction, CoreDepositObject, public::CoreDepositEvent};
 use super::ApproveWithdrawal;
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct WithdrawApprovalJobConfig<Perms, E> {
+pub(crate) struct WithdrawApprovalJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> WithdrawApprovalJobConfig<Perms, E> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
 
-pub struct WithdrawApprovalInit<Perms, E>
+pub(crate) struct WithdrawApprovalInit<Perms, E>
 where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,
@@ -49,7 +49,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
 {
-    pub fn new(outbox: &Outbox<E>, process: &ApproveWithdrawal<Perms, E>) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>, process: &ApproveWithdrawal<Perms, E>) -> Self {
         Self {
             process: process.clone(),
             outbox: outbox.clone(),
@@ -93,7 +93,7 @@ struct WithdrawApprovalJobData {
     sequence: obix::EventSequence,
 }
 
-pub struct WithdrawApprovalJobRunner<Perms, E>
+pub(crate) struct WithdrawApprovalJobRunner<Perms, E>
 where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,

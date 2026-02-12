@@ -1,3 +1,3 @@
 mod overdraft_prevention;
 
-pub use overdraft_prevention::*;
+pub(super) use overdraft_prevention::*;

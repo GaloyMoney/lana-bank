@@ -1,1 +1,1 @@
-pub mod credit_facility_history;
+pub(super) mod credit_facility_history;

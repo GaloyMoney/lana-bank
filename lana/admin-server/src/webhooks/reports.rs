@@ -14,6 +14,6 @@ async fn sync_reports(Extension(app): Extension<LanaApp>) -> Result<StatusCode, 
     }
 }
 
-pub fn routes() -> Router<JwtDecoderState> {
+pub(crate) fn routes() -> Router<JwtDecoderState> {
     Router::new().route("/webhook/reports/sync", post(sync_reports))
 }

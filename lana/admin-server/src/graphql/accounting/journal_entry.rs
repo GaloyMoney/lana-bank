@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-pub use lana_app::accounting::journal::JournalEntryCursor;
+pub(crate) use lana_app::accounting::journal::JournalEntryCursor;
 use lana_app::accounting::journal::{
     JournalEntry as DomainJournalEntry, JournalEntryAmount as DomainJournalEntryAmount,
 };
@@ -12,7 +12,7 @@ use crate::{graphql::loader::LanaDataLoader, primitives::*};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct JournalEntry {
+pub(crate) struct JournalEntry {
     id: ID,
     entry_id: UUID,
     tx_id: UUID,
@@ -50,7 +50,10 @@ impl JournalEntry {
         &self.entity.description
     }
 
-    pub async fn ledger_account(&self, ctx: &Context<'_>) -> async_graphql::Result<LedgerAccount> {
+    pub(crate) async fn ledger_account(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
             .load_one(self.entity.ledger_account_id)
@@ -59,7 +62,7 @@ impl JournalEntry {
         Ok(account)
     }
 
-    pub async fn ledger_transaction(
+    pub(crate) async fn ledger_transaction(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<LedgerTransaction> {
@@ -73,18 +76,18 @@ impl JournalEntry {
 }
 
 #[derive(Union)]
-pub enum JournalEntryAmount {
+pub(crate) enum JournalEntryAmount {
     Usd(UsdAmount),
     Btc(BtcAmount),
 }
 
 #[derive(SimpleObject)]
-pub struct UsdAmount {
+pub(crate) struct UsdAmount {
     usd: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct BtcAmount {
+pub(crate) struct BtcAmount {
     btc: Satoshis,
 }
 

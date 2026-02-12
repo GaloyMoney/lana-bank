@@ -28,7 +28,7 @@ pub(crate) struct PolicyRepo {
 }
 
 impl PolicyRepo {
-    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+    pub(crate) fn new(pool: &PgPool, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             clock,
@@ -40,7 +40,7 @@ impl PolicyRepo {
 mod tests {
     use super::*;
 
-    pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
+    pub(super) async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
         let pg_con = std::env::var("PG_CON").unwrap();
         let pool = sqlx::PgPool::connect(&pg_con).await?;
         Ok(pool)

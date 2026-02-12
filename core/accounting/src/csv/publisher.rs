@@ -7,7 +7,7 @@ use crate::{
 
 use super::error::AccountingCsvExportError;
 
-pub struct AccountingCsvPublisher<E>
+pub(super) struct AccountingCsvPublisher<E>
 where
     E: OutboxEventMarker<CoreAccountingEvent>,
 {
@@ -29,13 +29,13 @@ impl<E> AccountingCsvPublisher<E>
 where
     E: OutboxEventMarker<CoreAccountingEvent>,
 {
-    pub fn new(outbox: &Outbox<E>) -> Self {
+    pub(super) fn new(outbox: &Outbox<E>) -> Self {
         Self {
             outbox: outbox.clone(),
         }
     }
 
-    pub async fn publish_csv_export_uploaded_in_op(
+    pub(super) async fn publish_csv_export_uploaded_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         id: AccountingCsvId,

@@ -4,7 +4,7 @@ use crate::{
     graphql::{accounting::LedgerAccount, credit_facility::CreditFacility, loader::LanaDataLoader},
     primitives::*,
 };
-pub use lana_app::credit::Collateral as DomainCollateral;
+pub(crate) use lana_app::credit::Collateral as DomainCollateral;
 
 #[derive(InputObject)]
 pub struct CollateralUpdateInput {
@@ -15,14 +15,14 @@ pub struct CollateralUpdateInput {
 crate::mutation_payload! { CollateralUpdatePayload, collateral: Collateral }
 
 #[derive(InputObject)]
-pub struct CollateralRecordSentToLiquidationInput {
+pub(crate) struct CollateralRecordSentToLiquidationInput {
     pub collateral_id: UUID,
     pub amount: Satoshis,
 }
 crate::mutation_payload! { CollateralRecordSentToLiquidationPayload, collateral: Collateral }
 
 #[derive(InputObject)]
-pub struct CollateralRecordProceedsFromLiquidationInput {
+pub(crate) struct CollateralRecordProceedsFromLiquidationInput {
     pub collateral_id: UUID,
     pub amount: UsdCents,
 }

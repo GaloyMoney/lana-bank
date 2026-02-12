@@ -30,9 +30,9 @@ struct CreditFacilityLiquidationsJobData {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct CreditFacilityLiquidationsJobConfig;
+pub(crate) struct CreditFacilityLiquidationsJobConfig;
 
-pub struct CreditFacilityLiquidationsInit<E>
+pub(crate) struct CreditFacilityLiquidationsInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -49,7 +49,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         outbox: &Outbox<E>,
         repo: Arc<CollateralRepo<E>>,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
@@ -88,7 +88,7 @@ where
     }
 }
 
-pub struct CreditFacilityLiquidationsJobRunner<E>
+pub(crate) struct CreditFacilityLiquidationsJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -196,7 +196,7 @@ where
         skip(self, db),
         err
     )]
-    pub async fn create_if_not_exist_in_op(
+    pub(crate) async fn create_if_not_exist_in_op(
         &self,
         db: &mut DbOp<'_>,
         collateral_id: CollateralId,

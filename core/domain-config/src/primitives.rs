@@ -1,4 +1,4 @@
-pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
+pub(crate) use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

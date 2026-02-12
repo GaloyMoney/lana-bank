@@ -15,7 +15,7 @@ use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, repayment_plan::*};
 
 #[derive(Serialize, Deserialize)]
-pub struct RepaymentPlanProjectionConfig<E> {
+pub(crate) struct RepaymentPlanProjectionConfig<E> {
     pub _phantom: std::marker::PhantomData<E>,
 }
 
@@ -27,7 +27,7 @@ impl<E> Clone for RepaymentPlanProjectionConfig<E> {
     }
 }
 
-pub struct RepaymentPlanProjectionInit<
+pub(crate) struct RepaymentPlanProjectionInit<
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 > {
     outbox: Outbox<E>,
@@ -38,7 +38,7 @@ impl<E> RepaymentPlanProjectionInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, repo: Arc<RepaymentPlanRepo>) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>, repo: Arc<RepaymentPlanRepo>) -> Self {
         Self {
             outbox: outbox.clone(),
             repo,
@@ -81,7 +81,7 @@ struct RepaymentPlanProjectionJobData {
     sequence: EventSequence,
 }
 
-pub struct RepaymentPlanProjectionJobRunner<
+pub(crate) struct RepaymentPlanProjectionJobRunner<
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 > {
     outbox: Outbox<E>,

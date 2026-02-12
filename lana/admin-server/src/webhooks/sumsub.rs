@@ -14,6 +14,6 @@ async fn callback(
     }
 }
 
-pub fn routes() -> Router<JwtDecoderState> {
+pub(crate) fn routes() -> Router<JwtDecoderState> {
     Router::new().route("/webhook/sumsub", post(callback))
 }

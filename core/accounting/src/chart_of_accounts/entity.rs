@@ -590,17 +590,17 @@ impl IntoEvents<ChartEvent> for NewChart {
     }
 }
 
-pub struct NewChartAccountDetails {
+pub(crate) struct NewChartAccountDetails {
     pub new_account_set: NewAccountSet,
     pub parent_account_set_id: CalaAccountSetId,
 }
 
-pub struct NewAccountSetWithNodeId {
+pub(crate) struct NewAccountSetWithNodeId {
     pub new_account_set: NewAccountSet,
     pub node_id: ChartNodeId,
 }
 
-pub struct ChartNodeDetails {
+pub(crate) struct ChartNodeDetails {
     account_set_id: CalaAccountSetId,
     spec: AccountSpec,
 }

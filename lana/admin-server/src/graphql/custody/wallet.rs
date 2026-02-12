@@ -2,13 +2,13 @@ use async_graphql::*;
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 
-pub use lana_app::custody::{Wallet as DomainWallet, WalletNetwork};
+pub(crate) use lana_app::custody::{Wallet as DomainWallet, WalletNetwork};
 
 use super::Custodian;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Wallet {
+pub(crate) struct Wallet {
     id: ID,
     wallet_id: UUID,
 

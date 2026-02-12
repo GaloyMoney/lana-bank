@@ -3,7 +3,7 @@ use async_graphql::*;
 use lana_app::primitives::UsdCents;
 
 #[derive(SimpleObject)]
-pub struct RealtimePrice {
+pub(super) struct RealtimePrice {
     usd_cents_per_btc: UsdCents,
 }
 

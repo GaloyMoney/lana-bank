@@ -148,7 +148,11 @@ impl<E> InterestAccrualRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
+    pub(super) fn new(
+        pool: &PgPool,
+        publisher: &CreditFacilityPublisher<E>,
+        clock: ClockHandle,
+    ) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),

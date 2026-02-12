@@ -24,16 +24,16 @@ use crate::{
     ),
     tbl_prefix = "core"
 )]
-pub struct DomainConfigRepo {
+pub(crate) struct DomainConfigRepo {
     pool: PgPool,
 }
 
 impl DomainConfigRepo {
-    pub fn new(pool: &PgPool) -> Self {
+    pub(crate) fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
     }
 
-    pub async fn find_all_exposed<Out: From<DomainConfig>>(
+    pub(crate) async fn find_all_exposed<Out: From<DomainConfig>>(
         &self,
         ids: &[DomainConfigId],
     ) -> Result<HashMap<DomainConfigId, Out>, DomainConfigError> {

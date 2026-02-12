@@ -9,17 +9,17 @@ use super::{
     credit_facility::*, deposit_account::*, document::CustomerDocument, primitives::SortDirection,
 };
 
-pub use lana_app::customer::{
+pub(super) use lana_app::customer::{
     Activity, Customer as DomainCustomer, CustomerType, CustomersCursor,
     CustomersFilter as DomainCustomersFilter, CustomersSortBy as DomainCustomersSortBy, KycLevel,
     KycVerification, Sort,
 };
 
-pub use error::*;
+pub(super) use error::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Customer {
+pub(super) struct Customer {
     id: ID,
     customer_id: UUID,
     kyc_verification: KycVerification,
@@ -168,7 +168,7 @@ impl Customer {
 }
 
 #[derive(InputObject)]
-pub struct CustomerCreateInput {
+pub(super) struct CustomerCreateInput {
     pub email: String,
     pub telegram_id: String,
     pub customer_type: CustomerType,
@@ -176,14 +176,14 @@ pub struct CustomerCreateInput {
 crate::mutation_payload! { CustomerCreatePayload, customer: Customer }
 
 #[derive(InputObject)]
-pub struct CustomerTelegramIdUpdateInput {
+pub(super) struct CustomerTelegramIdUpdateInput {
     pub customer_id: UUID,
     pub telegram_id: String,
 }
 crate::mutation_payload! { CustomerTelegramIdUpdatePayload, customer: Customer }
 
 #[derive(InputObject)]
-pub struct CustomerEmailUpdateInput {
+pub(super) struct CustomerEmailUpdateInput {
     pub customer_id: UUID,
     pub email: String,
 }
@@ -236,14 +236,14 @@ pub enum CustomersFilterBy {
 }
 
 #[derive(InputObject)]
-pub struct CustomersFilter {
+pub(super) struct CustomersFilter {
     pub field: CustomersFilterBy,
     pub kyc_verification: Option<KycVerification>,
 }
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct CustomerKycUpdatedPayload {
+pub(super) struct CustomerKycUpdatedPayload {
     pub kyc_verification: KycVerification,
     #[graphql(skip)]
     pub customer_id: CustomerId,

@@ -10,14 +10,14 @@ use super::{credit_facility::*, deposit_account::*};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum CustomerError {
+pub(super) enum CustomerError {
     #[error("CustomerError - DepositAccountNotFound")]
     DepositAccountNotFound,
 }
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Customer {
+pub(super) struct Customer {
     id: ID,
     customer_id: UUID,
     customer_type: CustomerType,

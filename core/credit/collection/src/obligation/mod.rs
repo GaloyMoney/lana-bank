@@ -1,5 +1,5 @@
 mod entity;
-pub mod error;
+pub(crate) mod error;
 mod jobs;
 mod repo;
 

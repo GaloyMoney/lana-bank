@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-pub use lana_app::{
+pub(crate) use lana_app::{
     accounting::csv::AccountingCsvDocumentId,
     document::{Document as DomainDocument, DocumentStatus, GeneratedDocumentDownloadLink},
 };
@@ -62,7 +62,7 @@ impl From<GeneratedDocumentDownloadLink> for AccountingCsvDownloadLink {
 }
 
 #[derive(SimpleObject)]
-pub struct LedgerAccountCsvExportUploadedPayload {
+pub(crate) struct LedgerAccountCsvExportUploadedPayload {
     pub document_id: UUID,
 }
 

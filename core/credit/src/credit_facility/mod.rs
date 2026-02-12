@@ -1,5 +1,5 @@
 mod entity;
-pub mod error;
+pub(crate) mod error;
 pub mod interest_accrual_cycle;
 mod jobs;
 mod repo;

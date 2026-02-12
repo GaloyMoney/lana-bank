@@ -1,5 +1,5 @@
 mod custodian;
 mod wallet;
 
-pub use custodian::*;
-pub use wallet::*;
+pub(super) use custodian::*;
+pub(super) use wallet::*;

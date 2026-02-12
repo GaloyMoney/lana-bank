@@ -14,14 +14,14 @@ use super::{entity::*, error::*};
     columns(name = "String"),
     tbl_prefix = "core"
 )]
-pub struct CommitteeRepo {
+pub(crate) struct CommitteeRepo {
     #[allow(dead_code)]
     pool: PgPool,
     clock: ClockHandle,
 }
 
 impl CommitteeRepo {
-    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+    pub(crate) fn new(pool: &PgPool, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             clock,

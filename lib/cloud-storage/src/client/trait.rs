@@ -8,7 +8,7 @@ pub struct LocationInStorage<'a> {
 }
 
 #[async_trait]
-pub trait StorageClient: Send + Sync {
+pub(crate) trait StorageClient: Send + Sync {
     async fn upload(
         &self,
         file: Vec<u8>,

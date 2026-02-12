@@ -2,11 +2,11 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::deposit::{Deposit as DomainDeposit, DepositStatus};
+pub(super) use lana_app::deposit::{Deposit as DomainDeposit, DepositStatus};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Deposit {
+pub(super) struct Deposit {
     id: ID,
     deposit_id: UUID,
     account_id: UUID,

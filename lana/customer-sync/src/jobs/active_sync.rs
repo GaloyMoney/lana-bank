@@ -17,18 +17,18 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use job::*;
 
 #[derive(Serialize, Deserialize)]
-pub struct CustomerActiveSyncJobConfig<Perms, E> {
+pub(crate) struct CustomerActiveSyncJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> CustomerActiveSyncJobConfig<Perms, E> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
 
-pub struct CustomerActiveSyncInit<Perms, E>
+pub(crate) struct CustomerActiveSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -46,7 +46,7 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, deposit: &CoreDeposit<Perms, E>) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>, deposit: &CoreDeposit<Perms, E>) -> Self {
         Self {
             outbox: outbox.clone(),
             deposit: deposit.clone(),
@@ -92,7 +92,7 @@ struct CustomerActiveSyncJobData {
     sequence: obix::EventSequence,
 }
 
-pub struct CustomerActiveSyncJobRunner<Perms, E>
+pub(crate) struct CustomerActiveSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>

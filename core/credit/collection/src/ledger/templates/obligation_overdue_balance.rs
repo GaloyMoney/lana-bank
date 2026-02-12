@@ -1,3 +1,4 @@
+#![allow(unreachable_pub)]
 use rust_decimal::Decimal;
 use tracing::instrument;
 use tracing_macros::record_error_severity;

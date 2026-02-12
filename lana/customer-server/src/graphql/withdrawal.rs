@@ -2,11 +2,11 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::deposit::{Withdrawal as DomainWithdrawal, WithdrawalStatus};
+pub(super) use lana_app::deposit::{Withdrawal as DomainWithdrawal, WithdrawalStatus};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Withdrawal {
+pub(super) struct Withdrawal {
     id: ID,
     withdrawal_id: UUID,
     account_id: UUID,

@@ -24,7 +24,7 @@ use super::{entity::*, error::*};
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub struct DepositRepo<E>
+pub(crate) struct DepositRepo<E>
 where
     E: OutboxEventMarker<CoreDepositEvent>,
 {
@@ -50,7 +50,7 @@ impl<E> DepositRepo<E>
 where
     E: OutboxEventMarker<CoreDepositEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &DepositPublisher<E>, clock: ClockHandle) -> Self {
+    pub(crate) fn new(pool: &PgPool, publisher: &DepositPublisher<E>, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),

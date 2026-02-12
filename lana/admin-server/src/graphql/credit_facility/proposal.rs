@@ -12,7 +12,7 @@ use crate::{
 
 use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry};
 
-pub use lana_app::credit::{
+pub(crate) use lana_app::credit::{
     CreditFacilityProposal as DomainCreditFacilityProposal,
     CreditFacilityProposalsByCreatedAtCursor,
 };
@@ -104,7 +104,7 @@ impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct CreditFacilityProposalConcludedPayload {
+pub(crate) struct CreditFacilityProposalConcludedPayload {
     pub status: CreditFacilityProposalStatus,
     #[graphql(skip)]
     pub credit_facility_proposal_id: CreditFacilityProposalId,

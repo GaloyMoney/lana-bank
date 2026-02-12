@@ -20,7 +20,7 @@ const ONE_MONTH_DAYS: i64 = 30;
     skip(app, clock, clock_ctrl),
     err
 )]
-pub async fn principal_late_scenario(
+pub(super) async fn principal_late_scenario(
     sub: Subject,
     app: &LanaApp,
     clock: &ClockHandle,

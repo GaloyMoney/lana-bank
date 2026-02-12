@@ -1,5 +1,6 @@
+#![allow(unreachable_pub)]
 mod entity;
-pub mod error;
+pub(crate) mod error;
 mod repo;
 
 use audit::SystemSubject;
@@ -22,7 +23,7 @@ pub use entity::NewPayment;
 pub use entity::PaymentEvent;
 pub use entity::PaymentLedgerAccountIds;
 use error::PaymentError;
-pub use repo::PaymentRepo;
+pub(crate) use repo::PaymentRepo;
 
 pub struct Payments<Perms, E>
 where

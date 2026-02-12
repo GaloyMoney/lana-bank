@@ -8,7 +8,7 @@ use lana_app::terms_template::TermsTemplate as DomainTermsTemplate;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct TermsTemplate {
+pub(super) struct TermsTemplate {
     id: ID,
     terms_id: UUID,
     values: TermValues,

@@ -5,7 +5,7 @@ use crate::{
     graphql::{accounting::LedgerTransaction, approval_process::*, loader::LanaDataLoader},
     primitives::*,
 };
-pub use lana_app::{
+pub(crate) use lana_app::{
     credit::{Disbursal as DomainDisbursal, DisbursalsCursor},
     public_id::PublicId,
 };

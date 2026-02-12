@@ -2,7 +2,7 @@ use async_graphql::{connection::*, *};
 
 use crate::primitives::*;
 
-pub use lana_app::deposit::{
+pub(super) use lana_app::deposit::{
     DepositAccount as DomainDepositAccount, DepositAccountHistoryCursor,
     DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry,
 };
@@ -11,7 +11,7 @@ use super::{deposit::*, deposit_account_history::*, withdrawal::*};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct DepositAccount {
+pub(super) struct DepositAccount {
     id: ID,
     deposit_account_id: UUID,
     customer_id: UUID,
@@ -35,7 +35,7 @@ impl From<DomainDepositAccount> for DepositAccount {
 }
 
 #[derive(SimpleObject)]
-pub struct DepositAccountBalance {
+pub(super) struct DepositAccountBalance {
     settled: UsdCents,
     pending: UsdCents,
 }

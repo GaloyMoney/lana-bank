@@ -7,16 +7,18 @@ use crate::{error::*, values::*};
 const DASHBOARD_ID: uuid::Uuid = uuid::uuid!("00000000-0000-0000-0000-000000000000");
 
 #[derive(Clone)]
-pub struct DashboardRepo {
+pub(crate) struct DashboardRepo {
     pool: PgPool,
 }
 
 impl DashboardRepo {
-    pub fn new(pool: &PgPool) -> Self {
+    pub(crate) fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
     }
 
-    pub async fn begin(&self) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, DashboardError> {
+    pub(crate) async fn begin(
+        &self,
+    ) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, DashboardError> {
         Ok(self.pool.begin().await?)
     }
 

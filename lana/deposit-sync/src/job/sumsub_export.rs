@@ -20,11 +20,11 @@ use job::*;
 use lana_events::LanaEvent;
 
 /// Job configuration for Sumsub export
-pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("outbox.sumsub-export");
+pub(crate) const SUMSUB_EXPORT_JOB: JobType = JobType::new("outbox.sumsub-export");
 
 /// Direction of the transaction from Sumsub's perspective
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum SumsubTransactionDirection {
+pub(crate) enum SumsubTransactionDirection {
     /// Money coming into the customer's account (deposit)
     #[serde(rename = "in")]
     In,
@@ -43,19 +43,19 @@ impl std::fmt::Display for SumsubTransactionDirection {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct SumsubExportJobConfig<Perms, E> {
+pub(crate) struct SumsubExportJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
 impl<Perms, E> SumsubExportJobConfig<Perms, E> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
 
-pub struct SumsubExportInit<Perms, E>
+pub(crate) struct SumsubExportInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -79,7 +79,7 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    pub fn new(
+    pub(crate) fn new(
         outbox: &Outbox<E>,
         sumsub_client: SumsubClient,
         deposits: &CoreDeposit<Perms, E>,
@@ -135,7 +135,7 @@ struct SumsubExportJobState {
     sequence: obix::EventSequence,
 }
 
-pub struct SumsubExportJobRunner<Perms, E>
+pub(crate) struct SumsubExportJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>

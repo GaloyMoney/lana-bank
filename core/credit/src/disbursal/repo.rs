@@ -28,7 +28,7 @@ use super::{entity::*, error::DisbursalError};
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub struct DisbursalRepo<E>
+pub(crate) struct DisbursalRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -54,7 +54,11 @@ impl<E> DisbursalRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
+    pub(crate) fn new(
+        pool: &PgPool,
+        publisher: &CreditFacilityPublisher<E>,
+        clock: ClockHandle,
+    ) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),

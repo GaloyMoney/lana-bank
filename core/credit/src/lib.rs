@@ -1,5 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+// TODO: Fix unreachable_pub warnings in internal modules (242 items)
+#![allow(unreachable_pub)]
 
 mod chart_of_accounts_integration;
 mod collateral;

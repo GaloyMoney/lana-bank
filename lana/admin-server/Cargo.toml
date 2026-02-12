@@ -3,6 +3,9 @@ name = "admin-server"
 license = "BUSL-1.1"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [features]
 
 fail-on-warnings = []

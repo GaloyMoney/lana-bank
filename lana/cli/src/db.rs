@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 /// Database connection configuration for PostgreSQL
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct DbConfig {
+pub(crate) struct DbConfig {
     /// PostgreSQL connection string (provided via PG_CON env var)
     #[serde(skip)]
     pub pg_con: String,
@@ -12,7 +12,7 @@ pub struct DbConfig {
     pub pool_size: u32,
 }
 
-pub async fn init_pool(config: &DbConfig) -> anyhow::Result<sqlx::PgPool> {
+pub(crate) async fn init_pool(config: &DbConfig) -> anyhow::Result<sqlx::PgPool> {
     use log::LevelFilter;
     use sqlx::ConnectOptions;
     use std::str::FromStr;

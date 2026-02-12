@@ -4,6 +4,9 @@ license = "BUSL-1.1"
 edition = "2024"
 build = "build.rs"
 
+[lints]
+workspace = true
+
 [features]
 
 sim-bootstrap = ["dep:sim-bootstrap"]

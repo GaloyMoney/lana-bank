@@ -1,5 +1,5 @@
 mod entity;
-pub mod error;
+pub(crate) mod error;
 
 use cala_ledger::AccountId as CalaAccountId;
 use money::{Satoshis, UsdCents};

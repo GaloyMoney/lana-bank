@@ -12,7 +12,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use job::*;
 
 #[derive(Serialize, Deserialize)]
-pub struct CreateKeycloakUserJobConfig<E> {
+pub(crate) struct CreateKeycloakUserJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
 
@@ -25,14 +25,14 @@ impl<E> Clone for CreateKeycloakUserJobConfig<E> {
 }
 
 impl<E> CreateKeycloakUserJobConfig<E> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
 
-pub struct CreateKeycloakUserInit<E>
+pub(crate) struct CreateKeycloakUserInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
@@ -44,7 +44,7 @@ impl<E> CreateKeycloakUserInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
             outbox: outbox.clone(),
             keycloak_client,
@@ -84,7 +84,7 @@ struct CreateKeycloakUserJobData {
     sequence: obix::EventSequence,
 }
 
-pub struct CreateKeycloakUserJobRunner<E>
+pub(crate) struct CreateKeycloakUserJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {

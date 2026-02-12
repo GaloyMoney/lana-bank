@@ -1,14 +1,14 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-pub use lana_app::fiscal_year::{
+pub(crate) use lana_app::fiscal_year::{
     FiscalMonthClosure as DomainFiscalMonthClosure, FiscalYear as DomainFiscalYear,
     FiscalYearsByCreatedAtCursor,
 };
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct FiscalYear {
+pub(crate) struct FiscalYear {
     id: ID,
     fiscal_year_id: UUID,
     chart_id: UUID,
@@ -60,7 +60,7 @@ impl FiscalYear {
 }
 
 #[derive(SimpleObject, Clone)]
-pub struct FiscalMonthClosure {
+pub(crate) struct FiscalMonthClosure {
     closed_as_of: Date,
     closed_at: Timestamp,
 }
@@ -75,28 +75,28 @@ impl From<DomainFiscalMonthClosure> for FiscalMonthClosure {
 }
 
 #[derive(InputObject)]
-pub struct FiscalYearCloseMonthInput {
+pub(crate) struct FiscalYearCloseMonthInput {
     pub fiscal_year_id: UUID,
 }
 
 crate::mutation_payload! { FiscalYearCloseMonthPayload, fiscal_year: FiscalYear }
 
 #[derive(InputObject)]
-pub struct FiscalYearInitInput {
+pub(crate) struct FiscalYearInitInput {
     pub opened_as_of: Date,
 }
 
 crate::mutation_payload! { FiscalYearInitPayload, fiscal_year: FiscalYear }
 
 #[derive(InputObject)]
-pub struct FiscalYearCloseInput {
+pub(crate) struct FiscalYearCloseInput {
     pub fiscal_year_id: UUID,
 }
 
 crate::mutation_payload! { FiscalYearClosePayload, fiscal_year: FiscalYear }
 
 #[derive(InputObject)]
-pub struct FiscalYearOpenNextInput {
+pub(crate) struct FiscalYearOpenNextInput {
     pub fiscal_year_id: UUID,
 }
 

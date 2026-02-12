@@ -9,7 +9,7 @@ pub(crate) struct ClosingSchedule {
 }
 
 impl ClosingSchedule {
-    pub fn new(timezone: Tz, closing_time_of_day: NaiveTime, clock: &ClockHandle) -> Self {
+    pub(crate) fn new(timezone: Tz, closing_time_of_day: NaiveTime, clock: &ClockHandle) -> Self {
         let current_time = clock.now();
         let next_closing =
             Self::calculate_next_closing(timezone, closing_time_of_day, current_time);
@@ -20,19 +20,21 @@ impl ClosingSchedule {
         }
     }
 
-    pub fn next_closing(&self) -> DateTime<Utc> {
+    pub(crate) fn next_closing(&self) -> DateTime<Utc> {
         self.next_closing
     }
 
-    pub fn next_closing_day(&self) -> NaiveDate {
+    pub(crate) fn next_closing_day(&self) -> NaiveDate {
         self.next_closing.with_timezone(&self.timezone).date_naive()
     }
 
-    pub fn timezone(&self) -> Tz {
+    pub(crate) fn timezone(&self) -> Tz {
         self.timezone
     }
 
-    pub fn duration_until_close(&self) -> Result<std::time::Duration, chrono::OutOfRangeError> {
+    pub(crate) fn duration_until_close(
+        &self,
+    ) -> Result<std::time::Duration, chrono::OutOfRangeError> {
         (self.next_closing - self.clock.now()).to_std()
     }
 

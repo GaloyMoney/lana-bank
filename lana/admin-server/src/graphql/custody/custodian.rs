@@ -3,7 +3,7 @@ use url::Url;
 
 use crate::primitives::*;
 
-pub use lana_app::custody::custodian::{
+pub(crate) use lana_app::custody::custodian::{
     BitgoConfig as DomainBitgoConfig, Custodian as DomainCustodian,
     CustodianConfig as DomainCustodianConfig, CustodiansByNameCursor,
     KomainuConfig as DomainKomainuConfig,
@@ -11,7 +11,7 @@ pub use lana_app::custody::custodian::{
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Custodian {
+pub(crate) struct Custodian {
     id: ID,
     custodian_id: UUID,
     created_at: Timestamp,
@@ -129,7 +129,7 @@ impl From<CustodianConfigInput> for DomainCustodianConfig {
 }
 
 #[derive(InputObject)]
-pub struct CustodianConfigUpdateInput {
+pub(crate) struct CustodianConfigUpdateInput {
     pub custodian_id: UUID,
     pub config: CustodianConfigInput,
 }

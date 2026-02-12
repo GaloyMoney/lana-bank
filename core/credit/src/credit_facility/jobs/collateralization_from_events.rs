@@ -30,7 +30,7 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize)]
-pub struct CreditFacilityCollateralizationFromEventsJobConfig<E> {
+pub(crate) struct CreditFacilityCollateralizationFromEventsJobConfig<E> {
     pub _phantom: std::marker::PhantomData<E>,
 }
 
@@ -42,7 +42,7 @@ impl<E> Clone for CreditFacilityCollateralizationFromEventsJobConfig<E> {
     }
 }
 
-pub struct CreditFacilityCollateralizationFromEventsInit<Perms, E>
+pub(crate) struct CreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -67,7 +67,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         outbox: &Outbox<E>,
         repo: Arc<CreditFacilityRepo<E>>,
         price: Arc<Price>,
@@ -134,7 +134,7 @@ struct CreditFacilityCollateralizationFromEventsData {
     sequence: EventSequence,
 }
 
-pub struct CreditFacilityCollateralizationFromEventsRunner<Perms, E>
+pub(crate) struct CreditFacilityCollateralizationFromEventsRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>

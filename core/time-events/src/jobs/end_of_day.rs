@@ -20,14 +20,14 @@ const SLEEP_INTERVAL: Duration = Duration::from_hours(1);
 const DELTA: Duration = Duration::from_mins(5);
 
 #[derive(Deserialize, Serialize)]
-pub struct EndOfDayProducerJobConfig<E>
+pub(crate) struct EndOfDayProducerJobConfig<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
     pub _phantom: std::marker::PhantomData<E>,
 }
 
-pub struct EndOfDayProducerJobInit<E>
+pub(crate) struct EndOfDayProducerJobInit<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
@@ -39,7 +39,7 @@ impl<E> EndOfDayProducerJobInit<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, domain_configs: &ExposedDomainConfigsReadOnly) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>, domain_configs: &ExposedDomainConfigsReadOnly) -> Self {
         Self {
             outbox: outbox.clone(),
             domain_configs: domain_configs.clone(),
@@ -47,7 +47,7 @@ where
     }
 }
 
-pub const END_OF_DAY_PRODUCER_JOB: JobType =
+pub(crate) const END_OF_DAY_PRODUCER_JOB: JobType =
     JobType::new("cron.core-time-event.end-of-day-producer");
 
 impl<E> JobInitializer for EndOfDayProducerJobInit<E>
@@ -76,7 +76,7 @@ where
     }
 }
 
-pub struct EndOfDayProducerJobRunner<E>
+pub(crate) struct EndOfDayProducerJobRunner<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {

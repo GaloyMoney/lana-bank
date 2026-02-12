@@ -12,7 +12,7 @@ use crate::{
     primitives::{CalaAccountId, DISBURSAL_TRANSACTION_ENTITY_TYPE},
 };
 
-pub const INITIAL_DISBURSAL_CODE: &str = "INITIAL_DISBURSAL";
+pub(crate) const INITIAL_DISBURSAL_CODE: &str = "INITIAL_DISBURSAL";
 
 #[derive(Debug)]
 pub struct InitialDisbursalParams<S: std::fmt::Display> {
@@ -131,7 +131,7 @@ impl<S: std::fmt::Display> From<InitialDisbursalParams<S>> for Params {
     }
 }
 
-pub struct InitialDisbursal;
+pub(crate) struct InitialDisbursal;
 
 impl InitialDisbursal {
     #[record_error_severity]

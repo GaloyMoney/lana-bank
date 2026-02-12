@@ -27,7 +27,7 @@ struct LiquidationPaymentJobData {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct LiquidationPaymentJobConfig<E> {
+pub(crate) struct LiquidationPaymentJobConfig<E> {
     pub liquidation_id: LiquidationId,
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<E>,
@@ -43,7 +43,7 @@ impl<E> Clone for LiquidationPaymentJobConfig<E> {
     }
 }
 
-pub struct LiquidationPaymentInit<Perms, E>
+pub(crate) struct LiquidationPaymentInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -58,7 +58,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         outbox: &Outbox<E>,
         collections: Arc<CoreCreditCollection<Perms, E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
@@ -101,7 +101,7 @@ where
     }
 }
 
-pub struct LiquidationPaymentJobRunner<Perms, E>
+pub(crate) struct LiquidationPaymentJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -283,4 +283,4 @@ where
     }
 }
 
-pub type LiquidationPaymentJobSpawner<E> = JobSpawner<LiquidationPaymentJobConfig<E>>;
+pub(crate) type LiquidationPaymentJobSpawner<E> = JobSpawner<LiquidationPaymentJobConfig<E>>;

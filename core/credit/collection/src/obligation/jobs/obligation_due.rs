@@ -19,7 +19,7 @@ use super::obligation_defaulted::{ObligationDefaultedJobConfig, ObligationDefaul
 use super::obligation_overdue::{ObligationOverdueJobConfig, ObligationOverdueJobSpawner};
 
 #[derive(Serialize, Deserialize)]
-pub struct ObligationDueJobConfig<Perms, E> {
+pub(crate) struct ObligationDueJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
@@ -54,7 +54,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         ledger: Arc<CollectionLedger>,
         obligation_repo: Arc<ObligationRepo<E>>,
         authz: Arc<Perms>,
@@ -101,7 +101,7 @@ where
     }
 }
 
-pub struct ObligationDueJobRunner<Perms, E>
+pub(crate) struct ObligationDueJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
@@ -140,7 +140,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub async fn record_due(
+    pub(crate) async fn record_due(
         &self,
         id: ObligationId,
         effective: chrono::NaiveDate,
@@ -206,4 +206,4 @@ where
     }
 }
 
-pub type ObligationDueJobSpawner<Perms, E> = JobSpawner<ObligationDueJobConfig<Perms, E>>;
+pub(crate) type ObligationDueJobSpawner<Perms, E> = JobSpawner<ObligationDueJobConfig<Perms, E>>;

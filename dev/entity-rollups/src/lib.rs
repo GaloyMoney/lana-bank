@@ -6,7 +6,7 @@ mod update_schemas;
 
 #[cfg(not(feature = "json-schema"))]
 mod update_schemas {
-    pub fn update_schemas(
+    pub(crate) fn update_schemas(
         _schemas_out_dir: &str,
         _migrations_out_dir: &str,
         _force_recreate: bool,

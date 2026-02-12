@@ -2,11 +2,11 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::credit::PaymentAllocation as DomainPaymentAllocation;
+pub(crate) use lana_app::credit::PaymentAllocation as DomainPaymentAllocation;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct CreditFacilityPaymentAllocation {
+pub(crate) struct CreditFacilityPaymentAllocation {
     id: ID,
     payment_allocation_id: UUID,
     amount: UsdCents,

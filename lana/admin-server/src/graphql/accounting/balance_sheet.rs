@@ -8,7 +8,7 @@ use super::{LedgerAccount, LedgerAccountBalanceRange};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct BalanceSheet {
+pub(crate) struct BalanceSheet {
     name: String,
 
     #[graphql(skip)]

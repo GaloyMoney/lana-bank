@@ -1,1 +1,1 @@
-pub mod collateralization_from_events_for_pending_facility;
+pub(super) mod collateralization_from_events_for_pending_facility;

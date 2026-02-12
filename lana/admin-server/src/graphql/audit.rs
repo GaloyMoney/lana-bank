@@ -7,12 +7,12 @@ use lana_app::primitives::Subject as DomainSubject;
 use super::{access::User, loader::*};
 
 #[derive(SimpleObject)]
-pub struct System {
+pub(super) struct System {
     actor: String,
 }
 
 impl System {
-    pub fn from_actor(actor: &audit::SystemActor) -> Self {
+    pub(super) fn from_actor(actor: &audit::SystemActor) -> Self {
         Self {
             actor: actor.to_string(),
         }
@@ -27,7 +27,7 @@ enum AuditSubject {
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct AuditEntry {
+pub(super) struct AuditEntry {
     id: ID,
     audit_entry_id: AuditEntryId,
     object: String,

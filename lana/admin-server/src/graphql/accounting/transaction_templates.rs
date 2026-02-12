@@ -3,10 +3,10 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use lana_app::accounting::transaction_templates::TransactionTemplate as DomainTransactionTemplate;
-pub use lana_app::accounting::transaction_templates::TransactionTemplateCursor;
+pub(crate) use lana_app::accounting::transaction_templates::TransactionTemplateCursor;
 
 #[derive(Clone, SimpleObject)]
-pub struct TransactionTemplate {
+pub(crate) struct TransactionTemplate {
     id: UUID,
     code: String,
 

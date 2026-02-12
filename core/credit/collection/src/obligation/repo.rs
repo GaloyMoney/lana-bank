@@ -24,7 +24,7 @@ use super::{entity::*, error::*};
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub struct ObligationRepo<E>
+pub(crate) struct ObligationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
@@ -50,7 +50,11 @@ impl<E> ObligationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CollectionPublisher<E>, clock: ClockHandle) -> Self {
+    pub(crate) fn new(
+        pool: &PgPool,
+        publisher: &CollectionPublisher<E>,
+        clock: ClockHandle,
+    ) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),

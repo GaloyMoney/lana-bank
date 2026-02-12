@@ -10,13 +10,13 @@ use super::{
     PendingCreditFacilityCollateralizationUpdated,
 };
 
-pub use lana_app::credit::{
+pub(crate) use lana_app::credit::{
     PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility as DomainPendingCreditFacility,
 };
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct PendingCreditFacility {
+pub(crate) struct PendingCreditFacility {
     id: ID,
     pending_credit_facility_id: UUID,
     collateral_id: UUID,
@@ -116,7 +116,7 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct PendingCreditFacilityCollateralizationPayload {
+pub(crate) struct PendingCreditFacilityCollateralizationPayload {
     #[graphql(flatten)]
     pub update: PendingCreditFacilityCollateralizationUpdated,
     #[graphql(skip)]
@@ -139,14 +139,14 @@ impl PendingCreditFacilityCollateralizationPayload {
 }
 
 #[derive(SimpleObject)]
-pub struct PendingCreditFacilityCompleted {
+pub(crate) struct PendingCreditFacilityCompleted {
     pub status: PendingCreditFacilityStatus,
     pub recorded_at: Timestamp,
 }
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct PendingCreditFacilityCompletedPayload {
+pub(crate) struct PendingCreditFacilityCompletedPayload {
     #[graphql(flatten)]
     pub update: PendingCreditFacilityCompleted,
     #[graphql(skip)]

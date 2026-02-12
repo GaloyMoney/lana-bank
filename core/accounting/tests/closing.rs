@@ -303,7 +303,7 @@ struct Test {
 }
 
 impl Test {
-    pub async fn add_account_with_balance(
+    pub(crate) async fn add_account_with_balance(
         &mut self,
         parent: &str,
         funds: i32,
@@ -380,7 +380,7 @@ impl Test {
         self.accounts.push(account_id);
     }
 
-    pub async fn balance(&self, code: &str) -> Result<Decimal> {
+    pub(crate) async fn balance(&self, code: &str) -> Result<Decimal> {
         let account = self
             .accounting
             .find_ledger_account_by_code(&DummySubject, &self.chart.reference, code.to_string())
@@ -394,7 +394,7 @@ impl Test {
             .unwrap_or(Decimal::ZERO))
     }
 
-    pub async fn children(&self, code: &str) -> Result<Vec<LedgerAccountId>> {
+    pub(crate) async fn children(&self, code: &str) -> Result<Vec<LedgerAccountId>> {
         let account = self
             .accounting
             .find_ledger_account_by_code(&DummySubject, &self.chart.reference, code.to_string())
@@ -404,7 +404,10 @@ impl Test {
         Ok(account.children_ids)
     }
 
-    pub async fn balance_by_account_id(&self, account_id: LedgerAccountId) -> Result<Decimal> {
+    pub(crate) async fn balance_by_account_id(
+        &self,
+        account_id: LedgerAccountId,
+    ) -> Result<Decimal> {
         let account = self
             .accounting
             .find_ledger_account_by_id(&DummySubject, &self.chart.reference, account_id)
@@ -417,7 +420,7 @@ impl Test {
             .unwrap_or(Decimal::ZERO))
     }
 
-    pub async fn close_all_months_in_fiscal_year(&mut self) -> Result<()> {
+    pub(crate) async fn close_all_months_in_fiscal_year(&mut self) -> Result<()> {
         const MAX_MONTHS_IN_FISCAL_YEAR: usize = 12;
         let mut months_closed = 0;
 
@@ -436,7 +439,7 @@ impl Test {
         Ok(())
     }
 
-    pub async fn pl_statement(
+    pub(crate) async fn pl_statement(
         &self,
         from: NaiveDate,
         until: Option<NaiveDate>,

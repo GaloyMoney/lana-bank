@@ -1,5 +1,5 @@
 mod entry;
-pub mod error;
+pub(crate) mod error;
 mod jobs;
 mod repo;
 

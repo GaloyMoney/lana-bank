@@ -2,10 +2,10 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::credit::ChartOfAccountsIntegrationConfig as DomainChartOfAccountsIntegrationConfig;
+pub(super) use lana_app::credit::ChartOfAccountsIntegrationConfig as DomainChartOfAccountsIntegrationConfig;
 
 #[derive(SimpleObject, Clone)]
-pub struct CreditModuleConfig {
+pub(super) struct CreditModuleConfig {
     chart_of_accounts_id: Option<UUID>,
     chart_of_account_facility_omnibus_parent_code: Option<String>,
     chart_of_account_collateral_omnibus_parent_code: Option<String>,
@@ -340,7 +340,7 @@ impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
 }
 
 #[derive(InputObject)]
-pub struct CreditModuleConfigureInput {
+pub(super) struct CreditModuleConfigureInput {
     pub chart_of_account_facility_omnibus_parent_code: String,
     pub chart_of_account_collateral_omnibus_parent_code: String,
     pub chart_of_account_liquidation_proceeds_omnibus_parent_code: String,

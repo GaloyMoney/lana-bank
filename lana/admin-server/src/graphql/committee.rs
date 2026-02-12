@@ -4,13 +4,13 @@ use crate::primitives::*;
 
 use super::{access::User, loader::LanaDataLoader};
 
-pub use lana_app::governance::{
+pub(super) use lana_app::governance::{
     Committee as DomainCommittee, committee_cursor::CommitteesByCreatedAtCursor,
 };
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Committee {
+pub(super) struct Committee {
     id: ID,
     committee_id: UUID,
     created_at: Timestamp,
@@ -48,20 +48,20 @@ impl Committee {
 }
 
 #[derive(InputObject)]
-pub struct CommitteeCreateInput {
+pub(super) struct CommitteeCreateInput {
     pub name: String,
 }
 crate::mutation_payload! { CommitteeCreatePayload, committee: Committee }
 
 #[derive(InputObject)]
-pub struct CommitteeAddUserInput {
+pub(super) struct CommitteeAddUserInput {
     pub committee_id: UUID,
     pub user_id: UUID,
 }
 crate::mutation_payload! { CommitteeAddUserPayload, committee: Committee }
 
 #[derive(InputObject)]
-pub struct CommitteeRemoveUserInput {
+pub(super) struct CommitteeRemoveUserInput {
     pub committee_id: UUID,
     pub user_id: UUID,
 }

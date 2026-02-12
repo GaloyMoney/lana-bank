@@ -1,6 +1,6 @@
 mod accounts;
 mod error;
-pub mod templates;
+pub(crate) mod templates;
 
 use audit::SystemSubject;
 use tracing::instrument;
@@ -13,8 +13,8 @@ use core_accounting::EntityRef;
 use es_entity::clock::ClockHandle;
 use money::Satoshis;
 
-pub use accounts::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds};
-pub use error::CollateralLedgerError;
+pub(crate) use accounts::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds};
+pub(crate) use error::CollateralLedgerError;
 
 use crate::{
     ledger::LiquidationAccountSets,

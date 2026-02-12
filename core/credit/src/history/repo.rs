@@ -7,16 +7,16 @@ use crate::primitives::CreditFacilityId;
 use super::{CreditFacilityHistory, error::*};
 
 #[derive(Clone)]
-pub struct HistoryRepo {
+pub(super) struct HistoryRepo {
     pool: PgPool,
 }
 
 impl HistoryRepo {
-    pub fn new(pool: &PgPool) -> Self {
+    pub(super) fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
     }
 
-    pub async fn begin(
+    pub(super) async fn begin(
         &self,
     ) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, CreditFacilityHistoryError> {
         Ok(self.pool.begin().await?)

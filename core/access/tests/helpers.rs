@@ -8,7 +8,7 @@ use audit::{
 };
 use core_access::{CoreAccessAction, CoreAccessEvent, CoreAccessObject, UserId};
 
-pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
+pub(crate) async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON")?;
     let pool = sqlx::PgPool::connect(&pg_con).await?;
     Ok(pool)
@@ -16,7 +16,7 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 
 /// A test subject that can be converted from UserId (required by CoreAccess)
 #[derive(Debug, Clone, Copy)]
-pub struct TestSubject;
+pub(crate) struct TestSubject;
 
 impl fmt::Display for TestSubject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -46,7 +46,7 @@ impl audit::SystemSubject for TestSubject {
 
 /// A test audit implementation that satisfies CoreAccess requirements
 #[derive(Clone)]
-pub struct TestAudit;
+pub(crate) struct TestAudit;
 
 fn dummy_audit_info() -> AuditInfo {
     AuditInfo {
@@ -124,16 +124,16 @@ impl AuditSvc for TestAudit {
     }
 }
 
-pub mod event {
+pub(crate) mod event {
     use super::*;
 
     #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
-    pub enum DummyEvent {
+    pub(crate) enum DummyEvent {
         CoreAccess(CoreAccessEvent),
         #[serde(other)]
         Unknown,
     }
 
-    pub use obix::test_utils::expect_event;
+    pub(crate) use obix::test_utils::expect_event;
 }

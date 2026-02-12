@@ -1,10 +1,10 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-pub use lana_app::primitives::CollateralDirection;
+pub(crate) use lana_app::primitives::CollateralDirection;
 
 #[derive(async_graphql::Union)]
-pub enum CreditFacilityHistoryEntry {
+pub(crate) enum CreditFacilityHistoryEntry {
     Payment(CreditFacilityIncrementalPayment),
     Collateral(CreditFacilityCollateralUpdated),
     Approved(CreditFacilityApproved),
@@ -17,7 +17,7 @@ pub enum CreditFacilityHistoryEntry {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityIncrementalPayment {
+pub(crate) struct CreditFacilityIncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
@@ -25,7 +25,7 @@ pub struct CreditFacilityIncrementalPayment {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityCollateralUpdated {
+pub(crate) struct CreditFacilityCollateralUpdated {
     pub satoshis: Satoshis,
     pub recorded_at: Timestamp,
     pub effective: Date,
@@ -34,7 +34,7 @@ pub struct CreditFacilityCollateralUpdated {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityApproved {
+pub(crate) struct CreditFacilityApproved {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
@@ -42,7 +42,7 @@ pub struct CreditFacilityApproved {
 }
 
 #[derive(SimpleObject)]
-pub struct PendingCreditFacilityCollateralizationUpdated {
+pub(crate) struct PendingCreditFacilityCollateralizationUpdated {
     pub state: PendingCreditFacilityCollateralizationState,
     pub collateral: Satoshis,
     pub price: UsdCents,
@@ -51,7 +51,7 @@ pub struct PendingCreditFacilityCollateralizationUpdated {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityCollateralizationUpdated {
+pub(crate) struct CreditFacilityCollateralizationUpdated {
     pub state: CollateralizationState,
     pub collateral: Satoshis,
     pub outstanding_interest: UsdCents,
@@ -62,7 +62,7 @@ pub struct CreditFacilityCollateralizationUpdated {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityDisbursalExecuted {
+pub(crate) struct CreditFacilityDisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
@@ -70,7 +70,7 @@ pub struct CreditFacilityDisbursalExecuted {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityInterestAccrued {
+pub(crate) struct CreditFacilityInterestAccrued {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
@@ -79,7 +79,7 @@ pub struct CreditFacilityInterestAccrued {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityCollateralSentOut {
+pub(crate) struct CreditFacilityCollateralSentOut {
     pub amount: Satoshis,
     pub recorded_at: Timestamp,
     pub effective: Date,
@@ -87,7 +87,7 @@ pub struct CreditFacilityCollateralSentOut {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityRepaymentAmountReceived {
+pub(crate) struct CreditFacilityRepaymentAmountReceived {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,

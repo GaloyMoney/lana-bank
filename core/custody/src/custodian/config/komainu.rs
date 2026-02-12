@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+#[allow(unreachable_pub)] // Re-exported via config/mod.rs -> custodian/mod.rs -> lib.rs
 pub use komainu::KomainuDirectoryConfig;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]

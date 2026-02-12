@@ -20,7 +20,7 @@ struct UpdateLastActivityDateJobData {
     sequence: EventSequence,
 }
 
-pub struct UpdateLastActivityDateJobRunner<Perms, E>
+pub(crate) struct UpdateLastActivityDateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -87,7 +87,7 @@ where
         Ok(())
     }
 
-    pub fn new(
+    pub(crate) fn new(
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
         deposits: &CoreDeposit<Perms, E>,
@@ -152,7 +152,7 @@ where
     }
 }
 
-pub struct UpdateLastActivityDateInit<Perms, E>
+pub(crate) struct UpdateLastActivityDateInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -181,7 +181,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
         deposits: &CoreDeposit<Perms, E>,
@@ -231,12 +231,12 @@ where
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct UpdateLastActivityDateConfig<Perms, E> {
+pub(crate) struct UpdateLastActivityDateConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
 impl<Perms, E> UpdateLastActivityDateConfig<Perms, E> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }

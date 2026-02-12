@@ -1,1 +1,1 @@
-pub mod end_of_day;
+pub(crate) mod end_of_day;

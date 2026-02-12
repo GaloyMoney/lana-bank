@@ -23,7 +23,7 @@ use super::{entity::*, error::PaymentAllocationError};
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub struct PaymentAllocationRepo<E>
+pub(crate) struct PaymentAllocationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
@@ -49,7 +49,11 @@ impl<E> PaymentAllocationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CollectionPublisher<E>, clock: ClockHandle) -> Self {
+    pub(crate) fn new(
+        pool: &PgPool,
+        publisher: &CollectionPublisher<E>,
+        clock: ClockHandle,
+    ) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),

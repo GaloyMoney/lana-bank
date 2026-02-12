@@ -7,7 +7,7 @@ use super::{
     withdrawal::*,
 };
 
-pub use lana_app::governance::{
+pub(super) use lana_app::governance::{
     ApprovalProcess as DomainApprovalProcess, ApprovalProcessStatus,
     ApprovalProcessType as DomainApprovalProcessType,
     approval_process_cursor::ApprovalProcessesByCreatedAtCursor,
@@ -15,7 +15,7 @@ pub use lana_app::governance::{
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct ApprovalProcess {
+pub(super) struct ApprovalProcess {
     id: ID,
     approval_process_id: UUID,
     approval_process_type: ApprovalProcessType,
@@ -195,7 +195,7 @@ impl From<&DomainApprovalProcessType> for ApprovalProcessType {
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct ApprovalProcessVoter {
+pub(super) struct ApprovalProcessVoter {
     #[graphql(skip)]
     user_id: UserId,
     still_eligible: bool,
@@ -226,13 +226,13 @@ pub(super) enum ApprovalProcessTarget {
 }
 
 #[derive(InputObject)]
-pub struct ApprovalProcessApproveInput {
+pub(super) struct ApprovalProcessApproveInput {
     pub process_id: UUID,
 }
 crate::mutation_payload! { ApprovalProcessApprovePayload, approval_process: ApprovalProcess }
 
 #[derive(InputObject)]
-pub struct ApprovalProcessDenyInput {
+pub(super) struct ApprovalProcessDenyInput {
     pub process_id: UUID,
 }
 crate::mutation_payload! { ApprovalProcessDenyPayload, approval_process: ApprovalProcess }

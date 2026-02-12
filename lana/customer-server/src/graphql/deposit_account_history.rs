@@ -9,7 +9,7 @@ use super::{
 };
 
 #[derive(Union)]
-pub enum DepositAccountHistoryEntry {
+pub(super) enum DepositAccountHistoryEntry {
     Deposit(DepositEntry),
     Withdrawal(WithdrawalEntry),
     CancelledWithdrawal(CancelledWithdrawalEntry),
@@ -22,7 +22,7 @@ pub enum DepositAccountHistoryEntry {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct DepositEntry {
+pub(super) struct DepositEntry {
     #[graphql(skip)]
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
@@ -30,14 +30,14 @@ pub struct DepositEntry {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct WithdrawalEntry {
+pub(super) struct WithdrawalEntry {
     #[graphql(skip)]
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct CancelledWithdrawalEntry {
+pub(super) struct CancelledWithdrawalEntry {
     #[graphql(skip)]
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
@@ -45,7 +45,7 @@ pub struct CancelledWithdrawalEntry {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct DisbursalEntry {
+pub(super) struct DisbursalEntry {
     #[graphql(skip)]
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
@@ -53,28 +53,28 @@ pub struct DisbursalEntry {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct PaymentEntry {
+pub(super) struct PaymentEntry {
     #[graphql(skip)]
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
 
 #[derive(SimpleObject)]
-pub struct FreezeEntry {
+pub(super) struct FreezeEntry {
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
     pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct UnfreezeEntry {
+pub(super) struct UnfreezeEntry {
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
     pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct UnknownEntry {
+pub(super) struct UnknownEntry {
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }

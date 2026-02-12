@@ -59,12 +59,12 @@ pub struct LoanAgreementGenerateInput {
 crate::mutation_payload! { LoanAgreementGeneratePayload, loan_agreement: LoanAgreement }
 
 #[derive(InputObject)]
-pub struct LoanAgreementDownloadLinksGenerateInput {
+pub(super) struct LoanAgreementDownloadLinksGenerateInput {
     pub loan_agreement_id: UUID,
 }
 
 #[derive(SimpleObject)]
-pub struct LoanAgreementDownloadLinksGeneratePayload {
+pub(super) struct LoanAgreementDownloadLinksGeneratePayload {
     pub loan_agreement_id: UUID,
     pub link: String,
 }

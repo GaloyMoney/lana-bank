@@ -6,7 +6,7 @@ use core_accounting::EntityRef;
 use es_entity::clock::ClockHandle;
 
 mod deposit_accounts;
-pub mod error;
+pub(crate) mod error;
 mod templates;
 mod velocity;
 
@@ -31,61 +31,65 @@ use crate::{
 pub(super) use deposit_accounts::*;
 use error::*;
 
-pub const DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str = "Deposit Individual Account Set";
-pub const DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF: &str = "deposit-individual-account-set";
-pub const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str =
+pub(crate) const DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str = "Deposit Individual Account Set";
+pub(crate) const DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF: &str = "deposit-individual-account-set";
+pub(crate) const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str =
     "Deposit Government Entity Account Set";
-pub const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF: &str = "deposit-government-entity-account-set";
-pub const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str = "Deposit Private Company Account Set";
-pub const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF: &str = "deposit-private-company-account-set";
-pub const DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Deposit Bank Account Set";
-pub const DEPOSIT_BANK_ACCOUNT_SET_REF: &str = "deposit-bank-account-set";
-pub const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
+pub(crate) const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF: &str =
+    "deposit-government-entity-account-set";
+pub(crate) const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str =
+    "Deposit Private Company Account Set";
+pub(crate) const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF: &str =
+    "deposit-private-company-account-set";
+pub(crate) const DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Deposit Bank Account Set";
+pub(crate) const DEPOSIT_BANK_ACCOUNT_SET_REF: &str = "deposit-bank-account-set";
+pub(crate) const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
     "Deposit Financial Institution Account Set";
-pub const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF: &str =
+pub(crate) const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF: &str =
     "deposit-financial-institution-account-set";
-pub const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
+pub(crate) const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
     "Deposit Non-Domiciled Company Account Set";
-pub const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
+pub(crate) const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
     "deposit-non-domiciled-company-account-set";
 
-pub const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
+pub(crate) const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
     "Frozen Deposit Individual Account Set";
-pub const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF: &str = "frozen-deposit-individual-account-set";
-pub const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str =
+pub(crate) const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF: &str =
+    "frozen-deposit-individual-account-set";
+pub(crate) const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str =
     "Frozen Deposit Government Entity Account Set";
-pub const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF: &str =
+pub(crate) const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF: &str =
     "frozen-deposit-government-entity-account-set";
-pub const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str =
+pub(crate) const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str =
     "Frozen Deposit Private Company Account Set";
-pub const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF: &str =
+pub(crate) const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF: &str =
     "frozen-deposit-private-company-account-set";
-pub const FROZEN_DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Frozen Deposit Bank Account Set";
-pub const FROZEN_DEPOSIT_BANK_ACCOUNT_SET_REF: &str = "frozen-deposit-bank-account-set";
-pub const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
+pub(crate) const FROZEN_DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Frozen Deposit Bank Account Set";
+pub(crate) const FROZEN_DEPOSIT_BANK_ACCOUNT_SET_REF: &str = "frozen-deposit-bank-account-set";
+pub(crate) const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
     "Frozen Deposit Financial Institution Account Set";
-pub const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF: &str =
+pub(crate) const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF: &str =
     "frozen-deposit-financial-institution-account-set";
-pub const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
+pub(crate) const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
     "Frozen Deposit Non-Domiciled Company Account Set";
-pub const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
+pub(crate) const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
     "frozen-deposit-non-domiciled-company-account-set";
 
-pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME: &str = "Deposit Omnibus Account Set";
-pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_REF: &str = "deposit-omnibus-account-set";
-pub const DEPOSIT_OMNIBUS_ACCOUNT_REF: &str = "deposit-omnibus-account";
+pub(crate) const DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME: &str = "Deposit Omnibus Account Set";
+pub(crate) const DEPOSIT_OMNIBUS_ACCOUNT_SET_REF: &str = "deposit-omnibus-account-set";
+pub(crate) const DEPOSIT_OMNIBUS_ACCOUNT_REF: &str = "deposit-omnibus-account";
 
-pub const DEPOSITS_VELOCITY_CONTROL_ID: uuid::Uuid =
+pub(crate) const DEPOSITS_VELOCITY_CONTROL_ID: uuid::Uuid =
     uuid::uuid!("00000000-0000-0000-0000-000000000001");
 
 #[derive(Clone, Copy, Debug)]
-pub struct InternalAccountSetDetails {
+pub(crate) struct InternalAccountSetDetails {
     id: CalaAccountSetId,
     normal_balance_type: DebitOrCredit,
 }
 
 #[derive(Clone, Copy)]
-pub struct DepositAccountSets {
+pub(crate) struct DepositAccountSets {
     individual: InternalAccountSetDetails,
     government_entity: InternalAccountSetDetails,
     private_company: InternalAccountSetDetails,

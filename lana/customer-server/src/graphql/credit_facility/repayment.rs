@@ -43,7 +43,7 @@ impl From<lana_app::credit::RepaymentStatus> for CreditFacilityRepaymentStatus {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityRepaymentPlanEntry {
+pub(super) struct CreditFacilityRepaymentPlanEntry {
     pub repayment_type: CreditFacilityRepaymentType,
     pub status: CreditFacilityRepaymentStatus,
     pub initial: UsdCents,

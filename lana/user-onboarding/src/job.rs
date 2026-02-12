@@ -13,11 +13,11 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use keycloak_client::KeycloakClient;
 
 #[derive(Serialize, Deserialize)]
-pub struct UserOnboardingJobConfig<E> {
+pub(crate) struct UserOnboardingJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
 impl<E> UserOnboardingJobConfig<E> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
@@ -32,7 +32,7 @@ impl<E> Clone for UserOnboardingJobConfig<E> {
     }
 }
 
-pub struct UserOnboardingInit<E>
+pub(crate) struct UserOnboardingInit<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
@@ -44,7 +44,7 @@ impl<E> UserOnboardingInit<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
             outbox: outbox.clone(),
             keycloak_client,
@@ -83,7 +83,7 @@ struct UserOnboardingJobData {
     sequence: obix::EventSequence,
 }
 
-pub struct UserOnboardingJobRunner<E>
+pub(crate) struct UserOnboardingJobRunner<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {

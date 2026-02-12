@@ -1,5 +1,5 @@
-pub mod report;
-pub mod report_run;
+pub(super) mod report;
+pub(super) mod report_run;
 
-pub use report::*;
-pub use report_run::*;
+pub(super) use report::*;
+pub(super) use report_run::*;

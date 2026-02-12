@@ -6,6 +6,9 @@ license = "BUSL-1.1"
 [package.metadata.cargo-machete]
 ignored = ["async-graphql"]
 
+[lints]
+workspace = true
+
 [features]
 fail-on-warnings = []
 test-utils = []

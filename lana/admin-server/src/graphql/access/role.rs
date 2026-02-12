@@ -4,11 +4,11 @@ use crate::graphql::access::PermissionSet;
 use crate::graphql::loader::LanaDataLoader;
 use crate::primitives::*;
 use lana_app::access::role::Role as DomainRole;
-pub use lana_app::access::role::RolesByNameCursor;
+pub(crate) use lana_app::access::role::RolesByNameCursor;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Role {
+pub(crate) struct Role {
     id: ID,
     role_id: UUID,
     created_at: Timestamp,
@@ -48,21 +48,21 @@ impl From<DomainRole> for Role {
 }
 
 #[derive(InputObject)]
-pub struct RoleCreateInput {
+pub(crate) struct RoleCreateInput {
     pub name: String,
     pub permission_set_ids: Vec<UUID>,
 }
 crate::mutation_payload! { RoleCreatePayload, role: Role }
 
 #[derive(InputObject)]
-pub struct RoleAddPermissionSetsInput {
+pub(crate) struct RoleAddPermissionSetsInput {
     pub role_id: UUID,
     pub permission_set_ids: Vec<UUID>,
 }
 crate::mutation_payload! { RoleAddPermissionSetsPayload, role: Role }
 
 #[derive(InputObject)]
-pub struct RoleRemovePermissionSetsInput {
+pub(crate) struct RoleRemovePermissionSetsInput {
     pub role_id: UUID,
     pub permission_set_ids: Vec<UUID>,
 }

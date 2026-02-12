@@ -17,7 +17,7 @@ use lana_app::app::AppConfig;
 /// Time configuration for the application clock
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum TimeConfig {
+pub(crate) enum TimeConfig {
     /// Use real system time
     #[default]
     Realtime,
@@ -40,7 +40,7 @@ impl TimeConfig {
 /// Main configuration structure for the Lana banking application
 #[derive(Clone, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Config {
+pub(crate) struct Config {
     /// Database configuration for PostgreSQL connection
     #[serde(default)]
     pub db: DbConfig,
@@ -66,7 +66,7 @@ pub struct Config {
     pub bootstrap: BootstrapConfig,
 }
 
-pub struct EnvSecrets {
+pub(crate) struct EnvSecrets {
     pub pg_con: String,
     pub smtp_username: String,
     pub smtp_password: String,
@@ -76,7 +76,7 @@ pub struct EnvSecrets {
 }
 
 impl Config {
-    pub fn try_new(
+    pub(crate) fn try_new(
         path: impl AsRef<Path>,
         EnvSecrets {
             pg_con,

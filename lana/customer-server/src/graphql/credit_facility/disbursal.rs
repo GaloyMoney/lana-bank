@@ -2,10 +2,10 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::credit::Disbursal as DomainDisbursal;
+pub(crate) use lana_app::credit::Disbursal as DomainDisbursal;
 
 #[derive(SimpleObject, Clone)]
-pub struct CreditFacilityDisbursal {
+pub(crate) struct CreditFacilityDisbursal {
     id: ID,
     disbursal_id: UUID,
     amount: UsdCents,

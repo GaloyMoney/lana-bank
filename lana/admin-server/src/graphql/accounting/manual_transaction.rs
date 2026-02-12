@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-pub use lana_app::accounting::manual_transaction::ManualEntryInput;
+pub(crate) use lana_app::accounting::manual_transaction::ManualEntryInput;
 
 use crate::graphql::primitives::*;
 use crate::primitives::Date;

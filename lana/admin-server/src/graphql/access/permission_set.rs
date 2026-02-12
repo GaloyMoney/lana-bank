@@ -2,11 +2,11 @@ use async_graphql::*;
 
 use crate::primitives::*;
 use lana_app::access::permission_set::PermissionSet as DomainPermissionSet;
-pub use lana_app::access::permission_set::PermissionSetsByIdCursor;
+pub(crate) use lana_app::access::permission_set::PermissionSetsByIdCursor;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct PermissionSet {
+pub(crate) struct PermissionSet {
     id: ID,
     permission_set_id: UUID,
 

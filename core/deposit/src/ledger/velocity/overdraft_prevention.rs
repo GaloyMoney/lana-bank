@@ -5,7 +5,7 @@ use cala_ledger::{velocity::*, *};
 
 use crate::ledger::error::*;
 
-pub struct OverdraftPrevention;
+pub(crate) struct OverdraftPrevention;
 
 const OVERDRAFT_PREVENTION_ID: uuid::Uuid = uuid::uuid!("00000000-0000-0000-0000-000000000001");
 

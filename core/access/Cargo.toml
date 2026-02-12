@@ -3,6 +3,9 @@ name = "core-access"
 license = "BUSL-1.1"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [features]
 
 default = ["governance"]

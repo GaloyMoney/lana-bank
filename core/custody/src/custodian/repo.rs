@@ -29,7 +29,7 @@ impl CustodianRepo {
         }
     }
 
-    pub async fn list_all(&self) -> Result<Vec<Custodian>, CustodianError> {
+    pub(crate) async fn list_all(&self) -> Result<Vec<Custodian>, CustodianError> {
         let mut custodians = Vec::new();
         let mut next = Some(PaginatedQueryArgs::default());
 

@@ -3,6 +3,9 @@ name = "core-custody"
 license = "BUSL-1.1"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [features]
 fail-on-warnings = []
 graphql = ["dep:async-graphql", "es-entity/graphql"]

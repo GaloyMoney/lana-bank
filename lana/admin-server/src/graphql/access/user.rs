@@ -7,7 +7,7 @@ use super::Role;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct User {
+pub(crate) struct User {
     id: ID,
     user_id: UUID,
     created_at: Timestamp,
@@ -68,7 +68,7 @@ impl User {
 }
 
 #[derive(InputObject)]
-pub struct UserCreateInput {
+pub(crate) struct UserCreateInput {
     pub email: String,
     pub role_id: UUID,
 }
@@ -76,7 +76,7 @@ pub struct UserCreateInput {
 mutation_payload! { UserCreatePayload, user: User }
 
 #[derive(InputObject)]
-pub struct UserUpdateRoleInput {
+pub(crate) struct UserUpdateRoleInput {
     pub id: UUID,
     pub role_id: UUID,
 }

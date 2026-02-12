@@ -3,6 +3,9 @@ name = "public-id"
 edition = "2024"
 license = "BUSL-1.1"
 
+[lints]
+workspace = true
+
 [features]
 fail-on-warnings = []
 graphql = ["dep:async-graphql", "es-entity/graphql"]

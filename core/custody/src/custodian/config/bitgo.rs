@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+#[allow(unreachable_pub)] // Re-exported via config/mod.rs -> custodian/mod.rs -> lib.rs
 pub use bitgo::BitgoDirectoryConfig;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]

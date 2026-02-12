@@ -16,7 +16,7 @@ use super::publisher::AccountingCsvPublisher;
 use super::{CoreAccountingAction, CoreAccountingObject, generate::GenerateCsvExport};
 
 #[derive(Serialize, Deserialize)]
-pub struct GenerateAccountingCsvConfig<Perms, E> {
+pub(super) struct GenerateAccountingCsvConfig<Perms, E> {
     pub document_id: DocumentId,
     pub ledger_account_id: LedgerAccountId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
@@ -32,7 +32,7 @@ impl<Perms, E> Clone for GenerateAccountingCsvConfig<Perms, E> {
     }
 }
 
-pub struct GenerateAccountingCsvInit<Perms, E>
+pub(super) struct GenerateAccountingCsvInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreAccountingEvent>,
@@ -47,7 +47,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreAccountingEvent>,
 {
-    pub fn new(
+    pub(super) fn new(
         document_storage: &DocumentStorage,
         ledger_accounts: &LedgerAccounts<Perms>,
         outbox: &Outbox<E>,
@@ -60,7 +60,8 @@ where
     }
 }
 
-pub const GENERATE_ACCOUNTING_CSV_JOB: JobType = JobType::new("task.generate-accounting-csv");
+pub(super) const GENERATE_ACCOUNTING_CSV_JOB: JobType =
+    JobType::new("task.generate-accounting-csv");
 
 impl<Perms, E> JobInitializer for GenerateAccountingCsvInit<Perms, E>
 where
@@ -88,7 +89,7 @@ where
     }
 }
 
-pub struct GenerateAccountingCsvExportJobRunner<Perms, E>
+pub(super) struct GenerateAccountingCsvExportJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
@@ -136,5 +137,5 @@ where
     }
 }
 
-pub type GenerateAccountingCsvJobSpawner<Perms, E> =
+pub(super) type GenerateAccountingCsvJobSpawner<Perms, E> =
     JobSpawner<GenerateAccountingCsvConfig<Perms, E>>;

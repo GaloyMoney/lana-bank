@@ -81,7 +81,10 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, process: &ApproveCreditFacilityProposal<Perms, E>) -> Self {
+    pub(crate) fn new(
+        outbox: &Outbox<E>,
+        process: &ApproveCreditFacilityProposal<Perms, E>,
+    ) -> Self {
         Self {
             process: process.clone(),
             outbox: outbox.clone(),

@@ -21,7 +21,7 @@ use super::helpers;
     skip(app, clock, clock_ctrl),
     err
 )]
-pub async fn run(
+pub(crate) async fn run(
     sub: &Subject,
     app: &LanaApp,
     clock: ClockHandle,
@@ -51,7 +51,7 @@ pub async fn run(
 }
 
 #[instrument(name = "sim_bootstrap.process_facility_lifecycle", skip(sub, app, clock), fields(customer_id = %customer_id, deposit_account_id = %deposit_account_id, proposal_id = tracing::field::Empty))]
-pub async fn process_facility_lifecycle(
+pub(crate) async fn process_facility_lifecycle(
     sub: Subject,
     app: LanaApp,
     customer_id: CustomerId,

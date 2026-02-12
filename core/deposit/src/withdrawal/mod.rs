@@ -1,6 +1,6 @@
 mod entity;
-pub mod error;
-pub mod repo;
+pub(crate) mod error;
+pub(crate) mod repo;
 
 #[cfg(feature = "json-schema")]
 pub use entity::WithdrawalEvent;

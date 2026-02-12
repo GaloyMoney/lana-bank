@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SyncReportsJobConfig<E>
+pub(crate) struct SyncReportsJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
@@ -34,7 +34,7 @@ impl<E> SyncReportsJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
@@ -42,11 +42,11 @@ where
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct SyncReportsJobExecutionState {
+pub(crate) struct SyncReportsJobExecutionState {
     run_id: Option<String>,
 }
 
-pub struct SyncReportsJobInit<E>
+pub(crate) struct SyncReportsJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
@@ -59,7 +59,7 @@ impl<E> SyncReportsJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         dagster: dagster::Dagster,
         report_runs: ReportRunRepo<E>,
         reports: ReportRepo,
@@ -267,4 +267,4 @@ where
     }
 }
 
-pub type SyncReportsJobSpawner<E> = JobSpawner<SyncReportsJobConfig<E>>;
+pub(crate) type SyncReportsJobSpawner<E> = JobSpawner<SyncReportsJobConfig<E>>;

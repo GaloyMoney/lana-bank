@@ -5,7 +5,7 @@ use tracing::info;
 
 /// A domain config setting parsed from an environment variable.
 #[derive(Debug, Clone)]
-pub struct DomainConfigSetting {
+pub(crate) struct DomainConfigSetting {
     pub key: String,
     pub value: serde_json::Value,
 }
@@ -18,7 +18,7 @@ pub struct DomainConfigSetting {
 /// Example:
 /// - Config key: `require-verified-customer-for-account`
 /// - Env var: `LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false`
-pub const DOMAIN_CONFIG_ENV_PREFIX: &str = "LANA_DOMAIN_CONFIG_";
+pub(crate) const DOMAIN_CONFIG_ENV_PREFIX: &str = "LANA_DOMAIN_CONFIG_";
 
 /// Parse domain config settings from environment variables.
 ///
@@ -30,7 +30,7 @@ pub const DOMAIN_CONFIG_ENV_PREFIX: &str = "LANA_DOMAIN_CONFIG_";
 /// LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
 /// LANA_DOMAIN_CONFIG_SOME_OTHER_KEY=42
 /// ```
-pub fn parse_from_env() -> Result<Vec<DomainConfigSetting>> {
+pub(crate) fn parse_from_env() -> Result<Vec<DomainConfigSetting>> {
     let mut settings = Vec::new();
 
     for (env_key, env_value) in std::env::vars() {

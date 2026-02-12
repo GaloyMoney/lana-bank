@@ -24,15 +24,15 @@ impl ErrorSeverity for CsvParseError {
     }
 }
 
-pub struct CsvParser {
+pub(crate) struct CsvParser {
     import_data: String,
 }
 impl CsvParser {
-    pub fn new(import_data: String) -> Self {
+    pub(crate) fn new(import_data: String) -> Self {
         Self { import_data }
     }
 
-    pub fn account_specs(self) -> Result<Vec<AccountSpec>, CsvParseError> {
+    pub(crate) fn account_specs(self) -> Result<Vec<AccountSpec>, CsvParseError> {
         let mut rdr = ReaderBuilder::new()
             .flexible(true)
             .trim(Trim::All)

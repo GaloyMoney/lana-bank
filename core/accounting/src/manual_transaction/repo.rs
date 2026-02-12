@@ -17,7 +17,7 @@ use super::{entity::*, error::*};
     ),
     tbl_prefix = "core"
 )]
-pub struct ManualTransactionRepo {
+pub(super) struct ManualTransactionRepo {
     pool: PgPool,
     clock: ClockHandle,
 }
@@ -32,7 +32,7 @@ impl Clone for ManualTransactionRepo {
 }
 
 impl ManualTransactionRepo {
-    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+    pub(super) fn new(pool: &PgPool, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             clock,

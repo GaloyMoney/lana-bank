@@ -17,6 +17,7 @@ exclude = [
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tokio_unstable)'] }
+unreachable_pub = "warn"
 
 [workspace.package]
 version = "0.0.0"

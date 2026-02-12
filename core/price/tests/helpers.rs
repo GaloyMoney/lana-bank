@@ -5,7 +5,7 @@ use tokio::time::{Duration, sleep};
 use core_price::{CorePriceEvent, PRICE_UPDATED_EVENT_TYPE, Price, PriceOfOneBTC};
 use obix::out::Outbox;
 
-pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
+pub(crate) async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
     Ok(pool)
@@ -13,13 +13,13 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 
 #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
 #[serde(tag = "module")]
-pub enum DummyEvent {
+pub(crate) enum DummyEvent {
     Price(CorePriceEvent),
     #[serde(other)]
     Unknown,
 }
 
-pub async fn wait_for_price_to_be_updated(
+pub(crate) async fn wait_for_price_to_be_updated(
     price: &Price,
     expected_price: PriceOfOneBTC,
     attempts: u32,
@@ -42,7 +42,7 @@ pub async fn wait_for_price_to_be_updated(
     Ok(current_price)
 }
 
-pub async fn publish_dummy_price_event(
+pub(crate) async fn publish_dummy_price_event(
     outbox: &Outbox<DummyEvent>,
     price: PriceOfOneBTC,
 ) -> anyhow::Result<()> {

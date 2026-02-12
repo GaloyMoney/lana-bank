@@ -1,4 +1,4 @@
-pub mod error;
+pub(crate) mod error;
 
 use async_trait::async_trait;
 use bitgo::TransferState;

@@ -23,7 +23,7 @@ struct ChartNodeRepo {
     clock: ClockHandle,
 }
 impl ChartNodeRepo {
-    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+    pub(crate) fn new(pool: &PgPool, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             clock,
@@ -38,7 +38,7 @@ impl ChartNodeRepo {
     columns(reference(ty = "String")),
     tbl_prefix = "core"
 )]
-pub struct ChartRepo {
+pub(crate) struct ChartRepo {
     pool: PgPool,
     clock: ClockHandle,
 
@@ -47,7 +47,7 @@ pub struct ChartRepo {
 }
 
 impl ChartRepo {
-    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+    pub(crate) fn new(pool: &PgPool, clock: ClockHandle) -> Self {
         let chart_nodes = ChartNodeRepo::new(pool, clock.clone());
         Self {
             pool: pool.clone(),

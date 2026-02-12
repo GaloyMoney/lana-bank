@@ -7,7 +7,7 @@ use crate::primitives::*;
 
 #[derive(SimpleObject)]
 #[graphql(name = "Me", complex)]
-pub struct MeUser {
+pub(super) struct MeUser {
     user: User,
 }
 

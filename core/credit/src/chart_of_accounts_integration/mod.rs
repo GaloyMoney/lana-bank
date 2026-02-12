@@ -1,5 +1,5 @@
 mod config;
-pub mod error;
+pub(crate) mod error;
 
 use std::sync::Arc;
 

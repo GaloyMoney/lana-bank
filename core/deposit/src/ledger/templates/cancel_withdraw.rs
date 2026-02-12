@@ -9,7 +9,7 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::WITHDRAWAL_TRANSACTION_ENTITY_TYPE};
 
-pub const CANCEL_WITHDRAW_CODE: &str = "CANCEL_WITHDRAW";
+pub(crate) const CANCEL_WITHDRAW_CODE: &str = "CANCEL_WITHDRAW";
 
 #[derive(Debug)]
 pub struct CancelWithdrawParams<S: std::fmt::Display> {
@@ -99,7 +99,7 @@ impl<S: std::fmt::Display> From<CancelWithdrawParams<S>> for Params {
     }
 }
 
-pub struct CancelWithdraw;
+pub(crate) struct CancelWithdraw;
 
 impl CancelWithdraw {
     #[record_error_severity]

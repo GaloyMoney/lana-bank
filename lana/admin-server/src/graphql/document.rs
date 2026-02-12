@@ -3,7 +3,7 @@ use async_graphql::*;
 use crate::primitives::*;
 use lana_app::customer::CustomerDocumentId;
 
-pub use lana_app::document::{Document as DomainDocument, DocumentStatus};
+pub(super) use lana_app::document::{Document as DomainDocument, DocumentStatus};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -50,12 +50,12 @@ pub struct CustomerDocumentCreateInput {
 crate::mutation_payload! { CustomerDocumentCreatePayload, document: CustomerDocument }
 
 #[derive(InputObject)]
-pub struct CustomerDocumentDownloadLinksGenerateInput {
+pub(super) struct CustomerDocumentDownloadLinksGenerateInput {
     pub document_id: UUID,
 }
 
 #[derive(SimpleObject)]
-pub struct CustomerDocumentDownloadLinksGeneratePayload {
+pub(super) struct CustomerDocumentDownloadLinksGeneratePayload {
     document_id: UUID,
     link: String,
 }
@@ -72,16 +72,16 @@ impl From<lana_app::document::GeneratedDocumentDownloadLink>
 }
 
 #[derive(InputObject)]
-pub struct CustomerDocumentDeleteInput {
+pub(super) struct CustomerDocumentDeleteInput {
     pub document_id: UUID,
 }
 #[derive(SimpleObject)]
-pub struct CustomerDocumentDeletePayload {
+pub(super) struct CustomerDocumentDeletePayload {
     pub deleted_document_id: UUID,
 }
 
 #[derive(InputObject)]
-pub struct CustomerDocumentArchiveInput {
+pub(super) struct CustomerDocumentArchiveInput {
     pub document_id: UUID,
 }
 crate::mutation_payload! { CustomerDocumentArchivePayload, document: CustomerDocument }

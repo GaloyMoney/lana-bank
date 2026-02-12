@@ -23,12 +23,12 @@ struct UpdateCustomerActivityStatusJobData {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct UpdateCustomerActivityStatusJobConfig<Perms, E> {
+pub(crate) struct UpdateCustomerActivityStatusJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
 impl<Perms, E> UpdateCustomerActivityStatusJobConfig<Perms, E> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
@@ -43,7 +43,7 @@ impl<Perms, E> Clone for UpdateCustomerActivityStatusJobConfig<Perms, E> {
     }
 }
 
-pub struct UpdateCustomerActivityStatusInit<Perms, E>
+pub(crate) struct UpdateCustomerActivityStatusInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<LanaEvent>
@@ -65,7 +65,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreTimeEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, customers: &Customers<Perms, E>) -> Self {
+    pub(crate) fn new(outbox: &Outbox<E>, customers: &Customers<Perms, E>) -> Self {
         Self {
             outbox: outbox.clone(),
             customers: customers.clone(),
@@ -110,7 +110,7 @@ where
     }
 }
 
-pub struct UpdateCustomerActivityStatusJobRunner<Perms, E>
+pub(crate) struct UpdateCustomerActivityStatusJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<LanaEvent>

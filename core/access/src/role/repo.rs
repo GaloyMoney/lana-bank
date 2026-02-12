@@ -29,7 +29,7 @@ impl<E> RoleRepo<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &UserPublisher<E>, clock: ClockHandle) -> Self {
+    pub(crate) fn new(pool: &PgPool, publisher: &UserPublisher<E>, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),

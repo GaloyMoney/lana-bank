@@ -7,13 +7,13 @@ use domain_config::{
     RequireVerifiedCustomerForAccount,
 };
 use rand::Rng;
-pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
+pub(crate) async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
     Ok(pool)
 }
 
-pub async fn init_read_only_exposed_domain_configs(
+pub(crate) async fn init_read_only_exposed_domain_configs(
     pool: &sqlx::PgPool,
     authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
 ) -> anyhow::Result<ExposedDomainConfigsReadOnly> {
@@ -27,7 +27,7 @@ pub async fn init_read_only_exposed_domain_configs(
     Ok(ExposedDomainConfigsReadOnly::new(pool))
 }
 
-pub async fn init_internal_domain_configs(
+pub(crate) async fn init_internal_domain_configs(
     pool: &sqlx::PgPool,
 ) -> anyhow::Result<InternalDomainConfigs> {
     let internal_configs = InternalDomainConfigs::new(pool);
@@ -35,7 +35,7 @@ pub async fn init_internal_domain_configs(
     Ok(internal_configs)
 }
 
-pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {
+pub(crate) async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {
     use cala_ledger::journal::*;
 
     let id = JournalId::new();
@@ -48,7 +48,7 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
     Ok(journal.id)
 }
 
-pub fn default_accounting_base_config() -> AccountingBaseConfig {
+pub(crate) fn default_accounting_base_config() -> AccountingBaseConfig {
     AccountingBaseConfig::try_new(
         "1".parse().unwrap(),
         "2".parse().unwrap(),
@@ -62,7 +62,7 @@ pub fn default_accounting_base_config() -> AccountingBaseConfig {
     .unwrap()
 }
 
-pub const BASE_ACCOUNTS_CSV: &str = r#"
+pub(crate) const BASE_ACCOUNTS_CSV: &str = r#"
 1,,,Assets,Debit,
 2,,,Liabilities,Credit,
 3,,,Equity,Credit,
@@ -74,7 +74,7 @@ pub const BASE_ACCOUNTS_CSV: &str = r#"
 6,,,Expenses,Debit,
 "#;
 
-pub async fn create_test_statements<Perms, E>(
+pub(crate) async fn create_test_statements<Perms, E>(
     accounting: &CoreAccounting<Perms, E>,
 ) -> anyhow::Result<(String, String, String)>
 where
@@ -105,14 +105,14 @@ where
     Ok((bs, pl, tb))
 }
 
-pub mod action {
+pub(crate) mod action {
     use core_accounting::CoreAccountingAction;
     use core_customer::CoreCustomerAction;
     use core_deposit::{CoreDepositAction, GovernanceAction};
     use domain_config::DomainConfigAction;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
-    pub struct DummyAction;
+    pub(crate) struct DummyAction;
 
     impl From<CoreDepositAction> for DummyAction {
         fn from(_: CoreDepositAction) -> Self {
@@ -160,14 +160,14 @@ pub mod action {
     }
 }
 
-pub mod object {
+pub(crate) mod object {
     use core_accounting::CoreAccountingObject;
     use core_customer::CustomerObject;
     use core_deposit::{CoreDepositObject, GovernanceObject};
     use domain_config::DomainConfigObject;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
-    pub struct DummyObject;
+    pub(crate) struct DummyObject;
 
     impl From<CoreDepositObject> for DummyObject {
         fn from(_: CoreDepositObject) -> Self {
@@ -214,7 +214,7 @@ pub mod object {
     }
 }
 
-pub mod event {
+pub(crate) mod event {
     use serde::{Deserialize, Serialize};
 
     use core_accounting::CoreAccountingEvent;
@@ -224,7 +224,7 @@ pub mod event {
 
     #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
-    pub enum DummyEvent {
+    pub(crate) enum DummyEvent {
         CoreDeposit(CoreDepositEvent),
         CoreCustomer(CoreCustomerEvent),
         CoreAccounting(CoreAccountingEvent),

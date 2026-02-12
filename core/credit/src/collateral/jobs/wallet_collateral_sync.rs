@@ -19,7 +19,7 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize)]
-pub struct WalletCollateralSyncJobConfig<S, E> {
+pub(crate) struct WalletCollateralSyncJobConfig<S, E> {
     _phantom: std::marker::PhantomData<(S, E)>,
 }
 
@@ -32,7 +32,7 @@ impl<S, E> Clone for WalletCollateralSyncJobConfig<S, E> {
 }
 
 impl<S, E> WalletCollateralSyncJobConfig<S, E> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
@@ -50,7 +50,7 @@ struct WalletCollateralSyncJobData {
     sequence: obix::EventSequence,
 }
 
-pub struct WalletCollateralSyncInit<S, E>
+pub(crate) struct WalletCollateralSyncInit<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent>,
@@ -66,7 +66,7 @@ where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCustodyEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         outbox: &Outbox<E>,
         ledger: Arc<CollateralLedger>,
         repo: Arc<CollateralRepo<E>>,
@@ -113,7 +113,7 @@ where
     }
 }
 
-pub struct WalletCollateralSyncJobRunner<S, E>
+pub(crate) struct WalletCollateralSyncJobRunner<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,

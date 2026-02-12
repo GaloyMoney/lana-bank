@@ -62,7 +62,7 @@ use core_credit_collection::CoreCreditCollection;
 /// Each state represents a discrete domain process in the interest accrual lifecycle.
 /// This is stored in the job's execution_state and persists across reschedules.
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
-pub enum InterestAccrualState {
+pub(crate) enum InterestAccrualState {
     /// Calculate and record interest for the current accrual period.
     ///
     /// This state handles individual period accruals within a cycle.
@@ -87,7 +87,7 @@ pub enum InterestAccrualState {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct InterestAccrualJobConfig<Perms, E> {
+pub(crate) struct InterestAccrualJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -101,7 +101,7 @@ impl<Perms, E> Clone for InterestAccrualJobConfig<Perms, E> {
     }
 }
 
-pub struct InterestAccrualJobInit<Perms, E>
+pub(crate) struct InterestAccrualJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -133,7 +133,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         ledger: Arc<CreditLedger>,
         collections: Arc<CoreCreditCollection<Perms, E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
@@ -533,4 +533,5 @@ where
     }
 }
 
-pub type InterestAccrualJobSpawner<Perms, E> = JobSpawner<InterestAccrualJobConfig<Perms, E>>;
+pub(crate) type InterestAccrualJobSpawner<Perms, E> =
+    JobSpawner<InterestAccrualJobConfig<Perms, E>>;

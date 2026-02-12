@@ -1,8 +1,8 @@
 mod entity;
-pub mod error;
+pub(crate) mod error;
 mod jobs;
-pub mod ledger;
-pub mod liquidation;
+pub(crate) mod ledger;
+pub(crate) mod liquidation;
 mod repo;
 
 use std::collections::HashMap;

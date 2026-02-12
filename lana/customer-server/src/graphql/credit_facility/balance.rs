@@ -54,34 +54,34 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
 }
 
 #[derive(SimpleObject)]
-pub struct Collateral {
+pub(super) struct Collateral {
     pub btc_balance: Satoshis,
 }
 
 #[derive(SimpleObject)]
-pub struct Outstanding {
+pub(super) struct Outstanding {
     pub usd_balance: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct Total {
+pub(super) struct Total {
     pub usd_balance: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct FacilityRemaining {
+pub(super) struct FacilityRemaining {
     pub usd_balance: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct Disbursed {
+pub(super) struct Disbursed {
     pub total: Total,
     pub outstanding: Outstanding,
     pub due_outstanding: Outstanding,
 }
 
 #[derive(SimpleObject)]
-pub struct Interest {
+pub(super) struct Interest {
     pub total: Total,
     pub outstanding: Outstanding,
     pub due_outstanding: Outstanding,

@@ -12,7 +12,7 @@ use crate::{
 
 use super::error::AccountingCsvExportError;
 
-pub struct GenerateCsvExport<Perms>
+pub(super) struct GenerateCsvExport<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
@@ -27,13 +27,13 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    pub fn new(ledger_accounts: &LedgerAccounts<Perms>) -> Self {
+    pub(super) fn new(ledger_accounts: &LedgerAccounts<Perms>) -> Self {
         Self {
             ledger_accounts: ledger_accounts.clone(),
         }
     }
 
-    pub async fn generate_ledger_account_csv(
+    pub(super) async fn generate_ledger_account_csv(
         &self,
         ledger_account_id: LedgerAccountId,
     ) -> Result<Vec<u8>, AccountingCsvExportError> {

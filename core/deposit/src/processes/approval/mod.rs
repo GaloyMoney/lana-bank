@@ -17,11 +17,11 @@ use crate::{
     withdrawal::{Withdrawal, error::WithdrawalError, repo::WithdrawalRepo},
 };
 
-pub use job::*;
+pub(crate) use job::*;
 
 pub const APPROVE_WITHDRAWAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
 
-pub struct ApproveWithdrawal<Perms, E>
+pub(crate) struct ApproveWithdrawal<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
@@ -55,7 +55,7 @@ where
         From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    pub fn new(
+    pub(crate) fn new(
         repo: &WithdrawalRepo<E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,

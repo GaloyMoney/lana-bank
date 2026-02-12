@@ -62,40 +62,40 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
 }
 
 #[derive(SimpleObject)]
-pub struct CollateralBalance {
+pub(crate) struct CollateralBalance {
     pub btc_balance: Satoshis,
 }
 
 #[derive(SimpleObject)]
-pub struct Outstanding {
+pub(crate) struct Outstanding {
     pub usd_balance: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct Total {
+pub(crate) struct Total {
     pub usd_balance: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct FacilityRemaining {
+pub(crate) struct FacilityRemaining {
     pub usd_balance: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct Disbursed {
+pub(crate) struct Disbursed {
     pub total: Total,
     pub outstanding: Outstanding,
     pub outstanding_payable: Outstanding,
 }
 
 #[derive(SimpleObject)]
-pub struct Interest {
+pub(crate) struct Interest {
     pub total: Total,
     pub outstanding: Outstanding,
     pub outstanding_payable: Outstanding,
 }
 
 #[derive(SimpleObject)]
-pub struct PaymentsUnapplied {
+pub(crate) struct PaymentsUnapplied {
     pub usd_balance: UsdCents,
 }

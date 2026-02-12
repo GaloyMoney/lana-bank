@@ -3,9 +3,9 @@ use tracing_macros::record_error_severity;
 
 use cala_ledger::{velocity::*, *};
 
-pub struct UncoveredOutstandingLimit;
+pub(crate) struct UncoveredOutstandingLimit;
 
-pub const UNCOVERED_OUTSTANDING_LIMIT_ID: uuid::Uuid =
+pub(crate) const UNCOVERED_OUTSTANDING_LIMIT_ID: uuid::Uuid =
     uuid::uuid!("00000000-0000-0000-0000-000000000003");
 
 impl UncoveredOutstandingLimit {

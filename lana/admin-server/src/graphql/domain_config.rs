@@ -4,7 +4,7 @@ use domain_config::{ConfigType as DomainConfigType, DomainConfig as DomainConfig
 
 use crate::{graphql::primitives::Json, primitives::*};
 
-pub use domain_config::DomainConfigsByKeyCursor;
+pub(super) use domain_config::DomainConfigsByKeyCursor;
 
 #[derive(Enum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConfigType {
@@ -35,7 +35,7 @@ impl From<DomainConfigType> for ConfigType {
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct DomainConfig {
+pub(super) struct DomainConfig {
     id: ID,
     domain_config_id: UUID,
     config_type: ConfigType,
@@ -67,7 +67,7 @@ impl DomainConfig {
 }
 
 #[derive(InputObject)]
-pub struct DomainConfigUpdateInput {
+pub(super) struct DomainConfigUpdateInput {
     pub domain_config_id: UUID,
     pub value: Json,
 }

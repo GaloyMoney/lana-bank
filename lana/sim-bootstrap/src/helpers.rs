@@ -7,7 +7,7 @@ use lana_app::{
 use rust_decimal_macros::dec;
 
 #[tracing::instrument(name = "sim_bootstrap.helpers.create_customer", skip(app), err)]
-pub async fn create_customer(
+pub(crate) async fn create_customer(
     sub: &Subject,
     app: &LanaApp,
     suffix: &str,
@@ -50,7 +50,7 @@ pub async fn create_customer(
 }
 
 #[tracing::instrument(name = "sim_bootstrap.helpers.make_deposit", skip(app), err)]
-pub async fn make_deposit(
+pub(crate) async fn make_deposit(
     sub: &Subject,
     app: &LanaApp,
     customer_id: &CustomerId,
@@ -79,7 +79,7 @@ pub async fn make_deposit(
     Ok(())
 }
 
-pub fn std_terms() -> TermValues {
+pub(crate) fn std_terms() -> TermValues {
     TermValues::builder()
         .annual_rate(dec!(12))
         .initial_cvl(dec!(140))
@@ -97,7 +97,7 @@ pub fn std_terms() -> TermValues {
         .expect("std_terms builder should be valid")
 }
 
-pub fn std_terms_with_liquidation() -> TermValues {
+pub(crate) fn std_terms_with_liquidation() -> TermValues {
     TermValues::builder()
         .annual_rate(dec!(12))
         .initial_cvl(dec!(140))
@@ -115,7 +115,7 @@ pub fn std_terms_with_liquidation() -> TermValues {
         .expect("std_terms_with_liquidation builder should be valid")
 }
 
-pub fn std_terms_12m() -> TermValues {
+pub(crate) fn std_terms_12m() -> TermValues {
     TermValues::builder()
         .annual_rate(dec!(12))
         .initial_cvl(dec!(140))

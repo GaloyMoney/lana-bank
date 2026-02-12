@@ -1,4 +1,4 @@
-pub mod error;
+pub(super) mod error;
 
 use std::collections::HashMap;
 
@@ -22,20 +22,20 @@ use error::*;
 const MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE: usize = 2; // coa_edge -> internal_account -> leaf
 
 #[derive(Clone)]
-pub struct LedgerAccountLedger {
+pub(super) struct LedgerAccountLedger {
     cala: CalaLedger,
     journal_id: JournalId,
 }
 
 impl LedgerAccountLedger {
-    pub fn new(cala: &CalaLedger, journal_id: JournalId) -> Self {
+    pub(super) fn new(cala: &CalaLedger, journal_id: JournalId) -> Self {
         Self {
             cala: cala.clone(),
             journal_id,
         }
     }
 
-    pub async fn ledger_account_history<T, U>(
+    pub(super) async fn ledger_account_history<T, U>(
         &self,
         ledger_account_id: LedgerAccountId,
         cursor: es_entity::PaginatedQueryArgs<U>,
@@ -96,7 +96,7 @@ impl LedgerAccountLedger {
     }
 
     #[allow(clippy::type_complexity)]
-    pub fn find_parent_with_account_code(
+    pub(super) fn find_parent_with_account_code(
         &self,
         id: AccountSetMemberId,
         current_depth: usize,
@@ -141,7 +141,7 @@ impl LedgerAccountLedger {
     }
 
     #[allow(clippy::type_complexity)]
-    pub fn find_leaf_children(
+    pub(super) fn find_leaf_children(
         &self,
         id: LedgerAccountId,
         current_depth: usize,
@@ -212,7 +212,7 @@ impl LedgerAccountLedger {
         Ok(Some(ledger_account))
     }
 
-    pub async fn load_ledger_accounts(
+    pub(super) async fn load_ledger_accounts(
         &self,
         ids: &[LedgerAccountId],
     ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, LedgerAccountLedgerError> {
@@ -274,7 +274,7 @@ impl LedgerAccountLedger {
         Ok(result)
     }
 
-    pub async fn load_account_sets_in_range(
+    pub(super) async fn load_account_sets_in_range(
         &self,
         ids: &[LedgerAccountId],
         from: NaiveDate,
