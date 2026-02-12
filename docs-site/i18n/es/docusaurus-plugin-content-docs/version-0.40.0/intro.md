@@ -67,9 +67,9 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
 ## Enlaces Rápidos
 
 ### APIs
-- [Referencia de API de Administración](apis/admin-api/api-reference) - Operaciones administrativas completas
-- [Referencia de API de Cliente](apis/customer-api/api-reference) - Operaciones orientadas al cliente
-- [Eventos de Dominio](apis/events/events) - Catálogo de eventos
+- [Referencia de API de Administración](apis/admin-api) - Operaciones administrativas completas
+- [Referencia de API de Cliente](apis/customer-api) - Operaciones orientadas al cliente
+- [Eventos de Dominio](apis/events) - Catálogo de eventos
 
 ### Operaciones
 - [Gestión de Crédito](for-operators/credit/) - Ciclo de vida de facilidades
