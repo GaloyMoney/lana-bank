@@ -1,15 +1,16 @@
 {
-    "omnibus_parent_code": "11.01.0101",
-    "individual_deposit_accounts_parent_code": "21.01.0101",
-    "government_entity_deposit_accounts_parent_code": "21.01.0101",
-    "private_company_deposit_accounts_parent_code": "21.01.0101",
-    "bank_deposit_accounts_parent_code": "21.01.0101",
-    "financial_institution_deposit_accounts_parent_code": "21.01.0101",
-    "non_domiciled_individual_deposit_accounts_parent_code": "21.01.0101",
-    "frozen_individual_deposit_accounts_parent_code": "21.03",
-    "frozen_government_entity_deposit_accounts_parent_code": "21.03",
-    "frozen_private_company_deposit_accounts_parent_code": "21.03",
-    "frozen_bank_deposit_accounts_parent_code": "21.03",
-    "frozen_financial_institution_deposit_accounts_parent_code": "21.03",
-    "frozen_non_domiciled_individual_deposit_accounts_parent_code": "21.03"
-}
+    "omnibus_parent_code": "1110.01.0101",
+    "individual_deposit_accounts_parent_code": "2110.01.0401",
+    "government_entity_deposit_accounts_parent_code": "2110.01.0201",
+    "private_company_deposit_accounts_parent_code": "2110.01.0301",
+    "bank_deposit_accounts_parent_code": "2110.01.0501",
+    "financial_institution_deposit_accounts_parent_code": "2110.01.0601",
+    "non_domiciled_individual_deposit_accounts_parent_code": "2110.01.1001",
+    "frozen_individual_deposit_accounts_parent_code": "2114.01.0401",
+    "frozen_government_entity_deposit_accounts_parent_code": "2114.01.0201",
+    "frozen_private_company_deposit_accounts_parent_code": "2114.01.0301",
+    "frozen_bank_deposit_accounts_parent_code": "2114.01.0501",
+    "frozen_financial_institution_deposit_accounts_parent_code": "2114.01.0601",
+    "frozen_non_domiciled_individual_deposit_accounts_parent_code": "2114.01.0801"
+  }
+  
