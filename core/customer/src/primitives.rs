@@ -125,6 +125,7 @@ pub enum KycStatus {
     Pending,
     Approved,
     Declined,
+    Closed,
 }
 
 impl KycVerification {

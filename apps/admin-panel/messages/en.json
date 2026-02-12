@@ -253,7 +253,8 @@
       "notStarted": "Not Started",
       "pending": "Pending",
       "approved": "Approved",
-      "declined": "Declined"
+      "declined": "Declined",
+      "closed": "Closed"
     },
     "create": {
       "title": "Add new prospect",
@@ -319,6 +320,7 @@
         "pending": "Pending",
         "approved": "Approved",
         "declined": "Declined",
+        "closed": "Closed",
         "labels": {
           "level": "Level",
           "status": "Status",

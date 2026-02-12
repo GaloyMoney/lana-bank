@@ -101,7 +101,7 @@ impl Prospect {
         });
         self.applicant_id = Some(applicant_id.clone());
         self.level = level;
-        self.kyc_status = KycStatus::Approved;
+        self.kyc_status = KycStatus::Closed;
 
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
@@ -192,7 +192,7 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     builder = builder
                         .applicant_id(applicant_id.clone())
                         .level(*level)
-                        .kyc_status(KycStatus::Approved);
+                        .kyc_status(KycStatus::Closed);
                 }
                 ProspectEvent::KycDeclined { .. } => {
                     builder = builder.kyc_status(KycStatus::Declined);

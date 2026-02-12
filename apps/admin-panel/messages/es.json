@@ -253,7 +253,8 @@
       "notStarted": "No iniciado",
       "pending": "Pendiente",
       "approved": "Aprobado",
-      "declined": "Rechazado"
+      "declined": "Rechazado",
+      "closed": "Cerrado"
     },
     "create": {
       "title": "Agregar nuevo prospecto",
@@ -319,6 +320,7 @@
         "pending": "Pendiente",
         "approved": "Aprobado",
         "declined": "Rechazado",
+        "closed": "Cerrado",
         "labels": {
           "level": "Nivel",
           "status": "Estado",

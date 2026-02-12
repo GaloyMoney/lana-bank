@@ -1649,6 +1649,7 @@ enum KycStatus {
 	PENDING
 	APPROVED
 	DECLINED
+	CLOSED
 }
 
 enum KycVerification {
@@ -1847,7 +1848,6 @@ type ManualTransactionExecutePayload {
 type Me {
 	user: User!
 	visibleNavigationItems: VisibleNavigationItems!
-	userCanCreateCustomer: Boolean!
 	userCanCreateProspect: Boolean!
 	userCanCreateUser: Boolean!
 	userCanCreateTermsTemplate: Boolean!
