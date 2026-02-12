@@ -989,7 +989,7 @@ type Customer {
 	email: String!
 	telegramHandle: String!
 	publicId: PublicId!
-	applicantId: String
+	applicantId: String!
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
 	pendingCreditFacilities: [PendingCreditFacility!]!

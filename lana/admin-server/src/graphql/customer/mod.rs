@@ -57,8 +57,8 @@ impl Customer {
         &self.entity.public_id
     }
 
-    async fn applicant_id(&self) -> Option<&str> {
-        self.entity.applicant_id.as_deref()
+    async fn applicant_id(&self) -> &str {
+        &self.entity.applicant_id
     }
 
     async fn deposit_account(

@@ -20,8 +20,7 @@ pub enum CustomerEvent {
         customer_type: CustomerType,
         activity: Activity,
         public_id: PublicId,
-        #[serde(default)]
-        applicant_id: Option<String>,
+        applicant_id: String,
         #[serde(default)]
         level: KycLevel,
         #[serde(default)]
@@ -53,8 +52,8 @@ pub struct Customer {
     pub activity: Activity,
     pub level: KycLevel,
     pub customer_type: CustomerType,
-    #[builder(setter(strip_option, into), default)]
-    pub applicant_id: Option<String>,
+    #[builder(setter(into))]
+    pub applicant_id: String,
     pub public_id: PublicId,
     events: EntityEvents<CustomerEvent>,
 }
@@ -81,7 +80,7 @@ impl Customer {
     }
 
     pub fn should_sync_financial_transactions(&self) -> bool {
-        self.applicant_id.is_some()
+        true
     }
 
     pub(crate) fn update_activity(&mut self, activity: Activity) -> Idempotent<()> {
@@ -148,10 +147,8 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .public_id(public_id.clone())
                         .activity(*activity)
                         .level(*level)
-                        .kyc_verification(*kyc_verification);
-                    if let Some(applicant_id) = applicant_id {
-                        builder = builder.applicant_id(applicant_id.clone());
-                    }
+                        .kyc_verification(*kyc_verification)
+                        .applicant_id(applicant_id.clone());
                 }
                 CustomerEvent::KycVerificationUpdated {
                     kyc_verification, ..
@@ -192,8 +189,8 @@ pub struct NewCustomer {
     pub(crate) activity: Activity,
     #[builder(setter(into))]
     pub(crate) public_id: PublicId,
-    #[builder(setter(strip_option, into), default)]
-    pub(crate) applicant_id: Option<String>,
+    #[builder(setter(into))]
+    pub(crate) applicant_id: String,
     #[builder(default)]
     pub(crate) level: KycLevel,
 }
