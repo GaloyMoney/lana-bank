@@ -102,7 +102,7 @@ const DetailsForm = ({
         name="telegramHandle"
         type="text"
         required
-        data-testid="prospect-create-telegram-id"
+        data-testid="prospect-create-telegram-handle"
         placeholder={t("telegramPlaceholder")}
         value={formData.telegramHandle}
         onChange={handleInputChange}

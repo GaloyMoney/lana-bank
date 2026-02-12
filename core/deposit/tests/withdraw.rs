@@ -70,13 +70,16 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     )
     .await?;
 
-    let customer = customers
-        .create(
+    let prospect = customers
+        .create_prospect(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
+        .await?;
+    let customer = customers
+        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
         .await?;
 
     let account = deposit.create_account(&DummySubject, customer.id).await?;
