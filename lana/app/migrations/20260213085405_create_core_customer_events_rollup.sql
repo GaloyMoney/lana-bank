@@ -40,7 +40,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_declined', 'kyc_verification_updated', 'telegram_id_updated', 'email_updated', 'activity_updated') THEN
+  IF event_type NOT IN ('initialized', 'kyc_verification_updated', 'telegram_id_updated', 'email_updated', 'activity_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -79,18 +79,13 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.activity := (NEW.event ->> 'activity');
+      new_row.applicant_id := (NEW.event ->> 'applicant_id');
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.email := (NEW.event ->> 'email');
+      new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
+      new_row.level := (NEW.event ->> 'level');
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.telegram_id := (NEW.event ->> 'telegram_id');
-    WHEN 'kyc_started' THEN
-      new_row.applicant_id := (NEW.event ->> 'applicant_id');
-    WHEN 'kyc_approved' THEN
-      new_row.applicant_id := (NEW.event ->> 'applicant_id');
-      new_row.is_kyc_approved := true;
-      new_row.level := (NEW.event ->> 'level');
-    WHEN 'kyc_declined' THEN
-      new_row.applicant_id := (NEW.event ->> 'applicant_id');
     WHEN 'kyc_verification_updated' THEN
       new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
     WHEN 'telegram_id_updated' THEN
