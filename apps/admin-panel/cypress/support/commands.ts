@@ -114,10 +114,13 @@ Cypress.Commands.add("takeScreenshot", (filename): Cypress.Chainable<null> => {
   return cy.wrap(null)
 })
 
-interface CustomerCreateResponse {
+interface ProspectCreateResponse {
   data: {
-    customerCreate: {
-      customer: Customer
+    prospectCreate: {
+      prospect: {
+        prospectId: string
+        publicId: string
+      }
     }
   }
 }
@@ -130,21 +133,17 @@ interface CustomerQueryResponse {
 Cypress.Commands.add(
   "createCustomer",
   (email: string, telegramHandle: string): Cypress.Chainable<Customer> => {
-    const mutation = `
-      mutation CustomerCreate($input: CustomerCreateInput!) {
-        customerCreate(input: $input) {
-          customer {
-            customerId
+    const prospectMutation = `
+      mutation ProspectCreate($input: ProspectCreateInput!) {
+        prospectCreate(input: $input) {
+          prospect {
+            prospectId
             publicId
-            depositAccount {
-              id
-              depositAccountId
-            }
           }
         }
       }
     `
-    const query = `
+    const customerQuery = `
       query Customer($id: UUID!) {
         customer(id: $id) {
           customerId
@@ -161,19 +160,43 @@ Cypress.Commands.add(
       }
     `
     return cy
-      .graphqlRequest<CustomerCreateResponse>(mutation, {
+      .graphqlRequest<ProspectCreateResponse>(prospectMutation, {
         input: { email, telegramHandle, customerType: CustomerType.Individual },
       })
       .then((response) => {
-        const customerId = response.data.customerCreate.customer.customerId
+        const prospectId = response.data.prospectCreate.prospect.prospectId
+        const webhookId = `req-${Date.now()}`
+        // Simulate KYC approval via SumSub sandbox webhook
         return cy
-          .createDepositAccount(customerId)
-          .then(() =>
-            cy.graphqlRequest<CustomerQueryResponse>(query, {
-              id: customerId,
-            }),
-          )
-          .then((resp) => resp.data.customer)
+          .request({
+            method: "POST",
+            url: "http://localhost:5253/webhook/sumsub",
+            headers: { "Content-Type": "application/json" },
+            body: {
+              applicantId: `test-applicant-${webhookId}`,
+              inspectionId: `test-inspection-${webhookId}`,
+              correlationId: webhookId,
+              externalUserId: prospectId,
+              levelName: "basic-kyc-level",
+              type: "applicantReviewed",
+              reviewResult: { reviewAnswer: "GREEN" },
+              reviewStatus: "completed",
+              createdAtMs: new Date().toISOString(),
+              sandboxMode: true,
+            },
+          })
+          .then(() => {
+            // Customer is created with the same ID as the prospect
+            const customerId = prospectId
+            return cy
+              .createDepositAccount(customerId)
+              .then(() =>
+                cy.graphqlRequest<CustomerQueryResponse>(customerQuery, {
+                  id: customerId,
+                }),
+              )
+              .then((resp) => resp.data.customer)
+          })
       })
   },
 )

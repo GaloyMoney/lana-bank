@@ -45,11 +45,7 @@
           "$ref": "#/$defs/Activity"
         },
         "applicant_id": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": "string"
         },
         "customer_type": {
           "$ref": "#/$defs/CustomerType"
@@ -87,7 +83,8 @@
         "telegram_handle",
         "customer_type",
         "activity",
-        "public_id"
+        "public_id",
+        "applicant_id"
       ],
       "type": "object"
     },
