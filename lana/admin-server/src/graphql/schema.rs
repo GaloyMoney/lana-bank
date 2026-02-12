@@ -2541,23 +2541,21 @@ impl Subscription {
             .await?;
 
         let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
-            let payload = event.payload.as_ref()?;
+        let updates = stream.filter_map(move |message| async move {
+            let payload = message.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
-                CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
-                    entity,
-                    recorded_at,
-                    effective,
-                } if entity.id == pending_credit_facility_id => {
+                CoreCreditEvent::PendingCreditFacilityCollateralizationChanged { entity }
+                    if entity.id == pending_credit_facility_id =>
+                {
                     Some(PendingCreditFacilityCollateralizationPayload {
                         pending_credit_facility_id,
                         update: PendingCreditFacilityCollateralizationUpdated {
                             state: entity.collateralization.state,
                             collateral: entity.collateralization.collateral?,
                             price: entity.collateralization.price?.into_inner(),
-                            recorded_at: (*recorded_at).into(),
-                            effective: (*effective).into(),
+                            recorded_at: message.recorded_at.into(),
+                            effective: message.recorded_at.date_naive().into(),
                         },
                     })
                 }

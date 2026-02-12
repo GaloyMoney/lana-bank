@@ -143,8 +143,6 @@ where
                 CollateralizationStateChanged { .. } => Some(
                     CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
                         entity: PublicPendingCreditFacility::from(entity),
-                        recorded_at: event.recorded_at,
-                        effective: event.recorded_at.date_naive(),
                     },
                 ),
                 Completed { .. } => Some(CoreCreditEvent::PendingCreditFacilityCompleted {

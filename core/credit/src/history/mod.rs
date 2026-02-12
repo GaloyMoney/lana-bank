@@ -117,11 +117,7 @@ impl CreditFacilityHistory {
                     },
                 ));
             }
-            PendingCreditFacilityCollateralizationChanged {
-                entity,
-                recorded_at,
-                effective,
-            } => {
+            PendingCreditFacilityCollateralizationChanged { entity } => {
                 let collateralization = &entity.collateralization;
                 self.entries.push(
                     CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
@@ -130,8 +126,8 @@ impl CreditFacilityHistory {
                             collateral: collateralization.collateral.expect(
                                 "collateralization change event must include collateral amount",
                             ),
-                            recorded_at: *recorded_at,
-                            effective: *effective,
+                            recorded_at,
+                            effective: recorded_at.date_naive(),
                             price: collateralization
                                 .price
                                 .expect("collateralization change event must include price"),

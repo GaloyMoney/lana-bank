@@ -29,8 +29,6 @@ pub enum CoreCreditEvent {
     },
     PendingCreditFacilityCollateralizationChanged {
         entity: PublicPendingCreditFacility,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
     },
     PendingCreditFacilityCompleted {
         entity: PublicPendingCreditFacility,
@@ -41,8 +39,6 @@ pub enum CoreCreditEvent {
     FacilityCompleted {
         entity: PublicCreditFacility,
     },
-    // NOTE: `entity.adjustment` comes from collateral's latest update.
-    // Current flows persist at most one manual/custodian collateral update per operation.
     FacilityCollateralUpdated {
         entity: PublicCollateral,
     },
@@ -65,6 +61,8 @@ pub enum CoreCreditEvent {
     PartialLiquidationInitiated {
         entity: PublicCreditFacility,
     },
+
+    // TODO: revisit these event they don't have publisher yet.
     PartialLiquidationCollateralSentOut {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
