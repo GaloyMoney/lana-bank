@@ -57,8 +57,11 @@ where
                 self.handle_credit_event(db, message, event, entity.id)
                     .await?;
             }
-            Some(event @ FacilityCompleted { id, .. })
-            | Some(
+            Some(event @ FacilityCompleted { entity }) => {
+                self.handle_credit_event(db, message, event, entity.id)
+                    .await?;
+            }
+            Some(
                 event @ FacilityCollateralUpdated {
                     credit_facility_id: id,
                     ..

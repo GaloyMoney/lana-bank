@@ -240,6 +240,16 @@ impl CreditFacility {
         }
     }
 
+    pub fn completed_at(&self) -> Option<DateTime<Utc>> {
+        self.events
+            .iter_persisted()
+            .rev()
+            .find_map(|pe| match &pe.event {
+                CreditFacilityEvent::Completed {} => Some(pe.recorded_at),
+                _ => None,
+            })
+    }
+
     pub fn matures_at(&self) -> DateTime<Utc> {
         self.maturity_date.start_of_day()
     }

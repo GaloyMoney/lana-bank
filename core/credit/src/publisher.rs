@@ -65,8 +65,7 @@ where
                     entity: PublicCreditFacility::from(entity),
                 }),
                 Completed { .. } => Some(CoreCreditEvent::FacilityCompleted {
-                    id: entity.id,
-                    completed_at: event.recorded_at,
+                    entity: PublicCreditFacility::from(entity),
                 }),
                 CollateralizationStateChanged {
                     collateralization_state: state,
