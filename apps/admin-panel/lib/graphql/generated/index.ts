@@ -1032,17 +1032,6 @@ export type CustomerConnection = {
   pageInfo: PageInfo;
 };
 
-export type CustomerCreateInput = {
-  customerType: CustomerType;
-  email: Scalars['String']['input'];
-  telegramHandle: Scalars['String']['input'];
-};
-
-export type CustomerCreatePayload = {
-  __typename?: 'CustomerCreatePayload';
-  customer: Customer;
-};
-
 export type CustomerDocument = {
   __typename?: 'CustomerDocument';
   customerId: Scalars['UUID']['output'];
@@ -1876,7 +1865,6 @@ export type Mutation = {
   creditModuleConfigure: CreditModuleConfigurePayload;
   custodianConfigUpdate: CustodianConfigUpdatePayload;
   custodianCreate: CustodianCreatePayload;
-  customerCreate: CustomerCreatePayload;
   customerDocumentArchive: CustomerDocumentArchivePayload;
   customerDocumentAttach: CustomerDocumentCreatePayload;
   customerDocumentDelete: CustomerDocumentDeletePayload;
@@ -2026,11 +2014,6 @@ export type MutationCustodianConfigUpdateArgs = {
 
 export type MutationCustodianCreateArgs = {
   input: CustodianCreateInput;
-};
-
-
-export type MutationCustomerCreateArgs = {
-  input: CustomerCreateInput;
 };
 
 
@@ -4014,13 +3997,6 @@ export type CustomerTelegramHandleUpdateMutationVariables = Exact<{
 
 
 export type CustomerTelegramHandleUpdateMutation = { __typename?: 'Mutation', customerTelegramHandleUpdate: { __typename?: 'CustomerTelegramHandleUpdatePayload', customer: { __typename?: 'Customer', id: string, telegramHandle: string } } };
-
-export type CustomerCreateMutationVariables = Exact<{
-  input: CustomerCreateInput;
-}>;
-
-
-export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string, kycVerification: KycVerification, level: KycLevel, applicantId: string } } };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -8235,47 +8211,6 @@ export function useCustomerTelegramHandleUpdateMutation(baseOptions?: Apollo.Mut
 export type CustomerTelegramHandleUpdateMutationHookResult = ReturnType<typeof useCustomerTelegramHandleUpdateMutation>;
 export type CustomerTelegramHandleUpdateMutationResult = Apollo.MutationResult<CustomerTelegramHandleUpdateMutation>;
 export type CustomerTelegramHandleUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerTelegramHandleUpdateMutation, CustomerTelegramHandleUpdateMutationVariables>;
-export const CustomerCreateDocument = gql`
-    mutation CustomerCreate($input: CustomerCreateInput!) {
-  customerCreate(input: $input) {
-    customer {
-      id
-      customerId
-      publicId
-      email
-      kycVerification
-      level
-      applicantId
-    }
-  }
-}
-    `;
-export type CustomerCreateMutationFn = Apollo.MutationFunction<CustomerCreateMutation, CustomerCreateMutationVariables>;
-
-/**
- * __useCustomerCreateMutation__
- *
- * To run a mutation, you first call `useCustomerCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCustomerCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [customerCreateMutation, { data, loading, error }] = useCustomerCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCustomerCreateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerCreateMutation, CustomerCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CustomerCreateMutation, CustomerCreateMutationVariables>(CustomerCreateDocument, options);
-      }
-export type CustomerCreateMutationHookResult = ReturnType<typeof useCustomerCreateMutation>;
-export type CustomerCreateMutationResult = Apollo.MutationResult<CustomerCreateMutation>;
-export type CustomerCreateMutationOptions = Apollo.BaseMutationOptions<CustomerCreateMutation, CustomerCreateMutationVariables>;
 export const CustomersDocument = gql`
     query Customers($first: Int!, $after: String, $sort: CustomersSort, $filter: CustomersFilter) {
   customers(first: $first, after: $after, sort: $sort, filter: $filter) {

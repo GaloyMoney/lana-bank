@@ -167,14 +167,6 @@ impl Customer {
 }
 
 #[derive(InputObject)]
-pub struct CustomerCreateInput {
-    pub email: String,
-    pub telegram_handle: String,
-    pub customer_type: CustomerType,
-}
-crate::mutation_payload! { CustomerCreatePayload, customer: Customer }
-
-#[derive(InputObject)]
 pub struct CustomerTelegramHandleUpdateInput {
     pub customer_id: UUID,
     pub telegram_handle: String,

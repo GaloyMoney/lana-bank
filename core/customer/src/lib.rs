@@ -29,7 +29,6 @@ use public_id::PublicIds;
 pub use config::*;
 pub use customer_activity_repo::CustomerActivityRepo;
 pub use entity::Customer;
-use entity::*;
 use error::*;
 pub use primitives::*;
 pub use prospect::{Prospect, ProspectRepo, ProspectsSortBy, prospect_cursor};
@@ -112,22 +111,6 @@ where
         }
     }
 
-    pub async fn subject_can_create_customer(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        enforce: bool,
-    ) -> Result<Option<AuditInfo>, CustomerError> {
-        Ok(self
-            .authz
-            .evaluate_permission(
-                sub,
-                CustomerObject::all_customers(),
-                CoreCustomerAction::CUSTOMER_CREATE,
-                enforce,
-            )
-            .await?)
-    }
-
     pub async fn subject_can_create_prospect(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -142,45 +125,6 @@ where
                 enforce,
             )
             .await?)
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "customer.create_customer", fields(customer_id = tracing::field::Empty), skip(self))]
-    pub async fn create(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        email: impl Into<String> + std::fmt::Debug,
-        telegram_handle: impl Into<String> + std::fmt::Debug,
-        customer_type: impl Into<CustomerType> + std::fmt::Debug,
-    ) -> Result<Customer, CustomerError> {
-        self.subject_can_create_customer(sub, true)
-            .await?
-            .expect("audit info missing");
-
-        let customer_id = CustomerId::new();
-        tracing::Span::current().record("customer_id", customer_id.to_string().as_str());
-
-        let mut db = self.repo.begin_op().await?;
-
-        let public_id = self
-            .public_ids
-            .create_in_op(&mut db, CUSTOMER_REF_TARGET, customer_id)
-            .await?;
-
-        let new_customer = NewCustomer::builder()
-            .id(customer_id)
-            .email(email.into())
-            .telegram_handle(telegram_handle.into())
-            .customer_type(customer_type)
-            .public_id(public_id.id)
-            .build()
-            .expect("Could not build customer");
-
-        let customer = self.repo.create_in_op(&mut db, new_customer).await?;
-
-        db.commit().await?;
-
-        Ok(customer)
     }
 
     #[record_error_severity]

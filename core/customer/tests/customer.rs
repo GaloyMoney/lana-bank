@@ -45,50 +45,6 @@ async fn setup() -> anyhow::Result<(
     Ok((customers, outbox))
 }
 
-/// CustomerCreated event is published when a new customer is created via `Customers::create()`.
-///
-/// The event contains a snapshot of the customer entity at creation time, including:
-/// - id: The unique customer identifier
-/// - email: The customer's email address
-/// - customer_type: The type of customer (Individual, Bank, etc.)
-/// - kyc_verification: Initial KYC status (PendingVerification)
-#[tokio::test]
-async fn customer_created_event_on_create() -> anyhow::Result<()> {
-    let (customers, outbox) = setup().await?;
-
-    let email = format!("test-{}@example.com", Uuid::new_v4());
-    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
-
-    let (customer, recorded) = event::expect_event(
-        &outbox,
-        || {
-            customers.create(
-                &DummySubject,
-                email.clone(),
-                telegram_handle.clone(),
-                CustomerType::Individual,
-            )
-        },
-        |result, e| match e {
-            CoreCustomerEvent::CustomerCreated { entity } if entity.id == result.id => {
-                Some(entity.clone())
-            }
-            _ => None,
-        },
-    )
-    .await?;
-
-    assert_eq!(recorded.id, customer.id);
-    assert_eq!(recorded.email, email);
-    assert_eq!(recorded.customer_type, CustomerType::Individual);
-    assert_eq!(
-        recorded.kyc_verification,
-        KycVerification::PendingVerification
-    );
-
-    Ok(())
-}
-
 /// CustomerCreated event is published when a prospect's KYC is approved
 /// via `Customers::handle_kyc_approved()`.
 ///
@@ -187,16 +143,19 @@ async fn prospect_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
 async fn customer_email_updated_event_on_email_change() -> anyhow::Result<()> {
     let (customers, outbox) = setup().await?;
 
-    // First create a customer
+    // First create a customer via prospect flow
     let original_email = format!("test-{}@example.com", Uuid::new_v4());
     let telegram_handle = format!("telegram-{}", Uuid::new_v4());
-    let customer = customers
-        .create(
+    let prospect = customers
+        .create_prospect(
             &DummySubject,
             original_email,
             telegram_handle,
             CustomerType::Individual,
         )
+        .await?;
+    let customer = customers
+        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
         .await?;
 
     let new_email = format!("updated-{}@example.com", Uuid::new_v4());

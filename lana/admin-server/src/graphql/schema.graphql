@@ -1013,16 +1013,6 @@ type CustomerConnection {
 	nodes: [Customer!]!
 }
 
-input CustomerCreateInput {
-	email: String!
-	telegramHandle: String!
-	customerType: CustomerType!
-}
-
-type CustomerCreatePayload {
-	customer: Customer!
-}
-
 type CustomerDocument {
 	id: ID!
 	documentId: UUID!
@@ -1861,7 +1851,6 @@ type Mutation {
 	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
-	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!

@@ -57,14 +57,17 @@ async fn create_active_facility(
     customers: &core_customer::Customers<TestPerms, TestEvent>,
     facility_amount: UsdCents,
 ) -> anyhow::Result<ActiveFacility> {
-    // Create a customer
-    let customer = customers
-        .create(
+    // Create a customer via prospect flow
+    let prospect = customers
+        .create_prospect(
             &DummySubject,
             random_email(),
             random_username(),
             core_customer::CustomerType::Individual,
         )
+        .await?;
+    let customer = customers
+        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
         .await?;
 
     // Create deposit account

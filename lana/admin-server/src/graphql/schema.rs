@@ -1310,21 +1310,6 @@ impl Mutation {
         )
     }
 
-    async fn customer_create(
-        &self,
-        ctx: &Context<'_>,
-        input: CustomerCreateInput,
-    ) -> async_graphql::Result<CustomerCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            CustomerCreatePayload,
-            Customer,
-            ctx,
-            app.customers()
-                .create(sub, input.email, input.telegram_handle, input.customer_type)
-        )
-    }
-
     async fn prospect_create(
         &self,
         ctx: &Context<'_>,
