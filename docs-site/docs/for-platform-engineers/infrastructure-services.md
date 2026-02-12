@@ -19,21 +19,17 @@ Infrastructure services provide:
 
 ## Service Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                  INFRASTRUCTURE SERVICES                        │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │     Audit       │  │  Authorization  │  │     Outbox      │ │
-│  │    Service      │  │    Service      │  │    Service      │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│           │                   │                    │            │
-│           ▼                   ▼                    ▼            │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    PostgreSQL                            │   │
-│  │  (Audit Logs, Casbin Policies, Outbox Events)           │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph INFRA["Infrastructure Services"]
+        AUDIT["Audit Service"]
+        AUTHZ["Authorization Service"]
+        OUTBOX["Outbox Service"]
+    end
+
+    AUDIT --> PG["PostgreSQL<br/>(Audit Logs, Casbin Policies, Outbox Events)"]
+    AUTHZ --> PG
+    OUTBOX --> PG
 ```
 
 ## Audit Service

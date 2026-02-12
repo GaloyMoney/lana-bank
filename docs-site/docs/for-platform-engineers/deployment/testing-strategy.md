@@ -10,19 +10,22 @@ This document describes the testing approach used in Lana.
 
 ## Test Pyramid
 
-```
-                    ┌─────────────────┐
-                    │    E2E Tests    │
-                    │    (BATS)       │
-                    └─────────────────┘
-               ┌─────────────────────────────┐
-               │    Integration Tests        │
-               │    (Database, APIs)         │
-               └─────────────────────────────┘
-          ┌─────────────────────────────────────────┐
-          │           Unit Tests                     │
-          │    (Domain Logic, Pure Functions)        │
-          └─────────────────────────────────────────┘
+```mermaid
+block-beta
+    columns 1
+    block:E2E
+        e2e["E2E Tests (BATS)"]
+    end
+    block:INT
+        int["Integration Tests (Database, APIs)"]
+    end
+    block:UNIT
+        unit["Unit Tests (Domain Logic, Pure Functions)"]
+    end
+
+    style E2E fill:#f9a825,color:#000
+    style INT fill:#42a5f5,color:#000
+    style UNIT fill:#66bb6a,color:#000
 ```
 
 ## Test Types

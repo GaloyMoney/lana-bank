@@ -32,21 +32,14 @@ The system acts as a guardian for high-risk actions:
 
 ## System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    GOVERNANCE SYSTEM                            │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │ Policy          │  │   Approval      │  │   Committee     │ │
-│  │ Definitions     │  │   Processes     │  │   Registry      │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    Event System                          │   │
-│  │              (Outbox Pattern)                            │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph GOV["Governance System"]
+        POL["Policy Definitions"]
+        PROC["Approval Processes"]
+        COM["Committee Registry"]
+    end
+    GOV --> EVT["Event System<br/>(Outbox Pattern)"]
 ```
 
 ## Approval Process Types
@@ -59,17 +52,11 @@ The system acts as a guardian for high-risk actions:
 
 ## Approval Flow Lifecycle
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Initiated  │───▶│  In Process  │───▶│   Approved   │
-│              │    │              │    │              │
-└──────────────┘    └──────────────┘    └──────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   Rejected   │
-                    │              │
-                    └──────────────┘
+```mermaid
+graph TD
+    INIT["Initiated"] --> PROC["In Process"]
+    PROC --> APPR["Approved"]
+    PROC --> REJ["Rejected"]
 ```
 
 ### Process Status

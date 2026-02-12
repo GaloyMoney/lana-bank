@@ -19,22 +19,13 @@ The credit UI enables:
 
 ## Component Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    CREDIT MODULE                                │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    CreditModule                           │  │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐         │  │
-│  │  │ Facilities │  │ Disbursals │  │  Payments  │         │  │
-│  │  │   List     │  │   List     │  │    List    │         │  │
-│  │  └────────────┘  └────────────┘  └────────────┘         │  │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐         │  │
-│  │  │ Facility   │  │ Disbursal  │  │  Payment   │         │  │
-│  │  │  Detail    │  │  Form      │  │   Form     │         │  │
-│  │  └────────────┘  └────────────┘  └────────────┘         │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph CreditModule
+        FL["Facilities List"] --- FD["Facility Detail"]
+        DL["Disbursals List"] --- DF["Disbursal Form"]
+        PL["Payments List"] --- PF["Payment Form"]
+    end
 ```
 
 ## Facilities List
@@ -167,16 +158,9 @@ export function FacilityStatusBadge({ status }: FacilityStatusBadgeProps) {
 
 ### Facility Creation
 
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Select     │───▶│   Configure  │───▶│   Deposit    │
-│   Customer   │    │   Terms      │    │   Collateral │
-└──────────────┘    └──────────────┘    └──────────────┘
-                                               │
-                                               ▼
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│   Facility   │◀───│   Approve    │◀───│   Submit for │
-│   Active     │    │   Proposal   │    │   Approval   │
-└──────────────┘    └──────────────┘    └──────────────┘
+```mermaid
+graph LR
+    SEL["Select Customer"] --> CONF["Configure Terms"] --> COL["Deposit Collateral"]
+    COL --> SUB["Submit for Approval"] --> APPR["Approve Proposal"] --> ACT["Facility Active"]
 ```
 
