@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError,
     DomainConfigFlavorEncrypted, DomainConfigFlavorPlaintext, ValueKind,
-    encryption::{EncryptionKey, StorageEncryption},
+    encryption::{EncryptedValue, EncryptionKey},
     primitives::{DomainConfigId, DomainConfigKey, Visibility},
 };
 
@@ -40,22 +40,6 @@ pub struct DomainConfig {
 }
 
 impl DomainConfig {
-    pub(super) fn current_value<C>(
-        &self,
-        encryption: &StorageEncryption,
-    ) -> Option<<C::Kind as ValueKind>::Value>
-    where
-        C: ConfigSpec,
-    {
-        Self::assert_compatible::<C>(self).ok()?;
-        let value = self.current_json_value();
-        if value.is_null() {
-            return None;
-        }
-        let plaintext = encryption.decrypt_from_storage(value).ok()?;
-        <C::Kind as ValueKind>::decode(plaintext).ok()
-    }
-
     pub(super) fn current_value_plain<C>(&self) -> Option<<C::Kind as ValueKind>::Value>
     where
         C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>,
@@ -80,23 +64,10 @@ impl DomainConfig {
         if value.is_null() {
             return None;
         }
-        let encryption = StorageEncryption::Encrypted(key.clone());
-        let plaintext = encryption.decrypt_from_storage(value).ok()?;
+        let encrypted: EncryptedValue = serde_json::from_value(value.clone()).ok()?;
+        let bytes = encrypted.decrypt(key).ok()?;
+        let plaintext: serde_json::Value = serde_json::from_slice(&bytes).ok()?;
         <C::Kind as ValueKind>::decode(plaintext).ok()
-    }
-
-    pub(super) fn update_value<C>(
-        &mut self,
-        encryption: &StorageEncryption,
-        new_value: <C::Kind as ValueKind>::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError>
-    where
-        C: ConfigSpec,
-    {
-        Self::assert_compatible::<C>(self)?;
-        C::validate(&new_value)?;
-        let encoded = <C::Kind as ValueKind>::encode(&new_value)?;
-        self.store_value(encryption, encoded)
     }
 
     pub(super) fn update_value_plain<C>(
@@ -124,38 +95,6 @@ impl DomainConfig {
         C::validate(&new_value)?;
         let encoded = <C::Kind as ValueKind>::encode(&new_value)?;
         self.store_value_encrypted(key, encoded)
-    }
-
-    pub(super) fn apply_exposed_update_from_json(
-        &mut self,
-        entry: &crate::registry::ConfigSpecEntry,
-        encryption: &StorageEncryption,
-        new_value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        if self.visibility != crate::Visibility::Exposed {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Config {} is not exposed",
-                self.key
-            )));
-        }
-
-        if self.visibility != entry.visibility {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Invalid visibility for {}: expected {}, found={}",
-                self.key, entry.visibility, self.visibility
-            )));
-        }
-
-        if self.config_type != entry.config_type {
-            return Err(DomainConfigError::InvalidType(format!(
-                "Invalid config type for {}: expected {}, found {}",
-                self.key, entry.config_type, self.config_type
-            )));
-        }
-
-        (entry.validate_json)(&new_value)?;
-
-        self.store_value(encryption, new_value)
     }
 
     pub(super) fn apply_exposed_update_from_json_plain(
@@ -221,35 +160,6 @@ impl DomainConfig {
         self.store_value_encrypted(key, new_value)
     }
 
-    /// Apply update from JSON for any config (CLI startup, no auth required).
-    ///
-    /// Unlike `apply_exposed_update_from_json`, this method works for any config
-    /// regardless of visibility, for use during CLI startup before GraphQL is available.
-    pub(super) fn apply_update_from_json(
-        &mut self,
-        entry: &crate::registry::ConfigSpecEntry,
-        encryption: &StorageEncryption,
-        new_value: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        if self.config_type != entry.config_type {
-            return Err(DomainConfigError::InvalidType(format!(
-                "Invalid config type for {}: expected {}, found {}",
-                self.key, entry.config_type, self.config_type
-            )));
-        }
-
-        if self.visibility != entry.visibility {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Invalid visibility for {}: expected {}, found {}",
-                self.key, entry.visibility, self.visibility
-            )));
-        }
-
-        (entry.validate_json)(&new_value)?;
-
-        self.store_value(encryption, new_value)
-    }
-
     pub(super) fn apply_update_from_json_plain(
         &mut self,
         entry: &crate::registry::ConfigSpecEntry,
@@ -299,22 +209,6 @@ impl DomainConfig {
         self.store_value_encrypted(key, new_value)
     }
 
-    fn store_value(
-        &mut self,
-        encryption: &StorageEncryption,
-        plaintext: serde_json::Value,
-    ) -> Result<Idempotent<()>, DomainConfigError> {
-        if encryption.decrypt_from_storage(self.current_json_value())? == plaintext {
-            return Ok(Idempotent::AlreadyApplied);
-        }
-
-        let stored = encryption.encrypt_for_storage(plaintext)?;
-        self.events
-            .push(DomainConfigEvent::Updated { value: stored });
-
-        Ok(Idempotent::Executed(()))
-    }
-
     fn store_value_plain(
         &mut self,
         plaintext: serde_json::Value,
@@ -334,16 +228,54 @@ impl DomainConfig {
         key: &EncryptionKey,
         plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        let encryption = StorageEncryption::Encrypted(key.clone());
-        if encryption.decrypt_from_storage(self.current_json_value())? == plaintext {
+        // Check idempotency by decrypting and comparing
+        let current = self.current_json_value();
+        if !current.is_null()
+            && let Ok(encrypted) = serde_json::from_value::<EncryptedValue>(current.clone())
+            && let Ok(bytes) = encrypted.decrypt(key)
+            && let Ok(current_plain) = serde_json::from_slice::<serde_json::Value>(&bytes)
+            && current_plain == plaintext
+        {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        let stored = encryption.encrypt_for_storage(plaintext)?;
+        let bytes = serde_json::to_vec(&plaintext)?;
+        let encrypted = EncryptedValue::encrypt(key, &bytes);
+        let stored = serde_json::to_value(encrypted)?;
         self.events
             .push(DomainConfigEvent::Updated { value: stored });
 
         Ok(Idempotent::Executed(()))
+    }
+
+    /// Runtime-dispatched version for cases where the config type is not known at compile time.
+    /// Uses `self.encrypted` to decide whether to encrypt.
+    pub(super) fn apply_exposed_update_from_json_dispatch(
+        &mut self,
+        entry: &crate::registry::ConfigSpecEntry,
+        config: &crate::EncryptionConfig,
+        new_value: serde_json::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        if self.encrypted {
+            self.apply_exposed_update_from_json_encrypted(entry, &config.key, new_value)
+        } else {
+            self.apply_exposed_update_from_json_plain(entry, new_value)
+        }
+    }
+
+    /// Runtime-dispatched version for cases where the config type is not known at compile time.
+    /// Uses `self.encrypted` to decide whether to encrypt.
+    pub(super) fn apply_update_from_json_dispatch(
+        &mut self,
+        entry: &crate::registry::ConfigSpecEntry,
+        config: &crate::EncryptionConfig,
+        new_value: serde_json::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        if self.encrypted {
+            self.apply_update_from_json_encrypted(entry, &config.key, new_value)
+        } else {
+            self.apply_update_from_json_plain(entry, new_value)
+        }
     }
 
     pub fn current_json_value(&self) -> &serde_json::Value {
@@ -473,15 +405,6 @@ mod tests {
     use serde::{Deserialize, Serialize};
 
     use super::*;
-    use crate::encryption::EncryptionKey;
-
-    fn plaintext_encryption() -> StorageEncryption {
-        StorageEncryption::None
-    }
-
-    fn encrypted_encryption() -> StorageEncryption {
-        StorageEncryption::Encrypted(EncryptionKey::default())
-    }
 
     fn seed_config<C: ConfigSpec>(id: DomainConfigId) -> DomainConfig {
         let events = NewDomainConfig::builder()
@@ -603,7 +526,7 @@ mod tests {
 
         assert!(
             config
-                .update_value::<SampleComplexConfig>(&plaintext_encryption(), value.clone())
+                .update_value_plain::<SampleComplexConfig>(value.clone())
                 .unwrap()
                 .did_execute()
         );
@@ -622,7 +545,7 @@ mod tests {
         );
         assert_eq!(
             rehydrated_config
-                .current_value::<SampleComplexConfig>(&plaintext_encryption())
+                .current_value_plain::<SampleComplexConfig>()
                 .unwrap(),
             value
         );
@@ -635,7 +558,7 @@ mod tests {
 
         assert!(
             config
-                .update_value::<SampleSimpleBool>(&plaintext_encryption(), false)
+                .update_value_plain::<SampleSimpleBool>(false)
                 .unwrap()
                 .did_execute()
         );
@@ -651,7 +574,7 @@ mod tests {
         assert_eq!(rehydrated_config.visibility, SampleSimpleBool::VISIBILITY);
         assert!(
             !rehydrated_config
-                .current_value::<SampleSimpleBool>(&plaintext_encryption())
+                .current_value_plain::<SampleSimpleBool>()
                 .unwrap()
         );
     }
@@ -670,20 +593,20 @@ mod tests {
 
         assert!(
             config
-                .update_value::<SampleComplexConfig>(&plaintext_encryption(), initial)
+                .update_value_plain::<SampleComplexConfig>(initial)
                 .unwrap()
                 .did_execute()
         );
 
         assert!(
             config
-                .update_value::<SampleComplexConfig>(&plaintext_encryption(), updated.clone())
+                .update_value_plain::<SampleComplexConfig>(updated.clone())
                 .expect("first update should succeed")
                 .did_execute()
         );
 
         let result = config
-            .update_value::<SampleComplexConfig>(&plaintext_encryption(), updated.clone())
+            .update_value_plain::<SampleComplexConfig>(updated.clone())
             .expect("second update should not error");
         assert!(result.was_already_applied());
 
@@ -697,7 +620,7 @@ mod tests {
         ));
         assert_eq!(
             config
-                .current_value::<SampleComplexConfig>(&plaintext_encryption())
+                .current_value_plain::<SampleComplexConfig>()
                 .unwrap(),
             updated
         );
@@ -709,20 +632,20 @@ mod tests {
 
         assert!(
             config
-                .update_value::<SampleSimpleBool>(&plaintext_encryption(), false)
+                .update_value_plain::<SampleSimpleBool>(false)
                 .unwrap()
                 .did_execute()
         );
 
         assert!(
             config
-                .update_value::<SampleSimpleBool>(&plaintext_encryption(), true)
+                .update_value_plain::<SampleSimpleBool>(true)
                 .expect("first update should succeed")
                 .did_execute()
         );
 
         let result = config
-            .update_value::<SampleSimpleBool>(&plaintext_encryption(), true)
+            .update_value_plain::<SampleSimpleBool>(true)
             .expect("second update should not error");
         assert!(result.was_already_applied());
 
@@ -735,7 +658,7 @@ mod tests {
         ));
         assert!(
             config
-                .current_value::<SampleSimpleBool>(&plaintext_encryption())
+                .current_value_plain::<SampleSimpleBool>()
                 .unwrap()
         );
     }
@@ -749,8 +672,7 @@ mod tests {
 
         let mut config = seed_config::<SampleComplexConfig>(DomainConfigId::new());
 
-        let update_result =
-            config.update_value::<SampleComplexConfig>(&plaintext_encryption(), invalid);
+        let update_result = config.update_value_plain::<SampleComplexConfig>(invalid);
         assert!(
             matches!(update_result, Err(DomainConfigError::InvalidState(_))),
             "invalid update should fail validation"
@@ -761,7 +683,7 @@ mod tests {
     fn current_value_rejects_wrong_type() {
         let config = seed_config::<SampleSimpleBool>(DomainConfigId::new());
 
-        let read_type = config.current_value::<SampleComplexConfig>(&plaintext_encryption());
+        let read_type = config.current_value_plain::<SampleComplexConfig>();
         assert!(read_type.is_none());
     }
 
@@ -769,7 +691,7 @@ mod tests {
     fn current_value_rejects_wrong_visibility() {
         let config = seed_config::<SampleSimpleBool>(DomainConfigId::new());
 
-        let read_visibility = config.current_value::<SampleExposedBool>(&plaintext_encryption());
+        let read_visibility = config.current_value_plain::<SampleExposedBool>();
         assert!(read_visibility.is_none());
     }
 
@@ -777,8 +699,7 @@ mod tests {
     fn update_rejects_wrong_type() {
         let mut config = seed_config::<SampleSimpleBool>(DomainConfigId::new());
 
-        let update_type_error = config.update_value::<SampleComplexConfig>(
-            &plaintext_encryption(),
+        let update_type_error = config.update_value_plain::<SampleComplexConfig>(
             SampleComplexConfig {
                 enabled: true,
                 limit: 1,
@@ -795,18 +716,19 @@ mod tests {
         let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
         assert!(config.encrypted);
 
+        let key = EncryptionKey::default();
         let value = SampleEncryptedConfig {
             secret: "my-secret".to_string(),
         };
         assert!(
             config
-                .update_value::<SampleEncryptedConfig>(&encrypted_encryption(), value.clone())
+                .update_value_encrypted::<SampleEncryptedConfig>(&key, value.clone())
                 .unwrap()
                 .did_execute()
         );
         assert_eq!(
             config
-                .current_value::<SampleEncryptedConfig>(&encrypted_encryption())
+                .current_value_encrypted::<SampleEncryptedConfig>(&key)
                 .unwrap(),
             value
         );
@@ -822,12 +744,13 @@ mod tests {
     fn encrypted_config_update_is_idempotent() {
         let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
 
+        let key = EncryptionKey::default();
         let value = SampleEncryptedConfig {
             secret: "my-secret".to_string(),
         };
         assert!(
             config
-                .update_value::<SampleEncryptedConfig>(&encrypted_encryption(), value.clone())
+                .update_value_encrypted::<SampleEncryptedConfig>(&key, value.clone())
                 .unwrap()
                 .did_execute()
         );
@@ -835,7 +758,7 @@ mod tests {
         let event_count_after_first = config.events.iter_all().count();
 
         let result = config
-            .update_value::<SampleEncryptedConfig>(&encrypted_encryption(), value)
+            .update_value_encrypted::<SampleEncryptedConfig>(&key, value)
             .unwrap();
         assert!(result.was_already_applied());
         assert_eq!(config.events.iter_all().count(), event_count_after_first);

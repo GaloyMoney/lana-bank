@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use crate::{
     ConfigSpec, ConfigType, DefaultedConfig, DomainConfigError, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, DomainConfigKey, ValueKind, Visibility,
-    encryption::{EncryptionKey, StorageEncryption},
+    encryption::EncryptionKey,
     flavor::FlavorDispatch,
 };
 
@@ -13,33 +13,9 @@ pub struct TypedDomainConfig<C: ConfigSpec> {
     entity: DomainConfig,
     _marker: PhantomData<C>,
     encryption_key: Option<EncryptionKey>,
-    // TODO: remove once migration to flavor-based methods is complete
-    encryption_old: Option<StorageEncryption>,
 }
 
 impl<C: ConfigSpec> TypedDomainConfig<C> {
-    /// Deprecated: use flavor-specific try_new instead
-    pub(crate) fn try_new_old(
-        entity: DomainConfig,
-        encryption: StorageEncryption,
-    ) -> Result<Self, DomainConfigError> {
-        DomainConfig::assert_compatible::<C>(&entity)?;
-        Ok(Self {
-            entity,
-            _marker: PhantomData,
-            encryption_key: None,
-            encryption_old: Some(encryption),
-        })
-    }
-
-    /// Deprecated: use flavor-specific maybe_value instead
-    pub fn maybe_value_old(&self) -> Option<<C::Kind as ValueKind>::Value> {
-        let encryption = self.encryption_old.as_ref()?;
-        self.entity
-            .current_value::<C>(encryption)
-            .or_else(C::default_value)
-    }
-
     pub fn default_value(&self) -> Option<<C::Kind as ValueKind>::Value> {
         C::default_value()
     }
@@ -64,7 +40,6 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>> TypedDomainConfig<C> {
             entity,
             _marker: PhantomData,
             encryption_key: None,
-            encryption_old: None,
         })
     }
 
@@ -89,7 +64,6 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>> TypedDomainConfig<C> {
             entity,
             _marker: PhantomData,
             encryption_key: Some(key),
-            encryption_old: None,
         })
     }
 

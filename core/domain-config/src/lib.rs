@@ -185,7 +185,6 @@ pub use spec::{
 };
 pub use typed_domain_config::TypedDomainConfig;
 
-use encryption::StorageEncryption;
 use entity::NewDomainConfig;
 use repo::DomainConfigRepo;
 
@@ -231,10 +230,10 @@ impl InternalDomainConfigs {
     pub async fn get<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
         C: InternalConfig,
+        C::Flavor: FlavorDispatch,
     {
-        let config = self.repo.find_by_key(C::KEY).await?;
-        let encryption = StorageEncryption::from_config(&config, &self.config);
-        TypedDomainConfig::try_new_old(config, encryption)
+        let entity = self.repo.find_by_key(C::KEY).await?;
+        C::Flavor::try_new::<C>(entity, &self.config)
     }
 
     #[record_error_severity]
@@ -245,11 +244,11 @@ impl InternalDomainConfigs {
     ) -> Result<(), DomainConfigError>
     where
         C: InternalConfig,
+        C::Flavor: FlavorDispatch,
     {
-        let mut config = self.repo.find_by_key(C::KEY).await?;
-        let encryption = StorageEncryption::from_config(&config, &self.config);
-        if config.update_value::<C>(&encryption, value)?.did_execute() {
-            self.repo.update(&mut config).await?;
+        let mut entity = self.repo.find_by_key(C::KEY).await?;
+        if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
+            self.repo.update(&mut entity).await?;
         }
 
         Ok(())
@@ -276,11 +275,11 @@ impl InternalDomainConfigs {
     ) -> Result<(), DomainConfigError>
     where
         C: InternalConfig,
+        C::Flavor: FlavorDispatch,
     {
-        let mut config = self.repo.find_by_key_in_op(&mut *op, C::KEY).await?;
-        let encryption = StorageEncryption::from_config(&config, &self.config);
-        if config.update_value::<C>(&encryption, value)?.did_execute() {
-            self.repo.update_in_op(op, &mut config).await?;
+        let mut entity = self.repo.find_by_key_in_op(&mut *op, C::KEY).await?;
+        if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
+            self.repo.update_in_op(op, &mut entity).await?;
         }
         Ok(())
     }
@@ -297,10 +296,10 @@ impl ExposedDomainConfigsReadOnly {
     pub async fn get_without_audit<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
         C: ExposedConfig,
+        C::Flavor: FlavorDispatch,
     {
-        let config = self.repo.find_by_key(C::KEY).await?;
-        let encryption = StorageEncryption::from_config(&config, &self.config);
-        TypedDomainConfig::try_new_old(config, encryption)
+        let entity = self.repo.find_by_key(C::KEY).await?;
+        C::Flavor::try_new::<C>(entity, &self.config)
     }
 }
 
@@ -327,11 +326,11 @@ where
     ) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
         C: ExposedConfig,
+        C::Flavor: FlavorDispatch,
     {
         self.ensure_read_permission(sub).await?;
-        let config = self.repo.find_by_key(C::KEY).await?;
-        let encryption = StorageEncryption::from_config(&config, &self.config);
-        TypedDomainConfig::try_new_old(config, encryption)
+        let entity = self.repo.find_by_key(C::KEY).await?;
+        C::Flavor::try_new::<C>(entity, &self.config)
     }
 
     #[record_error_severity]
@@ -343,13 +342,13 @@ where
     ) -> Result<(), DomainConfigError>
     where
         C: ExposedConfig,
+        C::Flavor: FlavorDispatch,
     {
         self.ensure_write_permission(sub).await?;
-        let mut config = self.repo.find_by_key(C::KEY).await?;
-        let encryption = StorageEncryption::from_config(&config, &self.config);
+        let mut entity = self.repo.find_by_key(C::KEY).await?;
 
-        if config.update_value::<C>(&encryption, value)?.did_execute() {
-            self.repo.update(&mut config).await?;
+        if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
+            self.repo.update(&mut entity).await?;
         }
 
         Ok(())
@@ -398,23 +397,22 @@ where
     ) -> Result<DomainConfig, DomainConfigError> {
         self.ensure_write_permission(sub).await?;
         let id = id.into();
-        let mut config = self.repo.find_by_id(id).await?;
-        let entry = registry::maybe_find_by_key(config.key.as_str()).ok_or_else(|| {
+        let mut entity = self.repo.find_by_id(id).await?;
+        let entry = registry::maybe_find_by_key(entity.key.as_str()).ok_or_else(|| {
             DomainConfigError::InvalidKey(format!(
                 "Registry entry missing for config key: {}",
-                config.key
+                entity.key
             ))
         })?;
-        let encryption = StorageEncryption::from_config(&config, &self.config);
 
-        if config
-            .apply_exposed_update_from_json(entry, &encryption, value)?
+        if entity
+            .apply_exposed_update_from_json_dispatch(entry, &self.config, value)?
             .did_execute()
         {
-            self.repo.update(&mut config).await?;
+            self.repo.update(&mut entity).await?;
         }
 
-        Ok(config)
+        Ok(entity)
     }
 
     #[record_error_severity]
@@ -520,15 +518,14 @@ where
             }
         };
 
-        let mut config = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
-        let encryption = StorageEncryption::from_config(&config, encryption_config);
+        let mut entity = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
 
-        let changed = config
-            .apply_update_from_json(entry, &encryption, value)?
+        let changed = entity
+            .apply_update_from_json_dispatch(entry, encryption_config, value)?
             .did_execute();
 
         if changed {
-            repo.update_in_op(&mut db_tx, &mut config).await?;
+            repo.update_in_op(&mut db_tx, &mut entity).await?;
             tracing::info!(key = %key, "Applied domain config at startup");
         } else {
             tracing::info!(key = %key, "Domain config already set");

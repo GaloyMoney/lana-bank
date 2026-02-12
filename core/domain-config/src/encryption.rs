@@ -4,7 +4,7 @@ use chacha20poly1305::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{DomainConfig, DomainConfigError, EncryptionConfig};
+use crate::DomainConfigError;
 
 pub type EncryptionKey = chacha20poly1305::Key;
 
@@ -34,49 +34,6 @@ impl EncryptedValue {
         cipher
             .decrypt(self.nonce.as_slice().into(), self.ciphertext.as_slice())
             .map_err(|_| DomainConfigError::Decryption)
-    }
-}
-
-pub(crate) enum StorageEncryption {
-    None,
-    Encrypted(EncryptionKey),
-}
-
-impl StorageEncryption {
-    pub fn from_config(entity: &DomainConfig, config: &EncryptionConfig) -> Self {
-        if entity.encrypted {
-            Self::Encrypted(config.key)
-        } else {
-            Self::None
-        }
-    }
-
-    pub fn encrypt_for_storage(
-        &self,
-        value: serde_json::Value,
-    ) -> Result<serde_json::Value, DomainConfigError> {
-        match self {
-            Self::Encrypted(key) => {
-                let bytes = serde_json::to_vec(&value)?;
-                let encrypted = EncryptedValue::encrypt(key, &bytes);
-                Ok(serde_json::to_value(encrypted)?)
-            }
-            Self::None => Ok(value),
-        }
-    }
-
-    pub fn decrypt_from_storage(
-        &self,
-        value: &serde_json::Value,
-    ) -> Result<serde_json::Value, DomainConfigError> {
-        match self {
-            Self::Encrypted(key) if !value.is_null() => {
-                let encrypted: EncryptedValue = serde_json::from_value(value.clone())?;
-                let bytes = encrypted.decrypt(key)?;
-                Ok(serde_json::from_slice(&bytes)?)
-            }
-            _ => Ok(value.clone()),
-        }
     }
 }
 
