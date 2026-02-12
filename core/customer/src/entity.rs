@@ -20,16 +20,12 @@ pub enum CustomerEvent {
         customer_type: CustomerType,
         activity: Activity,
         public_id: PublicId,
-    },
-    KycStarted {
-        applicant_id: String,
-    },
-    KycApproved {
-        applicant_id: String,
+        #[serde(default)]
+        applicant_id: Option<String>,
+        #[serde(default)]
         level: KycLevel,
-    },
-    KycDeclined {
-        applicant_id: String,
+        #[serde(default)]
+        kyc_verification: KycVerification,
     },
     KycVerificationUpdated {
         kyc_verification: KycVerification,
@@ -88,48 +84,7 @@ impl Customer {
         self.applicant_id.is_some()
     }
 
-    pub fn start_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CustomerEvent::KycStarted { .. }
-        );
-        self.events.push(CustomerEvent::KycStarted {
-            applicant_id: applicant_id.clone(),
-        });
-        self.applicant_id = Some(applicant_id);
-        Idempotent::Executed(())
-    }
-
-    pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CustomerEvent::KycApproved { .. },
-            => CustomerEvent::KycDeclined { .. }
-        );
-        self.events.push(CustomerEvent::KycApproved {
-            level,
-            applicant_id: applicant_id.clone(),
-        });
-
-        self.applicant_id = Some(applicant_id);
-        self.level = KycLevel::Basic;
-
-        self.update_account_kyc_verification(KycVerification::Verified)
-    }
-
-    pub fn decline_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CustomerEvent::KycDeclined { .. },
-            => CustomerEvent::KycApproved { .. }
-        );
-        self.events
-            .push(CustomerEvent::KycDeclined { applicant_id });
-        self.level = KycLevel::NotKyced;
-        self.update_account_kyc_verification(KycVerification::Rejected)
-    }
-
-    fn update_account_kyc_verification(
+    pub(crate) fn update_account_kyc_verification(
         &mut self,
         kyc_verification: KycVerification,
     ) -> Idempotent<()> {
@@ -195,6 +150,9 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     customer_type,
                     public_id,
                     activity,
+                    applicant_id,
+                    level,
+                    kyc_verification,
                     ..
                 } => {
                     builder = builder
@@ -204,18 +162,11 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .customer_type(*customer_type)
                         .public_id(public_id.clone())
                         .activity(*activity)
-                        .level(KycLevel::NotKyced);
-                }
-                CustomerEvent::KycStarted { applicant_id, .. } => {
-                    builder = builder.applicant_id(applicant_id.clone());
-                }
-                CustomerEvent::KycApproved {
-                    level,
-                    applicant_id,
-                    ..
-                } => builder = builder.applicant_id(applicant_id.clone()).level(*level),
-                CustomerEvent::KycDeclined { applicant_id, .. } => {
-                    builder = builder.applicant_id(applicant_id.clone())
+                        .level(*level)
+                        .kyc_verification(*kyc_verification);
+                    if let Some(applicant_id) = applicant_id {
+                        builder = builder.applicant_id(applicant_id.clone());
+                    }
                 }
                 CustomerEvent::KycVerificationUpdated {
                     kyc_verification, ..
@@ -241,19 +192,23 @@ impl TryFromEvents<CustomerEvent> for Customer {
 #[derive(Debug, Builder)]
 pub struct NewCustomer {
     #[builder(setter(into))]
-    pub(super) id: CustomerId,
+    pub(crate) id: CustomerId,
     #[builder(setter(into))]
-    pub(super) email: String,
+    pub(crate) email: String,
     #[builder(setter(into))]
-    pub(super) telegram_id: String,
+    pub(crate) telegram_id: String,
     #[builder(setter(into))]
-    pub(super) customer_type: CustomerType,
-    #[builder(setter(skip), default)]
-    pub(super) kyc_verification: KycVerification,
-    #[builder(setter(skip), default)]
-    pub(super) activity: Activity,
+    pub(crate) customer_type: CustomerType,
+    #[builder(default)]
+    pub(crate) kyc_verification: KycVerification,
+    #[builder(default)]
+    pub(crate) activity: Activity,
     #[builder(setter(into))]
-    pub(super) public_id: PublicId,
+    pub(crate) public_id: PublicId,
+    #[builder(setter(strip_option, into), default)]
+    pub(crate) applicant_id: Option<String>,
+    #[builder(default)]
+    pub(crate) level: KycLevel,
 }
 
 impl NewCustomer {
@@ -273,6 +228,9 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 customer_type: self.customer_type,
                 activity: self.activity,
                 public_id: self.public_id,
+                applicant_id: self.applicant_id,
+                level: self.level,
+                kyc_verification: self.kyc_verification,
             }],
         )
     }

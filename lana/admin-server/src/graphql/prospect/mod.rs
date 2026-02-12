@@ -1,0 +1,62 @@
+use async_graphql::*;
+
+use crate::primitives::*;
+use lana_app::public_id::PublicId;
+
+pub use lana_app::customer::Prospect as DomainProspect;
+use lana_app::customer::{CustomerType, KycLevel, KycStatus};
+
+#[derive(SimpleObject, Clone)]
+#[graphql(complex)]
+pub struct Prospect {
+    id: ID,
+    prospect_id: UUID,
+    kyc_status: KycStatus,
+    level: KycLevel,
+    created_at: Timestamp,
+    customer_type: CustomerType,
+
+    #[graphql(skip)]
+    pub(super) entity: Arc<DomainProspect>,
+}
+
+impl From<DomainProspect> for Prospect {
+    fn from(prospect: DomainProspect) -> Self {
+        Prospect {
+            id: prospect.id.to_global_id(),
+            prospect_id: UUID::from(prospect.id),
+            kyc_status: prospect.kyc_status,
+            level: prospect.level,
+            created_at: prospect.created_at().into(),
+            customer_type: prospect.customer_type,
+            entity: Arc::new(prospect),
+        }
+    }
+}
+
+#[ComplexObject]
+impl Prospect {
+    async fn email(&self) -> &str {
+        &self.entity.email
+    }
+
+    async fn telegram_id(&self) -> &str {
+        &self.entity.telegram_id
+    }
+
+    async fn public_id(&self) -> &PublicId {
+        &self.entity.public_id
+    }
+
+    async fn applicant_id(&self) -> Option<&str> {
+        self.entity.applicant_id.as_deref()
+    }
+}
+
+#[derive(InputObject)]
+pub struct ProspectCreateInput {
+    pub email: String,
+    pub telegram_id: String,
+    pub customer_type: CustomerType,
+}
+crate::mutation_payload! { ProspectCreatePayload, prospect: Prospect }

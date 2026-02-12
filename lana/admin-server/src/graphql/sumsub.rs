@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 #[derive(InputObject)]
 pub struct SumsubPermalinkCreateInput {
-    pub customer_id: UUID,
+    pub prospect_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -15,7 +15,7 @@ pub struct SumsubPermalinkCreatePayload {
 #[cfg(feature = "sumsub-testing")]
 #[derive(InputObject)]
 pub struct SumsubTestApplicantCreateInput {
-    pub customer_id: UUID,
+    pub prospect_id: UUID,
 }
 
 #[cfg(feature = "sumsub-testing")]

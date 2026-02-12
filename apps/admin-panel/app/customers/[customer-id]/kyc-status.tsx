@@ -50,7 +50,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({
     await createLink({
       variables: {
         input: {
-          customerId,
+          prospectId: customerId,
         },
       },
     })
