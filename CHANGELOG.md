@@ -1,3 +1,8 @@
+## [0.40.2] - 2026-02-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Adding fly to flake (#3756)
 ## [0.40.0] - 2026-02-11
 
 ### 🚀 Features
