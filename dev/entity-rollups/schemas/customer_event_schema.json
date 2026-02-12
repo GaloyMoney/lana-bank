@@ -44,6 +44,13 @@
         "activity": {
           "$ref": "#/$defs/Activity"
         },
+        "applicant_id": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "customer_type": {
           "$ref": "#/$defs/CustomerType"
         },
@@ -53,6 +60,14 @@
         "id": {
           "format": "uuid",
           "type": "string"
+        },
+        "kyc_verification": {
+          "$ref": "#/$defs/KycVerification",
+          "default": "pending-verification"
+        },
+        "level": {
+          "$ref": "#/$defs/KycLevel",
+          "default": "NotKyced"
         },
         "public_id": {
           "type": "string"
@@ -73,58 +88,6 @@
         "customer_type",
         "activity",
         "public_id"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "applicant_id": {
-          "type": "string"
-        },
-        "type": {
-          "const": "kyc_started",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "applicant_id"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "applicant_id": {
-          "type": "string"
-        },
-        "level": {
-          "$ref": "#/$defs/KycLevel"
-        },
-        "type": {
-          "const": "kyc_approved",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "applicant_id",
-        "level"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "applicant_id": {
-          "type": "string"
-        },
-        "type": {
-          "const": "kyc_declined",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "applicant_id"
       ],
       "type": "object"
     },
