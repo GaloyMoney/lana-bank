@@ -12,39 +12,55 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
 ## Elige Tu Camino
 
 <div className="row">
-  <div className="col col--4">
+  <div className="col col--6">
     <div className="card">
       <div className="card__header">
-        <h3>Para Desarrolladores</h3>
+        <h3>Documentación Técnica</h3>
       </div>
       <div className="card__body">
-        <p>Integra con las APIs GraphQL de Lana para construir aplicaciones bancarias.</p>
+        <p>Procesos de negocio, conceptos del dominio y procedimientos del panel de administración para el personal del banco.</p>
       </div>
       <div className="card__footer">
-        <a className="button button--primary button--block" href="for-developers/">Guía del Desarrollador</a>
+        <a className="button button--primary button--block" href="technical-documentation/">Documentación Técnica</a>
       </div>
     </div>
   </div>
-  <div className="col col--4">
+  <div className="col col--6">
     <div className="card">
       <div className="card__header">
-        <h3>Para Operadores</h3>
+        <h3>Para Desarrolladores Externos</h3>
       </div>
       <div className="card__body">
-        <p>Gestiona clientes, facilidades de crédito y operaciones contables.</p>
+        <p>Integra con las APIs GraphQL de Lana desde aplicaciones externas.</p>
       </div>
       <div className="card__footer">
-        <a className="button button--primary button--block" href="for-operators/">Guía del Operador</a>
+        <a className="button button--primary button--block" href="for-external-developers/">Guía del Desarrollador Externo</a>
       </div>
     </div>
   </div>
-  <div className="col col--4">
+</div>
+
+<div className="row" style={{marginTop: '1rem'}}>
+  <div className="col col--6">
+    <div className="card">
+      <div className="card__header">
+        <h3>Para Desarrolladores Internos</h3>
+      </div>
+      <div className="card__body">
+        <p>Configuración local, aplicaciones frontend, arquitectura de dominio y patrones de código.</p>
+      </div>
+      <div className="card__footer">
+        <a className="button button--primary button--block" href="for-internal-developers/">Guía del Desarrollador Interno</a>
+      </div>
+    </div>
+  </div>
+  <div className="col col--6">
     <div className="card">
       <div className="card__header">
         <h3>Para Ingenieros de Plataforma</h3>
       </div>
       <div className="card__body">
-        <p>Comprende el diseño del sistema, despliegue y patrones de integración.</p>
+        <p>Arquitectura del sistema, despliegue, CI/CD y canalización de datos.</p>
       </div>
       <div className="card__footer">
         <a className="button button--primary button--block" href="for-platform-engineers/">Guía de Plataforma</a>
@@ -72,12 +88,13 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
 - [Eventos de Dominio](apis/events/) - Catálogo de eventos
 
 ### Operaciones
-- [Gestión de Crédito](for-operators/credit/) - Ciclo de vida de facilidades
-- [Contabilidad](for-operators/accounting/) - Operaciones financieras
+- [Gestión de Crédito](technical-documentation/credit/) - Ciclo de vida de facilidades
+- [Contabilidad](technical-documentation/accounting/) - Operaciones financieras
 
 ### Técnico
 - [Arquitectura del Sistema](for-platform-engineers/functional-architecture) - Diseño técnico integral
 - [Modelos de Datos](for-platform-engineers/erds/) - Diagramas de entidad-relación
+- [Desarrollo Local](for-internal-developers/local-development) - Configuración del entorno de desarrollo
 
 ## Comenzando
 

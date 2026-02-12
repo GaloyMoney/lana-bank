@@ -72,8 +72,8 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
 - [Eventos de Dominio](apis/events/) - Catálogo de eventos
 
 ### Operaciones
-- [Gestión de Crédito](for-operators/credit/) - Ciclo de vida de facilidades
-- [Contabilidad](for-operators/accounting/) - Operaciones financieras
+- [Gestión de Crédito](technical-documentation/credit/) - Ciclo de vida de facilidades
+- [Contabilidad](technical-documentation/accounting/) - Operaciones financieras
 
 ### Técnico
 - [Arquitectura del Sistema](for-platform-engineers/functional-architecture) - Diseño técnico integral

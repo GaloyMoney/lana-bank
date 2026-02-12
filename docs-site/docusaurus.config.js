@@ -155,12 +155,16 @@ const config = {
                 to: "/getting-started",
               },
               {
-                label: "For Developers",
-                to: "/for-developers",
+                label: "Technical Documentation",
+                to: "/technical-documentation",
               },
               {
-                label: "For Operators",
-                to: "/for-operators",
+                label: "For Internal Developers",
+                to: "/for-internal-developers",
+              },
+              {
+                label: "For External Developers",
+                to: "/for-external-developers",
               },
               {
                 label: "For Platform Engineers",
