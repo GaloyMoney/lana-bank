@@ -231,7 +231,6 @@ impl InternalDomainConfigs {
     pub async fn get<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
         C: InternalConfig,
-        C::Flavor: ConfigFlavor,
     {
         let entity = self.repo.find_by_key(C::KEY).await?;
         C::Flavor::try_new::<C>(entity, &self.config)
@@ -245,7 +244,6 @@ impl InternalDomainConfigs {
     ) -> Result<(), DomainConfigError>
     where
         C: InternalConfig,
-        C::Flavor: ConfigFlavor,
     {
         let mut entity = self.repo.find_by_key(C::KEY).await?;
         if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
@@ -276,7 +274,6 @@ impl InternalDomainConfigs {
     ) -> Result<(), DomainConfigError>
     where
         C: InternalConfig,
-        C::Flavor: ConfigFlavor,
     {
         let mut entity = self.repo.find_by_key_in_op(&mut *op, C::KEY).await?;
         if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
@@ -297,7 +294,6 @@ impl ExposedDomainConfigsReadOnly {
     pub async fn get_without_audit<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
         C: ExposedConfig,
-        C::Flavor: ConfigFlavor,
     {
         let entity = self.repo.find_by_key(C::KEY).await?;
         C::Flavor::try_new::<C>(entity, &self.config)
@@ -327,7 +323,6 @@ where
     ) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
         C: ExposedConfig,
-        C::Flavor: ConfigFlavor,
     {
         self.ensure_read_permission(sub).await?;
         let entity = self.repo.find_by_key(C::KEY).await?;
@@ -343,7 +338,6 @@ where
     ) -> Result<(), DomainConfigError>
     where
         C: ExposedConfig,
-        C::Flavor: ConfigFlavor,
     {
         self.ensure_write_permission(sub).await?;
         let mut entity = self.repo.find_by_key(C::KEY).await?;

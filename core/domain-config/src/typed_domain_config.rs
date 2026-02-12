@@ -40,10 +40,7 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>> TypedDomainConfig<C> {
     }
 }
 
-impl<C: ConfigSpec> TypedDomainConfig<C>
-where
-    C::Flavor: ConfigFlavor,
-{
+impl<C: ConfigSpec> TypedDomainConfig<C> {
     /// Returns the config value as `Option<T>`.
     ///
     /// Use this for configs without compile-time defaults, or when you need
@@ -53,10 +50,7 @@ where
     }
 }
 
-impl<C: DefaultedConfig> TypedDomainConfig<C>
-where
-    C::Flavor: ConfigFlavor,
-{
+impl<C: DefaultedConfig> TypedDomainConfig<C> {
     /// Returns the config value directly.
     ///
     /// This method is only available for configs with compile-time defaults
