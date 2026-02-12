@@ -86,10 +86,10 @@ sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen
 	cd apps/customer-portal && pnpm install && pnpm codegen
 
-generate-permission-labels:
-	SQLX_OFFLINE=true cargo run --bin write_permission_labels > apps/admin-panel/messages/permissions/en.json
+generate-translation-labels:
+	SQLX_OFFLINE=true cargo run --bin write_translation_labels
 
-sdl: sdl-rust sdl-js generate-permission-labels
+sdl: sdl-rust sdl-js generate-translation-labels
 
 # Frontend Apps
 check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-portal

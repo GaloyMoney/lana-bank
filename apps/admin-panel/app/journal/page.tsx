@@ -84,7 +84,10 @@ gql`
   }
 `
 
-const getColumns = (t: ReturnType<typeof useTranslations>) => [
+const getColumns = (
+  t: ReturnType<typeof useTranslations>,
+  tDesc: ReturnType<typeof useTranslations>,
+) => [
   {
     key: "effective",
     label: t("table.effective"),
@@ -106,7 +109,8 @@ const getColumns = (t: ReturnType<typeof useTranslations>) => [
     width: "w-[15%]",
     align: "left",
     render: (entry: JournalEntry) => {
-      const content = entry.ledgerTransaction.description || "-"
+      const raw = entry.ledgerTransaction.description || "-"
+      const content = tDesc.has(raw) ? tDesc(raw) : raw
       return <TruncatedTextCell tooltipText={content}>{content}</TruncatedTextCell>
     },
   },
@@ -254,7 +258,8 @@ const JournalPageCard: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
 const JournalPage: React.FC = () => {
   const t = useTranslations("Journal")
-  const columns = useMemo(() => getColumns(t), [t])
+  const tDesc = useTranslations("TransactionDescriptions")
+  const columns = useMemo(() => getColumns(t, tDesc), [t, tDesc])
   const scrollContainerRef = React.useRef<React.ComponentRef<typeof SimpleBar>>(null)
 
   const {
