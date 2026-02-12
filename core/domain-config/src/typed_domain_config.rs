@@ -8,6 +8,36 @@ use crate::{
 
 use crate::entity::DomainConfig;
 
+mod sealed {
+    pub trait Sealed {}
+    impl Sealed for super::DomainConfigFlavorPlaintext {}
+    impl Sealed for super::DomainConfigFlavorEncrypted {}
+}
+
+/// Trait for compile-time dispatch based on config flavor.
+/// This allows unified `maybe_value()` and `value()` methods on TypedDomainConfig.
+pub trait FlavorDispatch: sealed::Sealed {
+    fn maybe_value<C: ConfigSpec<Flavor = Self>>(
+        config: &TypedDomainConfig<C>,
+    ) -> Option<<C::Kind as ValueKind>::Value>;
+}
+
+impl FlavorDispatch for DomainConfigFlavorPlaintext {
+    fn maybe_value<C: ConfigSpec<Flavor = Self>>(
+        config: &TypedDomainConfig<C>,
+    ) -> Option<<C::Kind as ValueKind>::Value> {
+        config.maybe_value_plain()
+    }
+}
+
+impl FlavorDispatch for DomainConfigFlavorEncrypted {
+    fn maybe_value<C: ConfigSpec<Flavor = Self>>(
+        config: &TypedDomainConfig<C>,
+    ) -> Option<<C::Kind as ValueKind>::Value> {
+        config.maybe_value_encrypted()
+    }
+}
+
 pub struct TypedDomainConfig<C: ConfigSpec> {
     entity: DomainConfig,
     _marker: PhantomData<C>,
@@ -104,26 +134,29 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>> TypedDomainConfig<C> {
     }
 }
 
-impl<C: DefaultedConfig<Flavor = DomainConfigFlavorPlaintext>> TypedDomainConfig<C> {
-    /// Returns the config value directly.
+impl<C: ConfigSpec> TypedDomainConfig<C>
+where
+    C::Flavor: FlavorDispatch,
+{
+    /// Returns the config value as `Option<T>`.
     ///
-    /// This method is only available for configs with compile-time defaults
-    /// (those defined with a `default:` clause). The value is guaranteed to
-    /// exist because the default is always available.
-    pub fn value_plain(&self) -> <C::Kind as ValueKind>::Value {
-        self.maybe_value_plain()
-            .expect("DefaultedConfig guarantees a value")
+    /// Use this for configs without compile-time defaults, or when you need
+    /// to distinguish between "not set" and "set to default".
+    pub fn maybe_value(&self) -> Option<<C::Kind as ValueKind>::Value> {
+        C::Flavor::maybe_value(self)
     }
 }
 
-impl<C: DefaultedConfig<Flavor = DomainConfigFlavorEncrypted>> TypedDomainConfig<C> {
+impl<C: DefaultedConfig> TypedDomainConfig<C>
+where
+    C::Flavor: FlavorDispatch,
+{
     /// Returns the config value directly.
     ///
     /// This method is only available for configs with compile-time defaults
     /// (those defined with a `default:` clause). The value is guaranteed to
     /// exist because the default is always available.
-    pub fn value_encrypted(&self) -> <C::Kind as ValueKind>::Value {
-        self.maybe_value_encrypted()
-            .expect("DefaultedConfig guarantees a value")
+    pub fn value(&self) -> <C::Kind as ValueKind>::Value {
+        C::Flavor::maybe_value(self).expect("DefaultedConfig guarantees a value")
     }
 }
