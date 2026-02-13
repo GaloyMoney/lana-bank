@@ -90,22 +90,6 @@
     },
     {
       "properties": {
-        "kyc_verification": {
-          "$ref": "#/$defs/KycVerification"
-        },
-        "type": {
-          "const": "kyc_verification_updated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "kyc_verification"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
         "telegram_handle": {
           "type": "string"
         },
