@@ -32,6 +32,11 @@ async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
 
     let applicant_id = format!("applicant-{}", Uuid::new_v4());
 
+    // Start KYC first (required before approval)
+    customers
+        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .await?;
+
     let (created_customer, recorded) = event::expect_event(
         &outbox,
         || customers.handle_kyc_approved(prospect.id, applicant_id.clone()),
@@ -72,8 +77,12 @@ async fn customer_email_updated_event_on_email_change() -> anyhow::Result<()> {
             CustomerType::Individual,
         )
         .await?;
+    let applicant_id = format!("test-applicant-{}", prospect.id);
+    customers
+        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .await?;
     let customer = customers
-        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
+        .handle_kyc_approved(prospect.id, applicant_id)
         .await?;
 
     let new_email = format!("updated-{}@example.com", Uuid::new_v4());

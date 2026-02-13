@@ -338,7 +338,7 @@ where
             )
             .await?;
 
-        match prospect.approve_kyc(KycLevel::Basic, applicant_id) {
+        match prospect.approve_kyc(KycLevel::Basic, applicant_id)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -373,7 +373,7 @@ where
             )
             .await?;
 
-        match prospect.approve_kyc(KycLevel::Basic, applicant_id) {
+        match prospect.approve_kyc(KycLevel::Basic, applicant_id)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo

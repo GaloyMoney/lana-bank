@@ -116,11 +116,18 @@ async fn prospect_kyc_updated_event_on_kyc_approved() -> anyhow::Result<()> {
 
     let applicant_id = format!("applicant-{}", Uuid::new_v4());
 
+    // Start KYC first (required before approval)
+    customers
+        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .await?;
+
     let (_created_customer, recorded) = event::expect_event(
         &outbox,
         || customers.handle_kyc_approved(prospect.id, applicant_id.clone()),
         |_result, e| match e {
-            CoreCustomerEvent::ProspectKycUpdated { entity } if entity.id == prospect.id => {
+            CoreCustomerEvent::ProspectKycUpdated { entity }
+                if entity.id == prospect.id && entity.kyc_status == KycStatus::Approved =>
+            {
                 Some(entity.clone())
             }
             _ => None,
