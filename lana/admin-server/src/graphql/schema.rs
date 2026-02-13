@@ -1370,12 +1370,14 @@ impl Mutation {
             chart_of_account_bank_deposit_accounts_parent_code,
             chart_of_account_financial_institution_deposit_accounts_parent_code,
             chart_of_account_non_domiciled_individual_deposit_accounts_parent_code,
+            chart_of_account_foreign_agency_or_subsidiary_deposit_accounts_parent_code,
             chart_of_accounts_frozen_individual_deposit_accounts_parent_code,
             chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code,
             chart_of_account_frozen_private_company_deposit_accounts_parent_code,
             chart_of_account_frozen_bank_deposit_accounts_parent_code,
             chart_of_account_frozen_financial_institution_deposit_accounts_parent_code,
             chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code,
+            chart_of_account_frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_code,
         } = input;
 
         let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig {
@@ -1392,6 +1394,9 @@ impl Mutation {
                 chart_of_account_financial_institution_deposit_accounts_parent_code.parse()?,
             chart_of_account_non_domiciled_individual_deposit_accounts_parent_code:
                 chart_of_account_non_domiciled_individual_deposit_accounts_parent_code.parse()?,
+            chart_of_account_foreign_agency_or_subsidiary_deposit_accounts_parent_code:
+                chart_of_account_foreign_agency_or_subsidiary_deposit_accounts_parent_code
+                    .parse()?,
             chart_of_accounts_frozen_individual_deposit_accounts_parent_code:
                 chart_of_accounts_frozen_individual_deposit_accounts_parent_code.parse()?,
             chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code:
@@ -1405,6 +1410,9 @@ impl Mutation {
                     .parse()?,
             chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code:
                 chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code
+                    .parse()?,
+            chart_of_account_frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_code:
+                chart_of_account_frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_code
                     .parse()?,
             chart_of_accounts_omnibus_parent_code: chart_of_accounts_omnibus_parent_code.parse()?,
         };

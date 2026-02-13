@@ -15,12 +15,15 @@ pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_account_bank_deposit_accounts_parent_code: AccountCode,
     pub chart_of_account_financial_institution_deposit_accounts_parent_code: AccountCode,
     pub chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_account_foreign_agency_or_subsidiary_deposit_accounts_parent_code: AccountCode,
     pub chart_of_accounts_frozen_individual_deposit_accounts_parent_code: AccountCode,
     pub chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: AccountCode,
     pub chart_of_account_frozen_private_company_deposit_accounts_parent_code: AccountCode,
     pub chart_of_account_frozen_bank_deposit_accounts_parent_code: AccountCode,
     pub chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: AccountCode,
     pub chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_account_frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_code:
+        AccountCode,
 }
 
 define_internal_config! {
@@ -36,6 +39,8 @@ define_internal_config! {
         pub(crate) bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
         pub(crate) financial_institution_deposit_accounts_parent_account_set_id: CalaAccountSetId,
         pub(crate) non_domiciled_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id:
+            CalaAccountSetId,
 
         pub(crate) frozen_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
         pub(crate) frozen_government_entity_deposit_accounts_parent_account_set_id: CalaAccountSetId,
@@ -44,6 +49,8 @@ define_internal_config! {
         pub(crate) frozen_financial_institution_deposit_accounts_parent_account_set_id:
             CalaAccountSetId,
         pub(crate) frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id:
+            CalaAccountSetId,
+        pub(crate) frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id:
             CalaAccountSetId,
     }
 
@@ -115,6 +122,11 @@ impl ResolvedChartOfAccountsIntegrationConfig {
                 &config.chart_of_account_non_domiciled_individual_deposit_accounts_parent_code,
             )?;
 
+        let foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id =
+            liabilities_account_set_member_parent_id(
+                &config.chart_of_account_foreign_agency_or_subsidiary_deposit_accounts_parent_code,
+            )?;
+
         let frozen_individual_deposit_accounts_parent_account_set_id =
             liabilities_account_set_member_parent_id(
                 &config.chart_of_accounts_frozen_individual_deposit_accounts_parent_code,
@@ -146,6 +158,12 @@ impl ResolvedChartOfAccountsIntegrationConfig {
                     .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code,
             )?;
 
+        let frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id =
+            liabilities_account_set_member_parent_id(
+                &config
+                    .chart_of_account_frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_code,
+            )?;
+
         let omnibus_parent_account_set_id =
             asset_account_set_member_parent_id(&config.chart_of_accounts_omnibus_parent_code)?;
         Ok(Self {
@@ -158,12 +176,14 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             bank_deposit_accounts_parent_account_set_id,
             financial_institution_deposit_accounts_parent_account_set_id,
             non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id,
             frozen_individual_deposit_accounts_parent_account_set_id,
             frozen_government_entity_deposit_accounts_parent_account_set_id,
             frozen_private_company_deposit_accounts_parent_account_set_id,
             frozen_bank_deposit_accounts_parent_account_set_id,
             frozen_financial_institution_deposit_accounts_parent_account_set_id,
             frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            frozen_foreign_agency_or_subsidiary_deposit_accounts_parent_account_set_id,
         })
     }
 }

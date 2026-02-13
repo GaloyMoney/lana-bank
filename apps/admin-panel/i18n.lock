@@ -1327,12 +1327,14 @@ checksums:
     Modules/deposit/chartOfAccountBankDepositAccountsParentCode: 610e0b1896bbd770d6fc956b5156f87b
     Modules/deposit/chartOfAccountFinancialInstitutionDepositAccountsParentCode: bb9dbbc365606f62f5ee9b6dfbe2f898
     Modules/deposit/chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: a64197e527316b216bcf82877591f476
+    Modules/deposit/chartOfAccountForeignAgencyOrSubsidiaryDepositAccountsParentCode: 84751753c2181dbb18c29f67dce5bb8d
     Modules/deposit/chartOfAccountsFrozenIndividualDepositAccountsParentCode: ba690f47d936a149823b40a4769277b3
     Modules/deposit/chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: 15001cc1573212e39967738ee8a16f7d
     Modules/deposit/chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: d63752cfee8f39bc8a7b3c7565837242
     Modules/deposit/chartOfAccountFrozenBankDepositAccountsParentCode: bba210a2b6f53dfac0dc29aea4246998
     Modules/deposit/chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode: 2b695522e82dd21b6070c0265d5b7ce2
     Modules/deposit/chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode: bb4f4d224e799e22c534e1fcfefc1663
+    Modules/deposit/chartOfAccountFrozenForeignAgencyOrSubsidiaryDepositAccountsParentCode: 6f6c611d75a59c7acfa59a66cf9d4c28
     Modules/credit/title: 2d447a71ec815a039f175e94fbb12a56
     Modules/credit/description: 7feb16939959a3c35f74761021ad60d7
     Modules/credit/setTitle: fc23ba4cd507ca596a84e05344b4411d
