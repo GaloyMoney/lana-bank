@@ -140,9 +140,18 @@ where
         use PendingCreditFacilityEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                CollateralizationStateChanged { .. } => Some(
+                CollateralizationStateChanged {
+                    collateralization_state,
+                    collateral,
+                    price,
+                } => Some(
                     CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
-                        entity: PublicPendingCreditFacility::from(entity),
+                        id: entity.id,
+                        state: *collateralization_state,
+                        collateral: *collateral,
+                        price: *price,
+                        recorded_at: event.recorded_at,
+                        effective: event.recorded_at.date_naive(),
                     },
                 ),
                 Completed { .. } => Some(CoreCreditEvent::PendingCreditFacilityCompleted {

@@ -162,22 +162,20 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
 
-        if let Some(event @ PendingCreditFacilityCollateralizationChanged { entity, .. }) =
-            message.as_event()
-            && entity.collateralization.state
-                == PendingCreditFacilityCollateralizationState::FullyCollateralized
+        if let Some(
+            event @ PendingCreditFacilityCollateralizationChanged {
+                id,
+                state: PendingCreditFacilityCollateralizationState::FullyCollateralized,
+                ..
+            },
+        ) = message.as_event()
         {
             message.inject_trace_parent();
             Span::current().record("handled", true);
-            Span::current().record(
-                "pending_credit_facility_id",
-                tracing::field::display(entity.id),
-            );
+            Span::current().record("pending_credit_facility_id", tracing::field::display(id));
             Span::current().record("event_type", event.as_ref());
 
-            self.process
-                .execute_activate_credit_facility(entity.id)
-                .await?;
+            self.process.execute_activate_credit_facility(*id).await?;
         }
         Ok(())
     }

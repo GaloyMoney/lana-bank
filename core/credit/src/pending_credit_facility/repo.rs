@@ -27,7 +27,7 @@ use super::{entity::*, error::PendingCreditFacilityError};
         collateralization_state(
             ty = "PendingCreditFacilityCollateralizationState",
             list_for,
-            update(accessor = "last_collateralization_state().state")
+            update(accessor = "last_collateralization_state()")
         ),
     ),
     tbl_prefix = "core",

@@ -49,9 +49,8 @@ where
                 self.handle_credit_event(db, message, event, entity.id)
                     .await?;
             }
-            Some(event @ PendingCreditFacilityCollateralizationChanged { entity, .. }) => {
-                self.handle_credit_event(db, message, event, entity.id)
-                    .await?;
+            Some(event @ PendingCreditFacilityCollateralizationChanged { id, .. }) => {
+                self.handle_credit_event(db, message, event, *id).await?;
             }
             Some(event @ FacilityActivated { entity }) => {
                 self.handle_credit_event(db, message, event, entity.id)

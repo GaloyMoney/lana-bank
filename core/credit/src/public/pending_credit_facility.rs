@@ -8,8 +8,11 @@ use core_credit_terms::TermValues;
 use money::UsdCents;
 
 use crate::{
-    pending_credit_facility::{PendingCreditFacility, PendingFacilityCollateralization},
-    primitives::{CustomerId, PendingCreditFacilityId, PendingCreditFacilityStatus},
+    pending_credit_facility::PendingCreditFacility,
+    primitives::{
+        CustomerId, PendingCreditFacilityCollateralizationState, PendingCreditFacilityId,
+        PendingCreditFacilityStatus,
+    },
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,7 +20,7 @@ use crate::{
 pub struct PublicPendingCreditFacility {
     pub id: PendingCreditFacilityId,
     pub status: PendingCreditFacilityStatus,
-    pub collateralization: PendingFacilityCollateralization,
+    pub collateralization_state: PendingCreditFacilityCollateralizationState,
     pub amount: UsdCents,
     pub terms: TermValues,
     pub customer_id: CustomerId,
@@ -30,7 +33,7 @@ impl From<&PendingCreditFacility> for PublicPendingCreditFacility {
         PublicPendingCreditFacility {
             id: entity.id,
             status: entity.status(),
-            collateralization: entity.last_collateralization_state(),
+            collateralization_state: entity.last_collateralization_state(),
             amount: entity.amount,
             terms: entity.terms,
             customer_id: entity.customer_id,

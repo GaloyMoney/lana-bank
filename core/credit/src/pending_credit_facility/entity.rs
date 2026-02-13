@@ -18,14 +18,6 @@ use crate::{
 
 use super::error::PendingCreditFacilityError;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct PendingFacilityCollateralization {
-    pub state: PendingCreditFacilityCollateralizationState,
-    pub collateral: Option<Satoshis>,
-    pub price: Option<PriceOfOneBTC>,
-}
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -123,7 +115,7 @@ impl PendingCreditFacility {
             PendingCreditFacilityCollateralizationState::UnderCollateralized
         };
 
-        if calculated_collateralization_state != self.last_collateralization_state().state {
+        if calculated_collateralization_state != self.last_collateralization_state() {
             self.events
                 .push(PendingCreditFacilityEvent::CollateralizationStateChanged {
                     collateralization_state: calculated_collateralization_state,
@@ -169,27 +161,18 @@ impl PendingCreditFacility {
             .unwrap_or(CollateralizationRatio::default())
     }
 
-    pub fn last_collateralization_state(&self) -> PendingFacilityCollateralization {
+    pub fn last_collateralization_state(&self) -> PendingCreditFacilityCollateralizationState {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 PendingCreditFacilityEvent::CollateralizationStateChanged {
                     collateralization_state,
-                    collateral,
-                    price,
-                } => Some(PendingFacilityCollateralization {
-                    state: *collateralization_state,
-                    collateral: Some(*collateral),
-                    price: Some(*price),
-                }),
+                    ..
+                } => Some(*collateralization_state),
                 _ => None,
             })
-            .unwrap_or(PendingFacilityCollateralization {
-                state: PendingCreditFacilityCollateralizationState::UnderCollateralized,
-                collateral: None,
-                price: None,
-            })
+            .unwrap_or(PendingCreditFacilityCollateralizationState::UnderCollateralized)
     }
 
     pub fn completed_at(&self) -> Option<DateTime<Utc>> {
