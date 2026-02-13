@@ -40,7 +40,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'kyc_verification_updated', 'telegram_handle_updated', 'email_updated', 'activity_updated') THEN
+  IF event_type NOT IN ('initialized', 'telegram_handle_updated', 'email_updated', 'activity_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -86,8 +86,6 @@ BEGIN
       new_row.level := (NEW.event ->> 'level');
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
-    WHEN 'kyc_verification_updated' THEN
-      new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
     WHEN 'telegram_handle_updated' THEN
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
     WHEN 'email_updated' THEN
