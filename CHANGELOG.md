@@ -1,3 +1,18 @@
+## [0.41.0] - 2026-02-13
+
+### 🚀 Features
+
+- Type-safe encrypted domain config (#3769)
+
+### 🚜 Refactor
+
+- Move codegen binaries to dev/codegen crate (#3781)
+
+### ⚙️ Miscellaneous Tasks
+
+- Adding fly to flake (#3756)
+- Create skills for testing PR on staging (#3764)
+- Translate journal transaction descriptions (#3768)
 ## [0.40.0] - 2026-02-11
 
 ### 🚀 Features
