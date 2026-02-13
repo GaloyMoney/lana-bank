@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -50,11 +52,14 @@ gql`
 
 const ProspectsList = () => {
   const t = useTranslations("Prospects")
+  const [statusFilter, setStatusFilter] = useState<ProspectStatus | undefined>(
+    undefined,
+  )
 
   const { data, loading, error, fetchMore } = useProspectsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
-      status: ProspectStatus.Open,
+      status: statusFilter,
     },
   })
 
@@ -97,6 +102,11 @@ const ProspectsList = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(prospect) => `/prospects/${prospect.publicId}`}
+        onFilter={(column, value) => {
+          if (column === "status") {
+            setStatusFilter(value as ProspectStatus | undefined)
+          }
+        }}
       />
     </div>
   )
