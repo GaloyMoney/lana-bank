@@ -20,6 +20,7 @@ use money::UsdCents;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
+    FacilityProceedsFromLiquidationAccountId,
     collateral::ledger::CollateralLedgerAccountIds,
     primitives::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject},
 };
@@ -28,13 +29,13 @@ use es_entity::Idempotent;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
-use ledger::CollateralLedger;
+use ledger::{CollateralLedger, LiquidationProceedsAccountIds};
 
 pub(super) use entity::*;
 use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync};
 pub use {
     entity::{Collateral, CollateralAdjustment},
-    liquidation::{Liquidation, RecordProceedsFromLiquidationData},
+    liquidation::Liquidation,
     repo::liquidation_cursor,
 };
 
@@ -431,5 +432,38 @@ where
             .await?;
 
         Ok(self.repo.list_liquidations(query).await?)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RecordProceedsFromLiquidationData {
+    pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
+    pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub liquidated_collateral_account_id: CalaAccountId,
+
+    pub amount_received: UsdCents,
+    pub amount_liquidated: Satoshis,
+
+    pub ledger_tx_id: LedgerTxId,
+}
+
+impl RecordProceedsFromLiquidationData {
+    pub(crate) fn new(
+        account_ids: LiquidationProceedsAccountIds,
+        amount_received: UsdCents,
+        amount_liquidated: Satoshis,
+        ledger_tx_id: LedgerTxId,
+    ) -> Self {
+        Self {
+            liquidation_proceeds_omnibus_account_id: account_ids
+                .liquidation_proceeds_omnibus_account_id,
+            proceeds_from_liquidation_account_id: account_ids.proceeds_from_liquidation_account_id,
+            collateral_in_liquidation_account_id: account_ids.collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id: account_ids.liquidated_collateral_account_id,
+            amount_received,
+            amount_liquidated,
+            ledger_tx_id,
+        }
     }
 }
