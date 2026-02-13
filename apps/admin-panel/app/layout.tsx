@@ -25,7 +25,7 @@ const RootLayout: React.FC<React.PropsWithChildren> = async ({ children }) => {
   const messages = await getMessages()
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.className} antialiased bg-background`}>
         <NextIntlClientProvider messages={messages}>
           <AppLoading>
