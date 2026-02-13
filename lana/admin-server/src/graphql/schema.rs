@@ -194,6 +194,7 @@ impl Query {
         first: i32,
         after: Option<String>,
         status: Option<lana_app::customer::ProspectStatus>,
+        kyc_status: Option<lana_app::customer::KycStatus>,
     ) -> async_graphql::Result<
         Connection<ProspectsByCreatedAtCursor, Prospect, EmptyFields, EmptyFields>,
     > {
@@ -205,9 +206,13 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app
-                .customers()
-                .list_prospects(sub, query, ListDirection::Descending, status)
+            |query| app.customers().list_prospects(
+                sub,
+                query,
+                ListDirection::Descending,
+                status,
+                kyc_status
+            )
         )
     }
 

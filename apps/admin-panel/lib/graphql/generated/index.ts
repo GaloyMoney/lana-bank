@@ -2789,6 +2789,7 @@ export type QueryProspectByPublicIdArgs = {
 export type QueryProspectsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+  kycStatus?: InputMaybe<KycStatus>;
   status?: InputMaybe<ProspectStatus>;
 };
 
@@ -4581,6 +4582,7 @@ export type ProspectsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ProspectStatus>;
+  kycStatus?: InputMaybe<KycStatus>;
 }>;
 
 
@@ -11065,8 +11067,8 @@ export type ProspectCreateMutationHookResult = ReturnType<typeof useProspectCrea
 export type ProspectCreateMutationResult = Apollo.MutationResult<ProspectCreateMutation>;
 export type ProspectCreateMutationOptions = Apollo.BaseMutationOptions<ProspectCreateMutation, ProspectCreateMutationVariables>;
 export const ProspectsDocument = gql`
-    query Prospects($first: Int!, $after: String, $status: ProspectStatus) {
-  prospects(first: $first, after: $after, status: $status) {
+    query Prospects($first: Int!, $after: String, $status: ProspectStatus, $kycStatus: KycStatus) {
+  prospects(first: $first, after: $after, status: $status, kycStatus: $kycStatus) {
     edges {
       node {
         id
@@ -11108,6 +11110,7 @@ export const ProspectsDocument = gql`
  *      first: // value for 'first'
  *      after: // value for 'after'
  *      status: // value for 'status'
+ *      kycStatus: // value for 'kycStatus'
  *   },
  * });
  */
