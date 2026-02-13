@@ -4,6 +4,7 @@ CREATE TABLE core_prospect_events_rollup (
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
+  event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
   applicant_id VARCHAR,
   customer_type VARCHAR,
@@ -17,6 +18,7 @@ CREATE TABLE core_prospect_events_rollup (
 ,
   PRIMARY KEY (id, version)
 );
+
 
 -- Auto-generated trigger function for ProspectEvent
 CREATE OR REPLACE FUNCTION core_prospect_events_rollup_trigger()
@@ -36,7 +38,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_declined', 'closed', 'telegram_handle_updated') THEN
+  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_declined', 'manually_converted', 'closed', 'telegram_handle_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -45,6 +47,7 @@ BEGIN
   new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
+  new_row.event_type := NEW.event_type;
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
@@ -81,6 +84,7 @@ BEGIN
       new_row.level := (NEW.event ->> 'level');
     WHEN 'kyc_declined' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
+    WHEN 'manually_converted' THEN
     WHEN 'closed' THEN
     WHEN 'telegram_handle_updated' THEN
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
@@ -91,6 +95,7 @@ BEGIN
     version,
     created_at,
     modified_at,
+    event_type,
     applicant_id,
     customer_type,
     email,
@@ -104,6 +109,7 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
+    new_row.event_type,
     new_row.applicant_id,
     new_row.customer_type,
     new_row.email,
@@ -116,6 +122,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Auto-generated trigger for ProspectEvent
 CREATE TRIGGER core_prospect_events_rollup_trigger

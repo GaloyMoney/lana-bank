@@ -310,7 +310,8 @@
           "publicId": "Public ID"
         },
         "buttons": {
-          "closeProspect": "Close Prospect"
+          "closeProspect": "Close Prospect",
+          "convertToCustomer": "Convert to Customer"
         },
         "customerType": {
           "individual": "Individual",
@@ -330,6 +331,14 @@
           "close": "Close Prospect"
         },
         "success": "Prospect closed successfully"
+      },
+      "convertProspect": {
+        "title": "Convert to Customer",
+        "description": "This will convert the prospect to an active customer without KYC verification. This is intended for testing purposes only.",
+        "buttons": {
+          "convert": "Convert to Customer"
+        },
+        "success": "Prospect converted to customer successfully"
       },
       "kycStatus": {
         "title": "KYC",

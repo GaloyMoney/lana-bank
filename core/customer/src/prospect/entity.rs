@@ -31,6 +31,7 @@ pub enum ProspectEvent {
     KycDeclined {
         applicant_id: String,
     },
+    ManuallyConverted {},
     Closed {},
     TelegramHandleUpdated {
         telegram_handle: String,
@@ -127,6 +128,31 @@ impl Prospect {
         Ok(Idempotent::Executed(new_customer))
     }
 
+    pub fn convert_manually(&mut self) -> Idempotent<NewCustomer> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ProspectEvent::ManuallyConverted { .. } | ProspectEvent::KycApproved { .. }
+        );
+        self.events.push(ProspectEvent::ManuallyConverted {});
+        self.status = ProspectStatus::Converted;
+        self.kyc_status = KycStatus::Approved;
+
+        let new_customer = NewCustomer::builder()
+            .id(CustomerId::from(self.id))
+            .email(self.email.clone())
+            .telegram_handle(self.telegram_handle.clone())
+            .customer_type(self.customer_type)
+            .public_id(self.public_id.clone())
+            .applicant_id("manual-conversion")
+            .kyc_verification(KycVerification::PendingVerification)
+            .level(KycLevel::NotKyced)
+            .activity(Activity::Active)
+            .build()
+            .expect("Could not build customer from prospect");
+
+        Idempotent::Executed(new_customer)
+    }
+
     pub fn decline_kyc(&mut self, applicant_id: String) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -148,7 +174,9 @@ impl Prospect {
     pub fn close(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::Closed { .. } | ProspectEvent::KycApproved { .. }
+            ProspectEvent::Closed { .. }
+                | ProspectEvent::KycApproved { .. }
+                | ProspectEvent::ManuallyConverted { .. }
         );
         self.events.push(ProspectEvent::Closed {});
         self.status = ProspectStatus::Closed;
@@ -203,6 +231,11 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     builder = builder
                         .applicant_id(applicant_id.clone())
                         .level(*level)
+                        .kyc_status(KycStatus::Approved)
+                        .status(ProspectStatus::Converted);
+                }
+                ProspectEvent::ManuallyConverted { .. } => {
+                    builder = builder
                         .kyc_status(KycStatus::Approved)
                         .status(ProspectStatus::Converted);
                 }

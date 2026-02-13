@@ -1882,6 +1882,7 @@ export type Mutation = {
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   prospectClose: ProspectClosePayload;
+  prospectConvert: ProspectConvertPayload;
   prospectCreate: ProspectCreatePayload;
   reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
@@ -2128,6 +2129,11 @@ export type MutationPolicyAssignCommitteeArgs = {
 
 export type MutationProspectCloseArgs = {
   input: ProspectCloseInput;
+};
+
+
+export type MutationProspectConvertArgs = {
+  input: ProspectConvertInput;
 };
 
 
@@ -2412,6 +2418,15 @@ export type ProspectConnection = {
   nodes: Array<Prospect>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
+};
+
+export type ProspectConvertInput = {
+  prospectId: Scalars['UUID']['input'];
+};
+
+export type ProspectConvertPayload = {
+  __typename?: 'ProspectConvertPayload';
+  customer: Customer;
 };
 
 export type ProspectCreateInput = {
@@ -4570,6 +4585,13 @@ export type ProspectCloseMutationVariables = Exact<{
 
 
 export type ProspectCloseMutation = { __typename?: 'Mutation', prospectClose: { __typename?: 'ProspectClosePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, status: ProspectStatus, kycStatus: KycStatus } } };
+
+export type ProspectConvertMutationVariables = Exact<{
+  input: ProspectConvertInput;
+}>;
+
+
+export type ProspectConvertMutation = { __typename?: 'Mutation', prospectConvert: { __typename?: 'ProspectConvertPayload', customer: { __typename?: 'Customer', id: string, customerId: string } } };
 
 export type ProspectCreateMutationVariables = Exact<{
   input: ProspectCreateInput;
@@ -11025,6 +11047,42 @@ export function useProspectCloseMutation(baseOptions?: Apollo.MutationHookOption
 export type ProspectCloseMutationHookResult = ReturnType<typeof useProspectCloseMutation>;
 export type ProspectCloseMutationResult = Apollo.MutationResult<ProspectCloseMutation>;
 export type ProspectCloseMutationOptions = Apollo.BaseMutationOptions<ProspectCloseMutation, ProspectCloseMutationVariables>;
+export const ProspectConvertDocument = gql`
+    mutation ProspectConvert($input: ProspectConvertInput!) {
+  prospectConvert(input: $input) {
+    customer {
+      id
+      customerId
+    }
+  }
+}
+    `;
+export type ProspectConvertMutationFn = Apollo.MutationFunction<ProspectConvertMutation, ProspectConvertMutationVariables>;
+
+/**
+ * __useProspectConvertMutation__
+ *
+ * To run a mutation, you first call `useProspectConvertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProspectConvertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [prospectConvertMutation, { data, loading, error }] = useProspectConvertMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useProspectConvertMutation(baseOptions?: Apollo.MutationHookOptions<ProspectConvertMutation, ProspectConvertMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProspectConvertMutation, ProspectConvertMutationVariables>(ProspectConvertDocument, options);
+      }
+export type ProspectConvertMutationHookResult = ReturnType<typeof useProspectConvertMutation>;
+export type ProspectConvertMutationResult = Apollo.MutationResult<ProspectConvertMutation>;
+export type ProspectConvertMutationOptions = Apollo.BaseMutationOptions<ProspectConvertMutation, ProspectConvertMutationVariables>;
 export const ProspectCreateDocument = gql`
     mutation ProspectCreate($input: ProspectCreateInput!) {
   prospectCreate(input: $input) {

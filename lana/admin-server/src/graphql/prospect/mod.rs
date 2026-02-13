@@ -68,3 +68,9 @@ pub struct ProspectCloseInput {
     pub prospect_id: UUID,
 }
 crate::mutation_payload! { ProspectClosePayload, prospect: Prospect }
+
+#[derive(InputObject)]
+pub struct ProspectConvertInput {
+    pub prospect_id: UUID,
+}
+crate::mutation_payload! { ProspectConvertPayload, customer: super::customer::Customer }

@@ -17,7 +17,10 @@ pub enum ProspectError {
     #[error("ProspectError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("ProspectError - ApplicantIdMismatch: expected {expected:?}, got {actual}")]
-    ApplicantIdMismatch { expected: Option<String>, actual: String },
+    ApplicantIdMismatch {
+        expected: Option<String>,
+        actual: String,
+    },
 }
 
 es_entity::from_es_entity_error!(ProspectError);

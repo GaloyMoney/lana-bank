@@ -1847,6 +1847,7 @@ type Mutation {
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
+	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
 	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
@@ -2145,6 +2146,14 @@ type ProspectConnection {
 	A list of nodes.
 	"""
 	nodes: [Prospect!]!
+}
+
+input ProspectConvertInput {
+	prospectId: UUID!
+}
+
+type ProspectConvertPayload {
+	customer: Customer!
 }
 
 input ProspectCreateInput {

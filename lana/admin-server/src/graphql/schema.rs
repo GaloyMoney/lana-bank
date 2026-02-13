@@ -1351,6 +1351,20 @@ impl Mutation {
         )
     }
 
+    async fn prospect_convert(
+        &self,
+        ctx: &Context<'_>,
+        input: ProspectConvertInput,
+    ) -> async_graphql::Result<ProspectConvertPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ProspectConvertPayload,
+            Customer,
+            ctx,
+            app.customers().convert_prospect(sub, input.prospect_id)
+        )
+    }
+
     async fn customer_telegram_handle_update(
         &self,
         ctx: &Context<'_>,
