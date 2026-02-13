@@ -157,6 +157,7 @@ impl CreditFacilityRepaymentPlan {
         sequence: EventSequence,
         event: &CoreCreditEvent,
         now: DateTime<Utc>,
+        recorded_at: DateTime<Utc>,
     ) -> bool {
         self.last_updated_on_sequence = sequence;
 
@@ -194,7 +195,7 @@ impl CreditFacilityRepaymentPlan {
                     due_at: entity.due_at,
                     overdue_at: None,
                     defaulted_at: None,
-                    recorded_at: now,
+                    recorded_at,
                     effective: posting.effective,
                 };
 
@@ -466,6 +467,7 @@ mod tests {
                 },
             },
             default_start_date(),
+            default_start_date(),
         );
 
         plan
@@ -499,7 +501,12 @@ mod tests {
 
     fn process_credit_events(plan: &mut CreditFacilityRepaymentPlan, events: Vec<CoreCreditEvent>) {
         for event in events {
-            plan.process_credit_event(Default::default(), &event, default_start_date());
+            plan.process_credit_event(
+                Default::default(),
+                &event,
+                default_start_date(),
+                default_start_date(),
+            );
         }
     }
 
@@ -512,7 +519,12 @@ mod tests {
         for event in events {
             match &event {
                 TestEvent::Credit(e) => {
-                    plan.process_credit_event(Default::default(), e, default_start_date());
+                    plan.process_credit_event(
+                        Default::default(),
+                        e,
+                        default_start_date(),
+                        default_start_date(),
+                    );
                 }
                 TestEvent::Collection(e) => {
                     plan.process_collection_event(Default::default(), e, default_start_date());
@@ -1251,7 +1263,12 @@ mod tests {
                 liquidation_trigger: None,
             },
         };
-        plan.process_credit_event(Default::default(), &activate_event, default_start_date());
+        plan.process_credit_event(
+            Default::default(),
+            &activate_event,
+            default_start_date(),
+            default_start_date(),
+        );
 
         let obligation_event = CoreCreditCollectionEvent::ObligationCreated {
             entity: PublicObligation {
@@ -1315,14 +1332,23 @@ mod tests {
                 liquidation_trigger: None,
             },
         };
-        plan.process_credit_event(Default::default(), &activate_event, default_start_date());
+        plan.process_credit_event(
+            Default::default(),
+            &activate_event,
+            default_start_date(),
+            default_start_date(),
+        );
 
         let period = InterestInterval::EndOfMonth.period_from(default_start_date());
         let accrual_event = accrual_posted_event(period);
 
         // First processing should create the accrual entry
-        let first_result =
-            plan.process_credit_event(Default::default(), &accrual_event, default_start_date());
+        let first_result = plan.process_credit_event(
+            Default::default(),
+            &accrual_event,
+            default_start_date(),
+            default_start_date(),
+        );
         assert!(first_result);
 
         let count_after_first = plan
@@ -1337,8 +1363,12 @@ mod tests {
         assert_eq!(count_after_first, 1);
 
         // Second processing (replay) should be idempotent - no duplicate entry
-        let second_result =
-            plan.process_credit_event(Default::default(), &accrual_event, default_start_date());
+        let second_result = plan.process_credit_event(
+            Default::default(),
+            &accrual_event,
+            default_start_date(),
+            default_start_date(),
+        );
         assert!(!second_result);
 
         let count_after_second = plan
@@ -1369,14 +1399,22 @@ mod tests {
         };
 
         // First processing
-        let first_result =
-            plan.process_credit_event(Default::default(), &proposal_event, default_start_date());
+        let first_result = plan.process_credit_event(
+            Default::default(),
+            &proposal_event,
+            default_start_date(),
+            default_start_date(),
+        );
         assert!(first_result);
         assert_eq!(plan.facility_amount, UsdCents::from(100_000_00));
 
         // Second processing (replay) - naturally idempotent, sets same values
-        let second_result =
-            plan.process_credit_event(Default::default(), &proposal_event, default_start_date());
+        let second_result = plan.process_credit_event(
+            Default::default(),
+            &proposal_event,
+            default_start_date(),
+            default_start_date(),
+        );
         assert!(second_result);
         assert_eq!(plan.facility_amount, UsdCents::from(100_000_00));
     }
@@ -1400,14 +1438,22 @@ mod tests {
         };
 
         // First processing
-        let first_result =
-            plan.process_credit_event(Default::default(), &activate_event, default_start_date());
+        let first_result = plan.process_credit_event(
+            Default::default(),
+            &activate_event,
+            default_start_date(),
+            default_start_date(),
+        );
         assert!(first_result);
         assert_eq!(plan.activated_at, Some(activated_at));
 
         // Second processing (replay) - naturally idempotent, sets same value
-        let second_result =
-            plan.process_credit_event(Default::default(), &activate_event, default_start_date());
+        let second_result = plan.process_credit_event(
+            Default::default(),
+            &activate_event,
+            default_start_date(),
+            default_start_date(),
+        );
         assert!(second_result);
         assert_eq!(plan.activated_at, Some(activated_at));
     }
