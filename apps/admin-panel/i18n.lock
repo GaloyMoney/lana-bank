@@ -233,6 +233,7 @@ checksums:
     Prospects/ProspectDetails/details/labels/customerType: f04471a7ddac844b9ad145eb9911ef75
     Prospects/ProspectDetails/details/labels/publicId: 916fc3fdca16a23af44dbcfec824984d
     Prospects/ProspectDetails/details/buttons/closeProspect: 13c6753109d70226efe543d03070f75e
+    Prospects/ProspectDetails/details/buttons/convertToCustomer: 10f8a6e3404e4489083453a7e0ad7c21
     Prospects/ProspectDetails/details/customerType/individual: 52ebce389ed97a13b6089802055ed667
     Prospects/ProspectDetails/details/customerType/company: 9e36d11fa82d1bd4563eef2abc4fcfba
     Prospects/ProspectDetails/details/customerType/governmentEntity: f528833b92b299e24071fe069cf3ed82
@@ -245,6 +246,10 @@ checksums:
     Prospects/ProspectDetails/closeProspect/description: 6a2da01dfda42062fdae4c2096a04737
     Prospects/ProspectDetails/closeProspect/buttons/close: 13c6753109d70226efe543d03070f75e
     Prospects/ProspectDetails/closeProspect/success: d31227347ae5c58d4b5fdae2fe51801f
+    Prospects/ProspectDetails/convertProspect/title: 10f8a6e3404e4489083453a7e0ad7c21
+    Prospects/ProspectDetails/convertProspect/description: b278c85650c9d735f18b2c4ba56c66c4
+    Prospects/ProspectDetails/convertProspect/buttons/convert: 10f8a6e3404e4489083453a7e0ad7c21
+    Prospects/ProspectDetails/convertProspect/success: 67bed32f2a25ac852dbbc38635367658
     Prospects/ProspectDetails/kycStatus/title: 4bd5d2fae73d8ec19511c2d011a48025
     Prospects/ProspectDetails/kycStatus/notStarted: 5d3574bf6f78fdcb400c5e8a6a034111
     Prospects/ProspectDetails/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
