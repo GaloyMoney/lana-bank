@@ -434,13 +434,6 @@
           "level": "Nivel",
           "status": "Estado",
           "kycApplicationLink": "Enlace de Solicitud KYC"
-        },
-        "actions": {
-          "createLink": "Crear enlace",
-          "creatingLink": "Creando enlace..."
-        },
-        "messages": {
-          "copied": "Copiado al portapapeles"
         }
       },
       "depositAccount": {

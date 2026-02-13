@@ -12,7 +12,7 @@ pub enum ProspectError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("ProspectError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("ProspectError - AuditError: ${0}")]
+    #[error("ProspectError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
     #[error("ProspectError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),

@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { gql } from "@apollo/client"
 import { HiLink } from "react-icons/hi"
 
 import { Copy } from "lucide-react"
@@ -16,6 +17,14 @@ import {
 } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { removeUnderscore } from "@/lib/utils"
+
+gql`
+  mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
+    sumsubPermalinkCreate(input: $input) {
+      url
+    }
+  }
+`
 
 type ProspectKycStatusProps = {
   prospectId: string

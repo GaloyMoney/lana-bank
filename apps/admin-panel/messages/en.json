@@ -434,13 +434,6 @@
           "level": "Level",
           "status": "Status",
           "kycApplicationLink": "KYC Application Link"
-        },
-        "actions": {
-          "createLink": "Create link",
-          "creatingLink": "Creating link..."
-        },
-        "messages": {
-          "copied": "Copied to clipboard"
         }
       },
       "depositAccount": {

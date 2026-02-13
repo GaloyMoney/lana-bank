@@ -142,7 +142,6 @@ export default function CustomerLayout({
       <CustomerDetailsCard customer={data.customerByPublicId} />
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
         <KycStatus
-          customerId={data.customerByPublicId.customerId}
           kycVerification={data.customerByPublicId.kycVerification}
           level={data.customerByPublicId.level}
           applicantId={data.customerByPublicId.applicantId}
