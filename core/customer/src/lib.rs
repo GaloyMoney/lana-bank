@@ -40,6 +40,7 @@ pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::entity::CustomerEvent;
+    pub use crate::prospect::entity::ProspectEvent;
 }
 
 use prospect::publisher::ProspectPublisher;
@@ -442,6 +443,30 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.close_prospect", skip(self))]
+    pub async fn close_prospect(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        prospect_id: impl Into<ProspectId> + std::fmt::Debug,
+    ) -> Result<Prospect, CustomerError> {
+        let prospect_id = prospect_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::prospect(prospect_id),
+                CoreCustomerAction::PROSPECT_CLOSE,
+            )
+            .await?;
+
+        let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
+        if prospect.close().did_execute() {
+            self.prospect_repo.update(&mut prospect).await?;
+        }
+
+        Ok(prospect)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.find_prospect_by_id", skip(self))]
     pub async fn find_prospect_by_id(
         &self,
@@ -497,6 +522,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<prospect::prospect_cursor::ProspectsByCreatedAtCursor>,
         direction: es_entity::ListDirection,
+        status: Option<ProspectStatus>,
     ) -> Result<
         es_entity::PaginatedQueryRet<
             Prospect,
@@ -511,10 +537,14 @@ where
                 CoreCustomerAction::PROSPECT_LIST,
             )
             .await?;
-        Ok(self
+        let mut result = self
             .prospect_repo
             .list_by_created_at(query, direction)
-            .await?)
+            .await?;
+        if let Some(status) = status {
+            result.entities.retain(|p| p.status == status);
+        }
+        Ok(result)
     }
 
     #[record_error_severity]

@@ -30,6 +30,7 @@ pub enum ProspectEvent {
     KycDeclined {
         applicant_id: String,
     },
+    Closed {},
     TelegramHandleUpdated {
         telegram_handle: String,
     },
@@ -42,6 +43,8 @@ pub struct Prospect {
     pub email: String,
     pub telegram_handle: String,
     pub customer_type: CustomerType,
+    #[builder(default)]
+    pub status: ProspectStatus,
     #[builder(default)]
     pub kyc_status: KycStatus,
     #[builder(setter(strip_option, into), default)]
@@ -98,7 +101,8 @@ impl Prospect {
         });
         self.applicant_id = Some(applicant_id.clone());
         self.level = level;
-        self.kyc_status = KycStatus::Closed;
+        self.kyc_status = KycStatus::Approved;
+        self.status = ProspectStatus::Converted;
 
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
@@ -125,6 +129,16 @@ impl Prospect {
         self.events
             .push(ProspectEvent::KycDeclined { applicant_id });
         self.kyc_status = KycStatus::Declined;
+        Idempotent::Executed(())
+    }
+
+    pub fn close(&mut self) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ProspectEvent::Closed { .. } | ProspectEvent::KycApproved { .. }
+        );
+        self.events.push(ProspectEvent::Closed {});
+        self.status = ProspectStatus::Closed;
         Idempotent::Executed(())
     }
 
@@ -176,10 +190,14 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     builder = builder
                         .applicant_id(applicant_id.clone())
                         .level(*level)
-                        .kyc_status(KycStatus::Closed);
+                        .kyc_status(KycStatus::Approved)
+                        .status(ProspectStatus::Converted);
                 }
                 ProspectEvent::KycDeclined { .. } => {
                     builder = builder.kyc_status(KycStatus::Declined);
+                }
+                ProspectEvent::Closed { .. } => {
+                    builder = builder.status(ProspectStatus::Closed);
                 }
                 ProspectEvent::TelegramHandleUpdated {
                     telegram_handle, ..

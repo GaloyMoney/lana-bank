@@ -14,7 +14,7 @@ use core_credit::event_schema::{
 };
 use core_credit_terms::TermsTemplateEvent;
 use core_custody::event_schema::{CustodianEvent, WalletEvent};
-use core_customer::event_schema::CustomerEvent;
+use core_customer::event_schema::{CustomerEvent, ProspectEvent};
 use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
 use core_report::event_schema::{ReportEvent, ReportRunEvent};
 use document_storage::event_schema::DocumentEvent;
@@ -192,6 +192,13 @@ pub fn update_schemas(
             filename: "customer_event_schema.json",
             toggle_events: vec!["KycApproved"],
             generate_schema: || serde_json::to_value(schema_for!(CustomerEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "ProspectEvent",
+            filename: "prospect_event_schema.json",
+            toggle_events: vec!["KycApproved"],
+            generate_schema: || serde_json::to_value(schema_for!(ProspectEvent)).unwrap(),
             ..Default::default()
         },
         SchemaInfo {

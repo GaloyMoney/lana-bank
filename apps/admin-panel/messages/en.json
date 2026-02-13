@@ -246,15 +246,20 @@
     "columns": {
       "email": "Email",
       "telegramHandle": "Telegram",
+      "status": "Status",
       "kycStatus": "KYC Status",
       "customerType": "Type"
+    },
+    "status": {
+      "open": "Open",
+      "converted": "Converted",
+      "closed": "Closed"
     },
     "kycStatus": {
       "notStarted": "Not Started",
       "pending": "Pending",
       "approved": "Approved",
-      "declined": "Declined",
-      "closed": "Closed"
+      "declined": "Declined"
     },
     "create": {
       "title": "Add new prospect",
@@ -292,11 +297,21 @@
         "errors": {
           "loading": "Loading...",
           "error": "An error occurred"
+        },
+        "actions": {
+          "close": "Close Prospect",
+          "closing": "Closing...",
+          "closeConfirmTitle": "Close Prospect",
+          "closeConfirmDescription": "Are you sure you want to close this prospect? This action cannot be undone.",
+          "cancel": "Cancel",
+          "confirmClose": "Close",
+          "closeSuccess": "Prospect closed successfully"
         }
       },
       "details": {
         "title": "Prospect",
         "labels": {
+          "status": "Status",
           "email": "Email",
           "createdOn": "Created on",
           "telegram": "Telegram",
@@ -320,7 +335,6 @@
         "pending": "Pending",
         "approved": "Approved",
         "declined": "Declined",
-        "closed": "Closed",
         "labels": {
           "level": "Level",
           "status": "Status",

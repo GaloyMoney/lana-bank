@@ -1634,7 +1634,6 @@ enum KycStatus {
 	PENDING
 	APPROVED
 	DECLINED
-	CLOSED
 }
 
 enum KycVerification {
@@ -1847,6 +1846,7 @@ type Mutation {
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
+	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
 	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
@@ -2113,6 +2113,7 @@ type ProfitAndLossStatement {
 type Prospect {
 	id: ID!
 	prospectId: UUID!
+	status: ProspectStatus!
 	kycStatus: KycStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
@@ -2121,6 +2122,14 @@ type Prospect {
 	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String
+}
+
+input ProspectCloseInput {
+	prospectId: UUID!
+}
+
+type ProspectClosePayload {
+	prospect: Prospect!
 }
 
 type ProspectConnection {
@@ -2162,6 +2171,12 @@ type ProspectEdge {
 	cursor: String!
 }
 
+enum ProspectStatus {
+	OPEN
+	CONVERTED
+	CLOSED
+}
+
 scalar PublicId
 
 union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
@@ -2180,7 +2195,7 @@ type Query {
 	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}, filter: CustomersFilter): CustomerConnection!
 	prospect(id: UUID!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect
-	prospects(first: Int!, after: String): ProspectConnection!
+	prospects(first: Int!, after: String, status: ProspectStatus): ProspectConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawalByPublicId(id: PublicId!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!

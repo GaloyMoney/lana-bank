@@ -1624,7 +1624,6 @@ export enum KycLevel {
 
 export enum KycStatus {
   Approved = 'APPROVED',
-  Closed = 'CLOSED',
   Declined = 'DECLINED',
   NotStarted = 'NOT_STARTED',
   Pending = 'PENDING'
@@ -1882,6 +1881,7 @@ export type Mutation = {
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
+  prospectClose: ProspectClosePayload;
   prospectCreate: ProspectCreatePayload;
   reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
@@ -2123,6 +2123,11 @@ export type MutationManualTransactionExecuteArgs = {
 
 export type MutationPolicyAssignCommitteeArgs = {
   input: PolicyAssignCommitteeInput;
+};
+
+
+export type MutationProspectCloseArgs = {
+  input: ProspectCloseInput;
 };
 
 
@@ -2386,7 +2391,17 @@ export type Prospect = {
   level: KycLevel;
   prospectId: Scalars['UUID']['output'];
   publicId: Scalars['PublicId']['output'];
+  status: ProspectStatus;
   telegramHandle: Scalars['String']['output'];
+};
+
+export type ProspectCloseInput = {
+  prospectId: Scalars['UUID']['input'];
+};
+
+export type ProspectClosePayload = {
+  __typename?: 'ProspectClosePayload';
+  prospect: Prospect;
 };
 
 export type ProspectConnection = {
@@ -2418,6 +2433,12 @@ export type ProspectEdge = {
   /** The item at the end of the edge */
   node: Prospect;
 };
+
+export enum ProspectStatus {
+  Closed = 'CLOSED',
+  Converted = 'CONVERTED',
+  Open = 'OPEN'
+}
 
 export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Prospect | Withdrawal;
 
@@ -2768,6 +2789,7 @@ export type QueryProspectByPublicIdArgs = {
 export type QueryProspectsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+  status?: InputMaybe<ProspectStatus>;
 };
 
 
@@ -4532,14 +4554,21 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
-export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
+export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
 
 export type GetProspectBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
+export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
+
+export type ProspectCloseMutationVariables = Exact<{
+  input: ProspectCloseInput;
+}>;
+
+
+export type ProspectCloseMutation = { __typename?: 'Mutation', prospectClose: { __typename?: 'ProspectClosePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, status: ProspectStatus, kycStatus: KycStatus } } };
 
 export type ProspectCreateMutationVariables = Exact<{
   input: ProspectCreateInput;
@@ -4551,10 +4580,11 @@ export type ProspectCreateMutation = { __typename?: 'Mutation', prospectCreate: 
 export type ProspectsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<ProspectStatus>;
 }>;
 
 
-export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, kycStatus: KycStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ReportRunByIdQueryVariables = Exact<{
   reportRunId: Scalars['UUID']['input'];
@@ -5745,6 +5775,7 @@ export const ProspectDetailsFragmentFragmentDoc = gql`
   prospectId
   email
   telegramHandle
+  status
   kycStatus
   level
   applicantId
@@ -10954,6 +10985,44 @@ export type GetProspectBasicDetailsQueryHookResult = ReturnType<typeof useGetPro
 export type GetProspectBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsLazyQuery>;
 export type GetProspectBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsSuspenseQuery>;
 export type GetProspectBasicDetailsQueryResult = Apollo.QueryResult<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>;
+export const ProspectCloseDocument = gql`
+    mutation ProspectClose($input: ProspectCloseInput!) {
+  prospectClose(input: $input) {
+    prospect {
+      id
+      prospectId
+      status
+      kycStatus
+    }
+  }
+}
+    `;
+export type ProspectCloseMutationFn = Apollo.MutationFunction<ProspectCloseMutation, ProspectCloseMutationVariables>;
+
+/**
+ * __useProspectCloseMutation__
+ *
+ * To run a mutation, you first call `useProspectCloseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProspectCloseMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [prospectCloseMutation, { data, loading, error }] = useProspectCloseMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useProspectCloseMutation(baseOptions?: Apollo.MutationHookOptions<ProspectCloseMutation, ProspectCloseMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProspectCloseMutation, ProspectCloseMutationVariables>(ProspectCloseDocument, options);
+      }
+export type ProspectCloseMutationHookResult = ReturnType<typeof useProspectCloseMutation>;
+export type ProspectCloseMutationResult = Apollo.MutationResult<ProspectCloseMutation>;
+export type ProspectCloseMutationOptions = Apollo.BaseMutationOptions<ProspectCloseMutation, ProspectCloseMutationVariables>;
 export const ProspectCreateDocument = gql`
     mutation ProspectCreate($input: ProspectCreateInput!) {
   prospectCreate(input: $input) {
@@ -10996,13 +11065,14 @@ export type ProspectCreateMutationHookResult = ReturnType<typeof useProspectCrea
 export type ProspectCreateMutationResult = Apollo.MutationResult<ProspectCreateMutation>;
 export type ProspectCreateMutationOptions = Apollo.BaseMutationOptions<ProspectCreateMutation, ProspectCreateMutationVariables>;
 export const ProspectsDocument = gql`
-    query Prospects($first: Int!, $after: String) {
-  prospects(first: $first, after: $after) {
+    query Prospects($first: Int!, $after: String, $status: ProspectStatus) {
+  prospects(first: $first, after: $after, status: $status) {
     edges {
       node {
         id
         prospectId
         publicId
+        status
         kycStatus
         level
         email
@@ -11037,6 +11107,7 @@ export const ProspectsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      status: // value for 'status'
  *   },
  * });
  */
