@@ -320,9 +320,6 @@ checksums:
     Customers/CustomerDetails/kycStatus/labels/level: 1e3bf31d5c6083e898dd3e3359fbb0c2
     Customers/CustomerDetails/kycStatus/labels/status: 4e1fcce15854d824919b4a582c697c90
     Customers/CustomerDetails/kycStatus/labels/kycApplicationLink: c7544d6cfc5e07b0fb4998c9b861c2fa
-    Customers/CustomerDetails/kycStatus/actions/createLink: 0cbb6dc593591ff291d0f39715b32880
-    Customers/CustomerDetails/kycStatus/actions/creatingLink: 244b61a2b6acf3ec0ce4f083c2887b49
-    Customers/CustomerDetails/kycStatus/messages/copied: 6a3c394a9a51646bad2f72d7311b242d
     Customers/CustomerDetails/depositAccount/title: 23d240412c0bf14efcff84a2325587be
     Customers/CustomerDetails/depositAccount/labels/checkingSettled: 08322f64253c1bfbc8fe14cb3c1a2174
     Customers/CustomerDetails/depositAccount/labels/pendingWithdrawals: 790c83ce094081b2db9e0064dec0ad41
