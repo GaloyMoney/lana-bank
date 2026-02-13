@@ -94,8 +94,7 @@ impl Prospect {
     ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycApproved { applicant_id: existing, .. } if existing == &applicant_id,
-            => ProspectEvent::KycDeclined { .. }
+            ProspectEvent::KycApproved { applicant_id: existing, .. } if existing == &applicant_id
         );
         if self.applicant_id.as_ref() != Some(&applicant_id) {
             return Err(ProspectError::ApplicantIdMismatch {
@@ -156,8 +155,7 @@ impl Prospect {
     pub fn decline_kyc(&mut self, applicant_id: String) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycDeclined { applicant_id: existing, .. } if existing == &applicant_id,
-            => ProspectEvent::KycApproved { .. }
+            ProspectEvent::KycDeclined { applicant_id: existing, .. } if existing == &applicant_id
         );
         if self.applicant_id.as_ref() != Some(&applicant_id) {
             return Err(ProspectError::ApplicantIdMismatch {
