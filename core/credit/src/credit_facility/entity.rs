@@ -201,7 +201,7 @@ pub struct FacilityCollateralization {
     pub state: CollateralizationState,
     pub collateral: Option<Satoshis>,
     pub outstanding: Option<CreditFacilityReceivable>,
-    pub price: Option<PriceOfOneBTC>,
+    pub price_at_state_change: Option<PriceOfOneBTC>,
 }
 
 impl Default for FacilityCollateralization {
@@ -210,7 +210,7 @@ impl Default for FacilityCollateralization {
             state: CollateralizationState::NoCollateral,
             collateral: None,
             outstanding: None,
-            price: None,
+            price_at_state_change: None,
         }
     }
 }
@@ -635,7 +635,7 @@ impl CreditFacility {
                     state: *collateralization_state,
                     collateral: Some(*collateral),
                     outstanding: Some(*outstanding),
-                    price: Some(*price),
+                    price_at_state_change: Some(*price),
                 }),
                 _ => None,
             })
