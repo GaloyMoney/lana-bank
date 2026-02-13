@@ -523,6 +523,7 @@ where
         query: es_entity::PaginatedQueryArgs<prospect::prospect_cursor::ProspectsByCreatedAtCursor>,
         direction: es_entity::ListDirection,
         status: Option<ProspectStatus>,
+        kyc_status: Option<KycStatus>,
     ) -> Result<
         es_entity::PaginatedQueryRet<
             Prospect,
@@ -543,6 +544,9 @@ where
             .await?;
         if let Some(status) = status {
             result.entities.retain(|p| p.status == status);
+        }
+        if let Some(kyc_status) = kyc_status {
+            result.entities.retain(|p| p.kyc_status == kyc_status);
         }
         Ok(result)
     }

@@ -22,8 +22,13 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 
 gql`
-  query Prospects($first: Int!, $after: String, $status: ProspectStatus) {
-    prospects(first: $first, after: $after, status: $status) {
+  query Prospects(
+    $first: Int!
+    $after: String
+    $status: ProspectStatus
+    $kycStatus: KycStatus
+  ) {
+    prospects(first: $first, after: $after, status: $status, kycStatus: $kycStatus) {
       edges {
         node {
           id
@@ -55,11 +60,15 @@ const ProspectsList = () => {
   const [statusFilter, setStatusFilter] = useState<ProspectStatus | undefined>(
     undefined,
   )
+  const [kycStatusFilter, setKycStatusFilter] = useState<KycStatus | undefined>(
+    undefined,
+  )
 
   const { data, loading, error, fetchMore } = useProspectsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
       status: statusFilter,
+      kycStatus: kycStatusFilter,
     },
   })
 
@@ -105,6 +114,8 @@ const ProspectsList = () => {
         onFilter={(column, value) => {
           if (column === "status") {
             setStatusFilter(value as ProspectStatus | undefined)
+          } else if (column === "kycStatus") {
+            setKycStatusFilter(value as KycStatus | undefined)
           }
         }}
       />
