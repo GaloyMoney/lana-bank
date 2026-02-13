@@ -45,6 +45,7 @@ gql`
 
 const TransactionTemplates = () => {
   const t = useTranslations("TransactionTemplates")
+  const tCode = useTranslations("TemplateCodes")
 
   const { data, loading, error, fetchMore } = useTransactionTemplatesQuery({
     variables: {
@@ -56,6 +57,7 @@ const TransactionTemplates = () => {
     {
       key: "code",
       label: t("code"),
+      render: (code) => (tCode.has(code) ? tCode(code) : code),
     },
   ]
 

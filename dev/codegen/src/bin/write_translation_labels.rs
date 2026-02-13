@@ -31,11 +31,20 @@ fn main() {
         desc_map.insert(desc.as_str(), desc.as_str());
     }
 
-    // Write both sections into a single generated file
+    // 3. Template codes → human-readable labels (e.g. "ACTIVATE_CREDIT_FACILITY" → "Activate Credit Facility")
+    let codes = discover_template_codes();
+    let mut code_map = BTreeMap::new();
+    for code in &codes {
+        let label = code.replace('_', " ").to_title_case();
+        code_map.insert(code.as_str(), label);
+    }
+
+    // Write all sections into a single generated file
     write_json(
         "apps/admin-panel/messages/generated/en.json",
         json!({
             "Permissions": permissions,
+            "TemplateCodes": code_map,
             "TransactionDescriptions": desc_map,
         }),
     );
@@ -53,6 +62,44 @@ fn discover_template_dirs() -> Vec<std::path::PathBuf> {
         }
     }
     dirs
+}
+
+/// Parse CALA template files for `pub const ...: &str = "CODE"` to discover template codes.
+/// Handles definitions that span multiple lines.
+fn discover_template_codes() -> BTreeSet<String> {
+    let mut codes = BTreeSet::new();
+
+    for dir in discover_template_dirs() {
+        for entry in walkdir::WalkDir::new(dir)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            if entry.path().extension().is_some_and(|ext| ext == "rs") {
+                let content =
+                    std::fs::read_to_string(entry.path()).expect("failed to read template file");
+                // Collapse whitespace so multi-line const defs become single-line
+                let collapsed = content
+                    .lines()
+                    .map(|l| l.trim())
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                for segment in collapsed.split("pub const ").skip(1) {
+                    if !segment.contains(": &str =") {
+                        continue;
+                    }
+                    if let Some(start) = segment.find('"') {
+                        if let Some(end) = segment[start + 1..].find('"') {
+                            let value = &segment[start + 1..start + 1 + end];
+                            if value.chars().all(|c| c.is_ascii_uppercase() || c == '_') {
+                                codes.insert(value.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    codes
 }
 
 /// Parse CALA template files for `.description("'...'")` patterns.
