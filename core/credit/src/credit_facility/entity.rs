@@ -197,6 +197,26 @@ pub struct CreditFacility {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct FacilityCollateralization {
+    pub state: CollateralizationState,
+    pub collateral: Option<Satoshis>,
+    pub outstanding: Option<CreditFacilityReceivable>,
+    pub price: Option<PriceOfOneBTC>,
+}
+
+impl Default for FacilityCollateralization {
+    fn default() -> Self {
+        Self {
+            state: CollateralizationState::NoCollateral,
+            collateral: None,
+            outstanding: None,
+            price: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct LiquidationTrigger {
     pub liquidation_id: LiquidationId,
     pub trigger_price: PriceOfOneBTC,
@@ -601,22 +621,29 @@ impl CreditFacility {
         }))
     }
 
-    pub fn last_collateralization_state(&self) -> CollateralizationState {
-        if self.is_completed() {
-            return CollateralizationState::NoCollateral;
-        }
-
+    pub fn last_collateralization(&self) -> FacilityCollateralization {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 CreditFacilityEvent::CollateralizationStateChanged {
-                    collateralization_state: state,
-                    ..
-                } => Some(*state),
+                    collateralization_state,
+                    collateral,
+                    outstanding,
+                    price,
+                } => Some(FacilityCollateralization {
+                    state: *collateralization_state,
+                    collateral: Some(*collateral),
+                    outstanding: Some(*outstanding),
+                    price: Some(*price),
+                }),
                 _ => None,
             })
-            .unwrap_or(CollateralizationState::NoCollateral)
+            .unwrap_or_default()
+    }
+
+    pub fn last_collateralization_state(&self) -> CollateralizationState {
+        self.last_collateralization().state
     }
 
     pub fn last_collateralization_ratio(&self) -> CollateralizationRatio {
