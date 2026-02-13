@@ -3,7 +3,7 @@ pub mod error;
 mod jobs;
 pub mod ledger;
 pub mod liquidation;
-mod repo;
+pub(crate) mod repo;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -21,6 +21,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     collateral::ledger::CollateralLedgerAccountIds,
+    credit_facility::CreditFacilityRepo,
     primitives::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject},
 };
 
@@ -35,7 +36,7 @@ use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync}
 pub use {
     entity::Collateral,
     liquidation::{Liquidation, RecordProceedsFromLiquidationData},
-    repo::liquidation_cursor,
+    repo::{CollateralRepo, liquidation_cursor},
 };
 
 #[cfg(feature = "json-schema")]
@@ -43,7 +44,6 @@ pub use entity::CollateralEvent;
 use error::CollateralError;
 #[cfg(feature = "json-schema")]
 pub use liquidation::LiquidationEvent;
-use repo::CollateralRepo;
 
 pub struct Collaterals<Perms, E>
 where
@@ -55,7 +55,9 @@ where
 {
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
+    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ledger: Arc<CollateralLedger>,
+    liquidation_proceeds_omnibus_account_id: CalaAccountId,
     clock: ClockHandle,
 }
 
@@ -71,7 +73,9 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
+            credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
+            liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             clock: self.clock.clone(),
         }
     }
@@ -95,6 +99,7 @@ where
         authz: Arc<Perms>,
         publisher: &CreditFacilityPublisher<E>,
         ledger: Arc<CollateralLedger>,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
         collections: Arc<core_credit_collection::CoreCreditCollection<Perms, E>>,
@@ -128,13 +133,15 @@ where
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
                 collections,
-                credit_facility_repo,
+                credit_facility_repo.clone(),
             ));
 
         let collateral_liquidations_job_spawner = jobs.add_initializer(
             collateral_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
+                credit_facility_repo.clone(),
+                liquidation_proceeds_omnibus_account_id,
                 liquidation_payment_job_spawner,
             ),
         );
@@ -149,7 +156,9 @@ where
         Ok(Self {
             authz,
             repo: repo_arc,
+            credit_facility_repo,
             ledger,
+            liquidation_proceeds_omnibus_account_id,
             clock,
         })
     }
@@ -159,6 +168,13 @@ where
         ids: &[CollateralId],
     ) -> Result<HashMap<CollateralId, T>, CollateralError> {
         self.repo.find_all(ids).await
+    }
+
+    pub async fn find_by_id_without_audit(
+        &self,
+        id: CollateralId,
+    ) -> Result<Collateral, CollateralError> {
+        self.repo.find_by_id(id).await
     }
 
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CollateralError> {
@@ -257,7 +273,7 @@ where
                 .update_collateral_amount_in_op(
                     &mut db,
                     collateral_update,
-                    collateral.account_ids.collateral_account_id,
+                    collateral.account_id(),
                     sub,
                 )
                 .await?;
@@ -305,8 +321,7 @@ where
                     &mut db,
                     data.tx_id,
                     amount_sent,
-                    collateral.account_ids.collateral_account_id,
-                    collateral.account_ids.collateral_in_liquidation_account_id,
+                    collateral.account_ids,
                     initiated_by,
                 )
                 .await?;

@@ -17,7 +17,7 @@ pub use accounts::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds};
 pub use error::CollateralLedgerError;
 
 use crate::{
-    ledger::LiquidationAccountSets,
+    ledger::InternalAccountSetDetails,
     primitives::{
         COLLATERAL_ENTITY_TYPE, CalaAccountId, CollateralDirection, CollateralId, CollateralUpdate,
         LedgerOmnibusAccountIds,
@@ -26,13 +26,20 @@ use crate::{
 
 use super::RecordProceedsFromLiquidationData;
 
+#[derive(Clone, Copy)]
+pub struct CollateralAccountSets {
+    pub collateral: InternalAccountSetDetails,
+    pub collateral_in_liquidation: InternalAccountSetDetails,
+    pub liquidated_collateral: InternalAccountSetDetails,
+}
+
 #[derive(Clone)]
 pub struct CollateralLedger {
     cala: CalaLedger,
     journal_id: JournalId,
     clock: ClockHandle,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
-    liquidation_account_sets: LiquidationAccountSets,
+    account_sets: CollateralAccountSets,
     btc: Currency,
 }
 
@@ -44,7 +51,7 @@ impl CollateralLedger {
         journal_id: JournalId,
         clock: ClockHandle,
         collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
-        liquidation_account_sets: LiquidationAccountSets,
+        account_sets: CollateralAccountSets,
     ) -> Result<Self, CollateralLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
@@ -56,7 +63,7 @@ impl CollateralLedger {
             journal_id,
             clock,
             collateral_omnibus_account_ids,
-            liquidation_account_sets,
+            account_sets,
             btc: Currency::BTC,
         })
     }
@@ -71,17 +78,26 @@ impl CollateralLedger {
         op: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
         CollateralLedgerAccountIds {
+            collateral_account_id,
             collateral_in_liquidation_account_id,
             liquidated_collateral_account_id,
-
-            collateral_account_id: _,
-            liquidation_proceeds_omnibus_account_id: _,
-            facility_proceeds_from_liquidation_account_id: _,
-            facility_uncovered_outstanding_account_id: _,
-            facility_payment_holding_account_id: _,
         }: CollateralLedgerAccountIds,
     ) -> Result<(), CollateralLedgerError> {
         let entity_ref = EntityRef::new(COLLATERAL_ENTITY_TYPE, collateral_id);
+
+        let collateral_reference = &format!("credit-facility-collateral:{collateral_id}");
+        let collateral_name =
+            &format!("Credit Facility Collateral Account for Collateral {collateral_id}");
+        self.create_account_in_op(
+            op,
+            collateral_account_id,
+            self.account_sets.collateral,
+            collateral_reference,
+            collateral_name,
+            collateral_name,
+            entity_ref.clone(),
+        )
+        .await?;
 
         let collateral_in_liquidation_reference =
             &format!("collateral-in-liquidation:{collateral_id}");
@@ -90,7 +106,7 @@ impl CollateralLedger {
         self.create_account_in_op(
             op,
             collateral_in_liquidation_account_id,
-            self.liquidation_account_sets.collateral_in_liquidation,
+            self.account_sets.collateral_in_liquidation,
             collateral_in_liquidation_reference,
             collateral_in_liquidation_name,
             collateral_in_liquidation_name,
@@ -104,7 +120,7 @@ impl CollateralLedger {
         self.create_account_in_op(
             op,
             liquidated_collateral_account_id,
-            self.liquidation_account_sets.liquidated_collateral,
+            self.account_sets.liquidated_collateral,
             liquidated_collateral_reference,
             liquidated_collateral_name,
             liquidated_collateral_name,
@@ -119,7 +135,7 @@ impl CollateralLedger {
         &self,
         op: &mut impl es_entity::AtomicOperation,
         id: impl Into<CalaAccountId>,
-        parent_account_set: crate::ledger::InternalAccountSetDetails,
+        parent_account_set: InternalAccountSetDetails,
         reference: &str,
         name: &str,
         description: &str,
@@ -223,8 +239,11 @@ impl CollateralLedger {
         db: &mut es_entity::DbOp<'_>,
         tx_id: CalaTransactionId,
         amount: Satoshis,
-        collateral_account_id: CalaAccountId,
-        collateral_in_liquidation_account_id: CalaAccountId,
+        CollateralLedgerAccountIds {
+            collateral_account_id,
+            collateral_in_liquidation_account_id,
+            ..
+        }: CollateralLedgerAccountIds,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), CollateralLedgerError> {
         self.cala

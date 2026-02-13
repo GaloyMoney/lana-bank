@@ -48,6 +48,7 @@ use crate::{
     CompletedAccrualCycle, ConfirmedAccrual, CoreCreditAction, CoreCreditCollectionAction,
     CoreCreditCollectionEvent, CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
     CreditFacilityId,
+    collateral::repo::CollateralRepo,
     credit_facility::{
         CreditFacilityRepo, error::CreditFacilityError,
         interest_accrual_cycle::NewInterestAccrualCycleData,
@@ -113,6 +114,7 @@ where
     ledger: Arc<CreditLedger>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     authz: Arc<Perms>,
 }
 
@@ -137,12 +139,14 @@ where
         ledger: Arc<CreditLedger>,
         collections: Arc<CoreCreditCollection<Perms, E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
+        collateral_repo: Arc<CollateralRepo<E>>,
         authz: Arc<Perms>,
     ) -> Self {
         Self {
             ledger,
             collections,
             credit_facility_repo,
+            collateral_repo,
             authz,
         }
     }
@@ -181,6 +185,7 @@ where
             config: job.config()?,
             collections: self.collections.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
+            collateral_repo: self.collateral_repo.clone(),
             ledger: self.ledger.clone(),
             spawner,
             authz: self.authz.clone(),
@@ -200,6 +205,7 @@ where
     config: InterestAccrualJobConfig<Perms, E>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CreditLedger>,
     spawner: InterestAccrualJobSpawner<Perms, E>,
     authz: Arc<Perms>,
@@ -351,7 +357,15 @@ where
 
         let confirmed_accrual = {
             let account_ids = credit_facility.account_ids;
-            let balances = self.ledger.get_credit_facility_balance(account_ids).await?;
+            let collateral = self
+                .collateral_repo
+                .find_by_id(credit_facility.collateral_id)
+                .await?;
+            let collateral_account_id = collateral.account_id();
+            let balances = self
+                .ledger
+                .get_credit_facility_balance(account_ids, collateral_account_id)
+                .await?;
 
             let recorded = credit_facility
                 .record_accrual_on_in_progress_cycle(balances.disbursed_outstanding())?

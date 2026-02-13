@@ -80,6 +80,8 @@ pub enum CreditFacilityError {
     CreditFacilityProposalError(
         #[from] crate::pending_credit_facility::error::PendingCreditFacilityError,
     ),
+    #[error("CreditFacilityError - CollateralError: {0}")]
+    CollateralError(#[from] crate::collateral::error::CollateralError),
 }
 
 impl ErrorSeverity for CreditFacilityError {
@@ -118,6 +120,7 @@ impl ErrorSeverity for CreditFacilityError {
             Self::PaymentAllocationError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
             Self::CreditFacilityProposalError(e) => e.severity(),
+            Self::CollateralError(e) => e.severity(),
         }
     }
 }

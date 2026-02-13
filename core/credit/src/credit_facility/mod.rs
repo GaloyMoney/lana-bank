@@ -18,11 +18,16 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     PublicIds,
+    collateral::CollateralRepo,
     disbursal::Disbursals,
     event::CoreCreditEvent,
-    ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
+    ledger::{
+        CreditFacilityBalanceSummary, CreditFacilityCompletion, CreditFacilityInterestAccrual,
+        CreditFacilityInterestAccrualCycle, CreditLedger, InitialDisbursalOnActivation,
+    },
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
     primitives::*,
+    publisher::CreditFacilityPublisher,
 };
 
 use core_credit_collection::CoreCreditCollection;
@@ -52,6 +57,7 @@ where
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     authz: Arc<Perms>,
@@ -76,6 +82,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            collateral_repo: self.collateral_repo.clone(),
             collections: self.collections.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             disbursals: self.disbursals.clone(),
@@ -92,7 +99,7 @@ where
 
 pub(super) enum CompletionOutcome {
     AlreadyApplied(CreditFacility),
-    Completed((CreditFacility, crate::CreditFacilityCompletion)),
+    Completed((CreditFacility, CreditFacilityCompletion)),
 }
 
 impl<Perms, E> CreditFacilities<Perms, E>
@@ -121,14 +128,16 @@ where
         ledger: Arc<CreditLedger>,
         price: Arc<Price>,
         jobs: &mut Jobs,
-        publisher: &crate::CreditFacilityPublisher<E>,
+        publisher: &CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,
         public_ids: Arc<PublicIds>,
         outbox: &Outbox<E>,
         clock: ClockHandle,
     ) -> Result<Self, CreditFacilityError> {
-        let repo = CreditFacilityRepo::new(pool, publisher, clock);
+        let repo = CreditFacilityRepo::new(pool, publisher, clock.clone());
         let repo_arc = Arc::new(repo);
+
+        let collateral_repo = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
 
         let collateralization_from_events_spawner = jobs.add_initializer(
             jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
@@ -137,6 +146,7 @@ where
             >::new(
                 outbox,
                 repo_arc.clone(),
+                collateral_repo.clone(),
                 price.clone(),
                 ledger.clone(),
                 authz.clone(),
@@ -161,12 +171,14 @@ where
                 ledger.clone(),
                 collections.clone(),
                 repo_arc.clone(),
+                collateral_repo.clone(),
                 authz.clone(),
             ),
         );
 
         Ok(Self {
             repo: repo_arc,
+            collateral_repo,
             collections,
             pending_credit_facilities,
             disbursals,
@@ -196,7 +208,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
-                crate::primitives::CREDIT_FACILITY_ACTIVATION,
+                CREDIT_FACILITY_ACTIVATION,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
             )
@@ -286,7 +298,7 @@ where
                 .create_pre_approved_disbursal_in_op(&mut db, new_disbursal)
                 .await?;
 
-            credit_facility.activation_data(Some(crate::InitialDisbursalOnActivation {
+            credit_facility.activation_data(Some(InitialDisbursalOnActivation {
                 id: disbursal.id,
                 amount: disbursal.amount,
             }))
@@ -299,7 +311,7 @@ where
                 &mut db,
                 activation_data,
                 &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                    crate::primitives::CREDIT_FACILITY_ACTIVATION,
+                    CREDIT_FACILITY_ACTIVATION,
                 ),
             )
             .await?;
@@ -319,6 +331,7 @@ where
         db: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         upgrade_buffer_cvl_pct: CVLPct,
+        collateral_account_id: CalaAccountId,
     ) -> Result<CompletionOutcome, CreditFacilityError> {
         let price = self.price.usd_cents_per_btc().await;
 
@@ -326,7 +339,7 @@ where
 
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
+            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
             .await?;
 
         let completion = if let es_entity::Idempotent::Executed(completion) =
@@ -506,7 +519,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<crate::CreditFacilityBalanceSummary, CreditFacilityError> {
+    ) -> Result<CreditFacilityBalanceSummary, CreditFacilityError> {
         let id = credit_facility_id.into();
         tracing::Span::current().record("credit_facility_id", id.to_string());
 
@@ -520,9 +533,15 @@ where
 
         let credit_facility = self.repo.find_by_id(id).await?;
 
+        let collateral = self
+            .collateral_repo
+            .find_by_id(credit_facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_id();
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
+            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
             .await?;
 
         Ok(balances)
@@ -552,9 +571,15 @@ where
             return Ok(true);
         }
 
+        let collateral = self
+            .collateral_repo
+            .find_by_id(credit_facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_id();
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
+            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
             .await?;
         Ok(balances.any_outstanding_or_defaulted())
     }
