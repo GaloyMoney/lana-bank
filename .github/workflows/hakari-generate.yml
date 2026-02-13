@@ -41,8 +41,14 @@ jobs:
         with:
           tool: cargo-hakari
 
-      - name: Re-Generate workspace-hack
-        run: cargo hakari generate
+      - name: Restore workspace-hack from base branch and regenerate
+        run: |
+          base_ref="${{ github.base_ref }}"
+          # Undo Dependabot's incorrect workspace-hack bumps before regenerating.
+          # Dependabot treats workspace-hack as a regular crate but it's auto-generated
+          # by cargo-hakari. Restoring it first avoids pulling in unnecessary packages.
+          git checkout "origin/${base_ref}" -- workspace-hack/Cargo.toml
+          cargo hakari generate
 
       - name: Commit
         run: |
