@@ -159,7 +159,7 @@ impl CreditLedger {
         templates::CreateCreditFacilityProposal::init(cala).await?;
         templates::InitialDisbursal::init(cala).await?;
 
-        let catalog = account_sets::CreditAccountSetCatalog::default();
+        let catalog = account_sets::CREDIT_ACCOUNT_SET_CATALOG;
         let summary = catalog.summary();
         let omnibus = catalog.omnibus();
 

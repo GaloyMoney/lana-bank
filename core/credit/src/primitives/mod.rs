@@ -1,6 +1,7 @@
 pub(crate) mod account_sets;
 pub use account_sets::{
-    CreditAccountSetCatalog, CreditOmnibusAccountSetSpec, CreditSummaryAccountSetSpec,
+    CREDIT_ACCOUNT_SET_CATALOG, CreditAccountSetCatalog, CreditOmnibusAccountSetSpec,
+    CreditSummaryAccountSetSpec,
 };
 mod liquidation_payment;
 

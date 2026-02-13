@@ -823,96 +823,86 @@ const CREDIT_PAYMENT_HOLDING: CreditSummaryAccountSetSpec = CreditSummaryAccount
     DebitOrCredit::Credit,
 );
 
-impl Default for CreditAccountSetCatalog {
-    fn default() -> Self {
-        Self {
-            omnibus: CreditOmnibusAccountSetCatalog {
-                credit_collateral_omnibus: CREDIT_COLLATERAL_OMNIBUS,
-                credit_interest_added_to_obligations_omnibus:
-                    CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS,
-                credit_payments_made_omnibus: CREDIT_PAYMENTS_MADE_OMNIBUS,
-                credit_facility_omnibus: CREDIT_FACILITY_OMNIBUS,
-                credit_facility_liquidation_proceeds_omnibus:
-                    CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS,
-            },
-            summary: CreditSummaryAccountSetCatalog {
-                credit_facility_remaining: CREDIT_FACILITY_REMAINING,
-                credit_collateral: CREDIT_COLLATERAL,
-                credit_facility_collateral_in_liquidation:
-                    CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION,
-                credit_facility_liquidated_collateral: CREDIT_FACILITY_LIQUIDATED_COLLATERAL,
-                credit_facility_proceeds_from_liquidation:
-                    CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION,
-                short_term_individual_disbursed_receivable:
-                    SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE,
-                short_term_government_entity_disbursed_receivable:
-                    SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE,
-                short_term_private_company_disbursed_receivable:
-                    SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE,
-                short_term_bank_disbursed_receivable: SHORT_TERM_BANK_DISBURSED_RECEIVABLE,
-                short_term_financial_institution_disbursed_receivable:
-                    SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE,
-                short_term_foreign_agency_or_subsidiary_disbursed_receivable:
-                    SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE,
-                short_term_non_domiciled_company_disbursed_receivable:
-                    SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE,
-                long_term_individual_disbursed_receivable:
-                    LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE,
-                long_term_government_entity_disbursed_receivable:
-                    LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE,
-                long_term_private_company_disbursed_receivable:
-                    LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE,
-                long_term_bank_disbursed_receivable: LONG_TERM_BANK_DISBURSED_RECEIVABLE,
-                long_term_financial_institution_disbursed_receivable:
-                    LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE,
-                long_term_foreign_agency_or_subsidiary_disbursed_receivable:
-                    LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE,
-                long_term_non_domiciled_company_disbursed_receivable:
-                    LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE,
-                short_term_individual_interest_receivable:
-                    SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE,
-                short_term_government_entity_interest_receivable:
-                    SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE,
-                short_term_private_company_interest_receivable:
-                    SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE,
-                short_term_bank_interest_receivable: SHORT_TERM_BANK_INTEREST_RECEIVABLE,
-                short_term_financial_institution_interest_receivable:
-                    SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE,
-                short_term_foreign_agency_or_subsidiary_interest_receivable:
-                    SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE,
-                short_term_non_domiciled_company_interest_receivable:
-                    SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE,
-                long_term_individual_interest_receivable: LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE,
-                long_term_government_entity_interest_receivable:
-                    LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE,
-                long_term_private_company_interest_receivable:
-                    LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE,
-                long_term_bank_interest_receivable: LONG_TERM_BANK_INTEREST_RECEIVABLE,
-                long_term_financial_institution_interest_receivable:
-                    LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE,
-                long_term_foreign_agency_or_subsidiary_interest_receivable:
-                    LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE,
-                long_term_non_domiciled_company_interest_receivable:
-                    LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE,
-                overdue_individual_disbursed_receivable: OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE,
-                overdue_government_entity_disbursed_receivable:
-                    OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE,
-                overdue_private_company_disbursed_receivable:
-                    OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE,
-                overdue_bank_disbursed_receivable: OVERDUE_BANK_DISBURSED_RECEIVABLE,
-                overdue_financial_institution_disbursed_receivable:
-                    OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE,
-                overdue_foreign_agency_or_subsidiary_disbursed_receivable:
-                    OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE,
-                overdue_non_domiciled_company_disbursed_receivable:
-                    OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE,
-                credit_disbursed_defaulted: CREDIT_DISBURSED_DEFAULTED,
-                credit_interest_defaulted: CREDIT_INTEREST_DEFAULTED,
-                credit_interest_income: CREDIT_INTEREST_INCOME,
-                credit_fee_income: CREDIT_FEE_INCOME,
-                credit_uncovered_outstanding: CREDIT_UNCOVERED_OUTSTANDING,
-                credit_payment_holding: CREDIT_PAYMENT_HOLDING,
-            },
-        }
-    }
-}
+// Assembles all module-level account set spec constants into the canonical catalog.
+// This is the single source of truth for the credit module's account set definitions.
+pub const CREDIT_ACCOUNT_SET_CATALOG: CreditAccountSetCatalog = CreditAccountSetCatalog {
+    omnibus: CreditOmnibusAccountSetCatalog {
+        credit_collateral_omnibus: CREDIT_COLLATERAL_OMNIBUS,
+        credit_interest_added_to_obligations_omnibus: CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS,
+        credit_payments_made_omnibus: CREDIT_PAYMENTS_MADE_OMNIBUS,
+        credit_facility_omnibus: CREDIT_FACILITY_OMNIBUS,
+        credit_facility_liquidation_proceeds_omnibus: CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS,
+    },
+    summary: CreditSummaryAccountSetCatalog {
+        credit_facility_remaining: CREDIT_FACILITY_REMAINING,
+        credit_collateral: CREDIT_COLLATERAL,
+        credit_facility_collateral_in_liquidation: CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION,
+        credit_facility_liquidated_collateral: CREDIT_FACILITY_LIQUIDATED_COLLATERAL,
+        credit_facility_proceeds_from_liquidation: CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION,
+        short_term_individual_disbursed_receivable: SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE,
+        short_term_government_entity_disbursed_receivable:
+            SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE,
+        short_term_private_company_disbursed_receivable:
+            SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE,
+        short_term_bank_disbursed_receivable: SHORT_TERM_BANK_DISBURSED_RECEIVABLE,
+        short_term_financial_institution_disbursed_receivable:
+            SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE,
+        short_term_foreign_agency_or_subsidiary_disbursed_receivable:
+            SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE,
+        short_term_non_domiciled_company_disbursed_receivable:
+            SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE,
+        long_term_individual_disbursed_receivable: LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE,
+        long_term_government_entity_disbursed_receivable:
+            LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE,
+        long_term_private_company_disbursed_receivable:
+            LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE,
+        long_term_bank_disbursed_receivable: LONG_TERM_BANK_DISBURSED_RECEIVABLE,
+        long_term_financial_institution_disbursed_receivable:
+            LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE,
+        long_term_foreign_agency_or_subsidiary_disbursed_receivable:
+            LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE,
+        long_term_non_domiciled_company_disbursed_receivable:
+            LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE,
+        short_term_individual_interest_receivable: SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE,
+        short_term_government_entity_interest_receivable:
+            SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE,
+        short_term_private_company_interest_receivable:
+            SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE,
+        short_term_bank_interest_receivable: SHORT_TERM_BANK_INTEREST_RECEIVABLE,
+        short_term_financial_institution_interest_receivable:
+            SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE,
+        short_term_foreign_agency_or_subsidiary_interest_receivable:
+            SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE,
+        short_term_non_domiciled_company_interest_receivable:
+            SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE,
+        long_term_individual_interest_receivable: LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE,
+        long_term_government_entity_interest_receivable:
+            LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE,
+        long_term_private_company_interest_receivable:
+            LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE,
+        long_term_bank_interest_receivable: LONG_TERM_BANK_INTEREST_RECEIVABLE,
+        long_term_financial_institution_interest_receivable:
+            LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE,
+        long_term_foreign_agency_or_subsidiary_interest_receivable:
+            LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE,
+        long_term_non_domiciled_company_interest_receivable:
+            LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE,
+        overdue_individual_disbursed_receivable: OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE,
+        overdue_government_entity_disbursed_receivable:
+            OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE,
+        overdue_private_company_disbursed_receivable: OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE,
+        overdue_bank_disbursed_receivable: OVERDUE_BANK_DISBURSED_RECEIVABLE,
+        overdue_financial_institution_disbursed_receivable:
+            OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE,
+        overdue_foreign_agency_or_subsidiary_disbursed_receivable:
+            OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE,
+        overdue_non_domiciled_company_disbursed_receivable:
+            OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE,
+        credit_disbursed_defaulted: CREDIT_DISBURSED_DEFAULTED,
+        credit_interest_defaulted: CREDIT_INTEREST_DEFAULTED,
+        credit_interest_income: CREDIT_INTEREST_INCOME,
+        credit_fee_income: CREDIT_FEE_INCOME,
+        credit_uncovered_outstanding: CREDIT_UNCOVERED_OUTSTANDING,
+        credit_payment_holding: CREDIT_PAYMENT_HOLDING,
+    },
+};

@@ -303,7 +303,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .set_config(&DummySubject, &chart, chart_of_accounts_config.clone())
         .await?;
 
-    let catalog = CreditAccountSetCatalog::default();
+    let catalog = CREDIT_ACCOUNT_SET_CATALOG;
     let summary_account_set_ids =
         resolve_account_set_ids(&cala, journal_id, catalog.summary_specs()).await?;
     let omnibus_account_set_ids =

@@ -10,7 +10,7 @@ use crate::{
         OverdueDisbursedIntegrationMeta, ShortTermDisbursedIntegrationMeta,
         ShortTermInterestIntegrationMeta,
     },
-    primitives::account_sets::{CreditAccountCategory, CreditAccountSetCatalog},
+    primitives::account_sets::{CREDIT_ACCOUNT_SET_CATALOG, CreditAccountCategory},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -200,7 +200,7 @@ impl ResolvedChartOfAccountsIntegrationConfig {
                     })
         };
 
-        let catalog = CreditAccountSetCatalog::default();
+        let catalog = CREDIT_ACCOUNT_SET_CATALOG;
         let summary = catalog.summary();
         let omnibus = catalog.omnibus();
 
