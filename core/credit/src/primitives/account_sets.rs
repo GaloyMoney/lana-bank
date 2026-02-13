@@ -290,7 +290,7 @@ const CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS: CreditOmnibusAccountSetSpec 
         CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_NAME,
         CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_SET_REF,
         CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_REF,
-        CreditAccountCategory::Revenue,
+        CreditAccountCategory::OffBalanceSheet,
         DebitOrCredit::Debit,
     );
 
