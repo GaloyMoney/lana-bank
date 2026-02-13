@@ -16,6 +16,8 @@ pub enum ProspectError {
     AuditError(#[from] audit::error::AuditError),
     #[error("ProspectError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
+    #[error("ProspectError - ApplicantIdMismatch: expected {expected:?}, got {actual}")]
+    ApplicantIdMismatch { expected: Option<String>, actual: String },
 }
 
 es_entity::from_es_entity_error!(ProspectError);
@@ -29,6 +31,7 @@ impl ErrorSeverity for ProspectError {
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::PublicIdError(e) => e.severity(),
+            Self::ApplicantIdMismatch { .. } => Level::WARN,
         }
     }
 }
