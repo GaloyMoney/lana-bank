@@ -66,22 +66,11 @@ where
                 Completed { .. } => Some(CoreCreditEvent::FacilityCompleted {
                     entity: PublicCreditFacility::from(entity),
                 }),
-                CollateralizationStateChanged {
-                    collateralization_state: state,
-                    collateral,
-                    outstanding,
-                    price,
-                    ..
-                } => Some(CoreCreditEvent::FacilityCollateralizationChanged {
-                    id: entity.id,
-                    customer_id: entity.customer_id,
-                    state: *state,
-                    recorded_at: event.recorded_at,
-                    effective: event.recorded_at.date_naive(),
-                    collateral: *collateral,
-                    outstanding: *outstanding,
-                    price: *price,
-                }),
+                CollateralizationStateChanged { .. } => {
+                    Some(CoreCreditEvent::FacilityCollateralizationChanged {
+                        entity: PublicCreditFacility::from(entity),
+                    })
+                }
                 PartialLiquidationInitiated { .. } => {
                     Some(CoreCreditEvent::PartialLiquidationInitiated {
                         entity: PublicCreditFacility::from(entity),

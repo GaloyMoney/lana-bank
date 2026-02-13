@@ -6,7 +6,7 @@ use schemars::JsonSchema;
 
 use money::UsdCents;
 
-pub use crate::credit_facility::LiquidationTrigger;
+pub use crate::credit_facility::{FacilityCollateralization, LiquidationTrigger};
 use crate::{
     credit_facility::CreditFacility,
     primitives::{CollateralId, CreditFacilityId, CustomerId, LedgerTxId},
@@ -23,6 +23,7 @@ pub struct PublicCreditFacility {
     pub amount: UsdCents,
     pub completed_at: Option<DateTime<Utc>>,
     pub liquidation_trigger: Option<LiquidationTrigger>,
+    pub collateralization: FacilityCollateralization,
 }
 
 impl From<&CreditFacility> for PublicCreditFacility {
@@ -36,6 +37,7 @@ impl From<&CreditFacility> for PublicCreditFacility {
             amount: entity.amount,
             completed_at: entity.completed_at(),
             liquidation_trigger: entity.last_liquidation_trigger(),
+            collateralization: entity.last_collateralization(),
         }
     }
 }
