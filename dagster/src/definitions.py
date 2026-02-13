@@ -24,6 +24,7 @@ from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 from src.resources import get_project_resources
 from src.sensors import (
+    build_cold_start_automation_sensor,
     build_dbt_automation_sensor,
     build_file_report_sensors,
     build_sumsub_sensor,
@@ -184,6 +185,11 @@ dbt_automation_sensor = build_dbt_automation_sensor(
     dagster_automations_active=DAGSTER_AUTOMATIONS_ACTIVE
 )
 definition_builder.add_sensor(dbt_automation_sensor)
+
+cold_start_sensor = build_cold_start_automation_sensor(
+    dagster_automations_active=DAGSTER_AUTOMATIONS_ACTIVE
+)
+definition_builder.add_sensor(cold_start_sensor)
 
 dbt_models_job = dg.define_asset_job(
     name="dbt_models_job",

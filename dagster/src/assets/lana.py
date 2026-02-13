@@ -127,6 +127,7 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         tags={"asset_type": EL_TARGET_ASSET_DESCRIPTION, "system": LANA_SYSTEM_NAME},
         callable=lana_to_dw_el_asset,
         required_resource_keys={RESOURCE_KEY_LANA_CORE_PG, RESOURCE_KEY_DW_BQ},
+        automation_condition=dg.AutomationCondition.on_missing(),
     )
 
     return lana_to_dw_protoasset
