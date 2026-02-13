@@ -42,7 +42,7 @@ BEGIN
   new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
-  new_row.event_type := NEW.recorded_at;
+  new_row.event_type := NEW.event_type;
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
