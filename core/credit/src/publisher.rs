@@ -215,6 +215,12 @@ where
                     direction,
                     ledger_tx_id,
                     ..
+                }
+                | UpdatedViaLiquidation {
+                    abs_diff,
+                    direction,
+                    ledger_tx_id,
+                    ..
                 } => Some(CoreCreditEvent::FacilityCollateralUpdated {
                     ledger_tx_id: *ledger_tx_id,
                     abs_diff: *abs_diff,
