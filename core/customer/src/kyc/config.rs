@@ -5,6 +5,7 @@ define_exposed_config! {
     pub struct SumsubApiKey(String);
     spec {
         key: "sumsub-api-key";
+        encrypted: true;
         default: || Some(String::new());
     }
 }
@@ -14,6 +15,7 @@ define_exposed_config! {
     pub struct SumsubApiSecret(String);
     spec {
         key: "sumsub-api-secret";
+        encrypted: true;
         default: || Some(String::new());
     }
 }

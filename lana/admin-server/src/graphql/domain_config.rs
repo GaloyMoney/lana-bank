@@ -69,6 +69,10 @@ impl DomainConfig {
             None => Json::from(serde_json::Value::Null),
         }
     }
+
+    async fn is_set(&self) -> bool {
+        self.entity.current_stored_value().is_some()
+    }
 }
 
 #[derive(InputObject)]
