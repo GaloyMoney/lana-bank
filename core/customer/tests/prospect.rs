@@ -207,11 +207,18 @@ async fn prospect_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
 
     let applicant_id = format!("applicant-{}", Uuid::new_v4());
 
+    // Start KYC first (required before decline)
+    customers
+        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .await?;
+
     let (updated_prospect, recorded) = event::expect_event(
         &outbox,
         || customers.handle_kyc_declined(prospect.id, applicant_id.clone()),
         |result, e| match e {
-            CoreCustomerEvent::ProspectKycUpdated { entity } if entity.id == result.id => {
+            CoreCustomerEvent::ProspectKycUpdated { entity }
+                if entity.id == result.id && entity.kyc_status == KycStatus::Declined =>
+            {
                 Some(entity.clone())
             }
             _ => None,
