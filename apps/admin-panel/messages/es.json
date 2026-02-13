@@ -246,15 +246,20 @@
     "columns": {
       "email": "Correo electrónico",
       "telegramHandle": "Telegram",
+      "status": "Estado",
       "kycStatus": "Estado KYC",
       "customerType": "Tipo"
+    },
+    "status": {
+      "open": "Abierto",
+      "converted": "Convertido",
+      "closed": "Cerrado"
     },
     "kycStatus": {
       "notStarted": "No iniciado",
       "pending": "Pendiente",
       "approved": "Aprobado",
-      "declined": "Rechazado",
-      "closed": "Cerrado"
+      "declined": "Rechazado"
     },
     "create": {
       "title": "Agregar nuevo prospecto",
@@ -292,11 +297,21 @@
         "errors": {
           "loading": "Cargando...",
           "error": "Ocurrió un error"
+        },
+        "actions": {
+          "close": "Cerrar prospecto",
+          "closing": "Cerrando...",
+          "closeConfirmTitle": "Cerrar prospecto",
+          "closeConfirmDescription": "¿Estás seguro de que quieres cerrar este prospecto? Esta acción no se puede deshacer.",
+          "cancel": "Cancelar",
+          "confirmClose": "Cerrar",
+          "closeSuccess": "Prospecto cerrado exitosamente"
         }
       },
       "details": {
         "title": "Prospecto",
         "labels": {
+          "status": "Estado",
           "email": "Correo electrónico",
           "createdOn": "Creado el",
           "telegram": "Telegram",
@@ -320,7 +335,6 @@
         "pending": "Pendiente",
         "approved": "Aprobado",
         "declined": "Rechazado",
-        "closed": "Cerrado",
         "labels": {
           "level": "Nivel",
           "status": "Estado",
