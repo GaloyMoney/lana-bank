@@ -21,7 +21,7 @@ async-graphql = { version = "7", default-features = false, features = ["chrono",
 aws-lc-rs = { version = "1", features = ["prebuilt-nasm"] }
 aws-lc-sys = { version = "0.37", default-features = false, features = ["prebuilt-nasm"] }
 axum = { version = "0.8", features = ["macros"] }
-base16ct = { version = "1.0", default-features = false, features = ["alloc"] }
+base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
@@ -30,7 +30,7 @@ cala-ledger = { version = "0.13", default-features = false, features = ["graphql
 cala-ledger-core-types = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 chrono-tz = { version = "0.10", features = ["serde"] }
-cipher = { version = "0.5", default-features = false, features = ["block-padding", "zeroize"] }
+cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 crossbeam-utils = { version = "0.8" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
@@ -54,7 +54,7 @@ hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
 hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "service"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
-inout = { version = "0.2", default-features = false, features = ["block-padding"] }
+inout = { version = "0.1", default-features = false, features = ["block-padding"] }
 job = { version = "0.6", default-features = false, features = ["json-schema"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
@@ -105,7 +105,7 @@ async-graphql = { version = "7", default-features = false, features = ["chrono",
 aws-lc-rs = { version = "1", features = ["prebuilt-nasm"] }
 aws-lc-sys = { version = "0.37", default-features = false, features = ["prebuilt-nasm"] }
 axum = { version = "0.8", features = ["macros"] }
-base16ct = { version = "1.0", default-features = false, features = ["alloc"] }
+base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
@@ -115,7 +115,7 @@ cala-ledger-core-types = { version = "0.13", default-features = false, features 
 cc = { version = "1", default-features = false, features = ["parallel"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 chrono-tz = { version = "0.10", features = ["serde"] }
-cipher = { version = "0.5", default-features = false, features = ["block-padding", "zeroize"] }
+cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 crossbeam-utils = { version = "0.8" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
@@ -140,7 +140,7 @@ hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
 hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "service"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
-inout = { version = "0.2", default-features = false, features = ["block-padding"] }
+inout = { version = "0.1", default-features = false, features = ["block-padding"] }
 job = { version = "0.6", default-features = false, features = ["json-schema"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
