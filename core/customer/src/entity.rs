@@ -26,9 +26,6 @@ pub enum CustomerEvent {
         #[serde(default)]
         kyc_verification: KycVerification,
     },
-    KycVerificationUpdated {
-        kyc_verification: KycVerification,
-    },
     TelegramHandleUpdated {
         telegram_handle: String,
     },
@@ -149,11 +146,6 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .level(*level)
                         .kyc_verification(*kyc_verification)
                         .applicant_id(applicant_id.clone());
-                }
-                CustomerEvent::KycVerificationUpdated {
-                    kyc_verification, ..
-                } => {
-                    builder = builder.kyc_verification(*kyc_verification);
                 }
                 CustomerEvent::TelegramHandleUpdated {
                     telegram_handle, ..

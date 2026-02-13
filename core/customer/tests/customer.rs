@@ -1,49 +1,10 @@
 mod helpers;
 
 use authz::dummy::DummySubject;
-use cloud_storage::{Storage, config::StorageConfig};
-use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use uuid::Uuid;
 
-use core_customer::{CoreCustomerEvent, CustomerType, Customers, KycStatus, KycVerification};
-use helpers::{action, event, object};
-
-/// Creates a test setup with all required dependencies for customer tests.
-async fn setup() -> anyhow::Result<(
-    Customers<
-        authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
-        event::DummyEvent,
-    >,
-    obix::Outbox<event::DummyEvent>,
-)> {
-    let pool = helpers::init_pool().await?;
-    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
-
-    let outbox = obix::Outbox::<event::DummyEvent>::init(
-        &pool,
-        obix::MailboxConfig::builder()
-            .clock(clock.clone())
-            .build()?,
-    )
-    .await?;
-
-    let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
-    let public_ids = public_id::PublicIds::new(&pool);
-
-    let customers = Customers::new(
-        &pool,
-        &authz,
-        &outbox,
-        document_storage,
-        public_ids,
-        clock.clone(),
-    );
-
-    Ok((customers, outbox))
-}
+use core_customer::{CoreCustomerEvent, CustomerType, KycVerification};
+use helpers::event;
 
 /// CustomerCreated event is published when a prospect's KYC is approved
 /// via `Customers::handle_kyc_approved()`.
@@ -55,7 +16,7 @@ async fn setup() -> anyhow::Result<(
 /// The event contains a snapshot of the newly created customer with kyc_verification set to Verified.
 #[tokio::test]
 async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
-    let (customers, outbox) = setup().await?;
+    let (customers, outbox) = helpers::setup().await?;
 
     // First create a prospect
     let email = format!("test-{}@example.com", Uuid::new_v4());
@@ -89,49 +50,6 @@ async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// ProspectKycUpdated event is published when a prospect's KYC is declined
-/// via `Customers::handle_kyc_declined()`.
-///
-/// This typically happens when an external KYC provider notifies the system
-/// that identity verification has failed.
-///
-/// The event contains a snapshot with kyc_status set to Declined.
-#[tokio::test]
-async fn prospect_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
-    let (customers, outbox) = setup().await?;
-
-    // First create a prospect
-    let email = format!("test-{}@example.com", Uuid::new_v4());
-    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
-    let prospect = customers
-        .create_prospect(
-            &DummySubject,
-            email,
-            telegram_handle,
-            CustomerType::Individual,
-        )
-        .await?;
-
-    let applicant_id = format!("applicant-{}", Uuid::new_v4());
-
-    let (updated_prospect, recorded) = event::expect_event(
-        &outbox,
-        || customers.handle_kyc_declined(prospect.id, applicant_id.clone()),
-        |result, e| match e {
-            CoreCustomerEvent::ProspectKycUpdated { entity } if entity.id == result.id => {
-                Some(entity.clone())
-            }
-            _ => None,
-        },
-    )
-    .await?;
-
-    assert_eq!(recorded.id, updated_prospect.id);
-    assert_eq!(recorded.kyc_status, KycStatus::Declined);
-
-    Ok(())
-}
-
 /// CustomerEmailUpdated event is published when a customer's email is changed
 /// via `Customers::update_email()`.
 ///
@@ -141,7 +59,7 @@ async fn prospect_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
 /// The event contains a snapshot with the new email address.
 #[tokio::test]
 async fn customer_email_updated_event_on_email_change() -> anyhow::Result<()> {
-    let (customers, outbox) = setup().await?;
+    let (customers, outbox) = helpers::setup().await?;
 
     // First create a customer via prospect flow
     let original_email = format!("test-{}@example.com", Uuid::new_v4());

@@ -113,15 +113,6 @@ where
                     .update_user_email(entity.id.into(), entity.email.clone())
                     .await?;
             }
-            Some(event @ CoreCustomerEvent::ProspectEmailUpdated { entity }) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-
-                self.keycloak_client
-                    .update_user_email(entity.id.into(), entity.email.clone())
-                    .await?;
-            }
             _ => {}
         }
         Ok(())

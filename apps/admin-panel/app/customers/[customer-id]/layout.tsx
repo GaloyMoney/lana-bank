@@ -14,7 +14,6 @@ import { DepositAccount } from "./deposit-account"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 import {
   Customer as CustomerType,
-  useCustomerKycUpdatedSubscription,
   useGetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
@@ -56,14 +55,6 @@ gql`
       ...CustomerDetailsFragment
     }
   }
-
-  subscription CustomerKycUpdated($customerId: UUID!) {
-    customerKycUpdated(customerId: $customerId) {
-      customer {
-        ...CustomerDetailsFragment
-      }
-    }
-  }
 `
 
 export default function CustomerLayout({
@@ -101,12 +92,6 @@ export default function CustomerLayout({
   const { data, loading, error } = useGetCustomerBasicDetailsQuery({
     variables: { id: customerId },
   })
-
-  useCustomerKycUpdatedSubscription(
-    data?.customerByPublicId?.customerId
-      ? { variables: { customerId: data.customerByPublicId.customerId } }
-      : { skip: true },
-  )
 
   useEffect(() => {
     if (data?.customerByPublicId) setCustomer(data.customerByPublicId as CustomerType)
