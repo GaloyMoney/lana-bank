@@ -5,6 +5,7 @@ BASE=docker-compose.yml
 OVERRIDE=docker-compose.docker.yml   # contains the extra_hosts entry
 DAGSTER_FILE=docker-compose.dagster.yml
 GOTENBERG_FILE=docker-compose.gotenberg.yml
+JAEGER_FILE=docker-compose.jaeger.yml
 
 # ── Pick container engine ───────────────────────────────────────────────────────
 if [[ -n "${ENGINE_DEFAULT:-}" ]]; then            # honour explicit choice
@@ -26,6 +27,9 @@ if [[ "${DAGSTER:-false}" == "true" ]]; then
 fi
 if [[ "${GOTENBERG:-false}" == "true" ]]; then
     FILES+=(-f "$GOTENBERG_FILE")
+fi
+if [[ "${JAEGER:-false}" == "true" ]]; then
+    FILES+=(-f "$JAEGER_FILE")
 fi
 [[ "$ENGINE" == docker ]] && FILES+=(-f "$OVERRIDE")   # extra_hosts only on Docker
 
@@ -58,4 +62,8 @@ fi
 
 if [[ "${GOTENBERG:-false}" == "true" ]]; then
   wait4x http http://localhost:3030/health --timeout 60s || true
+fi
+
+if [[ "${JAEGER:-false}" == "true" ]]; then
+  wait4x http http://localhost:16686/ --timeout 60s || true
 fi

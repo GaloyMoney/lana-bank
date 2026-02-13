@@ -1,0 +1,10 @@
+services:
+  jaeger:
+    image: jaegertracing/jaeger:2.5.0
+    ports:
+      - 16686:16686
+      - 4317
+
+  otel-agent:
+    depends_on: [jaeger]
+    volumes: ["./dev/otel-agent-config.jaeger.yaml:/etc/otel-agent-config.yaml"]
