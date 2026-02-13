@@ -4,13 +4,13 @@
     "government_entity_deposit_accounts_parent_code": "2110.01.0201",
     "private_company_deposit_accounts_parent_code": "2110.01.0301",
     "bank_deposit_accounts_parent_code": "2110.01.0501",
-    "financial_institution_deposit_accounts_parent_code": "2110.01.0601",
+    "financial_institution_deposit_accounts_parent_code": "2110.01.0701",
     "non_domiciled_individual_deposit_accounts_parent_code": "2110.01.1001",
     "frozen_individual_deposit_accounts_parent_code": "2114.01.0401",
     "frozen_government_entity_deposit_accounts_parent_code": "2114.01.0201",
     "frozen_private_company_deposit_accounts_parent_code": "2114.01.0301",
     "frozen_bank_deposit_accounts_parent_code": "2114.01.0501",
-    "frozen_financial_institution_deposit_accounts_parent_code": "2114.01.0601",
+    "frozen_financial_institution_deposit_accounts_parent_code": "2114.01.0701",
     "frozen_non_domiciled_individual_deposit_accounts_parent_code": "2114.01.0801"
   }
   
