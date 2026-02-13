@@ -345,12 +345,15 @@ where
                     .update_in_op(&mut db, &mut prospect)
                     .await?;
                 let customer = self.repo.create_in_op(&mut db, new_customer).await?;
+                self.public_ids
+                    .update_target_in_op(&mut db, &prospect.public_id, CUSTOMER_REF_TARGET, customer.id)
+                    .await?;
                 db.commit().await?;
                 Ok(Some(customer))
             }
             es_entity::Idempotent::AlreadyApplied => {
                 let customer_id = CustomerId::from(prospect_id);
-                Ok(self.repo.maybe_find_by_id(customer_id).await?)
+                Ok(Some(self.repo.find_by_id(customer_id).await?))
             }
         }
     }
@@ -380,6 +383,9 @@ where
                     .update_in_op(&mut db, &mut prospect)
                     .await?;
                 let customer = self.repo.create_in_op(&mut db, new_customer).await?;
+                self.public_ids
+                    .update_target_in_op(&mut db, &prospect.public_id, CUSTOMER_REF_TARGET, customer.id)
+                    .await?;
                 db.commit().await?;
                 Ok(customer)
             }
