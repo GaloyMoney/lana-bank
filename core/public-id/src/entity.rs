@@ -17,6 +17,10 @@ pub enum PublicIdEntityEvent {
         target_id: PublicIdTargetId,
         target_type: PublicIdTargetType,
     },
+    TargetUpdated {
+        target_id: PublicIdTargetId,
+        target_type: PublicIdTargetType,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -34,6 +38,31 @@ impl core::fmt::Display for PublicIdEntity {
     }
 }
 
+impl PublicIdEntity {
+    pub fn update_target(
+        &mut self,
+        target_id: impl Into<PublicIdTargetId>,
+        target_type: impl Into<PublicIdTargetType>,
+    ) -> Idempotent<()> {
+        let target_id = target_id.into();
+        let target_type = target_type.into();
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            PublicIdEntityEvent::TargetUpdated {
+                target_id: existing_id,
+                target_type: existing_type,
+            } if *existing_id == target_id && existing_type == &target_type
+        );
+        self.events.push(PublicIdEntityEvent::TargetUpdated {
+            target_id,
+            target_type: target_type.clone(),
+        });
+        self.target_id = target_id;
+        self.target_type = target_type;
+        Idempotent::Executed(())
+    }
+}
+
 impl TryFromEvents<PublicIdEntityEvent> for PublicIdEntity {
     fn try_from_events(events: EntityEvents<PublicIdEntityEvent>) -> Result<Self, EsEntityError> {
         let mut builder = PublicIdEntityBuilder::default();
@@ -47,6 +76,14 @@ impl TryFromEvents<PublicIdEntityEvent> for PublicIdEntity {
                 } => {
                     builder = builder
                         .id(id.clone())
+                        .target_id(*target_id)
+                        .target_type(target_type.clone());
+                }
+                PublicIdEntityEvent::TargetUpdated {
+                    target_id,
+                    target_type,
+                } => {
+                    builder = builder
                         .target_id(*target_id)
                         .target_type(target_type.clone());
                 }
