@@ -13,7 +13,7 @@ const yaml = require("js-yaml");
 const DOCS_DIR = path.join(__dirname, "..", "docs");
 const SCRIPTS_DIR = __dirname;
 const I18N_ES_DOCS_DIR = path.join(__dirname, "..", "i18n", "es", "docusaurus-plugin-content-docs", "current");
-const API_DIRS = ["for-developers/admin-api", "for-developers/customer-api"];
+const API_DIRS = ["apis/admin-api", "apis/customer-api"];
 const DESCRIPTIONS_FILE = path.join(SCRIPTS_DIR, "api-descriptions.json");
 const DESCRIPTIONS_ES_FILE = path.join(SCRIPTS_DIR, "api-descriptions.es.json");
 
@@ -105,7 +105,7 @@ function copyToSpanishWithDescription(srcPath, apiId, operationType, description
  * Process Spanish operation files
  */
 function processSpanishDescriptions(apiId, descriptions) {
-  const apiDir = `for-developers/${apiId}-api`;
+  const apiDir = `apis/${apiId}-api`;
   const files = findOperationFiles(apiDir);
   let updated = 0;
   const newOperations = { queries: [], mutations: [] };
@@ -190,7 +190,7 @@ function injectDescription(filePath, apiId, operationType, descriptions) {
  * Process descriptions for all operation files in an API
  */
 function processDescriptions(apiId, descriptions) {
-  const apiDir = `for-developers/${apiId}-api`;
+  const apiDir = `apis/${apiId}-api`;
   const files = findOperationFiles(apiDir);
   let updated = 0;
   const newOperations = { queries: [], mutations: [] };
@@ -213,7 +213,7 @@ function processDescriptions(apiId, descriptions) {
 }
 
 function updateGeneratedOverview(apiId, opts) {
-  const filePath = path.join(DOCS_DIR, "for-developers", `${apiId}-api`, "generated.md");
+  const filePath = path.join(DOCS_DIR, "apis", `${apiId}-api`, "generated.md");
   if (!fs.existsSync(filePath)) return false;
 
   let content = fs.readFileSync(filePath, "utf8");

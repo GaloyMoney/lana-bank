@@ -22,23 +22,16 @@ Lana es un core bancario moderno construido sobre:
 ### Arquitectura del Sistema
 
 - [Arquitectura del Sistema](system-architecture) - Visión general de capas y componentes
-- [Servicios de Dominio](domain-services) - Implementación de Domain-Driven Design
 - [Arquitectura Funcional](functional-architecture) - Arquitectura técnica integral
-
-### Infraestructura Técnica
-
 - [Autenticación y Autorización](authentication-architecture) - Keycloak, OAuth 2.0, RBAC
-- [Sistema de Eventos](event-system) - Event sourcing y patrón outbox
-- [Trabajos en Segundo Plano](background-jobs) - Sistema de procesamiento de tareas
-- [Servicios de Infraestructura](infrastructure-services) - Auditoría, autorización, trazabilidad
-- [Trazabilidad y Observabilidad](observability) - OpenTelemetry e instrumentación
-- [Sistema de Auditoría](audit-system) - Registro y cumplimiento
 
 ### Integraciones
 
-- [Integración con Cala Ledger](cala-ledger-integration) - Contabilidad de partida doble
-- [Custodia y Gestión de Carteras](custody-portfolio) - BitGo, Komainu, colateral
 - [Canalización de Datos](data-pipelines) - Meltano, dbt, BigQuery
+
+:::tip
+Para documentación de arquitectura de dominio, servicios de infraestructura e integraciones internas, consulta la [Guía del Desarrollador Interno](../for-internal-developers/).
+:::
 
 ### Modelos de Datos
 

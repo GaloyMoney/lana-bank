@@ -10,25 +10,25 @@ This section describes deployment procedures and infrastructure configuration fo
 
 ## Deployment Stack
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    DEPLOYMENT STACK                             │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │    Kubernetes   │  │     Docker      │  │      Nix        │ │
-│  │  (Orchestration)│  │   (Containers)  │  │    (Build)      │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │   PostgreSQL    │  │    Keycloak     │  │  Cala Ledger    │ │
-│  │   (Database)    │  │     (Auth)      │  │   (Accounting)  │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                                                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │   Oathkeeper    │  │    OpenTelemetry│  │     Dagster     │ │
-│  │   (Gateway)     │  │  (Observability)│  │   (Pipelines)   │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Stack["Deployment Stack"]
+        subgraph Build["Build & Orchestration"]
+            K8S["Kubernetes<br/>(Orchestration)"]
+            DOCKER["Docker<br/>(Containers)"]
+            NIX["Nix<br/>(Build)"]
+        end
+        subgraph Core["Core Services"]
+            PG["PostgreSQL<br/>(Database)"]
+            KC["Keycloak<br/>(Auth)"]
+            CALA["Cala Ledger<br/>(Accounting)"]
+        end
+        subgraph Support["Supporting Services"]
+            OAT["Oathkeeper<br/>(Gateway)"]
+            OTEL["OpenTelemetry<br/>(Observability)"]
+            DAG["Dagster<br/>(Pipelines)"]
+        end
+    end
 ```
 
 ## Environment Types
