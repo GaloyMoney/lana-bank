@@ -33,9 +33,6 @@ pub enum ProspectEvent {
     TelegramHandleUpdated {
         telegram_handle: String,
     },
-    EmailUpdated {
-        email: String,
-    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -142,19 +139,6 @@ impl Prospect {
         self.telegram_handle = new_telegram_handle;
         Idempotent::Executed(())
     }
-
-    pub fn update_email(&mut self, new_email: String) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ProspectEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email,
-            => ProspectEvent::EmailUpdated { .. }
-        );
-        self.events.push(ProspectEvent::EmailUpdated {
-            email: new_email.clone(),
-        });
-        self.email = new_email;
-        Idempotent::Executed(())
-    }
 }
 
 impl TryFromEvents<ProspectEvent> for Prospect {
@@ -201,9 +185,6 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     telegram_handle, ..
                 } => {
                     builder = builder.telegram_handle(telegram_handle.clone());
-                }
-                ProspectEvent::EmailUpdated { email, .. } => {
-                    builder = builder.email(email.clone());
                 }
             }
         }
