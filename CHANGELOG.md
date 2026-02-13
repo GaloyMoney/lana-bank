@@ -1,3 +1,26 @@
+## [0.41.0] - 2026-02-13
+
+### 🚀 Features
+
+- Type-safe encrypted domain config (#3769)
+- Translate transaction template codes in admin panel (#3784)
+- Add event type to data pipeline rollups (#3787)
+
+### 🐛 Bug Fixes
+
+- Collapse nested if-let to satisfy clippy collapsible_if lint (#3792)
+
+### 🚜 Refactor
+
+- Move codegen binaries to dev/codegen crate (#3781)
+
+### ⚙️ Miscellaneous Tasks
+
+- Adding fly to flake (#3756)
+- Create skills for testing PR on staging (#3764)
+- Translate journal transaction descriptions (#3768)
+- Removing claude code review (#3793)
+- Use encrypted flag for sumsub and update ui (#3797)
 ## [0.40.0] - 2026-02-11
 
 ### 🚀 Features
