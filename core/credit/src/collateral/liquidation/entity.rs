@@ -28,7 +28,6 @@ pub enum LiquidationEvent {
         payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
     },
-    Completed {},
 }
 
 #[derive(EsEntity, Builder)]
@@ -85,10 +84,12 @@ impl Liquidation {
     }
 
     pub fn is_completed(&self) -> bool {
-        self.events
-            .iter_all()
-            .rev()
-            .any(|e| matches!(e, LiquidationEvent::Completed { .. }))
+        self.events.iter_all().rev().any(|e| {
+            matches!(
+                e,
+                LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { .. }
+            )
+        })
     }
 
     pub fn collateral_sent_out(&self) -> Vec<(Satoshis, LedgerTxId)> {
@@ -145,7 +146,6 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { amount, .. } => {
                     amount_received = *amount;
                 }
-                LiquidationEvent::Completed { .. } => {}
             }
         }
 
