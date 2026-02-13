@@ -1,3 +1,5 @@
+use cala_ledger::DebitOrCredit;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::Display, strum::EnumString)]
 pub enum CreditAccountCategory {
     OffBalanceSheet,
@@ -29,6 +31,7 @@ pub struct CreditOmnibusAccountSetSpec {
     pub account_set_ref: &'static str,
     pub account_ref: &'static str,
     pub account_category: CreditAccountCategory,
+    pub normal_balance_type: DebitOrCredit,
 }
 
 impl CreditOmnibusAccountSetSpec {
@@ -37,12 +40,14 @@ impl CreditOmnibusAccountSetSpec {
         account_set_ref: &'static str,
         account_ref: &'static str,
         account_category: CreditAccountCategory,
+        normal_balance_type: DebitOrCredit,
     ) -> Self {
         Self {
             name,
             account_set_ref,
             account_ref,
             account_category,
+            normal_balance_type,
         }
     }
 }
@@ -52,6 +57,7 @@ pub struct CreditSummaryAccountSetSpec {
     pub name: &'static str,
     pub external_ref: &'static str,
     pub account_category: CreditAccountCategory,
+    pub normal_balance_type: DebitOrCredit,
 }
 
 impl CreditSummaryAccountSetSpec {
@@ -59,11 +65,13 @@ impl CreditSummaryAccountSetSpec {
         name: &'static str,
         external_ref: &'static str,
         account_category: CreditAccountCategory,
+        normal_balance_type: DebitOrCredit,
     ) -> Self {
         Self {
             name,
             external_ref,
             account_category,
+            normal_balance_type,
         }
     }
 }
@@ -231,6 +239,7 @@ const CREDIT_COLLATERAL_OMNIBUS: CreditOmnibusAccountSetSpec = CreditOmnibusAcco
     CREDIT_COLLATERAL_OMNIBUS_SET_REF,
     CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_REF,
     CreditAccountCategory::OffBalanceSheet,
+    DebitOrCredit::Debit,
 );
 
 const CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_NAME: &str =
@@ -245,6 +254,7 @@ const CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS: CreditOmnibusAccountSetSpec 
         CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_SET_REF,
         CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_REF,
         CreditAccountCategory::OffBalanceSheet,
+        DebitOrCredit::Debit,
     );
 
 const CREDIT_PAYMENTS_MADE_OMNIBUS_NAME: &str = "Credit Payments Made Omnibus Account Set";
@@ -255,6 +265,7 @@ const CREDIT_PAYMENTS_MADE_OMNIBUS: CreditOmnibusAccountSetSpec = CreditOmnibusA
     CREDIT_PAYMENTS_MADE_OMNIBUS_SET_REF,
     CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_REF,
     CreditAccountCategory::OffBalanceSheet,
+    DebitOrCredit::Credit,
 );
 
 const CREDIT_FACILITY_OMNIBUS_NAME: &str = "Credit Facility Omnibus Account Set";
@@ -265,6 +276,7 @@ const CREDIT_FACILITY_OMNIBUS: CreditOmnibusAccountSetSpec = CreditOmnibusAccoun
     CREDIT_FACILITY_OMNIBUS_SET_REF,
     CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF,
     CreditAccountCategory::OffBalanceSheet,
+    DebitOrCredit::Debit,
 );
 
 const CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_NAME: &str =
@@ -279,6 +291,7 @@ const CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS: CreditOmnibusAccountSetSpec 
         CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_SET_REF,
         CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_REF,
         CreditAccountCategory::Revenue,
+        DebitOrCredit::Debit,
     );
 
 // Summary Accounts
@@ -288,6 +301,7 @@ const CREDIT_FACILITY_REMAINING: CreditSummaryAccountSetSpec = CreditSummaryAcco
     CREDIT_FACILITY_REMAINING_NAME,
     CREDIT_FACILITY_REMAINING_REF,
     CreditAccountCategory::OffBalanceSheet,
+    DebitOrCredit::Credit,
 );
 
 const CREDIT_COLLATERAL_NAME: &str = "Credit Collateral Account Set";
@@ -296,6 +310,7 @@ const CREDIT_COLLATERAL: CreditSummaryAccountSetSpec = CreditSummaryAccountSetSp
     CREDIT_COLLATERAL_NAME,
     CREDIT_COLLATERAL_REF,
     CreditAccountCategory::OffBalanceSheet,
+    DebitOrCredit::Credit,
 );
 
 const CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_NAME: &str =
@@ -307,6 +322,7 @@ const CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION: CreditSummaryAccountSetSpec =
         CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_NAME,
         CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_REF,
         CreditAccountCategory::OffBalanceSheet,
+        DebitOrCredit::Credit,
     );
 
 const CREDIT_FACILITY_LIQUIDATED_COLLATERAL_NAME: &str =
@@ -318,6 +334,7 @@ const CREDIT_FACILITY_LIQUIDATED_COLLATERAL: CreditSummaryAccountSetSpec =
         CREDIT_FACILITY_LIQUIDATED_COLLATERAL_NAME,
         CREDIT_FACILITY_LIQUIDATED_COLLATERAL_REF,
         CreditAccountCategory::OffBalanceSheet,
+        DebitOrCredit::Credit,
     );
 
 const CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_NAME: &str =
@@ -329,6 +346,7 @@ const CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION: CreditSummaryAccountSetSpec =
         CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_NAME,
         CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_REF,
         CreditAccountCategory::OffBalanceSheet,
+        DebitOrCredit::Credit,
     );
 
 const SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE_NAME: &str =
@@ -340,6 +358,7 @@ const SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSpec =
         SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE_NAME,
         SHORT_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -351,6 +370,7 @@ const SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE: CreditSummaryAccountSet
         SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_NAME,
         SHORT_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -362,6 +382,7 @@ const SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSp
         SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_NAME,
         SHORT_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_BANK_DISBURSED_RECEIVABLE_NAME: &str =
@@ -373,6 +394,7 @@ const SHORT_TERM_BANK_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSpec =
         SHORT_TERM_BANK_DISBURSED_RECEIVABLE_NAME,
         SHORT_TERM_BANK_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_NAME: &str =
@@ -384,6 +406,7 @@ const SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE: CreditSummaryAccoun
         SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_NAME,
         SHORT_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -395,6 +418,7 @@ const SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE: CreditSummar
         SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_NAME,
         SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -406,6 +430,7 @@ const SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE: CreditSummaryAccoun
         SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_NAME,
         SHORT_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE_NAME: &str =
@@ -417,6 +442,7 @@ const LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSpec =
         LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE_NAME,
         LONG_TERM_INDIVIDUAL_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -428,6 +454,7 @@ const LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE: CreditSummaryAccountSetS
         LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_NAME,
         LONG_TERM_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -439,6 +466,7 @@ const LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSpe
         LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_NAME,
         LONG_TERM_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_BANK_DISBURSED_RECEIVABLE_NAME: &str =
@@ -450,6 +478,7 @@ const LONG_TERM_BANK_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSpec =
         LONG_TERM_BANK_DISBURSED_RECEIVABLE_NAME,
         LONG_TERM_BANK_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_NAME: &str =
@@ -461,6 +490,7 @@ const LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE: CreditSummaryAccount
         LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_NAME,
         LONG_TERM_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -472,6 +502,7 @@ const LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE: CreditSummary
         LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_NAME,
         LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -483,6 +514,7 @@ const LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE: CreditSummaryAccount
         LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_NAME,
         LONG_TERM_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE_NAME: &str =
@@ -494,6 +526,7 @@ const SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE: CreditSummaryAccountSetSpec =
         SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE_NAME,
         SHORT_TERM_INDIVIDUAL_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_NAME: &str =
@@ -505,6 +538,7 @@ const SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE: CreditSummaryAccountSetS
         SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_NAME,
         SHORT_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE_NAME: &str =
@@ -516,6 +550,7 @@ const SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE: CreditSummaryAccountSetSpe
         SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE_NAME,
         SHORT_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_BANK_INTEREST_RECEIVABLE_NAME: &str =
@@ -527,6 +562,7 @@ const SHORT_TERM_BANK_INTEREST_RECEIVABLE: CreditSummaryAccountSetSpec =
         SHORT_TERM_BANK_INTEREST_RECEIVABLE_NAME,
         SHORT_TERM_BANK_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_NAME: &str =
@@ -538,6 +574,7 @@ const SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE: CreditSummaryAccount
         SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_NAME,
         SHORT_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_NAME: &str =
@@ -549,6 +586,7 @@ const SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE: CreditSummary
         SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_NAME,
         SHORT_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_NAME: &str =
@@ -560,6 +598,7 @@ const SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE: CreditSummaryAccount
         SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_NAME,
         SHORT_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE_NAME: &str =
@@ -571,6 +610,7 @@ const LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE: CreditSummaryAccountSetSpec =
         LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE_NAME,
         LONG_TERM_INDIVIDUAL_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_NAME: &str =
@@ -582,6 +622,7 @@ const LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE: CreditSummaryAccountSetSp
         LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_NAME,
         LONG_TERM_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE_NAME: &str =
@@ -593,6 +634,7 @@ const LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE: CreditSummaryAccountSetSpec
         LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE_NAME,
         LONG_TERM_PRIVATE_COMPANY_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_BANK_INTEREST_RECEIVABLE_NAME: &str =
@@ -604,6 +646,7 @@ const LONG_TERM_BANK_INTEREST_RECEIVABLE: CreditSummaryAccountSetSpec =
         LONG_TERM_BANK_INTEREST_RECEIVABLE_NAME,
         LONG_TERM_BANK_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_NAME: &str =
@@ -615,6 +658,7 @@ const LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE: CreditSummaryAccountS
         LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_NAME,
         LONG_TERM_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_NAME: &str =
@@ -626,6 +670,7 @@ const LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE: CreditSummaryA
         LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_NAME,
         LONG_TERM_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_NAME: &str =
@@ -637,6 +682,7 @@ const LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE: CreditSummaryAccountS
         LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_NAME,
         LONG_TERM_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE_NAME: &str =
@@ -648,6 +694,7 @@ const OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSpec =
         OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE_NAME,
         OVERDUE_INDIVIDUAL_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -659,6 +706,7 @@ const OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSpe
         OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_NAME,
         OVERDUE_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -670,6 +718,7 @@ const OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSpec 
         OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_NAME,
         OVERDUE_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const OVERDUE_BANK_DISBURSED_RECEIVABLE_NAME: &str =
@@ -681,6 +730,7 @@ const OVERDUE_BANK_DISBURSED_RECEIVABLE: CreditSummaryAccountSetSpec =
         OVERDUE_BANK_DISBURSED_RECEIVABLE_NAME,
         OVERDUE_BANK_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_NAME: &str =
@@ -692,6 +742,7 @@ const OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE: CreditSummaryAccountSe
         OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_NAME,
         OVERDUE_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -703,6 +754,7 @@ const OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE: CreditSummaryAc
         OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_NAME,
         OVERDUE_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_NAME: &str =
@@ -714,6 +766,7 @@ const OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE: CreditSummaryAccountSe
         OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_NAME,
         OVERDUE_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_REF,
         CreditAccountCategory::Asset,
+        DebitOrCredit::Debit,
     );
 
 const CREDIT_DISBURSED_DEFAULTED_NAME: &str = "Credit Disbursed Defaulted Account Set";
@@ -722,6 +775,7 @@ const CREDIT_DISBURSED_DEFAULTED: CreditSummaryAccountSetSpec = CreditSummaryAcc
     CREDIT_DISBURSED_DEFAULTED_NAME,
     CREDIT_DISBURSED_DEFAULTED_REF,
     CreditAccountCategory::Asset,
+    DebitOrCredit::Debit,
 );
 
 const CREDIT_INTEREST_DEFAULTED_NAME: &str = "Credit Interest Defaulted Account Set";
@@ -730,6 +784,7 @@ const CREDIT_INTEREST_DEFAULTED: CreditSummaryAccountSetSpec = CreditSummaryAcco
     CREDIT_INTEREST_DEFAULTED_NAME,
     CREDIT_INTEREST_DEFAULTED_REF,
     CreditAccountCategory::Asset,
+    DebitOrCredit::Debit,
 );
 
 const CREDIT_INTEREST_INCOME_NAME: &str = "Credit Interest Income Account Set";
@@ -738,6 +793,7 @@ const CREDIT_INTEREST_INCOME: CreditSummaryAccountSetSpec = CreditSummaryAccount
     CREDIT_INTEREST_INCOME_NAME,
     CREDIT_INTEREST_INCOME_REF,
     CreditAccountCategory::Revenue,
+    DebitOrCredit::Credit,
 );
 
 const CREDIT_FEE_INCOME_NAME: &str = "Credit Fee Income Account Set";
@@ -746,6 +802,7 @@ const CREDIT_FEE_INCOME: CreditSummaryAccountSetSpec = CreditSummaryAccountSetSp
     CREDIT_FEE_INCOME_NAME,
     CREDIT_FEE_INCOME_REF,
     CreditAccountCategory::Revenue,
+    DebitOrCredit::Credit,
 );
 
 const CREDIT_UNCOVERED_OUTSTANDING_NAME: &str = "Credit Uncovered Outstanding Account Set";
@@ -754,6 +811,7 @@ const CREDIT_UNCOVERED_OUTSTANDING: CreditSummaryAccountSetSpec = CreditSummaryA
     CREDIT_UNCOVERED_OUTSTANDING_NAME,
     CREDIT_UNCOVERED_OUTSTANDING_REF,
     CreditAccountCategory::OffBalanceSheet,
+    DebitOrCredit::Credit,
 );
 
 const CREDIT_PAYMENT_HOLDING_NAME: &str = "Credit Payment Holding Account Set";
@@ -762,6 +820,7 @@ const CREDIT_PAYMENT_HOLDING: CreditSummaryAccountSetSpec = CreditSummaryAccount
     CREDIT_PAYMENT_HOLDING_NAME,
     CREDIT_PAYMENT_HOLDING_REF,
     CreditAccountCategory::Asset,
+    DebitOrCredit::Credit,
 );
 
 impl Default for CreditAccountSetCatalog {

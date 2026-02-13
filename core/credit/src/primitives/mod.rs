@@ -96,7 +96,7 @@ es_entity::entity_id! {
     CreditFacilityId => core_credit_collection::BeneficiaryId,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct LedgerOmnibusAccountIds {
     pub account_set_id: CalaAccountSetId,
     pub account_id: CalaAccountId,
