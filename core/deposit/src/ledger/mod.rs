@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use audit::SystemSubject;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -23,7 +25,7 @@ use crate::{
     WithdrawalReversalData,
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
     primitives::{
-        CalaAccountId, CalaAccountSetId, DEPOSIT_ACCOUNT_ENTITY_TYPE, DepositAccountSetCatalog,
+        CalaAccountId, CalaAccountSetId, DEPOSIT_ACCOUNT_ENTITY_TYPE, DEPOSIT_ACCOUNT_SET_CATALOG,
         DepositAccountType, DepositId, UsdCents, WithdrawalId,
     },
 };
@@ -80,143 +82,63 @@ impl DepositLedger {
         templates::FreezeAccount::init(cala).await?;
         templates::UnfreezeAccount::init(cala).await?;
 
-        let catalog = DepositAccountSetCatalog::default();
+        let catalog = DEPOSIT_ACCOUNT_SET_CATALOG;
         let deposit = catalog.deposit();
         let frozen = catalog.frozen();
-        let omnibus = catalog.omnibus();
 
-        let deposits_normal_balance_type = DebitOrCredit::Credit;
-
-        let individual_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{}", deposit.individual.account_set_ref),
-            deposit.individual.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let government_entity_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{}", deposit.government_entity.account_set_ref),
-            deposit.government_entity.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let private_company_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{}", deposit.private_company.account_set_ref),
-            deposit.private_company.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let bank_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{}", deposit.bank.account_set_ref),
-            deposit.bank.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let financial_institution_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!(
-                "{journal_id}:{}",
-                deposit.financial_institution.account_set_ref
-            ),
-            deposit.financial_institution.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let non_domiciled_individual_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!(
-                "{journal_id}:{}",
-                deposit.non_domiciled_individual.account_set_ref
-            ),
-            deposit.non_domiciled_individual.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let frozen_individual_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{}", frozen.individual.account_set_ref),
-            frozen.individual.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let frozen_government_entity_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{}", frozen.government_entity.account_set_ref),
-            frozen.government_entity.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let frozen_private_company_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{}", frozen.private_company.account_set_ref),
-            frozen.private_company.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let frozen_bank_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{}", frozen.bank.account_set_ref),
-            frozen.bank.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let frozen_financial_institution_deposit_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!(
-                "{journal_id}:{}",
-                frozen.financial_institution.account_set_ref
-            ),
-            frozen.financial_institution.name.to_string(),
-            deposits_normal_balance_type,
-        )
-        .await?;
-
-        let frozen_non_domiciled_individual_deposit_account_set_id =
-            Self::find_or_create_account_set(
+        let mut deposit_ids: HashMap<&str, InternalAccountSetDetails> = HashMap::new();
+        for spec in catalog.deposit_specs() {
+            let id = Self::find_or_create_account_set(
                 cala,
                 journal_id,
-                format!(
-                    "{journal_id}:{}",
-                    frozen.non_domiciled_individual.account_set_ref
-                ),
-                frozen.non_domiciled_individual.name.to_string(),
-                deposits_normal_balance_type,
+                format!("{journal_id}:{}", spec.account_set_ref),
+                spec.name.to_string(),
+                spec.normal_balance_type,
             )
             .await?;
+            deposit_ids.insert(
+                spec.account_set_ref,
+                InternalAccountSetDetails {
+                    id,
+                    normal_balance_type: spec.normal_balance_type,
+                },
+            );
+        }
 
-        let deposit_omnibus_account_ids = Self::find_or_create_omnibus_account(
-            cala,
-            journal_id,
-            format!("{journal_id}:{}", omnibus.account_set_ref),
-            format!("{journal_id}:{}", omnibus.account_ref),
-            omnibus.name.to_string(),
-            DebitOrCredit::Debit,
-        )
-        .await?;
+        let mut frozen_ids: HashMap<&str, InternalAccountSetDetails> = HashMap::new();
+        for spec in catalog.frozen_specs() {
+            let id = Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!("{journal_id}:{}", spec.account_set_ref),
+                spec.name.to_string(),
+                spec.normal_balance_type,
+            )
+            .await?;
+            frozen_ids.insert(
+                spec.account_set_ref,
+                InternalAccountSetDetails {
+                    id,
+                    normal_balance_type: spec.normal_balance_type,
+                },
+            );
+        }
+
+        let mut omnibus_ids: HashMap<&str, LedgerOmnibusAccountIds> = HashMap::new();
+        for spec in catalog.omnibus_specs() {
+            let ids = Self::find_or_create_omnibus_account(
+                cala,
+                journal_id,
+                format!("{journal_id}:{}", spec.account_set_ref),
+                format!("{journal_id}:{}", spec.account_ref),
+                spec.name.to_string(),
+                spec.normal_balance_type,
+            )
+            .await?;
+            omnibus_ids.insert(spec.account_set_ref, ids);
+        }
+
+        let deposit_omnibus_account_ids = omnibus_ids[catalog.omnibus().account_set_ref].clone();
 
         let overdraft_prevention_id = velocity::OverdraftPrevention::init(cala).await?;
 
@@ -236,56 +158,22 @@ impl DepositLedger {
             cala: cala.clone(),
             journal_id,
             deposit_account_sets: DepositAccountSets {
-                individual: InternalAccountSetDetails {
-                    id: individual_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                government_entity: InternalAccountSetDetails {
-                    id: government_entity_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                private_company: InternalAccountSetDetails {
-                    id: private_company_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                bank: InternalAccountSetDetails {
-                    id: bank_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                financial_institution: InternalAccountSetDetails {
-                    id: financial_institution_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                non_domiciled_individual: InternalAccountSetDetails {
-                    id: non_domiciled_individual_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
+                individual: deposit_ids[deposit.individual.account_set_ref],
+                government_entity: deposit_ids[deposit.government_entity.account_set_ref],
+                private_company: deposit_ids[deposit.private_company.account_set_ref],
+                bank: deposit_ids[deposit.bank.account_set_ref],
+                financial_institution: deposit_ids[deposit.financial_institution.account_set_ref],
+                non_domiciled_individual: deposit_ids
+                    [deposit.non_domiciled_individual.account_set_ref],
             },
             frozen_deposit_account_sets: DepositAccountSets {
-                individual: InternalAccountSetDetails {
-                    id: frozen_individual_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                government_entity: InternalAccountSetDetails {
-                    id: frozen_government_entity_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                private_company: InternalAccountSetDetails {
-                    id: frozen_private_company_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                bank: InternalAccountSetDetails {
-                    id: frozen_bank_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                financial_institution: InternalAccountSetDetails {
-                    id: frozen_financial_institution_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
-                non_domiciled_individual: InternalAccountSetDetails {
-                    id: frozen_non_domiciled_individual_deposit_account_set_id,
-                    normal_balance_type: deposits_normal_balance_type,
-                },
+                individual: frozen_ids[frozen.individual.account_set_ref],
+                government_entity: frozen_ids[frozen.government_entity.account_set_ref],
+                private_company: frozen_ids[frozen.private_company.account_set_ref],
+                bank: frozen_ids[frozen.bank.account_set_ref],
+                financial_institution: frozen_ids[frozen.financial_institution.account_set_ref],
+                non_domiciled_individual: frozen_ids
+                    [frozen.non_domiciled_individual.account_set_ref],
             },
             deposit_omnibus_account_ids,
             deposit_control_id,

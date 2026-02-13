@@ -191,7 +191,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .set_config(&DummySubject, &chart, chart_of_accounts_config.clone())
         .await?;
 
-    let catalog = DepositAccountSetCatalog::default();
+    let catalog = DEPOSIT_ACCOUNT_SET_CATALOG;
     let deposit_account_set_ids =
         resolve_account_set_ids(&cala, journal_id, catalog.deposit_specs()).await?;
     let frozen_account_set_ids =
