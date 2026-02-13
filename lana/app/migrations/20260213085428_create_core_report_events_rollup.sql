@@ -4,6 +4,7 @@ CREATE TABLE core_report_events_rollup (
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
+  event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
   external_id VARCHAR,
   files JSONB,
@@ -13,6 +14,7 @@ CREATE TABLE core_report_events_rollup (
 ,
   PRIMARY KEY (id, version)
 );
+
 
 -- Auto-generated trigger function for ReportEvent
 CREATE OR REPLACE FUNCTION core_report_events_rollup_trigger()
@@ -41,6 +43,7 @@ BEGIN
   new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
+  new_row.event_type := NEW.event_type;
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
@@ -73,6 +76,7 @@ BEGIN
     version,
     created_at,
     modified_at,
+    event_type,
     external_id,
     files,
     name,
@@ -84,6 +88,7 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
+    new_row.event_type,
     new_row.external_id,
     new_row.files,
     new_row.name,
@@ -94,6 +99,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Auto-generated trigger for ReportEvent
 CREATE TRIGGER core_report_events_rollup_trigger

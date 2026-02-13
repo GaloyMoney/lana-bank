@@ -4,6 +4,7 @@ CREATE TABLE core_disbursal_events_rollup (
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
+  event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
   account_ids JSONB,
   amount BIGINT,
@@ -28,6 +29,7 @@ CREATE TABLE core_disbursal_events_rollup (
 ,
   PRIMARY KEY (id, version)
 );
+
 
 -- Auto-generated trigger function for DisbursalEvent
 CREATE OR REPLACE FUNCTION core_disbursal_events_rollup_trigger()
@@ -56,6 +58,7 @@ BEGIN
   new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
+  new_row.event_type := NEW.event_type;
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
@@ -133,6 +136,7 @@ BEGIN
     version,
     created_at,
     modified_at,
+    event_type,
     account_ids,
     amount,
     approval_process_id,
@@ -155,6 +159,7 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
+    new_row.event_type,
     new_row.account_ids,
     new_row.amount,
     new_row.approval_process_id,
@@ -176,6 +181,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Auto-generated trigger for DisbursalEvent
 CREATE TRIGGER core_disbursal_events_rollup_trigger

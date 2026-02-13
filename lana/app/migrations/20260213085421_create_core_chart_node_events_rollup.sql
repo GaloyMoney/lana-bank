@@ -4,6 +4,7 @@ CREATE TABLE core_chart_node_events_rollup (
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
+  event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
   chart_id UUID,
   spec JSONB,
@@ -15,6 +16,7 @@ CREATE TABLE core_chart_node_events_rollup (
 ,
   PRIMARY KEY (id, version)
 );
+
 
 -- Auto-generated trigger function for ChartNodeEvent
 CREATE OR REPLACE FUNCTION core_chart_node_events_rollup_trigger()
@@ -43,6 +45,7 @@ BEGIN
   new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
+  new_row.event_type := NEW.event_type;
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
@@ -92,6 +95,7 @@ BEGIN
     version,
     created_at,
     modified_at,
+    event_type,
     chart_id,
     child_node_ids,
     ledger_account_set_ids,
@@ -103,6 +107,7 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
+    new_row.event_type,
     new_row.chart_id,
     new_row.child_node_ids,
     new_row.ledger_account_set_ids,
@@ -113,6 +118,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Auto-generated trigger for ChartNodeEvent
 CREATE TRIGGER core_chart_node_events_rollup_trigger

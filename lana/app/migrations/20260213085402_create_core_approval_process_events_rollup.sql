@@ -4,6 +4,7 @@ CREATE TABLE core_approval_process_events_rollup (
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
+  event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
   approved BOOLEAN,
   policy_id UUID,
@@ -21,6 +22,7 @@ CREATE TABLE core_approval_process_events_rollup (
 ,
   PRIMARY KEY (id, version)
 );
+
 
 -- Auto-generated trigger function for ApprovalProcessEvent
 CREATE OR REPLACE FUNCTION core_approval_process_events_rollup_trigger()
@@ -49,6 +51,7 @@ BEGIN
   new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
+  new_row.event_type := NEW.event_type;
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
@@ -111,6 +114,7 @@ BEGIN
     version,
     created_at,
     modified_at,
+    event_type,
     approved,
     approver_ids,
     denier_ids,
@@ -126,6 +130,7 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
+    new_row.event_type,
     new_row.approved,
     new_row.approver_ids,
     new_row.denier_ids,
@@ -140,6 +145,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Auto-generated trigger for ApprovalProcessEvent
 CREATE TRIGGER core_approval_process_events_rollup_trigger
