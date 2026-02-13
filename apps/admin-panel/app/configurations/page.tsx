@@ -45,6 +45,7 @@ gql`
         key
         configType
         encrypted
+        isSet
         value
       }
       pageInfo {
@@ -62,6 +63,7 @@ gql`
         key
         configType
         encrypted
+        isSet
         value
       }
     }
@@ -412,7 +414,7 @@ const renderDomainInput = ({
       <Input
         id={inputId}
         type="password"
-        placeholder="••••••"
+        placeholder={config.isSet ? "••••••" : ""}
         value={typeof value === "string" ? value : ""}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}

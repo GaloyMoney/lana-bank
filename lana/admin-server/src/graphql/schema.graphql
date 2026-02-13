@@ -1423,6 +1423,7 @@ type DomainConfig {
 	encrypted: Boolean!
 	key: String!
 	value: Json!
+	isSet: Boolean!
 }
 
 type DomainConfigConnection {
