@@ -255,6 +255,12 @@ async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Resul
         .await?;
 
     let applicant_id = format!("applicant-{}", Uuid::new_v4());
+
+    // Start KYC first (required before approval)
+    customers
+        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .await?;
+
     let customer = customers
         .handle_kyc_approved(prospect.id, applicant_id.clone())
         .await?;
