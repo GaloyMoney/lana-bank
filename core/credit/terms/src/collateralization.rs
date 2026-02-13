@@ -34,6 +34,8 @@ impl Default for CollateralizationRatio {
 pub enum CollateralizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,
+    UnderMarginCallThresholdLevel2,
+    UnderMarginCallThresholdLevel3,
     UnderLiquidationThreshold,
     #[default]
     NoCollateral,

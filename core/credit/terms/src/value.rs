@@ -241,6 +241,9 @@ pub struct TermValues {
     pub liquidation_cvl: CVLPct,
     #[builder(setter(into))]
     pub margin_call_cvl: CVLPct,
+    #[builder(setter(into, strip_option), default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub additional_margin_call_cvls: Option<Vec<CVLPct>>,
     #[builder(setter(into))]
     pub initial_cvl: CVLPct,
     #[builder(setter(into))]
@@ -281,18 +284,40 @@ impl TermValues {
         price.cents_to_sats_round_up(collateral_value)
     }
 
+    pub fn margin_calls(&self) -> Vec<CVLPct> {
+        let mut calls = if let Some(additional) = &self.additional_margin_call_cvls {
+            let mut all = additional.clone();
+            all.push(self.margin_call_cvl);
+            all
+        } else {
+            vec![self.margin_call_cvl]
+        };
+        calls.sort_by(|a, b| b.cmp(a)); // Descending order
+        calls.dedup();
+        calls
+    }
+
     pub fn collateralization(&self, cvl: CVLPct) -> CollateralizationState {
-        let margin_call_cvl = self.margin_call_cvl;
         let liquidation_cvl = self.liquidation_cvl;
+        let margin_calls = self.margin_calls();
 
         if cvl == CVLPct::Infinite {
             CollateralizationState::NoExposure
         } else if cvl == CVLPct::ZERO {
             CollateralizationState::NoCollateral
-        } else if cvl >= margin_call_cvl {
-            CollateralizationState::FullyCollateralized
+        } else if cvl >= margin_calls[0] {
+             CollateralizationState::FullyCollateralized
         } else if cvl >= liquidation_cvl {
-            CollateralizationState::UnderMarginCallThreshold
+             // Find which margin call tier
+             if margin_calls.len() > 1 && cvl < margin_calls[1] {
+                  if margin_calls.len() > 2 && cvl < margin_calls[2] {
+                       CollateralizationState::UnderMarginCallThresholdLevel3
+                  } else {
+                       CollateralizationState::UnderMarginCallThresholdLevel2
+                  }
+             } else {
+                  CollateralizationState::UnderMarginCallThreshold
+             }
         } else {
             CollateralizationState::UnderLiquidationThreshold
         }
@@ -319,6 +344,14 @@ impl TermValues {
                 CollateralizationState::UnderMarginCallThreshold,
             )
             | (
+                CollateralizationState::UnderMarginCallThresholdLevel2,
+                CollateralizationState::UnderMarginCallThresholdLevel2,
+            )
+            | (
+                CollateralizationState::UnderMarginCallThresholdLevel3,
+                CollateralizationState::UnderMarginCallThresholdLevel3,
+            )
+            | (
                 CollateralizationState::UnderLiquidationThreshold,
                 CollateralizationState::UnderLiquidationThreshold,
             )
@@ -335,12 +368,19 @@ impl TermValues {
 
             // Optionally buffered collateral upgraded change
             (
-                CollateralizationState::UnderMarginCallThreshold,
+                CollateralizationState::FullyCollateralized,
+            )
+            | (
+                CollateralizationState::UnderMarginCallThresholdLevel2,
+                CollateralizationState::FullyCollateralized,
+            )
+            | (
+                CollateralizationState::UnderMarginCallThresholdLevel3,
                 CollateralizationState::FullyCollateralized,
             ) => match upgrade_buffer_cvl_pct {
                 Some(buffer) => {
-                    if self
-                        .margin_call_cvl
+                    let highest_margin_call = self.margin_calls()[0];
+                    if highest_margin_call
                         .is_significantly_lower_than(current_cvl, buffer)
                     {
                         Some(*calculated_collateralization)
@@ -355,7 +395,9 @@ impl TermValues {
             (CollateralizationState::NoExposure, _)
             | (CollateralizationState::NoCollateral, _)
             | (CollateralizationState::FullyCollateralized, _)
-            | (CollateralizationState::UnderMarginCallThreshold, _) => {
+            | (CollateralizationState::UnderMarginCallThreshold, _)
+            | (CollateralizationState::UnderMarginCallThresholdLevel2, _)
+            | (CollateralizationState::UnderMarginCallThresholdLevel3, _) => {
                 Some(*calculated_collateralization)
             }
         }
@@ -394,11 +436,27 @@ impl TermValuesBuilder {
             ));
         }
 
-        if margin_call_cvl <= liquidation_cvl {
-            return Err(TermsError::MarginCallBelowLiquidationLimit(
-                margin_call_cvl,
-                liquidation_cvl,
-            ));
+        let margin_calls = if let Some(additional) = &self.additional_margin_call_cvls {
+            let mut all = additional.clone();
+            all.push(margin_call_cvl);
+            all
+        } else {
+            vec![margin_call_cvl]
+        };
+
+        for mc in &margin_calls {
+            if *mc <= liquidation_cvl {
+                return Err(TermsError::MarginCallBelowLiquidationLimit(
+                    *mc,
+                    liquidation_cvl,
+                ));
+            }
+             if initial_cvl <= *mc {
+                return Err(TermsError::MarginCallAboveInitialLimit(
+                    *mc,
+                    initial_cvl,
+                ));
+            }
         }
 
         Ok(())
@@ -885,6 +943,75 @@ mod test {
                 ),
                 None,
             );
+        }
+    }
+
+    mod multi_tier_tests {
+        use super::*;
+        use rust_decimal_macros::dec;
+
+        #[test]
+        fn checks_margin_calls_tiers_two_levels() {
+             let terms = TermValues::builder()
+                .annual_rate(dec!(12))
+                .duration(FacilityDuration::Months(3))
+                .interest_due_duration_from_accrual(ObligationDuration::Days(0))
+                .accrual_cycle_interval(InterestInterval::EndOfMonth)
+                .accrual_interval(InterestInterval::EndOfDay)
+                .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+                .disbursal_policy(DisbursalPolicy::SingleDisbursal)
+                .liquidation_cvl(dec!(125))
+                .margin_call_cvl(dec!(135))
+                .additional_margin_call_cvls(vec![CVLPct::from(dec!(130))])
+                .initial_cvl(dec!(140))
+                .build()
+                .expect("should build a valid term");
+
+             // 135 -> Fully
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(136))), CollateralizationState::FullyCollateralized);
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(135))), CollateralizationState::FullyCollateralized);
+
+             // [130, 135) -> Tier 1
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(134))), CollateralizationState::UnderMarginCallThreshold);
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(130))), CollateralizationState::UnderMarginCallThreshold);
+
+             // [125, 130) -> Tier 2
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(129))), CollateralizationState::UnderMarginCallThresholdLevel2);
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(125))), CollateralizationState::UnderMarginCallThresholdLevel2);
+
+             // < 125 -> Liquidation
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(124))), CollateralizationState::UnderLiquidationThreshold);
+        }
+
+        #[test]
+        fn checks_margin_calls_tiers_three_levels() {
+             let terms = TermValues::builder()
+                .annual_rate(dec!(12))
+                .duration(FacilityDuration::Months(3))
+                .interest_due_duration_from_accrual(ObligationDuration::Days(0))
+                .accrual_cycle_interval(InterestInterval::EndOfMonth)
+                .accrual_interval(InterestInterval::EndOfDay)
+                .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+                .disbursal_policy(DisbursalPolicy::SingleDisbursal)
+                .liquidation_cvl(dec!(115))
+                .margin_call_cvl(dec!(135))
+                .additional_margin_call_cvls(vec![CVLPct::from(dec!(130)), CVLPct::from(dec!(125))])
+                .initial_cvl(dec!(140))
+                .build()
+                .expect("should build a valid term");
+
+             // [130, 135) -> Tier 1
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(134))), CollateralizationState::UnderMarginCallThreshold);
+             
+             // [125, 130) -> Tier 2
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(129))), CollateralizationState::UnderMarginCallThresholdLevel2);
+
+             // [115, 125) -> Tier 3
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(124))), CollateralizationState::UnderMarginCallThresholdLevel3);
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(115))), CollateralizationState::UnderMarginCallThresholdLevel3);
+
+             // < 115 -> Liq
+             assert_eq!(terms.collateralization(CVLPct::from(dec!(114))), CollateralizationState::UnderLiquidationThreshold);
         }
     }
 }

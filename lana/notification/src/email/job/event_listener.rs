@@ -186,7 +186,9 @@ where
                 credit_event @ CoreCreditEvent::FacilityCollateralizationChanged {
                     id,
                     customer_id,
-                    state: core_credit::CollateralizationState::UnderMarginCallThreshold,
+                state: core_credit::CollateralizationState::UnderMarginCallThreshold
+                | core_credit::CollateralizationState::UnderMarginCallThresholdLevel2
+                | core_credit::CollateralizationState::UnderMarginCallThresholdLevel3,
                     effective,
                     collateral,
                     outstanding,

@@ -2,7 +2,7 @@ use lana_app::{
     app::LanaApp,
     customer::{CustomerId, CustomerType},
     primitives::{DepositAccountId, Subject, UsdCents},
-    terms::{DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, TermValues},
+    terms::{CVLPct, DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, TermValues},
 };
 use rust_decimal_macros::dec;
 
@@ -84,6 +84,7 @@ pub fn std_terms() -> TermValues {
         .annual_rate(dec!(12))
         .initial_cvl(dec!(140))
         .margin_call_cvl(dec!(125))
+        .additional_margin_call_cvls(vec![CVLPct::from(dec!(115))])
         .liquidation_cvl(dec!(105))
         .duration(FacilityDuration::Months(3))
         .interest_due_duration_from_accrual(ObligationDuration::Days(0))
