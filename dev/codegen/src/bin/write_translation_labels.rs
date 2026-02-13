@@ -87,12 +87,12 @@ fn discover_template_codes() -> BTreeSet<String> {
                     if !segment.contains(": &str =") {
                         continue;
                     }
-                    if let Some(start) = segment.find('"') {
-                        if let Some(end) = segment[start + 1..].find('"') {
-                            let value = &segment[start + 1..start + 1 + end];
-                            if value.chars().all(|c| c.is_ascii_uppercase() || c == '_') {
-                                codes.insert(value.to_string());
-                            }
+                    if let Some(start) = segment.find('"')
+                        && let Some(end) = segment[start + 1..].find('"')
+                    {
+                        let value = &segment[start + 1..start + 1 + end];
+                        if value.chars().all(|c| c.is_ascii_uppercase() || c == '_') {
+                            codes.insert(value.to_string());
                         }
                     }
                 }
