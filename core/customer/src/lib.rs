@@ -346,7 +346,12 @@ where
                     .await?;
                 let customer = self.repo.create_in_op(&mut db, new_customer).await?;
                 self.public_ids
-                    .update_target_in_op(&mut db, &prospect.public_id, CUSTOMER_REF_TARGET, customer.id)
+                    .update_target_in_op(
+                        &mut db,
+                        &prospect.public_id,
+                        CUSTOMER_REF_TARGET,
+                        customer.id,
+                    )
                     .await?;
                 db.commit().await?;
                 Ok(Some(customer))
@@ -384,7 +389,12 @@ where
                     .await?;
                 let customer = self.repo.create_in_op(&mut db, new_customer).await?;
                 self.public_ids
-                    .update_target_in_op(&mut db, &prospect.public_id, CUSTOMER_REF_TARGET, customer.id)
+                    .update_target_in_op(
+                        &mut db,
+                        &prospect.public_id,
+                        CUSTOMER_REF_TARGET,
+                        customer.id,
+                    )
                     .await?;
                 db.commit().await?;
                 Ok(customer)
@@ -482,6 +492,49 @@ where
         }
 
         Ok(prospect)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.convert_prospect", skip(self))]
+    pub async fn convert_prospect(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        prospect_id: impl Into<ProspectId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let prospect_id = prospect_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::prospect(prospect_id),
+                CoreCustomerAction::PROSPECT_APPROVE_KYC,
+            )
+            .await?;
+
+        let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
+
+        match prospect.convert_manually() {
+            es_entity::Idempotent::Executed(new_customer) => {
+                let mut db = self.prospect_repo.begin_op().await?;
+                self.prospect_repo
+                    .update_in_op(&mut db, &mut prospect)
+                    .await?;
+                let customer = self.repo.create_in_op(&mut db, new_customer).await?;
+                self.public_ids
+                    .update_target_in_op(
+                        &mut db,
+                        &prospect.public_id,
+                        CUSTOMER_REF_TARGET,
+                        customer.id,
+                    )
+                    .await?;
+                db.commit().await?;
+                Ok(customer)
+            }
+            es_entity::Idempotent::AlreadyApplied => {
+                let customer_id = CustomerId::from(prospect_id);
+                Ok(self.repo.find_by_id(customer_id).await?)
+            }
+        }
     }
 
     #[record_error_severity]

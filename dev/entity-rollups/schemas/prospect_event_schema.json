@@ -111,6 +111,18 @@
     {
       "properties": {
         "type": {
+          "const": "manually_converted",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "type": {
           "const": "closed",
           "type": "string"
         }

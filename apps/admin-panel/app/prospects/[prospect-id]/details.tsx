@@ -2,12 +2,13 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
-import { XCircle } from "lucide-react"
+import { XCircle, UserCheck } from "lucide-react"
 
 import { Button } from "@lana/web/ui/button"
 import { formatDate } from "@lana/web/utils"
 
 import CloseProspectDialog from "./close-prospect"
+import ConvertProspectDialog from "./convert-prospect"
 
 import { ProspectStatusBadge } from "@/app/prospects/prospect-status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -15,6 +16,7 @@ import {
   CustomerType,
   GetProspectBasicDetailsQuery,
   ProspectStatus,
+  useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 
 type ProspectDetailsCardProps = {
@@ -26,6 +28,16 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
 }) => {
   const t = useTranslations("Prospects.ProspectDetails.details")
   const [openCloseDialog, setOpenCloseDialog] = useState(false)
+  const [openConvertDialog, setOpenConvertDialog] = useState(false)
+
+  const { data: domainConfigsData } = useDomainConfigsQuery({
+    variables: { first: 100 },
+  })
+  const requireVerifiedCustomer = domainConfigsData?.domainConfigs.nodes.find(
+    (c) => c.key === "require-verified-customer-for-account",
+  )
+  const showConvertButton =
+    requireVerifiedCustomer?.isSet && String(requireVerifiedCustomer.value) === "false"
 
   const getCustomerTypeDisplay = (customerType: CustomerType) => {
     switch (customerType) {
@@ -70,14 +82,26 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
 
   const footerContent =
     prospect.status === ProspectStatus.Open ? (
-      <Button
-        variant="destructive"
-        onClick={() => setOpenCloseDialog(true)}
-        data-testid="close-prospect-btn"
-      >
-        <XCircle />
-        {t("buttons.closeProspect")}
-      </Button>
+      <div className="flex gap-2">
+        {showConvertButton && (
+          <Button
+            variant="outline"
+            onClick={() => setOpenConvertDialog(true)}
+            data-testid="convert-prospect-btn"
+          >
+            <UserCheck />
+            {t("buttons.convertToCustomer")}
+          </Button>
+        )}
+        <Button
+          variant="destructive"
+          onClick={() => setOpenCloseDialog(true)}
+          data-testid="close-prospect-btn"
+        >
+          <XCircle />
+          {t("buttons.closeProspect")}
+        </Button>
+      </div>
     ) : null
 
   return (
@@ -93,6 +117,11 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
         prospectId={prospect.prospectId}
         openCloseDialog={openCloseDialog}
         setOpenCloseDialog={setOpenCloseDialog}
+      />
+      <ConvertProspectDialog
+        prospectId={prospect.prospectId}
+        openConvertDialog={openConvertDialog}
+        setOpenConvertDialog={setOpenConvertDialog}
       />
     </>
   )
