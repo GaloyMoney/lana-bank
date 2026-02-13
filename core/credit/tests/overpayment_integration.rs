@@ -66,8 +66,12 @@ async fn create_active_facility(
             core_customer::CustomerType::Individual,
         )
         .await?;
+    let applicant_id = format!("test-applicant-{}", prospect.id);
+    customers
+        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .await?;
     let customer = customers
-        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
+        .handle_kyc_approved(prospect.id, applicant_id)
         .await?;
 
     // Create deposit account
