@@ -297,15 +297,6 @@
         "errors": {
           "loading": "Cargando...",
           "error": "Ocurrió un error"
-        },
-        "actions": {
-          "close": "Cerrar prospecto",
-          "closing": "Cerrando...",
-          "closeConfirmTitle": "Cerrar prospecto",
-          "closeConfirmDescription": "¿Estás seguro de que quieres cerrar este prospecto? Esta acción no se puede deshacer.",
-          "cancel": "Cancelar",
-          "confirmClose": "Cerrar",
-          "closeSuccess": "Prospecto cerrado exitosamente"
         }
       },
       "details": {
@@ -318,6 +309,9 @@
           "customerType": "Tipo",
           "publicId": "ID Público"
         },
+        "buttons": {
+          "closeProspect": "Cerrar prospecto"
+        },
         "customerType": {
           "individual": "Individual",
           "company": "Empresa",
@@ -328,6 +322,14 @@
           "foreignAgency": "Agencia o subsidiaria extranjera",
           "nonDomiciledCompany": "Empresa no domiciliada"
         }
+      },
+      "closeProspect": {
+        "title": "Cerrar prospecto",
+        "description": "¿Estás seguro de que quieres cerrar este prospecto? Esta acción no se puede deshacer.",
+        "buttons": {
+          "close": "Cerrar prospecto"
+        },
+        "success": "Prospecto cerrado exitosamente"
       },
       "kycStatus": {
         "title": "KYC",
