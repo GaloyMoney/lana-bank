@@ -135,6 +135,22 @@
         "activity"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "applicant_id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "kyc_rejected",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "applicant_id"
+      ],
+      "type": "object"
     }
   ],
   "title": "CustomerEvent"

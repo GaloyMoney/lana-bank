@@ -35,6 +35,9 @@ pub enum CustomerEvent {
     ActivityUpdated {
         activity: Activity,
     },
+    KycRejected {
+        applicant_id: String,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -104,6 +107,17 @@ impl Customer {
         Idempotent::Executed(())
     }
 
+    pub fn reject_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::KycRejected { .. }
+        );
+        self.events
+            .push(CustomerEvent::KycRejected { applicant_id });
+        self.kyc_verification = KycVerification::Rejected;
+        Idempotent::Executed(())
+    }
+
     pub fn update_email(&mut self, new_email: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -157,6 +171,9 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 }
                 CustomerEvent::ActivityUpdated { activity, .. } => {
                     builder = builder.activity(*activity);
+                }
+                CustomerEvent::KycRejected { .. } => {
+                    builder = builder.kyc_verification(KycVerification::Rejected);
                 }
             }
         }

@@ -40,7 +40,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'telegram_handle_updated', 'email_updated', 'activity_updated') THEN
+  IF event_type NOT IN ('initialized', 'telegram_handle_updated', 'email_updated', 'activity_updated', 'kyc_rejected') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -92,6 +92,8 @@ BEGIN
       new_row.email := (NEW.event ->> 'email');
     WHEN 'activity_updated' THEN
       new_row.activity := (NEW.event ->> 'activity');
+    WHEN 'kyc_rejected' THEN
+      new_row.applicant_id := (NEW.event ->> 'applicant_id');
   END CASE;
 
   INSERT INTO core_customer_events_rollup (

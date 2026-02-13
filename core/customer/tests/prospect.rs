@@ -3,7 +3,9 @@ mod helpers;
 use authz::dummy::DummySubject;
 use uuid::Uuid;
 
-use core_customer::{CoreCustomerEvent, CustomerType, KycStatus, ProspectStatus};
+use core_customer::{
+    CoreCustomerEvent, CustomerId, CustomerType, KycStatus, KycVerification, ProspectStatus,
+};
 use helpers::event;
 
 /// ProspectCreated event is published when a new prospect is created
@@ -212,6 +214,64 @@ async fn prospect_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
 
     assert_eq!(recorded.id, updated_prospect.id);
     assert_eq!(recorded.kyc_status, KycStatus::Declined);
+
+    Ok(())
+}
+
+/// When a prospect has been approved and converted to a customer, a subsequent
+/// SumSub decline callback should update the Customer's kyc_verification to Rejected
+/// instead of modifying the Prospect's kyc_status.
+///
+/// This ensures that post-conversion KYC rejections are properly routed to the
+/// Customer entity and emit a CustomerKycRejected event.
+#[tokio::test]
+async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Result<()> {
+    let (customers, outbox) = helpers::setup().await?;
+
+    // Create a prospect and approve KYC to convert to customer
+    let email = format!("test-{}@example.com", Uuid::new_v4());
+    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
+    let prospect = customers
+        .create_prospect(
+            &DummySubject,
+            email,
+            telegram_handle,
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let applicant_id = format!("applicant-{}", Uuid::new_v4());
+    let customer = customers
+        .handle_kyc_approved(prospect.id, applicant_id.clone())
+        .await?;
+
+    assert_eq!(customer.kyc_verification, KycVerification::Verified);
+
+    // Now decline KYC (simulating a SumSub RED callback after approval)
+    let (_prospect_returned, recorded) = event::expect_event(
+        &outbox,
+        || customers.handle_kyc_declined(prospect.id, applicant_id.clone()),
+        |_result, e| match e {
+            CoreCustomerEvent::CustomerKycRejected { entity }
+                if entity.id == CustomerId::from(prospect.id) =>
+            {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    // Customer should be rejected
+    assert_eq!(recorded.kyc_verification, KycVerification::Rejected);
+
+    // Prospect kyc_status should remain Approved (not changed to Declined)
+    let prospect_after = customers
+        .find_prospect_by_id(&DummySubject, prospect.id)
+        .await?
+        .expect("prospect should still exist");
+    assert_eq!(prospect_after.kyc_status, KycStatus::Approved);
+    assert_eq!(prospect_after.status, ProspectStatus::Converted);
 
     Ok(())
 }

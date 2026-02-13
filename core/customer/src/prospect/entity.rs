@@ -123,8 +123,7 @@ impl Prospect {
     pub fn decline_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycDeclined { .. },
-            => ProspectEvent::KycApproved { .. }
+            ProspectEvent::KycDeclined { .. } | ProspectEvent::KycApproved { .. }
         );
         self.events
             .push(ProspectEvent::KycDeclined { applicant_id });

@@ -45,6 +45,9 @@ where
                 EmailUpdated { .. } => Some(CoreCustomerEvent::CustomerEmailUpdated {
                     entity: PublicCustomer::from(entity),
                 }),
+                KycRejected { .. } => Some(CoreCustomerEvent::CustomerKycRejected {
+                    entity: PublicCustomer::from(entity),
+                }),
                 _ => None,
             })
             .collect::<Vec<_>>();
