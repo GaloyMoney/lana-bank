@@ -64,12 +64,27 @@ teardown_file() {
   prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
   [[ "$prospect_id" != "null" ]] || exit 1
 
-  # Simulate KYC approval via SumSub webhook
+  # Simulate KYC start via SumSub applicantCreated webhook
   webhook_id="req-$(date +%s%N)"
+  applicant_id="test-applicant-$webhook_id"
   curl -s -X POST http://localhost:5253/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
-      "applicantId": "test-applicant-'"$webhook_id"'",
+      "applicantId": "'"$applicant_id"'",
+      "inspectionId": "test-inspection-'"$webhook_id"'",
+      "correlationId": "'"$webhook_id"'",
+      "externalUserId": "'"$prospect_id"'",
+      "levelName": "basic-kyc-level",
+      "type": "applicantCreated",
+      "createdAtMs": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'",
+      "sandboxMode": true
+    }' > /dev/null
+
+  # Simulate KYC approval via SumSub webhook
+  curl -s -X POST http://localhost:5253/webhook/sumsub \
+    -H "Content-Type: application/json" \
+    -d '{
+      "applicantId": "'"$applicant_id"'",
       "inspectionId": "test-inspection-'"$webhook_id"'",
       "correlationId": "'"$webhook_id"'",
       "externalUserId": "'"$prospect_id"'",

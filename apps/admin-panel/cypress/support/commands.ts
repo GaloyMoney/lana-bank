@@ -166,24 +166,43 @@ Cypress.Commands.add(
       .then((response) => {
         const prospectId = response.data.prospectCreate.prospect.prospectId
         const webhookId = `req-${Date.now()}`
-        // Simulate KYC approval via SumSub sandbox webhook
+        const applicantId = `test-applicant-${webhookId}`
+        // Simulate KYC start via SumSub applicantCreated webhook
         return cy
           .request({
             method: "POST",
             url: "http://localhost:5253/webhook/sumsub",
             headers: { "Content-Type": "application/json" },
             body: {
-              applicantId: `test-applicant-${webhookId}`,
+              applicantId,
               inspectionId: `test-inspection-${webhookId}`,
               correlationId: webhookId,
               externalUserId: prospectId,
               levelName: "basic-kyc-level",
-              type: "applicantReviewed",
-              reviewResult: { reviewAnswer: "GREEN" },
-              reviewStatus: "completed",
+              type: "applicantCreated",
               createdAtMs: new Date().toISOString(),
               sandboxMode: true,
             },
+          })
+          .then(() => {
+            // Simulate KYC approval via SumSub sandbox webhook
+            return cy.request({
+              method: "POST",
+              url: "http://localhost:5253/webhook/sumsub",
+              headers: { "Content-Type": "application/json" },
+              body: {
+                applicantId,
+                inspectionId: `test-inspection-${webhookId}`,
+                correlationId: webhookId,
+                externalUserId: prospectId,
+                levelName: "basic-kyc-level",
+                type: "applicantReviewed",
+                reviewResult: { reviewAnswer: "GREEN" },
+                reviewStatus: "completed",
+                createdAtMs: new Date().toISOString(),
+                sandboxMode: true,
+              },
+            })
           })
           .then(() => {
             // Customer is created asynchronously from webhook processing.
