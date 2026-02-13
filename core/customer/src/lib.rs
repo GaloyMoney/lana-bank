@@ -410,7 +410,13 @@ where
             )
             .await?;
 
-        if prospect.decline_kyc(applicant_id).did_execute() {
+        if prospect.status == ProspectStatus::Converted {
+            let customer_id = CustomerId::from(prospect_id);
+            let mut customer = self.repo.find_by_id(customer_id).await?;
+            if customer.reject_kyc(applicant_id).did_execute() {
+                self.repo.update(&mut customer).await?;
+            }
+        } else if prospect.decline_kyc(applicant_id).did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -435,7 +441,13 @@ where
             )
             .await?;
 
-        if prospect.decline_kyc(applicant_id).did_execute() {
+        if prospect.status == ProspectStatus::Converted {
+            let customer_id = CustomerId::from(prospect_id);
+            let mut customer = self.repo.find_by_id(customer_id).await?;
+            if customer.reject_kyc(applicant_id).did_execute() {
+                self.repo.update(&mut customer).await?;
+            }
+        } else if prospect.decline_kyc(applicant_id).did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
