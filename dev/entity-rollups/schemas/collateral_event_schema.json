@@ -196,6 +196,10 @@
         "direction": {
           "$ref": "#/$defs/CollateralDirection"
         },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "liquidation_id": {
           "format": "uuid",
           "type": "string"
@@ -208,6 +212,7 @@
       "required": [
         "type",
         "liquidation_id",
+        "ledger_tx_id",
         "collateral_amount",
         "abs_diff",
         "direction"

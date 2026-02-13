@@ -46,6 +46,7 @@ pub enum CollateralEvent {
     },
     UpdatedViaLiquidation {
         liquidation_id: LiquidationId,
+        ledger_tx_id: LedgerTxId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
         direction: CollateralDirection,
@@ -100,6 +101,12 @@ impl Collateral {
                 ..
             }
             | CollateralEvent::UpdatedViaCustodianSync {
+                ledger_tx_id,
+                abs_diff,
+                direction,
+                ..
+            }
+            | CollateralEvent::UpdatedViaLiquidation {
                 ledger_tx_id,
                 abs_diff,
                 direction,
@@ -210,6 +217,7 @@ impl Collateral {
 
         self.events.push(CollateralEvent::UpdatedViaLiquidation {
             liquidation_id,
+            ledger_tx_id: tx_id,
             abs_diff: amount_sent,
             collateral_amount: new_amount,
             direction: CollateralDirection::Remove,

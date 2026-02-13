@@ -178,7 +178,9 @@ where
         use CollateralEvent::*;
         let events = new_events
             .filter_map(|event| match &event.event {
-                UpdatedViaManualInput { .. } | UpdatedViaCustodianSync { .. } => {
+                UpdatedViaManualInput { .. }
+                | UpdatedViaCustodianSync { .. }
+                | UpdatedViaLiquidation { .. } => {
                     Some(CoreCreditEvent::FacilityCollateralUpdated {
                         entity: PublicCollateral::from(entity),
                     })
