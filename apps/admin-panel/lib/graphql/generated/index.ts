@@ -1098,12 +1098,6 @@ export type CustomerEmailUpdatePayload = {
   customer: Customer;
 };
 
-export type CustomerKycUpdatedPayload = {
-  __typename?: 'CustomerKycUpdatedPayload';
-  customer: Customer;
-  kycVerification: KycVerification;
-};
-
 export type CustomerTelegramHandleUpdateInput = {
   customerId: Scalars['UUID']['input'];
   telegramHandle: Scalars['String']['input'];
@@ -2992,7 +2986,6 @@ export type Subscription = {
   __typename?: 'Subscription';
   creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationPayload;
   creditFacilityProposalConcluded: CreditFacilityProposalConcludedPayload;
-  customerKycUpdated: CustomerKycUpdatedPayload;
   ledgerAccountCsvExportUploaded: LedgerAccountCsvExportUploadedPayload;
   pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
   pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
@@ -3008,11 +3001,6 @@ export type SubscriptionCreditFacilityCollateralizationUpdatedArgs = {
 
 export type SubscriptionCreditFacilityProposalConcludedArgs = {
   creditFacilityProposalId: Scalars['UUID']['input'];
-};
-
-
-export type SubscriptionCustomerKycUpdatedArgs = {
-  customerId: Scalars['UUID']['input'];
 };
 
 
@@ -3955,13 +3943,6 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 
 
 export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
-
-export type CustomerKycUpdatedSubscriptionVariables = Exact<{
-  customerId: Scalars['UUID']['input'];
-}>;
-
-
-export type CustomerKycUpdatedSubscription = { __typename?: 'Subscription', customerKycUpdated: { __typename?: 'CustomerKycUpdatedPayload', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } };
 
 export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -7957,38 +7938,6 @@ export type GetCustomerBasicDetailsQueryHookResult = ReturnType<typeof useGetCus
 export type GetCustomerBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsLazyQuery>;
 export type GetCustomerBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsSuspenseQuery>;
 export type GetCustomerBasicDetailsQueryResult = Apollo.QueryResult<GetCustomerBasicDetailsQuery, GetCustomerBasicDetailsQueryVariables>;
-export const CustomerKycUpdatedDocument = gql`
-    subscription CustomerKycUpdated($customerId: UUID!) {
-  customerKycUpdated(customerId: $customerId) {
-    customer {
-      ...CustomerDetailsFragment
-    }
-  }
-}
-    ${CustomerDetailsFragmentFragmentDoc}`;
-
-/**
- * __useCustomerKycUpdatedSubscription__
- *
- * To run a query within a React component, call `useCustomerKycUpdatedSubscription` and pass it any options that fit your needs.
- * When your component renders, `useCustomerKycUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useCustomerKycUpdatedSubscription({
- *   variables: {
- *      customerId: // value for 'customerId'
- *   },
- * });
- */
-export function useCustomerKycUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<CustomerKycUpdatedSubscription, CustomerKycUpdatedSubscriptionVariables> & ({ variables: CustomerKycUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<CustomerKycUpdatedSubscription, CustomerKycUpdatedSubscriptionVariables>(CustomerKycUpdatedDocument, options);
-      }
-export type CustomerKycUpdatedSubscriptionHookResult = ReturnType<typeof useCustomerKycUpdatedSubscription>;
-export type CustomerKycUpdatedSubscriptionResult = Apollo.SubscriptionResult<CustomerKycUpdatedSubscription>;
 export const GetCustomerCreditFacilitiesDocument = gql`
     query GetCustomerCreditFacilities($id: PublicId!) {
   customerByPublicId(id: $id) {

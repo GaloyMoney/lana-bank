@@ -48,9 +48,6 @@ where
                         entity: PublicProspect::from(entity),
                     })
                 }
-                EmailUpdated { .. } => Some(CoreCustomerEvent::ProspectEmailUpdated {
-                    entity: PublicProspect::from(entity),
-                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

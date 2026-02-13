@@ -1078,11 +1078,6 @@ type CustomerEmailUpdatePayload {
 	customer: Customer!
 }
 
-type CustomerKycUpdatedPayload {
-	kycVerification: KycVerification!
-	customer: Customer!
-}
-
 input CustomerTelegramHandleUpdateInput {
 	customerId: UUID!
 	telegramHandle: String!
@@ -2407,7 +2402,6 @@ enum SortDirection {
 }
 
 type Subscription {
-	customerKycUpdated(customerId: UUID!): CustomerKycUpdatedPayload!
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!
