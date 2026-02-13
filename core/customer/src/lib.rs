@@ -416,7 +416,7 @@ where
             if customer.reject_kyc(applicant_id).did_execute() {
                 self.repo.update(&mut customer).await?;
             }
-        } else if prospect.decline_kyc(applicant_id).did_execute() {
+        } else if prospect.decline_kyc(applicant_id)?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -447,7 +447,7 @@ where
             if customer.reject_kyc(applicant_id).did_execute() {
                 self.repo.update(&mut customer).await?;
             }
-        } else if prospect.decline_kyc(applicant_id).did_execute() {
+        } else if prospect.decline_kyc(applicant_id)?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 

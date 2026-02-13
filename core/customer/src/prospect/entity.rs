@@ -127,15 +127,22 @@ impl Prospect {
         Ok(Idempotent::Executed(new_customer))
     }
 
-    pub fn decline_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
+    pub fn decline_kyc(&mut self, applicant_id: String) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycDeclined { .. } | ProspectEvent::KycApproved { .. }
+            ProspectEvent::KycDeclined { applicant_id: existing, .. } if existing == &applicant_id,
+            => ProspectEvent::KycApproved { .. }
         );
+        if self.applicant_id.as_ref() != Some(&applicant_id) {
+            return Err(ProspectError::ApplicantIdMismatch {
+                expected: self.applicant_id.clone(),
+                actual: applicant_id,
+            });
+        }
         self.events
             .push(ProspectEvent::KycDeclined { applicant_id });
         self.kyc_status = KycStatus::Declined;
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
     pub fn close(&mut self) -> Idempotent<()> {
@@ -310,6 +317,49 @@ mod tests {
         let _ = prospect.start_kyc("correct-applicant-id".to_string());
 
         let result = prospect.approve_kyc(KycLevel::Basic, "correct-applicant-id".to_string());
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn decline_kyc_fails_when_applicant_id_not_set() {
+        let mut prospect = create_test_prospect();
+
+        let result = prospect.decline_kyc("some-applicant-id".to_string());
+
+        match result {
+            Err(ProspectError::ApplicantIdMismatch { expected, actual }) => {
+                assert_eq!(expected, None);
+                assert_eq!(actual, "some-applicant-id");
+            }
+            Err(e) => panic!("Unexpected error: {:?}", e),
+            Ok(_) => panic!("Expected error but got Ok"),
+        }
+    }
+
+    #[test]
+    fn decline_kyc_fails_when_applicant_id_mismatch() {
+        let mut prospect = create_test_prospect();
+        let _ = prospect.start_kyc("correct-applicant-id".to_string());
+
+        let result = prospect.decline_kyc("wrong-applicant-id".to_string());
+
+        match result {
+            Err(ProspectError::ApplicantIdMismatch { expected, actual }) => {
+                assert_eq!(expected, Some("correct-applicant-id".to_string()));
+                assert_eq!(actual, "wrong-applicant-id");
+            }
+            Err(e) => panic!("Unexpected error: {:?}", e),
+            Ok(_) => panic!("Expected error but got Ok"),
+        }
+    }
+
+    #[test]
+    fn decline_kyc_succeeds_when_applicant_id_matches() {
+        let mut prospect = create_test_prospect();
+        let _ = prospect.start_kyc("correct-applicant-id".to_string());
+
+        let result = prospect.decline_kyc("correct-applicant-id".to_string());
 
         assert!(result.is_ok());
     }
