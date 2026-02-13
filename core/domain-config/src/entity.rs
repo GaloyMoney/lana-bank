@@ -333,6 +333,8 @@ mod tests {
 
     use super::*;
 
+    use crate::EncryptionConfig;
+
     fn seed_config<C: ConfigSpec>(id: DomainConfigId) -> DomainConfig {
         let events = NewDomainConfig::builder()
             .seed(
@@ -346,6 +348,10 @@ mod tests {
             .unwrap()
             .into_events();
         DomainConfig::try_from_events(events).unwrap()
+    }
+
+    fn encryption_config() -> EncryptionConfig {
+        EncryptionConfig::default()
     }
 
     crate::define_internal_config! {
@@ -679,5 +685,26 @@ mod tests {
             .unwrap();
         assert!(result.was_already_applied());
         assert_eq!(config.events.iter_all().count(), event_count_after_first);
+    }
+
+    #[test]
+    fn update_via_json_rejects_wrong_encrypted_flag() {
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+
+        let value = serde_json::to_value(&SampleEncryptedConfig {
+            secret: "my-secret".to_string(),
+        })
+        .unwrap();
+
+        let entry = crate::registry::maybe_find_by_key("encrypted-config").unwrap();
+        let mut wrong_entry = *entry;
+        wrong_entry.encrypted = false;
+
+        let encryption_config = encryption_config();
+        let result = config.apply_update_from_json(&wrong_entry, &encryption_config, value);
+        assert!(matches!(
+            result,
+            Err(DomainConfigError::InvalidType(message)) if message.contains("encrypted flag")
+        ));
     }
 }
