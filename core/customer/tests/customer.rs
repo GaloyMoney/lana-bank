@@ -34,12 +34,22 @@ async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
 
     // Start KYC first (required before approval)
     customers
-        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .handle_kyc_started(
+            prospect.id,
+            applicant_id.clone(),
+            "test-callback".to_string(),
+        )
         .await?;
 
     let (created_customer, recorded) = event::expect_event(
         &outbox,
-        || customers.handle_kyc_approved(prospect.id, applicant_id.clone()),
+        || {
+            customers.handle_kyc_approved(
+                prospect.id,
+                applicant_id.clone(),
+                "test-callback".to_string(),
+            )
+        },
         |result, e| match e {
             CoreCustomerEvent::CustomerCreated { entity } if entity.id == result.id => {
                 Some(entity.clone())
@@ -66,23 +76,16 @@ async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
 async fn customer_email_updated_event_on_email_change() -> anyhow::Result<()> {
     let (customers, outbox) = helpers::setup().await?;
 
-    // First create a customer via prospect flow
+    // First create a customer
     let original_email = format!("test-{}@example.com", Uuid::new_v4());
     let telegram_handle = format!("telegram-{}", Uuid::new_v4());
-    let prospect = customers
-        .create_prospect(
+    let customer = customers
+        .create_customer(
             &DummySubject,
             original_email,
             telegram_handle,
             CustomerType::Individual,
         )
-        .await?;
-    let applicant_id = format!("test-applicant-{}", prospect.id);
-    customers
-        .handle_kyc_started(prospect.id, applicant_id.clone())
-        .await?;
-    let customer = customers
-        .handle_kyc_approved(prospect.id, applicant_id)
         .await?;
 
     let new_email = format!("updated-{}@example.com", Uuid::new_v4());

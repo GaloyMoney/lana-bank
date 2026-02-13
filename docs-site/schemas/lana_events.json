@@ -909,6 +909,54 @@
             "type",
             "entity"
           ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectConverted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectClosed"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
         }
       ]
     },
@@ -1166,6 +1214,15 @@
         "end"
       ]
     },
+    "KycStatus": {
+      "type": "string",
+      "enum": [
+        "not-started",
+        "pending",
+        "approved",
+        "declined"
+      ]
+    },
     "KycVerification": {
       "type": "string",
       "enum": [
@@ -1243,6 +1300,14 @@
     },
     "PriceOfOneBTC": {
       "$ref": "#/$defs/UsdCents"
+    },
+    "ProspectStatus": {
+      "type": "string",
+      "enum": [
+        "open",
+        "converted",
+        "closed"
+      ]
     },
     "PublicApprovalProcess": {
       "type": "object",
@@ -1696,6 +1761,34 @@
         "terms",
         "customer_id",
         "created_at"
+      ]
+    },
+    "PublicProspect": {
+      "type": "object",
+      "properties": {
+        "customer_type": {
+          "$ref": "#/$defs/CustomerType"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kyc_status": {
+          "$ref": "#/$defs/KycStatus"
+        },
+        "status": {
+          "$ref": "#/$defs/ProspectStatus"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "customer_type",
+        "status",
+        "kyc_status"
       ]
     },
     "PublicReportRun": {

@@ -43,8 +43,8 @@ where
                 Initialized { .. } => Some(CoreCustomerEvent::ProspectCreated {
                     entity: PublicProspect::from(entity),
                 }),
-                KycApproved { .. } | KycDeclined { .. } | KycStarted { .. } => {
-                    Some(CoreCustomerEvent::ProspectKycUpdated {
+                KycApproved { .. } | ManuallyConverted { .. } => {
+                    Some(CoreCustomerEvent::ProspectConverted {
                         entity: PublicProspect::from(entity),
                     })
                 }

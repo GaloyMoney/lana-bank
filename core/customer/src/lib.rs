@@ -267,11 +267,53 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.create_customer", skip(self))]
+    pub async fn create_customer(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        email: impl Into<String> + std::fmt::Debug,
+        telegram_handle: impl Into<String> + std::fmt::Debug,
+        customer_type: impl Into<CustomerType> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let mut prospect = self
+            .create_prospect(sub, email, telegram_handle, customer_type)
+            .await?;
+
+        let applicant_id = format!("create-customer-{}", prospect.id);
+        let _ = prospect.start_kyc(applicant_id.clone(), "create-customer".to_string());
+
+        match prospect.approve_kyc(KycLevel::Basic, "create-customer".to_string())? {
+            es_entity::Idempotent::Executed(new_customer) => {
+                let mut db = self.prospect_repo.begin_op().await?;
+                self.prospect_repo
+                    .update_in_op(&mut db, &mut prospect)
+                    .await?;
+                let customer = self.repo.create_in_op(&mut db, new_customer).await?;
+                self.public_ids
+                    .update_target_in_op(
+                        &mut db,
+                        &prospect.public_id,
+                        CUSTOMER_REF_TARGET,
+                        customer.id,
+                    )
+                    .await?;
+                db.commit().await?;
+                Ok(customer)
+            }
+            es_entity::Idempotent::AlreadyApplied => {
+                let customer_id = CustomerId::from(prospect.id);
+                Ok(self.repo.find_by_id(customer_id).await?)
+            }
+        }
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.handle_kyc_started_if_exists", skip(self))]
     pub async fn handle_kyc_started_if_exists(
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
+        callback_id: String,
     ) -> Result<Option<Prospect>, CustomerError> {
         let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
@@ -286,7 +328,7 @@ where
             )
             .await?;
 
-        if prospect.start_kyc(applicant_id).did_execute() {
+        if prospect.start_kyc(applicant_id, callback_id).did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -299,6 +341,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
+        callback_id: String,
     ) -> Result<Prospect, CustomerError> {
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
@@ -311,7 +354,7 @@ where
             )
             .await?;
 
-        if prospect.start_kyc(applicant_id).did_execute() {
+        if prospect.start_kyc(applicant_id, callback_id).did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -324,6 +367,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
+        callback_id: String,
     ) -> Result<Option<Customer>, CustomerError> {
         let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
@@ -338,7 +382,16 @@ where
             )
             .await?;
 
-        match prospect.approve_kyc(KycLevel::Basic, applicant_id)? {
+        if prospect.applicant_id.as_ref() != Some(&applicant_id) {
+            return Err(CustomerError::from(
+                prospect::error::ProspectError::ApplicantIdMismatch {
+                    expected: prospect.applicant_id.clone(),
+                    actual: applicant_id,
+                },
+            ));
+        }
+
+        match prospect.approve_kyc(KycLevel::Basic, callback_id)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -369,6 +422,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
+        callback_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
@@ -381,7 +435,16 @@ where
             )
             .await?;
 
-        match prospect.approve_kyc(KycLevel::Basic, applicant_id)? {
+        if prospect.applicant_id.as_ref() != Some(&applicant_id) {
+            return Err(CustomerError::from(
+                prospect::error::ProspectError::ApplicantIdMismatch {
+                    expected: prospect.applicant_id.clone(),
+                    actual: applicant_id,
+                },
+            ));
+        }
+
+        match prospect.approve_kyc(KycLevel::Basic, callback_id)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -412,6 +475,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
+        callback_id: String,
     ) -> Result<Option<Prospect>, CustomerError> {
         let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
@@ -426,13 +490,22 @@ where
             )
             .await?;
 
+        if prospect.applicant_id.as_ref() != Some(&applicant_id) {
+            return Err(CustomerError::from(
+                prospect::error::ProspectError::ApplicantIdMismatch {
+                    expected: prospect.applicant_id.clone(),
+                    actual: applicant_id,
+                },
+            ));
+        }
+
         if prospect.status == ProspectStatus::Converted {
             let customer_id = CustomerId::from(prospect_id);
             let mut customer = self.repo.find_by_id(customer_id).await?;
-            if customer.reject_kyc(applicant_id).did_execute() {
+            if customer.reject_kyc(callback_id).did_execute() {
                 self.repo.update(&mut customer).await?;
             }
-        } else if prospect.decline_kyc(applicant_id)?.did_execute() {
+        } else if prospect.decline_kyc(callback_id)?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -445,6 +518,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
+        callback_id: String,
     ) -> Result<Prospect, CustomerError> {
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
@@ -457,13 +531,22 @@ where
             )
             .await?;
 
+        if prospect.applicant_id.as_ref() != Some(&applicant_id) {
+            return Err(CustomerError::from(
+                prospect::error::ProspectError::ApplicantIdMismatch {
+                    expected: prospect.applicant_id.clone(),
+                    actual: applicant_id,
+                },
+            ));
+        }
+
         if prospect.status == ProspectStatus::Converted {
             let customer_id = CustomerId::from(prospect_id);
             let mut customer = self.repo.find_by_id(customer_id).await?;
-            if customer.reject_kyc(applicant_id).did_execute() {
+            if customer.reject_kyc(callback_id).did_execute() {
                 self.repo.update(&mut customer).await?;
             }
-        } else if prospect.decline_kyc(applicant_id)?.did_execute() {
+        } else if prospect.decline_kyc(callback_id)?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 

@@ -49,57 +49,14 @@ async fn prospect_created_event_on_create_prospect() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// ProspectKycUpdated event is published when a prospect starts KYC
-/// via `Customers::handle_kyc_started()`.
-///
-/// This typically happens when an external KYC provider (e.g., SumSub) notifies
-/// the system that identity verification has begun.
-///
-/// The event contains a snapshot with kyc_status set to Pending.
-#[tokio::test]
-async fn prospect_kyc_updated_event_on_kyc_started() -> anyhow::Result<()> {
-    let (customers, outbox) = helpers::setup().await?;
-
-    // First create a prospect
-    let email = format!("test-{}@example.com", Uuid::new_v4());
-    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
-    let prospect = customers
-        .create_prospect(
-            &DummySubject,
-            email,
-            telegram_handle,
-            CustomerType::Individual,
-        )
-        .await?;
-
-    let applicant_id = format!("applicant-{}", Uuid::new_v4());
-
-    let (updated_prospect, recorded) = event::expect_event(
-        &outbox,
-        || customers.handle_kyc_started(prospect.id, applicant_id.clone()),
-        |result, e| match e {
-            CoreCustomerEvent::ProspectKycUpdated { entity } if entity.id == result.id => {
-                Some(entity.clone())
-            }
-            _ => None,
-        },
-    )
-    .await?;
-
-    assert_eq!(recorded.id, updated_prospect.id);
-    assert_eq!(recorded.kyc_status, KycStatus::Pending);
-
-    Ok(())
-}
-
-/// ProspectKycUpdated event is published when a prospect's KYC is approved
+/// ProspectConverted event is published when a prospect's KYC is approved
 /// via `Customers::handle_kyc_approved()`.
 ///
-/// Note: This also triggers a CustomerCreated event since the prospect is
-/// converted to a customer. This test verifies the ProspectKycUpdated event
+/// This also triggers a CustomerCreated event since the prospect is
+/// converted to a customer. This test verifies the ProspectConverted event
 /// is published with kyc_status set to Approved and status set to Converted.
 #[tokio::test]
-async fn prospect_kyc_updated_event_on_kyc_approved() -> anyhow::Result<()> {
+async fn prospect_converted_event_on_kyc_approved() -> anyhow::Result<()> {
     let (customers, outbox) = helpers::setup().await?;
 
     // First create a prospect
@@ -118,14 +75,24 @@ async fn prospect_kyc_updated_event_on_kyc_approved() -> anyhow::Result<()> {
 
     // Start KYC first (required before approval)
     customers
-        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .handle_kyc_started(
+            prospect.id,
+            applicant_id.clone(),
+            "test-callback".to_string(),
+        )
         .await?;
 
     let (_created_customer, recorded) = event::expect_event(
         &outbox,
-        || customers.handle_kyc_approved(prospect.id, applicant_id.clone()),
+        || {
+            customers.handle_kyc_approved(
+                prospect.id,
+                applicant_id.clone(),
+                "test-callback".to_string(),
+            )
+        },
         |_result, e| match e {
-            CoreCustomerEvent::ProspectKycUpdated { entity }
+            CoreCustomerEvent::ProspectConverted { entity }
                 if entity.id == prospect.id && entity.kyc_status == KycStatus::Approved =>
             {
                 Some(entity.clone())
@@ -182,62 +149,12 @@ async fn prospect_closed_event_on_close_prospect() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// ProspectKycUpdated event is published when a prospect's KYC is declined
-/// via `Customers::handle_kyc_declined()`.
-///
-/// This typically happens when an external KYC provider notifies the system
-/// that identity verification has failed.
-///
-/// The event contains a snapshot with kyc_status set to Declined.
-#[tokio::test]
-async fn prospect_kyc_updated_event_on_kyc_declined() -> anyhow::Result<()> {
-    let (customers, outbox) = helpers::setup().await?;
-
-    // First create a prospect
-    let email = format!("test-{}@example.com", Uuid::new_v4());
-    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
-    let prospect = customers
-        .create_prospect(
-            &DummySubject,
-            email,
-            telegram_handle,
-            CustomerType::Individual,
-        )
-        .await?;
-
-    let applicant_id = format!("applicant-{}", Uuid::new_v4());
-
-    // Start KYC first (required before decline)
-    customers
-        .handle_kyc_started(prospect.id, applicant_id.clone())
-        .await?;
-
-    let (updated_prospect, recorded) = event::expect_event(
-        &outbox,
-        || customers.handle_kyc_declined(prospect.id, applicant_id.clone()),
-        |result, e| match e {
-            CoreCustomerEvent::ProspectKycUpdated { entity }
-                if entity.id == result.id && entity.kyc_status == KycStatus::Declined =>
-            {
-                Some(entity.clone())
-            }
-            _ => None,
-        },
-    )
-    .await?;
-
-    assert_eq!(recorded.id, updated_prospect.id);
-    assert_eq!(recorded.kyc_status, KycStatus::Declined);
-
-    Ok(())
-}
-
 /// When a prospect has been approved and converted to a customer, a subsequent
 /// SumSub decline callback should update the Customer's kyc_verification to Rejected
 /// instead of modifying the Prospect's kyc_status.
 ///
 /// This ensures that post-conversion KYC rejections are properly routed to the
-/// Customer entity and emit a CustomerKycRejected event.
+/// Customer entity and emit a CustomerKycUpdated event.
 #[tokio::test]
 async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Result<()> {
     let (customers, outbox) = helpers::setup().await?;
@@ -258,11 +175,19 @@ async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Resul
 
     // Start KYC first (required before approval)
     customers
-        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .handle_kyc_started(
+            prospect.id,
+            applicant_id.clone(),
+            "test-callback".to_string(),
+        )
         .await?;
 
     let customer = customers
-        .handle_kyc_approved(prospect.id, applicant_id.clone())
+        .handle_kyc_approved(
+            prospect.id,
+            applicant_id.clone(),
+            "test-callback".to_string(),
+        )
         .await?;
 
     assert_eq!(customer.kyc_verification, KycVerification::Verified);
@@ -270,9 +195,15 @@ async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Resul
     // Now decline KYC (simulating a SumSub RED callback after approval)
     let (_prospect_returned, recorded) = event::expect_event(
         &outbox,
-        || customers.handle_kyc_declined(prospect.id, applicant_id.clone()),
+        || {
+            customers.handle_kyc_declined(
+                prospect.id,
+                applicant_id.clone(),
+                "test-callback".to_string(),
+            )
+        },
         |_result, e| match e {
-            CoreCustomerEvent::CustomerKycRejected { entity }
+            CoreCustomerEvent::CustomerKycUpdated { entity }
                 if entity.id == CustomerId::from(prospect.id) =>
             {
                 Some(entity.clone())

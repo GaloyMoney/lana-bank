@@ -8,6 +8,7 @@ CREATE TABLE core_customer_events_rollup (
   -- Flattened fields from the event JSON
   activity VARCHAR,
   applicant_id VARCHAR,
+  callback_id VARCHAR,
   customer_type VARCHAR,
   email VARCHAR,
   kyc_verification VARCHAR,
@@ -55,6 +56,7 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.activity := (NEW.event ->> 'activity');
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
+    new_row.callback_id := (NEW.event ->> 'callback_id');
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.email := (NEW.event ->> 'email');
     new_row.is_kyc_approved := false;
@@ -66,6 +68,7 @@ BEGIN
     -- Default all fields to current values
     new_row.activity := current_row.activity;
     new_row.applicant_id := current_row.applicant_id;
+    new_row.callback_id := current_row.callback_id;
     new_row.customer_type := current_row.customer_type;
     new_row.email := current_row.email;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
@@ -93,7 +96,7 @@ BEGIN
     WHEN 'activity_updated' THEN
       new_row.activity := (NEW.event ->> 'activity');
     WHEN 'kyc_rejected' THEN
-      new_row.applicant_id := (NEW.event ->> 'applicant_id');
+      new_row.callback_id := (NEW.event ->> 'callback_id');
   END CASE;
 
   INSERT INTO core_customer_events_rollup (
@@ -104,6 +107,7 @@ BEGIN
     event_type,
     activity,
     applicant_id,
+    callback_id,
     customer_type,
     email,
     is_kyc_approved,
@@ -120,6 +124,7 @@ BEGIN
     new_row.event_type,
     new_row.activity,
     new_row.applicant_id,
+    new_row.callback_id,
     new_row.customer_type,
     new_row.email,
     new_row.is_kyc_approved,

@@ -115,7 +115,8 @@ where
             .ok_or_else(|| KycError::MissingExternalUserId(payload.to_string()))?
             .parse::<ProspectId>()?;
 
-        match self.process_payload(payload).await {
+        let callback_id = event.id.to_string();
+        match self.process_payload(callback_id, payload).await {
             Ok(_) => (),
             // Silently ignoring these errors instead of returning,
             // this prevents sumsub from retrying for these unhandled cases
@@ -147,7 +148,11 @@ where
         skip(self),
         fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, kyc_level = tracing::field::Empty, customer_id = tracing::field::Empty)
     )]
-    async fn process_payload(&self, payload: serde_json::Value) -> Result<(), KycError> {
+    async fn process_payload(
+        &self,
+        callback_id: String,
+        payload: serde_json::Value,
+    ) -> Result<(), KycError> {
         match serde_json::from_value(payload.clone())? {
             KycCallbackPayload::ApplicantCreated {
                 external_user_id,
@@ -167,7 +172,11 @@ where
                 if sandbox {
                     let res = self
                         .customers
-                        .handle_kyc_started_if_exists(external_user_id, applicant_id)
+                        .handle_kyc_started_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            callback_id.clone(),
+                        )
                         .await?;
                     if res.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
@@ -175,7 +184,11 @@ where
                 } else {
                     let res = self
                         .customers
-                        .handle_kyc_started_if_exists(external_user_id, applicant_id)
+                        .handle_kyc_started_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            callback_id.clone(),
+                        )
                         .await?;
                     if res.is_none() {
                         tracing::warn!(
@@ -208,7 +221,11 @@ where
                 if sandbox {
                     let res = self
                         .customers
-                        .handle_kyc_declined_if_exists(external_user_id, applicant_id)
+                        .handle_kyc_declined_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            callback_id.clone(),
+                        )
                         .await?;
                     if res.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
@@ -216,7 +233,11 @@ where
                 } else {
                     let res = self
                         .customers
-                        .handle_kyc_declined_if_exists(external_user_id, applicant_id)
+                        .handle_kyc_declined_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            callback_id.clone(),
+                        )
                         .await?;
                     if res.is_none() {
                         tracing::warn!(
@@ -256,7 +277,11 @@ where
                 if sandbox {
                     let res = self
                         .customers
-                        .handle_kyc_approved_if_exists(external_user_id, applicant_id)
+                        .handle_kyc_approved_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            callback_id.clone(),
+                        )
                         .await?;
                     if res.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
@@ -264,7 +289,11 @@ where
                 } else {
                     let res = self
                         .customers
-                        .handle_kyc_approved_if_exists(external_user_id, applicant_id)
+                        .handle_kyc_approved_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            callback_id.clone(),
+                        )
                         .await?;
                     if res.is_none() {
                         tracing::warn!(

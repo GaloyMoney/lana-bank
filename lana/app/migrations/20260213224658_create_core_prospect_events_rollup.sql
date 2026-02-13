@@ -7,6 +7,7 @@ CREATE TABLE core_prospect_events_rollup (
   event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
   applicant_id VARCHAR,
+  callback_id VARCHAR,
   customer_type VARCHAR,
   email VARCHAR,
   level VARCHAR,
@@ -52,6 +53,7 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
+    new_row.callback_id := (NEW.event ->> 'callback_id');
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.email := (NEW.event ->> 'email');
     new_row.is_kyc_approved := false;
@@ -61,6 +63,7 @@ BEGIN
   ELSE
     -- Default all fields to current values
     new_row.applicant_id := current_row.applicant_id;
+    new_row.callback_id := current_row.callback_id;
     new_row.customer_type := current_row.customer_type;
     new_row.email := current_row.email;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
@@ -78,12 +81,13 @@ BEGIN
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
     WHEN 'kyc_started' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
+      new_row.callback_id := (NEW.event ->> 'callback_id');
     WHEN 'kyc_approved' THEN
-      new_row.applicant_id := (NEW.event ->> 'applicant_id');
+      new_row.callback_id := (NEW.event ->> 'callback_id');
       new_row.is_kyc_approved := true;
       new_row.level := (NEW.event ->> 'level');
     WHEN 'kyc_declined' THEN
-      new_row.applicant_id := (NEW.event ->> 'applicant_id');
+      new_row.callback_id := (NEW.event ->> 'callback_id');
     WHEN 'manually_converted' THEN
     WHEN 'closed' THEN
     WHEN 'telegram_handle_updated' THEN
@@ -97,6 +101,7 @@ BEGIN
     modified_at,
     event_type,
     applicant_id,
+    callback_id,
     customer_type,
     email,
     is_kyc_approved,
@@ -111,6 +116,7 @@ BEGIN
     new_row.modified_at,
     new_row.event_type,
     new_row.applicant_id,
+    new_row.callback_id,
     new_row.customer_type,
     new_row.email,
     new_row.is_kyc_approved,

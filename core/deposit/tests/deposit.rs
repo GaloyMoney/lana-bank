@@ -92,16 +92,13 @@ async fn setup() -> anyhow::Result<(
 async fn deposit() -> anyhow::Result<()> {
     let (deposit, customers, _outbox, _jobs) = setup().await?;
 
-    let prospect = customers
-        .create_prospect(
+    let customer = customers
+        .create_customer(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
-        .await?;
-    let customer = customers
-        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
         .await?;
 
     let account = deposit.create_account(&DummySubject, customer.id).await?;
@@ -129,16 +126,13 @@ async fn deposit() -> anyhow::Result<()> {
 async fn revert_deposit() -> anyhow::Result<()> {
     let (deposit, customers, _outbox, _jobs) = setup().await?;
 
-    let prospect = customers
-        .create_prospect(
+    let customer = customers
+        .create_customer(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
-        .await?;
-    let customer = customers
-        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
         .await?;
 
     let account = deposit.create_account(&DummySubject, customer.id).await?;
@@ -178,16 +172,13 @@ async fn revert_deposit() -> anyhow::Result<()> {
 async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
 
-    let prospect = customers
-        .create_prospect(
+    let customer = customers
+        .create_customer(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
-        .await?;
-    let customer = customers
-        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
         .await?;
 
     let (account, recorded) = expect_event(
@@ -217,16 +208,13 @@ async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
 async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
 
-    let prospect = customers
-        .create_prospect(
+    let customer = customers
+        .create_customer(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
-        .await?;
-    let customer = customers
-        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
         .await?;
 
     let account = deposit.create_account(&DummySubject, customer.id).await?;
@@ -268,16 +256,13 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, mut jobs) = setup().await?;
     jobs.start_poll().await?;
 
-    let prospect = customers
-        .create_prospect(
+    let customer = customers
+        .create_customer(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
-        .await?;
-    let customer = customers
-        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
         .await?;
 
     let account = deposit.create_account(&DummySubject, customer.id).await?;
@@ -343,16 +328,13 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
 async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
 
-    let prospect = customers
-        .create_prospect(
+    let customer = customers
+        .create_customer(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
-        .await?;
-    let customer = customers
-        .handle_kyc_approved(prospect.id, format!("test-applicant-{}", prospect.id))
         .await?;
 
     let account = deposit.create_account(&DummySubject, customer.id).await?;
