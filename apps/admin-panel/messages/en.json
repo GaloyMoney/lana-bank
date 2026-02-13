@@ -297,15 +297,6 @@
         "errors": {
           "loading": "Loading...",
           "error": "An error occurred"
-        },
-        "actions": {
-          "close": "Close Prospect",
-          "closing": "Closing...",
-          "closeConfirmTitle": "Close Prospect",
-          "closeConfirmDescription": "Are you sure you want to close this prospect? This action cannot be undone.",
-          "cancel": "Cancel",
-          "confirmClose": "Close",
-          "closeSuccess": "Prospect closed successfully"
         }
       },
       "details": {
@@ -318,6 +309,9 @@
           "customerType": "Type",
           "publicId": "Public ID"
         },
+        "buttons": {
+          "closeProspect": "Close Prospect"
+        },
         "customerType": {
           "individual": "Individual",
           "company": "Company",
@@ -328,6 +322,14 @@
           "foreignAgency": "Foreign Agency or Subsidiary",
           "nonDomiciledCompany": "Non-Domiciled Company"
         }
+      },
+      "closeProspect": {
+        "title": "Close Prospect",
+        "description": "Are you sure you want to close this prospect? This action cannot be undone.",
+        "buttons": {
+          "close": "Close Prospect"
+        },
+        "success": "Prospect closed successfully"
       },
       "kycStatus": {
         "title": "KYC",
