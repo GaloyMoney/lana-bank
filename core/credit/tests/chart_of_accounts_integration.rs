@@ -3,11 +3,16 @@ mod helpers;
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
-use core_accounting::CoreAccounting;
+use core_accounting::{AccountCode, CalaAccountSetId, CoreAccounting};
 use core_credit::*;
 use document_storage::DocumentStorage;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
-use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, event, object};
+use std::collections::HashMap;
+
+use helpers::{
+    BASE_ACCOUNTS_CSV, action, assert_attached_for_code, default_accounting_base_config, event,
+    object, resolve_account_set_ids, resolve_omnibus_account_set_ids,
+};
 use public_id::PublicIds;
 use rand::Rng;
 
@@ -27,6 +32,36 @@ const CREDIT_ACCOUNTS_CSV: &str = r#"
 88,,,Payments Made Omnibus Parent,,
 89,,,Interest Added To Obligations Omnibus Parent,,
 "#;
+
+async fn assert_summary_pairs(
+    cala: &CalaLedger,
+    chart: &core_accounting::Chart,
+    summary_ids: &HashMap<&'static str, CalaAccountSetId>,
+    pairs: &[(&AccountCode, CreditSummaryAccountSetSpec)],
+) -> anyhow::Result<()> {
+    for (code, spec) in pairs {
+        let id = *summary_ids
+            .get(spec.external_ref)
+            .expect("missing summary account set ref");
+        assert_attached_for_code(cala, chart, code, id).await?;
+    }
+    Ok(())
+}
+
+async fn assert_omnibus_pairs(
+    cala: &CalaLedger,
+    chart: &core_accounting::Chart,
+    omnibus_ids: &HashMap<&'static str, CalaAccountSetId>,
+    pairs: &[(&AccountCode, CreditOmnibusAccountSetSpec)],
+) -> anyhow::Result<()> {
+    for (code, spec) in pairs {
+        let id = *omnibus_ids
+            .get(spec.account_set_ref)
+            .expect("missing omnibus account set ref");
+        assert_attached_for_code(cala, chart, code, id).await?;
+    }
+    Ok(())
+}
 
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
@@ -155,91 +190,430 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
 
-    credit.chart_of_accounts_integrations()
-        .set_config(
-            &DummySubject,
-            &chart,
-            ChartOfAccountsIntegrationConfig {
-                chart_of_accounts_id: chart_id,
-                chart_of_account_facility_omnibus_parent_code: "81".parse().unwrap(),
-                chart_of_account_collateral_omnibus_parent_code: "82".parse().unwrap(),
-                chart_of_account_liquidation_proceeds_omnibus_parent_code: "85".parse().unwrap(),
-                chart_of_account_payments_made_omnibus_parent_code: "88".parse().unwrap(),
-                chart_of_account_interest_added_to_obligations_omnibus_parent_code: "89".parse().unwrap(),
-                chart_of_account_facility_parent_code: "83".parse().unwrap(),
-                chart_of_account_collateral_parent_code: "84".parse().unwrap(),
-                chart_of_account_collateral_in_liquidation_parent_code: "86".parse().unwrap(),
-                chart_of_account_liquidated_collateral_parent_code: "86".parse().unwrap(),
-                chart_of_account_proceeds_from_liquidation_parent_code: "85".parse().unwrap(),
-                chart_of_account_interest_income_parent_code: "41".parse().unwrap(),
-                chart_of_account_fee_income_parent_code: "42".parse().unwrap(),
-                chart_of_account_payment_holding_parent_code: "13".parse().unwrap(),
-                chart_of_account_uncovered_outstanding_parent_code: "87".parse().unwrap(),
-                chart_of_account_disbursed_defaulted_parent_code: "11".parse().unwrap(),
-                chart_of_account_interest_defaulted_parent_code: "11".parse().unwrap(),
-                chart_of_account_short_term_individual_disbursed_receivable_parent_code: "11".parse().unwrap(),
-                chart_of_account_short_term_government_entity_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_short_term_private_company_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_short_term_bank_disbursed_receivable_parent_code: "11".parse().unwrap(),
-                chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_long_term_individual_disbursed_receivable_parent_code: "11".parse().unwrap(),
-                chart_of_account_long_term_government_entity_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_long_term_private_company_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_long_term_bank_disbursed_receivable_parent_code: "11".parse().unwrap(),
-                chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_short_term_individual_interest_receivable_parent_code: "12".parse().unwrap(),
-                chart_of_account_short_term_government_entity_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_short_term_private_company_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_short_term_bank_interest_receivable_parent_code: "12".parse().unwrap(),
-                chart_of_account_short_term_financial_institution_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_long_term_individual_interest_receivable_parent_code: "12".parse().unwrap(),
-                chart_of_account_long_term_government_entity_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_long_term_private_company_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_long_term_bank_interest_receivable_parent_code: "12".parse().unwrap(),
-                chart_of_account_long_term_financial_institution_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code:
-                    "12".parse().unwrap(),
-                chart_of_account_overdue_individual_disbursed_receivable_parent_code: "11".parse().unwrap(),
-                chart_of_account_overdue_government_entity_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_overdue_private_company_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_overdue_bank_disbursed_receivable_parent_code: "11".parse().unwrap(),
-                chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-                chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code:
-                    "11".parse().unwrap(),
-            },
-        )
+    let chart_of_accounts_config = ChartOfAccountsIntegrationConfig {
+        chart_of_accounts_id: chart_id,
+        chart_of_account_facility_omnibus_parent_code: "81".parse().unwrap(),
+        chart_of_account_collateral_omnibus_parent_code: "82".parse().unwrap(),
+        chart_of_account_liquidation_proceeds_omnibus_parent_code: "85".parse().unwrap(),
+        chart_of_account_payments_made_omnibus_parent_code: "88".parse().unwrap(),
+        chart_of_account_interest_added_to_obligations_omnibus_parent_code: "89".parse().unwrap(),
+        chart_of_account_facility_parent_code: "83".parse().unwrap(),
+        chart_of_account_collateral_parent_code: "84".parse().unwrap(),
+        chart_of_account_collateral_in_liquidation_parent_code: "86".parse().unwrap(),
+        chart_of_account_liquidated_collateral_parent_code: "86".parse().unwrap(),
+        chart_of_account_proceeds_from_liquidation_parent_code: "85".parse().unwrap(),
+        chart_of_account_interest_income_parent_code: "41".parse().unwrap(),
+        chart_of_account_fee_income_parent_code: "42".parse().unwrap(),
+        chart_of_account_payment_holding_parent_code: "13".parse().unwrap(),
+        chart_of_account_uncovered_outstanding_parent_code: "87".parse().unwrap(),
+        chart_of_account_disbursed_defaulted_parent_code: "11".parse().unwrap(),
+        chart_of_account_interest_defaulted_parent_code: "11".parse().unwrap(),
+        chart_of_account_short_term_individual_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_short_term_government_entity_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_short_term_private_company_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_short_term_bank_disbursed_receivable_parent_code: "11".parse().unwrap(),
+        chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
+            "11".parse().unwrap(),
+        chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_individual_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_government_entity_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_private_company_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_bank_disbursed_receivable_parent_code: "11".parse().unwrap(),
+        chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
+            "11".parse().unwrap(),
+        chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_short_term_individual_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_short_term_government_entity_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_short_term_private_company_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_short_term_bank_interest_receivable_parent_code: "12".parse().unwrap(),
+        chart_of_account_short_term_financial_institution_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
+            "12".parse().unwrap(),
+        chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_individual_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_government_entity_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_private_company_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_bank_interest_receivable_parent_code: "12".parse().unwrap(),
+        chart_of_account_long_term_financial_institution_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
+            "12".parse().unwrap(),
+        chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code: "12"
+            .parse()
+            .unwrap(),
+        chart_of_account_overdue_individual_disbursed_receivable_parent_code: "11".parse().unwrap(),
+        chart_of_account_overdue_government_entity_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_overdue_private_company_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_overdue_bank_disbursed_receivable_parent_code: "11".parse().unwrap(),
+        chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+        chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
+            "11".parse().unwrap(),
+        chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code: "11"
+            .parse()
+            .unwrap(),
+    };
+
+    credit
+        .chart_of_accounts_integrations()
+        .set_config(&DummySubject, &chart, chart_of_accounts_config.clone())
         .await?;
+
+    let catalog = CREDIT_ACCOUNT_SET_CATALOG;
+    let summary_account_set_ids =
+        resolve_account_set_ids(&cala, journal_id, catalog.summary_specs()).await?;
+    let omnibus_account_set_ids =
+        resolve_omnibus_account_set_ids(&cala, journal_id, catalog.omnibus_specs()).await?;
+    let summary = catalog.summary();
+    let omnibus = catalog.omnibus();
+
+    let omnibus_pairs = [
+        (
+            &chart_of_accounts_config.chart_of_account_facility_omnibus_parent_code,
+            omnibus.credit_facility_omnibus,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_collateral_omnibus_parent_code,
+            omnibus.credit_collateral_omnibus,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_liquidation_proceeds_omnibus_parent_code,
+            omnibus.credit_facility_liquidation_proceeds_omnibus,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_payments_made_omnibus_parent_code,
+            omnibus.credit_payments_made_omnibus,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_interest_added_to_obligations_omnibus_parent_code,
+            omnibus.credit_interest_added_to_obligations_omnibus,
+        ),
+    ];
+    assert_omnibus_pairs(&cala, &chart, &omnibus_account_set_ids, &omnibus_pairs).await?;
+
+    let summary_parent_pairs = [
+        (
+            &chart_of_accounts_config.chart_of_account_facility_parent_code,
+            summary.credit_facility_remaining,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_collateral_parent_code,
+            summary.credit_collateral,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_collateral_in_liquidation_parent_code,
+            summary.credit_facility_collateral_in_liquidation,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_liquidated_collateral_parent_code,
+            summary.credit_facility_liquidated_collateral,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_proceeds_from_liquidation_parent_code,
+            summary.credit_facility_proceeds_from_liquidation,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_interest_income_parent_code,
+            summary.credit_interest_income,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_fee_income_parent_code,
+            summary.credit_fee_income,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_payment_holding_parent_code,
+            summary.credit_payment_holding,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_uncovered_outstanding_parent_code,
+            summary.credit_uncovered_outstanding,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_disbursed_defaulted_parent_code,
+            summary.credit_disbursed_defaulted,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_interest_defaulted_parent_code,
+            summary.credit_interest_defaulted,
+        ),
+    ];
+    assert_summary_pairs(
+        &cala,
+        &chart,
+        &summary_account_set_ids,
+        &summary_parent_pairs,
+    )
+    .await?;
+
+    let short_term_disbursed_pairs = [
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_individual_disbursed_receivable_parent_code,
+            summary.short_term_individual_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_government_entity_disbursed_receivable_parent_code,
+            summary.short_term_government_entity_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_private_company_disbursed_receivable_parent_code,
+            summary.short_term_private_company_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_bank_disbursed_receivable_parent_code,
+            summary.short_term_bank_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code,
+            summary.short_term_financial_institution_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            summary.short_term_foreign_agency_or_subsidiary_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code,
+            summary.short_term_non_domiciled_company_disbursed_receivable,
+        ),
+    ];
+    assert_summary_pairs(
+        &cala,
+        &chart,
+        &summary_account_set_ids,
+        &short_term_disbursed_pairs,
+    )
+    .await?;
+
+    let long_term_disbursed_pairs = [
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_individual_disbursed_receivable_parent_code,
+            summary.long_term_individual_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_government_entity_disbursed_receivable_parent_code,
+            summary.long_term_government_entity_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_private_company_disbursed_receivable_parent_code,
+            summary.long_term_private_company_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_bank_disbursed_receivable_parent_code,
+            summary.long_term_bank_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code,
+            summary.long_term_financial_institution_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            summary.long_term_foreign_agency_or_subsidiary_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code,
+            summary.long_term_non_domiciled_company_disbursed_receivable,
+        ),
+    ];
+    assert_summary_pairs(
+        &cala,
+        &chart,
+        &summary_account_set_ids,
+        &long_term_disbursed_pairs,
+    )
+    .await?;
+
+    let overdue_disbursed_pairs = [
+        (
+            &chart_of_accounts_config
+                .chart_of_account_overdue_individual_disbursed_receivable_parent_code,
+            summary.overdue_individual_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_overdue_government_entity_disbursed_receivable_parent_code,
+            summary.overdue_government_entity_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_overdue_private_company_disbursed_receivable_parent_code,
+            summary.overdue_private_company_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_overdue_bank_disbursed_receivable_parent_code,
+            summary.overdue_bank_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code,
+            summary.overdue_financial_institution_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            summary.overdue_foreign_agency_or_subsidiary_disbursed_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
+            summary.overdue_non_domiciled_company_disbursed_receivable,
+        ),
+    ];
+    assert_summary_pairs(
+        &cala,
+        &chart,
+        &summary_account_set_ids,
+        &overdue_disbursed_pairs,
+    )
+    .await?;
+
+    let short_term_interest_pairs = [
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_individual_interest_receivable_parent_code,
+            summary.short_term_individual_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_government_entity_interest_receivable_parent_code,
+            summary.short_term_government_entity_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_private_company_interest_receivable_parent_code,
+            summary.short_term_private_company_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_bank_interest_receivable_parent_code,
+            summary.short_term_bank_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_financial_institution_interest_receivable_parent_code,
+            summary.short_term_financial_institution_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
+            summary.short_term_foreign_agency_or_subsidiary_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code,
+            summary.short_term_non_domiciled_company_interest_receivable,
+        ),
+    ];
+    assert_summary_pairs(
+        &cala,
+        &chart,
+        &summary_account_set_ids,
+        &short_term_interest_pairs,
+    )
+    .await?;
+
+    let long_term_interest_pairs = [
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_individual_interest_receivable_parent_code,
+            summary.long_term_individual_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_government_entity_interest_receivable_parent_code,
+            summary.long_term_government_entity_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_private_company_interest_receivable_parent_code,
+            summary.long_term_private_company_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_bank_interest_receivable_parent_code,
+            summary.long_term_bank_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_financial_institution_interest_receivable_parent_code,
+            summary.long_term_financial_institution_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
+            summary.long_term_foreign_agency_or_subsidiary_interest_receivable,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code,
+            summary.long_term_non_domiciled_company_interest_receivable,
+        ),
+    ];
+    assert_summary_pairs(
+        &cala,
+        &chart,
+        &summary_account_set_ids,
+        &long_term_interest_pairs,
+    )
+    .await?;
 
     let off_balance_sheet_account_sets = cala
         .account_sets()

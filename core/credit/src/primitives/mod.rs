@@ -1,3 +1,8 @@
+pub(crate) mod account_sets;
+pub use account_sets::{
+    CREDIT_ACCOUNT_SET_CATALOG, CreditAccountSetCatalog, CreditOmnibusAccountSetSpec,
+    CreditSummaryAccountSetSpec,
+};
 mod liquidation_payment;
 
 use serde::{Deserialize, Serialize};
@@ -92,7 +97,7 @@ es_entity::entity_id! {
     CreditFacilityId => core_credit_collection::BeneficiaryId,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct LedgerOmnibusAccountIds {
     pub account_set_id: CalaAccountSetId,
     pub account_id: CalaAccountId,

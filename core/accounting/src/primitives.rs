@@ -550,7 +550,7 @@ impl AccountingBaseConfig {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::Display, strum::EnumString)]
 pub enum AccountCategory {
     OffBalanceSheet,
     Asset,
