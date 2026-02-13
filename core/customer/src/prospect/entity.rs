@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use super::error::ProspectError;
 use crate::{entity::NewCustomer, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -89,12 +90,18 @@ impl Prospect {
         &mut self,
         level: KycLevel,
         applicant_id: String,
-    ) -> Idempotent<NewCustomer> {
+    ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycApproved { .. },
+            ProspectEvent::KycApproved { applicant_id: existing, .. } if existing == &applicant_id,
             => ProspectEvent::KycDeclined { .. }
         );
+        if self.applicant_id.as_ref() != Some(&applicant_id) {
+            return Err(ProspectError::ApplicantIdMismatch {
+                expected: self.applicant_id.clone(),
+                actual: applicant_id,
+            });
+        }
         self.events.push(ProspectEvent::KycApproved {
             level,
             applicant_id: applicant_id.clone(),
@@ -117,7 +124,7 @@ impl Prospect {
             .build()
             .expect("Could not build customer from prospect");
 
-        Idempotent::Executed(new_customer)
+        Ok(Idempotent::Executed(new_customer))
     }
 
     pub fn decline_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
@@ -242,5 +249,68 @@ impl IntoEvents<ProspectEvent> for NewProspect {
                 public_id: self.public_id,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_test_prospect() -> Prospect {
+        let id = ProspectId::new();
+        let events = EntityEvents::init(
+            id,
+            [ProspectEvent::Initialized {
+                id,
+                email: "test@example.com".to_string(),
+                telegram_handle: "test_handle".to_string(),
+                customer_type: CustomerType::Individual,
+                public_id: PublicId::new("test-public-id"),
+            }],
+        );
+        Prospect::try_from_events(events).expect("Failed to create prospect")
+    }
+
+    #[test]
+    fn approve_kyc_fails_when_applicant_id_not_set() {
+        let mut prospect = create_test_prospect();
+
+        let result = prospect.approve_kyc(KycLevel::Basic, "some-applicant-id".to_string());
+
+        match result {
+            Err(ProspectError::ApplicantIdMismatch { expected, actual }) => {
+                assert_eq!(expected, None);
+                assert_eq!(actual, "some-applicant-id");
+            }
+            Err(e) => panic!("Unexpected error: {:?}", e),
+            Ok(_) => panic!("Expected error but got Ok"),
+        }
+    }
+
+    #[test]
+    fn approve_kyc_fails_when_applicant_id_mismatch() {
+        let mut prospect = create_test_prospect();
+        let _ = prospect.start_kyc("correct-applicant-id".to_string());
+
+        let result = prospect.approve_kyc(KycLevel::Basic, "wrong-applicant-id".to_string());
+
+        match result {
+            Err(ProspectError::ApplicantIdMismatch { expected, actual }) => {
+                assert_eq!(expected, Some("correct-applicant-id".to_string()));
+                assert_eq!(actual, "wrong-applicant-id");
+            }
+            Err(e) => panic!("Unexpected error: {:?}", e),
+            Ok(_) => panic!("Expected error but got Ok"),
+        }
+    }
+
+    #[test]
+    fn approve_kyc_succeeds_when_applicant_id_matches() {
+        let mut prospect = create_test_prospect();
+        let _ = prospect.start_kyc("correct-applicant-id".to_string());
+
+        let result = prospect.approve_kyc(KycLevel::Basic, "correct-applicant-id".to_string());
+
+        assert!(result.is_ok());
     }
 }
