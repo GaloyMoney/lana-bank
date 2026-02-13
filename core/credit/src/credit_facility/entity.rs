@@ -204,6 +204,14 @@ pub struct FacilityCollateralization {
     pub price_at_state_change: Option<PriceOfOneBTC>,
 }
 
+impl FacilityCollateralization {
+    pub fn never_assessed(&self) -> bool {
+        self.collateral.is_none()
+            && self.outstanding.is_none()
+            && self.price_at_state_change.is_none()
+    }
+}
+
 impl Default for FacilityCollateralization {
     fn default() -> Self {
         Self {
