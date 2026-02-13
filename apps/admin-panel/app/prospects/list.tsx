@@ -4,10 +4,12 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { KycStatusBadge } from "./kyc-status-badge"
+import { ProspectStatusBadge } from "./prospect-status-badge"
 
 import {
   KycStatus,
   Prospect,
+  ProspectStatus,
   useProspectsQuery,
 } from "@/lib/graphql/generated"
 
@@ -18,13 +20,14 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 
 gql`
-  query Prospects($first: Int!, $after: String) {
-    prospects(first: $first, after: $after) {
+  query Prospects($first: Int!, $after: String, $status: ProspectStatus) {
+    prospects(first: $first, after: $after, status: $status) {
       edges {
         node {
           id
           prospectId
           publicId
+          status
           kycStatus
           level
           email
@@ -51,6 +54,7 @@ const ProspectsList = () => {
   const { data, loading, error, fetchMore } = useProspectsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      status: ProspectStatus.Open,
     },
   })
 
@@ -64,6 +68,12 @@ const ProspectsList = () => {
       key: "telegramHandle",
       label: t("columns.telegramHandle"),
       labelClassName: "w-[30%]",
+    },
+    {
+      key: "status",
+      label: t("columns.status"),
+      filterValues: Object.values(ProspectStatus),
+      render: (status) => <ProspectStatusBadge status={status} />,
     },
     {
       key: "kycStatus",

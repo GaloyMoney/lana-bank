@@ -48,6 +48,9 @@ where
                         entity: PublicProspect::from(entity),
                     })
                 }
+                Closed { .. } => Some(CoreCustomerEvent::ProspectClosed {
+                    entity: PublicProspect::from(entity),
+                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

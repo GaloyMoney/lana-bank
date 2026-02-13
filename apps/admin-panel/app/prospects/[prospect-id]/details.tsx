@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl"
 
 import { formatDate } from "@lana/web/utils"
 
+import { ProspectStatusBadge } from "@/app/prospects/prospect-status-badge"
+
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { CustomerType, GetProspectBasicDetailsQuery } from "@/lib/graphql/generated"
 
@@ -38,6 +40,10 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
   }
 
   const details: DetailItemProps[] = [
+    {
+      label: t("labels.status"),
+      value: <ProspectStatusBadge status={prospect.status} />,
+    },
     {
       label: t("labels.email"),
       value: prospect.email,

@@ -1,0 +1,141 @@
+{
+  "$defs": {
+    "CustomerType": {
+      "enum": [
+        "Individual",
+        "GovernmentEntity",
+        "PrivateCompany",
+        "Bank",
+        "FinancialInstitution",
+        "ForeignAgencyOrSubsidiary",
+        "NonDomiciledCompany"
+      ],
+      "type": "string"
+    },
+    "KycLevel": {
+      "enum": [
+        "NotKyced",
+        "Basic",
+        "Advanced"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "customer_type": {
+          "$ref": "#/$defs/CustomerType"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "public_id": {
+          "type": "string"
+        },
+        "telegram_handle": {
+          "type": "string"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "email",
+        "telegram_handle",
+        "customer_type",
+        "public_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "applicant_id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "kyc_started",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "applicant_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "applicant_id": {
+          "type": "string"
+        },
+        "level": {
+          "$ref": "#/$defs/KycLevel"
+        },
+        "type": {
+          "const": "kyc_approved",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "applicant_id",
+        "level"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "applicant_id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "kyc_declined",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "applicant_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "closed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "telegram_handle": {
+          "type": "string"
+        },
+        "type": {
+          "const": "telegram_handle_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "telegram_handle"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ProspectEvent"
+}

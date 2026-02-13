@@ -4,13 +4,14 @@ use crate::primitives::*;
 use lana_app::public_id::PublicId;
 
 pub use lana_app::customer::Prospect as DomainProspect;
-use lana_app::customer::{CustomerType, KycLevel, KycStatus};
+use lana_app::customer::{CustomerType, KycLevel, KycStatus, ProspectStatus};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Prospect {
     id: ID,
     prospect_id: UUID,
+    status: ProspectStatus,
     kyc_status: KycStatus,
     level: KycLevel,
     created_at: Timestamp,
@@ -25,6 +26,7 @@ impl From<DomainProspect> for Prospect {
         Prospect {
             id: prospect.id.to_global_id(),
             prospect_id: UUID::from(prospect.id),
+            status: prospect.status,
             kyc_status: prospect.kyc_status,
             level: prospect.level,
             created_at: prospect.created_at().into(),
@@ -60,3 +62,9 @@ pub struct ProspectCreateInput {
     pub customer_type: CustomerType,
 }
 crate::mutation_payload! { ProspectCreatePayload, prospect: Prospect }
+
+#[derive(InputObject)]
+pub struct ProspectCloseInput {
+    pub prospect_id: UUID,
+}
+crate::mutation_payload! { ProspectClosePayload, prospect: Prospect }

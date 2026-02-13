@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use uuid::Uuid;
 
-use core_customer::{CoreCustomerEvent, CustomerType, KycStatus};
+use core_customer::{CoreCustomerEvent, CustomerType, KycStatus, ProspectStatus};
 use helpers::event;
 
 /// ProspectCreated event is published when a new prospect is created
@@ -41,6 +41,7 @@ async fn prospect_created_event_on_create_prospect() -> anyhow::Result<()> {
 
     assert_eq!(recorded.id, created_prospect.id);
     assert_eq!(recorded.email, email);
+    assert_eq!(recorded.status, ProspectStatus::Open);
     assert_eq!(recorded.kyc_status, KycStatus::NotStarted);
 
     Ok(())
@@ -94,7 +95,7 @@ async fn prospect_kyc_updated_event_on_kyc_started() -> anyhow::Result<()> {
 ///
 /// Note: This also triggers a CustomerCreated event since the prospect is
 /// converted to a customer. This test verifies the ProspectKycUpdated event
-/// is published with kyc_status set to Closed.
+/// is published with kyc_status set to Approved and status set to Converted.
 #[tokio::test]
 async fn prospect_kyc_updated_event_on_kyc_approved() -> anyhow::Result<()> {
     let (customers, outbox) = helpers::setup().await?;
@@ -126,7 +127,48 @@ async fn prospect_kyc_updated_event_on_kyc_approved() -> anyhow::Result<()> {
     .await?;
 
     assert_eq!(recorded.id, prospect.id);
-    assert_eq!(recorded.kyc_status, KycStatus::Closed);
+    assert_eq!(recorded.kyc_status, KycStatus::Approved);
+    assert_eq!(recorded.status, ProspectStatus::Converted);
+
+    Ok(())
+}
+
+/// ProspectClosed event is published when a prospect is closed
+/// via `Customers::close_prospect()`.
+///
+/// This is an operator-driven action to manually close a prospect
+/// that is no longer needed.
+///
+/// The event contains a snapshot with status set to Closed.
+#[tokio::test]
+async fn prospect_closed_event_on_close_prospect() -> anyhow::Result<()> {
+    let (customers, outbox) = helpers::setup().await?;
+
+    let email = format!("test-{}@example.com", Uuid::new_v4());
+    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
+    let prospect = customers
+        .create_prospect(
+            &DummySubject,
+            email,
+            telegram_handle,
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let (_closed_prospect, recorded) = event::expect_event(
+        &outbox,
+        || customers.close_prospect(&DummySubject, prospect.id),
+        |result, e| match e {
+            CoreCustomerEvent::ProspectClosed { entity } if entity.id == result.id => {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, prospect.id);
+    assert_eq!(recorded.status, ProspectStatus::Closed);
 
     Ok(())
 }

@@ -202,6 +202,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        status: Option<lana_app::customer::ProspectStatus>,
     ) -> async_graphql::Result<
         Connection<ProspectsByCreatedAtCursor, Prospect, EmptyFields, EmptyFields>,
     > {
@@ -215,7 +216,7 @@ impl Query {
             first,
             |query| app
                 .customers()
-                .list_prospects(sub, query, ListDirection::Descending)
+                .list_prospects(sub, query, ListDirection::Descending, status)
         )
     }
 
@@ -1356,6 +1357,21 @@ impl Mutation {
                 input.telegram_handle,
                 input.customer_type
             )
+        )
+    }
+
+    async fn prospect_close(
+        &self,
+        ctx: &Context<'_>,
+        input: ProspectCloseInput,
+    ) -> async_graphql::Result<ProspectClosePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ProspectClosePayload,
+            Prospect,
+            ProspectId,
+            ctx,
+            app.customers().close_prospect(sub, input.prospect_id)
         )
     }
 

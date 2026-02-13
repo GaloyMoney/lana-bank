@@ -125,6 +125,27 @@ pub enum KycStatus {
     Pending,
     Approved,
     Declined,
+}
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+    Serialize,
+    Deserialize,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+pub enum ProspectStatus {
+    #[default]
+    Open,
+    Converted,
     Closed,
 }
 
@@ -244,6 +265,7 @@ pub enum ProspectEntityAction {
     Create,
     List,
     Update,
+    Close,
     StartKyc,
     ApproveKyc,
     DeclineKyc,
@@ -253,9 +275,12 @@ impl ActionPermission for ProspectEntityAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::Read | Self::List => PERMISSION_SET_CUSTOMER_VIEWER,
-            Self::Create | Self::Update | Self::StartKyc | Self::ApproveKyc | Self::DeclineKyc => {
-                PERMISSION_SET_CUSTOMER_WRITER
-            }
+            Self::Create
+            | Self::Update
+            | Self::Close
+            | Self::StartKyc
+            | Self::ApproveKyc
+            | Self::DeclineKyc => PERMISSION_SET_CUSTOMER_WRITER,
         }
     }
 }
@@ -294,6 +319,7 @@ impl CoreCustomerAction {
     pub const PROSPECT_READ: Self = CoreCustomerAction::Prospect(ProspectEntityAction::Read);
     pub const PROSPECT_LIST: Self = CoreCustomerAction::Prospect(ProspectEntityAction::List);
     pub const PROSPECT_UPDATE: Self = CoreCustomerAction::Prospect(ProspectEntityAction::Update);
+    pub const PROSPECT_CLOSE: Self = CoreCustomerAction::Prospect(ProspectEntityAction::Close);
     pub const PROSPECT_START_KYC: Self =
         CoreCustomerAction::Prospect(ProspectEntityAction::StartKyc);
     pub const PROSPECT_APPROVE_KYC: Self =
