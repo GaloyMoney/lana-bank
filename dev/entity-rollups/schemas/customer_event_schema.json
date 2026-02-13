@@ -138,7 +138,8 @@
     },
     {
       "properties": {
-        "applicant_id": {
+        "callback_id": {
+          "default": "",
           "type": "string"
         },
         "type": {
@@ -147,8 +148,7 @@
         }
       },
       "required": [
-        "type",
-        "applicant_id"
+        "type"
       ],
       "type": "object"
     }

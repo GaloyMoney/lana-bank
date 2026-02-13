@@ -61,6 +61,10 @@
         "applicant_id": {
           "type": "string"
         },
+        "callback_id": {
+          "default": "",
+          "type": "string"
+        },
         "type": {
           "const": "kyc_started",
           "type": "string"
@@ -74,7 +78,8 @@
     },
     {
       "properties": {
-        "applicant_id": {
+        "callback_id": {
+          "default": "",
           "type": "string"
         },
         "level": {
@@ -87,14 +92,14 @@
       },
       "required": [
         "type",
-        "applicant_id",
         "level"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "applicant_id": {
+        "callback_id": {
+          "default": "",
           "type": "string"
         },
         "type": {
@@ -103,8 +108,7 @@
         }
       },
       "required": [
-        "type",
-        "applicant_id"
+        "type"
       ],
       "type": "object"
     },

@@ -21,6 +21,10 @@ pub enum ProspectError {
         expected: Option<String>,
         actual: String,
     },
+    #[error(
+        "ProspectError - KycNotStarted: cannot approve or decline KYC before it has been started"
+    )]
+    KycNotStarted,
 }
 
 es_entity::from_es_entity_error!(ProspectError);
@@ -35,6 +39,7 @@ impl ErrorSeverity for ProspectError {
             Self::AuditError(e) => e.severity(),
             Self::PublicIdError(e) => e.severity(),
             Self::ApplicantIdMismatch { .. } => Level::WARN,
+            Self::KycNotStarted => Level::WARN,
         }
     }
 }

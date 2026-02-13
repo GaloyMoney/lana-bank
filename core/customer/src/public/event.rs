@@ -10,9 +10,9 @@ use super::{PublicCustomer, PublicProspect};
 #[serde(tag = "type")]
 pub enum CoreCustomerEvent {
     CustomerCreated { entity: PublicCustomer },
+    CustomerKycUpdated { entity: PublicCustomer },
     CustomerEmailUpdated { entity: PublicCustomer },
-    CustomerKycRejected { entity: PublicCustomer },
     ProspectCreated { entity: PublicProspect },
-    ProspectKycUpdated { entity: PublicProspect },
+    ProspectConverted { entity: PublicProspect },
     ProspectClosed { entity: PublicProspect },
 }

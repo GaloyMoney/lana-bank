@@ -23,13 +23,17 @@ pub enum ProspectEvent {
     },
     KycStarted {
         applicant_id: String,
+        #[serde(default)]
+        callback_id: String,
     },
     KycApproved {
-        applicant_id: String,
         level: KycLevel,
+        #[serde(default)]
+        callback_id: String,
     },
     KycDeclined {
-        applicant_id: String,
+        #[serde(default)]
+        callback_id: String,
     },
     ManuallyConverted {},
     Closed {},
@@ -74,13 +78,14 @@ impl Prospect {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn start_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
+    pub fn start_kyc(&mut self, applicant_id: String, callback_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycStarted { .. }
         );
         self.events.push(ProspectEvent::KycStarted {
             applicant_id: applicant_id.clone(),
+            callback_id,
         });
         self.applicant_id = Some(applicant_id);
         self.kyc_status = KycStatus::Pending;
@@ -90,23 +95,18 @@ impl Prospect {
     pub fn approve_kyc(
         &mut self,
         level: KycLevel,
-        applicant_id: String,
+        callback_id: String,
     ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycApproved { applicant_id: existing, .. } if existing == &applicant_id
+            ProspectEvent::KycApproved { .. }
         );
-        if self.applicant_id.as_ref() != Some(&applicant_id) {
-            return Err(ProspectError::ApplicantIdMismatch {
-                expected: self.applicant_id.clone(),
-                actual: applicant_id,
-            });
-        }
-        self.events.push(ProspectEvent::KycApproved {
-            level,
-            applicant_id: applicant_id.clone(),
-        });
-        self.applicant_id = Some(applicant_id.clone());
+        let applicant_id = self
+            .applicant_id
+            .clone()
+            .ok_or(ProspectError::KycNotStarted)?;
+        self.events
+            .push(ProspectEvent::KycApproved { level, callback_id });
         self.level = level;
         self.kyc_status = KycStatus::Approved;
         self.status = ProspectStatus::Converted;
@@ -152,19 +152,15 @@ impl Prospect {
         Idempotent::Executed(new_customer)
     }
 
-    pub fn decline_kyc(&mut self, applicant_id: String) -> Result<Idempotent<()>, ProspectError> {
+    pub fn decline_kyc(&mut self, callback_id: String) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycDeclined { applicant_id: existing, .. } if existing == &applicant_id
+            ProspectEvent::KycDeclined { .. }
         );
-        if self.applicant_id.as_ref() != Some(&applicant_id) {
-            return Err(ProspectError::ApplicantIdMismatch {
-                expected: self.applicant_id.clone(),
-                actual: applicant_id,
-            });
+        if self.applicant_id.is_none() {
+            return Err(ProspectError::KycNotStarted);
         }
-        self.events
-            .push(ProspectEvent::KycDeclined { applicant_id });
+        self.events.push(ProspectEvent::KycDeclined { callback_id });
         self.kyc_status = KycStatus::Declined;
         Ok(Idempotent::Executed(()))
     }
@@ -221,13 +217,8 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                         .applicant_id(applicant_id.clone())
                         .kyc_status(KycStatus::Pending);
                 }
-                ProspectEvent::KycApproved {
-                    level,
-                    applicant_id,
-                    ..
-                } => {
+                ProspectEvent::KycApproved { level, .. } => {
                     builder = builder
-                        .applicant_id(applicant_id.clone())
                         .level(*level)
                         .kyc_status(KycStatus::Approved)
                         .status(ProspectStatus::Converted);
@@ -310,87 +301,39 @@ mod tests {
     }
 
     #[test]
-    fn approve_kyc_fails_when_applicant_id_not_set() {
+    fn approve_kyc_fails_when_kyc_not_started() {
         let mut prospect = create_test_prospect();
 
-        let result = prospect.approve_kyc(KycLevel::Basic, "some-applicant-id".to_string());
+        let result = prospect.approve_kyc(KycLevel::Basic, "callback-1".to_string());
 
-        match result {
-            Err(ProspectError::ApplicantIdMismatch { expected, actual }) => {
-                assert_eq!(expected, None);
-                assert_eq!(actual, "some-applicant-id");
-            }
-            Err(e) => panic!("Unexpected error: {:?}", e),
-            Ok(_) => panic!("Expected error but got Ok"),
-        }
+        assert!(matches!(result, Err(ProspectError::KycNotStarted)));
     }
 
     #[test]
-    fn approve_kyc_fails_when_applicant_id_mismatch() {
+    fn approve_kyc_succeeds_after_kyc_started() {
         let mut prospect = create_test_prospect();
-        let _ = prospect.start_kyc("correct-applicant-id".to_string());
+        let _ = prospect.start_kyc("correct-applicant-id".to_string(), "callback-1".to_string());
 
-        let result = prospect.approve_kyc(KycLevel::Basic, "wrong-applicant-id".to_string());
-
-        match result {
-            Err(ProspectError::ApplicantIdMismatch { expected, actual }) => {
-                assert_eq!(expected, Some("correct-applicant-id".to_string()));
-                assert_eq!(actual, "wrong-applicant-id");
-            }
-            Err(e) => panic!("Unexpected error: {:?}", e),
-            Ok(_) => panic!("Expected error but got Ok"),
-        }
-    }
-
-    #[test]
-    fn approve_kyc_succeeds_when_applicant_id_matches() {
-        let mut prospect = create_test_prospect();
-        let _ = prospect.start_kyc("correct-applicant-id".to_string());
-
-        let result = prospect.approve_kyc(KycLevel::Basic, "correct-applicant-id".to_string());
+        let result = prospect.approve_kyc(KycLevel::Basic, "callback-2".to_string());
 
         assert!(result.is_ok());
     }
 
     #[test]
-    fn decline_kyc_fails_when_applicant_id_not_set() {
+    fn decline_kyc_fails_when_kyc_not_started() {
         let mut prospect = create_test_prospect();
 
-        let result = prospect.decline_kyc("some-applicant-id".to_string());
+        let result = prospect.decline_kyc("callback-1".to_string());
 
-        match result {
-            Err(ProspectError::ApplicantIdMismatch { expected, actual }) => {
-                assert_eq!(expected, None);
-                assert_eq!(actual, "some-applicant-id");
-            }
-            Err(e) => panic!("Unexpected error: {:?}", e),
-            Ok(_) => panic!("Expected error but got Ok"),
-        }
+        assert!(matches!(result, Err(ProspectError::KycNotStarted)));
     }
 
     #[test]
-    fn decline_kyc_fails_when_applicant_id_mismatch() {
+    fn decline_kyc_succeeds_after_kyc_started() {
         let mut prospect = create_test_prospect();
-        let _ = prospect.start_kyc("correct-applicant-id".to_string());
+        let _ = prospect.start_kyc("correct-applicant-id".to_string(), "callback-1".to_string());
 
-        let result = prospect.decline_kyc("wrong-applicant-id".to_string());
-
-        match result {
-            Err(ProspectError::ApplicantIdMismatch { expected, actual }) => {
-                assert_eq!(expected, Some("correct-applicant-id".to_string()));
-                assert_eq!(actual, "wrong-applicant-id");
-            }
-            Err(e) => panic!("Unexpected error: {:?}", e),
-            Ok(_) => panic!("Expected error but got Ok"),
-        }
-    }
-
-    #[test]
-    fn decline_kyc_succeeds_when_applicant_id_matches() {
-        let mut prospect = create_test_prospect();
-        let _ = prospect.start_kyc("correct-applicant-id".to_string());
-
-        let result = prospect.decline_kyc("correct-applicant-id".to_string());
+        let result = prospect.decline_kyc("callback-2".to_string());
 
         assert!(result.is_ok());
     }

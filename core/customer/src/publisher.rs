@@ -45,7 +45,7 @@ where
                 EmailUpdated { .. } => Some(CoreCustomerEvent::CustomerEmailUpdated {
                     entity: PublicCustomer::from(entity),
                 }),
-                KycRejected { .. } => Some(CoreCustomerEvent::CustomerKycRejected {
+                KycRejected { .. } => Some(CoreCustomerEvent::CustomerKycUpdated {
                     entity: PublicCustomer::from(entity),
                 }),
                 _ => None,

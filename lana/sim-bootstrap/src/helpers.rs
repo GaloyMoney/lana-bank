@@ -39,14 +39,9 @@ pub async fn create_customer(
             Ok((existing_customer.id, deposit_account_id))
         }
         None => {
-            let prospect = app
-                .customers()
-                .create_prospect(sub, customer_email.clone(), telegram, customer_type)
-                .await?;
-            let applicant_id = format!("sim-bootstrap-{}", prospect.id);
             let customer = app
                 .customers()
-                .handle_kyc_approved(prospect.id, applicant_id)
+                .create_customer(sub, customer_email.clone(), telegram, customer_type)
                 .await?;
             let deposit_account = app.deposits().create_account(sub, customer.id).await?;
             Ok((customer.id, deposit_account.id))
