@@ -37,7 +37,11 @@ impl IntoIterator for CreditFacilityHistory {
 }
 
 impl CreditFacilityHistory {
-    pub fn process_credit_event(&mut self, event: &CoreCreditEvent, recorded_at: DateTime<Utc>) {
+    pub fn process_credit_event(
+        &mut self,
+        event: &CoreCreditEvent,
+        message_recorded_at: DateTime<Utc>,
+    ) {
         use CoreCreditEvent::*;
 
         match event {
@@ -61,8 +65,8 @@ impl CreditFacilityHistory {
                 self.entries
                     .push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
                         satoshis: adjustment.abs_diff,
-                        recorded_at,
-                        effective: recorded_at.date_naive(),
+                        recorded_at: message_recorded_at,
+                        effective: message_recorded_at.date_naive(),
                         direction: adjustment.direction,
                         tx_id: adjustment.tx_id,
                     }));
@@ -97,7 +101,7 @@ impl CreditFacilityHistory {
                 self.entries
                     .push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
                         cents: entity.amount,
-                        recorded_at,
+                        recorded_at: message_recorded_at,
                         effective: settlement.effective,
                         tx_id: settlement.tx_id,
                     }));
@@ -110,7 +114,7 @@ impl CreditFacilityHistory {
                 self.entries.push(CreditFacilityHistoryEntry::Interest(
                     InterestAccrualsPosted {
                         cents: posting.amount,
-                        recorded_at,
+                        recorded_at: message_recorded_at,
                         effective: posting.effective,
                         tx_id: posting.tx_id,
                         days: entity.period.days(),
