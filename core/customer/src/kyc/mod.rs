@@ -115,8 +115,8 @@ where
             .ok_or_else(|| KycError::MissingExternalUserId(payload.to_string()))?
             .parse::<ProspectId>()?;
 
-        let callback_id = event.id.to_string();
-        match self.process_payload(callback_id, payload).await {
+        let inbox_id = event.id.to_string();
+        match self.process_payload(inbox_id, payload).await {
             Ok(_) => (),
             // Silently ignoring these errors instead of returning,
             // this prevents sumsub from retrying for these unhandled cases
@@ -150,7 +150,7 @@ where
     )]
     async fn process_payload(
         &self,
-        callback_id: String,
+        inbox_id: String,
         payload: serde_json::Value,
     ) -> Result<(), KycError> {
         match serde_json::from_value(payload.clone())? {
@@ -175,7 +175,7 @@ where
                         .handle_kyc_started_if_exists(
                             external_user_id,
                             applicant_id,
-                            callback_id.clone(),
+                            inbox_id.clone(),
                         )
                         .await?;
                     if res.is_none() {
@@ -187,7 +187,7 @@ where
                         .handle_kyc_started_if_exists(
                             external_user_id,
                             applicant_id,
-                            callback_id.clone(),
+                            inbox_id.clone(),
                         )
                         .await?;
                     if res.is_none() {
@@ -224,7 +224,7 @@ where
                         .handle_kyc_declined_if_exists(
                             external_user_id,
                             applicant_id,
-                            callback_id.clone(),
+                            inbox_id.clone(),
                         )
                         .await?;
                     if res.is_none() {
@@ -236,7 +236,7 @@ where
                         .handle_kyc_declined_if_exists(
                             external_user_id,
                             applicant_id,
-                            callback_id.clone(),
+                            inbox_id.clone(),
                         )
                         .await?;
                     if res.is_none() {
@@ -280,7 +280,7 @@ where
                         .handle_kyc_approved_if_exists(
                             external_user_id,
                             applicant_id,
-                            callback_id.clone(),
+                            inbox_id.clone(),
                         )
                         .await?;
                     if res.is_none() {
@@ -292,7 +292,7 @@ where
                         .handle_kyc_approved_if_exists(
                             external_user_id,
                             applicant_id,
-                            callback_id.clone(),
+                            inbox_id.clone(),
                         )
                         .await?;
                     if res.is_none() {
