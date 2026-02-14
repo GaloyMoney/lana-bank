@@ -147,12 +147,11 @@ where
         if self.repo.maybe_find_by_email(&email).await?.is_some() {
             return Err(prospect::ProspectError::EmailAlreadyExists.into());
         }
-        if let Some(existing) = self.prospect_repo.maybe_find_by_email(&email).await? {
-            if existing.status != ProspectStatus::Closed
-                && existing.status != ProspectStatus::Converted
-            {
-                return Err(prospect::ProspectError::EmailAlreadyExists.into());
-            }
+        if let Some(existing) = self.prospect_repo.maybe_find_by_email(&email).await?
+            && existing.status != ProspectStatus::Closed
+            && existing.status != ProspectStatus::Converted
+        {
+            return Err(prospect::ProspectError::EmailAlreadyExists.into());
         }
 
         if self
@@ -167,12 +166,10 @@ where
             .prospect_repo
             .maybe_find_by_telegram_handle(&telegram_handle)
             .await?
+            && existing.status != ProspectStatus::Closed
+            && existing.status != ProspectStatus::Converted
         {
-            if existing.status != ProspectStatus::Closed
-                && existing.status != ProspectStatus::Converted
-            {
-                return Err(prospect::ProspectError::TelegramHandleAlreadyExists.into());
-            }
+            return Err(prospect::ProspectError::TelegramHandleAlreadyExists.into());
         }
 
         let prospect_id = ProspectId::new();
