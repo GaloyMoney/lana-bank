@@ -34,22 +34,12 @@ async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
 
     // Start KYC first (required before approval)
     customers
-        .handle_kyc_started(
-            prospect.id,
-            applicant_id.clone(),
-            "test-callback".to_string(),
-        )
+        .handle_kyc_started(prospect.id, applicant_id.clone())
         .await?;
 
     let (created_customer, recorded) = event::expect_event(
         &outbox,
-        || {
-            customers.handle_kyc_approved(
-                prospect.id,
-                applicant_id.clone(),
-                "test-callback".to_string(),
-            )
-        },
+        || customers.handle_kyc_approved(prospect.id, applicant_id.clone()),
         |result, e| match e {
             CoreCustomerEvent::CustomerCreated { entity } if entity.id == result.id => {
                 Some(entity.clone())

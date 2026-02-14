@@ -9,7 +9,6 @@ CREATE TABLE core_prospect_events_rollup (
   applicant_id VARCHAR,
   customer_type VARCHAR,
   email VARCHAR,
-  inbox_id VARCHAR,
   level VARCHAR,
   public_id VARCHAR,
   telegram_handle VARCHAR,
@@ -56,7 +55,6 @@ BEGIN
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.email := (NEW.event ->> 'email');
-    new_row.inbox_id := (NEW.event ->> 'inbox_id');
     new_row.is_kyc_approved := false;
     new_row.level := (NEW.event ->> 'level');
     new_row.public_id := (NEW.event ->> 'public_id');
@@ -67,7 +65,6 @@ BEGIN
     new_row.applicant_id := current_row.applicant_id;
     new_row.customer_type := current_row.customer_type;
     new_row.email := current_row.email;
-    new_row.inbox_id := current_row.inbox_id;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
     new_row.level := current_row.level;
     new_row.public_id := current_row.public_id;
@@ -84,15 +81,11 @@ BEGIN
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
     WHEN 'kyc_started' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
-      new_row.inbox_id := (NEW.event ->> 'inbox_id');
     WHEN 'kyc_approved' THEN
-      new_row.inbox_id := (NEW.event ->> 'inbox_id');
       new_row.is_kyc_approved := true;
       new_row.level := (NEW.event ->> 'level');
     WHEN 'kyc_pending' THEN
-      new_row.inbox_id := (NEW.event ->> 'inbox_id');
     WHEN 'kyc_declined' THEN
-      new_row.inbox_id := (NEW.event ->> 'inbox_id');
     WHEN 'manually_converted' THEN
     WHEN 'verification_link_created' THEN
       new_row.url := (NEW.event ->> 'url');
@@ -110,7 +103,6 @@ BEGIN
     applicant_id,
     customer_type,
     email,
-    inbox_id,
     is_kyc_approved,
     level,
     public_id,
@@ -126,7 +118,6 @@ BEGIN
     new_row.applicant_id,
     new_row.customer_type,
     new_row.email,
-    new_row.inbox_id,
     new_row.is_kyc_approved,
     new_row.level,
     new_row.public_id,

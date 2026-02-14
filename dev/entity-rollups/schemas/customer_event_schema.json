@@ -138,10 +138,6 @@
     },
     {
       "properties": {
-        "inbox_id": {
-          "default": "",
-          "type": "string"
-        },
         "type": {
           "const": "kyc_rejected",
           "type": "string"
