@@ -1,7 +1,7 @@
 from typing import Sequence
 
 import dagster as dg
-from src.assets.dbt import TAG_KEY_ASSET_TYPE, TAG_VALUE_DBT_MODEL
+from src.assets.dbt import TAG_KEY_ASSET_TYPE, TAG_VALUE_DBT_MODEL, TAG_VALUE_DBT_SEED
 from src.otel import JOB_TRACEPARENT_TAG
 
 
@@ -61,6 +61,24 @@ def build_dbt_automation_sensor(
     return dg.AutomationConditionSensorDefinition(
         name="dbt_automation_condition_sensor",
         target=dg.AssetSelection.tag(TAG_KEY_ASSET_TYPE, TAG_VALUE_DBT_MODEL),
+        default_status=(
+            dg.DefaultSensorStatus.RUNNING
+            if dagster_automations_active
+            else dg.DefaultSensorStatus.STOPPED
+        ),
+    )
+
+
+def build_cold_start_automation_sensor(
+    dagster_automations_active: bool,
+) -> dg.AutomationConditionSensorDefinition:
+    return dg.AutomationConditionSensorDefinition(
+        name="cold_start_automation_condition_sensor",
+        target=(
+            dg.AssetSelection.tag(TAG_KEY_ASSET_TYPE, TAG_VALUE_DBT_SEED)
+            | dg.AssetSelection.tag(TAG_KEY_ASSET_TYPE, "el_target_asset")
+            | dg.AssetSelection.tag("category", "file_report")
+        ),
         default_status=(
             dg.DefaultSensorStatus.RUNNING
             if dagster_automations_active

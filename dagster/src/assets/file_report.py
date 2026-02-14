@@ -135,7 +135,8 @@ def generated_file_report_protoassets() -> List[Protoasset]:
                         RESOURCE_KEY_FILE_REPORTS_BUCKET,
                         RESOURCE_KEY_DW_BQ,
                     },
-                    automation_condition=None,
+                    automation_condition=dg.AutomationCondition.on_missing()
+                    & ~dg.AutomationCondition.any_deps_missing(),
                     tags={
                         "category": "file_report",
                         "norm": report_job.norm,

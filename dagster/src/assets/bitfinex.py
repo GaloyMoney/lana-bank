@@ -78,17 +78,20 @@ def bitfinex_protoassets() -> Dict[str, Protoasset]:
             callable=bitfinex_ticker,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
             tags={"system": BITFINEX_SYSTEM_NAME, "asset_type": "el_target_asset"},
+            automation_condition=dg.AutomationCondition.on_missing(),
         ),
         BITFINEX_TRADES_DLT_TABLE: Protoasset(
             key=dg.AssetKey([BITFINEX_SYSTEM_NAME, BITFINEX_TRADES_DLT_TABLE]),
             callable=bitfinex_trades,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
             tags={"system": BITFINEX_SYSTEM_NAME, "asset_type": "el_target_asset"},
+            automation_condition=dg.AutomationCondition.on_missing(),
         ),
         BITFINEX_ORDER_BOOK_DLT_TABLE: Protoasset(
             key=dg.AssetKey([BITFINEX_SYSTEM_NAME, BITFINEX_ORDER_BOOK_DLT_TABLE]),
             callable=bitfinex_order_book,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
             tags={"system": BITFINEX_SYSTEM_NAME, "asset_type": "el_target_asset"},
+            automation_condition=dg.AutomationCondition.on_missing(),
         ),
     }
