@@ -251,9 +251,9 @@
     },
     "stage": {
       "new": "Nuevo",
-      "kycStarted": "KYC iniciado",
-      "kycPending": "KYC pendiente",
-      "kycDeclined": "KYC rechazado",
+      "kycStarted": "KYC Iniciado",
+      "kycPending": "KYC Pendiente",
+      "kycDeclined": "KYC Rechazado",
       "converted": "Convertido",
       "closed": "Cerrado"
     },
