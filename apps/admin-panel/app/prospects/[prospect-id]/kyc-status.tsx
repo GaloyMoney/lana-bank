@@ -45,10 +45,13 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
 
   const sumsubLink = `https://cockpit.sumsub.com/checkus#/applicant/${applicantId}/client/basicInfo`
 
-  const [createLink, { loading: linkLoading, error: linkError }] =
+  const [createLink, { data: linkData, loading: linkLoading, error: linkError }] =
     useSumsubPermalinkCreateMutation({
       refetchQueries: ["GetProspectBasicDetails"],
     })
+
+  const effectiveVerificationLink =
+    linkData?.sumsubPermalinkCreate?.url || verificationLink
 
   const handleCreateLink = async () => {
     await createLink({
@@ -76,19 +79,19 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
         >
           {applicantId}
         </a>
-      ) : verificationLink ? (
+      ) : effectiveVerificationLink ? (
         <div className="flex items-center gap-2">
           <a
-            href={verificationLink}
+            href={effectiveVerificationLink}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 underline overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]"
           >
-            {verificationLink}
+            {effectiveVerificationLink}
           </a>
           <button
             onClick={() => {
-              navigator.clipboard.writeText(verificationLink)
+              navigator.clipboard.writeText(effectiveVerificationLink)
               toast.success(t("messages.copied"))
             }}
           >
