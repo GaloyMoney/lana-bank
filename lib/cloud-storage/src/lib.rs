@@ -1,15 +1,16 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-mod client;
+pub mod client;
 pub mod config;
 pub mod error;
 
 use std::sync::Arc;
 use tokio::sync::OnceCell;
 
+pub use client::LocalClient;
 pub use client::LocationInStorage;
-use client::{GcpClient, LocalClient, StorageClient};
+use client::{GcpClient, StorageClient};
 use config::StorageConfig;
 use error::*;
 #[derive(Clone)]
@@ -82,5 +83,22 @@ impl Storage {
 
     pub fn identifier(&self) -> String {
         self.config.identifier()
+    }
+
+    /// Read a local file with signature verification.
+    /// Only available when storage is configured in local mode.
+    pub async fn read_local_file(
+        &self,
+        path: &str,
+        expires: u64,
+        signature: &str,
+    ) -> Result<Vec<u8>, StorageError> {
+        match &self.config {
+            StorageConfig::Local(local_config) => {
+                let client = LocalClient::new(local_config);
+                Ok(client.read_file(path, expires, signature).await?)
+            }
+            StorageConfig::Gcp(_) => Err(StorageError::LocalStorageNotConfigured),
+        }
     }
 }

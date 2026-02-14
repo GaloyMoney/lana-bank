@@ -3,6 +3,7 @@
 
 mod config;
 pub mod graphql;
+mod local_storage;
 mod primitives;
 mod sse;
 mod webhooks;
@@ -54,6 +55,7 @@ where
         .merge(webhooks::custodians::routes())
         .merge(webhooks::reports::routes())
         .merge(webhooks::sumsub::routes())
+        .merge(local_storage::routes())
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
         })
