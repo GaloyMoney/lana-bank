@@ -39,6 +39,10 @@ impl audit::SystemSubject for DummySubject {
     fn system(_actor: audit::SystemActor) -> Self {
         DummySubject
     }
+
+    fn is_system(&self) -> bool {
+        false
+    }
 }
 
 impl fmt::Display for DummySubject {

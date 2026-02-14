@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet};
 
-use audit::SystemSubject;
 use authz::action_description::*;
 use es_entity::DbOp;
 
@@ -70,16 +69,6 @@ where
             .await?;
 
         db.commit().await?;
-
-        // Subject::System also has the superuser role
-        self.authz
-            .assign_role_to_subject(
-                <<Audit as AuditSvc>::Subject as SystemSubject>::system(
-                    audit::SystemActor::BOOTSTRAP,
-                ),
-                superuser_role.id,
-            )
-            .await?;
 
         Ok(())
     }
