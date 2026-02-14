@@ -25,6 +25,10 @@ pub enum ProspectError {
         "ProspectError - KycNotStarted: cannot approve or decline KYC before it has been started"
     )]
     KycNotStarted,
+    #[error("ProspectError - AlreadyConverted: prospect has already been converted to a customer")]
+    AlreadyConverted,
+    #[error("ProspectError - AlreadyClosed: prospect has been closed")]
+    AlreadyClosed,
     #[error("ProspectError - EmailAlreadyExists")]
     EmailAlreadyExists,
     #[error("ProspectError - TelegramHandleAlreadyExists")]
@@ -44,6 +48,8 @@ impl ErrorSeverity for ProspectError {
             Self::PublicIdError(e) => e.severity(),
             Self::ApplicantIdMismatch { .. } => Level::WARN,
             Self::KycNotStarted => Level::WARN,
+            Self::AlreadyConverted => Level::WARN,
+            Self::AlreadyClosed => Level::WARN,
             Self::EmailAlreadyExists => Level::WARN,
             Self::TelegramHandleAlreadyExists => Level::WARN,
         }

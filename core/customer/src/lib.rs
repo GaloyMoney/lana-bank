@@ -311,7 +311,7 @@ where
             .await?;
 
         let applicant_id = format!("create-customer-{}", prospect.id);
-        let _ = prospect.start_kyc(applicant_id.clone());
+        let _ = prospect.start_kyc(applicant_id.clone())?;
 
         match prospect.approve_kyc(KycLevel::Basic)? {
             es_entity::Idempotent::Executed(new_customer) => {
@@ -358,7 +358,7 @@ where
             )
             .await?;
 
-        if prospect.start_kyc(applicant_id).did_execute() {
+        if prospect.start_kyc(applicant_id)?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -383,7 +383,7 @@ where
             )
             .await?;
 
-        if prospect.start_kyc(applicant_id).did_execute() {
+        if prospect.start_kyc(applicant_id)?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -400,7 +400,7 @@ where
             return Ok(None);
         };
 
-        if prospect.set_kyc_pending().did_execute() {
+        if prospect.set_kyc_pending()?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -613,7 +613,10 @@ where
             .await?;
 
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
-        if prospect.record_verification_link_created(url).did_execute() {
+        if prospect
+            .record_verification_link_created(url)?
+            .did_execute()
+        {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -637,7 +640,7 @@ where
             .await?;
 
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
-        if prospect.close().did_execute() {
+        if prospect.close()?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -662,7 +665,7 @@ where
 
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
-        match prospect.convert_manually() {
+        match prospect.convert_manually()? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo

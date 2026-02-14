@@ -77,33 +77,37 @@ impl Prospect {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn start_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
+    fn ensure_open(&self) -> Result<(), ProspectError> {
+        match self.status {
+            ProspectStatus::Converted => Err(ProspectError::AlreadyConverted),
+            ProspectStatus::Closed => Err(ProspectError::AlreadyClosed),
+            ProspectStatus::Open => Ok(()),
+        }
+    }
+
+    pub fn start_kyc(&mut self, applicant_id: String) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycStarted { .. }
-                | ProspectEvent::KycApproved { .. }
-                | ProspectEvent::ManuallyConverted { .. }
-                | ProspectEvent::Closed { .. }
         );
+        self.ensure_open()?;
         self.events.push(ProspectEvent::KycStarted {
             applicant_id: applicant_id.clone(),
         });
         self.applicant_id = Some(applicant_id);
         self.kyc_status = KycStatus::Started;
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
-    pub fn set_kyc_pending(&mut self) -> Idempotent<()> {
+    pub fn set_kyc_pending(&mut self) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycPending { .. }
-                | ProspectEvent::KycApproved { .. }
-                | ProspectEvent::ManuallyConverted { .. }
-                | ProspectEvent::Closed { .. }
         );
+        self.ensure_open()?;
         self.events.push(ProspectEvent::KycPending {});
         self.kyc_status = KycStatus::Pending;
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
     pub fn approve_kyc(
@@ -113,9 +117,8 @@ impl Prospect {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycApproved { .. }
-                | ProspectEvent::ManuallyConverted { .. }
-                | ProspectEvent::Closed { .. }
         );
+        self.ensure_open()?;
         let applicant_id = self
             .applicant_id
             .clone()
@@ -141,13 +144,12 @@ impl Prospect {
         Ok(Idempotent::Executed(new_customer))
     }
 
-    pub fn convert_manually(&mut self) -> Idempotent<NewCustomer> {
+    pub fn convert_manually(&mut self) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::ManuallyConverted { .. }
-                | ProspectEvent::KycApproved { .. }
-                | ProspectEvent::Closed { .. }
         );
+        self.ensure_open()?;
         self.events.push(ProspectEvent::ManuallyConverted {});
         self.status = ProspectStatus::Converted;
         self.kyc_status = KycStatus::Approved;
@@ -164,17 +166,15 @@ impl Prospect {
             .build()
             .expect("Could not build customer from prospect");
 
-        Idempotent::Executed(new_customer)
+        Ok(Idempotent::Executed(new_customer))
     }
 
     pub fn decline_kyc(&mut self) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycDeclined { .. }
-                | ProspectEvent::KycApproved { .. }
-                | ProspectEvent::ManuallyConverted { .. }
-                | ProspectEvent::Closed { .. }
         );
+        self.ensure_open()?;
         if self.applicant_id.is_none() {
             return Err(ProspectError::KycNotStarted);
         }
@@ -183,29 +183,23 @@ impl Prospect {
         Ok(Idempotent::Executed(()))
     }
 
-    pub fn close(&mut self) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ProspectEvent::Closed { .. }
-                | ProspectEvent::KycApproved { .. }
-                | ProspectEvent::ManuallyConverted { .. }
-        );
+    pub fn close(&mut self) -> Result<Idempotent<()>, ProspectError> {
+        idempotency_guard!(self.events.iter_all().rev(), ProspectEvent::Closed { .. });
+        self.ensure_open()?;
         self.events.push(ProspectEvent::Closed {});
         self.status = ProspectStatus::Closed;
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
-    pub fn record_verification_link_created(&mut self, url: String) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ProspectEvent::KycApproved { .. }
-                | ProspectEvent::ManuallyConverted { .. }
-                | ProspectEvent::Closed { .. }
-        );
+    pub fn record_verification_link_created(
+        &mut self,
+        url: String,
+    ) -> Result<Idempotent<()>, ProspectError> {
+        self.ensure_open()?;
         self.events
             .push(ProspectEvent::VerificationLinkCreated { url: url.clone() });
         self.verification_link = Some(url);
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
     pub fn stage(&self) -> ProspectStage {
@@ -228,19 +222,20 @@ impl Prospect {
         }
     }
 
-    pub fn update_telegram_handle(&mut self, new_telegram_handle: String) -> Idempotent<()> {
+    pub fn update_telegram_handle(
+        &mut self,
+        new_telegram_handle: String,
+    ) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::TelegramHandleUpdated { telegram_handle: existing_telegram_handle , ..} if existing_telegram_handle == &new_telegram_handle,
-            ProspectEvent::KycApproved { .. }
-                | ProspectEvent::ManuallyConverted { .. }
-                | ProspectEvent::Closed { .. }
+            ProspectEvent::TelegramHandleUpdated { telegram_handle: existing_telegram_handle , ..} if existing_telegram_handle == &new_telegram_handle
         );
+        self.ensure_open()?;
         self.events.push(ProspectEvent::TelegramHandleUpdated {
             telegram_handle: new_telegram_handle.clone(),
         });
         self.telegram_handle = new_telegram_handle;
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 }
 
@@ -372,7 +367,9 @@ mod tests {
     #[test]
     fn approve_kyc_succeeds_after_kyc_started() {
         let mut prospect = create_test_prospect();
-        let _ = prospect.start_kyc("correct-applicant-id".to_string());
+        let _ = prospect
+            .start_kyc("correct-applicant-id".to_string())
+            .expect("start_kyc should succeed");
 
         let result = prospect.approve_kyc(KycLevel::Basic);
 
@@ -391,10 +388,37 @@ mod tests {
     #[test]
     fn decline_kyc_succeeds_after_kyc_started() {
         let mut prospect = create_test_prospect();
-        let _ = prospect.start_kyc("correct-applicant-id".to_string());
+        let _ = prospect
+            .start_kyc("correct-applicant-id".to_string())
+            .expect("start_kyc should succeed");
 
         let result = prospect.decline_kyc();
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn close_fails_when_already_converted() {
+        let mut prospect = create_test_prospect();
+        let _ = prospect
+            .start_kyc("applicant-id".to_string())
+            .expect("start_kyc should succeed");
+        let _ = prospect
+            .approve_kyc(KycLevel::Basic)
+            .expect("approve_kyc should succeed");
+
+        let result = prospect.close();
+
+        assert!(matches!(result, Err(ProspectError::AlreadyConverted)));
+    }
+
+    #[test]
+    fn start_kyc_fails_when_closed() {
+        let mut prospect = create_test_prospect();
+        let _ = prospect.close().expect("close should succeed");
+
+        let result = prospect.start_kyc("applicant-id".to_string());
+
+        assert!(matches!(result, Err(ProspectError::AlreadyClosed)));
     }
 }
