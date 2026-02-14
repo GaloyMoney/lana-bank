@@ -124,6 +124,13 @@ interface ProspectCreateResponse {
     }
   }
 }
+interface ProspectConvertResponse {
+  data: {
+    prospectConvert: {
+      customer: Customer
+    }
+  }
+}
 interface CustomerQueryResponse {
   data: {
     customer: Customer
@@ -139,6 +146,21 @@ Cypress.Commands.add(
           prospect {
             prospectId
             publicId
+          }
+        }
+      }
+    `
+    const convertMutation = `
+      mutation ProspectConvert($input: ProspectConvertInput!) {
+        prospectConvert(input: $input) {
+          customer {
+            customerId
+            publicId
+            depositAccount {
+              id
+              depositAccountId
+              publicId
+            }
           }
         }
       }
@@ -165,105 +187,20 @@ Cypress.Commands.add(
       })
       .then((response) => {
         const prospectId = response.data.prospectCreate.prospect.prospectId
-        const webhookId = `req-${Date.now()}`
-        const applicantId = `test-applicant-${webhookId}`
-        // Simulate KYC start via SumSub applicantCreated webhook
+        return cy.graphqlRequest<ProspectConvertResponse>(convertMutation, {
+          input: { prospectId },
+        })
+      })
+      .then((response) => {
+        const customerId = response.data.prospectConvert.customer.customerId
         return cy
-          .request({
-            method: "POST",
-            url: "http://localhost:5253/webhook/sumsub",
-            headers: { "Content-Type": "application/json" },
-            body: {
-              applicantId,
-              inspectionId: `test-inspection-${webhookId}`,
-              correlationId: webhookId,
-              externalUserId: prospectId,
-              levelName: "basic-kyc-level",
-              type: "applicantCreated",
-              reviewStatus: "init",
-              createdAtMs: new Date().toISOString(),
-              sandboxMode: true,
-            },
-          })
-          .then(() => {
-            // Simulate KYC approval via SumSub sandbox webhook
-            return cy.request({
-              method: "POST",
-              url: "http://localhost:5253/webhook/sumsub",
-              headers: { "Content-Type": "application/json" },
-              body: {
-                applicantId,
-                inspectionId: `test-inspection-${webhookId}`,
-                correlationId: webhookId,
-                externalUserId: prospectId,
-                levelName: "basic-kyc-level",
-                type: "applicantReviewed",
-                reviewResult: { reviewAnswer: "GREEN" },
-                reviewStatus: "completed",
-                createdAtMs: new Date().toISOString(),
-                sandboxMode: true,
-              },
-            })
-          })
-          .then(() => {
-            // Customer is created asynchronously from webhook processing.
-            // Poll until the customer exists before creating deposit account.
-            const customerId = prospectId
-            const pollForCustomer = (
-              attempt: number,
-              maxAttempts: number,
-            ): Cypress.Chainable<Customer> => {
-              return cy
-                .request({
-                  method: "POST",
-                  url: `http://localhost:8081/realms/internal/protocol/openid-connect/token`,
-                  form: true,
-                  body: {
-                    client_id: "admin-panel",
-                    grant_type: "password",
-                    username: "admin@galoy.io",
-                  },
-                })
-                .then(({ body: tokenBody }) =>
-                  cy
-                    .request({
-                      method: "POST",
-                      url: "http://admin.localhost:4455/graphql",
-                      body: {
-                        query: customerQuery,
-                        variables: { id: customerId },
-                      },
-                      headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${tokenBody.access_token}`,
-                      },
-                      failOnStatusCode: false,
-                    })
-                    .then((response) => {
-                      if (response.body?.data?.customer?.customerId) {
-                        return cy
-                          .createDepositAccount(customerId)
-                          .then(() =>
-                            cy.graphqlRequest<CustomerQueryResponse>(
-                              customerQuery,
-                              { id: customerId },
-                            ),
-                          )
-                          .then((resp) => resp.data.customer)
-                      }
-                      if (attempt >= maxAttempts) {
-                        throw new Error(
-                          `Customer ${customerId} not found after ${maxAttempts} attempts`,
-                        )
-                      }
-                      return cy
-                        .wait(1000)
-                        .then(() => pollForCustomer(attempt + 1, maxAttempts))
-                    }),
-                )
-            }
-            return pollForCustomer(1, 15)
-          })
+          .createDepositAccount(customerId)
+          .then(() =>
+            cy.graphqlRequest<CustomerQueryResponse>(customerQuery, {
+              id: customerId,
+            }),
+          )
+          .then((resp) => resp.data.customer)
       })
   },
 )
