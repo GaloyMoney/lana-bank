@@ -197,7 +197,14 @@ impl Prospect {
                 KycStatus::Declined => ProspectStage::KycDeclined,
                 KycStatus::Pending => ProspectStage::KycPending,
                 KycStatus::Started => ProspectStage::KycStarted,
-                KycStatus::NotStarted | KycStatus::Approved => ProspectStage::New,
+                KycStatus::NotStarted => ProspectStage::New,
+                KycStatus::Approved => {
+                    tracing::error!(
+                        prospect_id = %self.id,
+                        "prospect has KycStatus::Approved but ProspectStatus::Open - expected Converted"
+                    );
+                    ProspectStage::New
+                }
             },
         }
     }
