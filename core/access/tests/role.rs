@@ -47,6 +47,7 @@ async fn create_role_publishes_event() -> anyhow::Result<()> {
         config,
         CoreAccessAction::actions(),
         &[],
+        &[],
         &authz,
         &outbox,
         clock,

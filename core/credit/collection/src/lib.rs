@@ -27,11 +27,11 @@ pub use payment_allocation::{
 };
 pub use primitives::{
     BalanceUpdateData, BalanceUpdatedSource, BeneficiaryId, CalaAccountId,
-    CoreCreditCollectionAction, CoreCreditCollectionObject, ObligationAction, ObligationAllOrOne,
-    ObligationId, ObligationReceivableAccountIds, ObligationStatus, ObligationType,
-    ObligationsAmounts, PERMISSION_SET_COLLECTION_PAYMENT_DATE, PERMISSION_SET_COLLECTION_VIEWER,
-    PERMISSION_SET_COLLECTION_WRITER, PaymentAllocationId, PaymentDetailsForAllocation, PaymentId,
-    PaymentSourceAccountId,
+    CoreCreditCollectionAction, CoreCreditCollectionObject, OBLIGATION_SYNC, ObligationAction,
+    ObligationAllOrOne, ObligationId, ObligationReceivableAccountIds, ObligationStatus,
+    ObligationType, ObligationsAmounts, PERMISSION_SET_COLLECTION_PAYMENT_DATE,
+    PERMISSION_SET_COLLECTION_VIEWER, PERMISSION_SET_COLLECTION_WRITER, PaymentAllocationId,
+    PaymentDetailsForAllocation, PaymentId, PaymentSourceAccountId,
 };
 pub use public::*;
 pub use publisher::CollectionPublisher;

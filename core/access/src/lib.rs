@@ -63,6 +63,7 @@ where
         config: AccessConfig,
         all_actions: Vec<ActionMapping>,
         predefined_roles: &'static [(&'static str, &'static [&'static str])],
+        system_actors: &[audit::SystemActor],
         authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
         clock: ClockHandle,
@@ -76,7 +77,7 @@ where
             let bootstrap =
                 bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo);
             bootstrap
-                .bootstrap_access_control(email, all_actions, predefined_roles)
+                .bootstrap_access_control(email, all_actions, predefined_roles, system_actors)
                 .await?;
         }
 

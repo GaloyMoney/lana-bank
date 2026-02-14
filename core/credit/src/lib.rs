@@ -68,6 +68,8 @@ pub use repayment_plan::*;
 
 use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
 
+pub use core_credit_collection::OBLIGATION_SYNC;
+
 #[cfg(feature = "json-schema")]
 pub use core_credit_collection::{ObligationEvent, PaymentAllocationEvent, PaymentEvent};
 

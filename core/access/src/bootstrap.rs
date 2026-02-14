@@ -51,6 +51,7 @@ where
         email: String,
         all_actions: Vec<ActionMapping>,
         predefined_roles: &[(&'static str, &[&'static str])],
+        system_actors: &[audit::SystemActor],
     ) -> Result<(), CoreAccessError> {
         let mut db = self.role_repo.begin_op().await?;
 
@@ -71,15 +72,15 @@ where
 
         db.commit().await?;
 
-        // Subject::System also has the superuser role
-        self.authz
-            .assign_role_to_subject(
-                <<Audit as AuditSvc>::Subject as SystemSubject>::system(
-                    audit::SystemActor::BOOTSTRAP,
-                ),
-                superuser_role.id,
-            )
-            .await?;
+        // System actors get the superuser role
+        for actor in std::iter::once(&audit::SystemActor::BOOTSTRAP).chain(system_actors.iter()) {
+            self.authz
+                .assign_role_to_subject(
+                    <<Audit as AuditSvc>::Subject as SystemSubject>::system(actor.clone()),
+                    superuser_role.id,
+                )
+                .await?;
+        }
 
         Ok(())
     }

@@ -54,6 +54,7 @@ async fn create_user_publishes_event() -> anyhow::Result<()> {
         config,
         CoreAccessAction::actions(),
         &[],
+        &[],
         &authz,
         &outbox,
         clock,
