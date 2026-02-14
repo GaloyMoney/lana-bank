@@ -7,6 +7,7 @@ use crate::{AuditEntry, error::AuditError, primitives::*};
 
 pub trait SystemSubject: fmt::Display + fmt::Debug {
     fn system(actor: crate::SystemActor) -> Self;
+    fn is_system(&self) -> bool;
 }
 
 #[async_trait]

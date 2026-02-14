@@ -21,7 +21,7 @@ use tokio::sync::RwLock;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::{AuditInfo, AuditSvc};
+use audit::{AuditInfo, AuditSvc, SystemSubject};
 
 use error::AuthorizationError;
 
@@ -296,6 +296,11 @@ where
 
         tracing::Span::current().record("object", object.to_string());
         tracing::Span::current().record("action", action.to_string());
+
+        if sub.is_system() {
+            tracing::Span::current().record("authorized", true);
+            return Ok(());
+        }
 
         let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await?;

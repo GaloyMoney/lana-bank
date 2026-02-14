@@ -42,6 +42,10 @@ impl audit::SystemSubject for TestSubject {
     fn system(_actor: audit::SystemActor) -> Self {
         TestSubject
     }
+
+    fn is_system(&self) -> bool {
+        false
+    }
 }
 
 /// A test audit implementation that satisfies CoreAccess requirements

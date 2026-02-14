@@ -35,6 +35,10 @@ impl audit::SystemSubject for Subject {
     fn system(actor: audit::SystemActor) -> Self {
         Subject::System(actor)
     }
+
+    fn is_system(&self) -> bool {
+        matches!(self, Subject::System(_))
+    }
 }
 
 impl std::str::FromStr for Subject {
