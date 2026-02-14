@@ -1,3 +1,37 @@
+## [0.41.0] - 2026-02-14
+
+### 🚀 Features
+
+- Type-safe encrypted domain config (#3769)
+- Translate transaction template codes in admin panel (#3784)
+- Add event type to data pipeline rollups (#3787)
+- Start root assets on first deploy (#3791)
+- Bypass authz check for system actors (#3819)
+
+### 🐛 Bug Fixes
+
+- Collapse nested if-let to satisfy clippy collapsible_if lint (#3792)
+- Exclude workspace-hack from dependabot cargo scans (#3804)
+- Restore workspace-hack from base branch before hakari regeneration (#3809)
+- Suppress hydration warning on html tag in admin panel (#3803)
+- Apply startup domain configs before app initialization (#3817)
+
+### 🚜 Refactor
+
+- Move codegen binaries to dev/codegen crate (#3781)
+- Credit product mod `AccountSet` as value including accounting context (#3741)
+
+### 🧪 Testing
+
+- Test json updates in domain config (#3800)
+
+### ⚙️ Miscellaneous Tasks
+
+- Adding fly to flake (#3756)
+- Create skills for testing PR on staging (#3764)
+- Translate journal transaction descriptions (#3768)
+- Removing claude code review (#3793)
+- Use encrypted flag for sumsub and update ui (#3797)
 ## [0.40.0] - 2026-02-11
 
 ### 🚀 Features
