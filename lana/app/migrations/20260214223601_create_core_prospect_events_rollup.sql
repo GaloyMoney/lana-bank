@@ -11,6 +11,7 @@ CREATE TABLE core_prospect_events_rollup (
   email VARCHAR,
   level VARCHAR,
   public_id VARCHAR,
+  stage VARCHAR,
   telegram_handle VARCHAR,
   url VARCHAR,
 
@@ -58,6 +59,7 @@ BEGIN
     new_row.is_kyc_approved := false;
     new_row.level := (NEW.event ->> 'level');
     new_row.public_id := (NEW.event ->> 'public_id');
+    new_row.stage := (NEW.event ->> 'stage');
     new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
     new_row.url := (NEW.event ->> 'url');
   ELSE
@@ -68,6 +70,7 @@ BEGIN
     new_row.is_kyc_approved := current_row.is_kyc_approved;
     new_row.level := current_row.level;
     new_row.public_id := current_row.public_id;
+    new_row.stage := current_row.stage;
     new_row.telegram_handle := current_row.telegram_handle;
     new_row.url := current_row.url;
   END IF;
@@ -78,18 +81,25 @@ BEGIN
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.email := (NEW.event ->> 'email');
       new_row.public_id := (NEW.event ->> 'public_id');
+      new_row.stage := (NEW.event ->> 'stage');
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
     WHEN 'kyc_started' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
+      new_row.stage := (NEW.event ->> 'stage');
     WHEN 'kyc_approved' THEN
       new_row.is_kyc_approved := true;
       new_row.level := (NEW.event ->> 'level');
+      new_row.stage := (NEW.event ->> 'stage');
     WHEN 'kyc_pending' THEN
+      new_row.stage := (NEW.event ->> 'stage');
     WHEN 'kyc_declined' THEN
+      new_row.stage := (NEW.event ->> 'stage');
     WHEN 'manually_converted' THEN
+      new_row.stage := (NEW.event ->> 'stage');
     WHEN 'verification_link_created' THEN
       new_row.url := (NEW.event ->> 'url');
     WHEN 'closed' THEN
+      new_row.stage := (NEW.event ->> 'stage');
     WHEN 'telegram_handle_updated' THEN
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
   END CASE;
@@ -106,6 +116,7 @@ BEGIN
     is_kyc_approved,
     level,
     public_id,
+    stage,
     telegram_handle,
     url
   )
@@ -121,6 +132,7 @@ BEGIN
     new_row.is_kyc_approved,
     new_row.level,
     new_row.public_id,
+    new_row.stage,
     new_row.telegram_handle,
     new_row.url
   );

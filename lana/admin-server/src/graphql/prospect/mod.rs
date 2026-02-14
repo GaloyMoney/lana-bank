@@ -39,7 +39,7 @@ impl From<DomainProspect> for Prospect {
 #[ComplexObject]
 impl Prospect {
     async fn stage(&self) -> ProspectStage {
-        self.entity.stage()
+        self.entity.stage
     }
 
     async fn email(&self) -> &str {

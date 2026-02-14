@@ -20,20 +20,31 @@ pub enum ProspectEvent {
         telegram_handle: String,
         customer_type: CustomerType,
         public_id: PublicId,
+        stage: ProspectStage,
     },
     KycStarted {
         applicant_id: String,
+        stage: ProspectStage,
     },
     KycApproved {
         level: KycLevel,
+        stage: ProspectStage,
     },
-    KycPending {},
-    KycDeclined {},
-    ManuallyConverted {},
+    KycPending {
+        stage: ProspectStage,
+    },
+    KycDeclined {
+        stage: ProspectStage,
+    },
+    ManuallyConverted {
+        stage: ProspectStage,
+    },
     VerificationLinkCreated {
         url: String,
     },
-    Closed {},
+    Closed {
+        stage: ProspectStage,
+    },
     TelegramHandleUpdated {
         telegram_handle: String,
     },
@@ -56,6 +67,7 @@ pub struct Prospect {
     pub verification_link: Option<String>,
     #[builder(default)]
     pub level: KycLevel,
+    pub stage: ProspectStage,
     pub public_id: PublicId,
     events: EntityEvents<ProspectEvent>,
 }
@@ -91,11 +103,14 @@ impl Prospect {
             ProspectEvent::KycStarted { .. }
         );
         self.ensure_open()?;
+        let stage = ProspectStage::KycStarted;
         self.events.push(ProspectEvent::KycStarted {
             applicant_id: applicant_id.clone(),
+            stage,
         });
         self.applicant_id = Some(applicant_id);
         self.kyc_status = KycStatus::Started;
+        self.stage = stage;
         Ok(Idempotent::Executed(()))
     }
 
@@ -105,8 +120,10 @@ impl Prospect {
             ProspectEvent::KycPending { .. }
         );
         self.ensure_open()?;
-        self.events.push(ProspectEvent::KycPending {});
+        let stage = ProspectStage::KycPending;
+        self.events.push(ProspectEvent::KycPending { stage });
         self.kyc_status = KycStatus::Pending;
+        self.stage = stage;
         Ok(Idempotent::Executed(()))
     }
 
@@ -123,10 +140,13 @@ impl Prospect {
             .applicant_id
             .clone()
             .ok_or(ProspectError::KycNotStarted)?;
-        self.events.push(ProspectEvent::KycApproved { level });
+        let stage = ProspectStage::Converted;
+        self.events
+            .push(ProspectEvent::KycApproved { level, stage });
         self.level = level;
         self.kyc_status = KycStatus::Approved;
         self.status = ProspectStatus::Converted;
+        self.stage = stage;
 
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
@@ -150,9 +170,11 @@ impl Prospect {
             ProspectEvent::ManuallyConverted { .. }
         );
         self.ensure_open()?;
-        self.events.push(ProspectEvent::ManuallyConverted {});
+        let stage = ProspectStage::Converted;
+        self.events.push(ProspectEvent::ManuallyConverted { stage });
         self.status = ProspectStatus::Converted;
         self.kyc_status = KycStatus::Approved;
+        self.stage = stage;
 
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
@@ -178,16 +200,20 @@ impl Prospect {
         if self.applicant_id.is_none() {
             return Err(ProspectError::KycNotStarted);
         }
-        self.events.push(ProspectEvent::KycDeclined {});
+        let stage = ProspectStage::KycDeclined;
+        self.events.push(ProspectEvent::KycDeclined { stage });
         self.kyc_status = KycStatus::Declined;
+        self.stage = stage;
         Ok(Idempotent::Executed(()))
     }
 
     pub fn close(&mut self) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(self.events.iter_all().rev(), ProspectEvent::Closed { .. });
         self.ensure_open()?;
-        self.events.push(ProspectEvent::Closed {});
+        let stage = ProspectStage::Closed;
+        self.events.push(ProspectEvent::Closed { stage });
         self.status = ProspectStatus::Closed;
+        self.stage = stage;
         Ok(Idempotent::Executed(()))
     }
 
@@ -200,26 +226,6 @@ impl Prospect {
             .push(ProspectEvent::VerificationLinkCreated { url: url.clone() });
         self.verification_link = Some(url);
         Ok(Idempotent::Executed(()))
-    }
-
-    pub fn stage(&self) -> ProspectStage {
-        match self.status {
-            ProspectStatus::Closed => ProspectStage::Closed,
-            ProspectStatus::Converted => ProspectStage::Converted,
-            ProspectStatus::Open => match self.kyc_status {
-                KycStatus::Declined => ProspectStage::KycDeclined,
-                KycStatus::Pending => ProspectStage::KycPending,
-                KycStatus::Started => ProspectStage::KycStarted,
-                KycStatus::NotStarted => ProspectStage::New,
-                KycStatus::Approved => {
-                    tracing::error!(
-                        prospect_id = %self.id,
-                        "prospect has KycStatus::Approved but ProspectStatus::Open - expected Converted"
-                    );
-                    ProspectStage::New
-                }
-            },
-        }
     }
 
     pub fn update_telegram_handle(
@@ -251,7 +257,7 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     telegram_handle,
                     customer_type,
                     public_id,
-                    ..
+                    stage,
                 } => {
                     builder = builder
                         .id(*id)
@@ -259,39 +265,44 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                         .telegram_handle(telegram_handle.clone())
                         .customer_type(*customer_type)
                         .public_id(public_id.clone())
-                        .level(KycLevel::NotKyced);
+                        .level(KycLevel::NotKyced)
+                        .stage(*stage);
                 }
-                ProspectEvent::KycStarted { applicant_id, .. } => {
+                ProspectEvent::KycStarted {
+                    applicant_id,
+                    stage,
+                } => {
                     builder = builder
                         .applicant_id(applicant_id.clone())
-                        .kyc_status(KycStatus::Started);
+                        .kyc_status(KycStatus::Started)
+                        .stage(*stage);
                 }
-                ProspectEvent::KycPending { .. } => {
-                    builder = builder.kyc_status(KycStatus::Pending);
+                ProspectEvent::KycPending { stage } => {
+                    builder = builder.kyc_status(KycStatus::Pending).stage(*stage);
                 }
-                ProspectEvent::KycApproved { level, .. } => {
+                ProspectEvent::KycApproved { level, stage } => {
                     builder = builder
                         .level(*level)
                         .kyc_status(KycStatus::Approved)
-                        .status(ProspectStatus::Converted);
+                        .status(ProspectStatus::Converted)
+                        .stage(*stage);
                 }
-                ProspectEvent::ManuallyConverted { .. } => {
+                ProspectEvent::ManuallyConverted { stage } => {
                     builder = builder
                         .kyc_status(KycStatus::Approved)
-                        .status(ProspectStatus::Converted);
+                        .status(ProspectStatus::Converted)
+                        .stage(*stage);
                 }
-                ProspectEvent::VerificationLinkCreated { url, .. } => {
+                ProspectEvent::VerificationLinkCreated { url } => {
                     builder = builder.verification_link(url.clone());
                 }
-                ProspectEvent::KycDeclined { .. } => {
-                    builder = builder.kyc_status(KycStatus::Declined);
+                ProspectEvent::KycDeclined { stage } => {
+                    builder = builder.kyc_status(KycStatus::Declined).stage(*stage);
                 }
-                ProspectEvent::Closed { .. } => {
-                    builder = builder.status(ProspectStatus::Closed);
+                ProspectEvent::Closed { stage } => {
+                    builder = builder.status(ProspectStatus::Closed).stage(*stage);
                 }
-                ProspectEvent::TelegramHandleUpdated {
-                    telegram_handle, ..
-                } => {
+                ProspectEvent::TelegramHandleUpdated { telegram_handle } => {
                     builder = builder.telegram_handle(telegram_handle.clone());
                 }
             }
@@ -331,6 +342,7 @@ impl IntoEvents<ProspectEvent> for NewProspect {
                 telegram_handle: self.telegram_handle,
                 customer_type: self.customer_type,
                 public_id: self.public_id,
+                stage: ProspectStage::New,
             }],
         )
     }
@@ -350,6 +362,7 @@ mod tests {
                 telegram_handle: "test_handle".to_string(),
                 customer_type: CustomerType::Individual,
                 public_id: PublicId::new("test-public-id"),
+                stage: ProspectStage::New,
             }],
         );
         Prospect::try_from_events(events).expect("Failed to create prospect")

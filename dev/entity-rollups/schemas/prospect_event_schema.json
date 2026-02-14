@@ -19,6 +19,17 @@
         "Advanced"
       ],
       "type": "string"
+    },
+    "ProspectStage": {
+      "enum": [
+        "new",
+        "kyc-started",
+        "kyc-pending",
+        "kyc-declined",
+        "converted",
+        "closed"
+      ],
+      "type": "string"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -38,6 +49,9 @@
         "public_id": {
           "type": "string"
         },
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
         "telegram_handle": {
           "type": "string"
         },
@@ -52,7 +66,8 @@
         "email",
         "telegram_handle",
         "customer_type",
-        "public_id"
+        "public_id",
+        "stage"
       ],
       "type": "object"
     },
@@ -61,6 +76,9 @@
         "applicant_id": {
           "type": "string"
         },
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
         "type": {
           "const": "kyc_started",
           "type": "string"
@@ -68,7 +86,8 @@
       },
       "required": [
         "type",
-        "applicant_id"
+        "applicant_id",
+        "stage"
       ],
       "type": "object"
     },
@@ -77,6 +96,9 @@
         "level": {
           "$ref": "#/$defs/KycLevel"
         },
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
         "type": {
           "const": "kyc_approved",
           "type": "string"
@@ -84,43 +106,56 @@
       },
       "required": [
         "type",
-        "level"
+        "level",
+        "stage"
       ],
       "type": "object"
     },
     {
       "properties": {
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
         "type": {
           "const": "kyc_pending",
           "type": "string"
         }
       },
       "required": [
-        "type"
+        "type",
+        "stage"
       ],
       "type": "object"
     },
     {
       "properties": {
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
         "type": {
           "const": "kyc_declined",
           "type": "string"
         }
       },
       "required": [
-        "type"
+        "type",
+        "stage"
       ],
       "type": "object"
     },
     {
       "properties": {
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
         "type": {
           "const": "manually_converted",
           "type": "string"
         }
       },
       "required": [
-        "type"
+        "type",
+        "stage"
       ],
       "type": "object"
     },
@@ -142,13 +177,17 @@
     },
     {
       "properties": {
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
         "type": {
           "const": "closed",
           "type": "string"
         }
       },
       "required": [
-        "type"
+        "type",
+        "stage"
       ],
       "type": "object"
     },

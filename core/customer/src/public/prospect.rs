@@ -27,7 +27,7 @@ impl From<&Prospect> for PublicProspect {
             customer_type: entity.customer_type,
             status: entity.status,
             kyc_status: entity.kyc_status,
-            stage: entity.stage(),
+            stage: entity.stage,
         }
     }
 }
