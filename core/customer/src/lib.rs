@@ -766,7 +766,7 @@ where
             .list_by_created_at(query, direction)
             .await?;
         if let Some(stage) = stage {
-            result.entities.retain(|p| p.stage() == stage);
+            result.entities.retain(|p| p.stage == stage);
         }
         Ok(result)
     }
