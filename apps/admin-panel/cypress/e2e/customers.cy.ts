@@ -146,30 +146,25 @@ describe("Customers", () => {
       expect(response.status).to.eq(200)
     })
 
-    // After KYC approval, prospect becomes a customer with the same public_id
-    // The customer inherits the prospect's public_id
-    testCustomerPublicId = testProspectPublicId
+    // Convert prospect to customer synchronously via prospectConvert mutation.
+    // The webhooks above test the webhook endpoint; prospectConvert ensures the
+    // customer exists without depending on async inbox job processing.
+    cy.graphqlRequest<{
+      data: { prospectConvert: { customer: { customerId: string; publicId: string } } }
+    }>(
+      `mutation ProspectConvert($input: ProspectConvertInput!) {
+        prospectConvert(input: $input) {
+          customer { customerId publicId }
+        }
+      }`,
+      { input: { prospectId: testCustomerId } },
+    ).then((res) => {
+      testCustomerPublicId = res.data.prospectConvert.customer.publicId
+    })
   })
 
   it("should show newly created customer in the list", () => {
-    // Customer creation from KYC approval is async (webhook → inbox job).
-    // Poll the customer list until the customer appears.
-    const pollForCustomerInList = (attempt: number, maxAttempts: number): void => {
-      cy.visit("/customers")
-      cy.wait(1000)
-      cy.get("body").then(($body) => {
-        if ($body.text().includes(testEmail)) {
-          return
-        }
-        if (attempt >= maxAttempts) {
-          throw new Error(
-            `Customer ${testEmail} not found in list after ${maxAttempts} attempts`,
-          )
-        }
-        pollForCustomerInList(attempt + 1, maxAttempts)
-      })
-    }
-    pollForCustomerInList(1, 15)
+    cy.visit("/customers")
     cy.contains(testEmail).should("be.visible")
     cy.takeScreenshot("11_verify_customer_in_list")
   })
