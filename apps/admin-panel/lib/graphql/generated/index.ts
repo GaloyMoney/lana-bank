@@ -2399,6 +2399,7 @@ export type Prospect = {
   publicId: Scalars['PublicId']['output'];
   status: ProspectStatus;
   telegramHandle: Scalars['String']['output'];
+  verificationLink?: Maybe<Scalars['String']['output']>;
 };
 
 export type ProspectCloseInput = {
@@ -4570,14 +4571,14 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
-export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
+export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
 
 export type GetProspectBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
+export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
 
 export type ProspectCloseMutationVariables = Exact<{
   input: ProspectCloseInput;
@@ -5803,6 +5804,7 @@ export const ProspectDetailsFragmentFragmentDoc = gql`
   kycStatus
   level
   applicantId
+  verificationLink
   customerType
   createdAt
   publicId

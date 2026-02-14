@@ -31,6 +31,7 @@ type ProspectKycStatusProps = {
   kycStatus: KycStatus
   level: KycLevel
   applicantId: string | null | undefined
+  verificationLink: string | null | undefined
 }
 
 export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
@@ -38,13 +39,16 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
   kycStatus,
   level,
   applicantId,
+  verificationLink,
 }) => {
   const t = useTranslations("Prospects.ProspectDetails.kycStatus")
 
   const sumsubLink = `https://cockpit.sumsub.com/checkus#/applicant/${applicantId}/client/basicInfo`
 
-  const [createLink, { data: linkData, loading: linkLoading, error: linkError }] =
-    useSumsubPermalinkCreateMutation()
+  const [createLink, { loading: linkLoading, error: linkError }] =
+    useSumsubPermalinkCreateMutation({
+      refetchQueries: ["GetProspectBasicDetails"],
+    })
 
   const handleCreateLink = async () => {
     await createLink({
@@ -72,39 +76,36 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
         >
           {applicantId}
         </a>
+      ) : verificationLink ? (
+        <div className="flex items-center gap-2">
+          <a
+            href={verificationLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 underline overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]"
+          >
+            {verificationLink}
+          </a>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(verificationLink)
+              toast.success(t("messages.copied"))
+            }}
+          >
+            <Copy className="h-4 w-4 cursor-pointer" />
+          </button>
+        </div>
       ) : (
         <div>
-          {!linkData && (
-            <button
-              onClick={handleCreateLink}
-              className="text-blue-500 flex gap-1 items-center"
-              disabled={linkLoading}
-              data-testid="prospect-create-kyc-link"
-            >
-              <HiLink />
-              {linkLoading ? t("actions.creatingLink") : t("actions.createLink")}
-            </button>
-          )}
-          {linkData && linkData.sumsubPermalinkCreate && (
-            <div className="flex items-center gap-2">
-              <a
-                href={linkData.sumsubPermalinkCreate.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 underline overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]"
-              >
-                {linkData.sumsubPermalinkCreate.url}
-              </a>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(linkData.sumsubPermalinkCreate.url)
-                  toast.success(t("messages.copied"))
-                }}
-              >
-                <Copy className="h-4 w-4 cursor-pointer" />
-              </button>
-            </div>
-          )}
+          <button
+            onClick={handleCreateLink}
+            className="text-blue-500 flex gap-1 items-center"
+            disabled={linkLoading}
+            data-testid="prospect-create-kyc-link"
+          >
+            <HiLink />
+            {linkLoading ? t("actions.creatingLink") : t("actions.createLink")}
+          </button>
           {linkError && <p className="text-red-500">{linkError.message}</p>}
         </div>
       ),

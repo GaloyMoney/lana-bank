@@ -22,6 +22,7 @@ gql`
     kycStatus
     level
     applicantId
+    verificationLink
     customerType
     createdAt
     publicId
@@ -103,6 +104,7 @@ export default function ProspectLayout({
           kycStatus={prospect.kycStatus}
           level={prospect.level}
           applicantId={prospect.applicantId}
+          verificationLink={prospect.verificationLink}
         />
       </div>
       {children}

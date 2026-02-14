@@ -2123,6 +2123,7 @@ type Prospect {
 	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String
+	verificationLink: String
 }
 
 input ProspectCloseInput {

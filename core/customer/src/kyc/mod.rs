@@ -443,24 +443,22 @@ where
     ) -> Result<PermalinkResponse, KycError> {
         let prospect_id: ProspectId = prospect_id.into();
 
-        self.authz
-            .enforce_permission(
-                sub,
-                CustomerObject::prospect(prospect_id),
-                CoreCustomerAction::PROSPECT_READ,
-            )
-            .await?;
-
         let prospect = self
             .customers
             .find_prospect_by_id_without_audit(prospect_id)
             .await?;
         let level: KycLevel = prospect.customer_type.into();
 
-        Ok(self
+        let response = self
             .sumsub_client
             .create_permalink(prospect_id, &level.to_string())
-            .await?)
+            .await?;
+
+        self.customers
+            .record_prospect_verification_link(sub, prospect_id, response.url.clone())
+            .await?;
+
+        Ok(response)
     }
 
     #[record_error_severity]

@@ -554,6 +554,31 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.record_prospect_verification_link", skip(self))]
+    pub async fn record_prospect_verification_link(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        prospect_id: impl Into<ProspectId> + std::fmt::Debug,
+        url: String,
+    ) -> Result<Prospect, CustomerError> {
+        let prospect_id = prospect_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::prospect(prospect_id),
+                CoreCustomerAction::PROSPECT_READ,
+            )
+            .await?;
+
+        let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
+        if prospect.record_verification_link_created(url).did_execute() {
+            self.prospect_repo.update(&mut prospect).await?;
+        }
+
+        Ok(prospect)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.close_prospect", skip(self))]
     pub async fn close_prospect(
         &self,

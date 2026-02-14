@@ -53,6 +53,10 @@ impl Prospect {
     async fn applicant_id(&self) -> Option<&str> {
         self.entity.applicant_id.as_deref()
     }
+
+    async fn verification_link(&self) -> Option<&str> {
+        self.entity.verification_link.as_deref()
+    }
 }
 
 #[derive(InputObject)]
