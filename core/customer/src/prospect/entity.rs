@@ -31,6 +31,10 @@ pub enum ProspectEvent {
         #[serde(default)]
         inbox_id: String,
     },
+    KycPending {
+        #[serde(default)]
+        inbox_id: String,
+    },
     KycDeclined {
         #[serde(default)]
         inbox_id: String,
@@ -93,6 +97,16 @@ impl Prospect {
             inbox_id,
         });
         self.applicant_id = Some(applicant_id);
+        self.kyc_status = KycStatus::Started;
+        Idempotent::Executed(())
+    }
+
+    pub fn set_kyc_pending(&mut self, inbox_id: String) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ProspectEvent::KycPending { .. }
+        );
+        self.events.push(ProspectEvent::KycPending { inbox_id });
         self.kyc_status = KycStatus::Pending;
         Idempotent::Executed(())
     }
@@ -188,6 +202,19 @@ impl Prospect {
         Idempotent::Executed(())
     }
 
+    pub fn stage(&self) -> ProspectStage {
+        match self.status {
+            ProspectStatus::Closed => ProspectStage::Closed,
+            ProspectStatus::Converted => ProspectStage::Converted,
+            ProspectStatus::Open => match self.kyc_status {
+                KycStatus::Declined => ProspectStage::KycDeclined,
+                KycStatus::Pending => ProspectStage::KycPending,
+                KycStatus::Started => ProspectStage::KycStarted,
+                KycStatus::NotStarted | KycStatus::Approved => ProspectStage::New,
+            },
+        }
+    }
+
     pub fn update_telegram_handle(&mut self, new_telegram_handle: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -226,7 +253,10 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                 ProspectEvent::KycStarted { applicant_id, .. } => {
                     builder = builder
                         .applicant_id(applicant_id.clone())
-                        .kyc_status(KycStatus::Pending);
+                        .kyc_status(KycStatus::Started);
+                }
+                ProspectEvent::KycPending { .. } => {
+                    builder = builder.kyc_status(KycStatus::Pending);
                 }
                 ProspectEvent::KycApproved { level, .. } => {
                     builder = builder

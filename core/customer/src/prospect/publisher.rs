@@ -43,6 +43,15 @@ where
                 Initialized { .. } => Some(CoreCustomerEvent::ProspectCreated {
                     entity: PublicProspect::from(entity),
                 }),
+                KycStarted { .. } => Some(CoreCustomerEvent::ProspectKycStarted {
+                    entity: PublicProspect::from(entity),
+                }),
+                KycPending { .. } => Some(CoreCustomerEvent::ProspectKycPending {
+                    entity: PublicProspect::from(entity),
+                }),
+                KycDeclined { .. } => Some(CoreCustomerEvent::ProspectKycDeclined {
+                    entity: PublicProspect::from(entity),
+                }),
                 KycApproved { .. } | ManuallyConverted { .. } => {
                     Some(CoreCustomerEvent::ProspectConverted {
                         entity: PublicProspect::from(entity),

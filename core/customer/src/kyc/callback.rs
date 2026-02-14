@@ -56,6 +56,7 @@ pub enum KycCallbackPayload {
     #[serde(rename_all = "camelCase")]
     ApplicantPending {
         applicant_id: String,
+        external_user_id: ProspectId,
         sandbox_mode: Option<bool>,
     },
     #[serde(rename = "applicantPersonalInfoChanged")]

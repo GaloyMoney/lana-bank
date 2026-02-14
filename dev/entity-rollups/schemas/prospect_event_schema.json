@@ -103,6 +103,22 @@
           "type": "string"
         },
         "type": {
+          "const": "kyc_pending",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "inbox_id": {
+          "default": "",
+          "type": "string"
+        },
+        "type": {
           "const": "kyc_declined",
           "type": "string"
         }

@@ -10,12 +10,12 @@ import { formatDate } from "@lana/web/utils"
 import CloseProspectDialog from "./close-prospect"
 import ConvertProspectDialog from "./convert-prospect"
 
-import { ProspectStatusBadge } from "@/app/prospects/prospect-status-badge"
+import { ProspectStageBadge } from "@/app/prospects/prospect-stage-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
   CustomerType,
   GetProspectBasicDetailsQuery,
-  ProspectStatus,
+  ProspectStage,
   useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 
@@ -62,8 +62,8 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
 
   const details: DetailItemProps[] = [
     {
-      label: t("labels.status"),
-      value: <ProspectStatusBadge status={prospect.status} />,
+      label: t("labels.stage"),
+      value: <ProspectStageBadge stage={prospect.stage} />,
     },
     {
       label: t("labels.email"),
@@ -81,7 +81,7 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
   ]
 
   const footerContent =
-    prospect.status === ProspectStatus.Open ? (
+    prospect.stage !== ProspectStage.Converted && prospect.stage !== ProspectStage.Closed ? (
       <div className="flex gap-2">
         {showConvertButton && (
           <Button

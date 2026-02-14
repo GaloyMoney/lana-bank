@@ -18,6 +18,7 @@ gql`
     prospectId
     email
     telegramHandle
+    stage
     status
     kycStatus
     level

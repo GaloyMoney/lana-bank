@@ -362,6 +362,24 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.handle_kyc_pending_if_exists", skip(self))]
+    pub async fn handle_kyc_pending_if_exists(
+        &self,
+        prospect_id: ProspectId,
+        inbox_id: String,
+    ) -> Result<Option<Prospect>, CustomerError> {
+        let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
+            return Ok(None);
+        };
+
+        if prospect.set_kyc_pending(inbox_id).did_execute() {
+            self.prospect_repo.update(&mut prospect).await?;
+        }
+
+        Ok(Some(prospect))
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.handle_kyc_approved_if_exists", skip(self))]
     pub async fn handle_kyc_approved_if_exists(
         &self,
@@ -701,8 +719,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<prospect::prospect_cursor::ProspectsByCreatedAtCursor>,
         direction: es_entity::ListDirection,
-        status: Option<ProspectStatus>,
-        kyc_status: Option<KycStatus>,
+        stage: Option<ProspectStage>,
     ) -> Result<
         es_entity::PaginatedQueryRet<
             Prospect,
@@ -721,11 +738,8 @@ where
             .prospect_repo
             .list_by_created_at(query, direction)
             .await?;
-        if let Some(status) = status {
-            result.entities.retain(|p| p.status == status);
-        }
-        if let Some(kyc_status) = kyc_status {
-            result.entities.retain(|p| p.kyc_status == kyc_status);
+        if let Some(stage) = stage {
+            result.entities.retain(|p| p.stage() == stage);
         }
         Ok(result)
     }

@@ -1631,6 +1631,7 @@ enum KycLevel {
 
 enum KycStatus {
 	NOT_STARTED
+	STARTED
 	PENDING
 	APPROVED
 	DECLINED
@@ -2119,6 +2120,7 @@ type Prospect {
 	level: KycLevel!
 	createdAt: Timestamp!
 	customerType: CustomerType!
+	stage: ProspectStage!
 	email: String!
 	telegramHandle: String!
 	publicId: PublicId!
@@ -2181,6 +2183,15 @@ type ProspectEdge {
 	cursor: String!
 }
 
+enum ProspectStage {
+	NEW
+	KYC_STARTED
+	KYC_PENDING
+	KYC_DECLINED
+	CONVERTED
+	CLOSED
+}
+
 enum ProspectStatus {
 	OPEN
 	CONVERTED
@@ -2205,7 +2216,7 @@ type Query {
 	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}, filter: CustomersFilter): CustomerConnection!
 	prospect(id: UUID!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect
-	prospects(first: Int!, after: String, status: ProspectStatus, kycStatus: KycStatus): ProspectConnection!
+	prospects(first: Int!, after: String, stage: ProspectStage): ProspectConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawalByPublicId(id: PublicId!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!

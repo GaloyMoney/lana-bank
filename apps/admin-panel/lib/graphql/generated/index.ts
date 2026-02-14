@@ -1626,7 +1626,8 @@ export enum KycStatus {
   Approved = 'APPROVED',
   Declined = 'DECLINED',
   NotStarted = 'NOT_STARTED',
-  Pending = 'PENDING'
+  Pending = 'PENDING',
+  Started = 'STARTED'
 }
 
 export enum KycVerification {
@@ -2397,6 +2398,7 @@ export type Prospect = {
   level: KycLevel;
   prospectId: Scalars['UUID']['output'];
   publicId: Scalars['PublicId']['output'];
+  stage: ProspectStage;
   status: ProspectStatus;
   telegramHandle: Scalars['String']['output'];
   verificationLink?: Maybe<Scalars['String']['output']>;
@@ -2449,6 +2451,15 @@ export type ProspectEdge = {
   /** The item at the end of the edge */
   node: Prospect;
 };
+
+export enum ProspectStage {
+  Closed = 'CLOSED',
+  Converted = 'CONVERTED',
+  KycDeclined = 'KYC_DECLINED',
+  KycPending = 'KYC_PENDING',
+  KycStarted = 'KYC_STARTED',
+  New = 'NEW'
+}
 
 export enum ProspectStatus {
   Closed = 'CLOSED',
@@ -2805,8 +2816,7 @@ export type QueryProspectByPublicIdArgs = {
 export type QueryProspectsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-  kycStatus?: InputMaybe<KycStatus>;
-  status?: InputMaybe<ProspectStatus>;
+  stage?: InputMaybe<ProspectStage>;
 };
 
 
@@ -4571,14 +4581,14 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
-export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
+export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
 
 export type GetProspectBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
+export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
 
 export type ProspectCloseMutationVariables = Exact<{
   input: ProspectCloseInput;
@@ -4604,12 +4614,11 @@ export type ProspectCreateMutation = { __typename?: 'Mutation', prospectCreate: 
 export type ProspectsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
-  status?: InputMaybe<ProspectStatus>;
-  kycStatus?: InputMaybe<KycStatus>;
+  stage?: InputMaybe<ProspectStage>;
 }>;
 
 
-export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, stage: ProspectStage, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ReportRunByIdQueryVariables = Exact<{
   reportRunId: Scalars['UUID']['input'];
@@ -5800,6 +5809,7 @@ export const ProspectDetailsFragmentFragmentDoc = gql`
   prospectId
   email
   telegramHandle
+  stage
   status
   kycStatus
   level
@@ -11127,15 +11137,14 @@ export type ProspectCreateMutationHookResult = ReturnType<typeof useProspectCrea
 export type ProspectCreateMutationResult = Apollo.MutationResult<ProspectCreateMutation>;
 export type ProspectCreateMutationOptions = Apollo.BaseMutationOptions<ProspectCreateMutation, ProspectCreateMutationVariables>;
 export const ProspectsDocument = gql`
-    query Prospects($first: Int!, $after: String, $status: ProspectStatus, $kycStatus: KycStatus) {
-  prospects(first: $first, after: $after, status: $status, kycStatus: $kycStatus) {
+    query Prospects($first: Int!, $after: String, $stage: ProspectStage) {
+  prospects(first: $first, after: $after, stage: $stage) {
     edges {
       node {
         id
         prospectId
         publicId
-        status
-        kycStatus
+        stage
         level
         email
         telegramHandle
@@ -11169,8 +11178,7 @@ export const ProspectsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
- *      status: // value for 'status'
- *      kycStatus: // value for 'kycStatus'
+ *      stage: // value for 'stage'
  *   },
  * });
  */

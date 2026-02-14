@@ -5,13 +5,11 @@ import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
-import { KycStatusBadge } from "./kyc-status-badge"
-import { ProspectStatusBadge } from "./prospect-status-badge"
+import { ProspectStageBadge } from "./prospect-stage-badge"
 
 import {
-  KycStatus,
   Prospect,
-  ProspectStatus,
+  ProspectStage,
   useProspectsQuery,
 } from "@/lib/graphql/generated"
 
@@ -25,17 +23,15 @@ gql`
   query Prospects(
     $first: Int!
     $after: String
-    $status: ProspectStatus
-    $kycStatus: KycStatus
+    $stage: ProspectStage
   ) {
-    prospects(first: $first, after: $after, status: $status, kycStatus: $kycStatus) {
+    prospects(first: $first, after: $after, stage: $stage) {
       edges {
         node {
           id
           prospectId
           publicId
-          status
-          kycStatus
+          stage
           level
           email
           telegramHandle
@@ -57,18 +53,14 @@ gql`
 
 const ProspectsList = () => {
   const t = useTranslations("Prospects")
-  const [statusFilter, setStatusFilter] = useState<ProspectStatus | undefined>(
-    undefined,
-  )
-  const [kycStatusFilter, setKycStatusFilter] = useState<KycStatus | undefined>(
+  const [stageFilter, setStageFilter] = useState<ProspectStage | undefined>(
     undefined,
   )
 
   const { data, loading, error, fetchMore } = useProspectsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
-      status: statusFilter,
-      kycStatus: kycStatusFilter,
+      stage: stageFilter,
     },
   })
 
@@ -84,16 +76,10 @@ const ProspectsList = () => {
       labelClassName: "w-[30%]",
     },
     {
-      key: "status",
-      label: t("columns.status"),
-      filterValues: Object.values(ProspectStatus),
-      render: (status) => <ProspectStatusBadge status={status} />,
-    },
-    {
-      key: "kycStatus",
-      label: t("columns.kycStatus"),
-      filterValues: Object.values(KycStatus),
-      render: (status) => <KycStatusBadge status={status} />,
+      key: "stage",
+      label: t("columns.stage"),
+      filterValues: Object.values(ProspectStage),
+      render: (stage) => <ProspectStageBadge stage={stage} />,
     },
     {
       key: "customerType",
@@ -112,10 +98,8 @@ const ProspectsList = () => {
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(prospect) => `/prospects/${prospect.publicId}`}
         onFilter={(column, value) => {
-          if (column === "status") {
-            setStatusFilter(value as ProspectStatus | undefined)
-          } else if (column === "kycStatus") {
-            setKycStatusFilter(value as KycStatus | undefined)
+          if (column === "stage") {
+            setStageFilter(value as ProspectStage | undefined)
           }
         }}
       />
