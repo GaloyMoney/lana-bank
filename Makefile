@@ -206,8 +206,8 @@ bq-drop-dagster-dbt:
 	bq ls -n 100000 --project_id=$(DBT_BIGQUERY_PROJECT) $(DBT_BIGQUERY_DATASET) | awk 'NR>2 {print $$1}' | xargs -P 32 -n1 -I{} bash -c 'echo "Deleting: $(DBT_BIGQUERY_PROJECT):$(DBT_BIGQUERY_DATASET).{}"; bq rm -f -t $(DBT_BIGQUERY_PROJECT):$(DBT_BIGQUERY_DATASET).{}'
 
 # misc
-sumsub-webhook-test: # add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
-	ngrok http 5253
+sumsub-webhook-test: # add https://xxx.trycloudflare.com/webhook/sumsub to test integration with sumsub
+	cloudflared tunnel --url http://localhost:5253
 
 tilt-in-ci:
 	./dev/bin/tilt-ci.sh
