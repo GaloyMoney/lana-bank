@@ -141,6 +141,40 @@ where
             .await?
             .expect("audit info missing");
 
+        let email = email.into();
+        let telegram_handle = telegram_handle.into();
+
+        if self.repo.maybe_find_by_email(&email).await?.is_some() {
+            return Err(prospect::ProspectError::EmailAlreadyExists.into());
+        }
+        if let Some(existing) = self.prospect_repo.maybe_find_by_email(&email).await? {
+            if existing.status != ProspectStatus::Closed
+                && existing.status != ProspectStatus::Converted
+            {
+                return Err(prospect::ProspectError::EmailAlreadyExists.into());
+            }
+        }
+
+        if self
+            .repo
+            .maybe_find_by_telegram_handle(&telegram_handle)
+            .await?
+            .is_some()
+        {
+            return Err(prospect::ProspectError::TelegramHandleAlreadyExists.into());
+        }
+        if let Some(existing) = self
+            .prospect_repo
+            .maybe_find_by_telegram_handle(&telegram_handle)
+            .await?
+        {
+            if existing.status != ProspectStatus::Closed
+                && existing.status != ProspectStatus::Converted
+            {
+                return Err(prospect::ProspectError::TelegramHandleAlreadyExists.into());
+            }
+        }
+
         let prospect_id = ProspectId::new();
         tracing::Span::current().record("prospect_id", prospect_id.to_string().as_str());
 
@@ -153,8 +187,8 @@ where
 
         let new_prospect = prospect::NewProspect::builder()
             .id(prospect_id)
-            .email(email.into())
-            .telegram_handle(telegram_handle.into())
+            .email(email)
+            .telegram_handle(telegram_handle)
             .customer_type(customer_type)
             .public_id(public_id.id)
             .build()
