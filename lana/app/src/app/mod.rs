@@ -79,6 +79,7 @@ impl LanaApp {
         pool: PgPool,
         config: AppConfig,
         clock: es_entity::clock::ClockHandle,
+        startup_domain_configs: impl IntoIterator<Item = (String, serde_json::Value)>,
     ) -> Result<Self, ApplicationError> {
         sqlx::migrate!()
             .run(&pool)
@@ -101,6 +102,9 @@ impl LanaApp {
             ExposedDomainConfigsReadOnly::new(&pool, config.encryption.clone());
         internal_domain_configs.seed_registered().await?;
         exposed_domain_configs.seed_registered().await?;
+
+        domain_config::apply_startup_configs(&pool, &config.encryption, startup_domain_configs)
+            .await?;
 
         let access = Access::init(
             &pool,

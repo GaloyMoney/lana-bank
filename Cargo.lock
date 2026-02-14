@@ -3782,7 +3782,6 @@ dependencies = [
  "chrono",
  "clap",
  "customer-server",
- "domain-config",
  "es-entity",
  "hex",
  "lana-app",
