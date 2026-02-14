@@ -180,6 +180,7 @@ Cypress.Commands.add(
               externalUserId: prospectId,
               levelName: "basic-kyc-level",
               type: "applicantCreated",
+              reviewStatus: "init",
               createdAtMs: new Date().toISOString(),
               sandboxMode: true,
             },

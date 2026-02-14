@@ -76,6 +76,7 @@ teardown_file() {
       "externalUserId": "'"$prospect_id"'",
       "levelName": "basic-kyc-level",
       "type": "applicantCreated",
+      "reviewStatus": "init",
       "createdAtMs": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'",
       "sandboxMode": true
     }' > /dev/null
@@ -96,10 +97,15 @@ teardown_file() {
       "sandboxMode": true
     }' > /dev/null
 
-  # Customer has the same ID as the prospect
+  # Customer is created asynchronously via webhook inbox processing.
+  # Poll until the customer exists.
   customer_id="$prospect_id"
-  variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-  exec_admin_graphql 'customer' "$variables"
-  fetched_id=$(graphql_output .data.customer.customerId)
+  for i in {1..30}; do
+    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
+    exec_admin_graphql 'customer' "$variables"
+    fetched_id=$(graphql_output .data.customer.customerId)
+    [[ "$fetched_id" != "null" ]] && break
+    sleep 1
+  done
   [[ "$fetched_id" != "null" ]] || exit 1
 }

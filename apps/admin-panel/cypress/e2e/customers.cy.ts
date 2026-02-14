@@ -97,8 +97,9 @@ describe("Customers", () => {
     cy.takeScreenshot("15_kyc_link_created")
 
     const webhookId = `req-${Date.now()}`
-    const createdAtMs = new Date().toISOString()
+    const applicantId = `test-applicant-${webhookId}`
 
+    // Simulate KYC start via SumSub applicantCreated webhook
     cy.request({
       method: "POST",
       url: "http://localhost:5253/webhook/sumsub",
@@ -106,7 +107,29 @@ describe("Customers", () => {
         "Content-Type": "application/json",
       },
       body: {
-        applicantId: `test-applicant-${webhookId}`,
+        applicantId,
+        inspectionId: `test-inspection-${webhookId}`,
+        correlationId: webhookId,
+        externalUserId: testCustomerId,
+        levelName: "basic-kyc-level",
+        type: "applicantCreated",
+        reviewStatus: "init",
+        createdAtMs: new Date().toISOString(),
+        sandboxMode: true,
+      },
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+
+    // Simulate KYC approval via SumSub applicantReviewed webhook
+    cy.request({
+      method: "POST",
+      url: "http://localhost:5253/webhook/sumsub",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        applicantId,
         inspectionId: `test-inspection-${webhookId}`,
         correlationId: webhookId,
         externalUserId: testCustomerId,
@@ -116,7 +139,7 @@ describe("Customers", () => {
           reviewAnswer: "GREEN",
         },
         reviewStatus: "completed",
-        createdAtMs,
+        createdAtMs: new Date().toISOString(),
         sandboxMode: true,
       },
     }).then((response) => {
@@ -129,7 +152,24 @@ describe("Customers", () => {
   })
 
   it("should show newly created customer in the list", () => {
-    cy.visit("/customers")
+    // Customer creation from KYC approval is async (webhook → inbox job).
+    // Poll the customer list until the customer appears.
+    const pollForCustomerInList = (attempt: number, maxAttempts: number): void => {
+      cy.visit("/customers")
+      cy.wait(1000)
+      cy.get("body").then(($body) => {
+        if ($body.text().includes(testEmail)) {
+          return
+        }
+        if (attempt >= maxAttempts) {
+          throw new Error(
+            `Customer ${testEmail} not found in list after ${maxAttempts} attempts`,
+          )
+        }
+        pollForCustomerInList(attempt + 1, maxAttempts)
+      })
+    }
+    pollForCustomerInList(1, 15)
     cy.contains(testEmail).should("be.visible")
     cy.takeScreenshot("11_verify_customer_in_list")
   })
