@@ -30,7 +30,7 @@
     },
     "KycVerification": {
       "enum": [
-        "pending-verification",
+        "no-kyc",
         "verified",
         "rejected"
       ],
@@ -59,7 +59,7 @@
         },
         "kyc_verification": {
           "$ref": "#/$defs/KycVerification",
-          "default": "pending-verification"
+          "default": "no-kyc"
         },
         "level": {
           "$ref": "#/$defs/KycLevel",

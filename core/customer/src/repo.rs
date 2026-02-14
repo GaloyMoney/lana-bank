@@ -94,7 +94,10 @@ mod account_status_sqlx {
     impl<'r> sqlx::Decode<'r, Postgres> for KycVerification {
         fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
             let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
-            Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
+            match s.as_str() {
+                "pending-verification" | "no-kyc" => Ok(KycVerification::NoKyc),
+                _ => Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?),
+            }
         }
     }
 
