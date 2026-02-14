@@ -267,8 +267,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "customer.create_customer", skip(self))]
-    pub async fn create_customer(
+    #[instrument(name = "customer.create_customer_bypassing_kyc", skip(self))]
+    pub async fn create_customer_bypassing_kyc(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         email: impl Into<String> + std::fmt::Debug,
