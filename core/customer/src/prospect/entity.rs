@@ -81,6 +81,9 @@ impl Prospect {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycStarted { .. }
+                | ProspectEvent::KycApproved { .. }
+                | ProspectEvent::ManuallyConverted { .. }
+                | ProspectEvent::Closed { .. }
         );
         self.events.push(ProspectEvent::KycStarted {
             applicant_id: applicant_id.clone(),
@@ -94,6 +97,9 @@ impl Prospect {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycPending { .. }
+                | ProspectEvent::KycApproved { .. }
+                | ProspectEvent::ManuallyConverted { .. }
+                | ProspectEvent::Closed { .. }
         );
         self.events.push(ProspectEvent::KycPending {});
         self.kyc_status = KycStatus::Pending;
@@ -107,6 +113,8 @@ impl Prospect {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycApproved { .. }
+                | ProspectEvent::ManuallyConverted { .. }
+                | ProspectEvent::Closed { .. }
         );
         let applicant_id = self
             .applicant_id
@@ -136,7 +144,9 @@ impl Prospect {
     pub fn convert_manually(&mut self) -> Idempotent<NewCustomer> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::ManuallyConverted { .. } | ProspectEvent::KycApproved { .. }
+            ProspectEvent::ManuallyConverted { .. }
+                | ProspectEvent::KycApproved { .. }
+                | ProspectEvent::Closed { .. }
         );
         self.events.push(ProspectEvent::ManuallyConverted {});
         self.status = ProspectStatus::Converted;
@@ -161,6 +171,9 @@ impl Prospect {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycDeclined { .. }
+                | ProspectEvent::KycApproved { .. }
+                | ProspectEvent::ManuallyConverted { .. }
+                | ProspectEvent::Closed { .. }
         );
         if self.applicant_id.is_none() {
             return Err(ProspectError::KycNotStarted);
@@ -183,6 +196,12 @@ impl Prospect {
     }
 
     pub fn record_verification_link_created(&mut self, url: String) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ProspectEvent::KycApproved { .. }
+                | ProspectEvent::ManuallyConverted { .. }
+                | ProspectEvent::Closed { .. }
+        );
         self.events
             .push(ProspectEvent::VerificationLinkCreated { url: url.clone() });
         self.verification_link = Some(url);
@@ -212,7 +231,10 @@ impl Prospect {
     pub fn update_telegram_handle(&mut self, new_telegram_handle: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::TelegramHandleUpdated { telegram_handle: existing_telegram_handle , ..} if existing_telegram_handle == &new_telegram_handle
+            ProspectEvent::TelegramHandleUpdated { telegram_handle: existing_telegram_handle , ..} if existing_telegram_handle == &new_telegram_handle,
+            ProspectEvent::KycApproved { .. }
+                | ProspectEvent::ManuallyConverted { .. }
+                | ProspectEvent::Closed { .. }
         );
         self.events.push(ProspectEvent::TelegramHandleUpdated {
             telegram_handle: new_telegram_handle.clone(),
