@@ -64,6 +64,7 @@ wait_for_approval() {
       "externalUserId": "'"$prospect_id"'",
       "levelName": "basic-kyc-level",
       "type": "applicantCreated",
+      "reviewStatus": "init",
       "createdAtMs": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'",
       "sandboxMode": true
     }' > /dev/null
@@ -84,13 +85,19 @@ wait_for_approval() {
       "sandboxMode": true
     }' > /dev/null
 
-  # Customer has the same ID as the prospect
+  # Customer is created asynchronously via webhook inbox processing.
+  # Poll until the customer exists.
   customer_id="$prospect_id"
-  variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-  exec_admin_graphql 'customer' "$variables"
-  fetched_id=$(graphql_output .data.customer.customerId)
+  for i in {1..30}; do
+    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
+    exec_admin_graphql 'customer' "$variables"
+    fetched_id=$(graphql_output .data.customer.customerId)
+    [[ "$fetched_id" != "null" ]] && break
+    sleep 1
+  done
   [[ "$fetched_id" != "null" ]] || exit 1
 
+  variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
   exec_admin_graphql 'customer-audit-log' "$variables"
   audit_nodes_count=$(graphql_output '.data.audit.nodes | length')
   [[ "$audit_nodes_count" -gt 0 ]] || exit 1
@@ -133,6 +140,7 @@ wait_for_approval() {
       "externalUserId": "'"$prospect_id"'",
       "levelName": "basic-kyc-level",
       "type": "applicantCreated",
+      "reviewStatus": "init",
       "createdAtMs": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'",
       "sandboxMode": true
     }' > /dev/null
@@ -153,7 +161,17 @@ wait_for_approval() {
       "sandboxMode": true
     }' > /dev/null
 
+  # Customer is created asynchronously via webhook inbox processing.
+  # Poll until the customer exists.
   customer_id="$prospect_id"
+  for i in {1..30}; do
+    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
+    exec_admin_graphql 'customer' "$variables"
+    fetched_id=$(graphql_output .data.customer.customerId)
+    [[ "$fetched_id" != "null" ]] && break
+    sleep 1
+  done
+  [[ "$fetched_id" != "null" ]] || exit 1
 
   login_customer $customer_email
   exec_customer_graphql $customer_email 'me'

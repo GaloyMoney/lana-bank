@@ -114,16 +114,21 @@ wait_for_loan_agreement_completion() {
       "sandboxMode": true
     }'
 
-  # Wait briefly for webhook processing
-  echo "Waiting for webhook processing..."
-  sleep 1
-
-  # Customer has the same ID as the prospect
+  # Customer is created asynchronously via webhook inbox processing.
+  # Poll until the customer exists.
   customer_id="$prospect_id"
+  for i in {1..30}; do
+    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
+    exec_admin_graphql 'customer' "$variables"
+    fetched_id=$(graphql_output .data.customer.customerId)
+    [[ "$fetched_id" != "null" ]] && break
+    sleep 1
+  done
+  [[ "$fetched_id" != "null" ]] || exit 1
 
   # Verify the customer kyc verification after the complete KYC flow
   variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')
-  
+
   exec_admin_graphql 'customer' "$variables"
   level=$(graphql_output '.data.customer.level')
   kyc_verification=$(graphql_output '.data.customer.kycVerification')
