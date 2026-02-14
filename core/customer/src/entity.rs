@@ -81,7 +81,7 @@ impl Customer {
     }
 
     pub fn should_sync_financial_transactions(&self) -> bool {
-        true
+        self.kyc_verification.is_verified()
     }
 
     pub(crate) fn update_activity(&mut self, activity: Activity) -> Idempotent<()> {
