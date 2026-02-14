@@ -244,9 +244,16 @@
     "columns": {
       "email": "Email",
       "telegramHandle": "Telegram",
-      "status": "Status",
-      "kycStatus": "KYC Status",
+      "stage": "Stage",
       "customerType": "Type"
+    },
+    "stage": {
+      "new": "New",
+      "kycStarted": "KYC Started",
+      "kycPending": "KYC Pending",
+      "kycDeclined": "KYC Declined",
+      "converted": "Converted",
+      "closed": "Closed"
     },
     "status": {
       "open": "Open",
@@ -255,6 +262,7 @@
     },
     "kycStatus": {
       "notStarted": "Not Started",
+      "started": "Started",
       "pending": "Pending",
       "approved": "Approved",
       "declined": "Declined"
@@ -300,7 +308,7 @@
       "details": {
         "title": "Prospect",
         "labels": {
-          "status": "Status",
+          "stage": "Stage",
           "email": "Email",
           "createdOn": "Created on",
           "telegram": "Telegram",

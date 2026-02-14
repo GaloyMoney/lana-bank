@@ -13,6 +13,9 @@ pub enum CoreCustomerEvent {
     CustomerKycUpdated { entity: PublicCustomer },
     CustomerEmailUpdated { entity: PublicCustomer },
     ProspectCreated { entity: PublicProspect },
+    ProspectKycStarted { entity: PublicProspect },
+    ProspectKycPending { entity: PublicProspect },
+    ProspectKycDeclined { entity: PublicProspect },
     ProspectConverted { entity: PublicProspect },
     ProspectClosed { entity: PublicProspect },
 }

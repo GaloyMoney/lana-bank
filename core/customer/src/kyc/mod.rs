@@ -305,13 +305,36 @@ where
             }
             KycCallbackPayload::ApplicantPending {
                 applicant_id,
+                external_user_id,
                 sandbox_mode,
                 ..
             } => {
-                // No-op: we don't need to process pending applicants
                 tracing::Span::current().record("callback_type", "ApplicantPending");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
+                tracing::Span::current()
+                    .record("customer_id", external_user_id.to_string().as_str());
+
+                if sandbox_mode.unwrap_or(false) {
+                    let res = self
+                        .customers
+                        .handle_kyc_pending_if_exists(external_user_id, inbox_id.clone())
+                        .await?;
+                    if res.is_none() {
+                        tracing::Span::current().record("ignore_for_sandbox", true);
+                    }
+                } else {
+                    let res = self
+                        .customers
+                        .handle_kyc_pending_if_exists(external_user_id, inbox_id.clone())
+                        .await?;
+                    if res.is_none() {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            "No prospect found for KYC pending callback"
+                        );
+                    }
+                }
             }
             KycCallbackPayload::ApplicantPersonalInfoChanged {
                 applicant_id,

@@ -4,7 +4,7 @@ use crate::primitives::*;
 use lana_app::public_id::PublicId;
 
 pub use lana_app::customer::Prospect as DomainProspect;
-use lana_app::customer::{CustomerType, KycLevel, KycStatus, ProspectStatus};
+use lana_app::customer::{CustomerType, KycLevel, KycStatus, ProspectStage, ProspectStatus};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -38,6 +38,10 @@ impl From<DomainProspect> for Prospect {
 
 #[ComplexObject]
 impl Prospect {
+    async fn stage(&self) -> ProspectStage {
+        self.entity.stage()
+    }
+
     async fn email(&self) -> &str {
         &self.entity.email
     }

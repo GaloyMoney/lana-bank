@@ -56,7 +56,7 @@ pub mod customer {
     pub use core_customer::{
         Activity, CUSTOMER_REF_TARGET, CoreCustomerEvent, Customer, CustomerDocumentId, CustomerId,
         CustomerType, CustomersCursor, CustomersFilter, CustomersSortBy, KycLevel, KycStatus,
-        KycVerification, PROSPECT_REF_TARGET, Prospect, ProspectId, ProspectStatus,
+        KycVerification, PROSPECT_REF_TARGET, Prospect, ProspectId, ProspectStage, ProspectStatus,
         ProspectsSortBy, PublicProspect, Sort, error, prospect_cursor,
     };
     pub type Customers =

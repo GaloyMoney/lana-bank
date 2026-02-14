@@ -40,7 +40,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_declined', 'manually_converted', 'verification_link_created', 'closed', 'telegram_handle_updated') THEN
+  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_pending', 'kyc_declined', 'manually_converted', 'verification_link_created', 'closed', 'telegram_handle_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -89,6 +89,8 @@ BEGIN
       new_row.inbox_id := (NEW.event ->> 'inbox_id');
       new_row.is_kyc_approved := true;
       new_row.level := (NEW.event ->> 'level');
+    WHEN 'kyc_pending' THEN
+      new_row.inbox_id := (NEW.event ->> 'inbox_id');
     WHEN 'kyc_declined' THEN
       new_row.inbox_id := (NEW.event ->> 'inbox_id');
     WHEN 'manually_converted' THEN

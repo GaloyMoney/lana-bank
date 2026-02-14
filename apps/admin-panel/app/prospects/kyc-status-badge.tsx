@@ -12,6 +12,8 @@ const KycStatusBadge = ({ status }: { status: KycStatus }) => {
   switch (status) {
     case KycStatus.Approved:
       return <Badge variant="success">{t("approved")}</Badge>
+    case KycStatus.Started:
+      return <Badge variant="warning">{t("started")}</Badge>
     case KycStatus.Pending:
       return <Badge variant="warning">{t("pending")}</Badge>
     case KycStatus.Declined:
