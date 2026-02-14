@@ -36,6 +36,9 @@ pub enum ProspectEvent {
         inbox_id: String,
     },
     ManuallyConverted {},
+    VerificationLinkCreated {
+        url: String,
+    },
     Closed {},
     TelegramHandleUpdated {
         telegram_handle: String,
@@ -55,6 +58,8 @@ pub struct Prospect {
     pub kyc_status: KycStatus,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
+    #[builder(setter(strip_option, into), default)]
+    pub verification_link: Option<String>,
     #[builder(default)]
     pub level: KycLevel,
     pub public_id: PublicId,
@@ -176,6 +181,13 @@ impl Prospect {
         Idempotent::Executed(())
     }
 
+    pub fn record_verification_link_created(&mut self, url: String) -> Idempotent<()> {
+        self.events
+            .push(ProspectEvent::VerificationLinkCreated { url: url.clone() });
+        self.verification_link = Some(url);
+        Idempotent::Executed(())
+    }
+
     pub fn update_telegram_handle(&mut self, new_telegram_handle: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -226,6 +238,9 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     builder = builder
                         .kyc_status(KycStatus::Approved)
                         .status(ProspectStatus::Converted);
+                }
+                ProspectEvent::VerificationLinkCreated { url, .. } => {
+                    builder = builder.verification_link(url.clone());
                 }
                 ProspectEvent::KycDeclined { .. } => {
                     builder = builder.kyc_status(KycStatus::Declined);

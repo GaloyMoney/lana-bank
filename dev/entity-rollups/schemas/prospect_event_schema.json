@@ -127,6 +127,22 @@
     {
       "properties": {
         "type": {
+          "const": "verification_link_created",
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "url"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "type": {
           "const": "closed",
           "type": "string"
         }

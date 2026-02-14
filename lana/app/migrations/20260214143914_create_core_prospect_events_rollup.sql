@@ -13,6 +13,7 @@ CREATE TABLE core_prospect_events_rollup (
   level VARCHAR,
   public_id VARCHAR,
   telegram_handle VARCHAR,
+  url VARCHAR,
 
   -- Toggle fields
   is_kyc_approved BOOLEAN DEFAULT false
@@ -39,7 +40,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_declined', 'manually_converted', 'closed', 'telegram_handle_updated') THEN
+  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_declined', 'manually_converted', 'verification_link_created', 'closed', 'telegram_handle_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -60,6 +61,7 @@ BEGIN
     new_row.level := (NEW.event ->> 'level');
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
+    new_row.url := (NEW.event ->> 'url');
   ELSE
     -- Default all fields to current values
     new_row.applicant_id := current_row.applicant_id;
@@ -70,6 +72,7 @@ BEGIN
     new_row.level := current_row.level;
     new_row.public_id := current_row.public_id;
     new_row.telegram_handle := current_row.telegram_handle;
+    new_row.url := current_row.url;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -89,6 +92,8 @@ BEGIN
     WHEN 'kyc_declined' THEN
       new_row.inbox_id := (NEW.event ->> 'inbox_id');
     WHEN 'manually_converted' THEN
+    WHEN 'verification_link_created' THEN
+      new_row.url := (NEW.event ->> 'url');
     WHEN 'closed' THEN
     WHEN 'telegram_handle_updated' THEN
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
@@ -107,7 +112,8 @@ BEGIN
     is_kyc_approved,
     level,
     public_id,
-    telegram_handle
+    telegram_handle,
+    url
   )
   VALUES (
     new_row.id,
@@ -122,7 +128,8 @@ BEGIN
     new_row.is_kyc_approved,
     new_row.level,
     new_row.public_id,
-    new_row.telegram_handle
+    new_row.telegram_handle,
+    new_row.url
   );
 
   RETURN NEW;
