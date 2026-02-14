@@ -23,22 +23,12 @@ pub enum ProspectEvent {
     },
     KycStarted {
         applicant_id: String,
-        #[serde(default)]
-        inbox_id: String,
     },
     KycApproved {
         level: KycLevel,
-        #[serde(default)]
-        inbox_id: String,
     },
-    KycPending {
-        #[serde(default)]
-        inbox_id: String,
-    },
-    KycDeclined {
-        #[serde(default)]
-        inbox_id: String,
-    },
+    KycPending {},
+    KycDeclined {},
     ManuallyConverted {},
     VerificationLinkCreated {
         url: String,
@@ -87,26 +77,25 @@ impl Prospect {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn start_kyc(&mut self, applicant_id: String, inbox_id: String) -> Idempotent<()> {
+    pub fn start_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycStarted { .. }
         );
         self.events.push(ProspectEvent::KycStarted {
             applicant_id: applicant_id.clone(),
-            inbox_id,
         });
         self.applicant_id = Some(applicant_id);
         self.kyc_status = KycStatus::Started;
         Idempotent::Executed(())
     }
 
-    pub fn set_kyc_pending(&mut self, inbox_id: String) -> Idempotent<()> {
+    pub fn set_kyc_pending(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycPending { .. }
         );
-        self.events.push(ProspectEvent::KycPending { inbox_id });
+        self.events.push(ProspectEvent::KycPending {});
         self.kyc_status = KycStatus::Pending;
         Idempotent::Executed(())
     }
@@ -114,7 +103,6 @@ impl Prospect {
     pub fn approve_kyc(
         &mut self,
         level: KycLevel,
-        inbox_id: String,
     ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -124,8 +112,7 @@ impl Prospect {
             .applicant_id
             .clone()
             .ok_or(ProspectError::KycNotStarted)?;
-        self.events
-            .push(ProspectEvent::KycApproved { level, inbox_id });
+        self.events.push(ProspectEvent::KycApproved { level });
         self.level = level;
         self.kyc_status = KycStatus::Approved;
         self.status = ProspectStatus::Converted;
@@ -170,7 +157,7 @@ impl Prospect {
         Idempotent::Executed(new_customer)
     }
 
-    pub fn decline_kyc(&mut self, inbox_id: String) -> Result<Idempotent<()>, ProspectError> {
+    pub fn decline_kyc(&mut self) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycDeclined { .. }
@@ -178,7 +165,7 @@ impl Prospect {
         if self.applicant_id.is_none() {
             return Err(ProspectError::KycNotStarted);
         }
-        self.events.push(ProspectEvent::KycDeclined { inbox_id });
+        self.events.push(ProspectEvent::KycDeclined {});
         self.kyc_status = KycStatus::Declined;
         Ok(Idempotent::Executed(()))
     }
@@ -348,7 +335,7 @@ mod tests {
     fn approve_kyc_fails_when_kyc_not_started() {
         let mut prospect = create_test_prospect();
 
-        let result = prospect.approve_kyc(KycLevel::Basic, "callback-1".to_string());
+        let result = prospect.approve_kyc(KycLevel::Basic);
 
         assert!(matches!(result, Err(ProspectError::KycNotStarted)));
     }
@@ -356,9 +343,9 @@ mod tests {
     #[test]
     fn approve_kyc_succeeds_after_kyc_started() {
         let mut prospect = create_test_prospect();
-        let _ = prospect.start_kyc("correct-applicant-id".to_string(), "callback-1".to_string());
+        let _ = prospect.start_kyc("correct-applicant-id".to_string());
 
-        let result = prospect.approve_kyc(KycLevel::Basic, "callback-2".to_string());
+        let result = prospect.approve_kyc(KycLevel::Basic);
 
         assert!(result.is_ok());
     }
@@ -367,7 +354,7 @@ mod tests {
     fn decline_kyc_fails_when_kyc_not_started() {
         let mut prospect = create_test_prospect();
 
-        let result = prospect.decline_kyc("callback-1".to_string());
+        let result = prospect.decline_kyc();
 
         assert!(matches!(result, Err(ProspectError::KycNotStarted)));
     }
@@ -375,9 +362,9 @@ mod tests {
     #[test]
     fn decline_kyc_succeeds_after_kyc_started() {
         let mut prospect = create_test_prospect();
-        let _ = prospect.start_kyc("correct-applicant-id".to_string(), "callback-1".to_string());
+        let _ = prospect.start_kyc("correct-applicant-id".to_string());
 
-        let result = prospect.decline_kyc("callback-2".to_string());
+        let result = prospect.decline_kyc();
 
         assert!(result.is_ok());
     }

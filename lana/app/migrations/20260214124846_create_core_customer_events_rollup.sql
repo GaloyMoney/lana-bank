@@ -10,7 +10,6 @@ CREATE TABLE core_customer_events_rollup (
   applicant_id VARCHAR,
   customer_type VARCHAR,
   email VARCHAR,
-  inbox_id VARCHAR,
   kyc_verification VARCHAR,
   level VARCHAR,
   public_id VARCHAR,
@@ -58,7 +57,6 @@ BEGIN
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.email := (NEW.event ->> 'email');
-    new_row.inbox_id := (NEW.event ->> 'inbox_id');
     new_row.is_kyc_approved := false;
     new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
     new_row.level := (NEW.event ->> 'level');
@@ -70,7 +68,6 @@ BEGIN
     new_row.applicant_id := current_row.applicant_id;
     new_row.customer_type := current_row.customer_type;
     new_row.email := current_row.email;
-    new_row.inbox_id := current_row.inbox_id;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
     new_row.kyc_verification := current_row.kyc_verification;
     new_row.level := current_row.level;
@@ -96,8 +93,7 @@ BEGIN
     WHEN 'activity_updated' THEN
       new_row.activity := (NEW.event ->> 'activity');
     WHEN 'kyc_rejected' THEN
-      new_row.inbox_id := (NEW.event ->> 'inbox_id');
-  END CASE;
+    END CASE;
 
   INSERT INTO core_customer_events_rollup (
     id,
@@ -109,7 +105,6 @@ BEGIN
     applicant_id,
     customer_type,
     email,
-    inbox_id,
     is_kyc_approved,
     kyc_verification,
     level,
@@ -126,7 +121,6 @@ BEGIN
     new_row.applicant_id,
     new_row.customer_type,
     new_row.email,
-    new_row.inbox_id,
     new_row.is_kyc_approved,
     new_row.kyc_verification,
     new_row.level,

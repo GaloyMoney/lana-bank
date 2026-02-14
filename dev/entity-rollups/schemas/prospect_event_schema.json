@@ -61,10 +61,6 @@
         "applicant_id": {
           "type": "string"
         },
-        "inbox_id": {
-          "default": "",
-          "type": "string"
-        },
         "type": {
           "const": "kyc_started",
           "type": "string"
@@ -78,10 +74,6 @@
     },
     {
       "properties": {
-        "inbox_id": {
-          "default": "",
-          "type": "string"
-        },
         "level": {
           "$ref": "#/$defs/KycLevel"
         },
@@ -98,10 +90,6 @@
     },
     {
       "properties": {
-        "inbox_id": {
-          "default": "",
-          "type": "string"
-        },
         "type": {
           "const": "kyc_pending",
           "type": "string"
@@ -114,10 +102,6 @@
     },
     {
       "properties": {
-        "inbox_id": {
-          "default": "",
-          "type": "string"
-        },
         "type": {
           "const": "kyc_declined",
           "type": "string"

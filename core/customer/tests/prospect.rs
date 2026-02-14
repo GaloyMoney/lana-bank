@@ -75,22 +75,12 @@ async fn prospect_converted_event_on_kyc_approved() -> anyhow::Result<()> {
 
     // Start KYC first (required before approval)
     customers
-        .handle_kyc_started(
-            prospect.id,
-            applicant_id.clone(),
-            "test-callback".to_string(),
-        )
+        .handle_kyc_started(prospect.id, applicant_id.clone())
         .await?;
 
     let (_created_customer, recorded) = event::expect_event(
         &outbox,
-        || {
-            customers.handle_kyc_approved(
-                prospect.id,
-                applicant_id.clone(),
-                "test-callback".to_string(),
-            )
-        },
+        || customers.handle_kyc_approved(prospect.id, applicant_id.clone()),
         |_result, e| match e {
             CoreCustomerEvent::ProspectConverted { entity }
                 if entity.id == prospect.id && entity.kyc_status == KycStatus::Approved =>
@@ -175,19 +165,11 @@ async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Resul
 
     // Start KYC first (required before approval)
     customers
-        .handle_kyc_started(
-            prospect.id,
-            applicant_id.clone(),
-            "test-callback".to_string(),
-        )
+        .handle_kyc_started(prospect.id, applicant_id.clone())
         .await?;
 
     let customer = customers
-        .handle_kyc_approved(
-            prospect.id,
-            applicant_id.clone(),
-            "test-callback".to_string(),
-        )
+        .handle_kyc_approved(prospect.id, applicant_id.clone())
         .await?;
 
     assert_eq!(customer.kyc_verification, KycVerification::Verified);
@@ -195,13 +177,7 @@ async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Resul
     // Now decline KYC (simulating a SumSub RED callback after approval)
     let (_prospect_returned, recorded) = event::expect_event(
         &outbox,
-        || {
-            customers.handle_kyc_declined(
-                prospect.id,
-                applicant_id.clone(),
-                "test-callback".to_string(),
-            )
-        },
+        || customers.handle_kyc_declined(prospect.id, applicant_id.clone()),
         |_result, e| match e {
             CoreCustomerEvent::CustomerKycUpdated { entity }
                 if entity.id == CustomerId::from(prospect.id) =>
