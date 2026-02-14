@@ -23,7 +23,7 @@ pub enum CustomerEvent {
         applicant_id: String,
         #[serde(default)]
         level: KycLevel,
-        #[serde(default)]
+        #[serde(default = "KycVerification::no_kyc")]
         kyc_verification: KycVerification,
     },
     TelegramHandleUpdated {
@@ -44,7 +44,7 @@ pub struct Customer {
     pub id: CustomerId,
     pub email: String,
     pub telegram_handle: String,
-    #[builder(default)]
+    #[builder(default = "KycVerification::Verified")]
     pub kyc_verification: KycVerification,
     #[builder(default)]
     pub activity: Activity,
@@ -189,7 +189,6 @@ pub struct NewCustomer {
     pub(crate) telegram_handle: String,
     #[builder(setter(into))]
     pub(crate) customer_type: CustomerType,
-    #[builder(default)]
     pub(crate) kyc_verification: KycVerification,
     #[builder(default)]
     pub(crate) activity: Activity,

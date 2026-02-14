@@ -1297,7 +1297,7 @@ export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit
         documents: overrides && overrides.hasOwnProperty('documents') ? overrides.documents! : [relationshipsToOmit.has('CustomerDocument') ? {} as CustomerDocument : mockCustomerDocument({}, relationshipsToOmit)],
         email: overrides && overrides.hasOwnProperty('email') ? overrides.email! : generateMockValue.email(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        kycVerification: overrides && overrides.hasOwnProperty('kycVerification') ? overrides.kycVerification! : KycVerification.PendingVerification,
+        kycVerification: overrides && overrides.hasOwnProperty('kycVerification') ? overrides.kycVerification! : KycVerification.NoKyc,
         level: overrides && overrides.hasOwnProperty('level') ? overrides.level! : mockEnums.kycLevel(),
         pendingCreditFacilities: overrides && overrides.hasOwnProperty('pendingCreditFacilities') ? overrides.pendingCreditFacilities! : [relationshipsToOmit.has('PendingCreditFacility') ? {} as PendingCreditFacility : mockPendingCreditFacility({}, relationshipsToOmit)],
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),
@@ -1452,7 +1452,7 @@ export const mockCustomersFilter = (overrides?: Partial<CustomersFilter>, _relat
     relationshipsToOmit.add('CustomersFilter');
     return {
         field: overrides && overrides.hasOwnProperty('field') ? overrides.field! : CustomersFilterBy.AccountKycVerification,
-        kycVerification: overrides && overrides.hasOwnProperty('kycVerification') ? overrides.kycVerification! : KycVerification.PendingVerification,
+        kycVerification: overrides && overrides.hasOwnProperty('kycVerification') ? overrides.kycVerification! : KycVerification.NoKyc,
     };
 };
 

@@ -31,23 +31,13 @@ pub enum KycLevel {
 }
 
 #[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-    Serialize,
-    Deserialize,
+    Debug, Clone, Copy, PartialEq, Eq, strum::Display, strum::EnumString, Serialize, Deserialize,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum KycVerification {
-    #[default]
-    PendingVerification,
+    NoKyc,
     Verified,
     Rejected,
 }
@@ -178,6 +168,10 @@ pub enum ProspectStage {
 impl KycVerification {
     pub fn is_verified(&self) -> bool {
         matches!(self, KycVerification::Verified)
+    }
+
+    pub fn no_kyc() -> Self {
+        Self::NoKyc
     }
 }
 

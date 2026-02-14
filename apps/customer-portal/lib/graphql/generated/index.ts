@@ -345,7 +345,7 @@ export enum KycLevel {
 }
 
 export enum KycVerification {
-  PendingVerification = 'PENDING_VERIFICATION',
+  NoKyc = 'NO_KYC',
   Rejected = 'REJECTED',
   Verified = 'VERIFIED'
 }

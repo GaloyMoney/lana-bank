@@ -183,6 +183,7 @@ impl Prospect {
             .customer_type(self.customer_type)
             .public_id(self.public_id.clone())
             .applicant_id("manual-conversion")
+            .kyc_verification(KycVerification::NoKyc)
             .level(KycLevel::Basic)
             .activity(Activity::Active)
             .build()

@@ -41,8 +41,8 @@ function UserDetailsCard({
         >
           {customer.kycVerification === KycVerification.Verified
             ? "Verified"
-            : customer.kycVerification === KycVerification.PendingVerification
-              ? "Pending"
+            : customer.kycVerification === KycVerification.NoKyc
+              ? "No KYC"
               : "Rejected"}
         </Badge>
       ),

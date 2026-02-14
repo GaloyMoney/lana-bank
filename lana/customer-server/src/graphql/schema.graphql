@@ -300,7 +300,7 @@ enum KycLevel {
 }
 
 enum KycVerification {
-	PENDING_VERIFICATION
+	NO_KYC
 	VERIFIED
 	REJECTED
 }
