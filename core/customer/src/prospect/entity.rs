@@ -24,16 +24,16 @@ pub enum ProspectEvent {
     KycStarted {
         applicant_id: String,
         #[serde(default)]
-        callback_id: String,
+        inbox_id: String,
     },
     KycApproved {
         level: KycLevel,
         #[serde(default)]
-        callback_id: String,
+        inbox_id: String,
     },
     KycDeclined {
         #[serde(default)]
-        callback_id: String,
+        inbox_id: String,
     },
     ManuallyConverted {},
     Closed {},
@@ -78,14 +78,14 @@ impl Prospect {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn start_kyc(&mut self, applicant_id: String, callback_id: String) -> Idempotent<()> {
+    pub fn start_kyc(&mut self, applicant_id: String, inbox_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycStarted { .. }
         );
         self.events.push(ProspectEvent::KycStarted {
             applicant_id: applicant_id.clone(),
-            callback_id,
+            inbox_id,
         });
         self.applicant_id = Some(applicant_id);
         self.kyc_status = KycStatus::Pending;
@@ -95,7 +95,7 @@ impl Prospect {
     pub fn approve_kyc(
         &mut self,
         level: KycLevel,
-        callback_id: String,
+        inbox_id: String,
     ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -106,7 +106,7 @@ impl Prospect {
             .clone()
             .ok_or(ProspectError::KycNotStarted)?;
         self.events
-            .push(ProspectEvent::KycApproved { level, callback_id });
+            .push(ProspectEvent::KycApproved { level, inbox_id });
         self.level = level;
         self.kyc_status = KycStatus::Approved;
         self.status = ProspectStatus::Converted;
@@ -152,7 +152,7 @@ impl Prospect {
         Idempotent::Executed(new_customer)
     }
 
-    pub fn decline_kyc(&mut self, callback_id: String) -> Result<Idempotent<()>, ProspectError> {
+    pub fn decline_kyc(&mut self, inbox_id: String) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycDeclined { .. }
@@ -160,7 +160,7 @@ impl Prospect {
         if self.applicant_id.is_none() {
             return Err(ProspectError::KycNotStarted);
         }
-        self.events.push(ProspectEvent::KycDeclined { callback_id });
+        self.events.push(ProspectEvent::KycDeclined { inbox_id });
         self.kyc_status = KycStatus::Declined;
         Ok(Idempotent::Executed(()))
     }

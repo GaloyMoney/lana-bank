@@ -61,7 +61,7 @@
         "applicant_id": {
           "type": "string"
         },
-        "callback_id": {
+        "inbox_id": {
           "default": "",
           "type": "string"
         },
@@ -78,7 +78,7 @@
     },
     {
       "properties": {
-        "callback_id": {
+        "inbox_id": {
           "default": "",
           "type": "string"
         },
@@ -98,7 +98,7 @@
     },
     {
       "properties": {
-        "callback_id": {
+        "inbox_id": {
           "default": "",
           "type": "string"
         },

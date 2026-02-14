@@ -313,7 +313,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
-        callback_id: String,
+        inbox_id: String,
     ) -> Result<Option<Prospect>, CustomerError> {
         let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
@@ -328,7 +328,7 @@ where
             )
             .await?;
 
-        if prospect.start_kyc(applicant_id, callback_id).did_execute() {
+        if prospect.start_kyc(applicant_id, inbox_id).did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -341,7 +341,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
-        callback_id: String,
+        inbox_id: String,
     ) -> Result<Prospect, CustomerError> {
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
@@ -354,7 +354,7 @@ where
             )
             .await?;
 
-        if prospect.start_kyc(applicant_id, callback_id).did_execute() {
+        if prospect.start_kyc(applicant_id, inbox_id).did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -367,7 +367,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
-        callback_id: String,
+        inbox_id: String,
     ) -> Result<Option<Customer>, CustomerError> {
         let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
@@ -391,7 +391,7 @@ where
             ));
         }
 
-        match prospect.approve_kyc(KycLevel::Basic, callback_id)? {
+        match prospect.approve_kyc(KycLevel::Basic, inbox_id)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -422,7 +422,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
-        callback_id: String,
+        inbox_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
@@ -444,7 +444,7 @@ where
             ));
         }
 
-        match prospect.approve_kyc(KycLevel::Basic, callback_id)? {
+        match prospect.approve_kyc(KycLevel::Basic, inbox_id)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -475,7 +475,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
-        callback_id: String,
+        inbox_id: String,
     ) -> Result<Option<Prospect>, CustomerError> {
         let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
@@ -502,10 +502,10 @@ where
         if prospect.status == ProspectStatus::Converted {
             let customer_id = CustomerId::from(prospect_id);
             let mut customer = self.repo.find_by_id(customer_id).await?;
-            if customer.reject_kyc(callback_id).did_execute() {
+            if customer.reject_kyc(inbox_id).did_execute() {
                 self.repo.update(&mut customer).await?;
             }
-        } else if prospect.decline_kyc(callback_id)?.did_execute() {
+        } else if prospect.decline_kyc(inbox_id)?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 
@@ -518,7 +518,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
-        callback_id: String,
+        inbox_id: String,
     ) -> Result<Prospect, CustomerError> {
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
@@ -543,10 +543,10 @@ where
         if prospect.status == ProspectStatus::Converted {
             let customer_id = CustomerId::from(prospect_id);
             let mut customer = self.repo.find_by_id(customer_id).await?;
-            if customer.reject_kyc(callback_id).did_execute() {
+            if customer.reject_kyc(inbox_id).did_execute() {
                 self.repo.update(&mut customer).await?;
             }
-        } else if prospect.decline_kyc(callback_id)?.did_execute() {
+        } else if prospect.decline_kyc(inbox_id)?.did_execute() {
             self.prospect_repo.update(&mut prospect).await?;
         }
 

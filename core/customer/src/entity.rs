@@ -37,7 +37,7 @@ pub enum CustomerEvent {
     },
     KycRejected {
         #[serde(default)]
-        callback_id: String,
+        inbox_id: String,
     },
 }
 
@@ -108,12 +108,12 @@ impl Customer {
         Idempotent::Executed(())
     }
 
-    pub fn reject_kyc(&mut self, callback_id: String) -> Idempotent<()> {
+    pub fn reject_kyc(&mut self, inbox_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::KycRejected { .. }
         );
-        self.events.push(CustomerEvent::KycRejected { callback_id });
+        self.events.push(CustomerEvent::KycRejected { inbox_id });
         self.kyc_verification = KycVerification::Rejected;
         Idempotent::Executed(())
     }

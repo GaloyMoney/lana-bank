@@ -138,7 +138,7 @@
     },
     {
       "properties": {
-        "callback_id": {
+        "inbox_id": {
           "default": "",
           "type": "string"
         },
