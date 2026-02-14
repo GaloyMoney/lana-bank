@@ -461,7 +461,7 @@
       "kycStatus": {
         "title": "KYC",
         "verified": "Verificado",
-        "pending": "Pendiente",
+        "noKyc": "Sin KYC",
         "rejected": "Rechazado",
         "labels": {
           "level": "Nivel",

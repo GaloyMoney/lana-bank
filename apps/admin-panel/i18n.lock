@@ -334,7 +334,7 @@ checksums:
     Customers/CustomerDetails/details/actions/editTelegram: 4ae315a304c3159b982b203be81a5f98
     Customers/CustomerDetails/kycStatus/title: 4bd5d2fae73d8ec19511c2d011a48025
     Customers/CustomerDetails/kycStatus/verified: 9566bd61c1f754dd5082eea5101f15a8
-    Customers/CustomerDetails/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
+    Customers/CustomerDetails/kycStatus/noKyc: 10d02f136823bff246bf59bcb4cea64b
     Customers/CustomerDetails/kycStatus/rejected: 30202c9a9a2093021b0e9a1c61717fe9
     Customers/CustomerDetails/kycStatus/labels/level: 1e3bf31d5c6083e898dd3e3359fbb0c2
     Customers/CustomerDetails/kycStatus/labels/status: 4e1fcce15854d824919b4a582c697c90
