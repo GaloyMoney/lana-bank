@@ -80,7 +80,7 @@ async fn customer_email_updated_event_on_email_change() -> anyhow::Result<()> {
     let original_email = format!("test-{}@example.com", Uuid::new_v4());
     let telegram_handle = format!("telegram-{}", Uuid::new_v4());
     let customer = customers
-        .create_customer(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             original_email,
             telegram_handle,
