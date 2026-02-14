@@ -164,11 +164,16 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .expect("super user");
 
     let (clock, _clock_ctrl) = config.time.into_clock();
-    let encryption_config = config.app.encryption.clone();
 
-    let app = lana_app::app::LanaApp::init(pool.clone(), config.app, clock.clone())
-        .await
-        .context("Failed to initialize Lana app")?;
+    let domain_config_settings = startup_domain_config::parse_from_env()?;
+    let app = lana_app::app::LanaApp::init(
+        pool.clone(),
+        config.app,
+        clock.clone(),
+        domain_config_settings.into_iter().map(|s| (s.key, s.value)),
+    )
+    .await
+    .context("Failed to initialize Lana app")?;
 
     #[cfg(feature = "sim-bootstrap")]
     if let Some(ctrl) = _clock_ctrl {
@@ -180,18 +185,6 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
             ctrl,
         )
         .await;
-    }
-
-    // Apply domain config settings from env vars after seeding but before starting servers
-    let domain_config_settings = startup_domain_config::parse_from_env()?;
-    if !domain_config_settings.is_empty() {
-        domain_config::apply_startup_configs(
-            &pool,
-            &encryption_config,
-            domain_config_settings.into_iter().map(|s| (s.key, s.value)),
-        )
-        .await
-        .context("Failed to apply domain config settings from env vars")?;
     }
 
     let admin_error_send = error_send.clone();

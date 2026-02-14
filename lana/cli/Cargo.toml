@@ -25,7 +25,6 @@ sim-bootstrap = { workspace = true, optional = true }
 tracing-utils = { workspace = true, features = ["http"] }
 
 es-entity = { workspace = true }
-domain-config = { workspace = true }
 
 anyhow = { workspace = true }
 serde_json = { workspace = true }
