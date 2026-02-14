@@ -246,9 +246,16 @@
     "columns": {
       "email": "Correo electrónico",
       "telegramHandle": "Telegram",
-      "status": "Estado",
-      "kycStatus": "Estado KYC",
+      "stage": "Etapa",
       "customerType": "Tipo"
+    },
+    "stage": {
+      "new": "Nuevo",
+      "kycStarted": "KYC iniciado",
+      "kycPending": "KYC pendiente",
+      "kycDeclined": "KYC rechazado",
+      "converted": "Convertido",
+      "closed": "Cerrado"
     },
     "status": {
       "open": "Abierto",
@@ -257,6 +264,7 @@
     },
     "kycStatus": {
       "notStarted": "No iniciado",
+      "started": "Iniciado",
       "pending": "Pendiente",
       "approved": "Aprobado",
       "declined": "Rechazado"
@@ -302,7 +310,7 @@
       "details": {
         "title": "Prospecto",
         "labels": {
-          "status": "Estado",
+          "stage": "Etapa",
           "email": "Correo electrónico",
           "createdOn": "Creado el",
           "telegram": "Telegram",

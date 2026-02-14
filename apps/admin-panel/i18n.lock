@@ -186,13 +186,19 @@ checksums:
     Prospects/description: a73f70ba16073481ad0ec5b88368a760
     Prospects/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5
     Prospects/columns/telegramHandle: 0719cb55ded3146892d106733a8431b2
-    Prospects/columns/status: 4e1fcce15854d824919b4a582c697c90
-    Prospects/columns/kycStatus: 0812527db67eb37688eb605718471c6c
+    Prospects/columns/stage: 791b091ce29b771e471bd0818fd63466
     Prospects/columns/customerType: f04471a7ddac844b9ad145eb9911ef75
+    Prospects/stage/new: 126d036fae5fb6b629728ecb97e6195b
+    Prospects/stage/kycStarted: f9d466b1b1cce7474ed7da50efccc604
+    Prospects/stage/kycPending: 0c234209231aedf1aa2317858f79c67c
+    Prospects/stage/kycDeclined: 90c74054ff0d874a1bdbf1121717da59
+    Prospects/stage/converted: 1d0247b1c49b79f4ed79dfcdf9eeea9b
+    Prospects/stage/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     Prospects/status/open: 9a8c3b16091ea6cef3f771fc6715ab67
     Prospects/status/converted: 1d0247b1c49b79f4ed79dfcdf9eeea9b
     Prospects/status/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     Prospects/kycStatus/notStarted: 5d3574bf6f78fdcb400c5e8a6a034111
+    Prospects/kycStatus/started: b3e31f20f0df77554b9baf6cf9a5496c
     Prospects/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
     Prospects/kycStatus/approved: e5231b13f1fb9008823144a21a81a1b3
     Prospects/kycStatus/declined: d9330b2f64bfd767cfcfedd9afe86c77
@@ -226,7 +232,7 @@ checksums:
     Prospects/ProspectDetails/layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     Prospects/ProspectDetails/layout/errors/error: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     Prospects/ProspectDetails/details/title: 461df0adcbe6fef86c68f0d1a3b07356
-    Prospects/ProspectDetails/details/labels/status: 4e1fcce15854d824919b4a582c697c90
+    Prospects/ProspectDetails/details/labels/stage: 791b091ce29b771e471bd0818fd63466
     Prospects/ProspectDetails/details/labels/email: e7f34943a0c2fb849db1839ff6ef5cb5
     Prospects/ProspectDetails/details/labels/createdOn: 24d89e2759464207b31141138abf2e81
     Prospects/ProspectDetails/details/labels/telegram: 0719cb55ded3146892d106733a8431b2
