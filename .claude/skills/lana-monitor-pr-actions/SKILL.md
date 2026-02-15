@@ -26,3 +26,4 @@ Your goal is to get all checks passing by retrying flaky failures and fixing rea
 - Never switch branches, create additional PRs, or modify other branches
 - If pushing fails due to conflicts, stop and report — do not attempt to resolve them
 - If you've attempted several fixes without success, stop and report what's blocking progress
+- Bot-pushed commits (e.g., lingo.dev translations) don't trigger CI workflows. If waiting on a bot commit to fix a failure, push an empty commit (`git commit --allow-empty`) to re-trigger CI.
