@@ -47,3 +47,7 @@ Activation of a `CreditFacility` can happen only after `Collateral` for the Faci
 Collateral's CVL should be more than initial CVL as defined in the `CreditFacility` terms for the facility to activate.
 
 Upon activation of the facility, `InterestAccrualCycle` is initialized to start accruing interest on disbursed amounts.
+
+:::tip Admin Panel Guide
+For a step-by-step walkthrough of creating, approving, and activating credit facilities in the admin panel, see the [Admin Panel Guide: Credit Facilities](admin-guide.md).
+:::
