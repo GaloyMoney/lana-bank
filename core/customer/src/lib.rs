@@ -665,8 +665,8 @@ where
 
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
-        match prospect.convert_manually()? {
-            es_entity::Idempotent::Executed(new_customer) => {
+        match prospect.convert_manually() {
+            Ok(es_entity::Idempotent::Executed(new_customer)) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
                     .update_in_op(&mut db, &mut prospect)
@@ -683,10 +683,12 @@ where
                 db.commit().await?;
                 Ok(customer)
             }
-            es_entity::Idempotent::AlreadyApplied => {
+            Ok(es_entity::Idempotent::AlreadyApplied)
+            | Err(crate::prospect::ProspectError::AlreadyConverted) => {
                 let customer_id = CustomerId::from(prospect_id);
                 Ok(self.repo.find_by_id(customer_id).await?)
             }
+            Err(e) => Err(e.into()),
         }
     }
 
