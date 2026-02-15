@@ -5,12 +5,14 @@ use crate::graphql::{
     customer::Customer,
     deposit::Deposit,
     deposit_account::DepositAccount,
+    prospect::Prospect,
     withdrawal::Withdrawal,
 };
 
 #[derive(Union)]
 pub enum PublicIdTarget {
     Customer(Customer),
+    Prospect(Prospect),
     DepositAccount(DepositAccount),
     Deposit(Deposit),
     Withdrawal(Withdrawal),

@@ -25,7 +25,6 @@ import {
   CommandList,
 } from "@lana/web/ui/command"
 
-import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
 import { CreateCreditFacilityProposalDialog } from "./credit-facility-proposals/create"
@@ -94,7 +93,6 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
   }
   const [pages, setPages] = useState<groups>("main")
 
-  const [createCustomer, setCreateCustomer] = useState(false)
   const [createDeposit, setCreateDeposit] = useState(false)
   const [createWithdrawal, setCreateWithdrawal] = useState(false)
   const [createFacility, setCreateFacility] = useState(false)
@@ -189,15 +187,6 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
         setOpen(false)
       },
       allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
-    },
-    {
-      label: t("actions.createCustomer"),
-      icon: Plus,
-      action: () => {
-        setCreateCustomer(true)
-        setOpen(false)
-      },
-      allowedPaths: [PATH_CONFIGS.CUSTOMERS, PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
       label: t("actions.createCreditFacility"),
@@ -429,10 +418,6 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
         </Command>
       </CommandDialog>
 
-      <CreateCustomerDialog
-        openCreateCustomerDialog={createCustomer}
-        setOpenCreateCustomerDialog={setCreateCustomer}
-      />
       <CreateUserDialog
         openCreateUserDialog={openCreateUserDialog}
         setOpenCreateUserDialog={setOpenCreateUserDialog}

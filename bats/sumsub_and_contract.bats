@@ -28,37 +28,37 @@ wait_for_loan_agreement_completion() {
   fi
 
   customer_email=$(generate_email)
-  telegramId=$(generate_email)
+  telegramHandle=$(generate_email)
   customer_type="INDIVIDUAL"
 
   variables=$(
     jq -n \
     --arg email "$customer_email" \
-    --arg telegramId "$telegramId" \
+    --arg telegramHandle "$telegramHandle" \
     --arg customerType "$customer_type" \
     '{
       input: {
         email: $email,
-        telegramId: $telegramId,
+        telegramHandle: $telegramHandle,
         customerType: $customerType
       }
     }'
   )
-  
-  exec_admin_graphql 'customer-create' "$variables"
-  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
 
-  echo "customer_id: $customer_id"
-  [[ "$customer_id" != "null" ]] || exit 1
+  exec_admin_graphql 'prospect-create' "$variables"
+  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
+
+  echo "prospect_id: $prospect_id"
+  [[ "$prospect_id" != "null" ]] || exit 1
 
   # Create permalink (for reference and fallback testing)
 
   variables=$(
     jq -n \
-    --arg customerId "$customer_id" \
+    --arg prospectId "$prospect_id" \
     '{
       input: {
-        customerId: $customerId
+        prospectId: $prospectId
       }
     }'
   )
@@ -88,7 +88,7 @@ wait_for_loan_agreement_completion() {
       "inspectionId": "test-inspection-id",
       "correlationId": "'"$(uuidgen)"'",
       "levelName": "basic-kyc-level",
-      "externalUserId": "'"$customer_id"'",
+      "externalUserId": "'"$prospect_id"'",
       "type": "applicantCreated",
       "sandboxMode": true,
       "reviewStatus": "init",
@@ -103,7 +103,7 @@ wait_for_loan_agreement_completion() {
       "applicantId": "'"$test_applicant_id"'",
       "inspectionId": "test-inspection-id",
       "correlationId": "'"$(uuidgen)"'",
-      "externalUserId": "'"$customer_id"'",
+      "externalUserId": "'"$prospect_id"'",
       "levelName": "basic-kyc-level",
       "type": "applicantReviewed",
       "reviewResult": {
@@ -114,13 +114,21 @@ wait_for_loan_agreement_completion() {
       "sandboxMode": true
     }'
 
-  # Wait briefly for webhook processing
-  echo "Waiting for webhook processing..."
-  sleep 1
+  # Customer is created asynchronously via webhook inbox processing.
+  # Poll until the customer exists.
+  customer_id="$prospect_id"
+  for i in {1..30}; do
+    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
+    exec_admin_graphql 'customer' "$variables"
+    fetched_id=$(graphql_output .data.customer.customerId)
+    [[ "$fetched_id" != "null" ]] && break
+    sleep 1
+  done
+  [[ "$fetched_id" != "null" ]] || exit 1
 
   # Verify the customer kyc verification after the complete KYC flow
   variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')
-  
+
   exec_admin_graphql 'customer' "$variables"
   level=$(graphql_output '.data.customer.level')
   kyc_verification=$(graphql_output '.data.customer.kycVerification')

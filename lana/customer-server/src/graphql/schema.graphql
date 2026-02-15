@@ -165,7 +165,7 @@ type Customer {
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
-	telegramId: String!
+	telegramHandle: String!
 	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
 }
@@ -300,7 +300,7 @@ enum KycLevel {
 }
 
 enum KycVerification {
-	PENDING_VERIFICATION
+	NO_KYC
 	VERIFIED
 	REJECTED
 }

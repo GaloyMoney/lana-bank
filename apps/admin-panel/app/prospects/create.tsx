@@ -24,18 +24,18 @@ import {
 } from "@lana/web/ui/select"
 import { RadioGroup, RadioGroupItem } from "@lana/web/ui/radio-group"
 
-import { useCustomerCreateMutation, CustomerType } from "@/lib/graphql/generated"
+import { useProspectCreateMutation, CustomerType } from "@/lib/graphql/generated"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
-  mutation CustomerCreate($input: CustomerCreateInput!) {
-    customerCreate(input: $input) {
-      customer {
+  mutation ProspectCreate($input: ProspectCreateInput!) {
+    prospectCreate(input: $input) {
+      prospect {
         id
-        customerId
+        prospectId
         publicId
         email
-        kycVerification
+        kycStatus
         level
         applicantId
       }
@@ -45,18 +45,18 @@ gql`
 
 type FormData = {
   email: string
-  telegramId: string
+  telegramHandle: string
   customerType: CustomerType
 }
 
-type CreateCustomerDialogProps = {
-  setOpenCreateCustomerDialog: (isOpen: boolean) => void
-  openCreateCustomerDialog: boolean
+type CreateProspectDialogProps = {
+  setOpenCreateProspectDialog: (isOpen: boolean) => void
+  openCreateProspectDialog: boolean
 }
 
 const InitialFormData: FormData = {
   email: "",
-  telegramId: "",
+  telegramHandle: "",
   customerType: CustomerType.Individual,
 }
 
@@ -67,7 +67,7 @@ type FormProps = {
   isLoading: boolean
   error: string | null
   setCurrentStep: (step: "details" | "confirmation") => void
-  t: ReturnType<typeof useTranslations<"Customers.create">>
+  t: ReturnType<typeof useTranslations<"Prospects.create">>
   setFormData?: React.Dispatch<React.SetStateAction<FormData>>
 }
 
@@ -88,7 +88,7 @@ const DetailsForm = ({
         name="email"
         type="email"
         required
-        data-testid="customer-create-email"
+        data-testid="prospect-create-email"
         placeholder={t("emailPlaceholder")}
         value={formData.email}
         onChange={handleInputChange}
@@ -96,15 +96,15 @@ const DetailsForm = ({
       />
     </div>
     <div>
-      <Label htmlFor="telegramId">{t("telegramLabel")}</Label>
+      <Label htmlFor="telegramHandle">{t("telegramLabel")}</Label>
       <Input
-        id="telegramId"
-        name="telegramId"
+        id="telegramHandle"
+        name="telegramHandle"
         type="text"
         required
-        data-testid="customer-create-telegram-id"
+        data-testid="prospect-create-telegram-handle"
         placeholder={t("telegramPlaceholder")}
-        value={formData.telegramId}
+        value={formData.telegramHandle}
         onChange={handleInputChange}
         disabled={isLoading}
       />
@@ -137,7 +137,7 @@ const DetailsForm = ({
           <RadioGroupItem
             id="individual"
             value="INDIVIDUAL"
-            data-testid="customer-type-individual"
+            data-testid="prospect-type-individual"
           />
           <Label htmlFor="individual" className="ml-2 text-sm font-normal">
             {t("individualLabel")}
@@ -147,7 +147,7 @@ const DetailsForm = ({
           <RadioGroupItem
             id="company"
             value="COMPANY"
-            data-testid="customer-type-company"
+            data-testid="prospect-type-company"
           />
           <Label htmlFor="company" className="ml-2 text-sm font-normal">
             {t("companyLabel")}
@@ -214,7 +214,7 @@ const DetailsForm = ({
       <Button
         type="submit"
         loading={isLoading}
-        data-testid="customer-create-submit-button"
+        data-testid="prospect-create-submit-button"
       >
         {t("reviewButton")}
       </Button>
@@ -248,7 +248,7 @@ const ConfirmationForm = ({
     </div>
     <div>
       <Label>{t("telegramLabel")}</Label>
-      <p>{formData.telegramId}</p>
+      <p>{formData.telegramHandle}</p>
     </div>
     <div>
       <Label>{t("customerTypeLabel")}</Label>
@@ -267,7 +267,7 @@ const ConfirmationForm = ({
       <Button
         type="submit"
         loading={isLoading}
-        data-testid="customer-create-submit-button"
+        data-testid="prospect-create-submit-button"
       >
         {t("confirmButton")}
       </Button>
@@ -275,10 +275,9 @@ const ConfirmationForm = ({
   </form>
 )
 
-// Helper function to get display text for customer type
 const getCustomerTypeDisplay = (
   customerType: CustomerType,
-  t: ReturnType<typeof useTranslations<"Customers.create">>,
+  t: ReturnType<typeof useTranslations<"Prospects.create">>,
 ) => {
   switch (customerType) {
     case CustomerType.Individual:
@@ -300,14 +299,14 @@ const getCustomerTypeDisplay = (
   }
 }
 
-export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
-  setOpenCreateCustomerDialog,
-  openCreateCustomerDialog,
+export const CreateProspectDialog: React.FC<CreateProspectDialogProps> = ({
+  setOpenCreateProspectDialog,
+  openCreateProspectDialog,
 }) => {
-  const t = useTranslations("Customers.create")
+  const t = useTranslations("Prospects.create")
 
   const closeDialog = () => {
-    setOpenCreateCustomerDialog(false)
+    setOpenCreateProspectDialog(false)
     resetForm()
   }
 
@@ -315,12 +314,12 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
     closeModal: closeDialog,
   })
 
-  const [createCustomer, { loading, error: createCustomerError }] =
-    useCustomerCreateMutation({
+  const [createProspect, { loading, error: createProspectError }] =
+    useProspectCreateMutation({
       update: (cache) => {
         cache.modify({
           fields: {
-            customers: (_, { DELETE }) => DELETE,
+            prospects: (_, { DELETE }) => DELETE,
           },
         })
         cache.gc()
@@ -352,25 +351,25 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
     }
 
     try {
-      await createCustomer({
+      await createProspect({
         variables: {
           input: formData,
         },
         onCompleted: (data) => {
-          if (data?.customerCreate.customer) {
+          if (data?.prospectCreate.prospect) {
             toast.success(t("successMessage"))
-            navigate(`/customers/${data.customerCreate.customer.publicId}`)
+            navigate(`/prospects/${data.prospectCreate.prospect.publicId}`)
           } else {
             throw new Error(t("failedToCreate"))
           }
         },
       })
     } catch (error) {
-      console.error("Error creating customer:", error)
+      console.error("Error creating prospect:", error)
       if (error instanceof Error) {
         setError(error.message)
-      } else if (createCustomerError?.message) {
-        setError(createCustomerError.message)
+      } else if (createProspectError?.message) {
+        setError(createProspectError.message)
       } else {
         setError(t("unexpectedError"))
       }
@@ -386,9 +385,9 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
 
   return (
     <Dialog
-      open={openCreateCustomerDialog}
+      open={openCreateProspectDialog}
       onOpenChange={(isOpen) => {
-        setOpenCreateCustomerDialog(isOpen)
+        setOpenCreateProspectDialog(isOpen)
         if (!isOpen) resetForm()
       }}
     >

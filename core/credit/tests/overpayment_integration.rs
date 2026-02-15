@@ -59,7 +59,7 @@ async fn create_active_facility(
 ) -> anyhow::Result<ActiveFacility> {
     // Create a customer
     let customer = customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             random_email(),
             random_username(),

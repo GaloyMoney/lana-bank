@@ -113,3 +113,6 @@ For detailed patterns on `Idempotent<T>`, `idempotency_guard!`, and infallible q
 - When checking github action (gh pr checks), use a timeout of 30m
 - Use conventional commits
 - Open draft PR by default
+
+## Frontend
+- Do not edit es.json, let lingo.dev github action do it.

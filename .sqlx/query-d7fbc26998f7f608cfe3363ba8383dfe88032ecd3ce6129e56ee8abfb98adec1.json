@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT activity, telegram_id, id FROM core_customers WHERE ((activity = $1) AND (COALESCE((telegram_id, id) > ($4, $3), $3 IS NULL))) ORDER BY telegram_id ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.telegram_id asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT email, id FROM core_prospects WHERE (COALESCE((email, id) > ($3, $2), $2 IS NULL)) ORDER BY email ASC, id ASC LIMIT $1) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_prospect_events e ON i.id = e.id ORDER BY i.email asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,7 +31,6 @@
     ],
     "parameters": {
       "Left": [
-        "Text",
         "Int8",
         "Uuid",
         "Text",
@@ -46,5 +45,5 @@
       false
     ]
   },
-  "hash": "8fbbaeb02c03fdc87f032a1ef2e8c389716dc29229dcd1918dc9b067221fb6d5"
+  "hash": "d7fbc26998f7f608cfe3363ba8383dfe88032ecd3ce6129e56ee8abfb98adec1"
 }

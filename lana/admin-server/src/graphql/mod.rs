@@ -19,6 +19,7 @@ mod loader;
 mod me;
 mod price;
 mod primitives;
+mod prospect;
 mod public_id;
 mod reports;
 mod sumsub;

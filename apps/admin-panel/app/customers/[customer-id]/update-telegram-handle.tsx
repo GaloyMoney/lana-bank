@@ -17,58 +17,58 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { useCustomerTelegramIdUpdateMutation } from "@/lib/graphql/generated"
+import { useCustomerTelegramHandleUpdateMutation } from "@/lib/graphql/generated"
 
 gql`
-  mutation CustomerTelegramIdUpdate($input: CustomerTelegramIdUpdateInput!) {
-    customerTelegramIdUpdate(input: $input) {
+  mutation CustomerTelegramHandleUpdate($input: CustomerTelegramHandleUpdateInput!) {
+    customerTelegramHandleUpdate(input: $input) {
       customer {
         id
-        telegramId
+        telegramHandle
       }
     }
   }
 `
 
-type UpdateTelegramIdDialogProps = {
-  setOpenUpdateTelegramIdDialog: (isOpen: boolean) => void
-  openUpdateTelegramIdDialog: boolean
+type UpdateTelegramHandleDialogProps = {
+  setOpenUpdateTelegramHandleDialog: (isOpen: boolean) => void
+  openUpdateTelegramHandleDialog: boolean
   customerId: string
 }
 
-export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
-  setOpenUpdateTelegramIdDialog,
-  openUpdateTelegramIdDialog,
+export const UpdateTelegramHandleDialog: React.FC<UpdateTelegramHandleDialogProps> = ({
+  setOpenUpdateTelegramHandleDialog,
+  openUpdateTelegramHandleDialog,
   customerId,
 }) => {
   const t = useTranslations("Customers.CustomerDetails.updateTelegram")
 
-  const [updateTelegramId, { loading, error: mutationError, reset }] =
-    useCustomerTelegramIdUpdateMutation()
-  const [newTelegramId, setNewTelegramId] = useState<string>("")
+  const [updateTelegramHandle, { loading, error: mutationError, reset }] =
+    useCustomerTelegramHandleUpdateMutation()
+  const [newTelegramHandle, setNewTelegramHandle] = useState<string>("")
   const [validationError, setValidationError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setValidationError(null)
 
-    if (!newTelegramId.trim()) {
+    if (!newTelegramHandle.trim()) {
       setValidationError(t("errors.emptyTelegramId"))
       return
     }
 
     try {
-      await updateTelegramId({
+      await updateTelegramHandle({
         variables: {
           input: {
             customerId,
-            telegramId: newTelegramId.trim(),
+            telegramHandle: newTelegramHandle.trim(),
           },
         },
       })
       toast.success(t("messages.updateSuccess"))
       resetStates()
-      setOpenUpdateTelegramIdDialog(false)
+      setOpenUpdateTelegramHandleDialog(false)
     } catch (error) {
       console.error(error)
       if (error instanceof Error) {
@@ -80,16 +80,16 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
   }
 
   const resetStates = () => {
-    setNewTelegramId("")
+    setNewTelegramHandle("")
     setValidationError(null)
     reset()
   }
 
   return (
     <Dialog
-      open={openUpdateTelegramIdDialog}
+      open={openUpdateTelegramHandleDialog}
       onOpenChange={(isOpen) => {
-        setOpenUpdateTelegramIdDialog(isOpen)
+        setOpenUpdateTelegramHandleDialog(isOpen)
         if (!isOpen) {
           resetStates()
         }
@@ -102,14 +102,14 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label htmlFor="newTelegramId">{t("labels.newTelegramId")}</Label>
+            <Label htmlFor="newTelegramHandle">{t("labels.newTelegramId")}</Label>
             <Input
-              id="newTelegramId"
+              id="newTelegramHandle"
               type="text"
               required
               placeholder={t("placeholders.newTelegramId")}
-              value={newTelegramId}
-              onChange={(e) => setNewTelegramId(e.target.value)}
+              value={newTelegramHandle}
+              onChange={(e) => setNewTelegramHandle(e.target.value)}
             />
           </div>
           {(validationError || mutationError) && (
@@ -128,4 +128,4 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
   )
 }
 
-export default UpdateTelegramIdDialog
+export default UpdateTelegramHandleDialog

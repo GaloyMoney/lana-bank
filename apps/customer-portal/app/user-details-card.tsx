@@ -41,15 +41,15 @@ function UserDetailsCard({
         >
           {customer.kycVerification === KycVerification.Verified
             ? "Verified"
-            : customer.kycVerification === KycVerification.PendingVerification
-              ? "Pending"
+            : customer.kycVerification === KycVerification.NoKyc
+              ? "No KYC"
               : "Rejected"}
         </Badge>
       ),
     },
     {
       label: "Telegram",
-      value: customer.telegramId,
+      value: customer.telegramHandle,
     },
     {
       label: "Joined on",

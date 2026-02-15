@@ -14,7 +14,7 @@ gql`
         level
         createdAt
         email
-        telegramId
+        telegramHandle
         depositAccount {
           id
           depositAccountId

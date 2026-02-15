@@ -13,8 +13,8 @@ pub use lana_app::{
         CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus, DocumentId, EntryId,
         FiscalYearId, LedgerTransactionId, LiquidationId, ManualTransactionId, PaymentAllocationId,
         PaymentId, PendingCreditFacilityId, PendingCreditFacilityStatus, PermissionSetId, PolicyId,
-        ReportId, RoleId, Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId,
-        UsdCents, UserId, WalletId, WithdrawalId,
+        ProspectId, ReportId, RoleId, Satoshis, SignedSatoshis, SignedUsdCents, Subject,
+        TermsTemplateId, UsdCents, UserId, WalletId, WithdrawalId,
     },
     public_id::PublicId,
     report::ReportRunId,
@@ -150,5 +150,6 @@ impl_to_global_id! {
     EntryId,
     LedgerAccountId,
     FiscalYearId,
+    ProspectId,
     DomainConfigId
 }

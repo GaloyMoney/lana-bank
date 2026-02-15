@@ -10,7 +10,7 @@ import { Label } from "@lana/web/ui/label"
 
 import { ActivityStatusBadge } from "../activity-status-badge"
 
-import UpdateTelegramIdDialog from "./update-telegram-id"
+import UpdateTelegramHandleDialog from "./update-telegram-handle"
 import UpdateEmailDialog from "./update-email"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -23,7 +23,7 @@ type CustomerDetailsCardProps = {
 export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ customer }) => {
   const t = useTranslations("Customers.CustomerDetails.details")
 
-  const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
+  const [openUpdateTelegramHandleDialog, setOpenUpdateTelegramHandleDialog] = useState(false)
   const [openUpdateEmailDialog, setOpenUpdateEmailDialog] = useState(false)
 
   const getCustomerTypeDisplay = (customerType: CustomerType) => {
@@ -68,13 +68,13 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
           <span>{t("labels.telegram")}</span>
           <div className="cursor-pointer text-primary px-1">
             <PiPencilSimpleLineLight
-              onClick={() => setOpenUpdateTelegramIdDialog(true)}
+              onClick={() => setOpenUpdateTelegramHandleDialog(true)}
               className="w-4 h-4"
             />
           </div>
         </Label>
       ),
-      value: customer.telegramId,
+      value: customer.telegramHandle,
     },
     { label: t("labels.createdOn"), value: formatDate(customer.createdAt) },
     {
@@ -90,10 +90,10 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
   return (
     <>
       <DetailsCard title={t("title")} details={details} className="w-full" columns={4} />
-      <UpdateTelegramIdDialog
+      <UpdateTelegramHandleDialog
         customerId={customer.customerId}
-        openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
-        setOpenUpdateTelegramIdDialog={setOpenUpdateTelegramIdDialog}
+        openUpdateTelegramHandleDialog={openUpdateTelegramHandleDialog}
+        setOpenUpdateTelegramHandleDialog={setOpenUpdateTelegramHandleDialog}
       />
       <UpdateEmailDialog
         customerId={customer.customerId}

@@ -24,7 +24,7 @@ import {
 
 import { getUTCYear } from "@lana/web/utils"
 
-import { CreateCustomerDialog } from "./customers/create"
+import { CreateProspectDialog } from "./prospects/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
 import { CreateCreditFacilityProposalDialog } from "./credit-facility-proposals/create"
@@ -62,7 +62,7 @@ export const PATH_CONFIGS = {
 
   CREDIT_FACILITY_DETAILS: /^\/credit-facilities\/[^/]+/,
 
-  CUSTOMERS: "/customers",
+  PROSPECTS: "/prospects",
   CUSTOMER_DETAILS: /^\/customers\/[^/]+/,
 
   USERS: "/users",
@@ -151,7 +151,7 @@ const CreateButton = () => {
   const t = useTranslations("CreateButton")
   const router = useRouter()
 
-  const [createCustomer, setCreateCustomer] = useState(false)
+  const [createProspect, setCreateProspect] = useState(false)
   const [createDeposit, setCreateDeposit] = useState(false)
   const [createWithdrawal, setCreateWithdrawal] = useState(false)
   const [createFacility, setCreateFacility] = useState(false)
@@ -272,10 +272,10 @@ const CreateButton = () => {
       allowedPaths: [PATH_CONFIGS.DEPOSIT_ACCOUNT_DETAILS],
     },
     {
-      label: t("menuItems.customer"),
-      onClick: () => setCreateCustomer(true),
-      dataTestId: "create-customer-button",
-      allowedPaths: [PATH_CONFIGS.CUSTOMERS],
+      label: t("menuItems.prospect"),
+      onClick: () => setCreateProspect(true),
+      dataTestId: "create-prospect-button",
+      allowedPaths: [PATH_CONFIGS.PROSPECTS],
     },
     {
       label: t("menuItems.creditFacility"),
@@ -472,9 +472,9 @@ const CreateButton = () => {
         </TooltipProvider>
       ) : null}
 
-      <CreateCustomerDialog
-        setOpenCreateCustomerDialog={setCreateCustomer}
-        openCreateCustomerDialog={createCustomer}
+      <CreateProspectDialog
+        setOpenCreateProspectDialog={setCreateProspect}
+        openCreateProspectDialog={createProspect}
       />
 
       <CreateUserDialog

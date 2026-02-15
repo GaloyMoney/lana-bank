@@ -61,6 +61,25 @@ impl PublicIds {
     }
 
     #[record_error_severity]
+    #[instrument(name = "public_id_service.update_target_in_op", skip(self, op))]
+    pub async fn update_target_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: &PublicId,
+        target_type: impl Into<PublicIdTargetType> + std::fmt::Debug,
+        target_id: impl Into<PublicIdTargetId> + std::fmt::Debug,
+    ) -> Result<(), PublicIdError> {
+        let mut public_id_entity = self.repo.find_by_id(id.clone()).await?;
+        if public_id_entity
+            .update_target(target_id, target_type)
+            .did_execute()
+        {
+            self.repo.update_in_op(op, &mut public_id_entity).await?;
+        }
+        Ok(())
+    }
+
+    #[record_error_severity]
     #[instrument(name = "public_id_service.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,

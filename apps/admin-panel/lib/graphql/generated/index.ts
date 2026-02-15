@@ -1005,7 +1005,7 @@ export type CustodianEdge = {
 export type Customer = {
   __typename?: 'Customer';
   activity: Activity;
-  applicantId?: Maybe<Scalars['String']['output']>;
+  applicantId: Scalars['String']['output'];
   createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
   creditFacilityProposals: Array<CreditFacilityProposal>;
@@ -1019,7 +1019,7 @@ export type Customer = {
   level: KycLevel;
   pendingCreditFacilities: Array<PendingCreditFacility>;
   publicId: Scalars['PublicId']['output'];
-  telegramId: Scalars['String']['output'];
+  telegramHandle: Scalars['String']['output'];
   transactions: Array<Transaction>;
   userCanCreateCreditFacility: Scalars['Boolean']['output'];
 };
@@ -1032,17 +1032,6 @@ export type CustomerConnection = {
   nodes: Array<Customer>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
-};
-
-export type CustomerCreateInput = {
-  customerType: CustomerType;
-  email: Scalars['String']['input'];
-  telegramId: Scalars['String']['input'];
-};
-
-export type CustomerCreatePayload = {
-  __typename?: 'CustomerCreatePayload';
-  customer: Customer;
 };
 
 export type CustomerDocument = {
@@ -1111,19 +1100,13 @@ export type CustomerEmailUpdatePayload = {
   customer: Customer;
 };
 
-export type CustomerKycUpdatedPayload = {
-  __typename?: 'CustomerKycUpdatedPayload';
-  customer: Customer;
-  kycVerification: KycVerification;
-};
-
-export type CustomerTelegramIdUpdateInput = {
+export type CustomerTelegramHandleUpdateInput = {
   customerId: Scalars['UUID']['input'];
-  telegramId: Scalars['String']['input'];
+  telegramHandle: Scalars['String']['input'];
 };
 
-export type CustomerTelegramIdUpdatePayload = {
-  __typename?: 'CustomerTelegramIdUpdatePayload';
+export type CustomerTelegramHandleUpdatePayload = {
+  __typename?: 'CustomerTelegramHandleUpdatePayload';
   customer: Customer;
 };
 
@@ -1154,7 +1137,7 @@ export type CustomersSort = {
 export enum CustomersSortBy {
   CreatedAt = 'CREATED_AT',
   Email = 'EMAIL',
-  TelegramId = 'TELEGRAM_ID'
+  TelegramHandle = 'TELEGRAM_HANDLE'
 }
 
 export type Cvlpct = FiniteCvlPct | InfiniteCvlPct;
@@ -1646,8 +1629,16 @@ export enum KycLevel {
   NotKyced = 'NOT_KYCED'
 }
 
+export enum KycStatus {
+  Approved = 'APPROVED',
+  Declined = 'DECLINED',
+  NotStarted = 'NOT_STARTED',
+  Pending = 'PENDING',
+  Started = 'STARTED'
+}
+
 export enum KycVerification {
-  PendingVerification = 'PENDING_VERIFICATION',
+  NoKyc = 'NO_KYC',
   Rejected = 'REJECTED',
   Verified = 'VERIFIED'
 }
@@ -1845,7 +1836,7 @@ export type ManualTransactionExecutePayload = {
 export type Me = {
   __typename?: 'Me';
   user: User;
-  userCanCreateCustomer: Scalars['Boolean']['output'];
+  userCanCreateProspect: Scalars['Boolean']['output'];
   userCanCreateTermsTemplate: Scalars['Boolean']['output'];
   userCanCreateUser: Scalars['Boolean']['output'];
   visibleNavigationItems: VisibleNavigationItems;
@@ -1875,13 +1866,12 @@ export type Mutation = {
   creditModuleConfigure: CreditModuleConfigurePayload;
   custodianConfigUpdate: CustodianConfigUpdatePayload;
   custodianCreate: CustodianCreatePayload;
-  customerCreate: CustomerCreatePayload;
   customerDocumentArchive: CustomerDocumentArchivePayload;
   customerDocumentAttach: CustomerDocumentCreatePayload;
   customerDocumentDelete: CustomerDocumentDeletePayload;
   customerDocumentDownloadLinkGenerate: CustomerDocumentDownloadLinksGeneratePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
-  customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
+  customerTelegramHandleUpdate: CustomerTelegramHandleUpdatePayload;
   depositAccountClose: DepositAccountClosePayload;
   depositAccountCreate: DepositAccountCreatePayload;
   depositAccountFreeze: DepositAccountFreezePayload;
@@ -1899,6 +1889,9 @@ export type Mutation = {
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
+  prospectClose: ProspectClosePayload;
+  prospectConvert: ProspectConvertPayload;
+  prospectCreate: ProspectCreatePayload;
   reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
   roleCreate: RoleCreatePayload;
@@ -2027,11 +2020,6 @@ export type MutationCustodianCreateArgs = {
 };
 
 
-export type MutationCustomerCreateArgs = {
-  input: CustomerCreateInput;
-};
-
-
 export type MutationCustomerDocumentArchiveArgs = {
   input: CustomerDocumentArchiveInput;
 };
@@ -2057,8 +2045,8 @@ export type MutationCustomerEmailUpdateArgs = {
 };
 
 
-export type MutationCustomerTelegramIdUpdateArgs = {
-  input: CustomerTelegramIdUpdateInput;
+export type MutationCustomerTelegramHandleUpdateArgs = {
+  input: CustomerTelegramHandleUpdateInput;
 };
 
 
@@ -2144,6 +2132,21 @@ export type MutationManualTransactionExecuteArgs = {
 
 export type MutationPolicyAssignCommitteeArgs = {
   input: PolicyAssignCommitteeInput;
+};
+
+
+export type MutationProspectCloseArgs = {
+  input: ProspectCloseInput;
+};
+
+
+export type MutationProspectConvertArgs = {
+  input: ProspectConvertInput;
+};
+
+
+export type MutationProspectCreateArgs = {
+  input: ProspectCreateInput;
 };
 
 
@@ -2391,7 +2394,87 @@ export type ProfitAndLossStatement = {
   total: LedgerAccountBalanceRangeByCurrency;
 };
 
-export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Withdrawal;
+export type Prospect = {
+  __typename?: 'Prospect';
+  applicantId?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['Timestamp']['output'];
+  customerType: CustomerType;
+  email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  kycStatus: KycStatus;
+  level: KycLevel;
+  prospectId: Scalars['UUID']['output'];
+  publicId: Scalars['PublicId']['output'];
+  stage: ProspectStage;
+  status: ProspectStatus;
+  telegramHandle: Scalars['String']['output'];
+  verificationLink?: Maybe<Scalars['String']['output']>;
+};
+
+export type ProspectCloseInput = {
+  prospectId: Scalars['UUID']['input'];
+};
+
+export type ProspectClosePayload = {
+  __typename?: 'ProspectClosePayload';
+  prospect: Prospect;
+};
+
+export type ProspectConnection = {
+  __typename?: 'ProspectConnection';
+  /** A list of edges. */
+  edges: Array<ProspectEdge>;
+  /** A list of nodes. */
+  nodes: Array<Prospect>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+export type ProspectConvertInput = {
+  prospectId: Scalars['UUID']['input'];
+};
+
+export type ProspectConvertPayload = {
+  __typename?: 'ProspectConvertPayload';
+  customer: Customer;
+};
+
+export type ProspectCreateInput = {
+  customerType: CustomerType;
+  email: Scalars['String']['input'];
+  telegramHandle: Scalars['String']['input'];
+};
+
+export type ProspectCreatePayload = {
+  __typename?: 'ProspectCreatePayload';
+  prospect: Prospect;
+};
+
+/** An edge in a connection. */
+export type ProspectEdge = {
+  __typename?: 'ProspectEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Prospect;
+};
+
+export enum ProspectStage {
+  Closed = 'CLOSED',
+  Converted = 'CONVERTED',
+  KycDeclined = 'KYC_DECLINED',
+  KycPending = 'KYC_PENDING',
+  KycStarted = 'KYC_STARTED',
+  New = 'NEW'
+}
+
+export enum ProspectStatus {
+  Closed = 'CLOSED',
+  Converted = 'CONVERTED',
+  Open = 'OPEN'
+}
+
+export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Prospect | Withdrawal;
 
 export type Query = {
   __typename?: 'Query';
@@ -2447,6 +2530,9 @@ export type Query = {
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
   profitAndLossStatement: ProfitAndLossStatement;
+  prospect?: Maybe<Prospect>;
+  prospectByPublicId?: Maybe<Prospect>;
+  prospects: ProspectConnection;
   publicIdTarget?: Maybe<PublicIdTarget>;
   realtimePrice: RealtimePrice;
   reportRun?: Maybe<ReportRun>;
@@ -2724,6 +2810,23 @@ export type QueryProfitAndLossStatementArgs = {
 };
 
 
+export type QueryProspectArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryProspectByPublicIdArgs = {
+  id: Scalars['PublicId']['input'];
+};
+
+
+export type QueryProspectsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+  stage?: InputMaybe<ProspectStage>;
+};
+
+
 export type QueryPublicIdTargetArgs = {
   id: Scalars['PublicId']['input'];
 };
@@ -2939,7 +3042,6 @@ export type Subscription = {
   __typename?: 'Subscription';
   creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationPayload;
   creditFacilityProposalConcluded: CreditFacilityProposalConcludedPayload;
-  customerKycUpdated: CustomerKycUpdatedPayload;
   ledgerAccountCsvExportUploaded: LedgerAccountCsvExportUploadedPayload;
   pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
   pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
@@ -2958,11 +3060,6 @@ export type SubscriptionCreditFacilityProposalConcludedArgs = {
 };
 
 
-export type SubscriptionCustomerKycUpdatedArgs = {
-  customerId: Scalars['UUID']['input'];
-};
-
-
 export type SubscriptionLedgerAccountCsvExportUploadedArgs = {
   ledgerAccountId: Scalars['UUID']['input'];
 };
@@ -2978,7 +3075,7 @@ export type SubscriptionPendingCreditFacilityCompletedArgs = {
 };
 
 export type SumsubPermalinkCreateInput = {
-  customerId: Scalars['UUID']['input'];
+  prospectId: Scalars['UUID']['input'];
 };
 
 export type SumsubPermalinkCreatePayload = {
@@ -3888,28 +3985,14 @@ export type GetCustomerDocumentsQueryVariables = Exact<{
 
 export type GetCustomerDocumentsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'CustomerDocument', id: string, filename: string, documentId: string }> } | null };
 
-export type SumsubPermalinkCreateMutationVariables = Exact<{
-  input: SumsubPermalinkCreateInput;
-}>;
-
-
-export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
-
-export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
+export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
 
 export type GetCustomerBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
-
-export type CustomerKycUpdatedSubscriptionVariables = Exact<{
-  customerId: Scalars['UUID']['input'];
-}>;
-
-
-export type CustomerKycUpdatedSubscription = { __typename?: 'Subscription', customerKycUpdated: { __typename?: 'CustomerKycUpdatedPayload', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
 
 export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -3932,19 +4015,12 @@ export type CustomerEmailUpdateMutationVariables = Exact<{
 
 export type CustomerEmailUpdateMutation = { __typename?: 'Mutation', customerEmailUpdate: { __typename?: 'CustomerEmailUpdatePayload', customer: { __typename?: 'Customer', id: string, email: string } } };
 
-export type CustomerTelegramIdUpdateMutationVariables = Exact<{
-  input: CustomerTelegramIdUpdateInput;
+export type CustomerTelegramHandleUpdateMutationVariables = Exact<{
+  input: CustomerTelegramHandleUpdateInput;
 }>;
 
 
-export type CustomerTelegramIdUpdateMutation = { __typename?: 'Mutation', customerTelegramIdUpdate: { __typename?: 'CustomerTelegramIdUpdatePayload', customer: { __typename?: 'Customer', id: string, telegramId: string } } };
-
-export type CustomerCreateMutationVariables = Exact<{
-  input: CustomerCreateInput;
-}>;
-
-
-export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string, kycVerification: KycVerification, level: KycLevel, applicantId?: string | null } } };
+export type CustomerTelegramHandleUpdateMutation = { __typename?: 'Mutation', customerTelegramHandleUpdate: { __typename?: 'CustomerTelegramHandleUpdatePayload', customer: { __typename?: 'Customer', id: string, telegramHandle: string } } };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -3954,7 +4030,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, kycVerification: KycVerification, activity: Activity, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, kycVerification: KycVerification, activity: Activity, level: KycLevel, email: string, telegramHandle: string, applicantId: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3982,7 +4058,7 @@ export type GetDepositAccountDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string }, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
+export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string }, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
           | { __typename: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
           | { __typename: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus } }
           | { __typename: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }
@@ -4005,7 +4081,7 @@ export type DepositAccountCreateMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
+export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
 
 export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
 
@@ -4017,21 +4093,21 @@ export type DepositAccountsQueryVariables = Exact<{
 
 export type DepositAccountsQuery = { __typename?: 'Query', depositAccounts: { __typename?: 'DepositAccountConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountEdge', cursor: string, node: { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } } }> } };
 
-export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
+export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
 
 export type GetDepositDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetDepositDetailsQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } | null };
+export type GetDepositDetailsQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } | null };
 
 export type DepositRevertMutationVariables = Exact<{
   input: DepositRevertInput;
 }>;
 
 
-export type DepositRevertMutation = { __typename?: 'Mutation', depositRevert: { __typename?: 'DepositRevertPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type DepositRevertMutation = { __typename?: 'Mutation', depositRevert: { __typename?: 'DepositRevertPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
 export type CreateDepositMutationVariables = Exact<{
   input: DepositRecordInput;
@@ -4494,6 +4570,52 @@ export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossS
           | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
          }> }> } };
 
+export type SumsubPermalinkCreateMutationVariables = Exact<{
+  input: SumsubPermalinkCreateInput;
+}>;
+
+
+export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
+
+export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, customerType: CustomerType, createdAt: any, publicId: any };
+
+export type GetProspectBasicDetailsQueryVariables = Exact<{
+  id: Scalars['PublicId']['input'];
+}>;
+
+
+export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, customerType: CustomerType, createdAt: any, publicId: any } | null };
+
+export type ProspectCloseMutationVariables = Exact<{
+  input: ProspectCloseInput;
+}>;
+
+
+export type ProspectCloseMutation = { __typename?: 'Mutation', prospectClose: { __typename?: 'ProspectClosePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, status: ProspectStatus, kycStatus: KycStatus } } };
+
+export type ProspectConvertMutationVariables = Exact<{
+  input: ProspectConvertInput;
+}>;
+
+
+export type ProspectConvertMutation = { __typename?: 'Mutation', prospectConvert: { __typename?: 'ProspectConvertPayload', customer: { __typename?: 'Customer', id: string, customerId: string } } };
+
+export type ProspectCreateMutationVariables = Exact<{
+  input: ProspectCreateInput;
+}>;
+
+
+export type ProspectCreateMutation = { __typename?: 'Mutation', prospectCreate: { __typename?: 'ProspectCreatePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, email: string, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null } } };
+
+export type ProspectsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+  stage?: InputMaybe<ProspectStage>;
+}>;
+
+
+export type ProspectsQuery = { __typename?: 'Query', prospects: { __typename?: 'ProspectConnection', edges: Array<{ __typename?: 'ProspectEdge', cursor: string, node: { __typename?: 'Prospect', id: string, prospectId: string, publicId: any, stage: ProspectStage, level: KycLevel, email: string, telegramHandle: string, applicantId?: string | null, customerType: CustomerType, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
 export type ReportRunByIdQueryVariables = Exact<{
   reportRunId: Scalars['UUID']['input'];
 }>;
@@ -4713,7 +4835,7 @@ export type WithdrawalCancelMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
           | { __typename?: 'SystemApproval', autoApprove: boolean }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
@@ -4723,14 +4845,14 @@ export type WithdrawalConfirmMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
           | { __typename?: 'SystemApproval', autoApprove: boolean }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
 
 export type LedgerTransactionFieldsFragment = { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null };
 
-export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
       | { __typename?: 'SystemApproval', autoApprove: boolean }
     , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } };
@@ -4740,7 +4862,7 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
         | { __typename?: 'SystemApproval', autoApprove: boolean }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } | null };
@@ -4750,7 +4872,7 @@ export type WithdrawalRevertMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalRevertMutation = { __typename?: 'Mutation', withdrawalRevert: { __typename?: 'WithdrawalRevertPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalRevertMutation = { __typename?: 'Mutation', withdrawalRevert: { __typename?: 'WithdrawalRevertPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
           | { __typename?: 'SystemApproval', autoApprove: boolean }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
@@ -4819,6 +4941,7 @@ export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?:
     | { __typename: 'Customer', id: string, customerId: string, publicId: any, email: string }
     | { __typename: 'Deposit', id: string, amount: UsdCents, publicId: any, depositId: string }
     | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string } }
+    | { __typename: 'Prospect', id: string, prospectId: string, publicId: any, email: string }
     | { __typename: 'Withdrawal', id: string, amount: UsdCents, publicId: any, withdrawalId: string }
    | null };
 
@@ -5289,7 +5412,7 @@ export const CustomerDetailsFragmentFragmentDoc = gql`
   id
   customerId
   email
-  telegramId
+  telegramHandle
   kycVerification
   activity
   level
@@ -5676,6 +5799,23 @@ export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
   }
 }
     ${ApprovalProcessFieldsFragmentDoc}`;
+export const ProspectDetailsFragmentFragmentDoc = gql`
+    fragment ProspectDetailsFragment on Prospect {
+  id
+  prospectId
+  email
+  telegramHandle
+  stage
+  status
+  kycStatus
+  level
+  applicantId
+  verificationLink
+  customerType
+  createdAt
+  publicId
+}
+    `;
 export const TermsTemplateFieldsFragmentDoc = gql`
     fragment TermsTemplateFields on TermsTemplate {
   id
@@ -7812,39 +7952,6 @@ export type GetCustomerDocumentsQueryHookResult = ReturnType<typeof useGetCustom
 export type GetCustomerDocumentsLazyQueryHookResult = ReturnType<typeof useGetCustomerDocumentsLazyQuery>;
 export type GetCustomerDocumentsSuspenseQueryHookResult = ReturnType<typeof useGetCustomerDocumentsSuspenseQuery>;
 export type GetCustomerDocumentsQueryResult = Apollo.QueryResult<GetCustomerDocumentsQuery, GetCustomerDocumentsQueryVariables>;
-export const SumsubPermalinkCreateDocument = gql`
-    mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
-  sumsubPermalinkCreate(input: $input) {
-    url
-  }
-}
-    `;
-export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
-
-/**
- * __useSumsubPermalinkCreateMutation__
- *
- * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
-      }
-export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
 export const GetCustomerBasicDetailsDocument = gql`
     query GetCustomerBasicDetails($id: PublicId!) {
   customerByPublicId(id: $id) {
@@ -7888,38 +7995,6 @@ export type GetCustomerBasicDetailsQueryHookResult = ReturnType<typeof useGetCus
 export type GetCustomerBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsLazyQuery>;
 export type GetCustomerBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsSuspenseQuery>;
 export type GetCustomerBasicDetailsQueryResult = Apollo.QueryResult<GetCustomerBasicDetailsQuery, GetCustomerBasicDetailsQueryVariables>;
-export const CustomerKycUpdatedDocument = gql`
-    subscription CustomerKycUpdated($customerId: UUID!) {
-  customerKycUpdated(customerId: $customerId) {
-    customer {
-      ...CustomerDetailsFragment
-    }
-  }
-}
-    ${CustomerDetailsFragmentFragmentDoc}`;
-
-/**
- * __useCustomerKycUpdatedSubscription__
- *
- * To run a query within a React component, call `useCustomerKycUpdatedSubscription` and pass it any options that fit your needs.
- * When your component renders, `useCustomerKycUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useCustomerKycUpdatedSubscription({
- *   variables: {
- *      customerId: // value for 'customerId'
- *   },
- * });
- */
-export function useCustomerKycUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<CustomerKycUpdatedSubscription, CustomerKycUpdatedSubscriptionVariables> & ({ variables: CustomerKycUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<CustomerKycUpdatedSubscription, CustomerKycUpdatedSubscriptionVariables>(CustomerKycUpdatedDocument, options);
-      }
-export type CustomerKycUpdatedSubscriptionHookResult = ReturnType<typeof useCustomerKycUpdatedSubscription>;
-export type CustomerKycUpdatedSubscriptionResult = Apollo.SubscriptionResult<CustomerKycUpdatedSubscription>;
 export const GetCustomerCreditFacilitiesDocument = gql`
     query GetCustomerCreditFacilities($id: PublicId!) {
   customerByPublicId(id: $id) {
@@ -8073,83 +8148,42 @@ export function useCustomerEmailUpdateMutation(baseOptions?: Apollo.MutationHook
 export type CustomerEmailUpdateMutationHookResult = ReturnType<typeof useCustomerEmailUpdateMutation>;
 export type CustomerEmailUpdateMutationResult = Apollo.MutationResult<CustomerEmailUpdateMutation>;
 export type CustomerEmailUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerEmailUpdateMutation, CustomerEmailUpdateMutationVariables>;
-export const CustomerTelegramIdUpdateDocument = gql`
-    mutation CustomerTelegramIdUpdate($input: CustomerTelegramIdUpdateInput!) {
-  customerTelegramIdUpdate(input: $input) {
+export const CustomerTelegramHandleUpdateDocument = gql`
+    mutation CustomerTelegramHandleUpdate($input: CustomerTelegramHandleUpdateInput!) {
+  customerTelegramHandleUpdate(input: $input) {
     customer {
       id
-      telegramId
+      telegramHandle
     }
   }
 }
     `;
-export type CustomerTelegramIdUpdateMutationFn = Apollo.MutationFunction<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>;
+export type CustomerTelegramHandleUpdateMutationFn = Apollo.MutationFunction<CustomerTelegramHandleUpdateMutation, CustomerTelegramHandleUpdateMutationVariables>;
 
 /**
- * __useCustomerTelegramIdUpdateMutation__
+ * __useCustomerTelegramHandleUpdateMutation__
  *
- * To run a mutation, you first call `useCustomerTelegramIdUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCustomerTelegramIdUpdateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCustomerTelegramHandleUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerTelegramHandleUpdateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [customerTelegramIdUpdateMutation, { data, loading, error }] = useCustomerTelegramIdUpdateMutation({
+ * const [customerTelegramHandleUpdateMutation, { data, loading, error }] = useCustomerTelegramHandleUpdateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCustomerTelegramIdUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>) {
+export function useCustomerTelegramHandleUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerTelegramHandleUpdateMutation, CustomerTelegramHandleUpdateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>(CustomerTelegramIdUpdateDocument, options);
+        return Apollo.useMutation<CustomerTelegramHandleUpdateMutation, CustomerTelegramHandleUpdateMutationVariables>(CustomerTelegramHandleUpdateDocument, options);
       }
-export type CustomerTelegramIdUpdateMutationHookResult = ReturnType<typeof useCustomerTelegramIdUpdateMutation>;
-export type CustomerTelegramIdUpdateMutationResult = Apollo.MutationResult<CustomerTelegramIdUpdateMutation>;
-export type CustomerTelegramIdUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>;
-export const CustomerCreateDocument = gql`
-    mutation CustomerCreate($input: CustomerCreateInput!) {
-  customerCreate(input: $input) {
-    customer {
-      id
-      customerId
-      publicId
-      email
-      kycVerification
-      level
-      applicantId
-    }
-  }
-}
-    `;
-export type CustomerCreateMutationFn = Apollo.MutationFunction<CustomerCreateMutation, CustomerCreateMutationVariables>;
-
-/**
- * __useCustomerCreateMutation__
- *
- * To run a mutation, you first call `useCustomerCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCustomerCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [customerCreateMutation, { data, loading, error }] = useCustomerCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCustomerCreateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerCreateMutation, CustomerCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CustomerCreateMutation, CustomerCreateMutationVariables>(CustomerCreateDocument, options);
-      }
-export type CustomerCreateMutationHookResult = ReturnType<typeof useCustomerCreateMutation>;
-export type CustomerCreateMutationResult = Apollo.MutationResult<CustomerCreateMutation>;
-export type CustomerCreateMutationOptions = Apollo.BaseMutationOptions<CustomerCreateMutation, CustomerCreateMutationVariables>;
+export type CustomerTelegramHandleUpdateMutationHookResult = ReturnType<typeof useCustomerTelegramHandleUpdateMutation>;
+export type CustomerTelegramHandleUpdateMutationResult = Apollo.MutationResult<CustomerTelegramHandleUpdateMutation>;
+export type CustomerTelegramHandleUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerTelegramHandleUpdateMutation, CustomerTelegramHandleUpdateMutationVariables>;
 export const CustomersDocument = gql`
     query Customers($first: Int!, $after: String, $sort: CustomersSort, $filter: CustomersFilter) {
   customers(first: $first, after: $after, sort: $sort, filter: $filter) {
@@ -8162,7 +8196,7 @@ export const CustomersDocument = gql`
         activity
         level
         email
-        telegramId
+        telegramHandle
         applicantId
         depositAccount {
           balance {
@@ -10772,6 +10806,262 @@ export type ProfitAndLossStatementQueryHookResult = ReturnType<typeof useProfitA
 export type ProfitAndLossStatementLazyQueryHookResult = ReturnType<typeof useProfitAndLossStatementLazyQuery>;
 export type ProfitAndLossStatementSuspenseQueryHookResult = ReturnType<typeof useProfitAndLossStatementSuspenseQuery>;
 export type ProfitAndLossStatementQueryResult = Apollo.QueryResult<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>;
+export const SumsubPermalinkCreateDocument = gql`
+    mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
+  sumsubPermalinkCreate(input: $input) {
+    url
+  }
+}
+    `;
+export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+
+/**
+ * __useSumsubPermalinkCreateMutation__
+ *
+ * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
+      }
+export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+export const GetProspectBasicDetailsDocument = gql`
+    query GetProspectBasicDetails($id: PublicId!) {
+  prospectByPublicId(id: $id) {
+    ...ProspectDetailsFragment
+  }
+}
+    ${ProspectDetailsFragmentFragmentDoc}`;
+
+/**
+ * __useGetProspectBasicDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetProspectBasicDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProspectBasicDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProspectBasicDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetProspectBasicDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables> & ({ variables: GetProspectBasicDetailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>(GetProspectBasicDetailsDocument, options);
+      }
+export function useGetProspectBasicDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>(GetProspectBasicDetailsDocument, options);
+        }
+// @ts-ignore
+export function useGetProspectBasicDetailsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>): Apollo.UseSuspenseQueryResult<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>;
+export function useGetProspectBasicDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>): Apollo.UseSuspenseQueryResult<GetProspectBasicDetailsQuery | undefined, GetProspectBasicDetailsQueryVariables>;
+export function useGetProspectBasicDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>(GetProspectBasicDetailsDocument, options);
+        }
+export type GetProspectBasicDetailsQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsQuery>;
+export type GetProspectBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsLazyQuery>;
+export type GetProspectBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsSuspenseQuery>;
+export type GetProspectBasicDetailsQueryResult = Apollo.QueryResult<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>;
+export const ProspectCloseDocument = gql`
+    mutation ProspectClose($input: ProspectCloseInput!) {
+  prospectClose(input: $input) {
+    prospect {
+      id
+      prospectId
+      status
+      kycStatus
+    }
+  }
+}
+    `;
+export type ProspectCloseMutationFn = Apollo.MutationFunction<ProspectCloseMutation, ProspectCloseMutationVariables>;
+
+/**
+ * __useProspectCloseMutation__
+ *
+ * To run a mutation, you first call `useProspectCloseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProspectCloseMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [prospectCloseMutation, { data, loading, error }] = useProspectCloseMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useProspectCloseMutation(baseOptions?: Apollo.MutationHookOptions<ProspectCloseMutation, ProspectCloseMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProspectCloseMutation, ProspectCloseMutationVariables>(ProspectCloseDocument, options);
+      }
+export type ProspectCloseMutationHookResult = ReturnType<typeof useProspectCloseMutation>;
+export type ProspectCloseMutationResult = Apollo.MutationResult<ProspectCloseMutation>;
+export type ProspectCloseMutationOptions = Apollo.BaseMutationOptions<ProspectCloseMutation, ProspectCloseMutationVariables>;
+export const ProspectConvertDocument = gql`
+    mutation ProspectConvert($input: ProspectConvertInput!) {
+  prospectConvert(input: $input) {
+    customer {
+      id
+      customerId
+    }
+  }
+}
+    `;
+export type ProspectConvertMutationFn = Apollo.MutationFunction<ProspectConvertMutation, ProspectConvertMutationVariables>;
+
+/**
+ * __useProspectConvertMutation__
+ *
+ * To run a mutation, you first call `useProspectConvertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProspectConvertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [prospectConvertMutation, { data, loading, error }] = useProspectConvertMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useProspectConvertMutation(baseOptions?: Apollo.MutationHookOptions<ProspectConvertMutation, ProspectConvertMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProspectConvertMutation, ProspectConvertMutationVariables>(ProspectConvertDocument, options);
+      }
+export type ProspectConvertMutationHookResult = ReturnType<typeof useProspectConvertMutation>;
+export type ProspectConvertMutationResult = Apollo.MutationResult<ProspectConvertMutation>;
+export type ProspectConvertMutationOptions = Apollo.BaseMutationOptions<ProspectConvertMutation, ProspectConvertMutationVariables>;
+export const ProspectCreateDocument = gql`
+    mutation ProspectCreate($input: ProspectCreateInput!) {
+  prospectCreate(input: $input) {
+    prospect {
+      id
+      prospectId
+      publicId
+      email
+      kycStatus
+      level
+      applicantId
+    }
+  }
+}
+    `;
+export type ProspectCreateMutationFn = Apollo.MutationFunction<ProspectCreateMutation, ProspectCreateMutationVariables>;
+
+/**
+ * __useProspectCreateMutation__
+ *
+ * To run a mutation, you first call `useProspectCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProspectCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [prospectCreateMutation, { data, loading, error }] = useProspectCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useProspectCreateMutation(baseOptions?: Apollo.MutationHookOptions<ProspectCreateMutation, ProspectCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProspectCreateMutation, ProspectCreateMutationVariables>(ProspectCreateDocument, options);
+      }
+export type ProspectCreateMutationHookResult = ReturnType<typeof useProspectCreateMutation>;
+export type ProspectCreateMutationResult = Apollo.MutationResult<ProspectCreateMutation>;
+export type ProspectCreateMutationOptions = Apollo.BaseMutationOptions<ProspectCreateMutation, ProspectCreateMutationVariables>;
+export const ProspectsDocument = gql`
+    query Prospects($first: Int!, $after: String, $stage: ProspectStage) {
+  prospects(first: $first, after: $after, stage: $stage) {
+    edges {
+      node {
+        id
+        prospectId
+        publicId
+        stage
+        level
+        email
+        telegramHandle
+        applicantId
+        customerType
+        createdAt
+      }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useProspectsQuery__
+ *
+ * To run a query within a React component, call `useProspectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProspectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProspectsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      stage: // value for 'stage'
+ *   },
+ * });
+ */
+export function useProspectsQuery(baseOptions: Apollo.QueryHookOptions<ProspectsQuery, ProspectsQueryVariables> & ({ variables: ProspectsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProspectsQuery, ProspectsQueryVariables>(ProspectsDocument, options);
+      }
+export function useProspectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProspectsQuery, ProspectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProspectsQuery, ProspectsQueryVariables>(ProspectsDocument, options);
+        }
+// @ts-ignore
+export function useProspectsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ProspectsQuery, ProspectsQueryVariables>): Apollo.UseSuspenseQueryResult<ProspectsQuery, ProspectsQueryVariables>;
+export function useProspectsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProspectsQuery, ProspectsQueryVariables>): Apollo.UseSuspenseQueryResult<ProspectsQuery | undefined, ProspectsQueryVariables>;
+export function useProspectsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProspectsQuery, ProspectsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ProspectsQuery, ProspectsQueryVariables>(ProspectsDocument, options);
+        }
+export type ProspectsQueryHookResult = ReturnType<typeof useProspectsQuery>;
+export type ProspectsLazyQueryHookResult = ReturnType<typeof useProspectsLazyQuery>;
+export type ProspectsSuspenseQueryHookResult = ReturnType<typeof useProspectsSuspenseQuery>;
+export type ProspectsQueryResult = Apollo.QueryResult<ProspectsQuery, ProspectsQueryVariables>;
 export const ReportRunByIdDocument = gql`
     query ReportRunById($reportRunId: UUID!) {
   reportRun(id: $reportRunId) {
@@ -12197,6 +12487,12 @@ export const SearchPublicIdTargetDocument = gql`
     ... on Customer {
       id
       customerId
+      publicId
+      email
+    }
+    ... on Prospect {
+      id
+      prospectId
       publicId
       email
     }

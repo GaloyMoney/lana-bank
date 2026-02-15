@@ -4,6 +4,7 @@ import {
   Home,
   TriangleAlert,
   Users,
+  UserPlus,
   ClipboardList,
   UserCircle,
   ArrowDownCircle,
@@ -37,6 +38,10 @@ export function useNavItems() {
   const navDashboardItems: NavItem[] = [
     { title: t("dashboard"), url: "/dashboard", icon: Home },
     { title: t("actions"), url: "/actions", icon: TriangleAlert },
+  ]
+
+  const navCustomerItems: NavItem[] = [
+    { title: t("prospects"), url: "/prospects", icon: UserPlus },
     { title: t("customers"), url: "/customers", icon: Users },
   ]
 
@@ -103,6 +108,7 @@ export function useNavItems() {
 
   const allNavItems: NavItem[] = [
     ...navDashboardItems,
+    ...navCustomerItems,
     ...navLoansItems,
     ...navTransactionItems,
     ...navAdminItems,
@@ -122,6 +128,7 @@ export function useNavItems() {
 
   return {
     navDashboardItems,
+    navCustomerItems,
     navLoansItems,
     navTransactionItems,
     navAdminItems,

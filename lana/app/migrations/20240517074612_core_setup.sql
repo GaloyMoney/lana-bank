@@ -102,7 +102,7 @@ CREATE SEQUENCE core_public_id_counter START 1000;
 CREATE TABLE core_customers (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
-  telegram_id VARCHAR NOT NULL UNIQUE,
+  telegram_handle VARCHAR NOT NULL UNIQUE,
   kyc_verification VARCHAR NOT NULL,
   activity VARCHAR NOT NULL DEFAULT 'disabled',
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
@@ -125,6 +125,24 @@ CREATE TABLE customer_activity (
 );
 
 CREATE INDEX idx_customer_activity_last_activity_date ON customer_activity(last_activity_date);
+
+CREATE TABLE core_prospects (
+  id UUID PRIMARY KEY,
+  email VARCHAR NOT NULL,
+  telegram_handle VARCHAR NOT NULL,
+  public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_prospect_events (
+  id UUID NOT NULL REFERENCES core_prospects(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
 
 CREATE TABLE core_deposit_accounts (
   id UUID PRIMARY KEY,

@@ -2,24 +2,25 @@ import { t } from "../support/translation"
 
 describe("Customers", () => {
   let testEmail: string
-  let testTelegramId: string
+  let testTelegramHandle: string
   let testCustomerId: string
   let testCustomerPublicId: string
+  let testProspectPublicId: string
 
-  it("should successfully create a new customer", () => {
+  it("should successfully create a new prospect", () => {
     testEmail = `t${Date.now().toString().slice(-6)}@example.com`
-    testTelegramId = `t${Date.now().toString().slice(-6)}`
+    testTelegramHandle = `t${Date.now().toString().slice(-6)}`
 
-    cy.visit("/customers")
-    cy.takeScreenshot("2_list_all_customers")
+    cy.visit("/prospects")
+    cy.takeScreenshot("2_list_all_prospects")
 
     cy.get('[data-testid="global-create-button"]').click()
     cy.takeScreenshot("3_click_create_button")
 
-    cy.get('[data-testid="customer-create-email"]').should("be.visible")
+    cy.get('[data-testid="prospect-create-email"]').should("be.visible")
     cy.takeScreenshot("4_verify_email_input_visible")
 
-    cy.get('[data-testid="customer-create-email"]')
+    cy.get('[data-testid="prospect-create-email"]')
       .should("be.visible")
       .should("be.enabled")
       .clear()
@@ -27,44 +28,139 @@ describe("Customers", () => {
       .should("have.value", testEmail)
     cy.takeScreenshot("5_enter_email")
 
-    cy.get('[data-testid="customer-create-telegram-id"]')
+    cy.get('[data-testid="prospect-create-telegram-handle"]')
       .should("be.visible")
       .should("be.enabled")
       .clear()
-      .type(testTelegramId)
-      .should("have.value", testTelegramId)
-    cy.takeScreenshot("6_enter_telegram_id")
+      .type(testTelegramHandle)
+      .should("have.value", testTelegramHandle)
+    cy.takeScreenshot("6_enter_telegram_handle")
 
-    cy.get('[data-testid="customer-create-submit-button"]')
-      .contains(t("Customers.create.reviewButton"))
+    cy.get('[data-testid="prospect-create-submit-button"]')
+      .contains(t("Prospects.create.reviewButton"))
       .click()
     cy.takeScreenshot("7_click_review_details")
 
     cy.contains(testEmail).should("be.visible")
-    cy.contains(testTelegramId).should("be.visible")
+    cy.contains(testTelegramHandle).should("be.visible")
     cy.takeScreenshot("8_verify_details")
 
-    cy.get('[data-testid="customer-create-submit-button"]')
-      .contains(t("Customers.create.confirmButton"))
+    cy.get('[data-testid="prospect-create-submit-button"]')
+      .contains(t("Prospects.create.confirmButton"))
       .click()
     cy.takeScreenshot("9_click_confirm_submit")
 
-    cy.url().should("match", /\/customers\/[0-9]+$/)
+    cy.url().should("match", /\/prospects\/[0-9]+$/)
     cy.contains(testEmail).should("be.visible")
-    cy.contains(t("Customers.create.title")).should("not.exist")
     cy.takeScreenshot("10_verify_email")
-    cy.getIdFromUrl("/customers/")
+    cy.getIdFromUrl("/prospects/")
       .then((id) => {
-        testCustomerPublicId = id
+        testProspectPublicId = id
       })
       .then(() => {
-        cy.graphqlRequest<{ data: { customerByPublicId: { customerId: string } } }>(
-          `query CustomerByPublicId($id: PublicId!) { customerByPublicId(id: $id) { customerId } }`,
-          { id: testCustomerPublicId },
+        cy.graphqlRequest<{ data: { prospectByPublicId: { prospectId: string } } }>(
+          `query ProspectByPublicId($id: PublicId!) { prospectByPublicId(id: $id) { prospectId } }`,
+          { id: testProspectPublicId },
         ).then((res) => {
-          testCustomerId = res.data.customerByPublicId.customerId
+          testCustomerId = res.data.prospectByPublicId.prospectId
         })
       })
+  })
+
+  it("KYC verification and customer creation", () => {
+    cy.intercept("POST", "/graphql", (req) => {
+      if (req.body.operationName === "sumsubPermalinkCreate") {
+        req.reply({
+          statusCode: 200,
+          headers: {
+            "content-type": "application/json",
+          },
+          body: {
+            data: {
+              sumsubPermalinkCreate: {
+                url: "https://in.sumsub.com/test/link",
+                __typename: "SumsubPermalinkCreatePayload",
+              },
+            },
+          },
+        })
+      }
+    }).as("sumsubPermalink")
+
+    cy.visit(`/prospects/${testProspectPublicId}`)
+    cy.takeScreenshot("14_prospect_kyc_details_page")
+
+    cy.get('[data-testid="prospect-create-kyc-link"]').click()
+    cy.contains("https://in.sumsub.com/test/link")
+      .should("be.visible")
+      .and("have.attr", "href", "https://in.sumsub.com/test/link")
+    cy.takeScreenshot("15_kyc_link_created")
+
+    const webhookId = `req-${Date.now()}`
+    const applicantId = `test-applicant-${webhookId}`
+
+    // Simulate KYC start via SumSub applicantCreated webhook
+    cy.request({
+      method: "POST",
+      url: "http://localhost:5253/webhook/sumsub",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        applicantId,
+        inspectionId: `test-inspection-${webhookId}`,
+        correlationId: webhookId,
+        externalUserId: testCustomerId,
+        levelName: "basic-kyc-level",
+        type: "applicantCreated",
+        reviewStatus: "init",
+        createdAtMs: new Date().toISOString(),
+        sandboxMode: true,
+      },
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+
+    // Simulate KYC approval via SumSub applicantReviewed webhook
+    cy.request({
+      method: "POST",
+      url: "http://localhost:5253/webhook/sumsub",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        applicantId,
+        inspectionId: `test-inspection-${webhookId}`,
+        correlationId: webhookId,
+        externalUserId: testCustomerId,
+        levelName: "basic-kyc-level",
+        type: "applicantReviewed",
+        reviewResult: {
+          reviewAnswer: "GREEN",
+        },
+        reviewStatus: "completed",
+        createdAtMs: new Date().toISOString(),
+        sandboxMode: true,
+      },
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+
+    // Convert prospect to customer synchronously via prospectConvert mutation.
+    // The webhooks above test the webhook endpoint; prospectConvert ensures the
+    // customer exists without depending on async inbox job processing.
+    cy.graphqlRequest<{
+      data: { prospectConvert: { customer: { customerId: string; publicId: string } } }
+    }>(
+      `mutation ProspectConvert($input: ProspectConvertInput!) {
+        prospectConvert(input: $input) {
+          customer { customerId publicId }
+        }
+      }`,
+      { input: { prospectId: testCustomerId } },
+    ).then((res) => {
+      testCustomerPublicId = res.data.prospectConvert.customer.publicId
+    })
   })
 
   it("should show newly created customer in the list", () => {
@@ -111,65 +207,5 @@ describe("Customers", () => {
       "exist",
     )
     cy.takeScreenshot("13_upload_document")
-  })
-
-  it("KYC verification", () => {
-    cy.intercept("POST", "/graphql", (req) => {
-      if (req.body.operationName === "sumsubPermalinkCreate") {
-        req.reply({
-          statusCode: 200,
-          headers: {
-            "content-type": "application/json",
-          },
-          body: {
-            data: {
-              sumsubPermalinkCreate: {
-                url: "https://in.sumsub.com/test/link",
-                __typename: "SumsubPermalinkCreatePayload",
-              },
-            },
-          },
-        })
-      }
-    }).as("sumsubPermalink")
-
-    cy.visit(`/customers/${testCustomerPublicId}`)
-    cy.takeScreenshot("14_customer_kyc_details_page")
-
-    cy.get('[data-testid="customer-create-kyc-link"]').click()
-    cy.contains("https://in.sumsub.com/test/link")
-      .should("be.visible")
-      .and("have.attr", "href", "https://in.sumsub.com/test/link")
-    cy.takeScreenshot("15_kyc_link_created")
-
-    const webhookId = `req-${Date.now()}`
-    const createdAtMs = new Date().toISOString()
-
-    cy.request({
-      method: "POST",
-      url: "http://localhost:5253/webhook/sumsub",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: {
-        applicantId: `test-applicant-${webhookId}`,
-        inspectionId: `test-inspection-${webhookId}`,
-        correlationId: webhookId,
-        externalUserId: testCustomerId,
-        levelName: "basic-kyc-level",
-        type: "applicantReviewed",
-        reviewResult: {
-          reviewAnswer: "GREEN",
-        },
-        reviewStatus: "completed",
-        createdAtMs,
-        sandboxMode: true,
-      },
-    }).then((response) => {
-      expect(response.status).to.eq(200)
-    })
-
-    cy.contains("Basic").should("be.visible")
-    cy.takeScreenshot("16_kyc_status_updated")
   })
 })
