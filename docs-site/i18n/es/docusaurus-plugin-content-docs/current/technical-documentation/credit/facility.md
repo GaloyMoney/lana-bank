@@ -47,3 +47,7 @@ La activación de una `FacilidadDeCrédito` solo puede ocurrir después de que e
 El CVL del Colateral debe ser mayor que el CVL inicial definido en los términos de la `FacilidadDeCrédito` para que la facilidad se active.
 
 Al activarse la facilidad, el `CicloDeDevengoDeIntereses` se inicializa para comenzar a devengar intereses sobre los montos desembolsados.
+
+:::tip Guía del Panel de Administración
+Para un recorrido paso a paso de cómo crear, aprobar y activar facilidades de crédito en el panel de administración, consulta la [Guía del Panel de Administración: Facilidades de Crédito](admin-guide.md).
+:::

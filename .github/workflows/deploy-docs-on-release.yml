@@ -56,6 +56,10 @@ jobs:
         run: |
           nix develop -c bash -lc "cd docs-site && npm run generate-versioned-api-docs"
 
+      - name: Fetch screenshots from Netlify
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run fetch-screenshots"
+
       - name: Build docs site
         run: |
           nix develop -c bash -lc "cd docs-site && npx docusaurus build"

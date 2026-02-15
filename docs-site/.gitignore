@@ -22,6 +22,9 @@
 /i18n/es/docusaurus-plugin-content-docs/version-*/apis/customer-api
 /i18n/es/docusaurus-plugin-content-docs/version-*/apis/events
 
+# Screenshots (fetched from Netlify at build time)
+/static/img/screenshots
+
 # Misc
 .DS_Store
 .env.local

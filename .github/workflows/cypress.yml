@@ -171,6 +171,31 @@ jobs:
           </html>
           EOF
 
+      - name: Save Spanish screenshots
+        if: >
+          github.event_name == 'push'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
+        run: |
+          cp -r apps/admin-panel/cypress/manuals/screenshots apps/admin-panel/cypress/manuals/screenshots-es
+
+      - name: Run Cypress in English (for docs screenshots)
+        if: >
+          github.event_name == 'push'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
+        run: |
+          cd apps/admin-panel && nix develop -c pnpm exec cypress run --env TEST_LANGUAGE=en
+
+      - name: Organize screenshots for deploy
+        if: >
+          github.event_name == 'push'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
+        run: |
+          RESULTS_DIR=apps/admin-panel/cypress/manuals/results
+          mkdir -p "$RESULTS_DIR/screenshots/en" "$RESULTS_DIR/screenshots/es"
+          cp -r apps/admin-panel/cypress/manuals/screenshots/* "$RESULTS_DIR/screenshots/en/"
+          cp -r apps/admin-panel/cypress/manuals/screenshots-es/* "$RESULTS_DIR/screenshots/es/"
+          cd "$RESULTS_DIR" && find screenshots -name '*.png' -printf '%P\n' | sort > screenshots/manifest.txt
+
       - name: Deploy to Netlify (Pull Request)
         id: netlify_deploy
         if: >
@@ -212,6 +237,24 @@ jobs:
             --json > deploy-info.json
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Netlify with commit alias
+        if: >
+          github.event_name == 'push'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
+        run: |
+          COMMIT_SHORT="${{ github.sha }}"
+          COMMIT_SHORT="${COMMIT_SHORT::7}"
+          nix develop -c netlify deploy \
+            --dir=apps/admin-panel/cypress/manuals/results \
+            --filter=admin-panel \
+            --site=$NETLIFY_SITE_ID \
+            --auth=$NETLIFY_AUTH_TOKEN \
+            --alias="commit-${COMMIT_SHORT}" \
+            --message="Screenshots for commit ${{ github.sha }}"
 
       - name: Create or Update Preview Comment
         if: >

@@ -56,6 +56,7 @@ const sidebars = {
             "technical-documentation/credit/payment",
             "technical-documentation/credit/terms",
             "technical-documentation/credit/interest-process",
+            "technical-documentation/credit/admin-guide",
           ],
         },
         {
