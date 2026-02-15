@@ -238,6 +238,11 @@ checksums:
     Prospects/ProspectDetails/details/labels/telegram: 0719cb55ded3146892d106733a8431b2
     Prospects/ProspectDetails/details/labels/customerType: f04471a7ddac844b9ad145eb9911ef75
     Prospects/ProspectDetails/details/labels/publicId: 916fc3fdca16a23af44dbcfec824984d
+    Prospects/ProspectDetails/details/labels/firstName: cf040a5d6a9fd696be400380cc99f54b
+    Prospects/ProspectDetails/details/labels/lastName: 2c9a7de7738ca007ba9023c385149c26
+    Prospects/ProspectDetails/details/labels/dateOfBirth: 8c0517839acdee5c6fff3f23e1f1aeb2
+    Prospects/ProspectDetails/details/labels/nationality: 676a006a7f9c4e1d976e31d470a7cd7c
+    Prospects/ProspectDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
     Prospects/ProspectDetails/details/buttons/closeProspect: 13c6753109d70226efe543d03070f75e
     Prospects/ProspectDetails/details/buttons/convertToCustomer: 10f8a6e3404e4489083453a7e0ad7c21
     Prospects/ProspectDetails/details/customerType/individual: 52ebce389ed97a13b6089802055ed667
@@ -328,6 +333,11 @@ checksums:
     Customers/CustomerDetails/details/labels/status: 4e1fcce15854d824919b4a582c697c90
     Customers/CustomerDetails/details/labels/customerType: f04471a7ddac844b9ad145eb9911ef75
     Customers/CustomerDetails/details/labels/publicId: 916fc3fdca16a23af44dbcfec824984d
+    Customers/CustomerDetails/details/labels/firstName: cf040a5d6a9fd696be400380cc99f54b
+    Customers/CustomerDetails/details/labels/lastName: 2c9a7de7738ca007ba9023c385149c26
+    Customers/CustomerDetails/details/labels/dateOfBirth: 8c0517839acdee5c6fff3f23e1f1aeb2
+    Customers/CustomerDetails/details/labels/nationality: 676a006a7f9c4e1d976e31d470a7cd7c
+    Customers/CustomerDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
