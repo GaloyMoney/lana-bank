@@ -8,13 +8,13 @@ mod credit_facility;
 mod credit_facility_proposal;
 mod disbursal;
 pub mod error;
-mod event;
 mod for_subject;
 mod history;
 pub mod ledger;
 mod pending_credit_facility;
 mod primitives;
 mod processes;
+pub mod public;
 mod publisher;
 mod repayment_plan;
 
@@ -53,7 +53,6 @@ pub use credit_facility::*;
 pub use credit_facility_proposal::*;
 pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
-pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
 pub use ledger::*;
@@ -63,6 +62,7 @@ pub use processes::{
     activate_credit_facility::*, allocate_credit_facility_payment::*,
     approve_credit_facility_proposal::*, approve_disbursal::*,
 };
+pub use public::*;
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 

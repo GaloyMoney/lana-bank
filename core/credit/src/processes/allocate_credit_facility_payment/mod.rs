@@ -12,7 +12,7 @@ use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
-    CoreCreditCollectionObject, CoreCreditObject, error::CoreCreditError, event::CoreCreditEvent,
+    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject, error::CoreCreditError,
     primitives::PaymentId,
 };
 

@@ -12,7 +12,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 
-use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, repayment_plan::*};
+use crate::{CoreCreditCollectionEvent, CoreCreditEvent, repayment_plan::*};
 
 #[derive(Serialize, Deserialize)]
 pub struct RepaymentPlanProjectionConfig<E> {
@@ -103,104 +103,145 @@ where
         use CoreCreditEvent::*;
 
         match message.as_event() {
-            Some(event @ FacilityProposalCreated { id, .. })
-            | Some(
-                event @ FacilityProposalConcluded {
-                    id,
-                    status: crate::primitives::CreditFacilityProposalStatus::Approved,
-                },
-            ) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-
-                let facility_id: crate::primitives::CreditFacilityId = (*id).into();
-                let mut repayment_plan = self.repo.load(facility_id).await?;
-                repayment_plan.process_credit_event(sequence, event, clock.now());
-                self.repo
-                    .persist_in_tx(db, facility_id, repayment_plan)
+            Some(event @ FacilityProposalCreated { entity }) => {
+                self.handle_credit_event(db, message, event, entity.id, sequence, clock)
                     .await?;
             }
-            Some(event @ FacilityActivated { id, .. })
-            | Some(event @ FacilityCompleted { id, .. })
-            | Some(
-                event @ FacilityCollateralUpdated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(event @ FacilityCollateralizationChanged { id, .. })
-            | Some(
-                event @ DisbursalSettled {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ AccrualPosted {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ PartialLiquidationInitiated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
+            Some(event @ FacilityProposalConcluded { entity })
+                if entity.status == crate::primitives::CreditFacilityProposalStatus::Approved =>
+            {
+                self.handle_credit_event(db, message, event, entity.id, sequence, clock)
+                    .await?;
+            }
+            Some(event @ FacilityActivated { entity })
+            | Some(event @ FacilityCompleted { entity })
+            | Some(event @ PartialLiquidationInitiated { entity }) => {
+                self.handle_credit_event(db, message, event, entity.id, sequence, clock)
+                    .await?;
+            }
+            Some(event @ DisbursalSettled { entity }) => {
+                self.handle_credit_event(
+                    db,
+                    message,
+                    event,
+                    entity.credit_facility_id,
+                    sequence,
+                    clock,
+                )
+                .await?;
+            }
+            Some(event @ AccrualPosted { entity }) => {
+                self.handle_credit_event(
+                    db,
+                    message,
+                    event,
+                    entity.credit_facility_id,
+                    sequence,
+                    clock,
+                )
+                .await?;
+            }
+            Some(event @ FacilityCollateralUpdated { entity }) => {
+                self.handle_credit_event(
+                    db,
+                    message,
+                    event,
+                    entity.credit_facility_id,
+                    sequence,
+                    clock,
+                )
+                .await?;
+            }
+            Some(event @ FacilityCollateralizationChanged { id, .. })
             | Some(
                 event @ PartialLiquidationCompleted {
                     credit_facility_id: id,
                     ..
                 },
             ) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-
-                let mut repayment_plan = self.repo.load(*id).await?;
-                repayment_plan.process_credit_event(sequence, event, clock.now());
-                self.repo.persist_in_tx(db, *id, repayment_plan).await?;
+                self.handle_credit_event(db, message, event, *id, sequence, clock)
+                    .await?;
             }
             _ => {}
         }
 
-        if let Some(collection_event) = message.as_event::<CoreCreditCollectionEvent>() {
-            let facility_id = match collection_event {
-                CoreCreditCollectionEvent::PaymentAllocationCreated {
+        use CoreCreditCollectionEvent::*;
+
+        match message.as_event() {
+            Some(
+                event @ PaymentAllocationCreated {
                     entity: PublicPaymentAllocation { beneficiary_id, .. },
-                }
-                | CoreCreditCollectionEvent::ObligationCreated {
+                },
+            )
+            | Some(
+                event @ ObligationCreated {
                     entity: PublicObligation { beneficiary_id, .. },
-                }
-                | CoreCreditCollectionEvent::ObligationDue {
+                },
+            )
+            | Some(
+                event @ ObligationDue {
                     entity: PublicObligation { beneficiary_id, .. },
-                }
-                | CoreCreditCollectionEvent::ObligationOverdue {
+                },
+            )
+            | Some(
+                event @ ObligationOverdue {
                     entity: PublicObligation { beneficiary_id, .. },
-                }
-                | CoreCreditCollectionEvent::ObligationDefaulted {
+                },
+            )
+            | Some(
+                event @ ObligationDefaulted {
                     entity: PublicObligation { beneficiary_id, .. },
-                }
-                | CoreCreditCollectionEvent::ObligationCompleted {
+                },
+            )
+            | Some(
+                event @ ObligationCompleted {
                     entity: PublicObligation { beneficiary_id, .. },
-                } => Some(crate::primitives::CreditFacilityId::from(*beneficiary_id)),
-                _ => None,
-            };
-
-            if let Some(facility_id) = facility_id {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", collection_event.as_ref());
-
-                let mut repayment_plan = self.repo.load(facility_id).await?;
-                repayment_plan.process_collection_event(sequence, collection_event, clock.now());
-                self.repo
-                    .persist_in_tx(db, facility_id, repayment_plan)
+                },
+            ) => {
+                self.handle_collection_event(db, message, event, *beneficiary_id, sequence, clock)
                     .await?;
             }
+            _ => {}
         }
 
+        Ok(())
+    }
+
+    async fn handle_credit_event(
+        &self,
+        db: &mut sqlx::PgTransaction<'_>,
+        message: &PersistentOutboxEvent<E>,
+        event: &CoreCreditEvent,
+        id: impl Into<crate::primitives::CreditFacilityId>,
+        sequence: EventSequence,
+        clock: &ClockHandle,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let id = id.into();
+        message.inject_trace_parent();
+        Span::current().record("handled", true);
+        Span::current().record("event_type", event.as_ref());
+        let mut repayment_plan = self.repo.load(id).await?;
+        repayment_plan.process_credit_event(sequence, event, clock.now(), message.recorded_at);
+        self.repo.persist_in_tx(db, id, repayment_plan).await?;
+        Ok(())
+    }
+
+    async fn handle_collection_event(
+        &self,
+        db: &mut sqlx::PgTransaction<'_>,
+        message: &PersistentOutboxEvent<E>,
+        event: &CoreCreditCollectionEvent,
+        id: impl Into<crate::primitives::CreditFacilityId>,
+        sequence: EventSequence,
+        clock: &ClockHandle,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let id = id.into();
+        message.inject_trace_parent();
+        Span::current().record("handled", true);
+        Span::current().record("event_type", event.as_ref());
+        let mut repayment_plan = self.repo.load(id).await?;
+        repayment_plan.process_collection_event(sequence, event, clock.now());
+        self.repo.persist_in_tx(db, id, repayment_plan).await?;
         Ok(())
     }
 }

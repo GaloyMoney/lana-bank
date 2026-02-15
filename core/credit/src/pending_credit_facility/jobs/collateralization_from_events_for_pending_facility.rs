@@ -17,7 +17,7 @@ use core_custody::CoreCustodyEvent;
 use core_price::{CorePriceEvent, Price};
 
 use crate::{
-    event::CoreCreditEvent,
+    CoreCreditEvent,
     ledger::*,
     pending_credit_facility::{
         PendingCreditFacilitiesByCollateralizationRatioCursor, PendingCreditFacility,
@@ -145,18 +145,17 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(
-                event @ CoreCreditEvent::FacilityCollateralUpdated {
-                    pending_credit_facility_id: id,
-                    ..
-                },
-            ) => {
+            Some(event @ CoreCreditEvent::FacilityCollateralUpdated { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
-                Span::current().record("pending_credit_facility_id", tracing::field::display(id));
+                Span::current().record(
+                    "pending_credit_facility_id",
+                    tracing::field::display(entity.pending_credit_facility_id),
+                );
 
-                self.update_collateralization_from_events(*id).await?;
+                self.update_collateralization_from_events(entity.pending_credit_facility_id)
+                    .await?;
             }
             _ => {}
         }

@@ -98,12 +98,10 @@ async fn process_facility_message(
     clock: &ClockHandle,
 ) -> anyhow::Result<bool> {
     match &message.payload {
-        Some(LanaEvent::Credit(
-            event @ CoreCreditEvent::FacilityProposalConcluded {
-                id,
-                status: CreditFacilityProposalStatus::Approved,
-            },
-        )) if cf_proposal.id == *id => {
+        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityProposalConcluded { entity }))
+            if entity.status == CreditFacilityProposalStatus::Approved
+                && cf_proposal.id == entity.id =>
+        {
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
@@ -125,15 +123,15 @@ async fn process_facility_message(
                 )
                 .await?;
         }
-        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityActivated { id, .. }))
-            if *id == cf_proposal.id.into() =>
+        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityActivated { entity }))
+            if entity.id == cf_proposal.id.into() =>
         {
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
             app.credit()
-                .initiate_disbursal(sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
+                .initiate_disbursal(sub, entity.id, UsdCents::try_from_usd(dec!(1_000_000))?)
                 .await?;
         }
         Some(LanaEvent::CreditCollection(
@@ -169,8 +167,8 @@ async fn process_facility_message(
                 app.credit().complete_facility(sub, facility.id).await?;
             }
         }
-        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityCompleted { id, .. })) => {
-            if *id == cf_proposal.id.into() {
+        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityCompleted { entity })) => {
+            if entity.id == cf_proposal.id.into() {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());

@@ -30,8 +30,8 @@ impl DashboardValues {
                 self.active_facilities -= 1;
                 true
             }
-            LanaEvent::Credit(CoreCreditEvent::DisbursalSettled { amount, .. }) => {
-                self.total_disbursed += *amount;
+            LanaEvent::Credit(CoreCreditEvent::DisbursalSettled { entity }) => {
+                self.total_disbursed += entity.amount;
                 true
             }
             LanaEvent::CreditCollection(CoreCreditCollectionEvent::PaymentAllocationCreated {
@@ -40,20 +40,15 @@ impl DashboardValues {
                 self.total_disbursed -= entity.amount;
                 true
             }
-            LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {
-                abs_diff,
-                direction: CollateralDirection::Add,
-                ..
-            }) => {
-                self.total_collateral += *abs_diff;
-                true
-            }
-            LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {
-                abs_diff,
-                direction: CollateralDirection::Remove,
-                ..
-            }) => {
-                self.total_collateral -= *abs_diff;
+            LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated { entity }) => {
+                let adjustment = entity
+                    .adjustment
+                    .as_ref()
+                    .expect("adjustment must be set for FacilityCollateralUpdated");
+                match adjustment.direction {
+                    CollateralDirection::Add => self.total_collateral += adjustment.abs_diff,
+                    CollateralDirection::Remove => self.total_collateral -= adjustment.abs_diff,
+                }
                 true
             }
             _ => false,

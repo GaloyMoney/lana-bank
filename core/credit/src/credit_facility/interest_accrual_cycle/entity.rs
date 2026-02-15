@@ -111,6 +111,14 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct AccrualPosting {
+    pub tx_id: LedgerTxId,
+    pub amount: UsdCents,
+    pub effective: chrono::NaiveDate,
+}
+
 impl InterestAccrualCycle {
     fn accrual_cycle_ends_at(&self) -> EffectiveDate {
         self.terms
@@ -149,6 +157,22 @@ impl InterestAccrualCycle {
             None => interval.period_from(self.period.start),
         }
         .truncate(self.accrual_cycle_ends_at().end_of_day())
+    }
+
+    pub fn posting(&self) -> Option<AccrualPosting> {
+        self.events.iter_all().find_map(|event| match event {
+            InterestAccrualCycleEvent::InterestAccrualsPosted {
+                ledger_tx_id,
+                total,
+                effective,
+                ..
+            } => Some(AccrualPosting {
+                tx_id: *ledger_tx_id,
+                amount: *total,
+                effective: *effective,
+            }),
+            _ => None,
+        })
     }
 
     pub(crate) fn is_completed(&self) -> bool {

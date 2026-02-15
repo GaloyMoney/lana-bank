@@ -2589,16 +2589,14 @@ impl Subscription {
             let payload = event.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
-                CoreCreditEvent::PendingCreditFacilityCompleted {
-                    id,
-                    status,
-                    recorded_at,
-                } if *id == pending_credit_facility_id => {
+                CoreCreditEvent::PendingCreditFacilityCompleted { entity }
+                    if entity.id == pending_credit_facility_id =>
+                {
                     Some(PendingCreditFacilityCompletedPayload {
                         pending_credit_facility_id,
                         update: PendingCreditFacilityCompleted {
-                            status: *status,
-                            recorded_at: (*recorded_at).into(),
+                            status: entity.status,
+                            recorded_at: entity.completed_at?.into(),
                         },
                     })
                 }
@@ -2629,12 +2627,12 @@ impl Subscription {
             let payload = event.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
-                CoreCreditEvent::FacilityProposalConcluded { id, status }
-                    if *id == credit_facility_proposal_id =>
+                CoreCreditEvent::FacilityProposalConcluded { entity }
+                    if entity.id == credit_facility_proposal_id =>
                 {
                     Some(CreditFacilityProposalConcludedPayload {
                         credit_facility_proposal_id,
-                        status: *status,
+                        status: entity.status,
                     })
                 }
                 _ => None,

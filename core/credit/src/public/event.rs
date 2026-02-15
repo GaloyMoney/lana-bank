@@ -4,28 +4,28 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use core_credit_terms::{InterestPeriod, TermValues, collateralization::CollateralizationState};
+use core_credit_terms::collateralization::CollateralizationState;
 use money::{Satoshis, UsdCents};
 
 use crate::{
     credit_facility::CreditFacilityReceivable, ledger::FacilityProceedsFromLiquidationAccountId,
+    primitives::*,
 };
 
-use super::primitives::*;
+use super::{
+    PublicCollateral, PublicCreditFacility, PublicCreditFacilityProposal, PublicDisbursal,
+    PublicInterestAccrualCycle, PublicPendingCreditFacility,
+};
 
 #[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type")]
 pub enum CoreCreditEvent {
     FacilityProposalCreated {
-        id: CreditFacilityProposalId,
-        terms: TermValues,
-        amount: UsdCents,
-        created_at: DateTime<Utc>,
+        entity: PublicCreditFacilityProposal,
     },
     FacilityProposalConcluded {
-        id: CreditFacilityProposalId,
-        status: CreditFacilityProposalStatus,
+        entity: PublicCreditFacilityProposal,
     },
     PendingCreditFacilityCollateralizationChanged {
         id: PendingCreditFacilityId,
@@ -36,29 +36,16 @@ pub enum CoreCreditEvent {
         effective: chrono::NaiveDate,
     },
     PendingCreditFacilityCompleted {
-        id: PendingCreditFacilityId,
-        status: PendingCreditFacilityStatus,
-        recorded_at: DateTime<Utc>,
+        entity: PublicPendingCreditFacility,
     },
     FacilityActivated {
-        id: CreditFacilityId,
-        activation_tx_id: LedgerTxId,
-        activated_at: DateTime<Utc>,
-        amount: UsdCents,
+        entity: PublicCreditFacility,
     },
     FacilityCompleted {
-        id: CreditFacilityId,
-        completed_at: DateTime<Utc>,
+        entity: PublicCreditFacility,
     },
     FacilityCollateralUpdated {
-        credit_facility_id: CreditFacilityId,
-        pending_credit_facility_id: PendingCreditFacilityId,
-        ledger_tx_id: LedgerTxId,
-        new_amount: Satoshis,
-        abs_diff: Satoshis,
-        direction: CollateralDirection,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
+        entity: PublicCollateral,
     },
     FacilityCollateralizationChanged {
         id: CreditFacilityId,
@@ -71,30 +58,16 @@ pub enum CoreCreditEvent {
         price: PriceOfOneBTC,
     },
     DisbursalSettled {
-        credit_facility_id: CreditFacilityId,
-        ledger_tx_id: LedgerTxId,
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
+        entity: PublicDisbursal,
     },
     AccrualPosted {
-        credit_facility_id: CreditFacilityId,
-        ledger_tx_id: LedgerTxId,
-        amount: UsdCents,
-        period: InterestPeriod,
-        due_at: EffectiveDate,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
+        entity: PublicInterestAccrualCycle,
     },
     PartialLiquidationInitiated {
-        liquidation_id: LiquidationId,
-        credit_facility_id: CreditFacilityId,
-        collateral_id: CollateralId,
-        customer_id: CustomerId,
-        trigger_price: PriceOfOneBTC,
-        initially_expected_to_receive: UsdCents,
-        initially_estimated_to_liquidate: Satoshis,
+        entity: PublicCreditFacility,
     },
+
+    // TODO: revisit these event they don't have publisher yet.
     PartialLiquidationCollateralSentOut {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,

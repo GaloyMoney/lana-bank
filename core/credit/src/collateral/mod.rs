@@ -26,14 +26,14 @@ use crate::{
 
 use es_entity::Idempotent;
 
-use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
+use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
 use ledger::CollateralLedger;
 
 pub(super) use entity::*;
 use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync};
 pub use {
-    entity::Collateral,
+    entity::{Collateral, CollateralAdjustment},
     liquidation::{Liquidation, RecordProceedsFromLiquidationData},
     repo::liquidation_cursor,
 };

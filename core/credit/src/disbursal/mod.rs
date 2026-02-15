@@ -12,7 +12,7 @@ use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, primitives::*};
+use crate::{CoreCreditEvent, primitives::*};
 
 use core_credit_collection::{CoreCreditCollection, Obligation};
 
@@ -21,7 +21,7 @@ use error::DisbursalError;
 pub(super) use repo::*;
 pub use repo::{DisbursalsFilter, DisbursalsSortBy};
 
-pub use entity::Disbursal;
+pub use entity::{Disbursal, DisbursalSettlement};
 
 #[cfg(feature = "json-schema")]
 pub use entity::DisbursalEvent;

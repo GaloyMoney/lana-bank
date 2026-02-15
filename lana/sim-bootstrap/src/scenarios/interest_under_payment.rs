@@ -56,19 +56,19 @@ pub async fn interest_under_payment_scenario(
         tokio::select! {
             Some(msg) = stream.next() => {
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
-                    id,
-                    status: CreditFacilityProposalStatus::Approved,
+                    entity,
                 })) = &msg.payload
-                    && *id == proposal_id
+                    && entity.status == CreditFacilityProposalStatus::Approved
+                    && entity.id == proposal_id
                 {
                     msg.inject_trace_parent();
                     break;
                 }
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
-                    id,
-                    status: CreditFacilityProposalStatus::Denied,
+                    entity,
                 })) = &msg.payload
-                    && *id == proposal_id
+                    && entity.status == CreditFacilityProposalStatus::Denied
+                    && entity.id == proposal_id
                 {
                     anyhow::bail!("Proposal was denied");
                 }
@@ -104,8 +104,8 @@ pub async fn interest_under_payment_scenario(
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. })) = &msg.payload
-                    && *id == cf_id
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { entity })) = &msg.payload
+                    && entity.id == cf_id
                 {
                     msg.inject_trace_parent();
                     break;

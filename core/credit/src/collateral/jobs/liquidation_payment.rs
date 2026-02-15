@@ -15,9 +15,8 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
 
 use crate::{
-    CoreCreditCollectionEvent,
+    CoreCreditCollectionEvent, CoreCreditEvent,
     credit_facility::CreditFacilityRepo,
-    event::CoreCreditEvent,
     primitives::{CreditFacilityId, LiquidationId},
 };
 
