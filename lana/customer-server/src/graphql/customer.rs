@@ -1,7 +1,9 @@
 use async_graphql::*;
 use std::sync::Arc;
 
-use lana_app::customer::{Customer as DomainCustomer, CustomerType, KycLevel, KycVerification};
+use lana_app::customer::{
+    Customer as DomainCustomer, CustomerType, KycLevel, KycVerification, PersonalInfo,
+};
 
 use crate::primitives::*;
 
@@ -51,6 +53,10 @@ impl Customer {
 
     async fn telegram_handle(&self) -> &str {
         &self.entity.telegram_handle
+    }
+
+    async fn personal_info(&self) -> &PersonalInfo {
+        &self.entity.personal_info
     }
 
     async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {

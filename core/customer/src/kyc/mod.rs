@@ -84,6 +84,7 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     customers: Customers<Perms, E>,
+    sumsub_client: SumsubClient,
 }
 
 impl<Perms, E> Clone for KycCallbackHandler<Perms, E>
@@ -94,6 +95,7 @@ where
     fn clone(&self) -> Self {
         Self {
             customers: self.customers.clone(),
+            sumsub_client: self.sumsub_client.clone(),
         }
     }
 }
@@ -135,9 +137,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
 {
-    fn new(customers: &Customers<Perms, E>) -> Self {
+    fn new(customers: &Customers<Perms, E>, sumsub_client: &SumsubClient) -> Self {
         Self {
             customers: customers.clone(),
+            sumsub_client: sumsub_client.clone(),
         }
     }
 
@@ -253,10 +256,30 @@ where
                     }
                 };
 
+                let personal_info = match self
+                    .sumsub_client
+                    .get_applicant_details(external_user_id)
+                    .await
+                {
+                    Ok(details) => crate::PersonalInfo::from(&details.info),
+                    Err(e) => {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            error = %e,
+                            "Failed to fetch applicant details for PII, using dummy"
+                        );
+                        crate::PersonalInfo::dummy()
+                    }
+                };
+
                 if sandbox {
                     let res = self
                         .customers
-                        .handle_kyc_approved_if_exists(external_user_id, applicant_id)
+                        .handle_kyc_approved_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            personal_info,
+                        )
                         .await?;
                     if res.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
@@ -264,7 +287,11 @@ where
                 } else {
                     let res = self
                         .customers
-                        .handle_kyc_approved_if_exists(external_user_id, applicant_id)
+                        .handle_kyc_approved_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            personal_info,
+                        )
                         .await?;
                     if res.is_none() {
                         tracing::warn!(
@@ -309,13 +336,35 @@ where
             }
             KycCallbackPayload::ApplicantPersonalInfoChanged {
                 applicant_id,
+                external_user_id,
                 sandbox_mode,
                 ..
             } => {
-                // No-op: we don't need to process personal info changes
                 tracing::Span::current().record("callback_type", "ApplicantPersonalInfoChanged");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
+                tracing::Span::current()
+                    .record("customer_id", external_user_id.to_string().as_str());
+
+                let personal_info = match self
+                    .sumsub_client
+                    .get_applicant_details(external_user_id)
+                    .await
+                {
+                    Ok(details) => crate::PersonalInfo::from(&details.info),
+                    Err(e) => {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            error = %e,
+                            "Failed to fetch applicant details for personal info change"
+                        );
+                        return Ok(());
+                    }
+                };
+
+                self.customers
+                    .handle_personal_info_changed_if_exists(external_user_id, personal_info)
+                    .await?;
             }
             KycCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
@@ -382,7 +431,7 @@ where
             sumsub_secret,
         };
         let sumsub_client = SumsubClient::new(&sumsub_config);
-        let handler = KycCallbackHandler::new(customers);
+        let handler = KycCallbackHandler::new(customers, &sumsub_client);
 
         let inbox_config = InboxConfig::new(KYC_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);

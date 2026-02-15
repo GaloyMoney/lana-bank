@@ -27,6 +27,13 @@ gql`
     customerType
     createdAt
     publicId
+    personalInfo {
+      firstName
+      lastName
+      dateOfBirth
+      nationality
+      address
+    }
   }
 
   query GetProspectBasicDetails($id: PublicId!) {

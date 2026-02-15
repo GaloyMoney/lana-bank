@@ -35,6 +35,39 @@
         "rejected"
       ],
       "type": "string"
+    },
+    "PersonalInfo": {
+      "properties": {
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dateOfBirth": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "nationality": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "firstName",
+        "lastName"
+      ],
+      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -64,6 +97,16 @@
         "level": {
           "$ref": "#/$defs/KycLevel",
           "default": "NotKyced"
+        },
+        "personal_info": {
+          "$ref": "#/$defs/PersonalInfo",
+          "default": {
+            "address": null,
+            "dateOfBirth": null,
+            "firstName": "John",
+            "lastName": "Doe",
+            "nationality": null
+          }
         },
         "public_id": {
           "type": "string"
@@ -145,6 +188,22 @@
       },
       "required": [
         "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "personal_info": {
+          "$ref": "#/$defs/PersonalInfo"
+        },
+        "type": {
+          "const": "personal_info_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "personal_info"
       ],
       "type": "object"
     }

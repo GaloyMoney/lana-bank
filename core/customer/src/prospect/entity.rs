@@ -48,6 +48,9 @@ pub enum ProspectEvent {
     TelegramHandleUpdated {
         telegram_handle: String,
     },
+    PersonalInfoUpdated {
+        personal_info: PersonalInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -69,6 +72,8 @@ pub struct Prospect {
     pub level: KycLevel,
     pub stage: ProspectStage,
     pub public_id: PublicId,
+    #[builder(setter(strip_option), default)]
+    pub personal_info: Option<PersonalInfo>,
     events: EntityEvents<ProspectEvent>,
 }
 
@@ -130,6 +135,7 @@ impl Prospect {
     pub fn approve_kyc(
         &mut self,
         level: KycLevel,
+        personal_info: PersonalInfo,
     ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -158,6 +164,7 @@ impl Prospect {
             .kyc_verification(KycVerification::Verified)
             .level(level)
             .activity(Activity::Active)
+            .personal_info(personal_info)
             .build()
             .expect("Could not build customer from prospect");
 
@@ -176,6 +183,11 @@ impl Prospect {
         self.kyc_status = KycStatus::Approved;
         self.stage = stage;
 
+        let personal_info = self
+            .personal_info
+            .clone()
+            .unwrap_or_else(PersonalInfo::dummy);
+
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
             .email(self.email.clone())
@@ -186,6 +198,7 @@ impl Prospect {
             .kyc_verification(KycVerification::NoKyc)
             .level(KycLevel::Basic)
             .activity(Activity::Active)
+            .personal_info(personal_info)
             .build()
             .expect("Could not build customer from prospect");
 
@@ -227,6 +240,21 @@ impl Prospect {
             .push(ProspectEvent::VerificationLinkCreated { url: url.clone() });
         self.verification_link = Some(url);
         Ok(Idempotent::Executed(()))
+    }
+
+    pub fn update_personal_info(
+        &mut self,
+        personal_info: PersonalInfo,
+    ) -> Idempotent<PersonalInfo> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ProspectEvent::PersonalInfoUpdated { personal_info: existing, .. } if existing == &personal_info
+        );
+        self.events.push(ProspectEvent::PersonalInfoUpdated {
+            personal_info: personal_info.clone(),
+        });
+        self.personal_info = Some(personal_info.clone());
+        Idempotent::Executed(personal_info)
     }
 
     pub fn update_telegram_handle(
@@ -306,6 +334,9 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                 ProspectEvent::TelegramHandleUpdated { telegram_handle } => {
                     builder = builder.telegram_handle(telegram_handle.clone());
                 }
+                ProspectEvent::PersonalInfoUpdated { personal_info } => {
+                    builder = builder.personal_info(personal_info.clone());
+                }
             }
         }
 
@@ -373,7 +404,7 @@ mod tests {
     fn approve_kyc_fails_when_kyc_not_started() {
         let mut prospect = create_test_prospect();
 
-        let result = prospect.approve_kyc(KycLevel::Basic);
+        let result = prospect.approve_kyc(KycLevel::Basic, PersonalInfo::dummy());
 
         assert!(matches!(result, Err(ProspectError::KycNotStarted)));
     }
@@ -385,7 +416,7 @@ mod tests {
             .start_kyc("correct-applicant-id".to_string())
             .expect("start_kyc should succeed");
 
-        let result = prospect.approve_kyc(KycLevel::Basic);
+        let result = prospect.approve_kyc(KycLevel::Basic, PersonalInfo::dummy());
 
         assert!(result.is_ok());
     }
@@ -418,7 +449,7 @@ mod tests {
             .start_kyc("applicant-id".to_string())
             .expect("start_kyc should succeed");
         let _ = prospect
-            .approve_kyc(KycLevel::Basic)
+            .approve_kyc(KycLevel::Basic, PersonalInfo::dummy())
             .expect("approve_kyc should succeed");
 
         let result = prospect.close();

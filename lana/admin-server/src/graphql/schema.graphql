@@ -990,6 +990,7 @@ type Customer {
 	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String!
+	personalInfo: PersonalInfo!
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
 	pendingCreditFacilities: [PendingCreditFacility!]!
@@ -2060,6 +2061,14 @@ type PermissionSetEdge {
 	cursor: String!
 }
 
+type PersonalInfo {
+	firstName: String!
+	lastName: String!
+	dateOfBirth: String
+	nationality: String
+	address: String
+}
+
 type Policy {
 	id: ID!
 	policyId: UUID!
@@ -2126,6 +2135,7 @@ type Prospect {
 	publicId: PublicId!
 	applicantId: String
 	verificationLink: String
+	personalInfo: PersonalInfo
 }
 
 input ProspectCloseInput {

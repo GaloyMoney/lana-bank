@@ -4,7 +4,8 @@ use authz::dummy::DummySubject;
 use uuid::Uuid;
 
 use core_customer::{
-    CoreCustomerEvent, CustomerId, CustomerType, KycStatus, KycVerification, ProspectStatus,
+    CoreCustomerEvent, CustomerId, CustomerType, KycStatus, KycVerification, PersonalInfo,
+    ProspectStatus,
 };
 use helpers::event;
 
@@ -80,7 +81,7 @@ async fn prospect_converted_event_on_kyc_approved() -> anyhow::Result<()> {
 
     let (_created_customer, recorded) = event::expect_event(
         &outbox,
-        || customers.handle_kyc_approved(prospect.id, applicant_id.clone()),
+        || customers.handle_kyc_approved(prospect.id, applicant_id.clone(), PersonalInfo::dummy()),
         |_result, e| match e {
             CoreCustomerEvent::ProspectConverted { entity }
                 if entity.id == prospect.id && entity.kyc_status == KycStatus::Approved =>
@@ -169,7 +170,7 @@ async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Resul
         .await?;
 
     let customer = customers
-        .handle_kyc_approved(prospect.id, applicant_id.clone())
+        .handle_kyc_approved(prospect.id, applicant_id.clone(), PersonalInfo::dummy())
         .await?;
 
     assert_eq!(customer.kyc_verification, KycVerification::Verified);

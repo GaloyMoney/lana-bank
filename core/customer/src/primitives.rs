@@ -175,6 +175,42 @@ impl KycVerification {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::SimpleObject))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct PersonalInfo {
+    pub first_name: String,
+    pub last_name: String,
+    pub date_of_birth: Option<String>,
+    pub nationality: Option<String>,
+    pub address: Option<String>,
+}
+
+impl PersonalInfo {
+    pub fn dummy() -> Self {
+        Self {
+            first_name: "John".into(),
+            last_name: "Doe".into(),
+            date_of_birth: None,
+            nationality: None,
+            address: None,
+        }
+    }
+}
+
+impl From<&sumsub::ApplicantInfo> for PersonalInfo {
+    fn from(info: &sumsub::ApplicantInfo) -> Self {
+        Self {
+            first_name: info.first_name.clone().unwrap_or_else(|| "Unknown".into()),
+            last_name: info.last_name.clone().unwrap_or_else(|| "Unknown".into()),
+            date_of_birth: info.dob.clone(),
+            nationality: info.nationality().map(String::from),
+            address: info.primary_address().map(String::from),
+        }
+    }
+}
+
 impl From<CustomerType> for String {
     fn from(customer_type: CustomerType) -> Self {
         match customer_type {

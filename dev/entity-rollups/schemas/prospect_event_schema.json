@@ -20,6 +20,39 @@
       ],
       "type": "string"
     },
+    "PersonalInfo": {
+      "properties": {
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dateOfBirth": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "nationality": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "firstName",
+        "lastName"
+      ],
+      "type": "object"
+    },
     "ProspectStage": {
       "enum": [
         "new",
@@ -204,6 +237,22 @@
       "required": [
         "type",
         "telegram_handle"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "personal_info": {
+          "$ref": "#/$defs/PersonalInfo"
+        },
+        "type": {
+          "const": "personal_info_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "personal_info"
       ],
       "type": "object"
     }

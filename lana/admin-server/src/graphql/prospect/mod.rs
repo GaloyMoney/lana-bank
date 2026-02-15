@@ -4,7 +4,9 @@ use crate::primitives::*;
 use lana_app::public_id::PublicId;
 
 pub use lana_app::customer::Prospect as DomainProspect;
-use lana_app::customer::{CustomerType, KycLevel, KycStatus, ProspectStage, ProspectStatus};
+use lana_app::customer::{
+    CustomerType, KycLevel, KycStatus, PersonalInfo, ProspectStage, ProspectStatus,
+};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -60,6 +62,10 @@ impl Prospect {
 
     async fn verification_link(&self) -> Option<&str> {
         self.entity.verification_link.as_deref()
+    }
+
+    async fn personal_info(&self) -> Option<&PersonalInfo> {
+        self.entity.personal_info.as_ref()
     }
 }
 

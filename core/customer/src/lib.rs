@@ -313,7 +313,7 @@ where
         let applicant_id = format!("create-customer-{}", prospect.id);
         let _ = prospect.start_kyc(applicant_id.clone())?;
 
-        match prospect.approve_kyc(KycLevel::Basic)? {
+        match prospect.approve_kyc(KycLevel::Basic, PersonalInfo::dummy())? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -413,6 +413,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
+        personal_info: PersonalInfo,
     ) -> Result<Option<Customer>, CustomerError> {
         let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
             return Ok(None);
@@ -436,7 +437,7 @@ where
             ));
         }
 
-        match prospect.approve_kyc(KycLevel::Basic)? {
+        match prospect.approve_kyc(KycLevel::Basic, personal_info)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -467,6 +468,7 @@ where
         &self,
         prospect_id: ProspectId,
         applicant_id: String,
+        personal_info: PersonalInfo,
     ) -> Result<Customer, CustomerError> {
         let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
 
@@ -488,7 +490,7 @@ where
             ));
         }
 
-        match prospect.approve_kyc(KycLevel::Basic)? {
+        match prospect.approve_kyc(KycLevel::Basic, personal_info)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -593,6 +595,33 @@ where
         }
 
         Ok(prospect)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.handle_personal_info_changed_if_exists", skip(self))]
+    pub async fn handle_personal_info_changed_if_exists(
+        &self,
+        prospect_id: ProspectId,
+        personal_info: PersonalInfo,
+    ) -> Result<(), CustomerError> {
+        let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
+            return Ok(());
+        };
+
+        if prospect.status == ProspectStatus::Converted {
+            let customer_id = CustomerId::from(prospect_id);
+            if let Ok(mut customer) = self.repo.find_by_id(customer_id).await
+                && customer.update_personal_info(personal_info).did_execute()
+            {
+                self.repo.update(&mut customer).await?;
+            }
+        } else if prospect.status == ProspectStatus::Open
+            && prospect.update_personal_info(personal_info).did_execute()
+        {
+            self.prospect_repo.update(&mut prospect).await?;
+        }
+
+        Ok(())
     }
 
     #[record_error_severity]

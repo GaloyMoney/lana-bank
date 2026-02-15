@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use uuid::Uuid;
 
-use core_customer::{CoreCustomerEvent, CustomerType, KycVerification};
+use core_customer::{CoreCustomerEvent, CustomerType, KycVerification, PersonalInfo};
 use helpers::event;
 
 /// CustomerCreated event is published when a prospect's KYC is approved
@@ -39,7 +39,7 @@ async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
 
     let (created_customer, recorded) = event::expect_event(
         &outbox,
-        || customers.handle_kyc_approved(prospect.id, applicant_id.clone()),
+        || customers.handle_kyc_approved(prospect.id, applicant_id.clone(), PersonalInfo::dummy()),
         |result, e| match e {
             CoreCustomerEvent::CustomerCreated { entity } if entity.id == result.id => {
                 Some(entity.clone())

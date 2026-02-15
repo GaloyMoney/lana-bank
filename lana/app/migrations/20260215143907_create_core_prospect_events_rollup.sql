@@ -10,6 +10,7 @@ CREATE TABLE core_prospect_events_rollup (
   customer_type VARCHAR,
   email VARCHAR,
   level VARCHAR,
+  personal_info JSONB,
   public_id VARCHAR,
   stage VARCHAR,
   telegram_handle VARCHAR,
@@ -40,7 +41,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_pending', 'kyc_declined', 'manually_converted', 'verification_link_created', 'closed', 'telegram_handle_updated') THEN
+  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_pending', 'kyc_declined', 'manually_converted', 'verification_link_created', 'closed', 'telegram_handle_updated', 'personal_info_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -58,6 +59,7 @@ BEGIN
     new_row.email := (NEW.event ->> 'email');
     new_row.is_kyc_approved := false;
     new_row.level := (NEW.event ->> 'level');
+    new_row.personal_info := (NEW.event -> 'personal_info');
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.stage := (NEW.event ->> 'stage');
     new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
@@ -69,6 +71,7 @@ BEGIN
     new_row.email := current_row.email;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
     new_row.level := current_row.level;
+    new_row.personal_info := current_row.personal_info;
     new_row.public_id := current_row.public_id;
     new_row.stage := current_row.stage;
     new_row.telegram_handle := current_row.telegram_handle;
@@ -102,6 +105,8 @@ BEGIN
       new_row.stage := (NEW.event ->> 'stage');
     WHEN 'telegram_handle_updated' THEN
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
+    WHEN 'personal_info_updated' THEN
+      new_row.personal_info := (NEW.event -> 'personal_info');
   END CASE;
 
   INSERT INTO core_prospect_events_rollup (
@@ -115,6 +120,7 @@ BEGIN
     email,
     is_kyc_approved,
     level,
+    personal_info,
     public_id,
     stage,
     telegram_handle,
@@ -131,6 +137,7 @@ BEGIN
     new_row.email,
     new_row.is_kyc_approved,
     new_row.level,
+    new_row.personal_info,
     new_row.public_id,
     new_row.stage,
     new_row.telegram_handle,

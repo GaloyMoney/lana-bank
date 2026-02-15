@@ -12,6 +12,7 @@ CREATE TABLE core_customer_events_rollup (
   email VARCHAR,
   kyc_verification VARCHAR,
   level VARCHAR,
+  personal_info JSONB,
   public_id VARCHAR,
   telegram_handle VARCHAR,
 
@@ -40,7 +41,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'telegram_handle_updated', 'email_updated', 'activity_updated', 'kyc_rejected') THEN
+  IF event_type NOT IN ('initialized', 'telegram_handle_updated', 'email_updated', 'activity_updated', 'kyc_rejected', 'personal_info_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -60,6 +61,7 @@ BEGIN
     new_row.is_kyc_approved := false;
     new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
     new_row.level := (NEW.event ->> 'level');
+    new_row.personal_info := (NEW.event -> 'personal_info');
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
   ELSE
@@ -71,6 +73,7 @@ BEGIN
     new_row.is_kyc_approved := current_row.is_kyc_approved;
     new_row.kyc_verification := current_row.kyc_verification;
     new_row.level := current_row.level;
+    new_row.personal_info := current_row.personal_info;
     new_row.public_id := current_row.public_id;
     new_row.telegram_handle := current_row.telegram_handle;
   END IF;
@@ -84,6 +87,7 @@ BEGIN
       new_row.email := (NEW.event ->> 'email');
       new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
       new_row.level := (NEW.event ->> 'level');
+      new_row.personal_info := (NEW.event -> 'personal_info');
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
     WHEN 'telegram_handle_updated' THEN
@@ -93,7 +97,9 @@ BEGIN
     WHEN 'activity_updated' THEN
       new_row.activity := (NEW.event ->> 'activity');
     WHEN 'kyc_rejected' THEN
-    END CASE;
+    WHEN 'personal_info_updated' THEN
+      new_row.personal_info := (NEW.event -> 'personal_info');
+  END CASE;
 
   INSERT INTO core_customer_events_rollup (
     id,
@@ -108,6 +114,7 @@ BEGIN
     is_kyc_approved,
     kyc_verification,
     level,
+    personal_info,
     public_id,
     telegram_handle
   )
@@ -124,6 +131,7 @@ BEGIN
     new_row.is_kyc_approved,
     new_row.kyc_verification,
     new_row.level,
+    new_row.personal_info,
     new_row.public_id,
     new_row.telegram_handle
   );

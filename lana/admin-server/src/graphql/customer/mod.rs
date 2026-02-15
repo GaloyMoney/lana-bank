@@ -9,8 +9,8 @@ use super::{
 
 pub use lana_app::customer::{
     Activity, Customer as DomainCustomer, CustomerType, CustomersCursor,
-    CustomersFilters as DomainCustomersFilters, CustomersSortBy as DomainCustomersSortBy, KycLevel,
-    KycVerification, Sort,
+    CustomersFilter as DomainCustomersFilter, CustomersSortBy as DomainCustomersSortBy, KycLevel,
+    KycVerification, PersonalInfo, Sort,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -59,6 +59,10 @@ impl Customer {
 
     async fn applicant_id(&self) -> &str {
         &self.entity.applicant_id
+    }
+
+    async fn personal_info(&self) -> &PersonalInfo {
+        &self.entity.personal_info
     }
 
     async fn deposit_account(

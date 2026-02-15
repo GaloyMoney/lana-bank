@@ -25,6 +25,8 @@ pub enum CustomerEvent {
         level: KycLevel,
         #[serde(default = "KycVerification::no_kyc")]
         kyc_verification: KycVerification,
+        #[serde(default = "PersonalInfo::dummy")]
+        personal_info: PersonalInfo,
     },
     TelegramHandleUpdated {
         telegram_handle: String,
@@ -36,6 +38,9 @@ pub enum CustomerEvent {
         activity: Activity,
     },
     KycRejected {},
+    PersonalInfoUpdated {
+        personal_info: PersonalInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -53,6 +58,7 @@ pub struct Customer {
     #[builder(setter(into))]
     pub applicant_id: String,
     pub public_id: PublicId,
+    pub personal_info: PersonalInfo,
     events: EntityEvents<CustomerEvent>,
 }
 
@@ -115,6 +121,21 @@ impl Customer {
         Idempotent::Executed(())
     }
 
+    pub fn update_personal_info(
+        &mut self,
+        personal_info: PersonalInfo,
+    ) -> Idempotent<PersonalInfo> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::PersonalInfoUpdated { personal_info: existing, .. } if existing == &personal_info
+        );
+        self.events.push(CustomerEvent::PersonalInfoUpdated {
+            personal_info: personal_info.clone(),
+        });
+        self.personal_info = personal_info.clone();
+        Idempotent::Executed(personal_info)
+    }
+
     pub fn update_email(&mut self, new_email: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -145,6 +166,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     applicant_id,
                     level,
                     kyc_verification,
+                    personal_info,
                     ..
                 } => {
                     builder = builder
@@ -156,7 +178,8 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .activity(*activity)
                         .level(*level)
                         .kyc_verification(*kyc_verification)
-                        .applicant_id(applicant_id.clone());
+                        .applicant_id(applicant_id.clone())
+                        .personal_info(personal_info.clone());
                 }
                 CustomerEvent::TelegramHandleUpdated {
                     telegram_handle, ..
@@ -171,6 +194,9 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 }
                 CustomerEvent::KycRejected { .. } => {
                     builder = builder.kyc_verification(KycVerification::Rejected);
+                }
+                CustomerEvent::PersonalInfoUpdated { personal_info } => {
+                    builder = builder.personal_info(personal_info.clone());
                 }
             }
         }
@@ -198,6 +224,7 @@ pub struct NewCustomer {
     pub(crate) applicant_id: String,
     #[builder(default)]
     pub(crate) level: KycLevel,
+    pub(crate) personal_info: PersonalInfo,
 }
 
 impl NewCustomer {
@@ -220,6 +247,7 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 applicant_id: self.applicant_id,
                 level: self.level,
                 kyc_verification: self.kyc_verification,
+                personal_info: self.personal_info,
             }],
         )
     }

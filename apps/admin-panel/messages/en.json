@@ -315,7 +315,12 @@
           "createdOn": "Created on",
           "telegram": "Telegram",
           "customerType": "Type",
-          "publicId": "Public ID"
+          "publicId": "Public ID",
+          "firstName": "First Name",
+          "lastName": "Last Name",
+          "dateOfBirth": "Date of Birth",
+          "nationality": "Nationality",
+          "address": "Address"
         },
         "buttons": {
           "closeProspect": "Close Prospect",
@@ -447,7 +452,12 @@
           "telegram": "Telegram",
           "status": "Status",
           "customerType": "Type",
-          "publicId": "Public ID"
+          "publicId": "Public ID",
+          "firstName": "First Name",
+          "lastName": "Last Name",
+          "dateOfBirth": "Date of Birth",
+          "nationality": "Nationality",
+          "address": "Address"
         },
         "status": {
           "active": "Active",

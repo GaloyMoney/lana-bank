@@ -166,6 +166,7 @@ type Customer {
 	createdAt: Timestamp!
 	email: String!
 	telegramHandle: String!
+	personalInfo: PersonalInfo!
 	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
 }
@@ -357,6 +358,14 @@ type PendingCreditFacilityCollateralizationUpdated {
 
 enum Period {
 	MONTHS
+}
+
+type PersonalInfo {
+	firstName: String!
+	lastName: String!
+	dateOfBirth: String
+	nationality: String
+	address: String
 }
 
 type Query {

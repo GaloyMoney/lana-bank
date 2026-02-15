@@ -15,6 +15,13 @@ gql`
         createdAt
         email
         telegramHandle
+        personalInfo {
+          firstName
+          lastName
+          dateOfBirth
+          nationality
+          address
+        }
         depositAccount {
           id
           depositAccountId

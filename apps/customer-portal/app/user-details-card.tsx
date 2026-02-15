@@ -57,9 +57,11 @@ function UserDetailsCard({
     },
   ]
 
+  const name = `${customer.personalInfo.firstName} ${customer.personalInfo.lastName}`
+
   return (
     <DetailsCard
-      title={<div className="text-md font-semibold text-primary">{customer.email}</div>}
+      title={<div className="text-md font-semibold text-primary">{name}</div>}
       details={details}
     />
   )
