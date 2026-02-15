@@ -1,4 +1,6 @@
-use async_graphql::{Context, Error, Object, Subscription, types::connection::*};
+use async_graphql::{Context, Error, MergedObject, Object, Subscription, types::connection::*};
+
+use admin_graphql_custody::{CustodyMutation, CustodyQuery};
 
 use std::io::Read;
 
@@ -23,15 +25,19 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, committee::*, contract_creation::*,
-    credit_config::*, credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*,
+    credit_config::*, credit_facility::*, customer::*, dashboard::*, deposit::*,
     deposit_config::*, document::*, domain_config::*, loader::*, me::*, policy::*, price::*,
     public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
-pub struct Query;
+#[derive(MergedObject, Default)]
+pub struct Query(pub CustodyQuery, pub BaseQuery);
+
+#[derive(Default)]
+pub struct BaseQuery;
 
 #[Object]
-impl Query {
+impl BaseQuery {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<MeUser> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let user = Arc::new(app.access().users().find_for_subject(sub).await?);
@@ -556,25 +562,6 @@ impl Query {
             after,
             first,
             |query| app.credit().collaterals().list_liquidations(sub, query)
-        )
-    }
-
-    async fn custodians(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<CustodiansByNameCursor, Custodian, EmptyFields, EmptyFields>,
-    > {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            CustodiansByNameCursor,
-            Custodian,
-            ctx,
-            after,
-            first,
-            |query| app.custody().list_custodians(sub, query)
         )
     }
 
@@ -1140,10 +1127,14 @@ impl Query {
     }
 }
 
-pub struct Mutation;
+#[derive(MergedObject, Default)]
+pub struct Mutation(pub CustodyMutation, pub BaseMutation);
+
+#[derive(Default)]
+pub struct BaseMutation;
 
 #[Object]
-impl Mutation {
+impl BaseMutation {
     pub async fn customer_document_attach(
         &self,
         ctx: &Context<'_>,
@@ -2078,36 +2069,6 @@ impl Mutation {
                     input.collateral_id.into(),
                     input.amount
                 )
-        )
-    }
-
-    async fn custodian_create(
-        &self,
-        ctx: &Context<'_>,
-        input: CustodianCreateInput,
-    ) -> async_graphql::Result<CustodianCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            CustodianCreatePayload,
-            Custodian,
-            ctx,
-            app.custody()
-                .create_custodian(sub, input.name().to_owned(), input.into())
-        )
-    }
-
-    async fn custodian_config_update(
-        &self,
-        ctx: &Context<'_>,
-        input: CustodianConfigUpdateInput,
-    ) -> async_graphql::Result<CustodianConfigUpdatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            CustodianConfigUpdatePayload,
-            Custodian,
-            ctx,
-            app.custody()
-                .update_config(sub, input.custodian_id, input.config.into())
         )
     }
 

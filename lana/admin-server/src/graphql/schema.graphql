@@ -1853,6 +1853,8 @@ type Me {
 }
 
 type Mutation {
+	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
+	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
@@ -1888,8 +1890,6 @@ type Mutation {
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
 	collateralRecordProceedsFromLiquidation(input: CollateralRecordProceedsFromLiquidationInput!): CollateralRecordProceedsFromLiquidationPayload!
-	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
-	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
@@ -2129,6 +2129,7 @@ scalar PublicId
 union PublicIdTarget = Customer | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
+	custodians(first: Int!, after: String): CustodianConnection!
 	me: Me!
 	dashboard: Dashboard!
 	user(id: UUID!): User
@@ -2163,7 +2164,6 @@ type Query {
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
 	liquidation(id: UUID!): Liquidation
 	liquidations(first: Int!, after: String): LiquidationConnection!
-	custodians(first: Int!, after: String): CustodianConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy

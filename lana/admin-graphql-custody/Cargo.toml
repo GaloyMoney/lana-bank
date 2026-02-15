@@ -1,0 +1,17 @@
+[package]
+name = "admin-graphql-custody"
+license = "BUSL-1.1"
+edition = "2024"
+
+[dependencies]
+lana-app = { workspace = true }
+
+es-entity = { workspace = true, features = ["graphql"] }
+
+async-graphql = { workspace = true }
+url = { workspace = true }
+serde = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
