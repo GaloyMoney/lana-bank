@@ -155,13 +155,17 @@ BEGIN
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
+      new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
+      new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.maturity_date := (NEW.event ->> 'maturity_date')::TIMESTAMPTZ;
+      new_row.outstanding := (NEW.event -> 'outstanding');
       new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
+      new_row.price := (NEW.event ->> 'price')::BIGINT;
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
       new_row.terms := (NEW.event -> 'terms');
