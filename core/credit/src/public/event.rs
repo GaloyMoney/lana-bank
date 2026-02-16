@@ -63,8 +63,6 @@ pub enum CoreCreditEvent {
     PartialLiquidationInitiated {
         entity: PublicCreditFacility,
     },
-
-    // TODO: revisit these event they don't have publisher yet.
     PartialLiquidationCollateralSentOut {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,

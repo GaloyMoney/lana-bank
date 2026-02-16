@@ -1,9 +1,7 @@
 mod entity;
 pub mod error;
 
-use core_credit_collection::PaymentId;
-
-use crate::primitives::LedgerTxId;
+use crate::primitives::{LedgerTxId, PaymentId};
 
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 pub(super) use error::LiquidationError;
