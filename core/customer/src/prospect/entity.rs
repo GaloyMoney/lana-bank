@@ -102,19 +102,39 @@ impl Prospect {
         }
     }
 
+    fn compute_stage(&self) -> ProspectStage {
+        match self.status {
+            ProspectStatus::Closed => ProspectStage::Closed,
+            ProspectStatus::Converted => ProspectStage::Converted,
+            ProspectStatus::Open => match self.kyc_status {
+                KycStatus::Declined => ProspectStage::KycDeclined,
+                KycStatus::Pending => ProspectStage::KycPending,
+                KycStatus::Started => ProspectStage::KycStarted,
+                KycStatus::NotStarted => ProspectStage::New,
+                KycStatus::Approved => {
+                    tracing::error!(
+                        prospect_id = %self.id,
+                        "prospect has KycStatus::Approved but ProspectStatus::Open - expected Converted"
+                    );
+                    ProspectStage::New
+                }
+            },
+        }
+    }
+
     pub fn start_kyc(&mut self, applicant_id: String) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycStarted { .. }
         );
         self.ensure_open()?;
-        let stage = ProspectStage::KycStarted;
+        self.applicant_id = Some(applicant_id.clone());
+        self.kyc_status = KycStatus::Started;
+        let stage = self.compute_stage();
         self.events.push(ProspectEvent::KycStarted {
-            applicant_id: applicant_id.clone(),
+            applicant_id,
             stage,
         });
-        self.applicant_id = Some(applicant_id);
-        self.kyc_status = KycStatus::Started;
         self.stage = stage;
         Ok(Idempotent::Executed(()))
     }
@@ -125,9 +145,9 @@ impl Prospect {
             ProspectEvent::KycPending { .. }
         );
         self.ensure_open()?;
-        let stage = ProspectStage::KycPending;
-        self.events.push(ProspectEvent::KycPending { stage });
         self.kyc_status = KycStatus::Pending;
+        let stage = self.compute_stage();
+        self.events.push(ProspectEvent::KycPending { stage });
         self.stage = stage;
         Ok(Idempotent::Executed(()))
     }
@@ -146,12 +166,12 @@ impl Prospect {
             .applicant_id
             .clone()
             .ok_or(ProspectError::KycNotStarted)?;
-        let stage = ProspectStage::Converted;
-        self.events
-            .push(ProspectEvent::KycApproved { level, stage });
         self.level = level;
         self.kyc_status = KycStatus::Approved;
         self.status = ProspectStatus::Converted;
+        let stage = self.compute_stage();
+        self.events
+            .push(ProspectEvent::KycApproved { level, stage });
         self.stage = stage;
 
         let new_customer = NewCustomer::builder()
@@ -177,10 +197,10 @@ impl Prospect {
             ProspectEvent::ManuallyConverted { .. }
         );
         self.ensure_open()?;
-        let stage = ProspectStage::Converted;
-        self.events.push(ProspectEvent::ManuallyConverted { stage });
         self.status = ProspectStatus::Converted;
         self.kyc_status = KycStatus::Approved;
+        let stage = self.compute_stage();
+        self.events.push(ProspectEvent::ManuallyConverted { stage });
         self.stage = stage;
 
         let personal_info = self
@@ -214,9 +234,9 @@ impl Prospect {
         if self.applicant_id.is_none() {
             return Err(ProspectError::KycNotStarted);
         }
-        let stage = ProspectStage::KycDeclined;
-        self.events.push(ProspectEvent::KycDeclined { stage });
         self.kyc_status = KycStatus::Declined;
+        let stage = self.compute_stage();
+        self.events.push(ProspectEvent::KycDeclined { stage });
         self.stage = stage;
         Ok(Idempotent::Executed(()))
     }
@@ -224,9 +244,9 @@ impl Prospect {
     pub fn close(&mut self) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(self.events.iter_all().rev(), ProspectEvent::Closed { .. });
         self.ensure_open()?;
-        let stage = ProspectStage::Closed;
-        self.events.push(ProspectEvent::Closed { stage });
         self.status = ProspectStatus::Closed;
+        let stage = self.compute_stage();
+        self.events.push(ProspectEvent::Closed { stage });
         self.stage = stage;
         Ok(Idempotent::Executed(()))
     }
