@@ -41,7 +41,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'collateral_sent_out', 'proceeds_received_and_liquidation_completed', 'completed', 'proceeds_from_liquidation_received') THEN
+  IF event_type NOT IN ('initialized', 'collateral_sent_out', 'proceeds_received_and_liquidation_completed', 'proceeds_from_liquidation_received') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -92,8 +92,6 @@ BEGIN
     WHEN 'proceeds_received_and_liquidation_completed' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
-    WHEN 'completed' THEN
-      new_row.is_completed := true;
     WHEN 'proceeds_from_liquidation_received' THEN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
   END CASE;

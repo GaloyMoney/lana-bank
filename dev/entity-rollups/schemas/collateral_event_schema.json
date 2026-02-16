@@ -85,6 +85,11 @@
       "format": "uint64",
       "minimum": 0,
       "type": "integer"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -196,6 +201,10 @@
         "direction": {
           "$ref": "#/$defs/CollateralDirection"
         },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "liquidation_id": {
           "format": "uuid",
           "type": "string"
@@ -207,6 +216,7 @@
       },
       "required": [
         "type",
+        "ledger_tx_id",
         "liquidation_id",
         "collateral_amount",
         "abs_diff",
@@ -232,6 +242,37 @@
         "type",
         "liquidation_id",
         "account_ids"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "payment_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "liquidation_proceeds_received",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_tx_id",
+        "payment_id",
+        "liquidation_id",
+        "amount"
       ],
       "type": "object"
     },
