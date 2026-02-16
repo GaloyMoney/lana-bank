@@ -2256,13 +2256,13 @@
       "chartOfAccountPrivateCompanyDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de empresas privadas",
       "chartOfAccountBankDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos bancarios",
       "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de instituciones financieras",
-      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de personas no domiciliadas",
+      "chartOfAccountNonDomiciledCompanyDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de empresas privadas no domiciliadas",
       "chartOfAccountsFrozenIndividualDepositAccountsParentCode": "Código padre de cuentas de depósito congeladas de individuos",
       "chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode": "Código padre de cuentas de depósito congeladas de entidades gubernamentales",
       "chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos congelados de empresas privadas",
       "chartOfAccountFrozenBankDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos congelados bancarios",
       "chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos congelados de instituciones financieras",
-      "chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos congelados de personas no domiciliadas"
+      "chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos congelados de empresas privadas no domiciliadas"
     },
     "credit": {
       "title": "Crédito",

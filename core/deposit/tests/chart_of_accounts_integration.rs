@@ -169,9 +169,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         chart_of_account_private_company_deposit_accounts_parent_code: "22".parse().unwrap(),
         chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
         chart_of_account_financial_institution_deposit_accounts_parent_code: "24".parse().unwrap(),
-        chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "25"
-            .parse()
-            .unwrap(),
+        chart_of_account_non_domiciled_company_deposit_accounts_parent_code: "25".parse().unwrap(),
         chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27".parse().unwrap(),
         chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
             .parse()
@@ -181,7 +179,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
             .parse()
             .unwrap(),
-        chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "27"
+        chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code: "27"
             .parse()
             .unwrap(),
     };
@@ -233,8 +231,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         ),
         (
             &chart_of_accounts_config
-                .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code,
-            deposit_catalog.non_domiciled_individual,
+                .chart_of_account_non_domiciled_company_deposit_accounts_parent_code,
+            deposit_catalog.non_domiciled_company,
         ),
     ];
     assert_deposit_pairs(&cala, &chart, &deposit_account_set_ids, &deposit_pairs).await?;
@@ -266,8 +264,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         ),
         (
             &chart_of_accounts_config
-                .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code,
-            frozen.non_domiciled_individual,
+                .chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code,
+            frozen.non_domiciled_company,
         ),
     ];
     assert_deposit_pairs(&cala, &chart, &frozen_account_set_ids, &frozen_pairs).await?;
@@ -329,9 +327,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         chart_of_account_private_company_deposit_accounts_parent_code: "22".parse().unwrap(),
         chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
         chart_of_account_financial_institution_deposit_accounts_parent_code: "24".parse().unwrap(),
-        chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "25"
-            .parse()
-            .unwrap(),
+        chart_of_account_non_domiciled_company_deposit_accounts_parent_code: "25".parse().unwrap(),
         chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27".parse().unwrap(),
         chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
             .parse()
@@ -341,7 +337,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
             .parse()
             .unwrap(),
-        chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "27"
+        chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code: "27"
             .parse()
             .unwrap(),
     };

@@ -1336,9 +1336,9 @@ export type DepositModuleConfig = {
   chartOfAccountFinancialInstitutionDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFrozenBankDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountNonDomiciledIndividualDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountNonDomiciledCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountPrivateCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsFrozenIndividualDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
@@ -1353,9 +1353,9 @@ export type DepositModuleConfigureInput = {
   chartOfAccountFinancialInstitutionDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountFrozenBankDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountPrivateCompanyDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountsFrozenIndividualDepositAccountsParentCode: Scalars['String']['input'];
@@ -4339,12 +4339,12 @@ export type DepositModuleConfigureMutationVariables = Exact<{
 }>;
 
 
-export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountBankDepositAccountsParentCode?: string | null, chartOfAccountFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountNonDomiciledIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode?: string | null } } };
+export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountBankDepositAccountsParentCode?: string | null, chartOfAccountFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountNonDomiciledCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode?: string | null } } };
 
 export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountBankDepositAccountsParentCode?: string | null, chartOfAccountFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountNonDomiciledIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode?: string | null } | null };
+export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountBankDepositAccountsParentCode?: string | null, chartOfAccountFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountNonDomiciledCompanyDepositAccountsParentCode?: string | null, chartOfAccountsFrozenIndividualDepositAccountsParentCode?: string | null, chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountFrozenBankDepositAccountsParentCode?: string | null, chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode?: string | null } | null };
 
 export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -10034,13 +10034,13 @@ export const DepositModuleConfigureDocument = gql`
       chartOfAccountPrivateCompanyDepositAccountsParentCode
       chartOfAccountBankDepositAccountsParentCode
       chartOfAccountFinancialInstitutionDepositAccountsParentCode
-      chartOfAccountNonDomiciledIndividualDepositAccountsParentCode
+      chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
       chartOfAccountsFrozenIndividualDepositAccountsParentCode
       chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode
       chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode
       chartOfAccountFrozenBankDepositAccountsParentCode
       chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode
-      chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode
+      chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode
     }
   }
 }
@@ -10080,13 +10080,13 @@ export const DepositConfigDocument = gql`
     chartOfAccountPrivateCompanyDepositAccountsParentCode
     chartOfAccountBankDepositAccountsParentCode
     chartOfAccountFinancialInstitutionDepositAccountsParentCode
-    chartOfAccountNonDomiciledIndividualDepositAccountsParentCode
+    chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
     chartOfAccountsFrozenIndividualDepositAccountsParentCode
     chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode
     chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode
     chartOfAccountFrozenBankDepositAccountsParentCode
     chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode
-    chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode
+    chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode
   }
 }
     `;

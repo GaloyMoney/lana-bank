@@ -2256,13 +2256,13 @@
       "chartOfAccountPrivateCompanyDepositAccountsParentCode": "Deposit Accounts Private Company Receivable Parent Code",
       "chartOfAccountBankDepositAccountsParentCode": "Deposit Accounts Bank Receivable Parent Code",
       "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Deposit Accounts Financial Institution Receivable Parent Code",
-      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Deposit Accounts Non-Domiciled Persons Receivable Parent Code",
+      "chartOfAccountNonDomiciledCompanyDepositAccountsParentCode": "Deposit Accounts Non-Domiciled Company Receivable Parent Code",
       "chartOfAccountsFrozenIndividualDepositAccountsParentCode": "Frozen Deposit Accounts Individual Parent Code",
       "chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode": "Frozen Deposit Accounts Government Entity Parent Code",
       "chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode": "Frozen Deposit Accounts Private Company Receivable Parent Code",
       "chartOfAccountFrozenBankDepositAccountsParentCode": "Frozen Deposit Accounts Bank Receivable Parent Code",
       "chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode": "Frozen Deposit Accounts Financial Institution Receivable Parent Code",
-      "chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode": "Frozen Deposit Accounts Non-Domiciled Persons Receivable Parent Code"
+      "chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode": "Frozen Deposit Accounts Non-Domiciled Company Receivable Parent Code"
     },
     "credit": {
       "title": "Credit",

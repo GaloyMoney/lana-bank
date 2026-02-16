@@ -49,7 +49,7 @@ pub struct DepositAccountSets {
     private_company: InternalAccountSetDetails,
     bank: InternalAccountSetDetails,
     financial_institution: InternalAccountSetDetails,
-    non_domiciled_individual: InternalAccountSetDetails,
+    non_domiciled_company: InternalAccountSetDetails,
 }
 
 #[derive(Clone)]
@@ -163,8 +163,7 @@ impl DepositLedger {
                 private_company: deposit_ids[deposit.private_company.account_set_ref],
                 bank: deposit_ids[deposit.bank.account_set_ref],
                 financial_institution: deposit_ids[deposit.financial_institution.account_set_ref],
-                non_domiciled_individual: deposit_ids
-                    [deposit.non_domiciled_individual.account_set_ref],
+                non_domiciled_company: deposit_ids[deposit.non_domiciled_company.account_set_ref],
             },
             frozen_deposit_account_sets: DepositAccountSets {
                 individual: frozen_ids[frozen.individual.account_set_ref],
@@ -172,8 +171,7 @@ impl DepositLedger {
                 private_company: frozen_ids[frozen.private_company.account_set_ref],
                 bank: frozen_ids[frozen.bank.account_set_ref],
                 financial_institution: frozen_ids[frozen.financial_institution.account_set_ref],
-                non_domiciled_individual: frozen_ids
-                    [frozen.non_domiciled_individual.account_set_ref],
+                non_domiciled_company: frozen_ids[frozen.non_domiciled_company.account_set_ref],
             },
             deposit_omnibus_account_ids,
             deposit_control_id,
@@ -796,7 +794,7 @@ impl DepositLedger {
                 self.deposit_account_sets.financial_institution
             }
             DepositAccountType::NonDomiciledCompany => {
-                self.deposit_account_sets.non_domiciled_individual
+                self.deposit_account_sets.non_domiciled_company
             }
         }
     }
@@ -816,7 +814,7 @@ impl DepositLedger {
                 self.frozen_deposit_account_sets.financial_institution
             }
             DepositAccountType::NonDomiciledCompany => {
-                self.frozen_deposit_account_sets.non_domiciled_individual
+                self.frozen_deposit_account_sets.non_domiciled_company
             }
         }
     }
@@ -955,13 +953,13 @@ impl DepositLedger {
             private_company_deposit_accounts_parent_account_set_id,
             bank_deposit_accounts_parent_account_set_id,
             financial_institution_deposit_accounts_parent_account_set_id,
-            non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            non_domiciled_company_deposit_accounts_parent_account_set_id,
             frozen_individual_deposit_accounts_parent_account_set_id,
             frozen_government_entity_deposit_accounts_parent_account_set_id,
             frozen_private_company_deposit_accounts_parent_account_set_id,
             frozen_bank_deposit_accounts_parent_account_set_id,
             frozen_financial_institution_deposit_accounts_parent_account_set_id,
-            frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            frozen_non_domiciled_company_deposit_accounts_parent_account_set_id,
         } = &new_integration_config;
 
         self.attach_charts_account_set_in_op(
@@ -1018,11 +1016,10 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.deposit_account_sets.non_domiciled_individual.id,
-            *non_domiciled_individual_deposit_accounts_parent_account_set_id,
-            old_integration_config.map(|config| {
-                config.non_domiciled_individual_deposit_accounts_parent_account_set_id
-            }),
+            self.deposit_account_sets.non_domiciled_company.id,
+            *non_domiciled_company_deposit_accounts_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.non_domiciled_company_deposit_accounts_parent_account_set_id),
         )
         .await?;
 
@@ -1075,10 +1072,10 @@ impl DepositLedger {
 
         self.attach_charts_account_set_in_op(
             op,
-            self.frozen_deposit_account_sets.non_domiciled_individual.id,
-            *frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            self.frozen_deposit_account_sets.non_domiciled_company.id,
+            *frozen_non_domiciled_company_deposit_accounts_parent_account_set_id,
             old_integration_config.map(|config| {
-                config.frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id
+                config.frozen_non_domiciled_company_deposit_accounts_parent_account_set_id
             }),
         )
         .await?;

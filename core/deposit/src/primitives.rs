@@ -152,7 +152,7 @@ pub struct DepositAccountSetCatalogGroup {
     pub private_company: DepositAccountSetSpec,
     pub bank: DepositAccountSetSpec,
     pub financial_institution: DepositAccountSetSpec,
-    pub non_domiciled_individual: DepositAccountSetSpec,
+    pub non_domiciled_company: DepositAccountSetSpec,
 }
 
 impl DepositAccountSetCatalog {
@@ -175,7 +175,7 @@ impl DepositAccountSetCatalog {
             self.deposit.private_company,
             self.deposit.bank,
             self.deposit.financial_institution,
-            self.deposit.non_domiciled_individual,
+            self.deposit.non_domiciled_company,
         ]
     }
 
@@ -186,7 +186,7 @@ impl DepositAccountSetCatalog {
             self.frozen.private_company,
             self.frozen.bank,
             self.frozen.financial_institution,
-            self.frozen.non_domiciled_individual,
+            self.frozen.non_domiciled_company,
         ]
     }
 
@@ -242,17 +242,16 @@ const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET: DepositAccountSetSpec = Deposit
     DebitOrCredit::Credit,
 );
 
-const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
-    "Deposit Non-Domiciled Individual Account Set";
-const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
-    "deposit-non-domiciled-individual-account-set";
-const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET: DepositAccountSetSpec =
-    DepositAccountSetSpec::new(
-        DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME,
-        DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF,
-        DepositAccountCategory::Liability,
-        DebitOrCredit::Credit,
-    );
+const DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_NAME: &str =
+    "Deposit Non-Domiciled Company Account Set";
+const DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_REF: &str =
+    "deposit-non-domiciled-company-account-set";
+const DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET: DepositAccountSetSpec = DepositAccountSetSpec::new(
+    DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_NAME,
+    DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_REF,
+    DepositAccountCategory::Liability,
+    DebitOrCredit::Credit,
+);
 
 const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str = "Frozen Deposit Individual Account Set";
 const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF: &str = "frozen-deposit-individual-account-set";
@@ -308,14 +307,14 @@ const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET: DepositAccountSetSpec =
         DebitOrCredit::Credit,
     );
 
-const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
+const FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_NAME: &str =
     "Frozen Deposit Non-Domiciled Company Account Set";
-const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
+const FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_REF: &str =
     "frozen-deposit-non-domiciled-company-account-set";
-const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET: DepositAccountSetSpec =
+const FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET: DepositAccountSetSpec =
     DepositAccountSetSpec::new(
-        FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME,
-        FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF,
+        FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_NAME,
+        FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET_REF,
         DepositAccountCategory::Liability,
         DebitOrCredit::Credit,
     );
@@ -338,7 +337,7 @@ pub const DEPOSIT_ACCOUNT_SET_CATALOG: DepositAccountSetCatalog = DepositAccount
         private_company: DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET,
         bank: DEPOSIT_BANK_ACCOUNT_SET,
         financial_institution: DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET,
-        non_domiciled_individual: DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET,
+        non_domiciled_company: DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET,
     },
     frozen: DepositAccountSetCatalogGroup {
         individual: FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET,
@@ -346,7 +345,7 @@ pub const DEPOSIT_ACCOUNT_SET_CATALOG: DepositAccountSetCatalog = DepositAccount
         private_company: FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET,
         bank: FROZEN_DEPOSIT_BANK_ACCOUNT_SET,
         financial_institution: FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET,
-        non_domiciled_individual: FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET,
+        non_domiciled_company: FROZEN_DEPOSIT_NON_DOMICILED_COMPANY_ACCOUNT_SET,
     },
     omnibus: DEPOSIT_OMNIBUS_ACCOUNT_SET,
 };
