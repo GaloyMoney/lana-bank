@@ -91,13 +91,13 @@ impl DepositLedger {
             let id = Self::find_or_create_account_set(
                 cala,
                 journal_id,
-                format!("{journal_id}:{}", spec.account_set_ref),
+                format!("{journal_id}:{}", spec.external_ref),
                 spec.name.to_string(),
                 spec.normal_balance_type,
             )
             .await?;
             deposit_ids.insert(
-                spec.account_set_ref,
+                spec.external_ref,
                 InternalAccountSetDetails {
                     id,
                     normal_balance_type: spec.normal_balance_type,
@@ -110,13 +110,13 @@ impl DepositLedger {
             let id = Self::find_or_create_account_set(
                 cala,
                 journal_id,
-                format!("{journal_id}:{}", spec.account_set_ref),
+                format!("{journal_id}:{}", spec.external_ref),
                 spec.name.to_string(),
                 spec.normal_balance_type,
             )
             .await?;
             frozen_ids.insert(
-                spec.account_set_ref,
+                spec.external_ref,
                 InternalAccountSetDetails {
                     id,
                     normal_balance_type: spec.normal_balance_type,
@@ -158,20 +158,20 @@ impl DepositLedger {
             cala: cala.clone(),
             journal_id,
             deposit_account_sets: DepositAccountSets {
-                individual: deposit_ids[deposit.individual.account_set_ref],
-                government_entity: deposit_ids[deposit.government_entity.account_set_ref],
-                private_company: deposit_ids[deposit.private_company.account_set_ref],
-                bank: deposit_ids[deposit.bank.account_set_ref],
-                financial_institution: deposit_ids[deposit.financial_institution.account_set_ref],
-                non_domiciled_company: deposit_ids[deposit.non_domiciled_company.account_set_ref],
+                individual: deposit_ids[deposit.individual.external_ref],
+                government_entity: deposit_ids[deposit.government_entity.external_ref],
+                private_company: deposit_ids[deposit.private_company.external_ref],
+                bank: deposit_ids[deposit.bank.external_ref],
+                financial_institution: deposit_ids[deposit.financial_institution.external_ref],
+                non_domiciled_company: deposit_ids[deposit.non_domiciled_company.external_ref],
             },
             frozen_deposit_account_sets: DepositAccountSets {
-                individual: frozen_ids[frozen.individual.account_set_ref],
-                government_entity: frozen_ids[frozen.government_entity.account_set_ref],
-                private_company: frozen_ids[frozen.private_company.account_set_ref],
-                bank: frozen_ids[frozen.bank.account_set_ref],
-                financial_institution: frozen_ids[frozen.financial_institution.account_set_ref],
-                non_domiciled_company: frozen_ids[frozen.non_domiciled_company.account_set_ref],
+                individual: frozen_ids[frozen.individual.external_ref],
+                government_entity: frozen_ids[frozen.government_entity.external_ref],
+                private_company: frozen_ids[frozen.private_company.external_ref],
+                bank: frozen_ids[frozen.bank.external_ref],
+                financial_institution: frozen_ids[frozen.financial_institution.external_ref],
+                non_domiciled_company: frozen_ids[frozen.non_domiciled_company.external_ref],
             },
             deposit_omnibus_account_ids,
             deposit_control_id,

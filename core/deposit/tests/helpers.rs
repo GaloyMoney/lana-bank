@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use cala_ledger::{CalaLedger, JournalId, account_set::AccountSetMemberId};
 use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
-use core_deposit::{DepositAccountSetSpec, DepositOmnibusAccountSetSpec};
+use core_deposit::{DepositOmnibusAccountSetSpec, DepositSummaryAccountSetSpec};
 use domain_config::{
     EncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
     RequireVerifiedCustomerForAccount,
@@ -136,12 +136,12 @@ pub async fn resolve_account_set_ids<I>(
     specs: I,
 ) -> anyhow::Result<HashMap<&'static str, CalaAccountSetId>>
 where
-    I: IntoIterator<Item = DepositAccountSetSpec>,
+    I: IntoIterator<Item = DepositSummaryAccountSetSpec>,
 {
     let mut ids = HashMap::new();
     for spec in specs {
-        let id = account_set_id_by_ref(cala, journal_id, spec.account_set_ref).await?;
-        ids.insert(spec.account_set_ref, id);
+        let id = account_set_id_by_ref(cala, journal_id, spec.external_ref).await?;
+        ids.insert(spec.external_ref, id);
     }
     Ok(ids)
 }

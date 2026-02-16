@@ -4,7 +4,7 @@ use core_accounting::{AccountCode, CalaAccountSetId, Chart, ChartId};
 use domain_config::define_internal_config;
 
 use super::error::ChartOfAccountsIntegrationError;
-use crate::primitives::{DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountCategory};
+use crate::primitives::account_sets::{DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountCategory};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ChartOfAccountsIntegrationConfig {

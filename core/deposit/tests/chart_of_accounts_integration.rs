@@ -31,11 +31,11 @@ async fn assert_deposit_pairs(
     cala: &CalaLedger,
     chart: &core_accounting::Chart,
     account_set_ids: &HashMap<&'static str, CalaAccountSetId>,
-    pairs: &[(&AccountCode, DepositAccountSetSpec)],
+    pairs: &[(&AccountCode, DepositSummaryAccountSetSpec)],
 ) -> anyhow::Result<()> {
     for (code, spec) in pairs {
         let id = *account_set_ids
-            .get(spec.account_set_ref)
+            .get(spec.external_ref)
             .expect("missing deposit account set ref");
         assert_attached_for_code(cala, chart, code, id).await?;
     }
