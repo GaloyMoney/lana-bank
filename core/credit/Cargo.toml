@@ -72,3 +72,4 @@ anyhow = { workspace = true }
 serde_yaml = { workspace = true }
 core-access = { workspace = true }
 core-deposit = { workspace = true }
+serial_test = { workspace = true }

@@ -410,4 +410,6 @@ pub mod event {
         #[serde(other)]
         Unknown,
     }
+
+    pub use obix::test_utils::expect_event;
 }
