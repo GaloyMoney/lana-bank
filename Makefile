@@ -215,6 +215,9 @@ tilt-in-ci:
 start-cypress-stack:
 	./dev/bin/start-cypress-stack.sh
 
+stop-cypress-stack:
+	./dev/bin/stop-cypress-stack.sh
+
 # Default (nix-based) test in CI
 test-in-ci: start-deps setup-db
 	nix build .#test-in-ci -L --option sandbox false
