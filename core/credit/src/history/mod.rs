@@ -5,6 +5,7 @@ mod repo;
 
 use std::sync::Arc;
 
+use chrono::{DateTime, Utc};
 use obix::out::{Outbox, OutboxEventMarker};
 
 use audit::AuditSvc;
@@ -13,7 +14,7 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject, event::CoreCreditEvent,
+    CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
     primitives::CreditFacilityId,
 };
 pub use entry::*;
@@ -36,42 +37,38 @@ impl IntoIterator for CreditFacilityHistory {
 }
 
 impl CreditFacilityHistory {
-    pub fn process_credit_event(&mut self, event: &CoreCreditEvent) {
+    pub fn process_credit_event(
+        &mut self,
+        event: &CoreCreditEvent,
+        message_recorded_at: DateTime<Utc>,
+    ) {
         use CoreCreditEvent::*;
 
         match event {
             FacilityProposalCreated { .. } => {}
             FacilityProposalConcluded { .. } => {}
-            FacilityActivated {
-                activation_tx_id,
-                activated_at,
-                amount,
-                ..
-            } => {
+            FacilityActivated { entity } => {
                 self.entries.push(CreditFacilityHistoryEntry::Approved(
                     CreditFacilityApproved {
-                        cents: *amount,
-                        recorded_at: *activated_at,
-                        effective: activated_at.date_naive(),
-                        tx_id: *activation_tx_id,
+                        cents: entity.amount,
+                        recorded_at: entity.activated_at,
+                        effective: entity.activated_at.date_naive(),
+                        tx_id: entity.activation_tx_id,
                     },
                 ));
             }
-            FacilityCollateralUpdated {
-                abs_diff,
-                recorded_at,
-                effective,
-                direction,
-                ledger_tx_id,
-                ..
-            } => {
+            FacilityCollateralUpdated { entity } => {
+                let adjustment = entity
+                    .adjustment
+                    .as_ref()
+                    .expect("adjustment must be set for FacilityCollateralUpdated");
                 self.entries
                     .push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
-                        satoshis: *abs_diff,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                        direction: *direction,
-                        tx_id: *ledger_tx_id,
+                        satoshis: adjustment.abs_diff,
+                        recorded_at: message_recorded_at,
+                        effective: message_recorded_at.date_naive(),
+                        direction: adjustment.direction,
+                        tx_id: adjustment.tx_id,
                     }));
             }
             FacilityCollateralizationChanged {
@@ -96,36 +93,31 @@ impl CreditFacilityHistory {
                         },
                     ));
             }
-            DisbursalSettled {
-                amount,
-                recorded_at,
-                effective,
-                ledger_tx_id,
-                ..
-            } => {
+            DisbursalSettled { entity } => {
+                let settlement = entity
+                    .settlement
+                    .as_ref()
+                    .expect("settlement must be set for DisbursalSettled");
                 self.entries
                     .push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
-                        cents: *amount,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                        tx_id: *ledger_tx_id,
+                        cents: entity.amount,
+                        recorded_at: message_recorded_at,
+                        effective: settlement.effective,
+                        tx_id: settlement.tx_id,
                     }));
             }
-            AccrualPosted {
-                amount,
-                period,
-                ledger_tx_id,
-                recorded_at,
-                effective,
-                ..
-            } => {
+            AccrualPosted { entity } => {
+                let posting = entity
+                    .posting
+                    .as_ref()
+                    .expect("posting must be set for AccrualPosted");
                 self.entries.push(CreditFacilityHistoryEntry::Interest(
                     InterestAccrualsPosted {
-                        cents: *amount,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                        tx_id: *ledger_tx_id,
-                        days: period.days(),
+                        cents: posting.amount,
+                        recorded_at: message_recorded_at,
+                        effective: posting.effective,
+                        tx_id: posting.tx_id,
+                        days: entity.period.days(),
                     },
                 ));
             }

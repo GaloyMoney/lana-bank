@@ -9,7 +9,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{CoreCreditCollectionEvent, event::CoreCreditEvent, primitives::CreditFacilityId};
+use crate::{CoreCreditCollectionEvent, CoreCreditEvent, primitives::CreditFacilityId};
 
 use super::super::repo::HistoryRepo;
 
@@ -39,45 +39,44 @@ where
         use CoreCreditEvent::*;
 
         match message.as_event() {
-            Some(event @ FacilityProposalCreated { id, .. })
-            | Some(
-                event @ FacilityProposalConcluded {
-                    id,
-                    status: crate::primitives::CreditFacilityProposalStatus::Approved,
-                },
-            ) => {
-                self.handle_credit_event(db, message, event, *id).await?;
+            Some(event @ FacilityProposalCreated { entity }) => {
+                self.handle_credit_event(db, message, event, entity.id)
+                    .await?;
+            }
+            Some(event @ FacilityProposalConcluded { entity })
+                if entity.status == crate::primitives::CreditFacilityProposalStatus::Approved =>
+            {
+                self.handle_credit_event(db, message, event, entity.id)
+                    .await?;
             }
             Some(event @ PendingCreditFacilityCollateralizationChanged { id, .. }) => {
                 self.handle_credit_event(db, message, event, *id).await?;
             }
-            Some(event @ FacilityActivated { id, .. })
-            | Some(event @ FacilityCompleted { id, .. })
-            | Some(
-                event @ FacilityCollateralUpdated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(event @ FacilityCollateralizationChanged { id, .. })
-            | Some(
-                event @ DisbursalSettled {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ AccrualPosted {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
-            | Some(
-                event @ PartialLiquidationInitiated {
-                    credit_facility_id: id,
-                    ..
-                },
-            )
+            Some(event @ FacilityActivated { entity }) => {
+                self.handle_credit_event(db, message, event, entity.id)
+                    .await?;
+            }
+            Some(event @ FacilityCompleted { entity }) => {
+                self.handle_credit_event(db, message, event, entity.id)
+                    .await?;
+            }
+            Some(event @ DisbursalSettled { entity }) => {
+                self.handle_credit_event(db, message, event, entity.credit_facility_id)
+                    .await?;
+            }
+            Some(event @ AccrualPosted { entity }) => {
+                self.handle_credit_event(db, message, event, entity.credit_facility_id)
+                    .await?;
+            }
+            Some(event @ FacilityCollateralUpdated { entity }) => {
+                self.handle_credit_event(db, message, event, entity.credit_facility_id)
+                    .await?;
+            }
+            Some(event @ PartialLiquidationInitiated { entity }) => {
+                self.handle_credit_event(db, message, event, entity.id)
+                    .await?;
+            }
+            Some(event @ FacilityCollateralizationChanged { id, .. })
             | Some(
                 event @ PartialLiquidationCompleted {
                     credit_facility_id: id,
@@ -123,7 +122,7 @@ where
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
         let mut history = self.repo.load(id).await?;
-        history.process_credit_event(event);
+        history.process_credit_event(event, message.recorded_at);
         self.repo.persist_in_tx(db, id, history).await?;
         Ok(())
     }

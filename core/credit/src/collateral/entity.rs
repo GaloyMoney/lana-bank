@@ -76,11 +76,41 @@ pub struct Collateral {
     events: EntityEvents<CollateralEvent>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct CollateralAdjustment {
+    pub tx_id: LedgerTxId,
+    pub abs_diff: Satoshis,
+    pub direction: CollateralDirection,
+}
+
 impl Collateral {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
+    }
+
+    pub fn last_adjustment(&self) -> Option<CollateralAdjustment> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            CollateralEvent::UpdatedViaManualInput {
+                ledger_tx_id,
+                abs_diff,
+                direction,
+                ..
+            }
+            | CollateralEvent::UpdatedViaCustodianSync {
+                ledger_tx_id,
+                abs_diff,
+                direction,
+                ..
+            } => Some(CollateralAdjustment {
+                tx_id: *ledger_tx_id,
+                abs_diff: *abs_diff,
+                direction: *direction,
+            }),
+            _ => None,
+        })
     }
 
     pub fn record_collateral_update_via_custodian_sync(

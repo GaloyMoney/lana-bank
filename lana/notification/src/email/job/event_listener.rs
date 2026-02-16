@@ -158,27 +158,24 @@ where
                     .await?;
             }
             Some(LanaEvent::Credit(
-                credit_event @ CoreCreditEvent::PartialLiquidationInitiated {
-                    credit_facility_id,
-                    customer_id,
-                    trigger_price,
-                    initially_expected_to_receive,
-                    initially_estimated_to_liquidate,
-                    ..
-                },
+                credit_event @ CoreCreditEvent::PartialLiquidationInitiated { entity },
             )) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", credit_event.as_ref());
 
+                let trigger = entity
+                    .liquidation_trigger
+                    .as_ref()
+                    .expect("liquidation_trigger must be set for PartialLiquidationInitiated");
                 self.email_notification
                     .send_partial_liquidation_initiated_notification_in_op(
                         op,
-                        credit_facility_id,
-                        customer_id,
-                        trigger_price,
-                        initially_estimated_to_liquidate,
-                        initially_expected_to_receive,
+                        &entity.id,
+                        &entity.customer_id,
+                        &trigger.trigger_price,
+                        &trigger.initially_estimated_to_liquidate,
+                        &trigger.initially_expected_to_receive,
                     )
                     .await?;
             }

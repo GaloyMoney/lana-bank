@@ -191,6 +191,15 @@ pub struct CreditFacility {
     events: EntityEvents<CreditFacilityEvent>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct LiquidationTrigger {
+    pub liquidation_id: LiquidationId,
+    pub trigger_price: PriceOfOneBTC,
+    pub initially_expected_to_receive: UsdCents,
+    pub initially_estimated_to_liquidate: Satoshis,
+}
+
 impl CreditFacility {
     pub(crate) fn activation_data(
         &self,
@@ -231,6 +240,40 @@ impl CreditFacility {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
+    }
+
+    pub fn activation_tx_id(&self) -> LedgerTxId {
+        match self.events.iter_all().next() {
+            Some(CreditFacilityEvent::Initialized { ledger_tx_id, .. }) => *ledger_tx_id,
+            _ => unreachable!("Initialized event must be the first event"),
+        }
+    }
+
+    pub fn completed_at(&self) -> Option<DateTime<Utc>> {
+        self.events
+            .iter_persisted()
+            .rev()
+            .find_map(|pe| match &pe.event {
+                CreditFacilityEvent::Completed {} => Some(pe.recorded_at),
+                _ => None,
+            })
+    }
+
+    pub fn last_liquidation_trigger(&self) -> Option<LiquidationTrigger> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            CreditFacilityEvent::PartialLiquidationInitiated {
+                liquidation_id,
+                trigger_price,
+                initially_expected_to_receive,
+                initially_estimated_to_liquidate,
+            } => Some(LiquidationTrigger {
+                liquidation_id: *liquidation_id,
+                trigger_price: *trigger_price,
+                initially_expected_to_receive: *initially_expected_to_receive,
+                initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
+            }),
+            _ => None,
+        })
     }
 
     pub fn matures_at(&self) -> DateTime<Utc> {

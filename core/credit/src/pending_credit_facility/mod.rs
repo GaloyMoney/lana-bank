@@ -17,12 +17,11 @@ use tracing_macros::record_error_severity;
 use es_entity::clock::ClockHandle;
 
 use crate::{
-    Collaterals, CreditFacilityProposals,
+    Collaterals, CoreCreditEvent, CreditFacilityProposals,
     collateral::ledger::CollateralLedgerAccountIds,
     credit_facility::NewCreditFacilityBuilder,
     credit_facility_proposal::{CreditFacilityProposal, ProposalApprovalOutcome},
     disbursal::NewDisbursalBuilder,
-    event::CoreCreditEvent,
     ledger::*,
     primitives::*,
 };

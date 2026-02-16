@@ -175,6 +175,16 @@ impl PendingCreditFacility {
             .unwrap_or(PendingCreditFacilityCollateralizationState::UnderCollateralized)
     }
 
+    pub fn completed_at(&self) -> Option<DateTime<Utc>> {
+        self.events
+            .iter_persisted()
+            .rev()
+            .find_map(|pe| match &pe.event {
+                PendingCreditFacilityEvent::Completed {} => Some(pe.recorded_at),
+                _ => None,
+            })
+    }
+
     pub(super) fn complete(
         &mut self,
         balances: PendingCreditFacilityBalanceSummary,

@@ -12,9 +12,7 @@ use obix::out::OutboxEventMarker;
 use tracing::{Span, instrument};
 use tracing_macros::record_error_severity;
 
-use crate::{
-    event::CoreCreditEvent, pending_credit_facility::NewPendingCreditFacility, primitives::*,
-};
+use crate::{CoreCreditEvent, pending_credit_facility::NewPendingCreditFacility, primitives::*};
 
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
