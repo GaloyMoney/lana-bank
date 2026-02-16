@@ -2191,10 +2191,10 @@ dependencies = [
  "async-graphql",
  "audit",
  "authz",
- "chacha20poly1305",
  "chrono",
  "chrono-tz",
  "derive_builder",
+ "encryption",
  "es-entity",
  "inventory",
  "permission-sets-macro",
@@ -2305,6 +2305,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "encryption"
+version = "0.0.0"
+dependencies = [
+ "chacha20poly1305",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-utils",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3744,6 +3758,7 @@ dependencies = [
  "deposit-sync",
  "document-storage",
  "domain-config",
+ "encryption",
  "es-entity",
  "gotenberg",
  "governance",
@@ -8026,6 +8041,7 @@ name = "workspace-hack"
 version = "0.1.0"
 dependencies = [
  "ahash 0.8.12",
+ "arrayvec",
  "async-graphql",
  "aws-lc-rs",
  "aws-lc-sys",

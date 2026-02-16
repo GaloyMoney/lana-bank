@@ -31,7 +31,7 @@
           "type": "object"
         },
         {
-          "$ref": "#/$defs/EncryptedValue",
+          "$ref": "#/$defs/Encrypted",
           "properties": {
             "type": {
               "const": "encrypted",
@@ -45,7 +45,7 @@
         }
       ]
     },
-    "EncryptedValue": {
+    "Encrypted": {
       "properties": {
         "ciphertext": {
           "items": {

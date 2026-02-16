@@ -1,22 +1,36 @@
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
+mod config;
+mod error;
+
 use chacha20poly1305::{
     ChaCha20Poly1305,
     aead::{Aead, AeadCore, KeyInit, OsRng},
 };
 use serde::{Deserialize, Serialize};
 
-use crate::DomainConfigError;
+pub use config::EncryptionConfig;
+pub use error::EncryptionError;
 
 pub type EncryptionKey = chacha20poly1305::Key;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-pub struct EncryptedValue {
+pub struct Encrypted {
     ciphertext: Vec<u8>,
     nonce: Vec<u8>,
 }
 
-impl EncryptedValue {
-    pub fn encrypt(key: &EncryptionKey, plaintext: &[u8]) -> Self {
+impl Encrypted {
+    pub fn decrypt(&self, key: &EncryptionKey) -> Result<Vec<u8>, EncryptionError> {
+        let cipher = ChaCha20Poly1305::new(key);
+        cipher
+            .decrypt(self.nonce.as_slice().into(), self.ciphertext.as_slice())
+            .map_err(|_| EncryptionError::Decryption)
+    }
+
+    pub fn encrypt(plaintext: &[u8], key: &EncryptionKey) -> Self {
         let cipher = ChaCha20Poly1305::new(key);
         let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
         let ciphertext = cipher
@@ -27,13 +41,6 @@ impl EncryptedValue {
             ciphertext,
             nonce: nonce.to_vec(),
         }
-    }
-
-    pub fn decrypt(&self, key: &EncryptionKey) -> Result<Vec<u8>, DomainConfigError> {
-        let cipher = ChaCha20Poly1305::new(key);
-        cipher
-            .decrypt(self.nonce.as_slice().into(), self.ciphertext.as_slice())
-            .map_err(|_| DomainConfigError::Decryption)
     }
 }
 
@@ -51,7 +58,7 @@ mod tests {
         let original = serde_json::json!({"enabled": true, "limit": 42});
         let bytes = serde_json::to_vec(&original).unwrap();
 
-        let encrypted = EncryptedValue::encrypt(&key, &bytes);
+        let encrypted = Encrypted::encrypt(&bytes, &key);
         let decrypted_bytes = encrypted.decrypt(&key).unwrap();
         let decrypted: serde_json::Value = serde_json::from_slice(&decrypted_bytes).unwrap();
 

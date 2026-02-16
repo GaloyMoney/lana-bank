@@ -238,7 +238,11 @@ pub mod time_events {
 
 pub mod domain_config {
     pub use domain_config::{
-        EncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly,
-        InternalDomainConfigs, apply_startup_configs,
+        ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
+        apply_startup_configs,
     };
+}
+
+pub mod encryption {
+    pub use encryption::EncryptionConfig;
 }

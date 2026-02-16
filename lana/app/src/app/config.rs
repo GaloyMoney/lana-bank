@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use crate::{
     access::config::AccessConfig, credit::CreditConfig, custody::CustodyConfig,
-    customer_sync::CustomerSyncConfig, domain_config::EncryptionConfig, gotenberg::GotenbergConfig,
+    customer_sync::CustomerSyncConfig, encryption::EncryptionConfig, gotenberg::GotenbergConfig,
     job::JobPollerConfig, notification::NotificationConfig, report::ReportConfig,
     storage::config::StorageConfig, user_onboarding::UserOnboardingConfig,
 };

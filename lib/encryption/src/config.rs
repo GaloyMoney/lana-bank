@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::encryption::EncryptionKey;
+use crate::EncryptionKey;
 
 #[derive(Clone, Serialize, Deserialize, Default)]
 #[serde(deny_unknown_fields)]

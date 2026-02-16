@@ -34,6 +34,7 @@ cloud-storage = { path = "lib/cloud-storage" }
 jwks-utils = { path = "lib/jwks-utils" }
 keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
+encryption = { path = "lib/encryption" }
 gotenberg = { path = "lib/gotenberg" }
 money = { path = "lib/money" }
 permission-sets-macro = { path = "lib/permission-sets-macro" }
