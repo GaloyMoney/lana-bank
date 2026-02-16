@@ -243,8 +243,10 @@ checksums:
     Prospects/ProspectDetails/details/labels/dateOfBirth: 8c0517839acdee5c6fff3f23e1f1aeb2
     Prospects/ProspectDetails/details/labels/nationality: 676a006a7f9c4e1d976e31d470a7cd7c
     Prospects/ProspectDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
+    Prospects/ProspectDetails/details/labels/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     Prospects/ProspectDetails/details/buttons/closeProspect: 13c6753109d70226efe543d03070f75e
     Prospects/ProspectDetails/details/buttons/convertToCustomer: 10f8a6e3404e4489083453a7e0ad7c21
+    Prospects/ProspectDetails/details/buttons/viewCustomer: 232903fb7e397b92489b7a3c62edb67f
     Prospects/ProspectDetails/details/customerType/individual: 52ebce389ed97a13b6089802055ed667
     Prospects/ProspectDetails/details/customerType/company: 9e36d11fa82d1bd4563eef2abc4fcfba
     Prospects/ProspectDetails/details/customerType/governmentEntity: f528833b92b299e24071fe069cf3ed82
