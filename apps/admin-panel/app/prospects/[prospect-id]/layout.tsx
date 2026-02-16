@@ -35,6 +35,11 @@ gql`
       nationality
       address
     }
+    customer {
+      publicId
+      email
+      customerId
+    }
   }
 
   query GetProspectBasicDetails($id: PublicId!) {

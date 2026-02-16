@@ -320,11 +320,13 @@
           "lastName": "Apellido",
           "dateOfBirth": "Fecha de nacimiento",
           "nationality": "Nacionalidad",
-          "address": "Dirección"
+          "address": "Dirección",
+          "customer": "Customer"
         },
         "buttons": {
           "closeProspect": "Cerrar prospecto",
-          "convertToCustomer": "Convertir en cliente"
+          "convertToCustomer": "Convertir en cliente",
+          "viewCustomer": "View Customer"
         },
         "customerType": {
           "individual": "Individual",

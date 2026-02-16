@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
-import { XCircle, UserCheck } from "lucide-react"
+import { XCircle, UserCheck, ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 import { Button } from "@lana/web/ui/button"
 import { formatDate } from "@lana/web/utils"
@@ -16,6 +17,7 @@ import {
   CustomerType,
   GetProspectBasicDetailsQuery,
   ProspectStage,
+  ProspectStatus,
   useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 
@@ -97,10 +99,26 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
     ...(personalInfo?.address
       ? [{ label: t("labels.address"), value: personalInfo.address }]
       : []),
+    ...(prospect.customer
+      ? [
+          {
+            label: t("labels.customer"),
+            value: prospect.customer.email,
+            href: `/customers/${prospect.customer.publicId}`,
+          },
+        ]
+      : []),
   ]
 
   const footerContent =
-    prospect.stage !== ProspectStage.Converted && prospect.stage !== ProspectStage.Closed ? (
+    prospect.status === ProspectStatus.Converted && prospect.customer ? (
+      <Button variant="outline" data-testid="view-customer-btn" asChild>
+        <Link href={`/customers/${prospect.customer.publicId}`}>
+          {t("buttons.viewCustomer")}
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Link>
+      </Button>
+    ) : prospect.stage !== ProspectStage.Converted && prospect.stage !== ProspectStage.Closed ? (
       <div className="flex gap-2">
         {showConvertButton && (
           <Button

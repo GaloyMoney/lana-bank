@@ -91,22 +91,13 @@
           "type": "string"
         },
         "kyc_verification": {
-          "$ref": "#/$defs/KycVerification",
-          "default": "no-kyc"
+          "$ref": "#/$defs/KycVerification"
         },
         "level": {
-          "$ref": "#/$defs/KycLevel",
-          "default": "NotKyced"
+          "$ref": "#/$defs/KycLevel"
         },
         "personal_info": {
-          "$ref": "#/$defs/PersonalInfo",
-          "default": {
-            "address": null,
-            "dateOfBirth": null,
-            "firstName": "John",
-            "lastName": "Doe",
-            "nationality": null
-          }
+          "$ref": "#/$defs/PersonalInfo"
         },
         "public_id": {
           "type": "string"
@@ -127,7 +118,10 @@
         "customer_type",
         "activity",
         "public_id",
-        "applicant_id"
+        "applicant_id",
+        "level",
+        "kyc_verification",
+        "personal_info"
       ],
       "type": "object"
     },

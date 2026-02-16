@@ -3,6 +3,8 @@ use async_graphql::*;
 use crate::primitives::*;
 use lana_app::public_id::PublicId;
 
+use super::loader::LanaDataLoader;
+
 pub use lana_app::customer::Prospect as DomainProspect;
 use lana_app::customer::{
     CustomerType, KycLevel, KycStatus, PersonalInfo, ProspectStage, ProspectStatus,
@@ -72,6 +74,19 @@ impl Prospect {
 
     async fn personal_info(&self) -> Option<&PersonalInfo> {
         self.entity.personal_info.as_ref()
+    }
+
+    async fn customer(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<super::customer::Customer>> {
+        if self.entity.status != ProspectStatus::Converted {
+            return Ok(None);
+        }
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let customer_id = CustomerId::from(self.entity.id);
+        let customer = loader.load_one(customer_id).await?;
+        Ok(customer)
     }
 }
 

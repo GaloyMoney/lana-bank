@@ -2137,6 +2137,7 @@ type Prospect {
 	verificationLink: String
 	verificationLinkCreatedAt: Timestamp
 	personalInfo: PersonalInfo
+	customer: Customer
 }
 
 input ProspectCloseInput {

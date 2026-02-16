@@ -21,11 +21,8 @@ pub enum CustomerEvent {
         activity: Activity,
         public_id: PublicId,
         applicant_id: String,
-        #[serde(default)]
         level: KycLevel,
-        #[serde(default = "KycVerification::no_kyc")]
         kyc_verification: KycVerification,
-        #[serde(default = "PersonalInfo::dummy")]
         personal_info: PersonalInfo,
     },
     TelegramHandleUpdated {
@@ -49,9 +46,7 @@ pub struct Customer {
     pub id: CustomerId,
     pub email: String,
     pub telegram_handle: String,
-    #[builder(default = "KycVerification::Verified")]
     pub kyc_verification: KycVerification,
-    #[builder(default)]
     pub activity: Activity,
     pub level: KycLevel,
     pub customer_type: CustomerType,
@@ -216,13 +211,11 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(crate) customer_type: CustomerType,
     pub(crate) kyc_verification: KycVerification,
-    #[builder(default)]
     pub(crate) activity: Activity,
     #[builder(setter(into))]
     pub(crate) public_id: PublicId,
     #[builder(setter(into))]
     pub(crate) applicant_id: String,
-    #[builder(default)]
     pub(crate) level: KycLevel,
     pub(crate) personal_info: PersonalInfo,
 }
