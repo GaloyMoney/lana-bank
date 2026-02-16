@@ -51,7 +51,10 @@ impl Liquidation {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn record_collateral_sent_out(&mut self, amount_sent: Satoshis) -> Idempotent<LedgerTxId> {
+    pub(in crate::collateral) fn record_collateral_sent_out(
+        &mut self,
+        amount_sent: Satoshis,
+    ) -> Idempotent<LedgerTxId> {
         self.sent_total += amount_sent;
 
         let ledger_tx_id = LedgerTxId::new();
@@ -63,7 +66,7 @@ impl Liquidation {
         Idempotent::Executed(ledger_tx_id)
     }
 
-    pub fn record_proceeds_from_liquidation_and_complete(
+    pub(in crate::collateral) fn record_proceeds_from_liquidation_and_complete(
         &mut self,
         amount_received: UsdCents,
     ) -> Idempotent<RecordProceedsFromLiquidationData> {
