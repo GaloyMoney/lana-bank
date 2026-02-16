@@ -3,7 +3,7 @@ from typing import List
 import dlt
 
 import dagster as dg
-from src.core import Protoasset
+from src.core import COLD_START_CONDITION_SKIP_DEPS, Protoasset
 from src.dlt_destinations.bigquery import create_bigquery_destination
 from src.dlt_resources.postgres import create_dlt_postgres_resource
 from src.resources import (
@@ -127,7 +127,7 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         tags={"asset_type": EL_TARGET_ASSET_DESCRIPTION, "system": LANA_SYSTEM_NAME},
         callable=lana_to_dw_el_asset,
         required_resource_keys={RESOURCE_KEY_LANA_CORE_PG, RESOURCE_KEY_DW_BQ},
-        automation_condition=dg.AutomationCondition.on_missing(),
+        automation_condition=COLD_START_CONDITION_SKIP_DEPS,
     )
 
     return lana_to_dw_protoasset

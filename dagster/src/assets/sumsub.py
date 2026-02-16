@@ -3,7 +3,7 @@ from google.cloud import bigquery
 
 import dagster as dg
 from src.assets.lana import LANA_SYSTEM_NAME
-from src.core import Protoasset
+from src.core import COLD_START_CONDITION, Protoasset
 from src.dlt_destinations.bigquery import create_bigquery_destination
 from src.dlt_resources.sumsub import (
     SUMSUB_APPLICANTS_DLT_TABLE,
@@ -94,4 +94,5 @@ def sumsub_protoasset() -> Protoasset:
         },
         deps=[dg.AssetKey([LANA_SYSTEM_NAME, "inbox_events"])],
         tags={"system": SUMSUB_SYSTEM_NAME, "asset_type": "el_target_asset"},
+        automation_condition=COLD_START_CONDITION,
     )
