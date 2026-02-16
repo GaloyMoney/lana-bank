@@ -32,6 +32,10 @@ pub enum CreditFacilityEvent {
         public_id: PublicId,
         activated_at: DateTime<Utc>,
         maturity_date: EffectiveDate,
+        collateralization_state: CollateralizationState,
+        collateral: Satoshis,
+        outstanding: CreditFacilityReceivable,
+        price: PriceOfOneBTC,
     },
     InterestAccrualCycleStarted {
         interest_accrual_id: InterestAccrualCycleId,
@@ -792,8 +796,10 @@ pub struct NewCreditFacility {
     maturity_date: EffectiveDate,
     #[builder(setter(skip), default)]
     pub(super) status: CreditFacilityStatus,
-    #[builder(setter(skip), default)]
     pub(super) collateralization_state: CollateralizationState,
+    pub(super) collateral: Satoshis,
+    pub(super) outstanding: CreditFacilityReceivable,
+    pub(super) price: PriceOfOneBTC,
     account_ids: CreditFacilityLedgerAccountIds,
     #[builder(setter(into))]
     disbursal_credit_account_id: CalaAccountId,
@@ -830,6 +836,10 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 public_id: self.public_id,
                 activated_at: self.activated_at,
                 maturity_date: self.maturity_date,
+                collateralization_state: self.collateralization_state,
+                collateral: self.collateral,
+                outstanding: self.outstanding,
+                price: self.price,
             }],
         )
     }
@@ -905,6 +915,13 @@ mod test {
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),
             activated_at: activated_at(),
             maturity_date: EffectiveDate::from(activated_at() + chrono::Duration::days(90)),
+            collateralization_state: CollateralizationState::FullyCollateralized,
+            collateral: Satoshis::from(1_000_000),
+            outstanding: CreditFacilityReceivable {
+                disbursed: default_facility(),
+                interest: UsdCents::ZERO,
+            },
+            price: default_price(),
         }]
     }
 
