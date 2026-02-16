@@ -2627,31 +2627,36 @@ impl Subscription {
             .await?;
 
         let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
-            let payload = event.payload.as_ref()?;
+        let updates = stream.filter_map(move |message| async move {
+            let payload = message.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
-                CoreCreditEvent::FacilityCollateralizationChanged {
-                    id,
-                    state,
-                    recorded_at,
-                    effective,
-                    collateral,
-                    outstanding,
-                    price,
-                    ..
-                } if *id == credit_facility_id => Some(CreditFacilityCollateralizationPayload {
-                    credit_facility_id,
-                    update: CreditFacilityCollateralizationUpdated {
-                        state: *state,
-                        collateral: *collateral,
-                        outstanding_interest: outstanding.interest,
-                        outstanding_disbursal: outstanding.disbursed,
-                        recorded_at: (*recorded_at).into(),
-                        effective: (*effective).into(),
-                        price: price.into_inner(),
-                    },
-                }),
+                CoreCreditEvent::FacilityCollateralizationChanged { entity }
+                    if entity.id == credit_facility_id =>
+                {
+                    let collateralization = &entity.collateralization;
+                    let outstanding = collateralization
+                        .outstanding
+                        .as_ref()
+                        .expect("outstanding must be set for FacilityCollateralizationChanged");
+                    Some(CreditFacilityCollateralizationPayload {
+                        credit_facility_id,
+                        update: CreditFacilityCollateralizationUpdated {
+                            state: collateralization.state,
+                            collateral: collateralization.collateral.expect(
+                                "collateral must be set for FacilityCollateralizationChanged",
+                            ),
+                            outstanding_interest: outstanding.interest,
+                            outstanding_disbursal: outstanding.disbursed,
+                            recorded_at: message.recorded_at.into(),
+                            effective: message.recorded_at.date_naive().into(),
+                            price: collateralization
+                                .price_at_state_change
+                                .expect("price must be set for FacilityCollateralizationChanged")
+                                .into_inner(),
+                        },
+                    })
+                }
                 _ => None,
             }
         });

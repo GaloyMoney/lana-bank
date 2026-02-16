@@ -71,25 +71,26 @@ impl CreditFacilityHistory {
                         tx_id: adjustment.tx_id,
                     }));
             }
-            FacilityCollateralizationChanged {
-                state,
-                recorded_at,
-                effective,
-                outstanding,
-                price,
-                collateral,
-                ..
-            } => {
+            FacilityCollateralizationChanged { entity } => {
+                let collateralization = &entity.collateralization;
+                let outstanding = collateralization
+                    .outstanding
+                    .as_ref()
+                    .expect("outstanding must be set for FacilityCollateralizationChanged");
                 self.entries
                     .push(CreditFacilityHistoryEntry::Collateralization(
                         CollateralizationUpdated {
-                            state: *state,
-                            collateral: *collateral,
+                            state: collateralization.state,
+                            collateral: collateralization.collateral.expect(
+                                "collateral must be set for FacilityCollateralizationChanged",
+                            ),
                             outstanding_interest: outstanding.interest,
                             outstanding_disbursal: outstanding.disbursed,
-                            recorded_at: *recorded_at,
-                            effective: *effective,
-                            price: *price,
+                            recorded_at: message_recorded_at,
+                            effective: message_recorded_at.date_naive(),
+                            price: collateralization
+                                .price_at_state_change
+                                .expect("price must be set for FacilityCollateralizationChanged"),
                         },
                     ));
             }

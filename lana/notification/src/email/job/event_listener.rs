@@ -180,31 +180,34 @@ where
                     .await?;
             }
             Some(LanaEvent::Credit(
-                credit_event @ CoreCreditEvent::FacilityCollateralizationChanged {
-                    id,
-                    customer_id,
-                    state: core_credit::CollateralizationState::UnderMarginCallThreshold,
-                    effective,
-                    collateral,
-                    outstanding,
-                    price,
-                    ..
-                },
-            )) => {
+                credit_event @ CoreCreditEvent::FacilityCollateralizationChanged { entity },
+            )) if entity.collateralization.state
+                == core_credit::CollateralizationState::UnderMarginCallThreshold =>
+            {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", credit_event.as_ref());
 
+                let collateralization = &entity.collateralization;
+                let outstanding = collateralization
+                    .outstanding
+                    .as_ref()
+                    .expect("outstanding must be set for FacilityCollateralizationChanged");
+                let effective = message.recorded_at.date_naive();
                 self.email_notification
                     .send_under_margin_call_notification_in_op(
                         op,
-                        id,
-                        customer_id,
-                        effective,
-                        collateral,
+                        &entity.id,
+                        &entity.customer_id,
+                        &effective,
+                        &collateralization
+                            .collateral
+                            .expect("collateral must be set for FacilityCollateralizationChanged"),
                         &outstanding.disbursed,
                         &outstanding.interest,
-                        price,
+                        &collateralization
+                            .price_at_state_change
+                            .expect("price must be set for FacilityCollateralizationChanged"),
                     )
                     .await?;
             }
