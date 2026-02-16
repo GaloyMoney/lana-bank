@@ -647,6 +647,8 @@ type CreditFacilityLedgerAccounts {
 	disbursedReceivableOverdueAccountId: UUID!
 	disbursedDefaultedAccountId: UUID!
 	collateralAccountId: UUID!
+	collateralInLiquidationAccountId: UUID!
+	liquidatedCollateralAccountId: UUID!
 	proceedsFromLiquidationAccountId: UUID!
 	interestReceivableNotYetDueAccountId: UUID!
 	interestReceivableDueAccountId: UUID!
@@ -662,6 +664,8 @@ type CreditFacilityLedgerAccounts {
 	disbursedReceivableOverdueAccount: LedgerAccount!
 	disbursedDefaultedAccount: LedgerAccount!
 	collateralAccount: LedgerAccount!
+	collateralInLiquidationAccount: LedgerAccount!
+	liquidatedCollateralAccount: LedgerAccount!
 	proceedsFromLiquidationAccount: LedgerAccount!
 	interestReceivableNotYetDueAccount: LedgerAccount!
 	interestReceivableDueAccount: LedgerAccount!
