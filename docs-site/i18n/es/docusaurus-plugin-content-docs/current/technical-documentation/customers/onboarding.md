@@ -185,3 +185,55 @@ Si falla el aprovisionamiento:
 | Ver cliente | Consultar información | CUSTOMER_READ |
 | Iniciar KYC | Comenzar verificación | CUSTOMER_UPDATE |
 | Desactivar | Suspender cuenta | CUSTOMER_UPDATE |
+
+## Recorrido en Panel de Administración: Creación de Cliente y KYC
+
+Este recorrido refleja el flujo operativo usado en los manuales de Cypress y coincide con el
+ciclo de vida de cliente en dominio (crear -> verificar -> activar).
+
+### 1) Crear y validar datos base del cliente
+
+**Paso 1.** Abre la lista de clientes.
+
+![Lista de clientes](/img/screenshots/current/es/customers.cy.ts/2_list_all_customers.png)
+
+**Paso 2.** Haz clic en **Crear**.
+
+![Botón crear cliente](/img/screenshots/current/es/customers.cy.ts/3_click_create_button.png)
+
+**Paso 3.** Ingresa un correo único.
+
+![Ingresar correo](/img/screenshots/current/es/customers.cy.ts/5_enter_email.png)
+
+**Paso 4.** Ingresa un ID de Telegram único (si aplica en tu operación).
+
+![Ingresar Telegram ID](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_id.png)
+
+**Paso 5.** Revisa los datos antes del envío.
+
+![Revisar datos del cliente](/img/screenshots/current/es/customers.cy.ts/7_click_review_details.png)
+
+**Paso 6.** Confirma la pantalla de detalle del cliente.
+
+![Detalle del cliente](/img/screenshots/current/es/customers.cy.ts/10_verify_email.png)
+
+**Paso 7.** Verifica que el cliente aparece en listados.
+
+![Cliente en lista](/img/screenshots/current/es/customers.cy.ts/11_verify_customer_in_list.png)
+
+### 2) Iniciar y monitorear KYC
+
+El sistema se integra con Sumsub. El operador genera el enlace y monitorea cambios de estado
+alimentados por webhooks.
+
+**Paso 8.** Abre la sección KYC y crea el enlace de verificación.
+
+![Sección KYC del cliente](/img/screenshots/current/es/customers.cy.ts/14_customer_kyc_details_page.png)
+
+**Paso 9.** Confirma que el enlace KYC fue generado.
+
+![Enlace KYC creado](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)
+
+**Paso 10.** Verifica actualización de estado KYC.
+
+![Estado KYC actualizado](/img/screenshots/current/es/customers.cy.ts/16_kyc_status_updated.png)

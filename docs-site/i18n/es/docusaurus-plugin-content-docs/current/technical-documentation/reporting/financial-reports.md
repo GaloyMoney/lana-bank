@@ -362,3 +362,41 @@ mutation ScheduleReport($input: ReportScheduleInput!) {
 | Exportar reportes | REPORT_EXPORT |
 | Programar reportes | REPORT_SCHEDULE |
 
+## Recorrido en Panel de Administración: Balanza de Comprobación
+
+**Paso 1.** Abre el reporte de balanza de comprobación.
+
+![Balanza de comprobación](/img/screenshots/current/es/trial-balance.cy.ts/trial-balance.png)
+
+**Paso 2.** Cambia la moneda de visualización (ejemplo: BTC).
+
+![Balanza BTC](/img/screenshots/current/es/trial-balance.cy.ts/trial-balance-btc-currency.png)
+
+## Recorrido en Panel de Administración: Balance General
+
+**Paso 1.** Abre el reporte de balance general.
+
+![Balance general](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet.png)
+
+**Paso 2.** Cambia moneda (USD/BTC).
+
+![Balance general BTC](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet-btc-currency.png)
+
+**Paso 3.** Filtra por capa de balance (ejemplo: pendiente).
+
+![Balance general capa pendiente](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet-pending.png)
+
+## Recorrido en Panel de Administración: Estado de Resultados
+
+**Paso 1.** Abre el reporte de estado de resultados.
+
+![Estado de resultados](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss.png)
+
+**Paso 2.** Cambia moneda de visualización.
+
+![Estado de resultados BTC](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss-btc-currency.png)
+
+**Paso 3.** Filtra por capa (ejemplo: pendiente).
+
+![Estado de resultados capa pendiente](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss-pending.png)
+

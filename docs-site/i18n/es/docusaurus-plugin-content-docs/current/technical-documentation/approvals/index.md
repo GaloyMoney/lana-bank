@@ -117,3 +117,48 @@ Ejecuta el flujo de aprobación:
 - [Configuración de Comités](committees) - Gestión de comités de aprobación
 - [Políticas de Aprobación](policies) - Configuración de políticas
 
+## Recorrido en Panel de Administración: Gestión de Usuarios y Roles
+
+Las operaciones de gobernanza dependen de asignaciones correctas de rol. Lana usa RBAC, donde los
+roles agrupan permission sets y los permisos efectivos se componen por unión.
+
+**Paso 1.** Abre la lista de usuarios.
+
+![Lista de usuarios](/img/screenshots/current/es/user.cy.ts/1_users_list.png)
+
+**Paso 2.** Haz clic en **Crear**.
+
+![Botón crear usuario](/img/screenshots/current/es/user.cy.ts/2_click_create_button.png)
+
+**Paso 3.** Ingresa correo del usuario.
+
+![Ingresar correo usuario](/img/screenshots/current/es/user.cy.ts/3_enter_email.png)
+
+**Paso 4.** Selecciona rol inicial (ejemplo: admin).
+
+![Asignar rol admin](/img/screenshots/current/es/user.cy.ts/4_assign_admin_role.png)
+
+**Paso 5.** Envía creación de usuario.
+
+![Enviar creación usuario](/img/screenshots/current/es/user.cy.ts/5_submit_creation.png)
+
+**Paso 6.** Verifica creación exitosa.
+
+![Verificar usuario creado](/img/screenshots/current/es/user.cy.ts/6_verify_creation.png)
+
+**Paso 7.** Confirma que aparece en la lista.
+
+![Usuario en lista](/img/screenshots/current/es/user.cy.ts/7_view_in_list.png)
+
+**Paso 8.** Abre gestión de roles del usuario.
+
+![Gestionar roles](/img/screenshots/current/es/user.cy.ts/8_manage_roles.png)
+
+**Paso 9.** Actualiza el set de roles/permisos.
+
+![Actualizar roles](/img/screenshots/current/es/user.cy.ts/9_update_roles.png)
+
+**Paso 10.** Verifica éxito de actualización.
+
+![Verificar actualización de roles](/img/screenshots/current/es/user.cy.ts/10_verify_update.png)
+

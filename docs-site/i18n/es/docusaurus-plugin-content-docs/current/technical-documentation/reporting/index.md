@@ -126,3 +126,18 @@ Configurar generación automática de reportes:
 
 - [Informes Financieros](financial-reports) - Detalle de reportes financieros
 
+## Recorrido en Panel de Administración: Reportes Regulatorios
+
+Los reportes regulatorios se generan de forma asíncrona. Después de iniciar una corrida, el
+operador debe monitorear transiciones de estado (`queued` -> `running` -> `success`/`failed`) y
+solo generar enlaces de descarga cuando el resultado sea exitoso.
+
+**Paso 1.** Abre reportes regulatorios y haz clic en **Generar Informe**.
+
+![Botón generar informe](/img/screenshots/current/es/reporting.cy.ts/1_generate_report_button.png)
+
+Checklist de verificación:
+- la corrida aparece en el listado,
+- el estado se actualiza en UI,
+- los enlaces de descarga se generan solo cuando la corrida finaliza con éxito.
+

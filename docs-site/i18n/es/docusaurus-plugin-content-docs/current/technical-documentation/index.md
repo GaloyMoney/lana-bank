@@ -10,6 +10,29 @@ Bienvenido a la documentación técnica de Lana. Esta sección cubre los proceso
 
 ## Operaciones Principales
 
+### Resumen del Panel de Administración
+
+El panel principal es el punto de entrada operativo para el trabajo diario. Úsalo para validar el
+estado general antes de pasar a operaciones detalladas (clientes, depósitos, crédito, gobernanza,
+contabilidad y reportes).
+
+![Panel principal](/img/screenshots/current/es/dashboard.cy.ts/dashboard.png)
+
+Los recorridos con capturas en esta documentación cubren:
+- Panel principal
+- Configuración de módulos (mapeos depósito/crédito)
+- Clientes y KYC
+- Documentos de clientes
+- Cuentas de depósito
+- Transacciones (depósitos/retiros)
+- Comités de gobernanza
+- Políticas y acciones de gobernanza
+- Gestión de usuarios y roles
+- Plantillas de términos
+- Reportes regulatorios
+- Plan de cuentas
+- Balanza de comprobación / balance general / estado de resultados
+
 ### Gestión de Clientes
 
 Gestión del ciclo de vida del cliente desde la incorporación hasta la gestión continua de la relación.
