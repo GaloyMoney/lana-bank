@@ -181,25 +181,22 @@ const Modules: React.FC = () => {
   const accountSetOptions = useMemo(() => {
     if (!accountSetOptionsData) return []
 
-    type AccountSetOptionsKey = Exclude<
+    type AccountSetOptionsKey = Extract<
       keyof CreditAccountSetOptionsQuery,
-      "__typename"
+      CreditAccountCategoryKey
     >
-    const categoryMap: Array<{
-      key: AccountSetOptionsKey
-      category: CreditAccountCategoryKey
-    }> = [
-      { key: "offBalanceSheet", category: "offBalanceSheet" },
-      { key: "asset", category: "asset" },
-      { key: "liability", category: "liability" },
-      { key: "equity", category: "equity" },
-      { key: "revenue", category: "revenue" },
-      { key: "costOfRevenue", category: "costOfRevenue" },
-      { key: "expenses", category: "expenses" },
+    const categoryKeys: AccountSetOptionsKey[] = [
+      "offBalanceSheet",
+      "asset",
+      "liability",
+      "equity",
+      "revenue",
+      "costOfRevenue",
+      "expenses",
     ]
 
-    return categoryMap.flatMap(({ key, category }) => {
-      const options = accountSetOptionsData[key] ?? []
+    return categoryKeys.flatMap((category) => {
+      const options = accountSetOptionsData[category] ?? []
 
       return options.map((option) => ({
         accountSetId: option.accountSetId,
