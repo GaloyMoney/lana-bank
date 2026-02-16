@@ -60,7 +60,7 @@ impl SumsubClient {
         );
         let full_url = self.base_url.join(&url).expect("valid URL");
 
-        let body = json!({}).to_string();
+        let body = json!({"ttlInSecs": 604800}).to_string(); // 1 week
         let headers = self.get_headers(method, &url, Some(&body))?;
 
         let response = self

@@ -94,6 +94,13 @@ impl Prospect {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn verification_link_created_at(&self) -> Option<DateTime<Utc>> {
+        self.events.iter_persisted().rev().find_map(|e| {
+            matches!(e.event, ProspectEvent::VerificationLinkCreated { .. })
+                .then_some(e.recorded_at)
+        })
+    }
+
     fn ensure_open(&self) -> Result<(), ProspectError> {
         match self.status {
             ProspectStatus::Converted => Err(ProspectError::AlreadyConverted),

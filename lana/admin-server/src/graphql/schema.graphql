@@ -2135,6 +2135,7 @@ type Prospect {
 	publicId: PublicId!
 	applicantId: String
 	verificationLink: String
+	verificationLinkCreatedAt: Timestamp
 	personalInfo: PersonalInfo
 }
 

@@ -24,6 +24,7 @@ gql`
     level
     applicantId
     verificationLink
+    verificationLinkCreatedAt
     customerType
     createdAt
     publicId
@@ -113,6 +114,7 @@ export default function ProspectLayout({
           level={prospect.level}
           applicantId={prospect.applicantId}
           verificationLink={prospect.verificationLink}
+          verificationLinkCreatedAt={prospect.verificationLinkCreatedAt}
         />
       </div>
       {children}

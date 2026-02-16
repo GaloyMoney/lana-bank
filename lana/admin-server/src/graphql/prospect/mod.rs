@@ -64,6 +64,12 @@ impl Prospect {
         self.entity.verification_link.as_deref()
     }
 
+    async fn verification_link_created_at(&self) -> Option<Timestamp> {
+        self.entity
+            .verification_link_created_at()
+            .map(Timestamp::from)
+    }
+
     async fn personal_info(&self) -> Option<&PersonalInfo> {
         self.entity.personal_info.as_ref()
     }

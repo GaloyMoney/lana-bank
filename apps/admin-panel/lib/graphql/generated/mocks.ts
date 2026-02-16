@@ -2664,6 +2664,7 @@ export const mockProspect = (overrides?: Partial<Prospect>, _relationshipsToOmit
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : ProspectStatus.Closed,
         telegramHandle: overrides && overrides.hasOwnProperty('telegramHandle') ? overrides.telegramHandle! : generateMockValue.telegramHandle(),
         verificationLink: overrides && overrides.hasOwnProperty('verificationLink') ? overrides.verificationLink! : faker.lorem.word(),
+        verificationLinkCreatedAt: overrides && overrides.hasOwnProperty('verificationLinkCreatedAt') ? overrides.verificationLinkCreatedAt! : generateMockValue.timestamp(),
     };
 };
 

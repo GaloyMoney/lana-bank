@@ -366,10 +366,13 @@
         },
         "actions": {
           "createLink": "Create link",
-          "creatingLink": "Creating link..."
+          "creatingLink": "Creating link...",
+          "refreshLink": "Refresh link",
+          "copyLink": "Copy link"
         },
         "messages": {
-          "copied": "Copied to clipboard"
+          "copied": "Copied to clipboard",
+          "linkExpired": "Link may have expired — consider refreshing"
         }
       }
     }

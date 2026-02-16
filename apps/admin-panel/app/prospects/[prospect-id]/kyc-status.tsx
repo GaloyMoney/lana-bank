@@ -1,10 +1,10 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { gql } from "@apollo/client"
 import { HiLink } from "react-icons/hi"
 
-import { Copy } from "lucide-react"
+import { Copy, RotateCcw } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -26,12 +26,15 @@ gql`
   }
 `
 
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
 type ProspectKycStatusProps = {
   prospectId: string
   kycStatus: KycStatus
   level: KycLevel
   applicantId: string | null | undefined
   verificationLink: string | null | undefined
+  verificationLinkCreatedAt: string | null | undefined
 }
 
 export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
@@ -40,6 +43,7 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
   level,
   applicantId,
   verificationLink,
+  verificationLinkCreatedAt,
 }) => {
   const t = useTranslations("Prospects.ProspectDetails.kycStatus")
 
@@ -52,6 +56,17 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
 
   const effectiveVerificationLink =
     linkData?.sumsubPermalinkCreate?.url || verificationLink
+
+  const [linkMayBeExpired, setLinkMayBeExpired] = useState(false)
+  useEffect(() => {
+    if (!verificationLinkCreatedAt) {
+      setLinkMayBeExpired(false)
+      return
+    }
+    setLinkMayBeExpired(
+      Date.now() - new Date(verificationLinkCreatedAt).getTime() > ONE_WEEK_MS,
+    )
+  }, [verificationLinkCreatedAt])
 
   const handleCreateLink = async () => {
     await createLink({
@@ -80,23 +95,41 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
           {applicantId}
         </a>
       ) : effectiveVerificationLink ? (
-        <div className="flex items-center gap-2">
-          <a
-            href={effectiveVerificationLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 underline overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]"
-          >
-            {effectiveVerificationLink}
-          </a>
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(effectiveVerificationLink)
-              toast.success(t("messages.copied"))
-            }}
-          >
-            <Copy className="h-4 w-4 cursor-pointer" />
-          </button>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <a
+              href={effectiveVerificationLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 underline overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]"
+            >
+              {effectiveVerificationLink}
+            </a>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(effectiveVerificationLink)
+                toast.success(t("messages.copied"))
+              }}
+              title={t("actions.copyLink")}
+            >
+              <Copy className="h-4 w-4 cursor-pointer" />
+            </button>
+            <button
+              onClick={handleCreateLink}
+              disabled={linkLoading}
+              title={t("actions.refreshLink")}
+            >
+              <RotateCcw
+                className={`h-4 w-4 cursor-pointer ${linkLoading ? "animate-spin" : ""}`}
+              />
+            </button>
+          </div>
+          {linkMayBeExpired && (
+            <p className="text-amber-500 text-xs">
+              {t("messages.linkExpired")}
+            </p>
+          )}
+          {linkError && <p className="text-red-500 text-xs">{linkError.message}</p>}
         </div>
       ) : (
         <div>
