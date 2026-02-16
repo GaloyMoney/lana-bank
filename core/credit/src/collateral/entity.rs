@@ -111,6 +111,12 @@ impl Collateral {
                 abs_diff,
                 direction,
                 ..
+            }
+            | CollateralEvent::UpdatedViaLiquidation {
+                ledger_tx_id,
+                abs_diff,
+                direction,
+                ..
             } => Some(CollateralAdjustment {
                 tx_id: *ledger_tx_id,
                 abs_diff: *abs_diff,
