@@ -47,38 +47,38 @@ Events related to credit facility lifecycle and operations.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `FacilityProposalCreated` | A credit facility proposal was created | `amount`, `created_at`, `id`, `terms` |
-| `FacilityActivated` | A credit facility was activated | `activated_at`, `activation_tx_id`, `amount`, `id` |
-| `FacilityCompleted` | A credit facility was fully repaid and closed | `completed_at`, `id` |
+| `FacilityProposalCreated` | A credit facility proposal was created | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `FacilityActivated` | A credit facility was activated | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
+| `FacilityCompleted` | A credit facility was fully repaid and closed | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 
 ### Collateral Events
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `PendingCreditFacilityCollateralizationChanged` | Collateralization state changed for pending facility | `collateral`, `effective`, `id`, `price`, `recorded_at`, `state` |
-| `FacilityCollateralUpdated` | Collateral amount was updated | `abs_diff`, `credit_facility_id`, `direction`, `effective`, `ledger_tx_id`, `new_amount`, `pending_credit_facility_id`, `recorded_at` |
+| `FacilityCollateralUpdated` | Collateral amount was updated | `entity.adjustment`, `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.pending_credit_facility_id` |
 | `FacilityCollateralizationChanged` | Collateralization state changed for active facility | `collateral`, `customer_id`, `effective`, `id`, `outstanding`, `price`, `recorded_at`, `state` |
 
 ### Payment Events
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `DisbursalSettled` | A disbursal was settled | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `recorded_at` |
-| `AccrualPosted` | Interest accrual was posted | `amount`, `credit_facility_id`, `due_at`, `effective`, `ledger_tx_id`, `period`, `recorded_at` |
+| `DisbursalSettled` | A disbursal was settled | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement` |
+| `AccrualPosted` | Interest accrual was posted | `entity.credit_facility_id`, `entity.due_at`, `entity.id`, `entity.period`, `entity.posting` |
 
 ### Liquidation Events
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `PartialLiquidationInitiated` | A partial liquidation was initiated | `collateral_id`, `credit_facility_id`, `customer_id`, `initially_estimated_to_liquidate`, `initially_expected_to_receive`, `liquidation_id`, `trigger_price` |
+| `PartialLiquidationInitiated` | A partial liquidation was initiated | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 | `PartialLiquidationCollateralSentOut` | Collateral was sent for liquidation | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at` |
 | `PartialLiquidationProceedsReceived` | Liquidation proceeds were received | `amount`, `credit_facility_id`, `effective`, `facility_payment_holding_account_id`, `facility_proceeds_from_liquidation_account_id`, `facility_uncovered_outstanding_account_id`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
 | `PartialLiquidationCompleted` | Liquidation was completed | `credit_facility_id`, `liquidation_id` |
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `FacilityProposalConcluded` | No description available | `id`, `status` |
-| `PendingCreditFacilityCompleted` | No description available | `id`, `recorded_at`, `status` |
+| `FacilityProposalConcluded` | No description available | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `PendingCreditFacilityCompleted` | No description available | `entity.amount`, `entity.collateralization_state`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
 
 ---
 
