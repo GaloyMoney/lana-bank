@@ -116,7 +116,7 @@ SCREENSHOTS_BASE_URL="http://localhost:8999" npm run fetch-screenshots
 
 Screenshots use standard Docusaurus absolute image paths:
 ```markdown
-![Alt text](/img/screenshots/current/en/credit-facilities.cy.ts/01_screenshot.png)
+![Alt text](/img/screenshots/current/en/credit-facilities.cy.ts/01_click_create_proposal_button.png)
 ```
 
 Docusaurus processes these through webpack, which:

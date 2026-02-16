@@ -74,3 +74,25 @@ All financial operations are integrated with Cala Ledger for double-entry accoun
 
 - [Deposit Operations](operations) - Deposits and withdrawals
 
+## Admin Panel Walkthrough: Deposit Account Setup
+
+Deposit accounts are required before transaction operations can start. In onboarding flows, the
+operator may need to create one from the customer profile when none exists yet.
+
+**Step 1.** Detect missing deposit account from customer detail banner.
+
+![No deposit account banner](/img/screenshots/current/en/customers.cy.ts/customer_no_deposit_account_banner.png)
+
+**Step 2.** Open the create deposit account dialog.
+
+![Create deposit account dialog](/img/screenshots/current/en/customers.cy.ts/customer_create_deposit_account_dialog.png)
+
+**Step 3.** Confirm deposit account creation succeeds.
+
+![Deposit account created](/img/screenshots/current/en/customers.cy.ts/customer_deposit_account_created.png)
+
+Operational checks after creation:
+- account status is `ACTIVE`,
+- customer-to-account association is correct,
+- account is available for deposit/withdrawal initiation.
+

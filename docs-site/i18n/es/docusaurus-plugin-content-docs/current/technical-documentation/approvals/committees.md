@@ -255,6 +255,56 @@ query GetCommitteeDecisions($committeeId: ID!, $first: Int) {
 | Eliminar comité | COMMITTEE_DELETE |
 | Emitir voto | VOTE_CREATE |
 
+## Recorrido en Panel de Administración: Crear Comité y Agregar Miembros
+
+### 1) Crear comité
+
+**Paso 1.** Visita la página de comités.
+
+![Visitar comités](/img/screenshots/current/es/governance.cy.ts/1_step-visit-committees.png)
+
+**Paso 2.** Haz clic en **Crear Comité**.
+
+![Crear comité](/img/screenshots/current/es/governance.cy.ts/2_step-click-create-committee-button.png)
+
+**Paso 3.** Completa nombre del comité.
+
+![Completar nombre comité](/img/screenshots/current/es/governance.cy.ts/3_step-fill-committee-name.png)
+
+**Paso 4.** Envía creación.
+
+![Enviar creación comité](/img/screenshots/current/es/governance.cy.ts/4_step-submit-committee-creation.png)
+
+**Paso 5.** Verifica mensaje de éxito.
+
+![Comité creado exitosamente](/img/screenshots/current/es/governance.cy.ts/5_step-committee-created-successfully.png)
+
+**Paso 6.** Verifica presencia en lista.
+
+![Lista de comités](/img/screenshots/current/es/governance.cy.ts/6_step-view-committees-list.png)
+
+### 2) Agregar miembro
+
+**Paso 7.** Abre detalle del comité.
+
+![Detalle del comité](/img/screenshots/current/es/governance.cy.ts/7_step-visit-committee-details.png)
+
+**Paso 8.** Haz clic en **Agregar Miembro**.
+
+![Botón agregar miembro](/img/screenshots/current/es/governance.cy.ts/8_step-click-add-member-button.png)
+
+**Paso 9.** Selecciona rol/miembro.
+
+![Seleccionar rol admin](/img/screenshots/current/es/governance.cy.ts/9_step-select-admin-role.png)
+
+**Paso 10.** Envía alta de miembro.
+
+![Enviar agregar miembro](/img/screenshots/current/es/governance.cy.ts/10_step-submit-add-member.png)
+
+**Paso 11.** Verifica éxito de alta.
+
+![Verificar miembro agregado](/img/screenshots/current/es/governance.cy.ts/11_step-verify-member-added.png)
+
 ## Mejores Prácticas
 
 ### Configuración de Comités

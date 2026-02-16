@@ -101,3 +101,41 @@ Report schedules can be configured from the **Reports** > **Scheduling** section
 | Export reports | REPORT_EXPORT |
 | Schedule reports | REPORT_SCHEDULE |
 
+## Admin Panel Walkthrough: Trial Balance
+
+**Step 1.** Open the trial balance report.
+
+![Trial balance report](/img/screenshots/current/en/trial-balance.cy.ts/trial-balance.png)
+
+**Step 2.** Switch currency view (example: BTC).
+
+![Trial balance BTC currency](/img/screenshots/current/en/trial-balance.cy.ts/trial-balance-btc-currency.png)
+
+## Admin Panel Walkthrough: Balance Sheet
+
+**Step 1.** Open the balance sheet report.
+
+![Balance sheet report](/img/screenshots/current/en/balance-sheet.cy.ts/balance-sheet.png)
+
+**Step 2.** Switch currency (USD/BTC).
+
+![Balance sheet BTC currency](/img/screenshots/current/en/balance-sheet.cy.ts/balance-sheet-btc-currency.png)
+
+**Step 3.** Filter by balance layer (example: pending).
+
+![Balance sheet pending layer](/img/screenshots/current/en/balance-sheet.cy.ts/balance-sheet-pending.png)
+
+## Admin Panel Walkthrough: Profit and Loss
+
+**Step 1.** Open profit and loss report.
+
+![Profit and loss report](/img/screenshots/current/en/profit-and-loss.cy.ts/profit-and-loss.png)
+
+**Step 2.** Switch currency view.
+
+![Profit and loss BTC currency](/img/screenshots/current/en/profit-and-loss.cy.ts/profit-and-loss-btc-currency.png)
+
+**Step 3.** Filter by layer (example: pending).
+
+![Profit and loss pending layer](/img/screenshots/current/en/profit-and-loss.cy.ts/profit-and-loss-pending.png)
+

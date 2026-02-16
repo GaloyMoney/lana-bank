@@ -66,3 +66,18 @@ The reporting system enables:
 
 - [Financial Reports](financial-reports) - Financial report details
 
+## Admin Panel Walkthrough: Regulatory Reports
+
+Regulatory reports are generated asynchronously. After triggering a run, operators should monitor
+state transitions (`queued` -> `running` -> `success`/`failed`) and only generate download links
+after successful completion.
+
+**Step 1.** Open regulatory reporting and click **Generate Report**.
+
+![Generate report button](/img/screenshots/current/en/reporting.cy.ts/1_generate_report_button.png)
+
+Verification checklist:
+- report run appears in the list,
+- status updates are reflected in UI,
+- download links are generated only when run state is successful.
+

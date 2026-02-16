@@ -10,6 +10,29 @@ Welcome to the Lana technical documentation. This section covers business proces
 
 ## Core Operations
 
+### Admin Panel Overview
+
+The admin dashboard is the operational entry point for daily workflows. Operators should use it to
+quickly confirm portfolio posture before moving into detailed actions (customers, deposits, credit,
+governance, accounting, and reporting).
+
+![Admin dashboard overview](/img/screenshots/current/en/dashboard.cy.ts/dashboard.png)
+
+The screenshot-backed walkthroughs in this documentation now cover:
+- Dashboard
+- Module configuration (deposit/credit mappings)
+- Customers and KYC
+- Customer documents
+- Deposit accounts
+- Transactions (deposits/withdrawals)
+- Governance committees
+- Governance policies and actions
+- User and role management
+- Terms templates
+- Regulatory reporting
+- Chart of accounts
+- Trial balance / balance sheet / profit and loss
+
 ### Customer Management
 
 Manage customer lifecycle from onboarding through ongoing relationship management.

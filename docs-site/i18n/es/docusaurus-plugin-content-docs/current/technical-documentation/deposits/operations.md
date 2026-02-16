@@ -257,3 +257,93 @@ query GetTransactionHistory($accountId: ID!, $first: Int) {
 | Aprobar retiro | WITHDRAWAL_APPROVE |
 | Confirmar retiro | WITHDRAWAL_CONFIRM |
 
+## Recorrido en Panel de Administración: Depósitos y Retiros
+
+Este flujo muestra la creación y gestión operativa de depósitos y retiros.
+
+### A) Crear un depósito
+
+**Paso 1.** Haz clic en **Crear** global.
+
+![Abrir menú crear](/img/screenshots/current/es/transactions.cy.ts/1_deposit_create_button.png)
+
+**Paso 2.** Selecciona **Crear Depósito**.
+
+![Seleccionar crear depósito](/img/screenshots/current/es/transactions.cy.ts/2_deposit_select.png)
+
+**Paso 3.** Ingresa monto del depósito.
+
+![Ingresar monto depósito](/img/screenshots/current/es/transactions.cy.ts/3_deposit_enter_amount.png)
+
+**Paso 4.** Envía el formulario.
+
+![Enviar depósito](/img/screenshots/current/es/transactions.cy.ts/4_deposit_submit.png)
+
+**Paso 5.** Confirma mensaje de éxito.
+
+![Éxito depósito](/img/screenshots/current/es/transactions.cy.ts/5_deposit_success.png)
+
+**Paso 6.** Verifica depósito en lista principal.
+
+![Depósito en lista](/img/screenshots/current/es/transactions.cy.ts/6_deposit_in_list.png)
+
+**Paso 7.** Verifica depósito en historial del cliente.
+
+![Depósito en historial](/img/screenshots/current/es/transactions.cy.ts/7_deposit_in_transactions.png)
+
+### B) Crear un retiro
+
+**Paso 8.** Haz clic en **Crear** para iniciar retiro.
+
+![Abrir retiro](/img/screenshots/current/es/transactions.cy.ts/8_withdrawal_create_button.png)
+
+**Paso 9.** Selecciona **Crear Retiro**.
+
+![Seleccionar crear retiro](/img/screenshots/current/es/transactions.cy.ts/9_withdrawal_select.png)
+
+**Paso 10.** Ingresa monto del retiro.
+
+![Ingresar monto retiro](/img/screenshots/current/es/transactions.cy.ts/10_withdrawal_enter_amount.png)
+
+**Paso 11.** Envía solicitud.
+
+![Enviar retiro](/img/screenshots/current/es/transactions.cy.ts/11_withdrawal_submit.png)
+
+**Paso 12.** Verifica retiro en lista principal.
+
+![Retiro en lista](/img/screenshots/current/es/transactions.cy.ts/12_withdrawal_in_list.png)
+
+**Paso 13.** Verifica retiro en historial del cliente.
+
+![Retiro en historial](/img/screenshots/current/es/transactions.cy.ts/13_withdrawal_in_transactions.png)
+
+### C) Gestionar resultado del retiro
+
+#### Cancelar retiro pendiente
+
+**Paso 14.** Haz clic en **Cancelar**.
+
+![Botón cancelar retiro](/img/screenshots/current/es/transactions.cy.ts/14_withdrawal_cancel_button.png)
+
+**Paso 15.** Confirma cancelación.
+
+![Confirmar cancelación](/img/screenshots/current/es/transactions.cy.ts/15_withdrawal_cancel_confirm.png)
+
+**Paso 16.** Verifica estado cancelado.
+
+![Estado retiro cancelado](/img/screenshots/current/es/transactions.cy.ts/16_withdrawal_cancelled_status.png)
+
+#### Aprobar retiro pendiente
+
+**Paso 17.** Haz clic en **Aprobar**.
+
+![Botón aprobar retiro](/img/screenshots/current/es/transactions.cy.ts/17_withdrawal_approve_button.png)
+
+**Paso 18.** Confirma aprobación.
+
+![Confirmar aprobación](/img/screenshots/current/es/transactions.cy.ts/18_withdrawal_approve_confirm.png)
+
+**Paso 19.** Verifica estado aprobado/confirmado.
+
+![Estado retiro aprobado](/img/screenshots/current/es/transactions.cy.ts/19_withdrawal_approved_status.png)
+

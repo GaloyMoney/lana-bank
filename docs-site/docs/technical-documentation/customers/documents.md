@@ -92,3 +92,19 @@ graph LR
 | Transaction documents | 7 years |
 | Correspondence | 3 years |
 
+## Admin Panel Walkthrough: Upload Customer Documents
+
+Document operations in the UI feed the same customer-document domain used for KYC evidence and
+compliance audits.
+
+**Step 1.** Navigate to the customer's **Documents** section.
+
+![Customer documents section](/img/screenshots/current/en/customers.cy.ts/12_customer_documents.png)
+
+**Step 2.** Upload the required file and verify success state.
+
+![Upload customer document](/img/screenshots/current/en/customers.cy.ts/13_upload_document.png)
+
+After upload, verify the document is visible in the list and that actions (view/delete as allowed
+by permissions) are available to the operator role.
+

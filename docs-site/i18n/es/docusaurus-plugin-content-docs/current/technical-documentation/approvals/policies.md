@@ -270,3 +270,59 @@ Todas las modificaciones a políticas se registran en el sistema de auditoría:
 - Cuándo se realizó
 - Valores anteriores y nuevos
 
+## Recorrido en Panel de Administración: Asignar Comité y Resolver Acciones
+
+### 1) Asignar comité a política
+
+**Paso 12.** Abre la página de políticas.
+
+![Visitar página de políticas](/img/screenshots/current/es/governance.cy.ts/12_step-visit-policies-page.png)
+
+**Paso 13.** Selecciona una política.
+
+![Seleccionar política](/img/screenshots/current/es/governance.cy.ts/13_step-select-policy.png)
+
+**Paso 14.** Asigna comité y umbral.
+
+![Asignar comité a política](/img/screenshots/current/es/governance.cy.ts/14_step-assign-committee-to-policy.png)
+
+**Paso 15.** Verifica éxito de asignación.
+
+![Verificar comité asignado](/img/screenshots/current/es/governance.cy.ts/15_step-verify-committee-assigned.png)
+
+### 2) Revisar acciones pendientes
+
+**Paso 16.** Abre la cola de acciones.
+
+![Página de acciones](/img/screenshots/current/es/governance.cy.ts/16_step-view-actions-page.png)
+
+**Paso 17.** Confirma que la solicitud pendiente aparece.
+
+![Retiro pendiente visible](/img/screenshots/current/es/governance.cy.ts/17_step-verify-pending-withdrawal.png)
+
+### 3) Aprobar o rechazar proceso
+
+**Paso 18.** Abre el detalle de la solicitud.
+
+![Detalle retiro para aprobación](/img/screenshots/current/es/governance.cy.ts/18_step-visit-withdrawal-details.png)
+
+**Paso 19.** Haz clic en **Aprobar**.
+
+![Clic en aprobar](/img/screenshots/current/es/governance.cy.ts/19_step-click-approve-button.png)
+
+**Paso 20.** Verifica éxito y transición de estado.
+
+![Éxito de aprobación](/img/screenshots/current/es/governance.cy.ts/20_step-verify-approval-success.png)
+
+**Paso 21.** Abre solicitud para flujo de rechazo.
+
+![Visitar retiro para rechazo](/img/screenshots/current/es/governance.cy.ts/21_step-visit-withdrawal-for-denial.png)
+
+**Paso 22.** Haz clic en **Rechazar** e ingresa motivo.
+
+![Clic en rechazar](/img/screenshots/current/es/governance.cy.ts/22_step-click-deny-button.png)
+
+**Paso 23.** Verifica éxito del rechazo y estado terminal.
+
+![Éxito de rechazo](/img/screenshots/current/es/governance.cy.ts/23_step-verify-denial-success.png)
+

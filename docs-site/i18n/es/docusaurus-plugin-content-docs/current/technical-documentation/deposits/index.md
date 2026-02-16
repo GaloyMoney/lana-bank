@@ -124,3 +124,25 @@ Todas las operaciones financieras están integradas con Cala Ledger para contabi
 ## Documentación Relacionada
 
 - [Operaciones de Depósito](operations) - Depósitos y retiros
+
+## Recorrido en Panel de Administración: Alta de Cuenta de Depósito
+
+Las cuentas de depósito son prerequisito para operar transacciones. En onboarding, el operador puede
+necesitar crearlas desde el perfil del cliente cuando no existen.
+
+**Paso 1.** Detecta ausencia de cuenta en el banner del detalle del cliente.
+
+![Banner sin cuenta de depósito](/img/screenshots/current/es/customers.cy.ts/customer_no_deposit_account_banner.png)
+
+**Paso 2.** Abre el diálogo para crear la cuenta.
+
+![Diálogo crear cuenta de depósito](/img/screenshots/current/es/customers.cy.ts/customer_create_deposit_account_dialog.png)
+
+**Paso 3.** Confirma creación exitosa.
+
+![Cuenta de depósito creada](/img/screenshots/current/es/customers.cy.ts/customer_deposit_account_created.png)
+
+Verificaciones operativas posteriores:
+- estado de cuenta en `ACTIVE`,
+- relación cliente-cuenta correcta,
+- cuenta disponible para iniciar depósitos y retiros.
