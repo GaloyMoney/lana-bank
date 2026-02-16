@@ -271,7 +271,10 @@ checksums:
     Prospects/ProspectDetails/kycStatus/labels/kycApplicationLink: c7544d6cfc5e07b0fb4998c9b861c2fa
     Prospects/ProspectDetails/kycStatus/actions/createLink: 0cbb6dc593591ff291d0f39715b32880
     Prospects/ProspectDetails/kycStatus/actions/creatingLink: 244b61a2b6acf3ec0ce4f083c2887b49
+    Prospects/ProspectDetails/kycStatus/actions/refreshLink: b4ab40cf176240312e17fb4606316b6c
+    Prospects/ProspectDetails/kycStatus/actions/copyLink: 8d515c2c48d1060d9c87c8930ff5aa54
     Prospects/ProspectDetails/kycStatus/messages/copied: 6a3c394a9a51646bad2f72d7311b242d
+    Prospects/ProspectDetails/kycStatus/messages/linkExpired: aa769fab936035ee0f36e9a7af2e24df
     Customers/title: c31a0dfd0d92496ba6f5673781db24ef
     Customers/description: 38b688862c41b7af092a0dc32856806f
     Customers/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5
