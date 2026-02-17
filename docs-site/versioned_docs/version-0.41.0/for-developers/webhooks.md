@@ -42,7 +42,7 @@ Events are delivered as JSON:
 
 ## Available Events
 
-See the [Events Reference](events/) for the complete catalog of domain events.
+See the [Events Reference](../apis/events/) for the complete catalog of domain events.
 
 ## Security
 

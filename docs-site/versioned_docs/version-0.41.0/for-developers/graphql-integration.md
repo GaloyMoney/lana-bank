@@ -268,6 +268,6 @@ Content-Type: application/json
 
 ## API Documentation
 
-- [Admin API](admin-api/) - Complete admin API reference
-- [Customer API](customer-api/) - Complete customer API reference
+- [Admin API](../apis/admin-api/) - Complete admin API reference
+- [Customer API](../apis/customer-api/) - Complete customer API reference
 

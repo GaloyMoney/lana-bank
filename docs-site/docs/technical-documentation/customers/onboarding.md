@@ -94,23 +94,35 @@ domain lifecycle (create -> verify -> activate).
 
 ![Click create customer](/img/screenshots/current/en/customers.cy.ts/3_click_create_button.png)
 
-**Step 3.** Enter a unique customer email.
+**Step 3.** The customer creation form opens with the email input field ready.
+
+![Customer creation form](/img/screenshots/current/en/customers.cy.ts/4_verify_email_input_visible.png)
+
+**Step 4.** Enter a unique customer email.
 
 ![Enter customer email](/img/screenshots/current/en/customers.cy.ts/5_enter_email.png)
 
-**Step 4.** Enter a unique Telegram ID (if used by your process).
+**Step 5.** Enter a unique Telegram ID (if used by your process).
 
 ![Enter telegram id](/img/screenshots/current/en/customers.cy.ts/6_enter_telegram_id.png)
 
-**Step 5.** Review details before submission.
+**Step 6.** Review details before submission.
 
 ![Review customer details](/img/screenshots/current/en/customers.cy.ts/7_click_review_details.png)
 
-**Step 6.** Confirm the customer detail page and identity fields.
+**Step 7.** Verify the confirmation dialog showing the entered customer details.
+
+![Verify customer details before submit](/img/screenshots/current/en/customers.cy.ts/8_verify_details.png)
+
+**Step 8.** Click **Confirm** to create the customer.
+
+![Confirm customer creation](/img/screenshots/current/en/customers.cy.ts/9_click_confirm_submit.png)
+
+**Step 9.** Confirm the customer detail page and identity fields.
 
 ![Customer details page](/img/screenshots/current/en/customers.cy.ts/10_verify_email.png)
 
-**Step 7.** Verify the customer appears in list views.
+**Step 10.** Verify the customer appears in list views.
 
 ![Customer visible in list](/img/screenshots/current/en/customers.cy.ts/11_verify_customer_in_list.png)
 
@@ -119,15 +131,15 @@ domain lifecycle (create -> verify -> activate).
 The system integrates with Sumsub. Operators generate the verification link, then monitor status
 changes driven by webhook updates.
 
-**Step 8.** Open customer KYC section and generate verification link.
+**Step 11.** Open customer KYC section and generate verification link.
 
 ![Customer KYC detail section](/img/screenshots/current/en/customers.cy.ts/14_customer_kyc_details_page.png)
 
-**Step 9.** Confirm KYC link was created.
+**Step 12.** Confirm KYC link was created.
 
 ![KYC link created](/img/screenshots/current/en/customers.cy.ts/15_kyc_link_created.png)
 
-**Step 10.** Verify final KYC status update.
+**Step 13.** Verify final KYC status update.
 
 ![KYC status updated](/img/screenshots/current/en/customers.cy.ts/16_kyc_status_updated.png)
 

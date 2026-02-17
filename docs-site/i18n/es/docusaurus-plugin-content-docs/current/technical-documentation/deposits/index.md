@@ -117,9 +117,47 @@ Todas las operaciones financieras están integradas con Cala Ledger para contabi
 
 | Estado | Descripción |
 |--------|-------------|
-| ACTIVE | Cuenta operativa |
+| ACTIVE | Cuenta operativa — depósitos y retiros permitidos |
 | INACTIVE | Cuenta desactivada |
-| FROZEN | Cuenta congelada |
+| FROZEN | Cuenta congelada — no se permiten nuevos depósitos ni retiros |
+| CLOSED | Cuenta cerrada permanentemente (requiere saldo cero) |
+
+```mermaid
+stateDiagram-v2
+    [*] --> INACTIVE : Cuenta creada
+    INACTIVE --> ACTIVE : Titular activado
+    ACTIVE --> FROZEN : Congelar
+    FROZEN --> ACTIVE : Descongelar
+    ACTIVE --> CLOSED : Cerrar (saldo cero)
+```
+
+## Operaciones del Ciclo de Vida de la Cuenta
+
+### Congelar Cuenta
+
+Congelar una cuenta de depósito impide todos los nuevos depósitos y retiros, manteniendo la cuenta y sus saldos visibles. Se utiliza para retenciones de cumplimiento o investigaciones de disputas.
+
+- La cuenta transiciona de `ACTIVE` a `FROZEN`
+- Los saldos liquidados y pendientes permanecen visibles
+- Se emite un evento `DepositAccountFrozen`
+- Una cuenta `INACTIVE` o `CLOSED` no puede ser congelada
+
+### Descongelar Cuenta
+
+Descongelar restaura una cuenta congelada a operación normal, habilitando nuevamente depósitos y retiros.
+
+- La cuenta transiciona de `FROZEN` a `ACTIVE`
+- Se emite un evento `DepositAccountUnfrozen`
+- La operación es idempotente — descongelar una cuenta ya activa no tiene efecto
+
+### Cerrar Cuenta
+
+Cerrar desactiva permanentemente una cuenta de depósito. Esta acción no puede revertirse.
+
+- **Requiere saldo cero** — tanto el saldo liquidado como el pendiente deben ser cero
+- Una cuenta `FROZEN` no puede cerrarse directamente; primero descongelar
+- La cuenta contable correspondiente se bloquea al cierre
+- Se emite un evento `DepositAccountClosed`
 
 ## Documentación Relacionada
 

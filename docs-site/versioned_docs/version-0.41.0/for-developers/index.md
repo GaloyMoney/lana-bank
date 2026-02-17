@@ -14,8 +14,8 @@ Lana provides two GraphQL APIs:
 
 | API | Purpose | Audience |
 |-----|---------|----------|
-| **[Admin API](admin-api/)** | Full system management - customers, credit, accounting, configuration | Internal systems, back-office applications |
-| **[Customer API](customer-api/)** | Customer-facing operations - account info, facility status | Customer portals, mobile apps |
+| **[Admin API](../apis/admin-api/)** | Full system management - customers, credit, accounting, configuration | Internal systems, back-office applications |
+| **[Customer API](../apis/customer-api/)** | Customer-facing operations - account info, facility status | Customer portals, mobile apps |
 
 ## Key Concepts
 
@@ -32,7 +32,7 @@ All API requests require authentication. See [Authentication](authentication) fo
 
 ### Events
 
-Lana uses event sourcing. You can subscribe to [Domain Events](events/) for real-time notifications of system changes.
+Lana uses event sourcing. You can subscribe to [Domain Events](../apis/events/) for real-time notifications of system changes.
 
 ## Client Integration
 
@@ -50,9 +50,9 @@ Lana's frontend applications are built with Next.js and React:
 
 ## API References
 
-- [Admin API Reference](admin-api/) - Full admin operations and types
-- [Customer API Reference](customer-api/) - Customer-facing operations
-- [Domain Events](events/) - Event catalog and webhook integration
+- [Admin API Reference](../apis/admin-api/) - Full admin operations and types
+- [Customer API Reference](../apis/customer-api/) - Customer-facing operations
+- [Domain Events](../apis/events/) - Event catalog and webhook integration
 
 ## Local Development
 
