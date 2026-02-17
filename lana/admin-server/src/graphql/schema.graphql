@@ -427,14 +427,8 @@ enum ConfigType {
 }
 
 input CreditFacilitiesFilter {
-	field: CreditFacilitiesFilterBy!
 	status: CreditFacilityStatus
 	collateralizationState: CollateralizationState
-}
-
-enum CreditFacilitiesFilterBy {
-	STATUS
-	COLLATERALIZATION_STATE
 }
 
 input CreditFacilitiesSort {
@@ -1119,12 +1113,7 @@ enum CustomerType {
 }
 
 input CustomersFilter {
-	field: CustomersFilterBy!
 	kycVerification: KycVerification
-}
-
-enum CustomersFilterBy {
-	ACCOUNT_KYC_VERIFICATION
 }
 
 input CustomersSort {

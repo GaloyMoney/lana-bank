@@ -36,7 +36,7 @@ use interest_accrual_cycle::NewInterestAccrualCycleData;
 pub use entity::CreditFacilityEvent;
 use error::CreditFacilityError;
 pub use repo::{
-    CreditFacilitiesFilter, CreditFacilitiesSortBy, CreditFacilityRepo, ListDirection, Sort,
+    CreditFacilitiesFilters, CreditFacilitiesSortBy, CreditFacilityRepo, ListDirection, Sort,
     credit_facility_cursor::*,
 };
 
@@ -402,7 +402,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesCursor>,
-        filter: CreditFacilitiesFilter,
+        filter: CreditFacilitiesFilters,
         sort: impl Into<Sort<CreditFacilitiesSortBy>> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesCursor>,
@@ -415,7 +415,7 @@ where
                 CoreCreditAction::CREDIT_FACILITY_LIST,
             )
             .await?;
-        self.repo.list_for_filter(filter, sort.into(), query).await
+        self.repo.list_for_filters(filter, sort.into(), query).await
     }
 
     pub(super) async fn list_by_collateralization_ratio_without_audit(

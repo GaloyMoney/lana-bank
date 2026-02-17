@@ -55,8 +55,8 @@ pub mod access {
 pub mod customer {
     pub use core_customer::{
         Activity, CUSTOMER_REF_TARGET, CoreCustomerEvent, Customer, CustomerDocumentId, CustomerId,
-        CustomerType, CustomersCursor, CustomersFilter, CustomersSortBy, KycLevel, KycVerification,
-        Sort, error,
+        CustomerType, CustomersCursor, CustomersFilters, CustomersSortBy, KycLevel,
+        KycVerification, Sort, error,
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
@@ -170,12 +170,12 @@ pub mod credit {
         APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS, APPROVE_DISBURSAL_PROCESS,
         COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, ChartOfAccountsIntegrationConfig,
         Collateral, CollateralSentOut, CollateralUpdated, CollateralizationUpdated,
-        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesFilter,
+        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesFilters,
         CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
         CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityProposal,
         CreditFacilityProposalId, CreditFacilityProposalsByCreatedAtCursor,
         CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
-        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilter,
+        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilters,
         DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, Liquidation,
         LiquidationsByIdCursor, LiquidationsCursor, ListDirection, Payment, PaymentAllocation,
         PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility,

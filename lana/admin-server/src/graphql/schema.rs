@@ -140,18 +140,9 @@ impl Query {
         filter: Option<CustomersFilter>,
     ) -> async_graphql::Result<Connection<CustomersCursor, Customer, EmptyFields, EmptyFields>>
     {
-        let (filter_field, status) = match filter {
-            Some(filter) => (Some(filter.field), filter.kyc_verification),
-            None => (None, None),
-        };
-        let filter = match filter_field {
-            None => DomainCustomersFilter::NoFilter,
-            Some(CustomersFilterBy::AccountKycVerification) => {
-                let status = status.ok_or(CustomerError::MissingValueForFilterField(
-                    "kyc_verification".to_string(),
-                ))?;
-                DomainCustomersFilter::WithKycVerification(status)
-            }
+        let filter = DomainCustomersFilters {
+            kyc_verification: filter.and_then(|f| f.kyc_verification),
+            ..Default::default()
         };
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
@@ -436,30 +427,10 @@ impl Query {
     ) -> async_graphql::Result<
         Connection<CreditFacilitiesCursor, CreditFacility, EmptyFields, EmptyFields>,
     > {
-        let (filter_field, status, collateralization_state) = match filter {
-            Some(filter) => (
-                Some(filter.field),
-                filter.status,
-                filter.collateralization_state,
-            ),
-            None => (None, None, None),
-        };
-        let filter = match filter_field {
-            None => DomainCreditFacilitiesFilter::NoFilter,
-            Some(CreditFacilitiesFilterBy::Status) => {
-                let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
-                    "status".to_string(),
-                ))?;
-                DomainCreditFacilitiesFilter::WithStatus(status)
-            }
-            Some(CreditFacilitiesFilterBy::CollateralizationState) => {
-                let collateralization_state = collateralization_state.ok_or(
-                    CreditFacilityError::MissingValueForFilterField(
-                        "collateralization_state".to_string(),
-                    ),
-                )?;
-                DomainCreditFacilitiesFilter::WithCollateralizationState(collateralization_state)
-            }
+        let filter = DomainCreditFacilitiesFilters {
+            status: filter.as_ref().and_then(|f| f.status),
+            collateralization_state: filter.as_ref().and_then(|f| f.collateralization_state),
+            customer_id: None,
         };
 
         let sort = sort.unwrap_or_default();
@@ -509,7 +480,7 @@ impl Query {
     ) -> async_graphql::Result<
         Connection<DisbursalsCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
     > {
-        let filter = DisbursalsFilter::NoFilter;
+        let filter = DisbursalsFilters::default();
 
         let sort = Sort {
             by: DomainDisbursalsSortBy::CreatedAt,

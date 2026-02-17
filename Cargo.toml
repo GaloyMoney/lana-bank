@@ -76,7 +76,7 @@ sim-bootstrap = { path = "lana/sim-bootstrap" }
 user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
-es-entity = { version = "0.10.14", features = ["event-context", "tracing-context", "instrument"] }
+es-entity = { path = "../es-entity", features = ["event-context", "tracing-context", "instrument"] }
 cala-ledger = "0.13.8"
 job = { version = "0.6.4", features = ["es-entity"] }
 cala-cel-interpreter = "0.13.8"
@@ -207,3 +207,7 @@ name = "lana-bank"
 
 [workspace.metadata.cargo-machete]
 ignored = ["workspace-hack"]
+
+[patch.crates-io]
+es-entity = { path = "../es-entity" }
+es-entity-macros = { path = "../es-entity/es-entity-macros" }

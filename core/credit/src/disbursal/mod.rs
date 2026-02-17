@@ -19,7 +19,7 @@ use core_credit_collection::{CoreCreditCollection, Obligation};
 pub(super) use entity::*;
 use error::DisbursalError;
 pub(super) use repo::*;
-pub use repo::{DisbursalsFilter, DisbursalsSortBy};
+pub use repo::{DisbursalsFilters, DisbursalsSortBy};
 
 pub use entity::{Disbursal, DisbursalSettlement};
 
@@ -253,7 +253,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<disbursal_cursor::DisbursalsCursor>,
-        filter: DisbursalsFilter,
+        filter: DisbursalsFilters,
         sort: impl Into<es_entity::Sort<DisbursalsSortBy>> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<Disbursal, disbursal_cursor::DisbursalsCursor>,
@@ -268,7 +268,7 @@ where
             .await?;
         let disbursals = self
             .repo
-            .list_for_filter(filter, sort.into(), query)
+            .list_for_filters(filter, sort.into(), query)
             .await?;
 
         Ok(disbursals)
@@ -284,8 +284,11 @@ where
         DisbursalError,
     > {
         self.repo
-            .list_for_filter(
-                DisbursalsFilter::WithCreditFacilityId(id),
+            .list_for_filters(
+                DisbursalsFilters {
+                    credit_facility_id: Some(id),
+                    ..Default::default()
+                },
                 sort.into(),
                 query,
             )
