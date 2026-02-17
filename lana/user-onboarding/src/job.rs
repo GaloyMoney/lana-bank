@@ -3,10 +3,19 @@ use tracing::{Span, instrument};
 
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
+use job::JobType;
 use keycloak_client::KeycloakClient;
 
+pub const USER_ONBOARDING_JOB: JobType = JobType::new("outbox.user-onboarding");
+
 pub struct UserOnboardingHandler {
-    pub(super) keycloak_client: KeycloakClient,
+    keycloak_client: KeycloakClient,
+}
+
+impl UserOnboardingHandler {
+    pub fn new(keycloak_client: KeycloakClient) -> Self {
+        Self { keycloak_client }
+    }
 }
 
 impl<E> OutboxEventHandler<E> for UserOnboardingHandler

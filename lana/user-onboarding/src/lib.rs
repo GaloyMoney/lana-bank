@@ -49,8 +49,8 @@ where
         outbox
             .register_event_handler(
                 jobs,
-                OutboxEventJobConfig::new(::job::JobType::new("outbox.user-onboarding")),
-                UserOnboardingHandler { keycloak_client },
+                OutboxEventJobConfig::new(USER_ONBOARDING_JOB),
+                UserOnboardingHandler::new(keycloak_client),
             )
             .await?;
 
