@@ -14,8 +14,8 @@ Lana proporciona dos APIs GraphQL:
 
 | API | Propósito | Audiencia |
 |-----|-----------|-----------|
-| **[API de Administración](admin-api/)** | Gestión completa del sistema - clientes, crédito, contabilidad, configuración | Sistemas internos, aplicaciones de back-office |
-| **[API de Cliente](customer-api/)** | Operaciones orientadas al cliente - información de cuenta, estado de facilidades | Portales de clientes, aplicaciones móviles |
+| **[API de Administración](../apis/admin-api/)** | Gestión completa del sistema - clientes, crédito, contabilidad, configuración | Sistemas internos, aplicaciones de back-office |
+| **[API de Cliente](../apis/customer-api/)** | Operaciones orientadas al cliente - información de cuenta, estado de facilidades | Portales de clientes, aplicaciones móviles |
 
 ## Conceptos Clave
 
@@ -32,7 +32,7 @@ Todas las solicitudes de API requieren autenticación. Consulta [Autenticación]
 
 ### Eventos
 
-Lana utiliza event sourcing. Puedes suscribirte a [Eventos de Dominio](events/) para notificaciones en tiempo real de cambios en el sistema.
+Lana utiliza event sourcing. Puedes suscribirte a [Eventos de Dominio](../apis/events/) para notificaciones en tiempo real de cambios en el sistema.
 
 ## Integración de Clientes
 
@@ -50,9 +50,9 @@ Las aplicaciones frontend de Lana están construidas con Next.js y React:
 
 ## Referencias de API
 
-- [Referencia de API de Administración](admin-api/) - Operaciones y tipos de administración completos
-- [Referencia de API de Cliente](customer-api/) - Operaciones orientadas al cliente
-- [Eventos de Dominio](events/) - Catálogo de eventos e integración de webhooks
+- [Referencia de API de Administración](../apis/admin-api/) - Operaciones y tipos de administración completos
+- [Referencia de API de Cliente](../apis/customer-api/) - Operaciones orientadas al cliente
+- [Eventos de Dominio](../apis/events/) - Catálogo de eventos e integración de webhooks
 
 ## Desarrollo Local
 

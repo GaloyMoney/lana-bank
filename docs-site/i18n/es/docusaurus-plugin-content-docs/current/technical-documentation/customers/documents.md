@@ -203,18 +203,3 @@ Si es necesario, se puede forzar la sincronización:
 1. Navegar al detalle del cliente
 2. Sección KYC > **Sincronizar Documentos**
 
-## Recorrido en Panel de Administración: Carga de Documentos
-
-Las operaciones de documentos en UI usan el mismo dominio de documentos de cliente utilizado por
-KYC y cumplimiento.
-
-**Paso 1.** Navega a la sección **Documentos** del cliente.
-
-![Sección documentos del cliente](/img/screenshots/current/es/customers.cy.ts/12_customer_documents.png)
-
-**Paso 2.** Carga el archivo requerido y valida resultado exitoso.
-
-![Carga de documento del cliente](/img/screenshots/current/es/customers.cy.ts/13_upload_document.png)
-
-Después de cargar, valida que el documento aparezca en la lista y que las acciones permitidas
-(ver/eliminar según permisos) estén disponibles para el rol del operador.

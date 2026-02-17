@@ -67,9 +67,9 @@ Lana is a modern banking core platform built for digital lending and custody ope
 ## Quick Links
 
 ### APIs
-- [Admin API Reference](for-developers/admin-api/) - Full administrative operations
-- [Customer API Reference](for-developers/customer-api/) - Customer-facing operations
-- [Domain Events](for-developers/events/) - Event catalog
+- [Admin API Reference](apis/admin-api/) - Full administrative operations
+- [Customer API Reference](apis/customer-api/) - Customer-facing operations
+- [Domain Events](apis/events/) - Event catalog
 
 ### Operations
 - [Credit Management](for-operators/credit/) - Facility lifecycle

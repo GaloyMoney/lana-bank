@@ -42,11 +42,11 @@ query {
 
 ### 3. Explore the Schema
 
-Use GraphQL introspection or browse the [Admin API Reference](admin-api/) to discover available operations.
+Use GraphQL introspection or browse the [Admin API Reference](../apis/admin-api/) to discover available operations.
 
 ## Next Steps
 
-- [Admin API Reference](admin-api/) - Full API documentation
-- [Customer API Reference](customer-api/) - Customer-facing operations
-- [Domain Events](events/) - Subscribe to system events
+- [Admin API Reference](../apis/admin-api/) - Full API documentation
+- [Customer API Reference](../apis/customer-api/) - Customer-facing operations
+- [Domain Events](../apis/events/) - Subscribe to system events
 - [Authentication](authentication) - Detailed auth setup

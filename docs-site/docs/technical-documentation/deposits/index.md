@@ -66,9 +66,47 @@ All financial operations are integrated with Cala Ledger for double-entry accoun
 
 | Status | Description |
 |--------|-------------|
-| ACTIVE | Operational account |
+| ACTIVE | Operational account — deposits and withdrawals allowed |
 | INACTIVE | Deactivated account |
-| FROZEN | Frozen account |
+| FROZEN | Frozen account — no new deposits or withdrawals permitted |
+| CLOSED | Permanently closed account (requires zero balance) |
+
+```mermaid
+stateDiagram-v2
+    [*] --> INACTIVE : Account created
+    INACTIVE --> ACTIVE : Account holder activated
+    ACTIVE --> FROZEN : Freeze
+    FROZEN --> ACTIVE : Unfreeze
+    ACTIVE --> CLOSED : Close (zero balance)
+```
+
+## Account Lifecycle Operations
+
+### Freeze Account
+
+Freezing a deposit account prevents all new deposits and withdrawals while keeping the account and its balances visible. This is used for compliance holds or dispute investigations.
+
+- The account transitions from `ACTIVE` to `FROZEN`
+- Settled and pending balances remain visible
+- A `DepositAccountFrozen` event is emitted
+- An `INACTIVE` or `CLOSED` account cannot be frozen
+
+### Unfreeze Account
+
+Unfreezing restores a frozen account to normal operation, re-enabling deposits and withdrawals.
+
+- The account transitions from `FROZEN` to `ACTIVE`
+- A `DepositAccountUnfrozen` event is emitted
+- The operation is idempotent — unfreezing an already active account has no effect
+
+### Close Account
+
+Closing permanently deactivates a deposit account. This action cannot be reversed.
+
+- **Requires zero balance** — both settled and pending balances must be zero
+- A `FROZEN` account cannot be closed directly; unfreeze first
+- The corresponding ledger account is locked upon closure
+- A `DepositAccountClosed` event is emitted
 
 ## Related Documentation
 

@@ -201,23 +201,35 @@ ciclo de vida de cliente en dominio (crear -> verificar -> activar).
 
 ![Botón crear cliente](/img/screenshots/current/es/customers.cy.ts/3_click_create_button.png)
 
-**Paso 3.** Ingresa un correo único.
+**Paso 3.** Se abre el formulario de creación con el campo de email listo.
+
+![Formulario de creación de cliente](/img/screenshots/current/es/customers.cy.ts/4_verify_email_input_visible.png)
+
+**Paso 4.** Ingresa un correo único.
 
 ![Ingresar correo](/img/screenshots/current/es/customers.cy.ts/5_enter_email.png)
 
-**Paso 4.** Ingresa un ID de Telegram único (si aplica en tu operación).
+**Paso 5.** Ingresa un ID de Telegram único (si aplica en tu operación).
 
 ![Ingresar Telegram ID](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_id.png)
 
-**Paso 5.** Revisa los datos antes del envío.
+**Paso 6.** Revisa los datos antes del envío.
 
 ![Revisar datos del cliente](/img/screenshots/current/es/customers.cy.ts/7_click_review_details.png)
 
-**Paso 6.** Confirma la pantalla de detalle del cliente.
+**Paso 7.** Verifica el diálogo de confirmación con los datos ingresados.
+
+![Verificar datos antes de confirmar](/img/screenshots/current/es/customers.cy.ts/8_verify_details.png)
+
+**Paso 8.** Haz clic en **Confirmar** para crear el cliente.
+
+![Confirmar creación de cliente](/img/screenshots/current/es/customers.cy.ts/9_click_confirm_submit.png)
+
+**Paso 9.** Confirma la pantalla de detalle del cliente.
 
 ![Detalle del cliente](/img/screenshots/current/es/customers.cy.ts/10_verify_email.png)
 
-**Paso 7.** Verifica que el cliente aparece en listados.
+**Paso 10.** Verifica que el cliente aparece en listados.
 
 ![Cliente en lista](/img/screenshots/current/es/customers.cy.ts/11_verify_customer_in_list.png)
 
@@ -226,14 +238,14 @@ ciclo de vida de cliente en dominio (crear -> verificar -> activar).
 El sistema se integra con Sumsub. El operador genera el enlace y monitorea cambios de estado
 alimentados por webhooks.
 
-**Paso 8.** Abre la sección KYC y crea el enlace de verificación.
+**Paso 11.** Abre la sección KYC y crea el enlace de verificación.
 
 ![Sección KYC del cliente](/img/screenshots/current/es/customers.cy.ts/14_customer_kyc_details_page.png)
 
-**Paso 9.** Confirma que el enlace KYC fue generado.
+**Paso 12.** Confirma que el enlace KYC fue generado.
 
 ![Enlace KYC creado](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)
 
-**Paso 10.** Verifica actualización de estado KYC.
+**Paso 13.** Verifica actualización de estado KYC.
 
 ![Estado KYC actualizado](/img/screenshots/current/es/customers.cy.ts/16_kyc_status_updated.png)

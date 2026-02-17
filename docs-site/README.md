@@ -50,4 +50,3 @@ The site uses local search (`@easyops-cn/docusaurus-search-local`) which support
 npm run build && npm run serve
 ```
 
-**TODO:** Switch to [Algolia DocSearch](https://docsearch.algolia.com/) for the production site.
