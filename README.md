@@ -116,10 +116,16 @@ make e2e
 #### Cypress Tests
 
 ```bash
-make dev-up # launch the full stack
+make start-cypress-stack  # Start dependencies, core server, and admin panel
 
-# In a different terminal with tilt running:
-cd apps/admin-panel && pnpm run cypress:run-ui # or run-headless
+# Run tests headless (same as CI):
+make test-cypress-in-ci
+
+# Or run tests interactively:
+cd apps/admin-panel && pnpm run cypress:run-ui
+
+# When done, stop everything:
+make stop-cypress-stack
 ```
 
 ## BigQuery Setup

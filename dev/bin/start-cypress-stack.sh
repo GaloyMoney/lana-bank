@@ -31,8 +31,8 @@ cleanup() {
     make clean-deps || true
 }
 
-# Set up trap for cleanup only on interruption, not normal exit
-trap cleanup INT TERM
+# Clean up on any exit (failure, Ctrl+C, etc.) during setup
+trap cleanup EXIT
 
 echo "Starting Cypress test stack..."
 
@@ -76,5 +76,7 @@ cd ../..
 wait4x http http://localhost:3001/api/health --timeout 200s || { echo "Admin panel failed - check admin-panel.log"; exit 1; }
 wait4x http http://admin.localhost:4455/api/health --timeout 30s || { echo "Proxy access failed"; exit 1; }
 
+# Setup succeeded — remove trap so services stay running
+trap - EXIT
 echo "All services are ready!"
 exit 0
