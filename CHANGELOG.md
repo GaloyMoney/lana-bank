@@ -1,3 +1,21 @@
+## [0.42.0] - 2026-02-17
+
+### 🚀 Features
+
+- Add local file serving endpoint with signed URLs (#3788)
+
+### 🐛 Bug Fixes
+
+- Proper conditions for cold start (#3826)
+
+### 🚜 Refactor
+
+- Deposit product mod `AccountSet` as value including accounting context (#3745)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.41.1 [ci skip] (#3832)
+- Reengage liquidation-related public events (#3807)
 ## [0.41.1] - 2026-02-17
 
 ### 🐛 Bug Fixes
