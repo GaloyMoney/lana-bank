@@ -8,7 +8,7 @@ from generate_es_reports.domain.report import BaseFileOutputConfig, ReportJobDef
 from generate_es_reports.generator import generate_single_report
 from generate_es_reports.io import BigQueryTableFetcher, load_report_jobs_from_yaml
 from src.assets.dbt import _get_dbt_asset_key, _load_dbt_manifest
-from src.core import Protoasset
+from src.core import COLD_START_CONDITION, Protoasset
 from src.otel import _current_span_to_traceparent
 from src.resources import (
     RESOURCE_KEY_DW_BQ,
@@ -135,8 +135,7 @@ def generated_file_report_protoassets() -> List[Protoasset]:
                         RESOURCE_KEY_FILE_REPORTS_BUCKET,
                         RESOURCE_KEY_DW_BQ,
                     },
-                    automation_condition=dg.AutomationCondition.on_missing()
-                    & ~dg.AutomationCondition.any_deps_missing(),
+                    automation_condition=COLD_START_CONDITION,
                     tags={
                         "category": "file_report",
                         "norm": report_job.norm,

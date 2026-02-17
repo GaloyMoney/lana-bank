@@ -3,7 +3,7 @@ from typing import Dict
 import dlt
 
 import dagster as dg
-from src.core import Protoasset
+from src.core import COLD_START_CONDITION, Protoasset
 from src.dlt_destinations.bigquery import create_bigquery_destination
 from src.dlt_resources.bitfinex import (
     DEFAULT_ORDER_BOOK_DEPTH,
@@ -78,20 +78,20 @@ def bitfinex_protoassets() -> Dict[str, Protoasset]:
             callable=bitfinex_ticker,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
             tags={"system": BITFINEX_SYSTEM_NAME, "asset_type": "el_target_asset"},
-            automation_condition=dg.AutomationCondition.on_missing(),
+            automation_condition=COLD_START_CONDITION,
         ),
         BITFINEX_TRADES_DLT_TABLE: Protoasset(
             key=dg.AssetKey([BITFINEX_SYSTEM_NAME, BITFINEX_TRADES_DLT_TABLE]),
             callable=bitfinex_trades,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
             tags={"system": BITFINEX_SYSTEM_NAME, "asset_type": "el_target_asset"},
-            automation_condition=dg.AutomationCondition.on_missing(),
+            automation_condition=COLD_START_CONDITION,
         ),
         BITFINEX_ORDER_BOOK_DLT_TABLE: Protoasset(
             key=dg.AssetKey([BITFINEX_SYSTEM_NAME, BITFINEX_ORDER_BOOK_DLT_TABLE]),
             callable=bitfinex_order_book,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
             tags={"system": BITFINEX_SYSTEM_NAME, "asset_type": "el_target_asset"},
-            automation_condition=dg.AutomationCondition.on_missing(),
+            automation_condition=COLD_START_CONDITION,
         ),
     }

@@ -10,6 +10,7 @@ from dagster_dbt import (
 )
 
 import dagster as dg
+from src.core import COLD_START_CONDITION
 from src.otel import trace_dbt_batch
 from src.resources import DBT_MANIFEST_PATH
 
@@ -145,10 +146,10 @@ class LanaDbtTranslator(DagsterDbtTranslator):
         resource_type = dbt_resource_props.get(DbtPropKey.RESOURCE_TYPE)
 
         if resource_type == DbtResourceType.MODEL:
-            return dg.AutomationCondition.eager()
+            return dg.AutomationCondition.eager() | COLD_START_CONDITION
 
         if resource_type == DbtResourceType.SEED:
-            return dg.AutomationCondition.on_missing()
+            return COLD_START_CONDITION
 
         return None
 
