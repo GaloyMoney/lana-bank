@@ -161,6 +161,7 @@ impl Prospect {
 
     pub fn approve_kyc(
         &mut self,
+        applicant_id: &str,
         level: KycLevel,
         personal_info: PersonalInfo,
     ) -> Result<Idempotent<NewCustomer>, ProspectError> {
@@ -169,10 +170,17 @@ impl Prospect {
             ProspectEvent::KycApproved { .. }
         );
         self.ensure_open()?;
-        let applicant_id = self
+        let stored_id = self
             .applicant_id
-            .clone()
+            .as_deref()
             .ok_or(ProspectError::KycNotStarted)?;
+        if stored_id != applicant_id {
+            return Err(ProspectError::ApplicantIdMismatch {
+                expected: self.applicant_id.clone(),
+                actual: applicant_id.to_string(),
+            });
+        }
+        let applicant_id = applicant_id.to_string();
         self.level = level;
         self.kyc_status = KycStatus::Approved;
         self.status = ProspectStatus::Converted;
@@ -232,14 +240,21 @@ impl Prospect {
         Ok(Idempotent::Executed(new_customer))
     }
 
-    pub fn decline_kyc(&mut self) -> Result<Idempotent<()>, ProspectError> {
+    pub fn decline_kyc(&mut self, applicant_id: &str) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::KycDeclined { .. }
         );
         self.ensure_open()?;
-        if self.applicant_id.is_none() {
-            return Err(ProspectError::KycNotStarted);
+        let stored_id = self
+            .applicant_id
+            .as_deref()
+            .ok_or(ProspectError::KycNotStarted)?;
+        if stored_id != applicant_id {
+            return Err(ProspectError::ApplicantIdMismatch {
+                expected: self.applicant_id.clone(),
+                actual: applicant_id.to_string(),
+            });
         }
         self.kyc_status = KycStatus::Declined;
         let stage = self.compute_stage();
@@ -272,16 +287,17 @@ impl Prospect {
     pub fn update_personal_info(
         &mut self,
         personal_info: PersonalInfo,
-    ) -> Idempotent<PersonalInfo> {
+    ) -> Result<Idempotent<PersonalInfo>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::PersonalInfoUpdated { personal_info: existing, .. } if existing == &personal_info
         );
+        self.ensure_open()?;
         self.events.push(ProspectEvent::PersonalInfoUpdated {
             personal_info: personal_info.clone(),
         });
         self.personal_info = Some(personal_info.clone());
-        Idempotent::Executed(personal_info)
+        Ok(Idempotent::Executed(personal_info))
     }
 
     pub fn update_telegram_handle(
@@ -431,7 +447,7 @@ mod tests {
     fn approve_kyc_fails_when_kyc_not_started() {
         let mut prospect = create_test_prospect();
 
-        let result = prospect.approve_kyc(KycLevel::Basic, PersonalInfo::dummy());
+        let result = prospect.approve_kyc("some-id", KycLevel::Basic, PersonalInfo::dummy());
 
         assert!(matches!(result, Err(ProspectError::KycNotStarted)));
     }
@@ -443,16 +459,36 @@ mod tests {
             .start_kyc("correct-applicant-id".to_string())
             .expect("start_kyc should succeed");
 
-        let result = prospect.approve_kyc(KycLevel::Basic, PersonalInfo::dummy());
+        let result = prospect.approve_kyc(
+            "correct-applicant-id",
+            KycLevel::Basic,
+            PersonalInfo::dummy(),
+        );
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn approve_kyc_fails_with_wrong_applicant_id() {
+        let mut prospect = create_test_prospect();
+        let _ = prospect
+            .start_kyc("correct-applicant-id".to_string())
+            .expect("start_kyc should succeed");
+
+        let result =
+            prospect.approve_kyc("wrong-applicant-id", KycLevel::Basic, PersonalInfo::dummy());
+
+        assert!(matches!(
+            result,
+            Err(ProspectError::ApplicantIdMismatch { .. })
+        ));
     }
 
     #[test]
     fn decline_kyc_fails_when_kyc_not_started() {
         let mut prospect = create_test_prospect();
 
-        let result = prospect.decline_kyc();
+        let result = prospect.decline_kyc("some-id");
 
         assert!(matches!(result, Err(ProspectError::KycNotStarted)));
     }
@@ -464,9 +500,24 @@ mod tests {
             .start_kyc("correct-applicant-id".to_string())
             .expect("start_kyc should succeed");
 
-        let result = prospect.decline_kyc();
+        let result = prospect.decline_kyc("correct-applicant-id");
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn decline_kyc_fails_with_wrong_applicant_id() {
+        let mut prospect = create_test_prospect();
+        let _ = prospect
+            .start_kyc("correct-applicant-id".to_string())
+            .expect("start_kyc should succeed");
+
+        let result = prospect.decline_kyc("wrong-applicant-id");
+
+        assert!(matches!(
+            result,
+            Err(ProspectError::ApplicantIdMismatch { .. })
+        ));
     }
 
     #[test]
@@ -476,7 +527,7 @@ mod tests {
             .start_kyc("applicant-id".to_string())
             .expect("start_kyc should succeed");
         let _ = prospect
-            .approve_kyc(KycLevel::Basic, PersonalInfo::dummy())
+            .approve_kyc("applicant-id", KycLevel::Basic, PersonalInfo::dummy())
             .expect("approve_kyc should succeed");
 
         let result = prospect.close();
