@@ -49,7 +49,7 @@ export const DEPOSIT_CONFIG_FIELDS: DepositConfigField[] = [
     group: "summary",
   },
   {
-    key: "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode",
+    key: "chartOfAccountNonDomiciledCompanyDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },
@@ -79,7 +79,7 @@ export const DEPOSIT_CONFIG_FIELDS: DepositConfigField[] = [
     group: "summary",
   },
   {
-    key: "chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode",
+    key: "chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode",
     category: "liability",
     group: "summary",
   },
