@@ -81,7 +81,7 @@ es-entity = { version = "0.10.15", features = ["event-context", "tracing-context
 cala-ledger = "0.13.11"
 cala-cel-interpreter = "0.13.11"
 job = { version = "0.6.5", features = ["es-entity"] }
-obix = { version = "0.2.14", features = ["tracing"] } 434ad8f12 (refactor: use OutboxEventHandler for user-onboarding job)
+obix = { version = "0.2.14", features = ["tracing"] }
 
 aes = "0.8"
 anyhow = "1.0.101"
