@@ -14,10 +14,11 @@ use domain_config::ExposedDomainConfigsReadOnly;
 use error::NotificationError;
 use job::Jobs;
 use lana_events::LanaEvent;
+use obix::out::OutboxEventJobConfig;
 
 pub use config::NotificationConfig;
 use email::EmailNotification;
-use email::job::{EmailEventListenerConfig, EmailEventListenerInit};
+use email::job::{EMAIL_LISTENER_JOB, EmailEventListenerHandler};
 pub use email::{NotificationFromEmail, NotificationFromName};
 
 pub struct Notification<AuthzType>
@@ -79,11 +80,12 @@ where
         )
         .await?;
 
-        let email_event_listener_job_spawner =
-            jobs.add_initializer(EmailEventListenerInit::new(outbox, &email));
-
-        email_event_listener_job_spawner
-            .spawn_unique(job::JobId::new(), EmailEventListenerConfig::default())
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(EMAIL_LISTENER_JOB),
+                EmailEventListenerHandler::new(&email),
+            )
             .await?;
 
         Ok(Self {
