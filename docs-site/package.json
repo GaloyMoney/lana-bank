@@ -22,6 +22,7 @@
     "snapshot-schemas": "node scripts/snapshot-schemas.js",
     "prune-old-versions": "node scripts/prune-old-versions.js",
     "fetch-screenshots": "bash scripts/fetch-screenshots.sh",
+    "generate-screenshots": "bash scripts/generate-screenshots-local.sh",
     "prebuild": "npm run generate-api-docs && npm run generate-events-docs && npm run generate-versioned-api-docs"
   },
   "dependencies": {
