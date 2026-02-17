@@ -16,7 +16,7 @@ Welcome to the Lana external developer documentation. This section covers everyt
 ## Integration
 
 - [GraphQL Integration](graphql-integration) — Client setup, queries, mutations, and pagination
-- [Webhooks](webhooks) — Receive real-time event notifications
+- [Real-time Subscriptions](realtime-subscriptions) — Receive real-time event notifications via GraphQL subscriptions
 
 ## API Reference
 

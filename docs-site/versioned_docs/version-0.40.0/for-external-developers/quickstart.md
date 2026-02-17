@@ -49,5 +49,5 @@ Use GraphQL introspection or browse the API references to discover available ope
 
 - [Authentication](authentication) — Token management and refresh flows
 - [GraphQL Integration](graphql-integration) — Client library setup and common patterns
-- [Webhooks](webhooks) — Subscribe to real-time event notifications
+- [Real-time Subscriptions](realtime-subscriptions) — Subscribe to real-time event notifications
 - [Domain Events](../apis/events/events.md) — Event catalog

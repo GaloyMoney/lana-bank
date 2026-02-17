@@ -21,7 +21,7 @@
         "for-developers/quickstart",
         "for-developers/authentication",
         "for-developers/graphql-integration",
-        "for-developers/webhooks",
+        "for-developers/realtime-subscriptions",
         {
           "type": "category",
           "label": "Frontend Applications",

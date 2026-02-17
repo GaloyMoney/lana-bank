@@ -8,4 +8,4 @@ sidebar_class_name: hidden
 
 In this version, external developer documentation is organized under **For Developers**.
 
-See [For Developers](../for-developers/) for quickstart, authentication, GraphQL integration, webhooks, and frontend application guides.
+See [For Developers](../for-developers/) for quickstart, authentication, GraphQL integration, real-time subscriptions, and frontend application guides.
