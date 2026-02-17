@@ -13,6 +13,7 @@ core-deposit = { workspace = true }
 core-time-events = { workspace = true }
 governance = { workspace = true }
 
+es-entity = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
 audit = { workspace = true }
@@ -22,9 +23,6 @@ tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 serde = { workspace = true }
-async-trait = { workspace = true }
-futures = { workspace = true }
-tokio = { workspace = true }
 thiserror = { workspace = true }
 keycloak-client = { workspace = true }
 lana-events = { workspace = true }

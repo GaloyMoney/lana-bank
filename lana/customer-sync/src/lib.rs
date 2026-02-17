@@ -19,7 +19,7 @@ use core_deposit::{
 use core_time_events::CoreTimeEvent;
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
 pub struct CustomerSync<Perms, E>
@@ -76,37 +76,44 @@ where
     ) -> Result<Self, CustomerSyncError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak.clone());
 
-        let create_keycloak_user_job_spawner =
-            jobs.add_initializer(CreateKeycloakUserInit::new(outbox, keycloak_client.clone()));
-        create_keycloak_user_job_spawner
-            .spawn_unique(job::JobId::new(), CreateKeycloakUserJobConfig::new())
-            .await?;
-
-        let sync_email_job_spawner =
-            jobs.add_initializer(SyncEmailInit::new(outbox, keycloak_client.clone()));
-        sync_email_job_spawner
-            .spawn_unique(job::JobId::new(), SyncEmailJobConfig::new())
-            .await?;
-
-        let update_last_activity_date_job_spawner =
-            jobs.add_initializer(UpdateLastActivityDateInit::new(outbox, customers, deposit));
-        update_last_activity_date_job_spawner
-            .spawn_unique(job::JobId::new(), UpdateLastActivityDateConfig::new())
-            .await?;
-
-        let update_customer_activity_status_job_spawner =
-            jobs.add_initializer(UpdateCustomerActivityStatusInit::new(outbox, customers));
-        update_customer_activity_status_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                UpdateCustomerActivityStatusJobConfig::new(),
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CUSTOMER_SYNC_CREATE_KEYCLOAK_USER),
+                CreateKeycloakUserHandler::new(keycloak_client.clone()),
             )
             .await?;
 
-        let customer_active_sync_job_spawner =
-            jobs.add_initializer(CustomerActiveSyncInit::new(outbox, deposit));
-        customer_active_sync_job_spawner
-            .spawn_unique(job::JobId::new(), CustomerActiveSyncJobConfig::new())
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(SYNC_EMAIL_JOB),
+                SyncEmailHandler::new(keycloak_client.clone()),
+            )
+            .await?;
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(UPDATE_LAST_ACTIVITY_DATE),
+                UpdateLastActivityDateHandler::new(customers, deposit),
+            )
+            .await?;
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(UPDATE_CUSTOMER_ACTIVITY_STATUS),
+                UpdateCustomerActivityStatusHandler::new(customers),
+            )
+            .await?;
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CUSTOMER_ACTIVE_SYNC),
+                CustomerActiveSyncHandler::new(deposit),
+            )
             .await?;
 
         Ok(Self {
