@@ -221,7 +221,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
             )}
             {error && <div className="text-destructive">{error.message}</div>}
             <DialogFooter className="mt-4">
-              <Button variant="outline" type="button" onClick={handleBack}>
+              <Button variant="outline" type="button" onClick={handleBack} disabled={loading}>
                 {tCommon("back")}
               </Button>
               <Button loading={loading} type="button" onClick={handleDone}>
@@ -290,7 +290,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
               <Button variant="outline" type="button" onClick={close}>
                 {tCommon("cancel")}
               </Button>
-              <Button type="submit" disabled={!hasChanges}>
+              <Button loading={loading} type="submit" disabled={!hasChanges || loading}>
                 {tCommon("review")}
               </Button>
             </DialogFooter>

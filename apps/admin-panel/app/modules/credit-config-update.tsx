@@ -263,7 +263,7 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
             )}
             {error && <div className="text-destructive">{error.message}</div>}
             <DialogFooter className="mt-4">
-              <Button variant="outline" type="button" onClick={handleBack}>
+              <Button variant="outline" type="button" onClick={handleBack} disabled={loading}>
                 {tCommon("back")}
               </Button>
               <Button loading={loading} type="button" onClick={handleDone}>
