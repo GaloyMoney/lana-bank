@@ -58,6 +58,12 @@ jobs:
         run: |
           nix develop -c bash -lc "cd docs-site && npm run validate-api-descriptions"
 
+      - name: Fetch screenshots from Netlify
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run fetch-screenshots"
+
       - name: Build docs site
         run: |
           nix develop -c bash -lc "cd docs-site && npx docusaurus build"
