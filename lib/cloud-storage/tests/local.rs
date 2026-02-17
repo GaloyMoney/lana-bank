@@ -5,7 +5,11 @@ use tempfile::TempDir;
 async fn upload_and_download_local() -> anyhow::Result<()> {
     let dir = TempDir::new()?;
     let root = dir.path().to_str().unwrap().to_string();
-    let config = StorageConfig::new_local(root);
+    let config = StorageConfig::new_local(
+        root,
+        "http://localhost:5253".to_string(),
+        "test-signing-secret".to_string(),
+    );
     let storage = Storage::new(&config);
 
     let content_str = "localtest";
@@ -16,19 +20,23 @@ async fn upload_and_download_local() -> anyhow::Result<()> {
         .upload(content.clone(), filename, "text/plain")
         .await?;
 
+    // Verify signed URL is generated
     let link = storage
         .generate_download_link(cloud_storage::LocationInStorage { path: filename })
         .await?;
-    assert!(link.starts_with("file://"));
+    assert!(link.starts_with("http://localhost:5253/local-storage/"));
+    assert!(link.contains("expires="));
+    assert!(link.contains("sig="));
 
-    let path = link.trim_start_matches("file://");
-    let downloaded = tokio::fs::read_to_string(path).await?;
+    // Verify file was written to disk
+    let file_path = dir.path().join(filename);
+    let downloaded = tokio::fs::read_to_string(&file_path).await?;
     assert_eq!(downloaded, content_str);
 
     storage
         .remove(cloud_storage::LocationInStorage { path: filename })
         .await?;
-    assert!(!std::path::Path::new(path).exists());
+    assert!(!file_path.exists());
 
     Ok(())
 }

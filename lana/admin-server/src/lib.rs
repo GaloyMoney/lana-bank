@@ -3,6 +3,7 @@
 
 mod config;
 pub mod graphql;
+mod local_storage;
 mod primitives;
 mod sse;
 mod webhooks;
@@ -44,7 +45,7 @@ where
 
     let cors = CorsLayer::permissive();
 
-    let app = Router::new()
+    let mut router = Router::new()
         .route("/health", get(health_check))
         .route("/graphql/stream", post(sse::graphql_sse_post))
         .route(
@@ -53,7 +54,13 @@ where
         )
         .merge(webhooks::custodians::routes())
         .merge(webhooks::reports::routes())
-        .merge(webhooks::sumsub::routes())
+        .merge(webhooks::sumsub::routes());
+
+    if app.storage().is_local() {
+        router = router.merge(local_storage::routes());
+    }
+
+    let app = router
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
         })
