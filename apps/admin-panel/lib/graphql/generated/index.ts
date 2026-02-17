@@ -21,7 +21,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  AccountCode: { input: any; output: any; }
+  AccountCode: { input: string; output: string; }
   AnnualRatePct: { input: any; output: any; }
   AuditEntryId: { input: any; output: any; }
   AuditSubjectId: { input: string; output: string; }
@@ -3357,10 +3357,10 @@ export type BalanceSheetQueryVariables = Exact<{
 export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet: { __typename?: 'BalanceSheet', name: string, balance:
       | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-    , categories: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange:
+    , categories: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: string | null, balanceRange:
         | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
         | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-      , children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange:
+      , children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: string | null, balanceRange:
           | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
          }> }> } };
@@ -3383,23 +3383,23 @@ export type ChartOfAccountsAddChildNodeMutationVariables = Exact<{
 }>;
 
 
-export type ChartOfAccountsAddChildNodeMutation = { __typename?: 'Mutation', chartOfAccountsAddChildNode: { __typename?: 'ChartOfAccountsAddChildNodePayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any }> }> }> }> }> }> }> }> }> }> }> }> }> }> } } };
+export type ChartOfAccountsAddChildNodeMutation = { __typename?: 'Mutation', chartOfAccountsAddChildNode: { __typename?: 'ChartOfAccountsAddChildNodePayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> } } };
 
 export type ChartOfAccountsAddRootNodeMutationVariables = Exact<{
   input: ChartOfAccountsAddRootNodeInput;
 }>;
 
 
-export type ChartOfAccountsAddRootNodeMutation = { __typename?: 'Mutation', chartOfAccountsAddRootNode: { __typename?: 'ChartOfAccountsAddRootNodePayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any }> }> }> }> }> }> }> }> }> }> }> }> }> }> } } };
+export type ChartOfAccountsAddRootNodeMutation = { __typename?: 'Mutation', chartOfAccountsAddRootNode: { __typename?: 'ChartOfAccountsAddRootNodePayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> } } };
 
-export type ChartAccountBaseFragment = { __typename?: 'ChartNode', name: string, accountCode: any };
+export type ChartAccountBaseFragment = { __typename?: 'ChartNode', name: string, accountCode: string };
 
-export type ChartOfAccountsFieldsFragment = { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any }> }> }> }> }> }> }> }> }> }> }> }> }> }> };
+export type ChartOfAccountsFieldsFragment = { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> };
 
 export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any }> }> }> }> }> }> }> }> }> }> }> }> }> }> } };
+export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> } };
 
 export type ChartOfAccountsCsvImportWithBaseConfigMutationVariables = Exact<{
   input: ChartOfAccountsCsvImportWithBaseConfigInput;
@@ -4159,7 +4159,7 @@ export type JournalEntriesQueryVariables = Exact<{
 export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
           | { __typename?: 'BtcAmount', btc: Satoshis }
           | { __typename?: 'UsdAmount', usd: UsdCents }
-        , ledgerAccount: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, code?: any | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: any | null } | null }, ledgerTransaction: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, description?: string | null, effective: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+        , ledgerAccount: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, code?: string | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null }, ledgerTransaction: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, description?: string | null, effective: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type AccountEntryCsvQueryVariables = Exact<{
   ledgerAccountId: Scalars['UUID']['input'];
@@ -4189,17 +4189,17 @@ export type LedgerAccountCsvExportUploadedSubscriptionVariables = Exact<{
 
 export type LedgerAccountCsvExportUploadedSubscription = { __typename?: 'Subscription', ledgerAccountCsvExportUploaded: { __typename?: 'LedgerAccountCsvExportUploadedPayload', documentId: string } };
 
-export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
+export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null, entity?:
     | { __typename: 'Collateral', creditFacility: { __typename?: 'CreditFacility', publicId: any } }
     | { __typename: 'CreditFacility', publicId: any }
     | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', publicId: any } }
-   | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, balanceRange:
+   | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
   , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
           | { __typename: 'BtcAmount', btc: Satoshis }
           | { __typename: 'UsdAmount', usd: UsdCents }
-        , ledgerAccount: { __typename?: 'LedgerAccount', code?: any | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: any | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+        , ledgerAccount: { __typename?: 'LedgerAccount', code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type LedgerAccountByCodeQueryVariables = Exact<{
   code: Scalars['String']['input'];
@@ -4208,17 +4208,17 @@ export type LedgerAccountByCodeQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
+export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null, entity?:
       | { __typename: 'Collateral', creditFacility: { __typename?: 'CreditFacility', publicId: any } }
       | { __typename: 'CreditFacility', publicId: any }
       | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', publicId: any } }
-     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, balanceRange:
+     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
     , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
             | { __typename: 'BtcAmount', btc: Satoshis }
             | { __typename: 'UsdAmount', usd: UsdCents }
-          , ledgerAccount: { __typename?: 'LedgerAccount', code?: any | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: any | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+          , ledgerAccount: { __typename?: 'LedgerAccount', code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type LedgerAccountQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -4227,17 +4227,17 @@ export type LedgerAccountQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
+export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null, entity?:
       | { __typename: 'Collateral', creditFacility: { __typename?: 'CreditFacility', publicId: any } }
       | { __typename: 'CreditFacility', publicId: any }
       | { __typename: 'DepositAccount', depositAccountId: string, publicId: any, customer: { __typename?: 'Customer', publicId: any } }
-     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, balanceRange:
+     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: string | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
     , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
             | { __typename: 'BtcAmount', btc: Satoshis }
             | { __typename: 'UsdAmount', usd: UsdCents }
-          , ledgerAccount: { __typename?: 'LedgerAccount', code?: any | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: any | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+          , ledgerAccount: { __typename?: 'LedgerAccount', code?: string | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type LedgerAccountExistsByCodeQueryVariables = Exact<{
   code: Scalars['String']['input'];
@@ -4268,7 +4268,7 @@ export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?:
      | null, entries: Array<{ __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, direction: DebitOrCredit, layer: Layer, amount:
         | { __typename: 'BtcAmount', btc: Satoshis }
         | { __typename: 'UsdAmount', usd: UsdCents }
-      , ledgerAccount: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, code?: any | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: any | null } | null } }> } | null };
+      , ledgerAccount: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, code?: string | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: string | null } | null } }> } | null };
 
 export type LedgerTransactionExistsByIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -4331,7 +4331,7 @@ export type CreditModuleConfigureMutationVariables = Exact<{
 }>;
 
 
-export type CreditModuleConfigureMutation = { __typename?: 'Mutation', creditModuleConfigure: { __typename?: 'CreditModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null } } };
+export type CreditModuleConfigureMutation = { __typename?: 'Mutation', creditModuleConfigure: { __typename?: 'CreditModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountLiquidatedCollateralParentCode?: string | null, chartOfAccountProceedsFromLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountDisbursedDefaultedParentCode?: string | null, chartOfAccountInterestDefaultedParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } } };
 
 export type DepositModuleConfigureMutationVariables = Exact<{
   input: DepositModuleConfigureInput;
@@ -4348,12 +4348,17 @@ export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typ
 export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } | null };
+export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountPaymentsMadeOmnibusParentCode?: string | null, chartOfAccountInterestAddedToObligationsOmnibusParentCode?: string | null, chartOfAccountUncoveredOutstandingParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountLiquidatedCollateralParentCode?: string | null, chartOfAccountProceedsFromLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountDisbursedDefaultedParentCode?: string | null, chartOfAccountInterestDefaultedParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } | null };
 
 export type ChartAccountingBaseConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ChartAccountingBaseConfigQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, name: string, accountingBaseConfig?: { __typename?: 'AccountingBaseConfigOutput', assetsCode: string, liabilitiesCode: string, equityCode: string, equityRetainedEarningsGainCode: string, equityRetainedEarningsLossCode: string, revenueCode: string, costOfRevenueCode: string, expensesCode: string } | null } };
+
+export type CreditAccountSetOptionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CreditAccountSetOptionsQuery = { __typename?: 'Query', offBalanceSheet: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, asset: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, liability: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, equity: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, revenue: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, costOfRevenue: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, expenses: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }> };
 
 export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: any, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCVLPct', value: any }
@@ -4485,10 +4490,10 @@ export type ProfitAndLossStatementQueryVariables = Exact<{
 }>;
 
 
-export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement: { __typename?: 'ProfitAndLossStatement', name: string, total: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, categories: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange:
+export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement: { __typename?: 'ProfitAndLossStatement', name: string, total: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, categories: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: string | null, balanceRange:
         | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
         | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-      , children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange:
+      , children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: string | null, balanceRange:
           | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
          }> }> } };
@@ -4669,12 +4674,12 @@ export type GetTrialBalanceQueryVariables = Exact<{
 }>;
 
 
-export type GetTrialBalanceQuery = { __typename?: 'Query', trialBalance: { __typename?: 'TrialBalance', name: string, accounts: Array<{ __typename?: 'LedgerAccount', id: string, code?: any | null, name: string, isRootAccount: boolean, balanceRange:
+export type GetTrialBalanceQuery = { __typename?: 'Query', trialBalance: { __typename?: 'TrialBalance', name: string, accounts: Array<{ __typename?: 'LedgerAccount', id: string, code?: string | null, name: string, isRootAccount: boolean, balanceRange:
         | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
         | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
        }> } };
 
-export type TrialBalanceAccountBaseFragment = { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string, isRootAccount: boolean, balanceRange:
+export type TrialBalanceAccountBaseFragment = { __typename?: 'LedgerAccount', id: string, code?: string | null, name: string, isRootAccount: boolean, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
    };
@@ -9998,6 +10003,57 @@ export const CreditModuleConfigureDocument = gql`
   creditModuleConfigure(input: $input) {
     creditConfig {
       chartOfAccountsId
+      chartOfAccountFacilityOmnibusParentCode
+      chartOfAccountCollateralOmnibusParentCode
+      chartOfAccountLiquidationProceedsOmnibusParentCode
+      chartOfAccountPaymentsMadeOmnibusParentCode
+      chartOfAccountInterestAddedToObligationsOmnibusParentCode
+      chartOfAccountUncoveredOutstandingParentCode
+      chartOfAccountFacilityParentCode
+      chartOfAccountCollateralParentCode
+      chartOfAccountCollateralInLiquidationParentCode
+      chartOfAccountLiquidatedCollateralParentCode
+      chartOfAccountProceedsFromLiquidationParentCode
+      chartOfAccountInterestIncomeParentCode
+      chartOfAccountFeeIncomeParentCode
+      chartOfAccountPaymentHoldingParentCode
+      chartOfAccountDisbursedDefaultedParentCode
+      chartOfAccountInterestDefaultedParentCode
+      chartOfAccountShortTermIndividualDisbursedReceivableParentCode
+      chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountShortTermBankDisbursedReceivableParentCode
+      chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode
+      chartOfAccountLongTermIndividualDisbursedReceivableParentCode
+      chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountLongTermBankDisbursedReceivableParentCode
+      chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode
+      chartOfAccountShortTermIndividualInterestReceivableParentCode
+      chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode
+      chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode
+      chartOfAccountShortTermBankInterestReceivableParentCode
+      chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode
+      chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+      chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode
+      chartOfAccountLongTermIndividualInterestReceivableParentCode
+      chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode
+      chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode
+      chartOfAccountLongTermBankInterestReceivableParentCode
+      chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode
+      chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+      chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode
+      chartOfAccountOverdueIndividualDisbursedReceivableParentCode
+      chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountOverdueBankDisbursedReceivableParentCode
+      chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode
     }
   }
 }
@@ -10142,9 +10198,13 @@ export const CreditConfigDocument = gql`
     chartOfAccountFacilityParentCode
     chartOfAccountCollateralParentCode
     chartOfAccountCollateralInLiquidationParentCode
+    chartOfAccountLiquidatedCollateralParentCode
+    chartOfAccountProceedsFromLiquidationParentCode
     chartOfAccountInterestIncomeParentCode
     chartOfAccountFeeIncomeParentCode
     chartOfAccountPaymentHoldingParentCode
+    chartOfAccountDisbursedDefaultedParentCode
+    chartOfAccountInterestDefaultedParentCode
     chartOfAccountShortTermIndividualDisbursedReceivableParentCode
     chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
     chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode
@@ -10271,6 +10331,80 @@ export type ChartAccountingBaseConfigQueryHookResult = ReturnType<typeof useChar
 export type ChartAccountingBaseConfigLazyQueryHookResult = ReturnType<typeof useChartAccountingBaseConfigLazyQuery>;
 export type ChartAccountingBaseConfigSuspenseQueryHookResult = ReturnType<typeof useChartAccountingBaseConfigSuspenseQuery>;
 export type ChartAccountingBaseConfigQueryResult = Apollo.QueryResult<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>;
+export const CreditAccountSetOptionsDocument = gql`
+    query CreditAccountSetOptions {
+  offBalanceSheet: descendantAccountSetsByCategory(category: OFF_BALANCE_SHEET) {
+    accountSetId
+    code
+    name
+  }
+  asset: descendantAccountSetsByCategory(category: ASSET) {
+    accountSetId
+    code
+    name
+  }
+  liability: descendantAccountSetsByCategory(category: LIABILITY) {
+    accountSetId
+    code
+    name
+  }
+  equity: descendantAccountSetsByCategory(category: EQUITY) {
+    accountSetId
+    code
+    name
+  }
+  revenue: descendantAccountSetsByCategory(category: REVENUE) {
+    accountSetId
+    code
+    name
+  }
+  costOfRevenue: descendantAccountSetsByCategory(category: COST_OF_REVENUE) {
+    accountSetId
+    code
+    name
+  }
+  expenses: descendantAccountSetsByCategory(category: EXPENSES) {
+    accountSetId
+    code
+    name
+  }
+}
+    `;
+
+/**
+ * __useCreditAccountSetOptionsQuery__
+ *
+ * To run a query within a React component, call `useCreditAccountSetOptionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditAccountSetOptionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditAccountSetOptionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCreditAccountSetOptionsQuery(baseOptions?: Apollo.QueryHookOptions<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>(CreditAccountSetOptionsDocument, options);
+      }
+export function useCreditAccountSetOptionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>(CreditAccountSetOptionsDocument, options);
+        }
+// @ts-ignore
+export function useCreditAccountSetOptionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>): Apollo.UseSuspenseQueryResult<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>;
+export function useCreditAccountSetOptionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>): Apollo.UseSuspenseQueryResult<CreditAccountSetOptionsQuery | undefined, CreditAccountSetOptionsQueryVariables>;
+export function useCreditAccountSetOptionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>(CreditAccountSetOptionsDocument, options);
+        }
+export type CreditAccountSetOptionsQueryHookResult = ReturnType<typeof useCreditAccountSetOptionsQuery>;
+export type CreditAccountSetOptionsLazyQueryHookResult = ReturnType<typeof useCreditAccountSetOptionsLazyQuery>;
+export type CreditAccountSetOptionsSuspenseQueryHookResult = ReturnType<typeof useCreditAccountSetOptionsSuspenseQuery>;
+export type CreditAccountSetOptionsQueryResult = Apollo.QueryResult<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>;
 export const GetPendingCreditFacilityLayoutDetailsDocument = gql`
     query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: UUID!) {
   pendingCreditFacility(id: $pendingCreditFacilityId) {

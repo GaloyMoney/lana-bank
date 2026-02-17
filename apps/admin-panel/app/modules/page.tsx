@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import {
   Card,
@@ -20,12 +20,15 @@ import { DetailsGroup } from "@lana/web/components/details"
 
 import { DepositConfigUpdateDialog } from "./deposit-config-update"
 import { CreditConfigUpdateDialog } from "./credit-config-update"
+import { CreditAccountCategoryKey } from "./credit-config-fields"
 
 import { DetailItem } from "@/components/details"
 import {
   useDepositConfigQuery,
   useCreditConfigQuery,
   useChartAccountingBaseConfigQuery,
+  useCreditAccountSetOptionsQuery,
+  type CreditAccountSetOptionsQuery,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -58,9 +61,13 @@ gql`
       chartOfAccountFacilityParentCode
       chartOfAccountCollateralParentCode
       chartOfAccountCollateralInLiquidationParentCode
+      chartOfAccountLiquidatedCollateralParentCode
+      chartOfAccountProceedsFromLiquidationParentCode
       chartOfAccountInterestIncomeParentCode
       chartOfAccountFeeIncomeParentCode
       chartOfAccountPaymentHoldingParentCode
+      chartOfAccountDisbursedDefaultedParentCode
+      chartOfAccountInterestDefaultedParentCode
       chartOfAccountShortTermIndividualDisbursedReceivableParentCode
       chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
       chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode
@@ -117,6 +124,46 @@ gql`
   }
 `
 
+gql`
+  query CreditAccountSetOptions {
+    offBalanceSheet: descendantAccountSetsByCategory(category: OFF_BALANCE_SHEET) {
+      accountSetId
+      code
+      name
+    }
+    asset: descendantAccountSetsByCategory(category: ASSET) {
+      accountSetId
+      code
+      name
+    }
+    liability: descendantAccountSetsByCategory(category: LIABILITY) {
+      accountSetId
+      code
+      name
+    }
+    equity: descendantAccountSetsByCategory(category: EQUITY) {
+      accountSetId
+      code
+      name
+    }
+    revenue: descendantAccountSetsByCategory(category: REVENUE) {
+      accountSetId
+      code
+      name
+    }
+    costOfRevenue: descendantAccountSetsByCategory(category: COST_OF_REVENUE) {
+      accountSetId
+      code
+      name
+    }
+    expenses: descendantAccountSetsByCategory(category: EXPENSES) {
+      accountSetId
+      code
+      name
+    }
+  }
+`
+
 const Modules: React.FC = () => {
   const t = useTranslations("Modules")
 
@@ -127,8 +174,38 @@ const Modules: React.FC = () => {
   const { data: depositConfig, loading: depositConfigLoading } = useDepositConfigQuery()
   const { data: creditConfig, loading: creditConfigLoading } = useCreditConfigQuery()
   const { data: chartData, loading: chartLoading } = useChartAccountingBaseConfigQuery()
+  const { data: accountSetOptionsData, error: accountSetOptionsError } =
+    useCreditAccountSetOptionsQuery()
 
   const accountingBaseConfig = chartData?.chartOfAccounts?.accountingBaseConfig
+  const accountSetOptions = useMemo(() => {
+    if (!accountSetOptionsData) return []
+
+    type AccountSetOptionsKey = Extract<
+      keyof CreditAccountSetOptionsQuery,
+      CreditAccountCategoryKey
+    >
+    const categoryKeys: AccountSetOptionsKey[] = [
+      "offBalanceSheet",
+      "asset",
+      "liability",
+      "equity",
+      "revenue",
+      "costOfRevenue",
+      "expenses",
+    ]
+
+    return categoryKeys.flatMap((category) => {
+      const options = accountSetOptionsData[category] ?? []
+
+      return options.map((option) => ({
+        accountSetId: option.accountSetId,
+        code: option.code,
+        name: option.name,
+        category,
+      }))
+    })
+  }, [accountSetOptionsData])
 
   return (
     <>
@@ -141,6 +218,8 @@ const Modules: React.FC = () => {
         open={openCreditConfigUpdateDialog}
         setOpen={setOpenCreditConfigUpdateDialog}
         creditModuleConfig={creditConfig?.creditConfig || undefined}
+        accountSetOptions={accountSetOptions}
+        accountSetOptionsError={Boolean(accountSetOptionsError)}
       />
 
       <Card>
@@ -211,20 +290,18 @@ const Modules: React.FC = () => {
             <div>{t("notYetConfigured")}</div>
           )}
         </CardContent>
-        {!creditConfig?.creditConfig && (
-          <>
-            <Separator className="mb-4" />
-            <CardFooter className="-mb-3 -mt-1 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setOpenCreditConfigUpdateDialog(true)}
-              >
-                <Pencil />
-                {t("credit.setTitle")}
-              </Button>
-            </CardFooter>
-          </>
-        )}
+        <>
+          <Separator className="mb-4" />
+          <CardFooter className="-mb-3 -mt-1 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setOpenCreditConfigUpdateDialog(true)}
+            >
+              <Pencil />
+              {t("credit.setTitle")}
+            </Button>
+          </CardFooter>
+        </>
       </Card>
       <Card className="mt-3">
         <CardHeader>
