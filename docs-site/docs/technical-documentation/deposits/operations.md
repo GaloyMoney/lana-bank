@@ -6,109 +6,134 @@ sidebar_position: 2
 
 # Deposit and Withdrawal Operations
 
-This document describes deposit and withdrawal operations, including workflows and approval procedures.
+This document describes the mechanics of recording deposits and processing withdrawals, including the approval workflow, ledger entries, and reversal capabilities.
 
 ## Deposit Operations
 
-### Recording Deposits
+### How Deposits Work
 
-Deposits are recorded when external funds are received into a customer account.
+A deposit represents an inbound fund movement into a customer's account. Deposits are recorded by operators when external funds have been received (e.g., via wire transfer, check, or other settlement mechanism). The system does not initiate the actual fund movement; it records the fact that funds have arrived.
 
 ```mermaid
 graph LR
-    RCV["Receive funds"] --> REC["Record deposit"] --> AVL["Funds available"]
+    RCV["External funds received"] --> REC["Operator records deposit<br/>(amount + reference)"] --> LEDGER["Ledger entry posted<br/>(omnibus ↔ customer)"] --> AVL["Funds available<br/>in customer account"]
 ```
-
-### Create a Deposit
-
-#### From Admin Panel
-
-1. Navigate to **Customers** > select customer
-2. Go to deposit account
-3. Click **Record Deposit**
-4. Complete:
-   - Amount in USD
-   - External reference
-5. Confirm operation
-
-## Withdrawal Operations
-
-### Withdrawal Flow
-
-Withdrawals require an approval process before execution.
-
-```mermaid
-graph TD
-    REQ["Withdrawal request"] --> APPR["Approval required"]
-    APPR --> EXEC["Execute withdrawal"]
-    APPR --> REJ["Rejected<br/>(optional)"]
-```
-
-### Initiate a Withdrawal
-
-#### From Admin Panel
-
-1. Navigate to **Customers** > select customer
-2. Go to deposit account
-3. Click **Initiate Withdrawal**
-4. Complete:
-   - Amount in USD
-   - External reference
-5. Withdrawal enters approval process
-
-### Withdrawal Status
-
-| Status | Description |
-|--------|-------------|
-| PENDING_APPROVAL | Withdrawal pending approval |
-| APPROVED | Withdrawal approved |
-| CONFIRMED | Withdrawal executed and confirmed |
-| DENIED | Withdrawal rejected |
-| CANCELLED | Withdrawal cancelled |
-
-## Approval Process
-
-Withdrawals are subject to the governance system with process type `APPROVE_WITHDRAWAL_PROCESS`.
-
-### Approve a Withdrawal
-
-1. Navigate to **Pending Approvals**
-2. Select withdrawal to approve
-3. Review details:
-   - Customer
-   - Amount
-   - Available balance
-4. Click **Approve** or **Reject**
-
-## Accounting Integration
-
-### Deposit Entries
 
 When a deposit is recorded:
 
-| Account | Debit | Credit |
-|---------|-------|--------|
-| Cash (Asset) | X | |
-| Customer Deposits (Liability) | | X |
+1. The system validates that the deposit account is active and the amount is non-zero.
+2. A new deposit entity is created with status `Confirmed`.
+3. A ledger transaction posts two entries on the settled layer.
+4. The deposit is immediately available in the customer's balance.
 
-### Withdrawal Entries
+### Deposit Accounting Entry
 
-When a withdrawal is confirmed:
+| Account | Debit | Credit | Layer |
+|---------|:-----:|:------:|-------|
+| Deposit Omnibus (Asset) | X | | Settled |
+| Customer Deposit Account (Liability) | | X | Settled |
 
-| Account | Debit | Credit |
-|---------|-------|--------|
-| Customer Deposits (Liability) | X | |
-| Cash (Asset) | | X |
+The omnibus account (the bank's cash/reserves) increases on the debit side, and the customer's deposit account (a liability the bank owes to the customer) increases on the credit side.
 
-## Permissions Required
+### Deposit Reversal
 
-| Operation | Permission |
-|-----------|---------|
-| Record deposit | DEPOSIT_CREATE |
-| View deposits | DEPOSIT_READ |
-| Initiate withdrawal | WITHDRAWAL_CREATE |
-| Approve withdrawal | WITHDRAWAL_APPROVE |
-| Confirm withdrawal | WITHDRAWAL_CONFIRM |
+If a deposit was recorded in error, it can be reverted. Reversal posts the inverse ledger transaction (credit the omnibus, debit the customer account), returning both accounts to their pre-deposit state. The deposit entity transitions to `Reverted` status. Reversal is idempotent: reversing an already-reverted deposit has no effect.
+
+## Withdrawal Operations
+
+### Withdrawal Lifecycle
+
+Withdrawals are more complex than deposits because they require governance approval before funds are released. The full lifecycle involves encumbering funds at initiation, waiting for approval, and then confirming or cancelling the withdrawal.
+
+```mermaid
+stateDiagram-v2
+    [*] --> PendingApproval: Withdrawal initiated
+    PendingApproval --> PendingConfirmation: Governance approves
+    PendingApproval --> Denied: Governance denies
+    PendingApproval --> Cancelled: Operator cancels
+    PendingConfirmation --> Confirmed: Operator confirms
+    PendingConfirmation --> Cancelled: Operator cancels
+    Confirmed --> Reverted: Operator reverts
+    Denied --> [*]
+    Cancelled --> [*]
+    Confirmed --> [*]
+    Reverted --> [*]
+```
+
+| Status | Description |
+|--------|-------------|
+| **Pending Approval** | Withdrawal initiated, funds encumbered, awaiting governance decision |
+| **Pending Confirmation** | Governance approved, awaiting operator confirmation of actual fund disbursement |
+| **Confirmed** | Funds released, withdrawal complete |
+| **Denied** | Governance rejected the withdrawal, funds restored |
+| **Cancelled** | Operator cancelled the withdrawal before confirmation, funds restored |
+| **Reverted** | Previously confirmed withdrawal reversed, funds restored |
+
+### Step-by-Step Withdrawal Flow
+
+**1. Initiation** - An operator initiates a withdrawal by specifying the amount and an optional reference. The system:
+- Validates that the account is active and the amount is non-zero.
+- Creates a governance approval process (type: `withdraw`).
+- Posts an `INITIATE_WITHDRAW` ledger transaction that moves funds from settled to pending.
+- The customer's settled balance decreases immediately, preventing the funds from being used for other operations.
+
+**2. Approval** - The governance system processes the withdrawal according to the configured policy:
+- If the policy is `SystemAutoApprove`, the withdrawal is approved instantly.
+- If the policy uses `CommitteeThreshold`, committee members must vote to approve or deny.
+- A single denial from any committee member immediately rejects the withdrawal.
+- This step happens asynchronously via the event-driven job system.
+
+**3a. Confirmation** - After approval, an operator confirms the withdrawal, indicating that the actual fund disbursement has occurred externally. A `CONFIRM_WITHDRAW` ledger transaction clears the pending balance.
+
+**3b. Cancellation** - At any point before confirmation (even before approval concludes), an operator can cancel the withdrawal. A `CANCEL_WITHDRAW` ledger transaction reverses the encumbrance, restoring the settled balance.
+
+**3c. Denial** - If governance denies the withdrawal, a `DENY_WITHDRAW` ledger transaction automatically reverses the encumbrance, identical in effect to cancellation.
+
+**4. Reversal (optional)** - A confirmed withdrawal can be reversed if the external fund movement failed or was returned. A `REVERT_WITHDRAW` ledger transaction restores the settled balance.
+
+### Withdrawal Accounting Entries
+
+The withdrawal process uses four different ledger templates depending on the stage:
+
+#### Initiation (encumber funds)
+
+| Account | Debit | Credit | Layer |
+|---------|:-----:|:------:|-------|
+| Deposit Omnibus (Asset) | | X | Settled |
+| Customer Deposit Account (Liability) | X | | Settled |
+| Deposit Omnibus (Asset) | X | | Pending |
+| Customer Deposit Account (Liability) | | X | Pending |
+
+This moves the amount from settled to pending on both the omnibus and customer accounts.
+
+#### Confirmation (release funds)
+
+| Account | Debit | Credit | Layer |
+|---------|:-----:|:------:|-------|
+| Deposit Omnibus (Asset) | | X | Pending |
+| Customer Deposit Account (Liability) | X | | Pending |
+
+Clears the pending encumbrance. The settled balance was already reduced at initiation.
+
+#### Cancellation or Denial (restore funds)
+
+| Account | Debit | Credit | Layer |
+|---------|:-----:|:------:|-------|
+| Deposit Omnibus (Asset) | | X | Pending |
+| Customer Deposit Account (Liability) | X | | Pending |
+| Deposit Omnibus (Asset) | X | | Settled |
+| Customer Deposit Account (Liability) | | X | Settled |
+
+The exact inverse of initiation: clears pending and restores settled.
+
+#### Reversal (undo confirmed withdrawal)
+
+| Account | Debit | Credit | Layer |
+|---------|:-----:|:------:|-------|
+| Deposit Omnibus (Asset) | X | | Settled |
+| Customer Deposit Account (Liability) | | X | Settled |
+
+Restores the settled balance as if the withdrawal never happened.
 
 ## Admin Panel Walkthrough: Deposits and Withdrawals
 
@@ -199,4 +224,3 @@ This flow shows operational creation and management of deposits and withdrawals.
 **Step 19.** Verify approved/confirmed status.
 
 ![Approved withdrawal status](/img/screenshots/current/en/transactions.cy.ts/19_withdrawal_approved_status.png)
-

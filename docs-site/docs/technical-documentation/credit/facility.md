@@ -75,6 +75,40 @@ funds from being released before governance authorization and risk coverage are 
 - Confirm collateral entry reflects current custody value and unit scale.
 - Confirm final status transition happened before initiating any disbursal.
 
+## Collateral Management
+
+Bitcoin collateral is the primary risk mitigation mechanism for credit facilities. Because BTC is volatile relative to USD, the system continuously monitors collateral adequacy throughout the facility lifecycle.
+
+### Collateral Posting
+
+After a proposal is approved, the resulting pending facility enters the **Pending Collateralization** state. At this point, the customer must deposit Bitcoin into the facility's associated custody wallet. If the facility has an assigned custodian, the custodian's webhooks automatically synchronize the collateral balance as deposits are detected on-chain. In manual mode, an operator can update the collateral amount directly through the admin panel.
+
+### CVL Monitoring During Facility Lifetime
+
+Once a facility is active, the system recalculates the CVL whenever:
+- The BTC/USD exchange rate changes (via price feed updates)
+- Collateral is deposited or withdrawn
+- The outstanding loan balance changes (through disbursals or payments)
+
+The three CVL thresholds work together to create a graduated risk response:
+
+1. **Above Initial CVL**: The facility is in good standing. Disbursals are permitted.
+2. **Between Margin Call CVL and Initial CVL**: Normal operations continue, but new disbursals are blocked if they would push the CVL below the margin call threshold.
+3. **Below Margin Call CVL**: The facility enters a margin call state. The borrower is notified to post additional collateral. Existing obligations continue as normal.
+4. **Below Liquidation CVL**: The system initiates a liquidation process, allowing the bank to execute collateral to recover the outstanding debt.
+
+A hysteresis buffer prevents rapid oscillation between states when the CVL hovers near a threshold boundary.
+
+### Liquidation Process
+
+When the CVL falls below the liquidation threshold, a partial liquidation process is initiated. The system calculates the amount of collateral that must be sold to restore the CVL above the margin call threshold. This is a partial liquidation — only enough collateral is sold to bring the facility back into a safe range, not to close the entire position.
+
+## Facility Completion
+
+A credit facility is automatically marked as complete when every obligation associated with it has been fully paid. This includes all principal obligations from disbursals and all interest obligations from accrual cycles. Once complete, the facility no longer accrues interest and its collateral can be released back to the customer.
+
+If a facility reaches its maturity date with obligations still outstanding, any accrued but not-yet-posted interest is immediately consolidated into a final obligation. The facility cannot complete until these remaining obligations are satisfied.
+
 ## Domain Rules That Matter in Operations
 
 The terms selected at proposal time are copied into the facility and become the contract used by
@@ -94,6 +128,7 @@ until collateral quality and amount satisfy policy.
 - **Collateral updates are risk actions**. They directly influence activation and ongoing safety.
 - **Template quality is critical**. Incorrect thresholds or intervals in terms produce incorrect
   lifecycle behavior later.
+- **Disbursals reduce collateral headroom**. Every disbursal increases the loan exposure and therefore reduces the CVL, even if collateral amounts remain constant. Operators should verify the post-disbursal CVL before approving large drawdowns.
 
 ## Admin Panel Walkthrough: Proposal to Active Facility
 
