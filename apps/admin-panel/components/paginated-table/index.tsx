@@ -66,7 +66,7 @@ interface PaginatedTableProps<T> {
   pageSize: number
   fetchMore: (cursor: string) => Promise<unknown>
   onSort?: (column: keyof T, sortDirection: "ASC" | "DESC") => void
-  onFilter?: (column: keyof T, value: T[keyof T] | undefined) => void
+  onFilter?: (filters: Partial<Record<keyof T, T[keyof T]>>) => void
   onClick?: (record: T) => void
   showHeader?: boolean
   navigateTo?: (record: T) => string | null
@@ -191,8 +191,14 @@ const PaginatedTable = <T,>({
   }
 
   const handleFilter = (columnKey: keyof T, value: T[keyof T] | undefined) => {
-    setFilterState({ [columnKey]: value } as Partial<Record<keyof T, T[keyof T]>>)
-    onFilter && onFilter(columnKey, value)
+    const next = { ...filterState }
+    if (value !== undefined) {
+      next[columnKey] = value
+    } else {
+      delete next[columnKey]
+    }
+    setFilterState(next)
+    onFilter && onFilter(next)
   }
 
   const handleNextPage = async () => {

@@ -35,7 +35,6 @@ dependencies = [
  "rust_decimal",
  "serde",
  "serde_json",
- "thiserror 2.0.18",
  "tokio",
  "tower-http",
  "tracing",
@@ -465,29 +464,6 @@ dependencies = [
 
 [[package]]
 name = "axum-extra"
-version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9963ff19f40c6102c76756ef0a46004c0d58957d87259fc9208ff8441c12ab96"
-dependencies = [
- "axum",
- "axum-core",
- "bytes",
- "futures-util",
- "headers",
- "http",
- "http-body",
- "http-body-util",
- "mime",
- "pin-project-lite",
- "rustversion",
- "serde_core",
- "tower-layer",
- "tower-service",
- "tracing",
-]
-
-[[package]]
-name = "axum-extra"
 version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fef252edff26ddba56bbcdf2ee3307b8129acb86f5749b68990c168a6fcc9c76"
@@ -780,9 +756,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.13.8"
+version = "0.13.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c028b28151a67af646778d68adfd6912dd5c9175850be86f766cae268adce8f"
+checksum = "873fe93adea8fd23ff8291284fc5cbf89bfe3141da80bdda31447d86232bcdc4"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -799,9 +775,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.13.8"
+version = "0.13.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afe477952296cb55287ca283b95a51bdd81a97b1665ffbe48b612593eceda060"
+checksum = "1651800737571f862813654f52f8f2fb75cb5214f13854eb77b5bc517449d61d"
 dependencies = [
  "cached",
  "lalrpop",
@@ -811,9 +787,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.13.8"
+version = "0.13.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bae93f03735c9a890ea494db0d451f32357251bec1a587b9bcc720899460c7f0"
+checksum = "bcba3e2082bbeeac18c5bb5ca62f11a4236624678599e1e1f2a254b518f584d7"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -850,9 +826,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.13.8"
+version = "0.13.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28ec76f2b7dcf0647b892720e249fe62d94ce7bcefaeda31ef0d3a445c6d300c"
+checksum = "ee638f7ee7db149183644aa62e80b0ee7914ebb89d3a23de4be4c5aca5a21d0a"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -872,12 +848,12 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.13.8"
+version = "0.13.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7da0dc55413fdcdad4138596a977798ecde5b30608701946633d0fcbd8fc0ae"
+checksum = "f3119cc74de25420b95eae715522526301336233a96df2e969125d81f510bb72"
 dependencies = [
  "anyhow",
- "axum-extra 0.10.3",
+ "axum-extra",
  "opentelemetry",
  "opentelemetry-otlp",
  "opentelemetry-semantic-conventions",
@@ -1299,9 +1275,9 @@ dependencies = [
 
 [[package]]
 name = "convert_case"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "633458d4ef8c78b72454de2d54fd6ab2e60f9e02be22f3c6104cdc8a4e0fceb9"
+checksum = "affbf0190ed2caf063e3def54ff444b449371d55c58e513a95ab98eca50adb49"
 dependencies = [
  "unicode-segmentation",
 ]
@@ -2368,9 +2344,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.10.14"
+version = "0.10.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "838ee976055405ac3c00833affa8d543a1e23d8ddc6c1a8dc0f19a23663445d2"
+checksum = "9e50a6fcd652ce9458b253ea15430a7008e52621a726bd09ce2a251597ee803a"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -2395,9 +2371,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.10.14"
+version = "0.10.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c0905f9acb665e326233e19e26f8fe03c472b98404bf9114d993b256f647b87"
+checksum = "283fd914c5e5673666a29a1e6e8259fa0ebe30bae2a61eab1ce78d22eddbc5ff"
 dependencies = [
  "convert_case",
  "darling 0.23.0",
@@ -3541,9 +3517,9 @@ checksum = "8eaf4bc02d17cbdd7ff4c7438cafcdf7fb9a4613313ad11b4f8fefe7d3fa0130"
 
 [[package]]
 name = "job"
-version = "0.6.4"
+version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11c00f5e8a700153ad4408238bdc632b03ea9d1430db803b3b99bf5e77827d47"
+checksum = "53699e74b85ceac4f6ba910cf940ec47e4cba5adb03ee5268227c84130a044b6"
 dependencies = [
  "async-trait",
  "chrono",
@@ -3602,7 +3578,7 @@ name = "jwks-utils"
 version = "0.0.0"
 dependencies = [
  "axum",
- "axum-extra 0.12.5",
+ "axum-extra",
  "jsonwebtoken",
  "reqwest 0.12.28",
  "serde",
@@ -4233,9 +4209,9 @@ dependencies = [
 
 [[package]]
 name = "obix"
-version = "0.2.13"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ede91e9852a48e938c2fe707d25bf46ace0103c1178903234b853d6ade6a01a"
+checksum = "526e230434f0181cac243f3138350b34a693d1313fdfc79072aa2b17ce691cb7"
 dependencies = [
  "async-trait",
  "chrono",
@@ -4255,9 +4231,9 @@ dependencies = [
 
 [[package]]
 name = "obix-macros"
-version = "0.2.13"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "349ac69b402d417bc1a8810e80c5bbe26f4bf2ead83e2c38ff5176f3f4909e40"
+checksum = "dd91e3ed2cc29cfb329d02d8bd19363099d84ff55b7193d40e7fa0d720dfa092"
 dependencies = [
  "darling 0.23.0",
  "proc-macro2",
@@ -5571,9 +5547,9 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
 name = "rusty-money"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08cda49b2c0126c2672b3886d66552ce3bfa47a9bd4473a5c53acd061270bc17"
+checksum = "e8ac0a3274868e5d2615e749ad3b944d93cf846deefd46ea918a225e5d53856d"
 dependencies = [
  "rust_decimal",
 ]
@@ -6820,14 +6796,15 @@ dependencies = [
 
 [[package]]
 name = "tonic-health"
-version = "0.13.1"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb87334d340313fefa513b6e60794d44a86d5f039b523229c99c323e4e19ca4b"
+checksum = "163e5ad9be2924d9cef75f02fcd44c1803a5af250f4ef7e085992270ac51fb9b"
 dependencies = [
- "prost 0.13.5",
+ "prost 0.14.1",
  "tokio",
  "tokio-stream",
- "tonic 0.13.1",
+ "tonic 0.14.3",
+ "tonic-prost",
 ]
 
 [[package]]
@@ -7013,7 +6990,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "axum",
- "axum-extra 0.12.5",
+ "axum-extra",
  "console-subscriber",
  "es-entity",
  "opentelemetry",

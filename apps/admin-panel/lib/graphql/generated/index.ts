@@ -463,14 +463,8 @@ export enum ConfigType {
 
 export type CreditFacilitiesFilter = {
   collateralizationState?: InputMaybe<CollateralizationState>;
-  field: CreditFacilitiesFilterBy;
   status?: InputMaybe<CreditFacilityStatus>;
 };
-
-export enum CreditFacilitiesFilterBy {
-  CollateralizationState = 'COLLATERALIZATION_STATE',
-  Status = 'STATUS'
-}
 
 export type CreditFacilitiesSort = {
   by?: CreditFacilitiesSortBy;
@@ -1142,13 +1136,8 @@ export enum CustomerType {
 }
 
 export type CustomersFilter = {
-  field: CustomersFilterBy;
   kycVerification?: InputMaybe<KycVerification>;
 };
-
-export enum CustomersFilterBy {
-  AccountKycVerification = 'ACCOUNT_KYC_VERIFICATION'
-}
 
 export type CustomersSort = {
   by?: CustomersSortBy;

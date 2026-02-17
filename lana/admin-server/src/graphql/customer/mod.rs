@@ -1,5 +1,3 @@
-mod error;
-
 use async_graphql::*;
 
 use crate::primitives::*;
@@ -11,11 +9,9 @@ use super::{
 
 pub use lana_app::customer::{
     Activity, Customer as DomainCustomer, CustomerType, CustomersCursor,
-    CustomersFilter as DomainCustomersFilter, CustomersSortBy as DomainCustomersSortBy, KycLevel,
+    CustomersFilters as DomainCustomersFilters, CustomersSortBy as DomainCustomersSortBy, KycLevel,
     KycVerification, Sort,
 };
-
-pub use error::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -98,7 +94,10 @@ impl Customer {
             .list(
                 sub,
                 Default::default(),
-                DomainCreditFacilitiesFilter::WithCustomerId(self.entity.id),
+                DomainCreditFacilitiesFilters {
+                    customer_id: Some(self.entity.id),
+                    ..Default::default()
+                },
                 Sort {
                     by: DomainCreditFacilitiesSortBy::CreatedAt,
                     direction: ListDirection::Descending,
@@ -230,14 +229,8 @@ impl From<CustomersSort> for Sort<DomainCustomersSortBy> {
     }
 }
 
-#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CustomersFilterBy {
-    AccountKycVerification,
-}
-
 #[derive(InputObject)]
 pub struct CustomersFilter {
-    pub field: CustomersFilterBy,
     pub kyc_verification: Option<KycVerification>,
 }
 

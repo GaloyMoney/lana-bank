@@ -1,7 +1,6 @@
 mod balance;
 mod collateral;
 pub(super) mod disbursal;
-mod error;
 mod history;
 mod ledger_accounts;
 mod liquidation;
@@ -20,9 +19,9 @@ use super::{
 };
 pub use lana_app::{
     credit::{
-        CreditFacilitiesCursor, CreditFacilitiesFilter as DomainCreditFacilitiesFilter,
+        CreditFacilitiesCursor, CreditFacilitiesFilters as DomainCreditFacilitiesFilters,
         CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
-        CreditFacility as DomainCreditFacility, DisbursalsFilter,
+        CreditFacility as DomainCreditFacility, DisbursalsFilters,
         DisbursalsSortBy as DomainDisbursalsSortBy, ListDirection, Sort,
     },
     custody::WalletId,
@@ -33,7 +32,6 @@ pub use lana_app::{
 pub use balance::*;
 pub use collateral::*;
 pub use disbursal::*;
-pub use error::*;
 pub use history::*;
 use ledger_accounts::*;
 pub use liquidation::*;
@@ -130,7 +128,10 @@ impl CreditFacility {
             .list(
                 sub,
                 Default::default(),
-                DisbursalsFilter::WithCreditFacilityId(self.entity.id),
+                DisbursalsFilters {
+                    credit_facility_id: Some(self.entity.id),
+                    ..Default::default()
+                },
                 Sort {
                     by: DomainDisbursalsSortBy::CreatedAt,
                     direction: ListDirection::Descending,
@@ -383,15 +384,8 @@ impl From<CreditFacilitiesSort> for DomainCreditFacilitiesSortBy {
     }
 }
 
-#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CreditFacilitiesFilterBy {
-    Status,
-    CollateralizationState,
-}
-
 #[derive(InputObject)]
 pub struct CreditFacilitiesFilter {
-    pub field: CreditFacilitiesFilterBy,
     pub status: Option<CreditFacilityStatus>,
     pub collateralization_state: Option<CollateralizationState>,
 }

@@ -32,7 +32,7 @@ use entity::*;
 use error::*;
 pub use primitives::*;
 pub use public::*;
-pub use repo::{CustomerRepo, CustomersFilter, CustomersSortBy, Sort, customer_cursor::*};
+pub use repo::{CustomerRepo, CustomersFilters, CustomersSortBy, Sort, customer_cursor::*};
 
 pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document");
 
@@ -242,7 +242,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CustomersCursor>,
-        filter: CustomersFilter,
+        filter: CustomersFilters,
         sort: impl Into<Sort<CustomersSortBy>> + std::fmt::Debug,
     ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersCursor>, CustomerError> {
         self.authz
@@ -252,7 +252,7 @@ where
                 CoreCustomerAction::CUSTOMER_LIST,
             )
             .await?;
-        self.repo.list_for_filter(filter, sort.into(), query).await
+        self.repo.list_for_filters(filter, sort.into(), query).await
     }
 
     #[record_error_severity]

@@ -96,7 +96,7 @@ const CreditFacilities = () => {
     variables: {
       first: DEFAULT_PAGESIZE,
       sort: sortBy,
-      filter: filter,
+      filter,
     },
   })
 
@@ -118,13 +118,9 @@ const CreditFacilities = () => {
             direction: direction as SortDirection,
           })
         }}
-        onFilter={(column, value) => {
-          if (value)
-            setFilter({
-              field: camelToScreamingSnake(column) as CreditFacilitiesFilter["field"],
-              [column]: value,
-            })
-          else setFilter(null)
+        onFilter={(filters) => {
+          const f = filters as CreditFacilitiesFilter
+          setFilter(Object.keys(f).length > 0 ? f : null)
         }}
       />
     </div>
