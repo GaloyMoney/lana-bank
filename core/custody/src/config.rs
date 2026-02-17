@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use super::{DeprecatedEncryptionKey, EncryptionConfig, custodian::CustodyProviderConfig};
+use encryption::{EncryptionConfig, EncryptionKey};
+
+use super::custodian::CustodyProviderConfig;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
@@ -10,7 +12,7 @@ pub struct CustodyConfig {
 
     // FIXME: there is no way to pass for now
     #[serde(skip)]
-    pub deprecated_encryption_key: Option<DeprecatedEncryptionKey>,
+    pub deprecated_encryption_key: Option<EncryptionKey>,
 
     #[serde(default)]
     pub custody_providers: CustodyProviderConfig,

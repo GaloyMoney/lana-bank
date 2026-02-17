@@ -26,6 +26,7 @@ pub use publisher::CustodyPublisher;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use encryption::EncryptionKey;
 use money::Satoshis;
 
 pub use custodian::*;
@@ -140,7 +141,7 @@ where
 
         if let Ok(custodian) = custodian
             && let Some(notification) = custodian
-                .custodian_client(self.config.encryption.key, &self.config.custody_providers)?
+                .custodian_client(&self.config.encryption.key, &self.config.custody_providers)?
                 .process_webhook(&header_map, payload)
                 .await?
         {
@@ -248,10 +249,8 @@ where
             clock,
         };
 
-        if let Some(deprecated_encryption_key) = custody.config.deprecated_encryption_key.as_ref() {
-            custody
-                .rotate_encryption_key(deprecated_encryption_key)
-                .await?;
+        if let Some(deprecated_key) = custody.config.deprecated_encryption_key.as_ref() {
+            custody.rotate_encryption_key(deprecated_key).await?;
         }
 
         Ok(custody)
@@ -406,7 +405,7 @@ where
 
     async fn rotate_encryption_key(
         &self,
-        deprecated_encryption_key: &DeprecatedEncryptionKey,
+        deprecated_key: &EncryptionKey,
     ) -> Result<(), CoreCustodyError> {
         self.authz
             .audit()
@@ -423,7 +422,7 @@ where
 
         for custodian in custodians.iter_mut() {
             if custodian
-                .rotate_encryption_key(&self.config.encryption.key, deprecated_encryption_key)?
+                .rotate_encryption_key(&self.config.encryption.key, deprecated_key)?
                 .did_execute()
             {
                 self.custodians
@@ -490,7 +489,7 @@ where
             .await?;
 
         let client = custodian
-            .custodian_client(self.config.encryption.key, &self.config.custody_providers)?;
+            .custodian_client(&self.config.encryption.key, &self.config.custody_providers)?;
 
         let external_wallet = client.initialize_wallet(wallet_label).await?;
 
