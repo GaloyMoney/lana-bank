@@ -1,3 +1,13 @@
+## [0.41.2] - 2026-02-17
+
+### 🐛 Bug Fixes
+
+- Proper conditions for cold start (#3826)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.41.1 [ci skip] (#3832)
+- Reengage liquidation-related public events (#3807)
 ## [0.41.1] - 2026-02-17
 
 ### 🐛 Bug Fixes
