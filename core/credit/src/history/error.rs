@@ -8,6 +8,8 @@ pub enum CreditFacilityHistoryError {
     Sqlx(#[from] sqlx::Error),
     #[error("CreditFacilityHistoryError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("CreditFacilityHistoryError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
     #[error("CoreCreditError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
 }
@@ -17,6 +19,7 @@ impl ErrorSeverity for CreditFacilityHistoryError {
         match self {
             Self::Sqlx(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,
+            Self::RegisterEventHandler(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
         }
     }

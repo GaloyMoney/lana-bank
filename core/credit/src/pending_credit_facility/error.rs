@@ -34,6 +34,8 @@ pub enum PendingCreditFacilityError {
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreCreditError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("PendingCreditFacilityError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
 impl ErrorSeverity for PendingCreditFacilityError {
@@ -53,6 +55,7 @@ impl ErrorSeverity for PendingCreditFacilityError {
             Self::CreditFacilityProposalError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
+            Self::RegisterEventHandler(_) => Level::ERROR,
         }
     }
 }

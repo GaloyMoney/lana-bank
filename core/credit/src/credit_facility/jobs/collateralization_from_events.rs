@@ -1,6 +1,3 @@
-use futures::StreamExt;
-use serde::{Deserialize, Serialize};
-use tokio::select;
 use tracing::{Span, instrument};
 use tracing_macros::record_error_severity;
 
@@ -9,11 +6,11 @@ use std::sync::Arc;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::GovernanceEvent;
-use job::*;
-use obix::EventSequence;
 use obix::out::{
-    EphemeralOutboxEvent, Outbox, OutboxEvent, OutboxEventMarker, PersistentOutboxEvent,
+    EphemeralOutboxEvent, OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent,
 };
+
+use job::JobType;
 
 use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 use core_custody::CoreCustodyEvent;
@@ -29,20 +26,10 @@ use crate::{
     primitives::*,
 };
 
-#[derive(Serialize, Deserialize)]
-pub struct CreditFacilityCollateralizationFromEventsJobConfig<E> {
-    pub _phantom: std::marker::PhantomData<E>,
-}
+pub const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
+    JobType::new("outbox.credit-facility-collateralization");
 
-impl<E> Clone for CreditFacilityCollateralizationFromEventsJobConfig<E> {
-    fn clone(&self) -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-
-pub struct CreditFacilityCollateralizationFromEventsInit<Perms, E>
+pub struct CreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -51,7 +38,6 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    outbox: Outbox<E>,
     repo: Arc<CreditFacilityRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
     price: Arc<Price>,
@@ -59,7 +45,7 @@ where
     authz: Arc<Perms>,
 }
 
-impl<Perms, E> CreditFacilityCollateralizationFromEventsInit<Perms, E>
+impl<Perms, E> CreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -69,7 +55,6 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
-        outbox: &Outbox<E>,
         repo: Arc<CreditFacilityRepo<E>>,
         collateral_repo: Arc<CollateralRepo<E>>,
         price: Arc<Price>,
@@ -77,7 +62,6 @@ where
         authz: Arc<Perms>,
     ) -> Self {
         Self {
-            outbox: outbox.clone(),
             repo,
             collateral_repo,
             price,
@@ -87,10 +71,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
-    JobType::new("outbox.credit-facility-collateralization");
-
-impl<Perms, E> JobInitializer for CreditFacilityCollateralizationFromEventsInit<Perms, E>
+impl<Perms, E> OutboxEventHandler<E> for CreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -101,76 +82,12 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    type Config = CreditFacilityCollateralizationFromEventsJobConfig<E>;
-
-    fn job_type(&self) -> JobType {
-        CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB
-    }
-
-    fn init(
+    #[instrument(name = "core_credit.collateralization_job.process_persistent_message", parent = None, skip(self, _op, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
+    async fn handle_persistent(
         &self,
-        _job: &Job,
-        _: JobSpawner<Self::Config>,
-    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityCollateralizationFromEventsRunner::<
-            Perms,
-            E,
-        > {
-            outbox: self.outbox.clone(),
-            repo: self.repo.clone(),
-            collateral_repo: self.collateral_repo.clone(),
-            price: self.price.clone(),
-            ledger: self.ledger.clone(),
-            authz: self.authz.clone(),
-        }))
-    }
-
-    fn retry_on_error_settings(&self) -> RetrySettings
-    where
-        Self: Sized,
-    {
-        RetrySettings::repeat_indefinitely()
-    }
-}
-
-#[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
-struct CreditFacilityCollateralizationFromEventsData {
-    sequence: EventSequence,
-}
-
-pub struct CreditFacilityCollateralizationFromEventsRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    outbox: Outbox<E>,
-    repo: Arc<CreditFacilityRepo<E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
-    price: Arc<Price>,
-    ledger: Arc<CreditLedger>,
-    authz: Arc<Perms>,
-}
-
-impl<Perms, E> CreditFacilityCollateralizationFromEventsRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    #[instrument(name = "core_credit.collateralization_job.process_persistent_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
-    async fn process_persistent_message(
-        &self,
+        _op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(event @ CoreCreditEvent::FacilityCollateralUpdated { entity }) =
             message.as_event()
         {
@@ -209,10 +126,10 @@ where
 
     #[instrument(name = "core_credit.credit_facility_collateralization_job.process_ephemeral_message", parent = None, skip(self, message), fields(handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
-    async fn process_ephemeral_message(
+    async fn handle_ephemeral(
         &self,
         message: &EphemeralOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         match message.payload.as_event() {
             Some(CorePriceEvent::PriceUpdated { price, .. }) => {
                 message.inject_trace_parent();
@@ -226,7 +143,19 @@ where
         }
         Ok(())
     }
+}
 
+impl<Perms, E> CreditFacilityCollateralizationFromEventsHandler<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
+{
     #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_events",
@@ -355,62 +284,5 @@ where
             }
         }
         Ok(())
-    }
-}
-
-#[async_trait::async_trait]
-impl<Perms, E> JobRunner for CreditFacilityCollateralizationFromEventsRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<CreditFacilityCollateralizationFromEventsData>()?
-            .unwrap_or_default();
-        let mut stream = self.outbox.listen_all(Some(state.sequence));
-
-        loop {
-            select! {
-                biased;
-
-                _ = current_job.shutdown_requested() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
-                }
-                event = stream.next() => {
-                    match event {
-                        Some(event) => {
-                            match event {
-                                OutboxEvent::Persistent(e) => {
-                                    self.process_persistent_message(&e).await?;
-                                    state.sequence = e.sequence;
-                                    current_job.update_execution_state(state).await?;
-                                }
-                                OutboxEvent::Ephemeral(e) => {
-                                    self.process_ephemeral_message(e.as_ref()).await?;
-                                }
-                            }
-                        } None => {
-                            return Ok(JobCompletion::RescheduleNow);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

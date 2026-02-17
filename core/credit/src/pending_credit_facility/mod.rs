@@ -10,7 +10,7 @@ use authz::PermissionCheck;
 use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -129,19 +129,18 @@ where
             clock.clone(),
         ));
 
-        let spawner = jobs.add_initializer(
-            jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::new(
-                outbox,
-                repo_arc.clone(),
-                collateral_repo_arc,
-                price.clone(),
-                ledger.clone(),
-            ),
-        );
-
-        spawner.spawn_unique(job::JobId::new(), jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsJobConfig::<E>{
-            _phantom: std::marker::PhantomData
-        }).await?;
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(jobs::collateralization_from_events_for_pending_facility::PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB),
+                jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsHandler::new(
+                    repo_arc.clone(),
+                    collateral_repo_arc,
+                    price.clone(),
+                    ledger.clone(),
+                ),
+            )
+            .await?;
 
         Ok(Self {
             repo: repo_arc,

@@ -1,15 +1,12 @@
-use async_trait::async_trait;
-use futures::StreamExt;
-use serde::{Deserialize, Serialize};
-use tokio::select;
 use tracing::{Span, instrument};
 use tracing_macros::record_error_severity;
 
 use std::sync::Arc;
 
 use audit::SystemSubject;
-use job::*;
-use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
+
+use job::JobType;
 
 use core_custody::CoreCustodyEvent;
 
@@ -18,61 +15,25 @@ use crate::{
     collateral::{CollateralError, CollateralRepo, ledger::CollateralLedger},
 };
 
-#[derive(Serialize, Deserialize)]
-pub struct WalletCollateralSyncJobConfig<S, E> {
-    _phantom: std::marker::PhantomData<(S, E)>,
-}
+pub const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-collateral-sync");
 
-impl<S, E> Clone for WalletCollateralSyncJobConfig<S, E> {
-    fn clone(&self) -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-
-impl<S, E> WalletCollateralSyncJobConfig<S, E> {
-    pub fn new() -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-
-impl<S, E> Default for WalletCollateralSyncJobConfig<S, E> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
-struct WalletCollateralSyncJobData {
-    sequence: obix::EventSequence,
-}
-
-pub struct WalletCollateralSyncInit<S, E>
+pub struct WalletCollateralSyncHandler<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
-    outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
     _phantom: std::marker::PhantomData<S>,
 }
 
-impl<S, E> WalletCollateralSyncInit<S, E>
+impl<S, E> WalletCollateralSyncHandler<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCustodyEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        ledger: Arc<CollateralLedger>,
-        repo: Arc<CollateralRepo<E>>,
-    ) -> Self {
+    pub fn new(ledger: Arc<CollateralLedger>, repo: Arc<CollateralRepo<E>>) -> Self {
         Self {
-            outbox: outbox.clone(),
             ledger,
             repo,
             _phantom: std::marker::PhantomData,
@@ -80,66 +41,23 @@ where
     }
 }
 
-const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-collateral-sync");
-impl<S, E> JobInitializer for WalletCollateralSyncInit<S, E>
-where
-    S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCustodyEvent> + OutboxEventMarker<CoreCreditEvent>,
-{
-    type Config = WalletCollateralSyncJobConfig<S, E>;
-
-    fn job_type(&self) -> JobType {
-        WALLET_COLLATERAL_SYNC_JOB
-    }
-
-    fn init(
-        &self,
-        _job: &Job,
-        _: JobSpawner<Self::Config>,
-    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(WalletCollateralSyncJobRunner::<S, E> {
-            outbox: self.outbox.clone(),
-            repo: self.repo.clone(),
-            ledger: self.ledger.clone(),
-            _phantom: std::marker::PhantomData,
-        }))
-    }
-
-    fn retry_on_error_settings(&self) -> RetrySettings
-    where
-        Self: Sized,
-    {
-        RetrySettings::repeat_indefinitely()
-    }
-}
-
-pub struct WalletCollateralSyncJobRunner<S, E>
+impl<S, E> OutboxEventHandler<E> for WalletCollateralSyncHandler<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
-    repo: Arc<CollateralRepo<E>>,
-    ledger: Arc<CollateralLedger>,
-    outbox: Outbox<E>,
-    _phantom: std::marker::PhantomData<S>,
-}
-
-impl<S, E> WalletCollateralSyncJobRunner<S, E>
-where
-    S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
-{
-    #[instrument(name = "core_credit.wallet_collateral_sync_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-    async fn process_message(
+    #[instrument(name = "core_credit.wallet_collateral_sync_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn handle_persistent(
         &self,
-        message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+        _op: &mut es_entity::DbOp<'_>,
+        event: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         #[allow(clippy::single_match)]
-        match message.as_event() {
-            Some(event @ CoreCustodyEvent::WalletBalanceUpdated { entity }) => {
-                message.inject_trace_parent();
+        match event.as_event() {
+            Some(e @ CoreCustodyEvent::WalletBalanceUpdated { entity }) => {
+                event.inject_trace_parent();
                 Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
+                Span::current().record("event_type", e.as_ref());
 
                 let balance = entity
                     .balance
@@ -157,7 +75,13 @@ where
         }
         Ok(())
     }
+}
 
+impl<S, E> WalletCollateralSyncHandler<S, E>
+where
+    S: SystemSubject + Send + Sync + 'static,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+{
     #[record_error_severity]
     #[instrument(
         name = "collateral.record_collateral_update_via_custodian_sync",
@@ -193,50 +117,5 @@ where
         }
 
         Ok(())
-    }
-}
-
-#[async_trait]
-impl<S, E> JobRunner for WalletCollateralSyncJobRunner<S, E>
-where
-    S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
-{
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<WalletCollateralSyncJobData>()?
-            .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
-
-        loop {
-            select! {
-                biased;
-
-                _ = current_job.shutdown_requested() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %WALLET_COLLATERAL_SYNC_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
-                }
-                message = stream.next() => {
-                    match message {
-                        Some(message) => {
-                            self.process_message(message.as_ref()).await?;
-                            state.sequence = message.sequence;
-                            current_job.update_execution_state(&state).await?;
-                        }
-                        None => {
-                            return Ok(JobCompletion::RescheduleNow);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

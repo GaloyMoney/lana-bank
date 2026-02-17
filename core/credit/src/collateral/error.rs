@@ -17,6 +17,8 @@ pub enum CollateralError {
     NoActiveLiquidation,
     #[error("CollateralError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("CollateralError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
     #[error("CollateralError - LiquidationError: {0}")]
     LiquidationError(#[from] super::liquidation::LiquidationError),
     #[error("CollateralError - AuthorizationError: {0}")]
@@ -33,6 +35,7 @@ impl ErrorSeverity for CollateralError {
             Self::ManualUpdateError => Level::WARN,
             Self::NoActiveLiquidation => Level::WARN,
             Self::JobError(_) => Level::ERROR,
+            Self::RegisterEventHandler(_) => Level::ERROR,
             Self::LiquidationError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
         }

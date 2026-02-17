@@ -17,7 +17,7 @@ use core_custody::CoreCustodyEvent;
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
 use money::UsdCents;
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use crate::{
     FacilityProceedsFromLiquidationAccountId,
@@ -110,19 +110,14 @@ where
         let clock = jobs.clock().clone();
         let repo_arc = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
 
-        let wallet_collateral_sync_job_spawner =
-            jobs.add_initializer(wallet_collateral_sync::WalletCollateralSyncInit::<
-                <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-                E,
-            >::new(outbox, ledger.clone(), repo_arc.clone()));
-
-        wallet_collateral_sync_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                wallet_collateral_sync::WalletCollateralSyncJobConfig::<
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(wallet_collateral_sync::WALLET_COLLATERAL_SYNC_JOB),
+                wallet_collateral_sync::WalletCollateralSyncHandler::<
                     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
                     E,
-                >::new(),
+                >::new(ledger.clone(), repo_arc.clone()),
             )
             .await?;
 
@@ -140,19 +135,17 @@ where
                 credit_facility_repo.clone(),
             ));
 
-        let collateral_liquidations_job_spawner = jobs.add_initializer(
-            collateral_liquidations::CreditFacilityLiquidationsInit::new(
-                outbox,
-                repo_arc.clone(),
-                liquidation_proceeds_omnibus_account_id,
-                liquidation_payment_job_spawner,
-            ),
-        );
-
-        collateral_liquidations_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                collateral_liquidations::CreditFacilityLiquidationsJobConfig,
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(
+                    collateral_liquidations::CREDIT_FACILITY_LIQUIDATIONS_JOB,
+                ),
+                collateral_liquidations::CreditFacilityLiquidationsHandler::new(
+                    repo_arc.clone(),
+                    liquidation_proceeds_omnibus_account_id,
+                    liquidation_payment_job_spawner,
+                ),
             )
             .await?;
 

@@ -6,7 +6,7 @@ mod repo;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -213,16 +213,11 @@ where
     {
         let repo = Arc::new(HistoryRepo::new(pool));
 
-        let job_init = credit_facility_history::HistoryProjectionInit::new(outbox, repo.clone());
-
-        let spawner = job.add_initializer(job_init);
-
-        spawner
-            .spawn_unique(
-                job::JobId::new(),
-                credit_facility_history::HistoryProjectionConfig {
-                    _phantom: std::marker::PhantomData,
-                },
+        outbox
+            .register_event_handler(
+                job,
+                OutboxEventJobConfig::new(credit_facility_history::HISTORY_PROJECTION),
+                credit_facility_history::HistoryProjectionHandler::new(repo.clone()),
             )
             .await?;
 

@@ -14,7 +14,7 @@ use core_price::{CorePriceEvent, Price};
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use crate::{
     CoreCreditEvent, PublicIds,
@@ -138,26 +138,22 @@ where
 
         let collateral_repo = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
 
-        let collateralization_from_events_spawner = jobs.add_initializer(
-            jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
-                Perms,
-                E,
-            >::new(
-                outbox,
-                repo_arc.clone(),
-                collateral_repo.clone(),
-                price.clone(),
-                ledger.clone(),
-                authz.clone(),
-            ),
-        );
-
-        collateralization_from_events_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig::<E> {
-                    _phantom: std::marker::PhantomData,
-                },
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(
+                    jobs::collateralization_from_events::CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB,
+                ),
+                jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsHandler::<
+                    Perms,
+                    E,
+                >::new(
+                    repo_arc.clone(),
+                    collateral_repo.clone(),
+                    price.clone(),
+                    ledger.clone(),
+                    authz.clone(),
+                ),
             )
             .await?;
 

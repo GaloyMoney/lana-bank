@@ -58,6 +58,8 @@ pub enum CoreCreditError {
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CoreCreditError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("CoreCreditError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
     #[error("CoreCreditError - CustomerMismatchForCreditFacility")]
     CustomerMismatchForCreditFacility,
     #[error("CoreCreditError - SubjectIsNotCustomer")]
@@ -98,6 +100,7 @@ impl ErrorSeverity for CoreCreditError {
             Self::PriceError(e) => e.severity(),
             Self::GovernanceError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
+            Self::RegisterEventHandler(_) => Level::ERROR,
             Self::CustomerMismatchForCreditFacility => Level::ERROR,
             Self::SubjectIsNotCustomer => Level::WARN,
             Self::CustomerNotVerified => Level::WARN,

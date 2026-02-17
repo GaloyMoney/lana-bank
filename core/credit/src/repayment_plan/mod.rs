@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use obix::EventSequence;
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use crate::{CoreCreditCollectionEvent, CoreCreditEvent, primitives::*};
 use audit::AuditSvc;
@@ -351,17 +351,13 @@ where
     {
         let repo = Arc::new(RepaymentPlanRepo::new(pool));
 
-        let job_init =
-            credit_facility_repayment_plan::RepaymentPlanProjectionInit::new(outbox, repo.clone());
-
-        let spawner = jobs.add_initializer(job_init);
-
-        spawner
-            .spawn_unique(
-                job::JobId::new(),
-                credit_facility_repayment_plan::RepaymentPlanProjectionConfig {
-                    _phantom: std::marker::PhantomData,
-                },
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(
+                    credit_facility_repayment_plan::REPAYMENT_PLAN_PROJECTION,
+                ),
+                credit_facility_repayment_plan::RepaymentPlanProjectionHandler::new(repo.clone()),
             )
             .await?;
 
