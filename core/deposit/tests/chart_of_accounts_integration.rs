@@ -1,15 +1,20 @@
 mod helpers;
 
+use rand::Rng;
+use std::collections::HashMap;
+
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
-use core_accounting::CoreAccounting;
+use core_accounting::{AccountCode, CalaAccountSetId, CoreAccounting};
 use core_customer::Customers;
 use core_deposit::*;
 use document_storage::DocumentStorage;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
-use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, event, object};
-use rand::Rng;
+use helpers::{
+    BASE_ACCOUNTS_CSV, action, assert_attached_for_code, default_accounting_base_config, event,
+    object, resolve_account_set_ids, resolve_omnibus_account_set_ids,
+};
 
 const DEPOSIT_ACCOUNTS_CSV: &str = r#"
 11,,,Omnibus Parent,,
@@ -21,6 +26,36 @@ const DEPOSIT_ACCOUNTS_CSV: &str = r#"
 26,,,Government Entity Deposit Accounts,,
 27,,,Frozen Deposit Accounts,,
 "#;
+
+async fn assert_deposit_pairs(
+    cala: &CalaLedger,
+    chart: &core_accounting::Chart,
+    account_set_ids: &HashMap<&'static str, CalaAccountSetId>,
+    pairs: &[(&AccountCode, DepositSummaryAccountSetSpec)],
+) -> anyhow::Result<()> {
+    for (code, spec) in pairs {
+        let id = *account_set_ids
+            .get(spec.external_ref)
+            .expect("missing deposit account set ref");
+        assert_attached_for_code(cala, chart, code, id).await?;
+    }
+    Ok(())
+}
+
+async fn assert_omnibus_pairs(
+    cala: &CalaLedger,
+    chart: &core_accounting::Chart,
+    account_set_ids: &HashMap<&'static str, CalaAccountSetId>,
+    pairs: &[(&AccountCode, DepositOmnibusAccountSetSpec)],
+) -> anyhow::Result<()> {
+    for (code, spec) in pairs {
+        let id = *account_set_ids
+            .get(spec.account_set_ref)
+            .expect("missing omnibus account set ref");
+        assert_attached_for_code(cala, chart, code, id).await?;
+    }
+    Ok(())
+}
 
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
@@ -126,47 +161,114 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
 
+    let chart_of_accounts_config = ChartOfAccountsIntegrationConfig {
+        chart_of_accounts_id: chart_id,
+        chart_of_accounts_omnibus_parent_code: "11".parse().unwrap(),
+        chart_of_accounts_individual_deposit_accounts_parent_code: "21".parse().unwrap(),
+        chart_of_accounts_government_entity_deposit_accounts_parent_code: "26".parse().unwrap(),
+        chart_of_account_private_company_deposit_accounts_parent_code: "22".parse().unwrap(),
+        chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
+        chart_of_account_financial_institution_deposit_accounts_parent_code: "24".parse().unwrap(),
+        chart_of_account_non_domiciled_company_deposit_accounts_parent_code: "25".parse().unwrap(),
+        chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27".parse().unwrap(),
+        chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
+            .parse()
+            .unwrap(),
+        chart_of_account_frozen_private_company_deposit_accounts_parent_code: "27".parse().unwrap(),
+        chart_of_account_frozen_bank_deposit_accounts_parent_code: "27".parse().unwrap(),
+        chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
+            .parse()
+            .unwrap(),
+        chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code: "27"
+            .parse()
+            .unwrap(),
+    };
+
     deposit
         .chart_of_accounts_integrations()
-        .set_config(
-            &DummySubject,
-            &chart,
-            ChartOfAccountsIntegrationConfig {
-                chart_of_accounts_id: chart_id,
-                chart_of_accounts_omnibus_parent_code: "11".parse().unwrap(),
-                chart_of_accounts_individual_deposit_accounts_parent_code: "21".parse().unwrap(),
-                chart_of_accounts_government_entity_deposit_accounts_parent_code: "26"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_private_company_deposit_accounts_parent_code: "22"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
-                chart_of_account_financial_institution_deposit_accounts_parent_code: "24"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "25"
-                    .parse()
-                    .unwrap(),
-                chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_frozen_private_company_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_frozen_bank_deposit_accounts_parent_code: "27".parse().unwrap(),
-                chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-            },
-        )
+        .set_config(&DummySubject, &chart, chart_of_accounts_config.clone())
         .await?;
+
+    let catalog = DEPOSIT_ACCOUNT_SET_CATALOG;
+    let deposit_account_set_ids =
+        resolve_account_set_ids(&cala, journal_id, catalog.deposit_specs()).await?;
+    let frozen_account_set_ids =
+        resolve_account_set_ids(&cala, journal_id, catalog.frozen_specs()).await?;
+    let omnibus_account_set_ids =
+        resolve_omnibus_account_set_ids(&cala, journal_id, catalog.omnibus_specs()).await?;
+    let deposit_catalog = catalog.deposit();
+    let frozen = catalog.frozen();
+    let omnibus = catalog.omnibus();
+
+    let omnibus_pairs = [(
+        &chart_of_accounts_config.chart_of_accounts_omnibus_parent_code,
+        *omnibus,
+    )];
+    assert_omnibus_pairs(&cala, &chart, &omnibus_account_set_ids, &omnibus_pairs).await?;
+
+    let deposit_pairs = [
+        (
+            &chart_of_accounts_config.chart_of_accounts_individual_deposit_accounts_parent_code,
+            deposit_catalog.individual,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_accounts_government_entity_deposit_accounts_parent_code,
+            deposit_catalog.government_entity,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_private_company_deposit_accounts_parent_code,
+            deposit_catalog.private_company,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_bank_deposit_accounts_parent_code,
+            deposit_catalog.bank,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_financial_institution_deposit_accounts_parent_code,
+            deposit_catalog.financial_institution,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_non_domiciled_company_deposit_accounts_parent_code,
+            deposit_catalog.non_domiciled_company,
+        ),
+    ];
+    assert_deposit_pairs(&cala, &chart, &deposit_account_set_ids, &deposit_pairs).await?;
+
+    let frozen_pairs = [
+        (
+            &chart_of_accounts_config
+                .chart_of_accounts_frozen_individual_deposit_accounts_parent_code,
+            frozen.individual,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code,
+            frozen.government_entity,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_frozen_private_company_deposit_accounts_parent_code,
+            frozen.private_company,
+        ),
+        (
+            &chart_of_accounts_config.chart_of_account_frozen_bank_deposit_accounts_parent_code,
+            frozen.bank,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_frozen_financial_institution_deposit_accounts_parent_code,
+            frozen.financial_institution,
+        ),
+        (
+            &chart_of_accounts_config
+                .chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code,
+            frozen.non_domiciled_company,
+        ),
+    ];
+    assert_deposit_pairs(&cala, &chart, &frozen_account_set_ids, &frozen_pairs).await?;
 
     let res = cala
         .account_sets()
@@ -225,9 +327,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         chart_of_account_private_company_deposit_accounts_parent_code: "22".parse().unwrap(),
         chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
         chart_of_account_financial_institution_deposit_accounts_parent_code: "24".parse().unwrap(),
-        chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "25"
-            .parse()
-            .unwrap(),
+        chart_of_account_non_domiciled_company_deposit_accounts_parent_code: "25".parse().unwrap(),
         chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27".parse().unwrap(),
         chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
             .parse()
@@ -237,7 +337,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
             .parse()
             .unwrap(),
-        chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "27"
+        chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code: "27"
             .parse()
             .unwrap(),
     };

@@ -32,13 +32,13 @@ gql`
         chartOfAccountPrivateCompanyDepositAccountsParentCode
         chartOfAccountBankDepositAccountsParentCode
         chartOfAccountFinancialInstitutionDepositAccountsParentCode
-        chartOfAccountNonDomiciledIndividualDepositAccountsParentCode
+        chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
         chartOfAccountsFrozenIndividualDepositAccountsParentCode
         chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode
         chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode
         chartOfAccountFrozenBankDepositAccountsParentCode
         chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode
-        chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode
+        chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode
       }
     }
   }
@@ -57,13 +57,13 @@ const initialFormData: DepositModuleConfigureInput = {
   chartOfAccountPrivateCompanyDepositAccountsParentCode: "",
   chartOfAccountBankDepositAccountsParentCode: "",
   chartOfAccountFinancialInstitutionDepositAccountsParentCode: "",
-  chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: "",
+  chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: "",
   chartOfAccountsFrozenIndividualDepositAccountsParentCode: "",
   chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: "",
   chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: "",
   chartOfAccountFrozenBankDepositAccountsParentCode: "",
   chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode: "",
-  chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode: "",
+  chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode: "",
 }
 
 const depositModuleCodes = {
@@ -73,13 +73,13 @@ const depositModuleCodes = {
   chartOfAccountPrivateCompanyDepositAccountsParentCode: "2110.01.0301",
   chartOfAccountBankDepositAccountsParentCode: "2110.01.0501",
   chartOfAccountFinancialInstitutionDepositAccountsParentCode: "2110.01.0601",
-  chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: "2110.01.0901",
+  chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: "2110.01.0901",
   chartOfAccountsFrozenIndividualDepositAccountsParentCode: "2114.03.0401",
   chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode: "2114.03.0201",
   chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: "2114.03.0301",
   chartOfAccountFrozenBankDepositAccountsParentCode: "2114.03.0501",
   chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode: "2114.03.0601",
-  chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode: "2114.03.0701",
+  chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode: "2114.03.0701",
 }
 
 export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps> = ({
@@ -111,13 +111,13 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
       depositModuleConfig.chartOfAccountPrivateCompanyDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountBankDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountFinancialInstitutionDepositAccountsParentCode &&
-      depositModuleConfig.chartOfAccountNonDomiciledIndividualDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountNonDomiciledCompanyDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountsFrozenIndividualDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountFrozenBankDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode &&
-      depositModuleConfig.chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode
+      depositModuleConfig.chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode
     ) {
       setFormData({
         chartOfAccountsOmnibusParentCode:
@@ -132,8 +132,8 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
           depositModuleConfig.chartOfAccountBankDepositAccountsParentCode,
         chartOfAccountFinancialInstitutionDepositAccountsParentCode:
           depositModuleConfig.chartOfAccountFinancialInstitutionDepositAccountsParentCode,
-        chartOfAccountNonDomiciledIndividualDepositAccountsParentCode:
-          depositModuleConfig.chartOfAccountNonDomiciledIndividualDepositAccountsParentCode,
+        chartOfAccountNonDomiciledCompanyDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountNonDomiciledCompanyDepositAccountsParentCode,
         chartOfAccountsFrozenIndividualDepositAccountsParentCode:
           depositModuleConfig.chartOfAccountsFrozenIndividualDepositAccountsParentCode,
         chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode:
@@ -144,8 +144,8 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
           depositModuleConfig.chartOfAccountFrozenBankDepositAccountsParentCode,
         chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode:
           depositModuleConfig.chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode,
-        chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode:
-          depositModuleConfig.chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode,
+        chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode,
       })
     }
   }, [depositModuleConfig])

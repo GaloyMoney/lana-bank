@@ -1,3 +1,9 @@
+pub(crate) mod account_sets;
+pub use account_sets::{
+    DEPOSIT_ACCOUNT_SET_CATALOG, DepositAccountSetCatalog, DepositOmnibusAccountSetSpec,
+    DepositSummaryAccountSetSpec,
+};
+
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
