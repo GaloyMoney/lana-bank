@@ -7,6 +7,8 @@ use es_entity::*;
 
 use crate::primitives::*;
 
+use super::RecordProceedsFromLiquidationData;
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -28,7 +30,6 @@ pub enum LiquidationEvent {
         payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
     },
-    Completed {},
 }
 
 #[derive(EsEntity, Builder)]
@@ -50,7 +51,10 @@ impl Liquidation {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn record_collateral_sent_out(&mut self, amount_sent: Satoshis) -> Idempotent<LedgerTxId> {
+    pub(in crate::collateral) fn record_collateral_sent_out(
+        &mut self,
+        amount_sent: Satoshis,
+    ) -> Idempotent<LedgerTxId> {
         self.sent_total += amount_sent;
 
         let ledger_tx_id = LedgerTxId::new();
@@ -62,10 +66,10 @@ impl Liquidation {
         Idempotent::Executed(ledger_tx_id)
     }
 
-    pub fn record_proceeds_from_liquidation_and_complete(
+    pub(in crate::collateral) fn record_proceeds_from_liquidation_and_complete(
         &mut self,
         amount_received: UsdCents,
-    ) -> Idempotent<LedgerTxId> {
+    ) -> Idempotent<RecordProceedsFromLiquidationData> {
         idempotency_guard!(
             self.events.iter_all(),
             LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { .. },
@@ -74,21 +78,27 @@ impl Liquidation {
         self.amount_received = amount_received;
 
         let ledger_tx_id = LedgerTxId::new();
+        let payment_id = PaymentId::new();
         self.events
             .push(LiquidationEvent::ProceedsReceivedAndLiquidationCompleted {
                 amount: amount_received,
-                payment_id: PaymentId::new(),
+                payment_id,
                 ledger_tx_id,
             });
 
-        Idempotent::Executed(ledger_tx_id)
+        Idempotent::Executed(RecordProceedsFromLiquidationData::new(
+            ledger_tx_id,
+            payment_id,
+        ))
     }
 
     pub fn is_completed(&self) -> bool {
-        self.events
-            .iter_all()
-            .rev()
-            .any(|e| matches!(e, LiquidationEvent::Completed { .. }))
+        self.events.iter_all().rev().any(|e| {
+            matches!(
+                e,
+                LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { .. }
+            )
+        })
     }
 
     pub fn collateral_sent_out(&self) -> Vec<(Satoshis, LedgerTxId)> {
@@ -145,7 +155,6 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { amount, .. } => {
                     amount_received = *amount;
                 }
-                LiquidationEvent::Completed { .. } => {}
             }
         }
 

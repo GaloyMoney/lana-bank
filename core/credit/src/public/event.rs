@@ -7,10 +7,7 @@ use schemars::JsonSchema;
 use core_credit_terms::collateralization::CollateralizationState;
 use money::{Satoshis, UsdCents};
 
-use crate::{
-    credit_facility::CreditFacilityReceivable, ledger::FacilityProceedsFromLiquidationAccountId,
-    primitives::*,
-};
+use crate::{credit_facility::CreditFacilityReceivable, primitives::*};
 
 use super::{
     PublicCollateral, PublicCreditFacility, PublicCreditFacilityProposal, PublicDisbursal,
@@ -66,8 +63,6 @@ pub enum CoreCreditEvent {
     PartialLiquidationInitiated {
         entity: PublicCreditFacility,
     },
-
-    // TODO: revisit these event they don't have publisher yet.
     PartialLiquidationCollateralSentOut {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
@@ -81,9 +76,6 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         payment_id: PaymentId,
-        facility_payment_holding_account_id: CalaAccountId,
-        facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
-        facility_uncovered_outstanding_account_id: CalaAccountId,
         ledger_tx_id: LedgerTxId,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,

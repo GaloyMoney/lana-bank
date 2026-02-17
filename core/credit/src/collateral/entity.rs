@@ -10,14 +10,14 @@ use es_entity::*;
 
 use crate::primitives::{
     CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    LiquidationId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
+    LiquidationId, PaymentId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
 };
 
 use super::{
-    CollateralUpdate,
+    CollateralUpdate, RecordProceedsFromLiquidationData,
     error::CollateralError,
     ledger::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds},
-    liquidation::{Liquidation, NewLiquidation, RecordProceedsFromLiquidationData},
+    liquidation::{Liquidation, NewLiquidation},
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -45,6 +45,7 @@ pub enum CollateralEvent {
         direction: CollateralDirection,
     },
     UpdatedViaLiquidation {
+        ledger_tx_id: LedgerTxId,
         liquidation_id: LiquidationId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
@@ -53,6 +54,12 @@ pub enum CollateralEvent {
     LiquidationStarted {
         liquidation_id: LiquidationId,
         account_ids: LiquidationProceedsAccountIds,
+    },
+    LiquidationProceedsReceived {
+        ledger_tx_id: LedgerTxId,
+        payment_id: PaymentId,
+        liquidation_id: LiquidationId,
+        amount: UsdCents,
     },
     LiquidationCompleted {
         liquidation_id: LiquidationId,
@@ -100,6 +107,12 @@ impl Collateral {
                 ..
             }
             | CollateralEvent::UpdatedViaCustodianSync {
+                ledger_tx_id,
+                abs_diff,
+                direction,
+                ..
+            }
+            | CollateralEvent::UpdatedViaLiquidation {
                 ledger_tx_id,
                 abs_diff,
                 direction,
@@ -212,6 +225,7 @@ impl Collateral {
             liquidation_id,
             abs_diff: amount_sent,
             collateral_amount: new_amount,
+            ledger_tx_id: tx_id,
             direction: CollateralDirection::Remove,
         });
         self.amount = new_amount;
@@ -228,16 +242,24 @@ impl Collateral {
         &mut self,
         amount_received: UsdCents,
     ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, CollateralError> {
-        let (ledger_tx_id, liquidation_id, sent_total) = {
+        let (data, liquidation_id, sent_total) = {
             let liquidation = self
                 .active_liquidation()
                 .ok_or(CollateralError::NoActiveLiquidation)?;
 
-            let ledger_tx_id = liquidation
+            let data = liquidation
                 .record_proceeds_from_liquidation_and_complete(amount_received)
                 .expect("Active liquidation in incorrect \"completed\" state");
-            (ledger_tx_id, liquidation.id, liquidation.sent_total)
+            (data, liquidation.id, liquidation.sent_total)
         };
+
+        self.events
+            .push(CollateralEvent::LiquidationProceedsReceived {
+                liquidation_id,
+                amount: amount_received,
+                ledger_tx_id: data.ledger_tx_id,
+                payment_id: data.payment_id,
+            });
 
         self.events
             .push(CollateralEvent::LiquidationCompleted { liquidation_id });
@@ -247,7 +269,7 @@ impl Collateral {
                 self.account_ids.into(),
                 amount_received,
                 sent_total,
-                ledger_tx_id,
+                data.ledger_tx_id,
             ),
         ))
     }
@@ -363,6 +385,7 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     builder = builder.amount(*new_value);
                 }
                 CollateralEvent::LiquidationStarted { .. } => {}
+                CollateralEvent::LiquidationProceedsReceived { .. } => {}
                 CollateralEvent::LiquidationCompleted { .. } => {}
             }
         }

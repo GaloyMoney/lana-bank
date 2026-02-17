@@ -161,9 +161,6 @@ where
                     credit_facility_id,
                     liquidation_id,
                     payment_id,
-                    facility_payment_holding_account_id,
-                    facility_proceeds_from_liquidation_account_id,
-                    facility_uncovered_outstanding_account_id,
                     ..
                 },
             ) if *liquidation_id == self.config.liquidation_id => {
@@ -172,11 +169,19 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
 
+                let account_ids = self
+                    .credit_facility_repo
+                    .find_by_id_in_op(db, credit_facility_id)
+                    .await?
+                    .account_ids;
+
                 let payment_ledger_account_ids = PaymentLedgerAccountIds {
-                    facility_payment_holding_account_id: *facility_payment_holding_account_id,
-                    facility_uncovered_outstanding_account_id:
-                        *facility_uncovered_outstanding_account_id,
-                    payment_source_account_id: facility_proceeds_from_liquidation_account_id.into(),
+                    facility_payment_holding_account_id: account_ids.payment_holding_account_id,
+                    facility_uncovered_outstanding_account_id: account_ids
+                        .uncovered_outstanding_account_id,
+                    payment_source_account_id: account_ids
+                        .proceeds_from_liquidation_account_id
+                        .into(),
                 };
 
                 self.collections

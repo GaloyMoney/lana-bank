@@ -96,18 +96,6 @@
         "ledger_tx_id"
       ],
       "type": "object"
-    },
-    {
-      "properties": {
-        "type": {
-          "const": "completed",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type"
-      ],
-      "type": "object"
     }
   ],
   "title": "LiquidationEvent"
