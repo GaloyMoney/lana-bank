@@ -290,7 +290,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
               <Button variant="outline" type="button" onClick={close}>
                 {tCommon("cancel")}
               </Button>
-              <Button loading={loading} type="submit" disabled={!hasChanges || loading}>
+              <Button type="submit" disabled={!hasChanges}>
                 {tCommon("review")}
               </Button>
             </DialogFooter>
