@@ -189,10 +189,6 @@ where
                 Span::current().record("event_type", credit_event.as_ref());
 
                 let collateralization = &entity.collateralization;
-                let outstanding = collateralization
-                    .outstanding
-                    .as_ref()
-                    .expect("outstanding must be set for FacilityCollateralizationChanged");
                 let effective = message.recorded_at.date_naive();
                 self.email_notification
                     .send_under_margin_call_notification_in_op(
@@ -200,14 +196,10 @@ where
                         &entity.id,
                         &entity.customer_id,
                         &effective,
-                        &collateralization
-                            .collateral
-                            .expect("collateral must be set for FacilityCollateralizationChanged"),
-                        &outstanding.disbursed,
-                        &outstanding.interest,
-                        &collateralization
-                            .price_at_state_change
-                            .expect("price must be set for FacilityCollateralizationChanged"),
+                        &collateralization.collateral,
+                        &collateralization.outstanding.disbursed,
+                        &collateralization.outstanding.interest,
+                        &collateralization.price_at_state_change,
                     )
                     .await?;
             }

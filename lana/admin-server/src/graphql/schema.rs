@@ -2635,25 +2635,16 @@ impl Subscription {
                     if entity.id == credit_facility_id =>
                 {
                     let collateralization = &entity.collateralization;
-                    let outstanding = collateralization
-                        .outstanding
-                        .as_ref()
-                        .expect("outstanding must be set for FacilityCollateralizationChanged");
                     Some(CreditFacilityCollateralizationPayload {
                         credit_facility_id,
                         update: CreditFacilityCollateralizationUpdated {
                             state: collateralization.state,
-                            collateral: collateralization.collateral.expect(
-                                "collateral must be set for FacilityCollateralizationChanged",
-                            ),
-                            outstanding_interest: outstanding.interest,
-                            outstanding_disbursal: outstanding.disbursed,
+                            collateral: collateralization.collateral,
+                            outstanding_interest: collateralization.outstanding.interest,
+                            outstanding_disbursal: collateralization.outstanding.disbursed,
                             recorded_at: message.recorded_at.into(),
                             effective: message.recorded_at.date_naive().into(),
-                            price: collateralization
-                                .price_at_state_change
-                                .expect("price must be set for FacilityCollateralizationChanged")
-                                .into_inner(),
+                            price: collateralization.price_at_state_change.into_inner(),
                         },
                     })
                 }

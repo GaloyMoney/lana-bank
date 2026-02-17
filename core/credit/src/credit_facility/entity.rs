@@ -199,20 +199,9 @@ pub struct CreditFacility {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct FacilityCollateralization {
     pub state: CollateralizationState,
-    pub collateral: Option<Satoshis>,
-    pub outstanding: Option<CreditFacilityReceivable>,
-    pub price_at_state_change: Option<PriceOfOneBTC>,
-}
-
-impl Default for FacilityCollateralization {
-    fn default() -> Self {
-        Self {
-            state: CollateralizationState::NoCollateral,
-            collateral: None,
-            outstanding: None,
-            price_at_state_change: None,
-        }
-    }
+    pub collateral: Satoshis,
+    pub outstanding: CreditFacilityReceivable,
+    pub price_at_state_change: PriceOfOneBTC,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -633,13 +622,25 @@ impl CreditFacility {
                     price,
                 } => Some(FacilityCollateralization {
                     state: *collateralization_state,
-                    collateral: Some(*collateral),
-                    outstanding: Some(*outstanding),
-                    price_at_state_change: Some(*price),
+                    collateral: *collateral,
+                    outstanding: *outstanding,
+                    price_at_state_change: *price,
+                }),
+                CreditFacilityEvent::Initialized {
+                    collateralization_state,
+                    collateral,
+                    outstanding,
+                    price,
+                    ..
+                } => Some(FacilityCollateralization {
+                    state: *collateralization_state,
+                    collateral: *collateral,
+                    outstanding: *outstanding,
+                    price_at_state_change: *price,
                 }),
                 _ => None,
             })
-            .unwrap_or_default()
+            .unwrap_or_else(|| unreachable!("There is always an Initialized event"))
     }
 
     pub fn last_collateralization_state(&self) -> CollateralizationState {
