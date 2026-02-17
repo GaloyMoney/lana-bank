@@ -10,6 +10,8 @@ pub enum DashboardError {
     Job(#[from] ::job::error::JobError),
     #[error("DashboardError - Authorization: {0}")]
     Authorization(#[from] authz::error::AuthorizationError),
+    #[error("DashboardError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
 impl ErrorSeverity for DashboardError {
@@ -18,6 +20,7 @@ impl ErrorSeverity for DashboardError {
             Self::Sqlx(_) => Level::ERROR,
             Self::Job(_) => Level::ERROR,
             Self::Authorization(e) => e.severity(),
+            Self::RegisterEventHandler(_) => Level::ERROR,
         }
     }
 }
