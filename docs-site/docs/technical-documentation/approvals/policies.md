@@ -4,112 +4,97 @@ title: Approval Policies
 sidebar_position: 3
 ---
 
-# Approval Policy Configuration
+# Approval Policies
 
-This document describes how to configure policies governing approval processes in the governance system.
+A policy defines the approval rules for a specific type of operation. Each operation type (credit facility proposals, disbursals, withdrawals) has exactly one policy. Policies control whether operations are approved automatically or require committee review, and if so, how many approvals are needed.
 
-## Policy Concept
+## Policy Structure
 
-A policy defines the rules and conditions under which an operation can be approved:
+Each policy contains:
 
-- **Process type**: Operation category
-- **Thresholds**: Limits for different approval levels
-- **Escalation rules**: When to escalate to higher committees
+- **Process Type**: The operation category this policy governs. There is a uniqueness constraint: only one policy can exist per process type.
+- **Approval Rules**: Either `SystemAutoApprove` (operations are approved instantly) or `CommitteeThreshold` (operations require committee votes). See below for details.
 
-## Policy Types
+## Process Types
 
-### Credit Facility Policy
+Three process types are registered at system startup:
 
-Defines rules for approving credit proposals:
+| Process Type | Identifier | Used By |
+|-------------|-----------|---------|
+| **Credit Facility Proposal** | `credit-facility-proposal` | Credit module: when a customer accepts a proposal |
+| **Disbursal** | `disbursal` | Credit module: when an operator creates a disbursal |
+| **Withdrawal** | `withdraw` | Deposit module: when an operator initiates a withdrawal |
 
-| Level | Amount | Required Approval |
-|-------|--------|-------------------|
-| Low | < $10,000 | 1 approver |
-| Medium | $10,000 - $100,000 | 2 approvers |
-| High | > $100,000 | Full committee |
+Policy initialization is idempotent: if the policy for a process type already exists, the existing policy is returned unchanged. This allows modules to safely register their policies at every startup without creating duplicates.
 
-### Disbursement Policy
+## Approval Rules
 
-Defines rules for approving disbursements:
+### System Auto-Approve (Default)
 
-| Level | Amount | Required Approval |
-|-------|--------|-------------------|
-| Low | < $5,000 | Automatic |
-| Medium | $5,000 - $50,000 | 1 approver |
-| High | > $50,000 | 2 approvers |
+Every policy is created with `SystemAutoApprove` rules by default. Under this mode, any approval process started against this policy concludes immediately with an approved result. No human review is required.
 
-### Withdrawal Policy
+This is the appropriate setting when:
+- The operation type is low-risk and does not require oversight.
+- The bank is in initial setup and has not yet configured committees.
+- Testing or development environments where approval friction is undesirable.
 
-Defines rules for approving withdrawals:
+### Committee Threshold
 
-| Level | Amount | Required Approval |
-|-------|--------|-------------------|
-| Low | < $1,000 | Automatic |
-| Medium | $1,000 - $10,000 | 1 approver |
-| High | > $10,000 | Operations committee |
+When an administrator assigns a committee and threshold to a policy, the rules change from `SystemAutoApprove` to `CommitteeThreshold`. Under this mode:
 
-## Policy Configuration
+- Every new approval process requires votes from the assigned committee.
+- The threshold specifies the minimum number of approve votes needed from eligible members.
+- A single deny vote from any eligible member immediately rejects the process.
 
-### Create a Policy
+**Validation rules for threshold assignment:**
+- The threshold must be at least 1 (zero is not allowed).
+- The threshold must not exceed the current number of members in the committee.
+- If the committee has 0 members, a threshold cannot be assigned.
 
-```graphql
-mutation CreateApprovalPolicy($input: ApprovalPolicyCreateInput!) {
-  approvalPolicyCreate(input: $input) {
-    policy {
-      id
-      processType
-      thresholds {
-        level
-        amount
-        requiredApprovals
-      }
-    }
-  }
-}
-```
+Changing the policy rules only affects future approval processes. Any processes already in progress continue under the rules they were created with (the rules are snapshotted into each process at creation time).
 
-## Escalation Rules
+## Configuring Policies
 
-### Escalation Flow
+### Initial State
 
-```mermaid
-graph LR
-    L1["Level 1<br/>(Auto)"] --> L2["Level 2<br/>(Approver)"] --> L3["Level 3<br/>(Committee)"]
-```
+After deployment, all three policies exist with `SystemAutoApprove` rules. All operations are approved automatically.
 
-### Escalation Conditions
+### Assigning a Committee
 
-| Condition | Action |
-|-----------|--------|
-| Amount exceeds threshold | Escalate to next level |
-| Time exceeded | Notify and escalate |
-| Rejected at lower level | Escalate for review |
+To require manual approval for an operation type:
 
-## Domain Integration
+1. Create a committee (see [Committee Configuration](committees)).
+2. Add at least one member to the committee.
+3. Navigate to the policy for the desired operation type.
+4. Assign the committee and specify a threshold (the number of approvals required).
 
-Policies integrate with domain services:
+After assignment, all new operations of that type will require committee approval. Existing in-flight processes are not affected.
 
-- Credit facilities use `APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS`
-- Disbursements use `APPROVE_DISBURSAL_PROCESS`
-- Withdrawals use `APPROVE_WITHDRAWAL_PROCESS`
+### Changing the Rules
 
-## Permissions Required
+You can reassign a different committee or change the threshold at any time. The same validation rules apply: the threshold must be between 1 and the number of members in the new committee. You can also revert a policy to auto-approve by updating the rules (though the admin panel typically does this by assigning a different configuration).
 
-| Operation | Permission |
-|-----------|---------|
-| Create policy | POLICY_CREATE |
-| View policies | POLICY_READ |
-| Modify policy | POLICY_UPDATE |
-| Delete policy | POLICY_DELETE |
+## How Rules Are Applied to Processes
 
-## Policy Auditing
+When a new approval process is started, the current rules from the policy are **copied** (snapshotted) into the process. This means:
 
-All policy modifications are logged in the audit system:
+- If you change a policy's rules while a process is active, the active process continues with its original rules.
+- The rules snapshot includes the committee ID and threshold, not the member list. The member list is fetched fresh at each vote, so membership changes do affect active processes (see [Committee Configuration](committees) for details on how this works).
 
-- Who made the change
-- What was modified
-- When it occurred
-- Previous and new values
+## Practical Examples
+
+**Scenario: Low-value withdrawals auto-approved, high-value manually approved**
+
+Lana does not support amount-based routing within a single policy. All withdrawals use the same policy. If you need differentiated approval based on amount, the operational workaround is to use auto-approve and rely on post-fact auditing for low values, or require committee approval for all withdrawals and rely on fast committee response times.
+
+**Scenario: Different committees for different operations**
+
+You can assign different committees to different policies. For example:
+- Credit facility proposals: assigned to a "Credit Risk Committee" with threshold 2
+- Disbursals: assigned to the same or a different committee with threshold 1
+- Withdrawals: assigned to an "Operations Committee" with threshold 1
+
+This gives the bank flexibility to route different operation types to the appropriate decision-makers.
 
 ## Admin Panel Walkthrough: Assign Committee and Resolve Actions
 
@@ -166,4 +151,3 @@ All policy modifications are logged in the audit system:
 **Step 23.** Verify denial success and terminal status.
 
 ![Denial success](/img/screenshots/current/en/governance.cy.ts/23_step-verify-denial-success.png)
-

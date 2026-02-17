@@ -4,91 +4,63 @@ title: Approval Committees
 sidebar_position: 2
 ---
 
-# Approval Committee Configuration
+# Approval Committees
 
-This document describes how to configure and manage approval committees in the governance system.
+A committee is a named group of authorized users who make decisions on approval processes. Committees provide the human element in the governance system: when a policy is configured with a committee threshold, the committee's members are the people who vote to approve or deny operations.
 
-## Committee Concept
+## Committee Structure
 
-A committee is a group of authorized users who make decisions on specific operations. Each committee has:
+Each committee has:
 
-- **Members**: Users with voting rights
-- **Quorum**: Minimum votes required
-- **Process type**: Category of operations it can approve
+- **Name**: A human-readable identifier (e.g., "Credit Committee", "Operations Committee"). Must be unique.
+- **Members**: A set of users who are eligible to vote on approval processes assigned to this committee.
 
-## Committee Types
+Committees are not tied to specific operation types. A single committee can be assigned to multiple policies (e.g., the same credit committee could approve both facility proposals and disbursals). Conversely, each policy can only reference one committee at a time.
 
-### Credit Committee
+## Membership Management
 
-Responsible for approving:
-- Credit facility proposals
-- Loan disbursements
+### Adding Members
 
-### Operations Committee
+Committee members are identified by their user ID. When a user is added to a committee, they become eligible to vote on any active approval process that references that committee. Adding a member who is already in the committee has no effect (the operation is idempotent).
 
-Responsible for approving:
-- Customer withdrawals
-- Special operations
+### Removing Members
 
-## Committee Management
+When a member is removed from a committee, they can no longer vote on new approval processes. However, any votes they have already cast on existing processes remain valid. Removing a non-member has no effect.
 
-### Create a Committee
+### Impact on Active Processes
 
-#### From Admin Panel
+Membership changes can affect in-flight approval processes:
 
-1. Navigate to **Configuration** > **Committees**
-2. Click **New Committee**
-3. Configure:
-   - Committee name
-   - Associated process type
-   - Required quorum
-4. Add members
-5. Save configuration
+- **Adding a member** expands the eligible voter set. The new member can immediately vote on any active process using that committee.
+- **Removing a member** shrinks the eligible voter set. If the remaining eligible members can no longer meet the threshold (e.g., threshold is 3 but only 2 eligible members remain, and fewer than 3 have already approved), the process is automatically denied.
 
-### Add Members
+This is because the approval logic checks whether it is still mathematically possible to reach the threshold with the current eligible set. If it is not, the process concludes as denied.
 
-1. Navigate to the committee detail page
-2. Click **Add Member**
-3. Select the user from the list
-4. Save the changes
+## Voting Rules
 
-## Quorum Configuration
+When a committee member votes on an approval process:
 
-Quorum defines the minimum number of votes needed for a decision.
+1. **Each member votes once**: A member cannot change their vote after casting it. Attempting to vote again (in either direction) is rejected.
+2. **Approve accumulates**: Approval votes are counted against the threshold. When the number of approvals from eligible members reaches or exceeds the threshold, the process is approved.
+3. **Deny is immediate**: A single deny vote from any eligible committee member immediately denies the entire process, regardless of how many approvals have already been cast. This gives every committee member effective veto power.
+4. **Non-members cannot vote**: Only users who are current members of the assigned committee and have not already voted are eligible to vote.
 
-### Quorum Rules
+### Threshold Calculation
 
-| Configuration | Description |
-|---------------|-------------|
-| Simple majority | More than 50% of members |
-| Unanimity | All members must vote |
-| Fixed number | Specific vote count |
+The approval check works as follows:
 
-## Voting Process
+1. Get the set of current committee members (the eligible voters).
+2. Intersect the eligible voters with the set of members who have voted to approve.
+3. If the intersection count meets the threshold, the process is approved.
+4. If any eligible member has denied, the process is denied.
+5. If the number of eligible members is less than the threshold (impossible to ever approve), the process is denied.
+6. Otherwise, the process remains in progress, waiting for more votes.
 
-### Voting Flow
+## Operational Considerations
 
-```mermaid
-graph LR
-    SUB["Request submitted"] --> VOTE["Active voting"] --> DEC["Decision reached"]
-```
-
-### Cast a Vote
-
-1. Navigate to **Pending Approvals**
-2. Select the request
-3. Review details
-4. Click **Approve** or **Reject**
-
-## Permissions Required
-
-| Operation | Permission |
-|-----------|---------|
-| Create committee | COMMITTEE_CREATE |
-| View committees | COMMITTEE_READ |
-| Modify committee | COMMITTEE_UPDATE |
-| Delete committee | COMMITTEE_DELETE |
-| Cast vote | VOTE_CREATE |
+- **Create committees before assigning to policies**: A committee must exist and have members before it can be meaningfully assigned to a policy. Assigning an empty committee to a policy would make every approval process instantly denied (threshold unreachable).
+- **Threshold must not exceed member count**: When assigning a committee to a policy, the threshold is validated against the current member count. A threshold of 3 is rejected if the committee has only 2 members.
+- **Committee size and availability**: In practice, committees should have more members than the required threshold to account for member unavailability. A threshold of 2 with exactly 2 members means both must approve; a threshold of 2 with 4 members provides redundancy.
 
 ## Admin Panel Walkthrough: Create Committee and Add Members
 
@@ -139,4 +111,3 @@ graph LR
 **Step 11.** Verify member is added successfully.
 
 ![Verify member added](/img/screenshots/current/en/governance.cy.ts/11_step-verify-member-added.png)
-

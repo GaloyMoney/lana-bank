@@ -6,61 +6,111 @@ sidebar_position: 2
 
 # Customer Onboarding Process
 
-This document describes the complete customer onboarding flow, from initial registration to account activation.
+Customer onboarding is a multi-step process that establishes the customer's identity, provisions their system access, and creates the financial accounts needed for operations. The process involves coordination between the admin panel, the Sumsub KYC provider, the Keycloak identity server, and the deposit module.
 
 ## Onboarding Flow
 
 ```mermaid
 graph TD
     subgraph S1["1. Customer Creation"]
-        CREATE["Admin creates customer"] --> PENDING["Customer in PENDING status"]
+        CREATE["Admin creates customer<br/>(email, type, Telegram ID)"] --> PENDING["Customer record created<br/>KYC = Pending Verification<br/>Activity = Inactive"]
     end
     subgraph S2["2. KYC Verification"]
-        REQ["Request sent"] --> SUMSUB["Sumsub Verifies"] --> RESULT["Result received"]
+        LINK["Operator generates<br/>Sumsub verification link"] --> CUST["Customer completes<br/>identity verification"] --> HOOK["Sumsub sends<br/>webhook callback"]
+        HOOK --> RESULT{Approved?}
+        RESULT -->|Yes| APPROVED["KYC = Verified<br/>Level = Basic"]
+        RESULT -->|No| REJECTED["KYC = Rejected"]
     end
     subgraph S3["3. Provisioning"]
-        KC["Keycloak user"] --> DEPACC["Deposit account"] --> ACTIVE["Customer ACTIVE"]
+        APPROVED --> KC["Keycloak user created<br/>(via outbox event)"]
+        KC --> EMAIL["Welcome email sent<br/>with credentials"]
+        EMAIL --> DEPACC["Deposit account created"]
+        DEPACC --> ACTIVE["Customer ready<br/>for operations"]
     end
-    S1 --> S2 --> S3
+    S1 --> S2
 ```
 
 ## Step 1: Customer Creation
 
-### From Admin Panel
+An operator creates the customer by providing:
 
-1. Navigate to **Customers** > **New Customer**
-2. Complete basic information:
-   - Email
-   - Telegram ID (optional)
-   - Customer type
-3. Click **Create**
+- **Email address** (required) - Used for Keycloak login and communication. Must be unique.
+- **Telegram ID** (optional) - Alternative contact channel.
+- **Customer type** (required) - Determines the KYC verification workflow (KYC for individuals, KYB for companies) and the accounting treatment for the customer's accounts.
+
+The new customer starts with:
+- KYC verification status: `Pending Verification`
+- Activity status: `Inactive`
+- KYC level: `Not KYCed`
+
+No financial operations are possible until KYC verification completes. The customer does not yet have a deposit account or portal access.
 
 ## Step 2: KYC Verification
 
-### Starting Verification
+### Sumsub Integration
 
-1. Navigate to customer detail
-2. Click **Start KYC**
-3. Sumsub verification link is generated
+Lana integrates with Sumsub for identity verification. The integration uses two channels:
 
-### KYC Status
+1. **Outbound API calls** - The system calls Sumsub's REST API to create verification links (permalinks) that customers use to submit their identity documents.
+2. **Inbound webhooks** - Sumsub calls the system's webhook endpoint when verification results are available. All callbacks are processed asynchronously through an inbox queue for reliability.
+
+### Verification Levels
+
+The customer type automatically determines which Sumsub verification level is applied:
+
+| Customer Type | Sumsub Level | Verification Scope |
+|---------------|-------------|-------------------|
+| Individual | Basic KYC | Identity documents, selfie, proof of address |
+| All other types | Basic KYB | Corporate documents, beneficial ownership, authorized representatives |
+
+### KYC Status Transitions
 
 | Status | Description | Next Action |
 |--------|-------------|-------------|
-| NOT_STARTED | KYC not initiated | Start verification |
-| PENDING | Verification in progress | Wait for result |
-| APPROVED | Identity verified | Proceed to activation |
-| REJECTED | Verification failed | Review and retry |
-| REVIEW_NEEDED | Manual review required | Review in Sumsub |
+| **Not Started** | KYC link not yet generated | Operator generates Sumsub link |
+| **Pending** | Customer is completing verification in Sumsub | Wait for Sumsub webhook |
+| **Approved** | Identity verified successfully | System proceeds to provisioning |
+| **Rejected** | Verification failed | Review rejection reasons, optionally retry |
+| **Review Needed** | Sumsub flagged for manual review | Review in Sumsub dashboard |
+
+### Webhook Callback Processing
+
+When Sumsub completes a verification, it sends a webhook to the system. The callback handler processes several event types:
+
+- **Applicant Created** - Confirms that Sumsub has registered the customer. Records the Sumsub applicant ID on the customer record.
+- **Applicant Reviewed (Green)** - Verification approved. Sets KYC level to `Basic` and verification status to `Verified`. Triggers downstream provisioning events.
+- **Applicant Reviewed (Red)** - Verification rejected. Sets verification status to `Rejected`. The rejection includes labels and comments explaining the reason.
+- **Applicant Pending** / **Personal Info Changed** - Informational events that are logged but do not change customer state.
+
+Each callback is processed exactly once through an idempotency mechanism that deduplicates based on the callback's correlation ID and timestamp.
+
+### What Happens on KYC Approval
+
+When a Green review arrives from Sumsub, the following chain of events is triggered:
+
+1. The customer entity's KYC level is set to `Basic` and verification status to `Verified`.
+2. A `CustomerKycUpdated` event is published to the outbox.
+3. Downstream listeners react to the outbox event:
+   - The **user onboarding** module creates a Keycloak account so the customer can log into the portal.
+   - A **welcome email** with login credentials is sent.
+   - A **deposit account** is created, giving the customer a place to receive funds.
+
+This event-driven architecture means provisioning happens asynchronously. If any step fails (e.g., Keycloak is temporarily unavailable), the job system retries automatically until it succeeds.
 
 ## Step 3: Automatic Provisioning
 
-When KYC is approved, automatically:
+When KYC is approved, the system provisions three things:
 
-1. Keycloak user created (customer realm)
-2. Welcome email sent with credentials
-3. Deposit account created
-4. Customer can access portal
+| Resource | Module | Purpose |
+|----------|--------|---------|
+| **Keycloak user** | User Onboarding | Enables portal authentication. The user is created in the customer realm. |
+| **Welcome email** | SMTP | Delivers initial credentials to the customer. |
+| **Deposit account** | Deposit | Creates the USD deposit account with overdraft prevention. Links to the correct ledger account set based on customer type. |
+
+After provisioning completes, the customer can:
+- Log into the customer portal
+- Receive deposits into their account
+- Be considered for credit facility proposals
 
 ## Admin Panel Operations
 
@@ -142,4 +192,3 @@ changes driven by webhook updates.
 **Step 13.** Verify final KYC status update.
 
 ![KYC status updated](/img/screenshots/current/en/customers.cy.ts/16_kyc_status_updated.png)
-

@@ -6,107 +6,100 @@ sidebar_position: 1
 
 # Deposit and Withdrawal System
 
-The Deposit and Withdrawal System manages customer deposit accounts and facilitates deposit/withdrawal operations within the platform.
+The Deposit and Withdrawal System manages customer deposit accounts and facilitates all fund movements within the platform. Every customer has a single USD deposit account that serves as the hub for receiving deposits, processing withdrawals, and receiving credit facility disbursals. The system is fully integrated with the Cala double-entry ledger, ensuring that every fund movement is properly recorded and that accounts cannot go into overdraft.
 
-## Purpose
+## Deposit Account Structure
 
-The system handles the complete customer funds lifecycle:
-- Deposit account creation
-- Deposit recording
-- Withdrawal processing
-- Approval workflows
+Each deposit account in Lana is backed by **two** ledger accounts in the Cala ledger:
 
-All financial operations are integrated with Cala Ledger for double-entry accounting.
+| Ledger Account | Normal Balance | Purpose |
+|----------------|---------------|---------|
+| **Deposit Account** | Credit (liability) | Tracks the customer's available balance. Represents the bank's obligation to the customer. |
+| **Frozen Deposit Account** | Credit (liability) | Holds the customer's balance while the account is frozen. Balances are moved here during a freeze and restored on unfreeze. |
 
-## Main Entities
+In addition, a single system-wide **Deposit Omnibus Account** (debit-normal, asset) serves as the counterparty for all deposit and withdrawal transactions. It represents the bank's actual cash reserves backing customer deposits.
 
-### Deposit Account
+### Overdraft Prevention
 
-| Field | Type | Description |
-|-------|------|-------------|
-| id | UUID | Unique identifier |
-| publicId | String | Readable public ID |
-| accountHolderId | UUID | Customer ID |
-| status | Enum | Account status |
-| accountType | Enum | Account type |
+Every deposit account has a velocity control that prevents the settled balance from going below zero. This is enforced at the ledger level, meaning no transaction can make the balance negative regardless of how it is initiated. This provides a hard guarantee against overdrafts without requiring application-level balance checks.
 
-### Deposit
+### Balance Model
 
-| Field | Type | Description |
-|-------|------|-------------|
-| id | UUID | Unique identifier |
-| depositAccountId | UUID | Target account |
-| amount | UsdCents | Amount in USD cents |
-| reference | String | External reference |
-| status | Enum | Deposit status |
+Deposit account balances are reported as two separate figures:
 
-### Withdrawal
+- **Settled balance**: Confirmed, available funds. Reflects completed deposits minus completed withdrawals.
+- **Pending balance**: Funds encumbered by in-flight withdrawals that have been initiated but not yet confirmed or cancelled. The pending amount reduces the effective available balance.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| id | UUID | Unique identifier |
-| depositAccountId | UUID | Source account |
-| amount | UsdCents | Amount in USD cents |
-| reference | String | External reference |
-| status | Enum | Withdrawal status |
+When a withdrawal is initiated, the amount is immediately moved from settled to pending (via a ledger transaction). This ensures the funds are reserved and cannot be double-spent. When the withdrawal is confirmed, the pending balance is cleared. If the withdrawal is cancelled or denied, the pending balance is restored to settled.
 
 ## Account Types
 
-| Type | Description | Usage |
-|------|-------------|-------|
-| Individual | Personal account | Individual customers |
-| GovernmentEntity | Government account | Government entities |
-| PrivateCompany | Business account | Private companies |
-| Bank | Bank account | Financial institutions |
-| FinancialInstitution | Institutional account | Other institutions |
-| ForeignAgencyOrSubsidiary | Foreign account | Foreign agencies |
-| NonDomiciledCompany | Non-resident account | Non-domiciled companies |
+Deposit accounts are categorized by the customer type of their holder. Each customer type maps to a separate ledger account set, enabling aggregate balance reporting by customer category:
 
-## Account Status
+| Type | Description |
+|------|-------------|
+| Individual | Personal customer accounts |
+| GovernmentEntity | Government organization accounts |
+| PrivateCompany | Business accounts |
+| Bank | Banking institution accounts |
+| FinancialInstitution | Other financial institution accounts |
+| NonDomiciledCompany | Non-resident company accounts |
 
-| Status | Description |
-|--------|-------------|
-| ACTIVE | Operational account — deposits and withdrawals allowed |
-| INACTIVE | Deactivated account |
-| FROZEN | Frozen account — no new deposits or withdrawals permitted |
-| CLOSED | Permanently closed account (requires zero balance) |
+This categorization is used in the chart of accounts to place deposit liabilities under the correct parent nodes for financial reporting.
+
+## Account Status and Lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> INACTIVE : Account created
-    INACTIVE --> ACTIVE : Account holder activated
-    ACTIVE --> FROZEN : Freeze
-    FROZEN --> ACTIVE : Unfreeze
-    ACTIVE --> CLOSED : Close (zero balance)
+    [*] --> Active : Account created
+    Active --> Inactive : Customer becomes inactive
+    Inactive --> Active : Customer becomes active
+    Active --> Frozen : Freeze
+    Frozen --> Active : Unfreeze
+    Active --> Closed : Close (zero balance required)
 ```
 
-## Account Lifecycle Operations
+| Status | Description | Deposits Allowed | Withdrawals Allowed |
+|--------|-------------|:---:|:---:|
+| **Active** | Normal operations | Yes | Yes |
+| **Inactive** | Customer activity lapsed | No | No |
+| **Frozen** | Compliance hold or dispute | No | No |
+| **Closed** | Permanently deactivated | No | No |
 
 ### Freeze Account
 
-Freezing a deposit account prevents all new deposits and withdrawals while keeping the account and its balances visible. This is used for compliance holds or dispute investigations.
+Freezing a deposit account prevents all new deposits and withdrawals while preserving the account balance. This is used for compliance holds, dispute investigations, or regulatory requirements.
 
-- The account transitions from `ACTIVE` to `FROZEN`
-- Settled and pending balances remain visible
-- A `DepositAccountFrozen` event is emitted
-- An `INACTIVE` or `CLOSED` account cannot be frozen
+When an account is frozen:
+1. The settled balance is moved from the main deposit ledger account to the frozen companion account via a ledger transaction.
+2. The main deposit ledger account is locked, preventing any further transactions.
+3. A `DepositAccountFrozen` event is emitted.
+
+The balance remains visible to operators during the freeze. An `Inactive` or `Closed` account cannot be frozen.
 
 ### Unfreeze Account
 
-Unfreezing restores a frozen account to normal operation, re-enabling deposits and withdrawals.
+Unfreezing restores a frozen account to normal operation:
+1. The main deposit ledger account is unlocked.
+2. The frozen balance is moved back from the frozen companion account to the main deposit account.
+3. A `DepositAccountUnfrozen` event is emitted.
 
-- The account transitions from `FROZEN` to `ACTIVE`
-- A `DepositAccountUnfrozen` event is emitted
-- The operation is idempotent — unfreezing an already active account has no effect
+The operation is idempotent: unfreezing an already active account has no effect.
 
 ### Close Account
 
 Closing permanently deactivates a deposit account. This action cannot be reversed.
 
-- **Requires zero balance** — both settled and pending balances must be zero
-- A `FROZEN` account cannot be closed directly; unfreeze first
-- The corresponding ledger account is locked upon closure
-- A `DepositAccountClosed` event is emitted
+- **Requires zero balance**: Both settled and pending balances must be zero before closing.
+- A `Frozen` account cannot be closed directly; it must be unfrozen first.
+- The corresponding ledger account is locked upon closure, preventing any future transactions.
+- A `DepositAccountClosed` event is emitted.
+
+## Relationship to Credit Facilities
+
+Deposit accounts serve as the destination for credit facility disbursals. When a disbursal is confirmed, the disbursed amount is credited to the customer's deposit account. This means the deposit account balance reflects both direct deposits and credit facility proceeds.
+
+Similarly, when a customer makes a payment on a credit facility, the funds are debited from their deposit account and applied to the outstanding obligations.
 
 ## Related Documentation
 
@@ -133,4 +126,3 @@ Operational checks after creation:
 - account status is `ACTIVE`,
 - customer-to-account association is correct,
 - account is available for deposit/withdrawal initiation.
-
