@@ -30,6 +30,8 @@ pub enum CoreDepositError {
     ),
     #[error("CoreDepositError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("CoreDepositError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
     #[error("CoreDepositError - ProcessError: {0}")]
     ProcessError(#[from] crate::processes::error::ProcessError),
     #[error("CoreDepositError - SubjectIsNotDepositAccountHolder")]
@@ -86,6 +88,7 @@ impl ErrorSeverity for CoreDepositError {
             Self::CustomerError(e) => e.severity(),
             Self::CoreChartOfAccountsError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
+            Self::RegisterEventHandler(_) => Level::ERROR,
             Self::ProcessError(e) => e.severity(),
             Self::SubjectIsNotDepositAccountHolder => Level::WARN,
             Self::DepositAccountNotFound => Level::WARN,

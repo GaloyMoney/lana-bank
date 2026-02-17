@@ -27,7 +27,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerO
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use public_id::PublicIds;
 
 use account::*;
@@ -46,7 +46,7 @@ pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
 use ledger::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
-use processes::approval::{ApproveWithdrawal, WithdrawApprovalInit, WithdrawApprovalJobConfig};
+use processes::approval::{ApproveWithdrawal, WITHDRAW_APPROVE_JOB, WithdrawApprovalHandler};
 pub use public::*;
 use publisher::DepositPublisher;
 use withdrawal::*;
@@ -148,13 +148,11 @@ where
         let approve_withdrawal =
             ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, ledger_arc.as_ref());
 
-        let approve_withdrawal_job_spawner =
-            jobs.add_initializer(WithdrawApprovalInit::new(outbox, &approve_withdrawal));
-
-        approve_withdrawal_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                WithdrawApprovalJobConfig::<Perms, E>::new(),
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(WITHDRAW_APPROVE_JOB),
+                WithdrawApprovalHandler::new(&approve_withdrawal),
             )
             .await?;
 
