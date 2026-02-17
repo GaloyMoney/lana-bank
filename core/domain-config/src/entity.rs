@@ -6,8 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError, DomainConfigFlavorEncrypted,
-    DomainConfigFlavorPlaintext, ValueKind,
-    encryption::EncryptionKey,
+    DomainConfigFlavorPlaintext, EncryptionKey, ValueKind,
     primitives::{DomainConfigId, DomainConfigKey, Visibility},
     value::DomainConfigValue,
 };

@@ -17,6 +17,7 @@ publish = false
 ### BEGIN HAKARI SECTION
 [dependencies]
 ahash = { version = "0.8", default-features = false, features = ["compile-time-rng", "runtime-rng", "std"] }
+arrayvec = { version = "0.7", default-features = false, features = ["std"] }
 async-graphql = { version = "7", default-features = false, features = ["chrono", "dataloader", "playground", "tempfile", "tracing"] }
 aws-lc-rs = { version = "1", features = ["prebuilt-nasm"] }
 aws-lc-sys = { version = "0.37", default-features = false, features = ["prebuilt-nasm"] }
@@ -101,6 +102,7 @@ uuid = { version = "1", features = ["serde", "v4", "v7"] }
 
 [build-dependencies]
 ahash = { version = "0.8", default-features = false, features = ["compile-time-rng", "runtime-rng", "std"] }
+arrayvec = { version = "0.7", default-features = false, features = ["std"] }
 async-graphql = { version = "7", default-features = false, features = ["chrono", "dataloader", "playground", "tempfile", "tracing"] }
 aws-lc-rs = { version = "1", features = ["prebuilt-nasm"] }
 aws-lc-sys = { version = "0.37", default-features = false, features = ["prebuilt-nasm"] }

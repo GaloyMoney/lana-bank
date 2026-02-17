@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    DomainConfigError,
-    encryption::{EncryptedValue, EncryptionKey},
-};
+use crate::{DomainConfigError, Encrypted, EncryptionKey};
 
 /// Represents a domain config value that can be either plaintext or encrypted.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -11,7 +8,7 @@ use crate::{
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DomainConfigValue {
     Plain { value: serde_json::Value },
-    Encrypted(EncryptedValue),
+    Encrypted(Encrypted),
 }
 
 impl DomainConfigValue {
@@ -31,7 +28,7 @@ impl DomainConfigValue {
     /// Create a new encrypted value from plaintext JSON.
     pub(crate) fn encrypted(key: &EncryptionKey, plaintext: &serde_json::Value) -> Self {
         let bytes = serde_json::to_vec(plaintext).expect("JSON serialization should not fail");
-        Self::Encrypted(EncryptedValue::encrypt(key, &bytes))
+        Self::Encrypted(Encrypted::encrypt(&bytes, key))
     }
 
     /// Returns the plaintext JSON value if this is a Plain variant.

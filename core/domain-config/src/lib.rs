@@ -145,8 +145,6 @@
 //! - `Some(value)` if the config has been explicitly set via `update`
 //! - `None` if no value is set
 
-mod config;
-mod encryption;
 mod entity;
 pub mod error;
 mod flavor;
@@ -163,10 +161,11 @@ use std::collections::{HashMap, HashSet};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use encryption::{Encrypted, EncryptionKey};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-pub use config::EncryptionConfig;
+pub use encryption::EncryptionConfig;
 pub use entity::DomainConfig;
 pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
