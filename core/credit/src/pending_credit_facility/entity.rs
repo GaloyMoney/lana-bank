@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    credit_facility::NewCreditFacilityBuilder,
+    credit_facility::{CreditFacilityReceivable, NewCreditFacilityBuilder},
     disbursal::NewDisbursalBuilder,
     ledger::{
         PendingCreditFacilityAccountIds, PendingCreditFacilityBalanceSummary,
@@ -206,6 +206,9 @@ impl PendingCreditFacility {
         let mut new_credit_facility = NewCreditFacilityBuilder::default();
         let maturity_date = self.terms.maturity_date(time);
         let account_ids = crate::CreditFacilityLedgerAccountIds::from(self.account_ids);
+
+        let collateralization_state = self.terms.collateralization(cvl);
+
         new_credit_facility
             .id(self.id)
             .pending_credit_facility_id(self.id)
@@ -218,7 +221,18 @@ impl PendingCreditFacility {
             .terms(self.terms)
             .amount(self.amount)
             .activated_at(time)
-            .maturity_date(maturity_date);
+            .maturity_date(maturity_date)
+            .collateralization_state(collateralization_state)
+            .collateral(balances.collateral())
+            .outstanding(CreditFacilityReceivable {
+                disbursed: if self.is_single_disbursal() {
+                    self.amount
+                } else {
+                    UsdCents::ZERO
+                },
+                interest: UsdCents::ZERO,
+            })
+            .price(price);
 
         let initial_disbursal = if self.is_single_disbursal() || !self.structuring_fee().is_zero() {
             let due_date = maturity_date;
