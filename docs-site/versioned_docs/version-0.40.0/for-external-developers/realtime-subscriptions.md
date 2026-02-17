@@ -1,12 +1,12 @@
 ---
-id: webhooks
-title: Webhooks
+id: realtime-subscriptions
+title: Real-time Subscriptions
 sidebar_position: 4
 ---
 
-# Webhooks
+# Real-time Subscriptions
 
-Receive real-time notifications when events occur in Lana.
+Receive real-time notifications via GraphQL subscriptions over WebSocket.
 
 ## Overview
 

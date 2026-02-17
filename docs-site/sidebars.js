@@ -155,7 +155,7 @@ const sidebars = {
         "for-external-developers/quickstart",
         "for-external-developers/authentication",
         "for-external-developers/graphql-integration",
-        "for-external-developers/webhooks",
+        "for-external-developers/realtime-subscriptions",
       ],
     },
     {
