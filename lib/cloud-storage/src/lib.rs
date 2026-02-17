@@ -81,6 +81,10 @@ impl Storage {
         Ok(link)
     }
 
+    pub fn is_local(&self) -> bool {
+        matches!(self.config, StorageConfig::Local(_))
+    }
+
     pub fn identifier(&self) -> String {
         self.config.identifier()
     }
