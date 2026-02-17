@@ -122,12 +122,11 @@ export const WithSortingAndFiltering: Story = {
       })
     }
 
-    const handleFilter = (
-      column: keyof Person,
-      value: Person[keyof Person] | undefined,
-    ) => {
-      const filteredData = SAMPLE_DATA.filter(
-        (item) => value === undefined || item[column] === value,
+    const handleFilter = (filters: Partial<Record<keyof Person, string>>) => {
+      const filteredData = SAMPLE_DATA.filter((item) =>
+        Object.entries(filters).every(
+          ([key, value]) => value === undefined || item[key as keyof Person] === value,
+        ),
       )
 
       setData(createPaginatedData(filteredData))

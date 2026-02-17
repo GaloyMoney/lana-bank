@@ -71,7 +71,7 @@ const CustomersList = () => {
     variables: {
       first: DEFAULT_PAGESIZE,
       sort: sortBy,
-      filter: filter,
+      filter,
     },
   })
 
@@ -122,15 +122,9 @@ const CustomersList = () => {
             direction: direction as SortDirection,
           })
         }}
-        onFilter={(column, value) => {
-          if (value)
-            setFilter({
-              field: (column === "kycVerification"
-                ? "ACCOUNT_KYC_VERIFICATION"
-                : null) as CustomersFilter["field"],
-              [column]: value,
-            })
-          else setFilter(null)
+        onFilter={(filters) => {
+          const f = filters as CustomersFilter
+          setFilter(Object.keys(f).length > 0 ? f : null)
         }}
       />
     </div>
