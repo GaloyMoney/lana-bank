@@ -1,3 +1,13 @@
+## [0.41.1] - 2026-02-17
+
+### 🐛 Bug Fixes
+
+- Cypress stack cleanup and stop-cypress-stack target (#3828)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.41.0 [ci skip] (#3823)
+- Reintroduce collateral accounts in Credit Faciliy GQL (#3827)
 ## [0.41.0] - 2026-02-16
 
 ### 🚀 Features
