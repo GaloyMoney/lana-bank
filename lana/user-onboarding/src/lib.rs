@@ -10,7 +10,7 @@ use error::*;
 use job::*;
 
 use core_access::CoreAccessEvent;
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
 pub struct UserOnboarding<E>
@@ -46,9 +46,12 @@ where
     ) -> Result<Self, UserOnboardingError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak);
 
-        let spawner = jobs.add_initializer(UserOnboardingInit::new(outbox, keycloak_client));
-        spawner
-            .spawn_unique(::job::JobId::new(), UserOnboardingJobConfig::new())
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(::job::JobType::new("outbox.user-onboarding")),
+                UserOnboardingHandler { keycloak_client },
+            )
             .await?;
 
         Ok(Self {
