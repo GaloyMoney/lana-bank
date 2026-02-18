@@ -6,7 +6,7 @@ use schemars::JsonSchema;
 
 use money::{Satoshis, UsdCents};
 
-use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::*};
+use crate::primitives::*;
 
 use super::{
     PublicCollateral, PublicCreditFacility, PublicCreditFacilityProposal, PublicDisbursal,
