@@ -21,8 +21,7 @@ use super::{
 use crate::{
     CoreCreditEvent,
     collateral::ledger::LiquidationProceedsAccountIds,
-    credit_facility::CreditFacilityRepo,
-    primitives::{CalaAccountId, CollateralId, CreditFacilityId, PriceOfOneBTC},
+    primitives::{CalaAccountId, CollateralId, PriceOfOneBTC},
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -41,7 +40,6 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
-    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     liquidation_proceeds_omnibus_account_id: CalaAccountId,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
@@ -55,14 +53,12 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         repo: Arc<CollateralRepo<E>>,
-        credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         liquidation_proceeds_omnibus_account_id: CalaAccountId,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             repo,
-            credit_facility_repo,
             liquidation_proceeds_omnibus_account_id,
             liquidation_payment_job_spawner,
         }
@@ -90,7 +86,6 @@ where
         Ok(Box::new(CreditFacilityLiquidationsJobRunner::<E> {
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
-            credit_facility_repo: self.credit_facility_repo.clone(),
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
         }))
@@ -105,7 +100,6 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
-    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     liquidation_proceeds_omnibus_account_id: CalaAccountId,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
@@ -188,7 +182,6 @@ where
             self.create_if_not_exist_in_op(
                 db,
                 entity.collateral_id,
-                entity.id,
                 trigger.trigger_price,
                 trigger.initially_expected_to_receive,
                 trigger.initially_estimated_to_liquidate,
@@ -207,7 +200,6 @@ where
         &self,
         db: &mut DbOp<'_>,
         collateral_id: CollateralId,
-        credit_facility_id: CreditFacilityId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
@@ -240,7 +232,7 @@ where
                 JobId::new(),
                 LiquidationPaymentJobConfig::<E> {
                     liquidation_id,
-                    credit_facility_id,
+                    credit_facility_id: collateral.credit_facility_id,
                     _phantom: std::marker::PhantomData,
                 },
             )

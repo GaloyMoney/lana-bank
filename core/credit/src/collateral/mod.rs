@@ -143,7 +143,6 @@ where
             collateral_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
-                credit_facility_repo.clone(),
                 liquidation_proceeds_omnibus_account_id,
                 liquidation_payment_job_spawner,
             ),
