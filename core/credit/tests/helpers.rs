@@ -599,7 +599,7 @@ pub async fn create_pending_facility(
 ) -> anyhow::Result<PendingFacilityState> {
     let customer = ctx
         .customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("test-{}@example.com", uuid::Uuid::new_v4()),
             format!("telegram-{}", uuid::Uuid::new_v4()),
