@@ -73,10 +73,6 @@
         "account_ids": {
           "$ref": "#/$defs/CollateralLedgerAccountIds"
         },
-        "credit_facility_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "custody_wallet_id": {
           "format": "uuid",
           "type": [
@@ -91,7 +87,7 @@
           "format": "uuid",
           "type": "string"
         },
-        "pending_credit_facility_id": {
+        "secured_loan_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -103,10 +99,9 @@
       "required": [
         "type",
         "id",
-        "credit_facility_id",
+        "secured_loan_id",
         "account_ids",
-        "facility_ledger_account_ids_for_liquidation",
-        "pending_credit_facility_id"
+        "facility_ledger_account_ids_for_liquidation"
       ],
       "type": "object"
     },

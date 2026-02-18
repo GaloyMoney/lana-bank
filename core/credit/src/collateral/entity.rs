@@ -9,9 +9,11 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::primitives::{
-    CalaAccountId, CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId,
-    LedgerTxId, LiquidationId, PaymentId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
+    CalaAccountId, CollateralDirection, CollateralId, CustodyWalletId, LedgerTxId, LiquidationId,
+    PaymentId, PriceOfOneBTC, Satoshis,
 };
+
+use super::primitives::SecuredLoanId;
 
 use super::{
     CollateralUpdate, RecordProceedsFromLiquidationData,
@@ -30,10 +32,9 @@ use super::{
 pub enum CollateralEvent {
     Initialized {
         id: CollateralId,
-        credit_facility_id: CreditFacilityId,
+        secured_loan_id: SecuredLoanId,
         account_ids: CollateralLedgerAccountIds,
         facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
-        pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
     },
     UpdatedViaManualInput {
@@ -73,10 +74,9 @@ pub enum CollateralEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Collateral {
     pub id: CollateralId,
-    pub credit_facility_id: CreditFacilityId,
+    pub secured_loan_id: SecuredLoanId,
     pub account_ids: CollateralLedgerAccountIds,
     pub facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
-    pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
 
@@ -346,9 +346,7 @@ pub struct NewCollateral {
     #[builder(setter(into))]
     pub(super) id: CollateralId,
     #[builder(setter(into))]
-    pub(super) credit_facility_id: CreditFacilityId,
-    #[builder(setter(into))]
-    pub(super) pending_credit_facility_id: PendingCreditFacilityId,
+    pub(super) secured_loan_id: SecuredLoanId,
     #[builder(default)]
     pub(super) custody_wallet_id: Option<CustodyWalletId>,
     pub(super) account_ids: CollateralLedgerAccountIds,
@@ -369,8 +367,7 @@ impl TryFromEvents<CollateralEvent> for Collateral {
             match event {
                 CollateralEvent::Initialized {
                     id,
-                    credit_facility_id,
-                    pending_credit_facility_id,
+                    secured_loan_id,
                     custody_wallet_id,
                     account_ids,
                     facility_ledger_account_ids_for_liquidation,
@@ -383,8 +380,7 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                         )
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
-                        .credit_facility_id(*credit_facility_id)
-                        .pending_credit_facility_id(*pending_credit_facility_id)
+                        .secured_loan_id(*secured_loan_id)
                 }
                 CollateralEvent::UpdatedViaManualInput {
                     collateral_amount: new_value,
@@ -415,11 +411,10 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
             self.id,
             [CollateralEvent::Initialized {
                 id: self.id,
-                credit_facility_id: self.credit_facility_id,
+                secured_loan_id: self.secured_loan_id,
                 account_ids: self.account_ids,
                 facility_ledger_account_ids_for_liquidation: self
                     .facility_ledger_account_ids_for_liquidation,
-                pending_credit_facility_id: self.pending_credit_facility_id,
                 custody_wallet_id: self.custody_wallet_id,
             }],
         )
@@ -460,11 +455,10 @@ mod tests {
         NewCollateral::builder()
             .id(CollateralId::new())
             .account_ids(default_account_ids())
+            .secured_loan_id(SecuredLoanId::new())
             .facility_ledger_account_ids_for_liquidation(
                 default_facility_ledger_account_ids_for_liquidation(),
             )
-            .credit_facility_id(CreditFacilityId::new())
-            .pending_credit_facility_id(PendingCreditFacilityId::new())
             .build()
             .unwrap()
     }

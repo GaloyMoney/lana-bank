@@ -135,7 +135,7 @@ where
                     LiquidationPaymentJobConfig::<E> {
                         liquidation_id,
                         collateral_id,
-                        credit_facility_id: collateral.credit_facility_id,
+                        credit_facility_id: collateral.secured_loan_id.into(),
                         _phantom: std::marker::PhantomData,
                     },
                 )

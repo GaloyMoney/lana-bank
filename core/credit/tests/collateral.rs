@@ -51,10 +51,7 @@ async fn facility_collateral_updated_event_on_manual_update() -> anyhow::Result<
     .await?;
 
     assert_eq!(recorded.id, collateral.id);
-    assert_eq!(
-        recorded.pending_credit_facility_id,
-        state.pending_facility_id
-    );
+    assert_eq!(state.pending_facility_id, recorded.secured_loan_id.into());
     assert_eq!(recorded.amount, collateral_satoshis);
     ctx.jobs.shutdown().await?;
 
