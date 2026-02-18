@@ -1388,6 +1388,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "serde_yaml",
+ "serial_test",
  "sqlx",
  "strum",
  "thiserror 2.0.18",

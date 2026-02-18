@@ -2,16 +2,26 @@
 
 use std::collections::HashMap;
 
+use authz::dummy::DummySubject;
+use cala_ledger::CalaLedgerConfig;
 use cala_ledger::account_set::AccountSetMemberId;
 use cala_ledger::{CalaLedger, JournalId};
+use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
+use core_credit::*;
 use core_credit::{CreditOmnibusAccountSetSpec, CreditSummaryAccountSetSpec};
 use core_custody::{CustodyConfig, EncryptionConfig};
+use document_storage::DocumentStorage;
 use domain_config::{
     EncryptionConfig as DomainEncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly,
     InternalDomainConfigs, RequireVerifiedCustomerForAccount,
 };
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use money::Satoshis;
+use public_id::PublicIds;
 use rand::Rng;
+use rust_decimal_macros::dec;
+use std::time::Duration;
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
@@ -41,6 +51,35 @@ pub async fn init_internal_domain_configs(
     let internal_configs = InternalDomainConfigs::new(pool, DomainEncryptionConfig::default());
     internal_configs.seed_registered().await?;
     Ok(internal_configs)
+}
+
+pub fn test_btc_price() -> core_price::PriceOfOneBTC {
+    core_price::PriceOfOneBTC::new(money::UsdCents::from(7_000_000))
+}
+
+pub async fn seed_price<E>(
+    outbox: &obix::Outbox<E>,
+    price: &core_price::Price,
+) -> anyhow::Result<core_price::PriceOfOneBTC>
+where
+    E: obix::out::OutboxEventMarker<core_price::CorePriceEvent> + Send + Sync + 'static,
+{
+    let seeded_price = test_btc_price();
+    outbox
+        .publish_ephemeral(
+            core_price::PRICE_UPDATED_EVENT_TYPE,
+            core_price::CorePriceEvent::PriceUpdated {
+                price: seeded_price,
+                timestamp: chrono::Utc::now(),
+            },
+        )
+        .await?;
+
+    tokio::time::timeout(std::time::Duration::from_secs(5), price.usd_cents_per_btc())
+        .await
+        .map_err(|_| anyhow::anyhow!("Timed out waiting for test BTC price to propagate"))?;
+
+    Ok(seeded_price)
 }
 
 pub fn custody_config() -> CustodyConfig {
@@ -410,4 +449,261 @@ pub mod event {
         #[serde(other)]
         Unknown,
     }
+
+    #[allow(unused_imports)]
+    pub use obix::test_utils::expect_event;
+}
+
+pub type TestPerms = authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>;
+pub type TestEvent = event::DummyEvent;
+
+pub struct TestContext {
+    pub credit: CoreCredit<TestPerms, TestEvent>,
+    pub deposit: core_deposit::CoreDeposit<TestPerms, TestEvent>,
+    pub customers: core_customer::Customers<TestPerms, TestEvent>,
+    pub outbox: obix::Outbox<TestEvent>,
+    pub jobs: job::Jobs,
+}
+
+pub fn test_terms() -> TermValues {
+    TermValues::builder()
+        .annual_rate(dec!(12))
+        .initial_cvl(dec!(140))
+        .margin_call_cvl(dec!(125))
+        .liquidation_cvl(dec!(105))
+        .duration(FacilityDuration::Months(3))
+        .interest_due_duration_from_accrual(ObligationDuration::Days(0))
+        .obligation_overdue_duration_from_due(ObligationDuration::Days(50))
+        .obligation_liquidation_duration_from_due(None)
+        .accrual_interval(InterestInterval::EndOfDay)
+        .accrual_cycle_interval(InterestInterval::EndOfMonth)
+        .one_time_fee_rate(dec!(0.01))
+        .disbursal_policy(DisbursalPolicy::SingleDisbursal)
+        .build()
+        .unwrap()
+}
+
+pub async fn setup() -> anyhow::Result<TestContext> {
+    let pool = init_pool().await?;
+    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+
+    let outbox =
+        obix::Outbox::<TestEvent>::init(&pool, obix::MailboxConfig::builder().build()?).await?;
+
+    let authz = TestPerms::new();
+    let storage = Storage::new(&StorageConfig::default());
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
+    let public_ids = PublicIds::new(&pool);
+    let customers = core_customer::Customers::new(
+        &pool,
+        &authz,
+        &outbox,
+        document_storage,
+        public_ids,
+        clock.clone(),
+    );
+
+    let mut jobs = job::Jobs::init(
+        job::JobSvcConfig::builder()
+            .pool(pool.clone())
+            .build()
+            .unwrap(),
+    )
+    .await?;
+
+    let custody = core_custody::CoreCustody::init(
+        &pool,
+        &authz,
+        custody_config(),
+        &outbox,
+        &mut jobs,
+        clock.clone(),
+    )
+    .await?;
+
+    let cala_config = CalaLedgerConfig::builder()
+        .pool(pool.clone())
+        .exec_migrations(false)
+        .build()?;
+    let cala = CalaLedger::init(cala_config).await?;
+
+    let journal_id = init_journal(&cala).await?;
+    let credit_public_ids = PublicIds::new(&pool);
+    let price = core_price::Price::init(&mut jobs, &outbox).await?;
+    let domain_configs = init_read_only_exposed_domain_configs(&pool, &authz).await?;
+    domain_config::DomainConfigTestUtils::clear_config_by_key(
+        &pool,
+        "credit-chart-of-accounts-integration",
+    )
+    .await?;
+    let internal_domain_configs = init_internal_domain_configs(&pool).await?;
+
+    let credit = CoreCredit::init(
+        &pool,
+        Default::default(),
+        &governance,
+        &mut jobs,
+        &authz,
+        &customers,
+        &custody,
+        &price,
+        &outbox,
+        &cala,
+        journal_id,
+        &credit_public_ids,
+        &domain_configs,
+        &internal_domain_configs,
+    )
+    .await?;
+
+    let deposit_public_ids = PublicIds::new(&pool);
+    let deposit = core_deposit::CoreDeposit::init(
+        &pool,
+        &authz,
+        &outbox,
+        &governance,
+        &mut jobs,
+        &cala,
+        journal_id,
+        &deposit_public_ids,
+        &customers,
+        &domain_configs,
+        &internal_domain_configs,
+    )
+    .await?;
+
+    seed_price(&outbox, &price).await?;
+
+    Ok(TestContext {
+        credit,
+        deposit,
+        customers,
+        outbox,
+        jobs,
+    })
+}
+
+pub struct PendingFacilityState {
+    pub customer_id: CustomerId,
+    pub pending_facility_id: PendingCreditFacilityId,
+    pub collateral_id: CollateralId,
+    pub deposit_account_id: core_deposit::DepositAccountId,
+    pub amount: money::UsdCents,
+    pub terms: TermValues,
+}
+
+pub async fn create_pending_facility(
+    ctx: &TestContext,
+    terms: TermValues,
+) -> anyhow::Result<PendingFacilityState> {
+    let customer = ctx
+        .customers
+        .create(
+            &DummySubject,
+            format!("test-{}@example.com", uuid::Uuid::new_v4()),
+            format!("telegram-{}", uuid::Uuid::new_v4()),
+            core_customer::CustomerType::Individual,
+        )
+        .await?;
+
+    let deposit_account = ctx
+        .deposit
+        .create_account(&DummySubject, customer.id)
+        .await?;
+
+    let amount = money::UsdCents::from(1_000_000);
+    let proposal = ctx
+        .credit
+        .create_facility_proposal(
+            &DummySubject,
+            customer.id,
+            deposit_account.id,
+            amount,
+            terms,
+            None::<core_custody::CustodianId>,
+        )
+        .await?;
+
+    ctx.credit
+        .proposals()
+        .conclude_customer_approval(&DummySubject, proposal.id, true)
+        .await?;
+
+    let pending_facility_id: PendingCreditFacilityId = proposal.id.into();
+    for attempt in 0..100 {
+        if let Some(pf) = ctx
+            .credit
+            .pending_credit_facilities()
+            .find_by_id(&DummySubject, pending_facility_id)
+            .await?
+        {
+            return Ok(PendingFacilityState {
+                customer_id: customer.id,
+                pending_facility_id,
+                collateral_id: pf.collateral_id,
+                deposit_account_id: deposit_account.id,
+                amount,
+                terms,
+            });
+        }
+        if attempt == 99 {
+            panic!("Timed out waiting for pending facility creation");
+        }
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+    unreachable!()
+}
+
+pub struct ActiveFacilityState {
+    pub facility_id: CreditFacilityId,
+    pub collateral_id: CollateralId,
+    pub deposit_account_id: core_deposit::DepositAccountId,
+    pub customer_id: CustomerId,
+    pub amount: money::UsdCents,
+}
+
+/// Creates a pending facility and triggers activation by updating collateral.
+/// Returns once the facility is active.
+pub async fn create_active_facility(
+    ctx: &TestContext,
+    terms: TermValues,
+) -> anyhow::Result<ActiveFacilityState> {
+    let state = create_pending_facility(ctx, terms).await?;
+
+    let collateral_satoshis = Satoshis::from(50_000_000); // 0.5 BTC
+    let effective = chrono::Utc::now().date_naive();
+    ctx.credit
+        .collaterals()
+        .update_collateral_by_id(
+            &DummySubject,
+            state.collateral_id,
+            collateral_satoshis,
+            effective,
+        )
+        .await?;
+
+    let facility_id: CreditFacilityId = state.pending_facility_id.into();
+    for attempt in 0..100 {
+        if let Some(facility) = ctx
+            .credit
+            .facilities()
+            .find_by_id(&DummySubject, facility_id)
+            .await?
+            && facility.status() == CreditFacilityStatus::Active
+        {
+            return Ok(ActiveFacilityState {
+                facility_id,
+                collateral_id: state.collateral_id,
+                deposit_account_id: state.deposit_account_id,
+                customer_id: state.customer_id,
+                amount: state.amount,
+            });
+        }
+        if attempt == 99 {
+            panic!("Timed out waiting for facility activation");
+        }
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+    unreachable!()
 }
