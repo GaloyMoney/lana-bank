@@ -53,7 +53,7 @@ export function AccountSetCombobox<TOption extends AccountSetOptionBase>({
   const showTooltip = Boolean(displayValue)
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           id={id}
@@ -66,14 +66,14 @@ export function AccountSetCombobox<TOption extends AccountSetOptionBase>({
           {showTooltip ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="min-w-0 flex-1 truncate text-left">
+                <span className="min-w-0 flex-1 truncate text-left uppercase">
                   {displayText}
                 </span>
               </TooltipTrigger>
-              <TooltipContent>{displayValue}</TooltipContent>
+              <TooltipContent className="uppercase">{displayValue}</TooltipContent>
             </Tooltip>
           ) : (
-            <span className="min-w-0 flex-1 truncate text-left text-muted-foreground">
+            <span className="min-w-0 flex-1 truncate text-left text-muted-foreground uppercase">
               {displayText}
             </span>
           )}
@@ -111,7 +111,7 @@ export function AccountSetCombobox<TOption extends AccountSetOptionBase>({
                         value === option.code ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="truncate">{optionLabel}</span>
+                    <span className="truncate uppercase">{optionLabel}</span>
                   </CommandItem>
                 )
               })}
