@@ -364,11 +364,11 @@ impl CreditFacility {
 
     fn maybe_initiate_partial_liquidation(
         &mut self,
-        state: CollateralizationState,
+        collateralization: FacilityCollateralization,
         price: PriceOfOneBTC,
         balances: CreditFacilityBalanceSummary,
     ) -> Idempotent<()> {
-        if !state.is_under_liquidation_threshold() {
+        if !collateralization.is_under_liquidation_threshold() {
             return Idempotent::AlreadyApplied;
         }
 
@@ -678,16 +678,16 @@ impl CreditFacility {
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityBalanceSummary,
-    ) -> Idempotent<Option<CollateralizationState>> {
+    ) -> Idempotent<Option<FacilityCollateralization>> {
         let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
 
-        let last_collateralization_state = self.last_collateralization_state();
+        let last_collateralization = self.last_collateralization();
 
-        let collateralization_update = match self.status() {
+        let new_state = match self.status() {
             CreditFacilityStatus::Active | CreditFacilityStatus::Matured => {
                 self.terms.collateralization_update(
                     balances.current_cvl(price),
-                    last_collateralization_state,
+                    last_collateralization.state(),
                     Some(upgrade_buffer_cvl_pct),
                     false,
                 )
@@ -695,44 +695,41 @@ impl CreditFacility {
             CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
         };
 
-        if let Some(calculated_collateralization) = collateralization_update {
-            let collateral = balances.collateral();
-            let outstanding = balances.into();
-            let collateralization = match calculated_collateralization {
-                CollateralizationState::FullyCollateralized => {
-                    FacilityCollateralization::FullyCollateralized {
-                        collateral,
-                        outstanding,
-                        price,
-                    }
+        let collateral = balances.collateral();
+        let outstanding = balances.into();
+        let new_collateralization = new_state.map(|state| match state {
+            CollateralizationState::FullyCollateralized => {
+                FacilityCollateralization::FullyCollateralized {
+                    collateral,
+                    outstanding,
+                    price,
                 }
-                CollateralizationState::UnderMarginCallThreshold => {
-                    FacilityCollateralization::UnderMarginCallThreshold {
-                        collateral,
-                        outstanding,
-                        price,
-                    }
+            }
+            CollateralizationState::UnderMarginCallThreshold => {
+                FacilityCollateralization::UnderMarginCallThreshold {
+                    collateral,
+                    outstanding,
+                    price,
                 }
-                CollateralizationState::UnderLiquidationThreshold => {
-                    FacilityCollateralization::UnderLiquidationThreshold {
-                        collateral,
-                        outstanding,
-                        price,
-                    }
+            }
+            CollateralizationState::UnderLiquidationThreshold => {
+                FacilityCollateralization::UnderLiquidationThreshold {
+                    collateral,
+                    outstanding,
+                    price,
                 }
-                CollateralizationState::NoCollateral => FacilityCollateralization::NoCollateral,
-                CollateralizationState::NoExposure => FacilityCollateralization::NoExposure,
-            };
+            }
+            CollateralizationState::NoCollateral => FacilityCollateralization::NoCollateral,
+            CollateralizationState::NoExposure => FacilityCollateralization::NoExposure,
+        });
+
+        if let Some(collateralization) = new_collateralization {
             self.events
                 .push(CreditFacilityEvent::CollateralizationStateChanged { collateralization });
 
-            let _ = self.maybe_initiate_partial_liquidation(
-                calculated_collateralization,
-                price,
-                balances,
-            );
+            let _ = self.maybe_initiate_partial_liquidation(collateralization, price, balances);
 
-            Idempotent::Executed(Some(calculated_collateralization))
+            Idempotent::Executed(Some(collateralization))
         } else if ratio_changed {
             Idempotent::Executed(None)
         } else {
@@ -1204,10 +1201,10 @@ mod test {
                 balances,
             );
             assert!(state_update.did_execute());
-            assert_eq!(
+            assert!(matches!(
                 state_update.unwrap(),
-                Some(CollateralizationState::UnderLiquidationThreshold)
-            );
+                Some(FacilityCollateralization::UnderLiquidationThreshold { .. })
+            ));
 
             let liquidation_id = credit_facility
                 .events
@@ -1258,10 +1255,10 @@ mod test {
                 balances,
             );
             assert!(state_update.did_execute());
-            assert_eq!(
+            assert!(matches!(
                 state_update.unwrap(),
-                Some(CollateralizationState::FullyCollateralized)
-            );
+                Some(FacilityCollateralization::FullyCollateralized { .. })
+            ));
 
             // Acknowledge liquidation payment
             assert!(matches!(
@@ -1277,10 +1274,10 @@ mod test {
                 balances,
             );
             assert!(state_update.did_execute());
-            assert_eq!(
+            assert!(matches!(
                 state_update.unwrap(),
-                Some(CollateralizationState::UnderLiquidationThreshold)
-            );
+                Some(FacilityCollateralization::UnderLiquidationThreshold { .. })
+            ));
 
             // Second liquidation (with different ID) is initiated
             let second_liquidation_id =
