@@ -1,22 +1,31 @@
 {
   "$defs": {
-    "ConfigCypher": {
-      "items": {
-        "format": "uint8",
-        "maximum": 255,
-        "minimum": 0,
-        "type": "integer"
+    "Encrypted": {
+      "properties": {
+        "ciphertext": {
+          "items": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "nonce": {
+          "items": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        }
       },
-      "type": "array"
-    },
-    "Nonce": {
-      "items": {
-        "format": "uint8",
-        "maximum": 255,
-        "minimum": 0,
-        "type": "integer"
-      },
-      "type": "array"
+      "required": [
+        "ciphertext",
+        "nonce"
+      ],
+      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -49,19 +58,13 @@
     {
       "properties": {
         "encrypted_custodian_config": {
-          "maxItems": 2,
-          "minItems": 2,
-          "prefixItems": [
+          "anyOf": [
             {
-              "$ref": "#/$defs/ConfigCypher"
+              "$ref": "#/$defs/Encrypted"
             },
             {
-              "$ref": "#/$defs/Nonce"
+              "type": "null"
             }
-          ],
-          "type": [
-            "array",
-            "null"
           ]
         },
         "type": {

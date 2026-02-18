@@ -7,6 +7,10 @@ use crate::EncryptionKey;
 pub struct EncryptionConfig {
     #[serde(skip)]
     pub key: EncryptionKey,
+
+    // FIXME: there is no way to pass for now
+    #[serde(skip)]
+    pub deprecated_encryption_key: Option<EncryptionKey>,
 }
 
 impl std::fmt::Debug for EncryptionConfig {

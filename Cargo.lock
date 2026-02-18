@@ -1372,6 +1372,7 @@ dependencies = [
  "derive_builder",
  "document-storage",
  "domain-config",
+ "encryption",
  "es-entity",
  "futures",
  "governance",

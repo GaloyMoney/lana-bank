@@ -186,6 +186,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     let custody = core_custody::CoreCustody::init(
         &pool,
         &authz,
+        helpers::custody_encryption_config(),
         helpers::custody_config(),
         &outbox,
         &mut jobs,

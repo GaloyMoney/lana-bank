@@ -10,7 +10,7 @@ pub enum CustodianError {
     EsEntityError(es_entity::EsEntityError),
     #[error("CustodianError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("CustodianError - Encryption")]
+    #[error("CustodianError - Encryption: {0}")]
     Encryption(#[from] encryption::EncryptionError),
     #[error("CustodianError - Serde: {0}")]
     Serde(#[from] serde_json::Error),

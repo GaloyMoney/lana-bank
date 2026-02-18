@@ -213,6 +213,7 @@ impl LanaApp {
         let custody = Custody::init(
             &pool,
             &authz,
+            config.encryption.clone(),
             config.custody,
             &outbox,
             &mut jobs,

@@ -26,7 +26,7 @@ pub use publisher::CustodyPublisher;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use encryption::EncryptionKey;
+use encryption::{EncryptionConfig, EncryptionKey};
 use money::Satoshis;
 
 pub use custodian::*;
@@ -58,6 +58,7 @@ where
     authz: Perms,
     custodians: CustodianRepo,
     wallets: WalletRepo<E>,
+    encryption: EncryptionConfig,
     config: CustodyConfig,
 }
 
@@ -71,6 +72,7 @@ where
             authz: self.authz.clone(),
             custodians: self.custodians.clone(),
             wallets: self.wallets.clone(),
+            encryption: self.encryption.clone(),
             config: self.config.clone(),
         }
     }
@@ -106,6 +108,7 @@ where
     fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
+        encryption: &EncryptionConfig,
         config: &CustodyConfig,
         outbox: &Outbox<E>,
         clock: ClockHandle,
@@ -114,6 +117,7 @@ where
         let wallets = WalletRepo::new(pool, &CustodyPublisher::new(outbox), clock);
         Self {
             authz: authz.clone(),
+            encryption: encryption.clone(),
             config: config.clone(),
             custodians,
             wallets,
@@ -141,7 +145,7 @@ where
 
         if let Ok(custodian) = custodian
             && let Some(notification) = custodian
-                .custodian_client(&self.config.encryption.key, &self.config.custody_providers)?
+                .custodian_client(&self.encryption.key, &self.config.custody_providers)?
                 .process_webhook(&header_map, payload)
                 .await?
         {
@@ -212,6 +216,7 @@ where
 {
     authz: Perms,
     custodians: CustodianRepo,
+    encryption: EncryptionConfig,
     config: CustodyConfig,
     wallets: WalletRepo<E>,
     inbox: Inbox,
@@ -230,12 +235,14 @@ where
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
+        encryption: EncryptionConfig,
         config: CustodyConfig,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
         clock: ClockHandle,
     ) -> Result<Self, CoreCustodyError> {
-        let handler = CustodianWebhookHandler::new(pool, authz, &config, outbox, clock.clone());
+        let handler =
+            CustodianWebhookHandler::new(pool, authz, &encryption, &config, outbox, clock.clone());
 
         let inbox_config = InboxConfig::new(CUSTODY_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);
@@ -243,13 +250,14 @@ where
         let custody = Self {
             authz: authz.clone(),
             custodians: CustodianRepo::new(pool, clock.clone()),
+            encryption,
             config,
             wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox), clock.clone()),
             inbox,
             clock,
         };
 
-        if let Some(deprecated_key) = custody.config.deprecated_encryption_key.as_ref() {
+        if let Some(deprecated_key) = custody.encryption.deprecated_encryption_key.as_ref() {
             custody.rotate_encryption_key(deprecated_key).await?;
         }
 
@@ -296,7 +304,7 @@ where
             .id(custodian_id)
             .name(custodian_name.as_ref().to_owned())
             .provider(custodian_config.discriminant().to_string())
-            .encrypted_custodian_config(custodian_config, &self.config.encryption.key)
+            .encrypted_custodian_config(custodian_config, &self.encryption.key)
             .build()
             .expect("should always build a new custodian");
 
@@ -345,7 +353,7 @@ where
             .id(custodian_id)
             .name(custodian_name.as_ref().to_owned())
             .provider(custodian_config.discriminant().to_string())
-            .encrypted_custodian_config(custodian_config, &self.config.encryption.key)
+            .encrypted_custodian_config(custodian_config, &self.encryption.key)
             .build()
             .expect("should always build a new custodian");
 
@@ -390,7 +398,7 @@ where
         let mut custodian = self.custodians.find_by_id(id).await?;
 
         if custodian
-            .update_custodian_config(config, &self.config.encryption.key)
+            .update_custodian_config(config, &self.encryption.key)
             .did_execute()
         {
             let mut op = self.custodians.begin_op().await?;
@@ -422,7 +430,7 @@ where
 
         for custodian in custodians.iter_mut() {
             if custodian
-                .rotate_encryption_key(&self.config.encryption.key, deprecated_key)?
+                .rotate_encryption_key(&self.encryption.key, deprecated_key)?
                 .did_execute()
             {
                 self.custodians
@@ -488,8 +496,8 @@ where
             .find_by_id_in_op(&mut *db, &custodian_id)
             .await?;
 
-        let client = custodian
-            .custodian_client(&self.config.encryption.key, &self.config.custody_providers)?;
+        let client =
+            custodian.custodian_client(&self.encryption.key, &self.config.custody_providers)?;
 
         let external_wallet = client.initialize_wallet(wallet_label).await?;
 
@@ -582,6 +590,7 @@ where
             authz: self.authz.clone(),
             custodians: self.custodians.clone(),
             wallets: self.wallets.clone(),
+            encryption: self.encryption.clone(),
             config: self.config.clone(),
             inbox: self.inbox.clone(),
             clock: self.clock.clone(),

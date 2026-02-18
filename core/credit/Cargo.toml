@@ -67,6 +67,7 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 document-storage = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 domain-config = { workspace = true, features = ["test-utils"] }
+encryption = { workspace = true }
 rand = { workspace = true }
 anyhow = { workspace = true }
 serde_yaml = { workspace = true }
