@@ -84,7 +84,7 @@ where
         kyc_verification: KycVerification,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let deposit_account_status = match kyc_verification {
-            KycVerification::Rejected | KycVerification::PendingVerification => {
+            KycVerification::Rejected | KycVerification::NoKyc => {
                 DepositAccountHolderStatus::Inactive
             }
             KycVerification::Verified => DepositAccountHolderStatus::Active,
