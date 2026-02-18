@@ -623,10 +623,6 @@
       "denied": "Denegado",
       "customer_denied": "Denegado por el Cliente"
     },
-    "collateralizationState": {
-      "fullycollateralized": "Totalmente garantizado",
-      "undercollateralized": "Insuficientemente garantizado"
-    },
     "CreateCreditFacilityProposal": {
       "dialog": {
         "customerInfo": "Creando propuesta de línea de crédito para {email}",

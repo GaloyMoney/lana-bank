@@ -623,10 +623,6 @@
       "denied": "Denied",
       "customer_denied": "Customer Denied"
     },
-    "collateralizationState": {
-      "fullycollateralized": "Fully Collateralized",
-      "undercollateralized": "Under Collateralized"
-    },
     "CreateCreditFacilityProposal": {
       "dialog": {
         "customerInfo": "Creating credit facility proposal for {email}",

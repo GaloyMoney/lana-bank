@@ -424,8 +424,6 @@ checksums:
     CreditFacilityProposals/status/approved: e5231b13f1fb9008823144a21a81a1b3
     CreditFacilityProposals/status/denied: 14571edbcf40a34ba476a0e9feb16009
     CreditFacilityProposals/status/customer_denied: 2ed1f575541995f62bdf2f7a10abf059
-    CreditFacilityProposals/collateralizationState/fullycollateralized: ac0dd4d27277fd887b8a195d815af373
-    CreditFacilityProposals/collateralizationState/undercollateralized: 08bc680351a0f5bb35acf0cc4f7859f8
     CreditFacilityProposals/CreateCreditFacilityProposal/dialog/customerInfo: ddc2c1be8a3d224ffbd8eedc89d5c89e
     CreditFacilityProposals/CreateCreditFacilityProposal/dialog/title: 8449763934cb1988457098bccf0a9506
     CreditFacilityProposals/CreateCreditFacilityProposal/dialog/description: d159a1229a325f6a0270ca1f81882a50

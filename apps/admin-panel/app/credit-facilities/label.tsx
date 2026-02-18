@@ -67,8 +67,12 @@ export const PendingFacilityCollateralizationStateLabel = ({
         return "success"
       case PendingCreditFacilityCollateralizationState.UnderCollateralized:
         return "destructive"
-      default:
-        return "outline"
+      case PendingCreditFacilityCollateralizationState.NotYetCollateralized:
+        return "secondary"
+      default: {
+        const exhaustiveCheck: never = state
+        return exhaustiveCheck
+      }
     }
   }
 
