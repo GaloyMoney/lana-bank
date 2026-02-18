@@ -82,7 +82,7 @@ async fn party_email_updated_event_on_email_change() -> anyhow::Result<()> {
 
     let (_, recorded) = event::expect_event(
         &outbox,
-        || customers.update_email(&DummySubject, customer.id, new_email.clone()),
+        || customers.update_email(&DummySubject, customer.party_id, new_email.clone()),
         |result, e| match e {
             CoreCustomerEvent::PartyEmailUpdated { entity } if entity.id == result.party_id => {
                 Some(entity.clone())

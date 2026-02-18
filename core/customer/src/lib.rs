@@ -163,14 +163,10 @@ where
         let telegram_handle = telegram_handle.into();
         let customer_type = customer_type.into();
 
-        // @ claude - instead of checking just create it and let the DB indexes identify the
-        // violation
         if self.party_repo.maybe_find_by_email(&email).await?.is_some() {
             return Err(party::PartyError::EmailAlreadyExists.into());
         }
 
-        // @ claude - instead of checking just create it and let the DB indexes identify the
-        // violation
         if self
             .party_repo
             .maybe_find_by_telegram_handle(&telegram_handle)
