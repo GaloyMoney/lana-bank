@@ -1,3 +1,32 @@
+## [0.42.0] - 2026-02-18
+
+### 🚀 Features
+
+- Add local file serving endpoint with signed URLs (#3788)
+- Add collateralization data to CreditFacilityEvent::Initialized (#3825)
+- Split customer module into prospect + customer (#3778)
+
+### 🐛 Bug Fixes
+
+- Proper conditions for cold start (#3826)
+- Customer creation in tests (#3843)
+
+### 🚜 Refactor
+
+- Deposit product mod `AccountSet` as value including accounting context (#3745)
+- Migrate to es-entity multi-filter list_for_filters API (#3833)
+- Use lib/encryption in domain config (#3829)
+- Facility collateralization changed event (#3798)
+
+### 🧪 Testing
+
+- Credit public events (#3824)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.41.1 [ci skip] (#3832)
+- Reengage liquidation-related public events (#3807)
+- Credit COA config update (UI) (#3748)
 ## [0.41.1] - 2026-02-17
 
 ### 🐛 Bug Fixes
