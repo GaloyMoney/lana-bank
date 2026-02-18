@@ -10,7 +10,7 @@ use super::{
 
 pub use lana_app::customer::{
     Activity, Customer as DomainCustomer, CustomerType, CustomersCursor,
-    CustomersFilter as DomainCustomersFilter, CustomersSortBy as DomainCustomersSortBy, KycLevel,
+    CustomersFilters as DomainCustomersFilters, CustomersSortBy as DomainCustomersSortBy, KycLevel,
     KycVerification, PersonalInfo, Sort,
 };
 
