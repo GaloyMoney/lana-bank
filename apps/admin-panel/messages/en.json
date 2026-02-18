@@ -2375,7 +2375,6 @@
   },
   "Modules": {
     "notYetConfigured": "Not yet configured",
-    "autoPopulate": "Autofill",
     "accountCategories": {
       "offBalanceSheet": "Off Balance Sheet",
       "asset": "Asset",
@@ -2389,6 +2388,18 @@
       "title": "Deposit",
       "description": "Deposit configuration",
       "setTitle": "Set Deposit Configuration",
+      "accountSetSelectPlaceholder": "Select account set...",
+      "accountSetSearchPlaceholder": "Search account sets...",
+      "accountSetEmpty": "No account sets found.",
+      "confirmationTitle": "Confirm Deposit Configuration",
+      "confirmationDescription": "Review the updated values before closing.",
+      "confirmationPrevious": "Previous",
+      "confirmationUpdated": "Updated",
+      "updateSuccess": "Deposit configuration updated.",
+      "groups": {
+        "omnibus": "Omnibus Accounts",
+        "summary": "Summary Accounts"
+      },
       "chartOfAccountsId": "Chart of Accounts ID",
       "chartOfAccountsOmnibusParentCode": "Omnibus Parent Code",
       "chartOfAccountsIndividualDepositAccountsParentCode": "Deposit Accounts Individual Parent Code",
