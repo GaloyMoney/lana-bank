@@ -18,6 +18,19 @@ pub enum PartyError {
 
 es_entity::from_es_entity_error!(PartyError);
 
+impl PartyError {
+    pub fn from_db_error(error: PartyError) -> PartyError {
+        match &error {
+            PartyError::Sqlx(sqlx::Error::Database(db_err)) => match db_err.constraint() {
+                Some("core_parties_email_key") => PartyError::EmailAlreadyExists,
+                Some("core_parties_telegram_handle_key") => PartyError::TelegramHandleAlreadyExists,
+                _ => error,
+            },
+            _ => error,
+        }
+    }
+}
+
 impl ErrorSeverity for PartyError {
     fn severity(&self) -> Level {
         match self {

@@ -163,26 +163,12 @@ where
         let telegram_handle = telegram_handle.into();
         let customer_type = customer_type.into();
 
-        if self.party_repo.maybe_find_by_email(&email).await?.is_some() {
-            return Err(party::PartyError::EmailAlreadyExists.into());
-        }
-
-        if self
-            .party_repo
-            .maybe_find_by_telegram_handle(&telegram_handle)
-            .await?
-            .is_some()
-        {
-            return Err(party::PartyError::TelegramHandleAlreadyExists.into());
-        }
-
         let prospect_id = ProspectId::new();
         tracing::Span::current().record("prospect_id", prospect_id.to_string().as_str());
 
         let mut db = self.prospect_repo.begin_op().await?;
 
-        // Create Party first
-        let party_id = PartyId::new();
+        let party_id = prospect_id.into();
         let new_party = party::NewParty::builder()
             .id(party_id)
             .email(email)
