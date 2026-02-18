@@ -11,13 +11,17 @@ pub use public_id::PublicId;
 es_entity::entity_id! {
     CustomerId,
     CustomerDocumentId,
-    ProspectId;
+    ProspectId,
+    PartyId;
 
     CustomerId => document_storage::ReferenceId,
     CustomerId => public_id::PublicIdTargetId,
     CustomerDocumentId => document_storage::DocumentId,
     ProspectId => public_id::PublicIdTargetId,
-    ProspectId => CustomerId
+    ProspectId => CustomerId,
+
+    PartyId => CustomerId,
+    PartyId => ProspectId
 }
 
 #[derive(Debug, Default, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
@@ -228,6 +232,7 @@ impl From<CustomerType> for String {
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 pub type ProspectAllOrOne = AllOrOne<ProspectId>;
+pub type PartyAllOrOne = AllOrOne<PartyId>;
 
 permission_sets_macro::permission_sets! {
     CustomerViewer("Can view customer profiles and account details"),
@@ -246,6 +251,7 @@ pub enum CustomerObject {
     Customer(CustomerAllOrOne),
     CustomerDocument(CustomerDocumentAllOrOne),
     Prospect(ProspectAllOrOne),
+    Party(PartyAllOrOne),
 }
 
 impl CustomerObject {
@@ -276,6 +282,15 @@ impl CustomerObject {
             None => CustomerObject::all_prospects(),
         }
     }
+    pub fn all_parties() -> CustomerObject {
+        CustomerObject::Party(AllOrOne::All)
+    }
+    pub fn party(id: impl Into<Option<PartyId>>) -> CustomerObject {
+        match id.into() {
+            Some(id) => CustomerObject::Party(AllOrOne::ById(id)),
+            None => CustomerObject::all_parties(),
+        }
+    }
 }
 
 impl Display for CustomerObject {
@@ -286,6 +301,7 @@ impl Display for CustomerObject {
             Customer(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             CustomerDocument(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Prospect(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Party(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -309,6 +325,10 @@ impl FromStr for CustomerObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
                 CustomerObject::Prospect(obj_ref)
             }
+            Party => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
+                CustomerObject::Party(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -325,6 +345,22 @@ pub enum ProspectEntityAction {
     StartKyc,
     ApproveKyc,
     DeclineKyc,
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum PartyEntityAction {
+    Read,
+    Update,
+}
+
+impl ActionPermission for PartyEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_CUSTOMER_VIEWER,
+            Self::Update => PERMISSION_SET_CUSTOMER_WRITER,
+        }
+    }
 }
 
 impl ActionPermission for ProspectEntityAction {
@@ -348,6 +384,7 @@ pub enum CoreCustomerAction {
     Customer(CustomerEntityAction),
     CustomerDocument(CustomerDocumentEntityAction),
     Prospect(ProspectEntityAction),
+    Party(PartyEntityAction),
 }
 
 impl CoreCustomerAction {
@@ -382,6 +419,8 @@ impl CoreCustomerAction {
         CoreCustomerAction::Prospect(ProspectEntityAction::ApproveKyc);
     pub const PROSPECT_DECLINE_KYC: Self =
         CoreCustomerAction::Prospect(ProspectEntityAction::DeclineKyc);
+    pub const PARTY_READ: Self = CoreCustomerAction::Party(PartyEntityAction::Read);
+    pub const PARTY_UPDATE: Self = CoreCustomerAction::Party(PartyEntityAction::Update);
 
     pub fn actions() -> Vec<ActionMapping> {
         use CoreCustomerActionDiscriminants::*;
@@ -395,6 +434,7 @@ impl CoreCustomerAction {
                     map_action!(customer, CustomerDocument, CustomerDocumentEntityAction)
                 }
                 Prospect => map_action!(customer, Prospect, ProspectEntityAction),
+                Party => map_action!(customer, Party, PartyEntityAction),
             })
             .collect()
     }
@@ -433,6 +473,7 @@ impl Display for CoreCustomerAction {
             Customer(action) => action.fmt(f),
             CustomerDocument(action) => action.fmt(f),
             Prospect(action) => action.fmt(f),
+            Party(action) => action.fmt(f),
         }
     }
 }
@@ -449,6 +490,7 @@ impl FromStr for CoreCustomerAction {
                 CoreCustomerAction::from(action.parse::<CustomerDocumentEntityAction>()?)
             }
             Prospect => CoreCustomerAction::from(action.parse::<ProspectEntityAction>()?),
+            Party => CoreCustomerAction::from(action.parse::<PartyEntityAction>()?),
         };
         Ok(res)
     }
@@ -463,6 +505,12 @@ impl From<CustomerEntityAction> for CoreCustomerAction {
 impl From<ProspectEntityAction> for CoreCustomerAction {
     fn from(action: ProspectEntityAction) -> Self {
         CoreCustomerAction::Prospect(action)
+    }
+}
+
+impl From<PartyEntityAction> for CoreCustomerAction {
+    fn from(action: PartyEntityAction) -> Self {
+        CoreCustomerAction::Party(action)
     }
 }
 

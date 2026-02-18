@@ -985,12 +985,12 @@ type Customer {
 	activity: Activity!
 	level: KycLevel!
 	createdAt: Timestamp!
-	customerType: CustomerType!
 	email: String!
 	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String!
-	personalInfo: PersonalInfo!
+	customerType: CustomerType!
+	personalInfo: PersonalInfo
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
 	pendingCreditFacilities: [PendingCreditFacility!]!
@@ -1103,14 +1103,12 @@ input CustomersFilter {
 }
 
 input CustomersSort {
-	by: CustomersSortBy! = EMAIL
+	by: CustomersSortBy! = CREATED_AT
 	direction: SortDirection! = ASC
 }
 
 enum CustomersSortBy {
 	CREATED_AT
-	EMAIL
-	TELEGRAM_HANDLE
 }
 
 union Cvlpct = FiniteCVLPct | InfiniteCVLPct
@@ -2128,10 +2126,10 @@ type Prospect {
 	kycStatus: KycStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
-	customerType: CustomerType!
 	stage: ProspectStage!
 	email: String!
 	telegramHandle: String!
+	customerType: CustomerType!
 	publicId: PublicId!
 	applicantId: String
 	verificationLink: String
@@ -2225,7 +2223,7 @@ type Query {
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
 	customerByPublicId(id: PublicId!): Customer
-	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}, filter: CustomersFilter): CustomerConnection!
+	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: ASC}, filter: CustomersFilter): CustomerConnection!
 	prospect(id: UUID!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect
 	prospects(first: Int!, after: String, stage: ProspectStage): ProspectConnection!

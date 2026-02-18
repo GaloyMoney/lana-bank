@@ -13,11 +13,7 @@ use super::{entity::*, error::*, publisher::*};
 #[es_repo(
     entity = "Prospect",
     err = "ProspectError",
-    columns(
-        email(ty = "String", list_by),
-        telegram_handle(ty = "String", list_by),
-        public_id(ty = "PublicId", list_by),
-    ),
+    columns(party_id(ty = "PartyId", list_by), public_id(ty = "PublicId", list_by),),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
@@ -72,15 +68,12 @@ impl From<(ProspectsSortBy, &Prospect)> for prospect_cursor::ProspectsCursor {
             ProspectsSortBy::CreatedAt => {
                 prospect_cursor::ProspectsByCreatedAtCursor::from(prospect).into()
             }
-            ProspectsSortBy::Email => {
-                prospect_cursor::ProspectsByEmailCursor::from(prospect).into()
-            }
-            ProspectsSortBy::TelegramHandle => {
-                prospect_cursor::ProspectsByTelegramHandleCursor::from(prospect).into()
-            }
             ProspectsSortBy::Id => prospect_cursor::ProspectsByIdCursor::from(prospect).into(),
             ProspectsSortBy::PublicId => {
                 prospect_cursor::ProspectsByPublicIdCursor::from(prospect).into()
+            }
+            ProspectsSortBy::PartyId => {
+                prospect_cursor::ProspectsByPartyIdCursor::from(prospect).into()
             }
         }
     }

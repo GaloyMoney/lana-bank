@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::error::KycError;
-use crate::ProspectId;
+use crate::primitives::ProspectId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
 #[serde(rename_all = "UPPERCASE")]

@@ -42,9 +42,6 @@ where
                 Initialized { .. } => Some(CoreCustomerEvent::CustomerCreated {
                     entity: PublicCustomer::from(entity),
                 }),
-                EmailUpdated { .. } => Some(CoreCustomerEvent::CustomerEmailUpdated {
-                    entity: PublicCustomer::from(entity),
-                }),
                 KycRejected { .. } => Some(CoreCustomerEvent::CustomerKycUpdated {
                     entity: PublicCustomer::from(entity),
                 }),

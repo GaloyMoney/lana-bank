@@ -70,14 +70,34 @@
     {
       "properties": {
         "customer_type": {
-          "$ref": "#/$defs/CustomerType"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CustomerType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "email": {
-          "type": "string"
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "id": {
           "format": "uuid",
           "type": "string"
+        },
+        "party_id": {
+          "default": null,
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "public_id": {
           "type": "string"
@@ -86,7 +106,11 @@
           "$ref": "#/$defs/ProspectStage"
         },
         "telegram_handle": {
-          "type": "string"
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "type": {
           "const": "initialized",
@@ -96,11 +120,25 @@
       "required": [
         "type",
         "id",
-        "email",
-        "telegram_handle",
-        "customer_type",
         "public_id",
         "stage"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "party_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "party_linked",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "party_id"
       ],
       "type": "object"
     },

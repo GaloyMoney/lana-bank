@@ -362,9 +362,15 @@ where
                     }
                 };
 
-                self.customers
-                    .handle_personal_info_changed_if_exists(external_user_id, personal_info)
-                    .await?;
+                let prospect = self
+                    .customers
+                    .find_prospect_by_id_without_audit(external_user_id)
+                    .await;
+                if let Ok(prospect) = prospect {
+                    self.customers
+                        .handle_personal_info_changed_if_exists(prospect.party_id, personal_info)
+                        .await?;
+                }
             }
             KycCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
@@ -490,7 +496,11 @@ where
             .customers
             .find_prospect_by_id_without_audit(prospect_id)
             .await?;
-        let level: KycLevel = prospect.customer_type.into();
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(prospect.party_id)
+            .await?;
+        let level: KycLevel = party.customer_type.into();
 
         let response = self
             .sumsub_client
@@ -539,7 +549,11 @@ where
             .customers
             .find_prospect_by_id_without_audit(prospect_id)
             .await?;
-        let level: KycLevel = prospect.customer_type.into();
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(prospect.party_id)
+            .await?;
+        let level: KycLevel = party.customer_type.into();
 
         tracing::info!(
             prospect_id = %prospect_id,

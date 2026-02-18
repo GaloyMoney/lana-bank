@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 
 use crate::{
-    primitives::{CustomerType, KycStatus, ProspectId, ProspectStage, ProspectStatus},
+    primitives::{KycStatus, PartyId, ProspectId, ProspectStage, ProspectStatus},
     prospect::Prospect,
 };
 
@@ -12,8 +12,7 @@ use crate::{
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct PublicProspect {
     pub id: ProspectId,
-    pub email: String,
-    pub customer_type: CustomerType,
+    pub party_id: PartyId,
     pub status: ProspectStatus,
     pub kyc_status: KycStatus,
     pub stage: ProspectStage,
@@ -23,8 +22,7 @@ impl From<&Prospect> for PublicProspect {
     fn from(entity: &Prospect) -> Self {
         PublicProspect {
             id: entity.id,
-            email: entity.email.clone(),
-            customer_type: entity.customer_type,
+            party_id: entity.party_id,
             status: entity.status,
             kyc_status: entity.kyc_status,
             stage: entity.stage,

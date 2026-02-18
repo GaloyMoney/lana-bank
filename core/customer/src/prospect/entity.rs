@@ -16,11 +16,19 @@ use crate::{entity::NewCustomer, primitives::*};
 pub enum ProspectEvent {
     Initialized {
         id: ProspectId,
-        email: String,
-        telegram_handle: String,
-        customer_type: CustomerType,
+        #[serde(default)]
+        party_id: Option<PartyId>,
+        #[serde(default)]
+        email: Option<String>,
+        #[serde(default)]
+        telegram_handle: Option<String>,
+        #[serde(default)]
+        customer_type: Option<CustomerType>,
         public_id: PublicId,
         stage: ProspectStage,
+    },
+    PartyLinked {
+        party_id: PartyId,
     },
     KycStarted {
         applicant_id: String,
@@ -45,6 +53,7 @@ pub enum ProspectEvent {
     Closed {
         stage: ProspectStage,
     },
+    // Legacy event variants kept for backward compatibility deserialization
     TelegramHandleUpdated {
         telegram_handle: String,
     },
@@ -57,9 +66,7 @@ pub enum ProspectEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Prospect {
     pub id: ProspectId,
-    pub email: String,
-    pub telegram_handle: String,
-    pub customer_type: CustomerType,
+    pub party_id: PartyId,
     #[builder(default)]
     pub status: ProspectStatus,
     #[builder(default)]
@@ -72,18 +79,12 @@ pub struct Prospect {
     pub level: KycLevel,
     pub stage: ProspectStage,
     pub public_id: PublicId,
-    #[builder(setter(strip_option), default)]
-    pub personal_info: Option<PersonalInfo>,
     events: EntityEvents<ProspectEvent>,
 }
 
 impl core::fmt::Display for Prospect {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Prospect: {}, email: {}, customer_type: {}",
-            self.id, self.email, self.customer_type
-        )
+        write!(f, "Prospect: {}", self.id)
     }
 }
 
@@ -163,7 +164,6 @@ impl Prospect {
         &mut self,
         applicant_id: &str,
         level: KycLevel,
-        personal_info: PersonalInfo,
     ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -191,15 +191,12 @@ impl Prospect {
 
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
-            .email(self.email.clone())
-            .telegram_handle(self.telegram_handle.clone())
-            .customer_type(self.customer_type)
+            .party_id(self.party_id)
             .public_id(self.public_id.clone())
             .applicant_id(applicant_id)
             .kyc_verification(KycVerification::Verified)
             .level(level)
             .activity(Activity::Active)
-            .personal_info(personal_info)
             .build()
             .expect("Could not build customer from prospect");
 
@@ -218,22 +215,14 @@ impl Prospect {
         self.events.push(ProspectEvent::ManuallyConverted { stage });
         self.stage = stage;
 
-        let personal_info = self
-            .personal_info
-            .clone()
-            .unwrap_or_else(PersonalInfo::dummy);
-
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
-            .email(self.email.clone())
-            .telegram_handle(self.telegram_handle.clone())
-            .customer_type(self.customer_type)
+            .party_id(self.party_id)
             .public_id(self.public_id.clone())
             .applicant_id("manual-conversion")
             .kyc_verification(KycVerification::NoKyc)
             .level(KycLevel::Basic)
             .activity(Activity::Active)
-            .personal_info(personal_info)
             .build()
             .expect("Could not build customer from prospect");
 
@@ -283,38 +272,6 @@ impl Prospect {
         self.verification_link = Some(url);
         Ok(Idempotent::Executed(()))
     }
-
-    pub fn update_personal_info(
-        &mut self,
-        personal_info: PersonalInfo,
-    ) -> Result<Idempotent<PersonalInfo>, ProspectError> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ProspectEvent::PersonalInfoUpdated { personal_info: existing, .. } if existing == &personal_info
-        );
-        self.ensure_open()?;
-        self.events.push(ProspectEvent::PersonalInfoUpdated {
-            personal_info: personal_info.clone(),
-        });
-        self.personal_info = Some(personal_info.clone());
-        Ok(Idempotent::Executed(personal_info))
-    }
-
-    pub fn update_telegram_handle(
-        &mut self,
-        new_telegram_handle: String,
-    ) -> Result<Idempotent<()>, ProspectError> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ProspectEvent::TelegramHandleUpdated { telegram_handle: existing_telegram_handle , ..} if existing_telegram_handle == &new_telegram_handle
-        );
-        self.ensure_open()?;
-        self.events.push(ProspectEvent::TelegramHandleUpdated {
-            telegram_handle: new_telegram_handle.clone(),
-        });
-        self.telegram_handle = new_telegram_handle;
-        Ok(Idempotent::Executed(()))
-    }
 }
 
 impl TryFromEvents<ProspectEvent> for Prospect {
@@ -325,20 +282,22 @@ impl TryFromEvents<ProspectEvent> for Prospect {
             match event {
                 ProspectEvent::Initialized {
                     id,
-                    email,
-                    telegram_handle,
-                    customer_type,
+                    party_id,
                     public_id,
                     stage,
+                    ..
                 } => {
                     builder = builder
                         .id(*id)
-                        .email(email.clone())
-                        .telegram_handle(telegram_handle.clone())
-                        .customer_type(*customer_type)
                         .public_id(public_id.clone())
                         .level(KycLevel::NotKyced)
                         .stage(*stage);
+                    if let Some(party_id) = party_id {
+                        builder = builder.party_id(*party_id);
+                    }
+                }
+                ProspectEvent::PartyLinked { party_id } => {
+                    builder = builder.party_id(*party_id);
                 }
                 ProspectEvent::KycStarted {
                     applicant_id,
@@ -374,12 +333,9 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                 ProspectEvent::Closed { stage } => {
                     builder = builder.status(ProspectStatus::Closed).stage(*stage);
                 }
-                ProspectEvent::TelegramHandleUpdated { telegram_handle } => {
-                    builder = builder.telegram_handle(telegram_handle.clone());
-                }
-                ProspectEvent::PersonalInfoUpdated { personal_info } => {
-                    builder = builder.personal_info(personal_info.clone());
-                }
+                // Legacy event variants - no-op for state reconstruction
+                ProspectEvent::TelegramHandleUpdated { .. }
+                | ProspectEvent::PersonalInfoUpdated { .. } => {}
             }
         }
 
@@ -391,12 +347,7 @@ impl TryFromEvents<ProspectEvent> for Prospect {
 pub struct NewProspect {
     #[builder(setter(into))]
     pub(super) id: ProspectId,
-    #[builder(setter(into))]
-    pub(super) email: String,
-    #[builder(setter(into))]
-    pub(super) telegram_handle: String,
-    #[builder(setter(into))]
-    pub(super) customer_type: CustomerType,
+    pub(super) party_id: PartyId,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
 }
@@ -413,9 +364,10 @@ impl IntoEvents<ProspectEvent> for NewProspect {
             self.id,
             [ProspectEvent::Initialized {
                 id: self.id,
-                email: self.email,
-                telegram_handle: self.telegram_handle,
-                customer_type: self.customer_type,
+                party_id: Some(self.party_id),
+                email: None,
+                telegram_handle: None,
+                customer_type: None,
                 public_id: self.public_id,
                 stage: ProspectStage::New,
             }],
@@ -429,13 +381,15 @@ mod tests {
 
     fn create_test_prospect() -> Prospect {
         let id = ProspectId::new();
+        let party_id = PartyId::new();
         let events = EntityEvents::init(
             id,
             [ProspectEvent::Initialized {
                 id,
-                email: "test@example.com".to_string(),
-                telegram_handle: "test_handle".to_string(),
-                customer_type: CustomerType::Individual,
+                party_id: Some(party_id),
+                email: None,
+                telegram_handle: None,
+                customer_type: None,
                 public_id: PublicId::new("test-public-id"),
                 stage: ProspectStage::New,
             }],
@@ -447,7 +401,7 @@ mod tests {
     fn approve_kyc_fails_when_kyc_not_started() {
         let mut prospect = create_test_prospect();
 
-        let result = prospect.approve_kyc("some-id", KycLevel::Basic, PersonalInfo::dummy());
+        let result = prospect.approve_kyc("some-id", KycLevel::Basic);
 
         assert!(matches!(result, Err(ProspectError::KycNotStarted)));
     }
@@ -459,11 +413,7 @@ mod tests {
             .start_kyc("correct-applicant-id".to_string())
             .expect("start_kyc should succeed");
 
-        let result = prospect.approve_kyc(
-            "correct-applicant-id",
-            KycLevel::Basic,
-            PersonalInfo::dummy(),
-        );
+        let result = prospect.approve_kyc("correct-applicant-id", KycLevel::Basic);
 
         assert!(result.is_ok());
     }
@@ -475,8 +425,7 @@ mod tests {
             .start_kyc("correct-applicant-id".to_string())
             .expect("start_kyc should succeed");
 
-        let result =
-            prospect.approve_kyc("wrong-applicant-id", KycLevel::Basic, PersonalInfo::dummy());
+        let result = prospect.approve_kyc("wrong-applicant-id", KycLevel::Basic);
 
         assert!(matches!(
             result,
@@ -527,7 +476,7 @@ mod tests {
             .start_kyc("applicant-id".to_string())
             .expect("start_kyc should succeed");
         let _ = prospect
-            .approve_kyc("applicant-id", KycLevel::Basic, PersonalInfo::dummy())
+            .approve_kyc("applicant-id", KycLevel::Basic)
             .expect("approve_kyc should succeed");
 
         let result = prospect.close();

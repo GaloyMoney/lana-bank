@@ -148,6 +148,10 @@ where
             .customers
             .find_by_id_without_audit(self.config.customer_id)
             .await?;
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(customer.party_id)
+            .await?;
 
         // Get applicant information from Sumsub
         let (full_name, address, country) = match self
@@ -166,8 +170,8 @@ where
         };
 
         let loan_data = LoanAgreementData::new(
-            customer.email.clone(),
-            customer.telegram_handle.clone(),
+            party.email,
+            party.telegram_handle,
             self.config.customer_id,
             full_name,
             address,

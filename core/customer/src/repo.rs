@@ -14,8 +14,7 @@ use super::{entity::*, error::*};
     entity = "Customer",
     err = "CustomerError",
     columns(
-        email(ty = "String", list_by),
-        telegram_handle(ty = "String", list_by),
+        party_id(ty = "PartyId", list_by),
         kyc_verification(ty = "KycVerification", list_for),
         activity(ty = "Activity", list_for),
         public_id(ty = "PublicId", list_by)
@@ -115,15 +114,12 @@ impl From<(CustomersSortBy, &Customer)> for customer_cursor::CustomersCursor {
             CustomersSortBy::CreatedAt => {
                 customer_cursor::CustomersByCreatedAtCursor::from(customer).into()
             }
-            CustomersSortBy::Email => {
-                customer_cursor::CustomersByEmailCursor::from(customer).into()
-            }
-            CustomersSortBy::TelegramHandle => {
-                customer_cursor::CustomersByTelegramHandleCursor::from(customer).into()
-            }
             CustomersSortBy::Id => customer_cursor::CustomersByIdCursor::from(customer).into(),
             CustomersSortBy::PublicId => {
                 customer_cursor::CustomersByPublicIdCursor::from(customer).into()
+            }
+            CustomersSortBy::PartyId => {
+                customer_cursor::CustomersByPartyIdCursor::from(customer).into()
             }
         }
     }

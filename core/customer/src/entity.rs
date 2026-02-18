@@ -15,15 +15,24 @@ use crate::primitives::*;
 pub enum CustomerEvent {
     Initialized {
         id: CustomerId,
-        email: String,
-        telegram_handle: String,
-        customer_type: CustomerType,
+        #[serde(default)]
+        party_id: Option<PartyId>,
+        #[serde(default)]
+        email: Option<String>,
+        #[serde(default)]
+        telegram_handle: Option<String>,
+        #[serde(default)]
+        customer_type: Option<CustomerType>,
         activity: Activity,
         public_id: PublicId,
         applicant_id: String,
         level: KycLevel,
         kyc_verification: KycVerification,
-        personal_info: PersonalInfo,
+        #[serde(default)]
+        personal_info: Option<PersonalInfo>,
+    },
+    PartyLinked {
+        party_id: PartyId,
     },
     TelegramHandleUpdated {
         telegram_handle: String,
@@ -44,26 +53,19 @@ pub enum CustomerEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Customer {
     pub id: CustomerId,
-    pub email: String,
-    pub telegram_handle: String,
+    pub party_id: PartyId,
     pub kyc_verification: KycVerification,
     pub activity: Activity,
     pub level: KycLevel,
-    pub customer_type: CustomerType,
     #[builder(setter(into))]
     pub applicant_id: String,
     pub public_id: PublicId,
-    pub personal_info: PersonalInfo,
     events: EntityEvents<CustomerEvent>,
 }
 
 impl core::fmt::Display for Customer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Customer: {}, email: {}, customer_type: {}",
-            self.id, self.email, self.customer_type
-        )
+        write!(f, "Customer: {}", self.id)
     }
 }
 
@@ -94,18 +96,6 @@ impl Customer {
         Idempotent::Executed(())
     }
 
-    pub fn update_telegram_handle(&mut self, new_telegram_handle: String) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CustomerEvent::TelegramHandleUpdated { telegram_handle: existing_telegram_handle , ..} if existing_telegram_handle == &new_telegram_handle
-        );
-        self.events.push(CustomerEvent::TelegramHandleUpdated {
-            telegram_handle: new_telegram_handle.clone(),
-        });
-        self.telegram_handle = new_telegram_handle;
-        Idempotent::Executed(())
-    }
-
     pub fn reject_kyc(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -113,34 +103,6 @@ impl Customer {
         );
         self.events.push(CustomerEvent::KycRejected {});
         self.kyc_verification = KycVerification::Rejected;
-        Idempotent::Executed(())
-    }
-
-    pub fn update_personal_info(
-        &mut self,
-        personal_info: PersonalInfo,
-    ) -> Idempotent<PersonalInfo> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CustomerEvent::PersonalInfoUpdated { personal_info: existing, .. } if existing == &personal_info
-        );
-        self.events.push(CustomerEvent::PersonalInfoUpdated {
-            personal_info: personal_info.clone(),
-        });
-        self.personal_info = personal_info.clone();
-        Idempotent::Executed(personal_info)
-    }
-
-    pub fn update_email(&mut self, new_email: String) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CustomerEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email,
-            => CustomerEvent::EmailUpdated { .. }
-        );
-        self.events.push(CustomerEvent::EmailUpdated {
-            email: new_email.clone(),
-        });
-        self.email = new_email;
         Idempotent::Executed(())
     }
 }
@@ -153,36 +115,27 @@ impl TryFromEvents<CustomerEvent> for Customer {
             match event {
                 CustomerEvent::Initialized {
                     id,
-                    email,
-                    telegram_handle,
-                    customer_type,
-                    public_id,
+                    party_id,
                     activity,
+                    public_id,
                     applicant_id,
                     level,
                     kyc_verification,
-                    personal_info,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
-                        .email(email.clone())
-                        .telegram_handle(telegram_handle.clone())
-                        .customer_type(*customer_type)
-                        .public_id(public_id.clone())
                         .activity(*activity)
+                        .public_id(public_id.clone())
                         .level(*level)
                         .kyc_verification(*kyc_verification)
-                        .applicant_id(applicant_id.clone())
-                        .personal_info(personal_info.clone());
+                        .applicant_id(applicant_id.clone());
+                    if let Some(party_id) = party_id {
+                        builder = builder.party_id(*party_id);
+                    }
                 }
-                CustomerEvent::TelegramHandleUpdated {
-                    telegram_handle, ..
-                } => {
-                    builder = builder.telegram_handle(telegram_handle.clone());
-                }
-                CustomerEvent::EmailUpdated { email, .. } => {
-                    builder = builder.email(email.clone());
+                CustomerEvent::PartyLinked { party_id } => {
+                    builder = builder.party_id(*party_id);
                 }
                 CustomerEvent::ActivityUpdated { activity, .. } => {
                     builder = builder.activity(*activity);
@@ -190,9 +143,10 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 CustomerEvent::KycRejected { .. } => {
                     builder = builder.kyc_verification(KycVerification::Rejected);
                 }
-                CustomerEvent::PersonalInfoUpdated { personal_info } => {
-                    builder = builder.personal_info(personal_info.clone());
-                }
+                // Legacy event variants - no-op for state reconstruction
+                CustomerEvent::TelegramHandleUpdated { .. }
+                | CustomerEvent::EmailUpdated { .. }
+                | CustomerEvent::PersonalInfoUpdated { .. } => {}
             }
         }
 
@@ -204,12 +158,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
 pub struct NewCustomer {
     #[builder(setter(into))]
     pub(crate) id: CustomerId,
-    #[builder(setter(into))]
-    pub(crate) email: String,
-    #[builder(setter(into))]
-    pub(crate) telegram_handle: String,
-    #[builder(setter(into))]
-    pub(crate) customer_type: CustomerType,
+    pub(crate) party_id: PartyId,
     pub(crate) kyc_verification: KycVerification,
     pub(crate) activity: Activity,
     #[builder(setter(into))]
@@ -217,7 +166,6 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(crate) applicant_id: String,
     pub(crate) level: KycLevel,
-    pub(crate) personal_info: PersonalInfo,
 }
 
 impl NewCustomer {
@@ -232,15 +180,16 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
             self.id,
             [CustomerEvent::Initialized {
                 id: self.id,
-                email: self.email,
-                telegram_handle: self.telegram_handle,
-                customer_type: self.customer_type,
+                party_id: Some(self.party_id),
+                email: None,
+                telegram_handle: None,
+                customer_type: None,
                 activity: self.activity,
                 public_id: self.public_id,
                 applicant_id: self.applicant_id,
                 level: self.level,
                 kyc_verification: self.kyc_verification,
-                personal_info: self.personal_info,
+                personal_info: None,
             }],
         )
     }

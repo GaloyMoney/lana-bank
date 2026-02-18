@@ -22,7 +22,6 @@ pub struct Customer {
     activity: Activity,
     level: KycLevel,
     created_at: Timestamp,
-    customer_type: CustomerType,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainCustomer>,
@@ -37,7 +36,6 @@ impl From<DomainCustomer> for Customer {
             activity: customer.activity,
             level: customer.level,
             created_at: customer.created_at().into(),
-            customer_type: customer.customer_type,
             entity: Arc::new(customer),
         }
     }
@@ -45,12 +43,22 @@ impl From<DomainCustomer> for Customer {
 
 #[ComplexObject]
 impl Customer {
-    async fn email(&self) -> &str {
-        &self.entity.email
+    async fn email(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.email)
     }
 
-    async fn telegram_handle(&self) -> &str {
-        &self.entity.telegram_handle
+    async fn telegram_handle(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.telegram_handle)
     }
 
     async fn public_id(&self) -> &PublicId {
@@ -61,8 +69,25 @@ impl Customer {
         &self.entity.applicant_id
     }
 
-    async fn personal_info(&self) -> &PersonalInfo {
-        &self.entity.personal_info
+    async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.customer_type)
+    }
+
+    async fn personal_info(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<PersonalInfo>> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.personal_info)
     }
 
     async fn deposit_account(
@@ -186,18 +211,14 @@ crate::mutation_payload! { CustomerEmailUpdatePayload, customer: Customer }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CustomersSortBy {
-    CreatedAt,
     #[default]
-    Email,
-    TelegramHandle,
+    CreatedAt,
 }
 
 impl From<CustomersSortBy> for DomainCustomersSortBy {
     fn from(by: CustomersSortBy) -> Self {
         match by {
             CustomersSortBy::CreatedAt => DomainCustomersSortBy::CreatedAt,
-            CustomersSortBy::Email => DomainCustomersSortBy::Email,
-            CustomersSortBy::TelegramHandle => DomainCustomersSortBy::TelegramHandle,
         }
     }
 }

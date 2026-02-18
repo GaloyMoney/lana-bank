@@ -19,7 +19,6 @@ pub struct Prospect {
     kyc_status: KycStatus,
     level: KycLevel,
     created_at: Timestamp,
-    customer_type: CustomerType,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainProspect>,
@@ -34,7 +33,6 @@ impl From<DomainProspect> for Prospect {
             kyc_status: prospect.kyc_status,
             level: prospect.level,
             created_at: prospect.created_at().into(),
-            customer_type: prospect.customer_type,
             entity: Arc::new(prospect),
         }
     }
@@ -46,12 +44,34 @@ impl Prospect {
         self.entity.stage
     }
 
-    async fn email(&self) -> &str {
-        &self.entity.email
+    async fn email(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        // go via data loader for this
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.email)
     }
 
-    async fn telegram_handle(&self) -> &str {
-        &self.entity.telegram_handle
+    async fn telegram_handle(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        // go via data loader for this
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.telegram_handle)
+    }
+
+    async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        // go via data loader for this
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.customer_type)
     }
 
     async fn public_id(&self) -> &PublicId {
@@ -72,8 +92,16 @@ impl Prospect {
             .map(Timestamp::from)
     }
 
-    async fn personal_info(&self) -> Option<&PersonalInfo> {
-        self.entity.personal_info.as_ref()
+    async fn personal_info(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<PersonalInfo>> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.personal_info)
     }
 
     async fn customer(

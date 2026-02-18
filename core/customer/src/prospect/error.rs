@@ -29,10 +29,6 @@ pub enum ProspectError {
     AlreadyConverted,
     #[error("ProspectError - AlreadyClosed: prospect has been closed")]
     AlreadyClosed,
-    #[error("ProspectError - EmailAlreadyExists")]
-    EmailAlreadyExists,
-    #[error("ProspectError - TelegramHandleAlreadyExists")]
-    TelegramHandleAlreadyExists,
 }
 
 es_entity::from_es_entity_error!(ProspectError);
@@ -50,8 +46,6 @@ impl ErrorSeverity for ProspectError {
             Self::KycNotStarted => Level::WARN,
             Self::AlreadyConverted => Level::WARN,
             Self::AlreadyClosed => Level::WARN,
-            Self::EmailAlreadyExists => Level::WARN,
-            Self::TelegramHandleAlreadyExists => Level::WARN,
         }
     }
 }

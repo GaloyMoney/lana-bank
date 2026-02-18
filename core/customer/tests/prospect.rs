@@ -43,7 +43,6 @@ async fn prospect_created_event_on_create_prospect() -> anyhow::Result<()> {
     .await?;
 
     assert_eq!(recorded.id, created_prospect.id);
-    assert_eq!(recorded.email, email);
     assert_eq!(recorded.status, ProspectStatus::Open);
     assert_eq!(recorded.kyc_status, KycStatus::NotStarted);
 

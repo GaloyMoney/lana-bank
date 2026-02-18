@@ -81,10 +81,22 @@
           "type": "string"
         },
         "customer_type": {
-          "$ref": "#/$defs/CustomerType"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CustomerType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "email": {
-          "type": "string"
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "id": {
           "format": "uuid",
@@ -96,14 +108,34 @@
         "level": {
           "$ref": "#/$defs/KycLevel"
         },
+        "party_id": {
+          "default": null,
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "personal_info": {
-          "$ref": "#/$defs/PersonalInfo"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PersonalInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "public_id": {
           "type": "string"
         },
         "telegram_handle": {
-          "type": "string"
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "type": {
           "const": "initialized",
@@ -113,15 +145,28 @@
       "required": [
         "type",
         "id",
-        "email",
-        "telegram_handle",
-        "customer_type",
         "activity",
         "public_id",
         "applicant_id",
         "level",
-        "kyc_verification",
-        "personal_info"
+        "kyc_verification"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "party_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "party_linked",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "party_id"
       ],
       "type": "object"
     },

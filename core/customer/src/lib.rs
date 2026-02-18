@@ -6,6 +6,7 @@ mod customer_activity_repo;
 mod entity;
 pub mod error;
 pub mod kyc;
+pub mod party;
 mod primitives;
 pub mod prospect;
 pub mod public;
@@ -30,6 +31,7 @@ pub use config::*;
 pub use customer_activity_repo::CustomerActivityRepo;
 pub use entity::Customer;
 use error::*;
+pub use party::{Party, PartyRepo};
 pub use primitives::*;
 pub use prospect::{Prospect, ProspectRepo, ProspectsSortBy, prospect_cursor};
 pub use public::*;
@@ -40,9 +42,11 @@ pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::entity::CustomerEvent;
+    pub use crate::party::entity::PartyEvent;
     pub use crate::prospect::entity::ProspectEvent;
 }
 
+use party::publisher::PartyPublisher;
 use prospect::publisher::ProspectPublisher;
 use publisher::*;
 
@@ -55,6 +59,7 @@ where
     outbox: Outbox<E>,
     repo: CustomerRepo<E>,
     prospect_repo: ProspectRepo<E>,
+    party_repo: PartyRepo<E>,
     customer_activity_repo: CustomerActivityRepo,
     document_storage: DocumentStorage,
     public_ids: PublicIds,
@@ -72,6 +77,7 @@ where
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
             prospect_repo: self.prospect_repo.clone(),
+            party_repo: self.party_repo.clone(),
             customer_activity_repo: self.customer_activity_repo.clone(),
             document_storage: self.document_storage.clone(),
             public_ids: self.public_ids.clone(),
@@ -98,11 +104,14 @@ where
         let publisher = CustomerPublisher::new(outbox);
         let repo = CustomerRepo::new(pool, &publisher, clock.clone());
         let prospect_publisher = ProspectPublisher::new(outbox);
-        let prospect_repo = ProspectRepo::new(pool, &prospect_publisher, clock);
+        let prospect_repo = ProspectRepo::new(pool, &prospect_publisher, clock.clone());
+        let party_publisher = PartyPublisher::new(outbox);
+        let party_repo = PartyRepo::new(pool, &party_publisher, clock);
         let customer_activity_repo = CustomerActivityRepo::new(pool.clone());
         Self {
             repo,
             prospect_repo,
+            party_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
             customer_activity_repo,
@@ -110,6 +119,15 @@ where
             public_ids: public_id_service,
             config: CustomerConfig::default(),
         }
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_party_by_id_without_audit", skip(self))]
+    pub async fn find_party_by_id_without_audit(
+        &self,
+        party_id: impl Into<PartyId> + std::fmt::Debug,
+    ) -> Result<Party, CustomerError> {
+        Ok(self.party_repo.find_by_id(party_id.into()).await?)
     }
 
     pub async fn subject_can_create_prospect(
@@ -143,39 +161,40 @@ where
 
         let email = email.into();
         let telegram_handle = telegram_handle.into();
+        let customer_type = customer_type.into();
 
-        if self.repo.maybe_find_by_email(&email).await?.is_some() {
-            return Err(prospect::ProspectError::EmailAlreadyExists.into());
-        }
-        if let Some(existing) = self.prospect_repo.maybe_find_by_email(&email).await?
-            && existing.status != ProspectStatus::Closed
-            && existing.status != ProspectStatus::Converted
-        {
-            return Err(prospect::ProspectError::EmailAlreadyExists.into());
+        // @ claude - instead of checking just create it and let the DB indexes identify the
+        // violation
+        if self.party_repo.maybe_find_by_email(&email).await?.is_some() {
+            return Err(party::PartyError::EmailAlreadyExists.into());
         }
 
+        // @ claude - instead of checking just create it and let the DB indexes identify the
+        // violation
         if self
-            .repo
+            .party_repo
             .maybe_find_by_telegram_handle(&telegram_handle)
             .await?
             .is_some()
         {
-            return Err(prospect::ProspectError::TelegramHandleAlreadyExists.into());
-        }
-        if let Some(existing) = self
-            .prospect_repo
-            .maybe_find_by_telegram_handle(&telegram_handle)
-            .await?
-            && existing.status != ProspectStatus::Closed
-            && existing.status != ProspectStatus::Converted
-        {
-            return Err(prospect::ProspectError::TelegramHandleAlreadyExists.into());
+            return Err(party::PartyError::TelegramHandleAlreadyExists.into());
         }
 
         let prospect_id = ProspectId::new();
         tracing::Span::current().record("prospect_id", prospect_id.to_string().as_str());
 
         let mut db = self.prospect_repo.begin_op().await?;
+
+        // Create Party first
+        let party_id = PartyId::new();
+        let new_party = party::NewParty::builder()
+            .id(party_id)
+            .email(email)
+            .telegram_handle(telegram_handle)
+            .customer_type(customer_type)
+            .build()
+            .expect("Could not build party");
+        self.party_repo.create_in_op(&mut db, new_party).await?;
 
         let public_id = self
             .public_ids
@@ -184,9 +203,7 @@ where
 
         let new_prospect = prospect::NewProspect::builder()
             .id(prospect_id)
-            .email(email)
-            .telegram_handle(telegram_handle)
-            .customer_type(customer_type)
+            .party_id(party_id)
             .public_id(public_id.id)
             .build()
             .expect("Could not build prospect");
@@ -257,7 +274,11 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_email(email).await
+        let party = self.party_repo.maybe_find_by_email(email).await?;
+        match party {
+            Some(party) => self.repo.maybe_find_by_party_id(party.id).await,
+            None => Ok(None),
+        }
     }
 
     #[record_error_severity]
@@ -313,7 +334,7 @@ where
         let applicant_id = format!("create-customer-{}", prospect.id);
         let _ = prospect.start_kyc(applicant_id.clone())?;
 
-        match prospect.approve_kyc(&applicant_id, KycLevel::Basic, PersonalInfo::dummy())? {
+        match prospect.approve_kyc(&applicant_id, KycLevel::Basic)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -428,9 +449,15 @@ where
             )
             .await?;
 
-        match prospect.approve_kyc(&applicant_id, KycLevel::Basic, personal_info)? {
+        // Update personal info on Party
+        let mut party = self.party_repo.find_by_id(prospect.party_id).await?;
+        let mut db = self.prospect_repo.begin_op().await?;
+        if party.update_personal_info(personal_info).did_execute() {
+            self.party_repo.update_in_op(&mut db, &mut party).await?;
+        }
+
+        match prospect.approve_kyc(&applicant_id, KycLevel::Basic)? {
             es_entity::Idempotent::Executed(new_customer) => {
-                let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
                     .update_in_op(&mut db, &mut prospect)
                     .await?;
@@ -472,9 +499,14 @@ where
             )
             .await?;
 
-        match prospect.approve_kyc(&applicant_id, KycLevel::Basic, personal_info)? {
+        // Update personal info on Party
+        let mut party = self.party_repo.find_by_id(prospect.party_id).await?;
+        let _ = party.update_personal_info(personal_info);
+
+        match prospect.approve_kyc(&applicant_id, KycLevel::Basic)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
+                self.party_repo.update_in_op(&mut db, &mut party).await?;
                 self.prospect_repo
                     .update_in_op(&mut db, &mut prospect)
                     .await?;
@@ -577,29 +609,15 @@ where
     #[instrument(name = "customer.handle_personal_info_changed_if_exists", skip(self))]
     pub async fn handle_personal_info_changed_if_exists(
         &self,
-        prospect_id: ProspectId,
+        party_id: PartyId,
         personal_info: PersonalInfo,
     ) -> Result<(), CustomerError> {
-        let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
+        let Some(mut party) = self.party_repo.maybe_find_by_id(party_id).await? else {
             return Ok(());
         };
 
-        match prospect.update_personal_info(personal_info.clone()) {
-            Ok(idempotent) => {
-                if idempotent.did_execute() {
-                    self.prospect_repo.update(&mut prospect).await?;
-                }
-            }
-            Err(prospect::ProspectError::AlreadyConverted) => {
-                let customer_id = CustomerId::from(prospect_id);
-                if let Ok(mut customer) = self.repo.find_by_id(customer_id).await
-                    && customer.update_personal_info(personal_info).did_execute()
-                {
-                    self.repo.update(&mut customer).await?;
-                }
-            }
-            Err(prospect::ProspectError::AlreadyClosed) => {}
-            Err(e) => return Err(e.into()),
+        if party.update_personal_info(personal_info).did_execute() {
+            self.party_repo.update(&mut party).await?;
         }
 
         Ok(())
@@ -806,25 +824,27 @@ where
     pub async fn update_telegram_handle(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        party_id: impl Into<PartyId> + std::fmt::Debug,
         new_telegram_handle: String,
     ) -> Result<Customer, CustomerError> {
-        let customer_id = customer_id.into();
+        let party_id = party_id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CustomerObject::customer(customer_id),
-                CoreCustomerAction::CUSTOMER_UPDATE,
+                CustomerObject::party(party_id),
+                CoreCustomerAction::PARTY_UPDATE,
             )
             .await?;
 
-        let mut customer = self.repo.find_by_id(customer_id).await?;
-        if customer
+        let mut party = self.party_repo.find_by_id(party_id).await?;
+        if party
             .update_telegram_handle(new_telegram_handle)
             .did_execute()
         {
-            self.repo.update(&mut customer).await?;
+            self.party_repo.update(&mut party).await?;
         }
+
+        let customer = self.repo.find_by_party_id(party_id).await?;
 
         Ok(customer)
     }
@@ -834,23 +854,24 @@ where
     pub async fn update_email(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        party_id: impl Into<PartyId> + std::fmt::Debug,
         new_email: String,
     ) -> Result<Customer, CustomerError> {
-        let customer_id = customer_id.into();
+        let party_id = party_id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CustomerObject::customer(customer_id),
-                CoreCustomerAction::CUSTOMER_UPDATE,
+                CustomerObject::party(party_id),
+                CoreCustomerAction::PARTY_UPDATE,
             )
             .await?;
 
-        let mut customer = self.repo.find_by_id(customer_id).await?;
-        if customer.update_email(new_email).did_execute() {
-            self.repo.update(&mut customer).await?;
+        let mut party = self.party_repo.find_by_id(party_id).await?;
+        if party.update_email(new_email).did_execute() {
+            self.party_repo.update(&mut party).await?;
         }
 
+        let customer = self.repo.find_by_party_id(party.id).await?;
         Ok(customer)
     }
 

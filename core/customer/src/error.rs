@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use crate::prospect;
+use crate::{party, prospect};
 
 #[derive(Error, Debug)]
 pub enum CustomerError {
@@ -26,6 +26,8 @@ pub enum CustomerError {
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("CustomerError - ProspectError: {0}")]
     ProspectError(#[from] prospect::ProspectError),
+    #[error("CustomerError - PartyError: {0}")]
+    PartyError(#[from] party::PartyError),
 }
 
 es_entity::from_es_entity_error!(CustomerError);
@@ -43,6 +45,7 @@ impl ErrorSeverity for CustomerError {
             Self::DocumentStorageError(e) => e.severity(),
             Self::PublicIdError(e) => e.severity(),
             Self::ProspectError(e) => e.severity(),
+            Self::PartyError(e) => e.severity(),
         }
     }
 }
