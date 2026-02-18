@@ -57,7 +57,7 @@ function UserDetailsCard({
     },
   ]
 
-  const name = `${customer.personalInfo.firstName} ${customer.personalInfo.lastName}`
+  const name = `${customer.personalInfo?.firstName ?? "-"} ${customer.personalInfo?.lastName ?? "-"}`
 
   return (
     <DetailsCard
