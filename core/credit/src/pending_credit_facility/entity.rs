@@ -7,7 +7,9 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    credit_facility::{CreditFacilityReceivable, NewCreditFacilityBuilder},
+    credit_facility::{
+        CreditFacilityReceivable, FacilityCollateralization, NewCreditFacilityBuilder,
+    },
     disbursal::NewDisbursalBuilder,
     ledger::{
         PendingCreditFacilityAccountIds, PendingCreditFacilityBalanceSummary,
@@ -229,6 +231,52 @@ impl PendingCreditFacility {
         let account_ids = crate::CreditFacilityLedgerAccountIds::from(self.account_ids);
 
         let collateralization_state = self.terms.collateralization(cvl);
+        let collateralization = match collateralization_state {
+            CollateralizationState::FullyCollateralized => {
+                FacilityCollateralization::FullyCollateralized {
+                    collateral: balances.collateral(),
+                    outstanding: CreditFacilityReceivable {
+                        disbursed: if self.is_single_disbursal() {
+                            self.amount
+                        } else {
+                            UsdCents::ZERO
+                        },
+                        interest: UsdCents::ZERO,
+                    },
+                    price,
+                }
+            }
+            CollateralizationState::UnderMarginCallThreshold => {
+                FacilityCollateralization::UnderMarginCallThreshold {
+                    collateral: balances.collateral(),
+                    outstanding: CreditFacilityReceivable {
+                        disbursed: if self.is_single_disbursal() {
+                            self.amount
+                        } else {
+                            UsdCents::ZERO
+                        },
+                        interest: UsdCents::ZERO,
+                    },
+                    price,
+                }
+            }
+            CollateralizationState::UnderLiquidationThreshold => {
+                FacilityCollateralization::UnderLiquidationThreshold {
+                    collateral: balances.collateral(),
+                    outstanding: CreditFacilityReceivable {
+                        disbursed: if self.is_single_disbursal() {
+                            self.amount
+                        } else {
+                            UsdCents::ZERO
+                        },
+                        interest: UsdCents::ZERO,
+                    },
+                    price,
+                }
+            }
+            CollateralizationState::NoCollateral => FacilityCollateralization::NoCollateral,
+            CollateralizationState::NoExposure => FacilityCollateralization::NoExposure,
+        };
 
         new_credit_facility
             .id(self.id)
@@ -243,17 +291,7 @@ impl PendingCreditFacility {
             .amount(self.amount)
             .activated_at(time)
             .maturity_date(maturity_date)
-            .collateralization_state(collateralization_state)
-            .collateral(balances.collateral())
-            .outstanding(CreditFacilityReceivable {
-                disbursed: if self.is_single_disbursal() {
-                    self.amount
-                } else {
-                    UsdCents::ZERO
-                },
-                interest: UsdCents::ZERO,
-            })
-            .price(price);
+            .collateralization(collateralization);
 
         let initial_disbursal = if self.is_single_disbursal() || !self.structuring_fee().is_zero() {
             let due_date = maturity_date;
