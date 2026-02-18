@@ -178,9 +178,9 @@ pub mod credit {
         CreditFacilityProposalId, CreditFacilityProposalsByCreatedAtCursor,
         CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilters,
-        DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, Liquidation,
-        LiquidationsByIdCursor, LiquidationsCursor, ListDirection, Payment, PaymentAllocation,
-        PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility,
+        DisbursalsSortBy, FacilityCollateralization, IncrementalPayment, InterestAccrualsPosted,
+        Liquidation, LiquidationsByIdCursor, LiquidationsCursor, ListDirection, Payment,
+        PaymentAllocation, PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility,
         PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityId,
         ProceedsFromLiquidationReceived, RepaymentStatus, RepaymentType, Sort, error,
     };

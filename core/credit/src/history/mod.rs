@@ -15,7 +15,7 @@ use tracing_macros::record_error_severity;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
-    primitives::CreditFacilityId,
+    primitives::{CreditFacilityId, PriceOfOneBTC, Satoshis, UsdCents},
 };
 pub use entry::*;
 use error::CreditFacilityHistoryError;
@@ -73,16 +73,48 @@ impl CreditFacilityHistory {
             }
             FacilityCollateralizationChanged { entity } => {
                 let collateralization = &entity.collateralization;
+                let (state, collateral, outstanding_interest, outstanding_disbursal, price) =
+                    match collateralization {
+                        crate::FacilityCollateralization::FullyCollateralized {
+                            collateral,
+                            outstanding,
+                            price,
+                        }
+                        | crate::FacilityCollateralization::UnderMarginCallThreshold {
+                            collateral,
+                            outstanding,
+                            price,
+                        }
+                        | crate::FacilityCollateralization::UnderLiquidationThreshold {
+                            collateral,
+                            outstanding,
+                            price,
+                        } => (
+                            collateralization.state(),
+                            *collateral,
+                            outstanding.interest,
+                            outstanding.disbursed,
+                            *price,
+                        ),
+                        crate::FacilityCollateralization::NoCollateral
+                        | crate::FacilityCollateralization::NoExposure => (
+                            collateralization.state(),
+                            Satoshis::ZERO,
+                            UsdCents::ZERO,
+                            UsdCents::ZERO,
+                            PriceOfOneBTC::new(UsdCents::ZERO),
+                        ),
+                    };
                 self.entries
                     .push(CreditFacilityHistoryEntry::Collateralization(
                         CollateralizationUpdated {
-                            state: collateralization.state,
-                            collateral: collateralization.collateral,
-                            outstanding_interest: collateralization.outstanding.interest,
-                            outstanding_disbursal: collateralization.outstanding.disbursed,
+                            state,
+                            collateral,
+                            outstanding_interest,
+                            outstanding_disbursal,
                             recorded_at: message_recorded_at,
                             effective: message_recorded_at.date_naive(),
-                            price: collateralization.price_at_state_change,
+                            price,
                         },
                     ));
             }

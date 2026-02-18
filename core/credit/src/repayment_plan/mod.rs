@@ -450,14 +450,13 @@ mod tests {
     }
 
     fn default_collateralization() -> FacilityCollateralization {
-        FacilityCollateralization {
-            state: CollateralizationState::FullyCollateralized,
+        FacilityCollateralization::FullyCollateralized {
             collateral: Satoshis::from(1_000_000),
             outstanding: CreditFacilityReceivable {
                 disbursed: default_facility_amount(),
                 interest: UsdCents::ZERO,
             },
-            price_at_state_change: PriceOfOneBTC::new(UsdCents::from(5_000_000)),
+            price: PriceOfOneBTC::new(UsdCents::from(5_000_000)),
         }
     }
 

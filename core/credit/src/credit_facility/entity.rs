@@ -197,11 +197,71 @@ pub struct CreditFacility {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct FacilityCollateralization {
-    pub state: CollateralizationState,
-    pub collateral: Satoshis,
-    pub outstanding: CreditFacilityReceivable,
-    pub price_at_state_change: PriceOfOneBTC,
+pub enum FacilityCollateralization {
+    FullyCollateralized {
+        collateral: Satoshis,
+        outstanding: CreditFacilityReceivable,
+        price: PriceOfOneBTC,
+    },
+    UnderMarginCallThreshold {
+        collateral: Satoshis,
+        outstanding: CreditFacilityReceivable,
+        price: PriceOfOneBTC,
+    },
+    UnderLiquidationThreshold {
+        collateral: Satoshis,
+        outstanding: CreditFacilityReceivable,
+        price: PriceOfOneBTC,
+    },
+    NoCollateral,
+    NoExposure,
+}
+
+impl FacilityCollateralization {
+    pub fn state(&self) -> CollateralizationState {
+        match self {
+            Self::FullyCollateralized { .. } => CollateralizationState::FullyCollateralized,
+            Self::UnderMarginCallThreshold { .. } => {
+                CollateralizationState::UnderMarginCallThreshold
+            }
+            Self::UnderLiquidationThreshold { .. } => {
+                CollateralizationState::UnderLiquidationThreshold
+            }
+            Self::NoCollateral => CollateralizationState::NoCollateral,
+            Self::NoExposure => CollateralizationState::NoExposure,
+        }
+    }
+
+    pub fn is_under_liquidation_threshold(&self) -> bool {
+        matches!(self, Self::UnderLiquidationThreshold { .. })
+    }
+
+    fn from_state(
+        state: CollateralizationState,
+        collateral: Satoshis,
+        outstanding: CreditFacilityReceivable,
+        price: PriceOfOneBTC,
+    ) -> Self {
+        match state {
+            CollateralizationState::FullyCollateralized => Self::FullyCollateralized {
+                collateral,
+                outstanding,
+                price,
+            },
+            CollateralizationState::UnderMarginCallThreshold => Self::UnderMarginCallThreshold {
+                collateral,
+                outstanding,
+                price,
+            },
+            CollateralizationState::UnderLiquidationThreshold => Self::UnderLiquidationThreshold {
+                collateral,
+                outstanding,
+                price,
+            },
+            CollateralizationState::NoCollateral => Self::NoCollateral,
+            CollateralizationState::NoExposure => Self::NoExposure,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -624,31 +684,26 @@ impl CreditFacility {
                     collateral,
                     outstanding,
                     price,
-                } => Some(FacilityCollateralization {
-                    state: *collateralization_state,
-                    collateral: *collateral,
-                    outstanding: *outstanding,
-                    price_at_state_change: *price,
-                }),
-                CreditFacilityEvent::Initialized {
+                }
+                | CreditFacilityEvent::Initialized {
                     collateralization_state,
                     collateral,
                     outstanding,
                     price,
                     ..
-                } => Some(FacilityCollateralization {
-                    state: *collateralization_state,
-                    collateral: *collateral,
-                    outstanding: *outstanding,
-                    price_at_state_change: *price,
-                }),
+                } => Some(FacilityCollateralization::from_state(
+                    *collateralization_state,
+                    *collateral,
+                    *outstanding,
+                    *price,
+                )),
                 _ => None,
             })
             .unwrap_or_else(|| unreachable!("There is always an Initialized event"))
     }
 
     pub fn last_collateralization_state(&self) -> CollateralizationState {
-        self.last_collateralization().state
+        self.last_collateralization().state()
     }
 
     pub fn last_collateralization_ratio(&self) -> CollateralizationRatio {
