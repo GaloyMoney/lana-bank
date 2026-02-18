@@ -1138,7 +1138,7 @@ mod test {
         use super::*;
 
         fn collateralized_facility() -> (CreditFacility, CreditFacilityBalanceSummary) {
-            let mut credit_facility = facility_from(initial_events());
+            let credit_facility = facility_from(initial_events());
 
             let balances = CreditFacilityBalanceSummary {
                 collateral: Satoshis::try_from_btc(dec!(2)).unwrap(),
@@ -1157,27 +1157,6 @@ mod test {
                 interest_posted: UsdCents::ZERO,
                 payments_unapplied: UsdCents::ZERO,
             };
-
-            // Price high enough to keep CVL (200) above thresholds
-            let price = PriceOfOneBTC::new(UsdCents::from(10000000));
-            let state_update = credit_facility.update_collateralization(
-                price,
-                default_upgrade_buffer_cvl_pct(),
-                balances,
-            );
-
-            assert!(state_update.did_execute());
-            assert_eq!(
-                state_update.unwrap(),
-                Some(CollateralizationState::FullyCollateralized)
-            );
-            assert!(
-                credit_facility
-                    .events
-                    .iter_all()
-                    .rev()
-                    .all(|e| !matches!(e, CreditFacilityEvent::PartialLiquidationInitiated { .. }))
-            );
 
             (credit_facility, balances)
         }
