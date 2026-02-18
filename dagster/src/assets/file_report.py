@@ -100,11 +100,88 @@ def _build_file_report_specs_and_lookup() -> Tuple[
     return specs, asset_key_to_job_config
 
 
+def _process_single_asset(
+    asset_key: dg.AssetKey,
+    report_job: ReportJobDefinition,
+    file_config: BaseFileOutputConfig,
+    credentials_dict: dict,
+    dataset: str,
+    upload_file,
+    run_id: str,
+    log,
+    otel_parent_ctx,
+) -> Tuple[dg.AssetKey, dict]:
+    """Fetch, format, and upload a single report file.
+
+    Runs in a worker thread. Creates its own BQ client to avoid
+    sharing connections across threads.
+    """
+    asset_key_str = asset_key.to_user_string()
+
+    with tracer.start_as_current_span(
+        f"file_report_{asset_key_str}",
+        context=otel_parent_ctx,
+    ) as span:
+        span.set_attribute("asset.name", asset_key_str)
+        span.set_attribute("report.norm", report_job.norm)
+        span.set_attribute("report.format", file_config.file_extension)
+
+        fetcher = BigQueryTableFetcher(
+            credentials_dict=credentials_dict,
+            dataset=dataset,
+        )
+
+        def fetch_table(table_name: str):
+            contents = fetcher.fetch_table_contents(table_name)
+            return (contents.fields, contents.records)
+
+        result = generate_single_report(
+            fetch_table=fetch_table,
+            upload_file=upload_file,
+            table_name=report_job.source_table_name,
+            norm=report_job.norm,
+            friendly_name=report_job.friendly_name,
+            file_output_config=file_config,
+            run_id=run_id,
+            log=log,
+        )
+        return asset_key, result
+
+
+def _build_materialize_result(
+    asset_key: dg.AssetKey, result: dict
+) -> dg.MaterializeResult:
+    """Build a MaterializeResult from a report generation result."""
+    gcs_path = result["gcs_path"]
+    if gcs_path.startswith("gs://"):
+        path_in_bucket = "/".join(gcs_path.split("/")[3:])
+    else:
+        path_in_bucket = gcs_path
+
+    report: Report = {
+        "name": result["friendly_name"],
+        "norm": result["norm"],
+        "files": [
+            {
+                "type": result["file_type"],
+                "path_in_bucket": path_in_bucket,
+            }
+        ],
+    }
+
+    return dg.MaterializeResult(
+        asset_key=asset_key,
+        metadata={
+            "report": dg.MetadataValue.json(report),
+        },
+    )
+
+
 def create_file_report_multi_asset():
     """Create a single multi_asset for all file report generation.
 
     Uses can_subset=True so individual reports can be materialized independently.
-    Shares BigQuery fetches across formats of the same report within a single run.
+    Each report is processed in its own thread (fetch → format → upload).
     """
     specs, asset_key_to_job_config = _build_file_report_specs_and_lookup()
 
@@ -114,22 +191,16 @@ def create_file_report_multi_asset():
         required_resource_keys={RESOURCE_KEY_FILE_REPORTS_BUCKET, RESOURCE_KEY_DW_BQ},
     )
     def file_report_assets(context: dg.AssetExecutionContext):
+        from opentelemetry import context as otel_context
+
         dw_bq = context.resources.dw_bq
         file_reports_bucket = context.resources.file_reports_bucket
-
         credentials_dict = dw_bq.get_credentials_dict()
         dataset = dw_bq.get_dbt_dataset()
-
-        log = context.log
-        log.info(
-            f"Processing {len(context.selected_asset_keys)} assets "
-            f"with 16 workers (no cache, full pipeline per thread)"
-        )
 
         selected_keys = [
             key.to_user_string() for key in context.selected_asset_keys
         ]
-
         parent_ctx, batch_attrs = get_asset_span_context_and_attrs(
             context, "file_report_assets"
         )
@@ -142,77 +213,27 @@ def create_file_report_multi_asset():
             for key, value in batch_attrs.items():
                 batch_span.set_attribute(key, value)
 
-            from opentelemetry import context as otel_context
-
             batch_ctx = otel_context.get_current()
-
-            def process_one(asset_key: dg.AssetKey):
-                report_job, file_config = asset_key_to_job_config[asset_key]
-                asset_key_str = asset_key.to_user_string()
-
-                with tracer.start_as_current_span(
-                    f"file_report_{asset_key_str}",
-                    context=batch_ctx,
-                ) as asset_span:
-                    asset_span.set_attribute("asset.name", asset_key_str)
-                    asset_span.set_attribute("report.norm", report_job.norm)
-                    asset_span.set_attribute(
-                        "report.format", file_config.file_extension
-                    )
-
-                    # Each thread fetches its own data — no shared cache
-                    fetcher = BigQueryTableFetcher(
-                        credentials_dict=credentials_dict,
-                        dataset=dataset,
-                    )
-
-                    def fetch_table(table_name: str):
-                        contents = fetcher.fetch_table_contents(table_name)
-                        return (contents.fields, contents.records)
-
-                    result = generate_single_report(
-                        fetch_table=fetch_table,
-                        upload_file=file_reports_bucket.upload_file,
-                        table_name=report_job.source_table_name,
-                        norm=report_job.norm,
-                        friendly_name=report_job.friendly_name,
-                        file_output_config=file_config,
-                        run_id=context.run_id,
-                        log=context.log.info,
-                    )
-                    return asset_key, result
 
             with ThreadPoolExecutor(max_workers=16) as pool:
                 futures = {
-                    pool.submit(process_one, k): k
+                    pool.submit(
+                        _process_single_asset,
+                        asset_key=k,
+                        report_job=asset_key_to_job_config[k][0],
+                        file_config=asset_key_to_job_config[k][1],
+                        credentials_dict=credentials_dict,
+                        dataset=dataset,
+                        upload_file=file_reports_bucket.upload_file,
+                        run_id=context.run_id,
+                        log=context.log.info,
+                        otel_parent_ctx=batch_ctx,
+                    ): k
                     for k in context.selected_asset_keys
                 }
                 for f in as_completed(futures):
                     asset_key, result = f.result()
-
-                    gcs_path = result["gcs_path"]
-                    if gcs_path.startswith("gs://"):
-                        path_in_bucket = "/".join(gcs_path.split("/")[3:])
-                    else:
-                        path_in_bucket = gcs_path
-
-                    report: Report = {
-                        "name": result["friendly_name"],
-                        "norm": result["norm"],
-                        "files": [
-                            {
-                                "type": result["file_type"],
-                                "path_in_bucket": path_in_bucket,
-                            }
-                        ],
-                    }
-
-                    yield dg.MaterializeResult(
-                        asset_key=asset_key,
-                        metadata={
-                            "report": dg.MetadataValue.json(report),
-                        },
-                    )
+                    yield _build_materialize_result(asset_key, result)
 
     return file_report_assets
 
