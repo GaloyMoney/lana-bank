@@ -142,7 +142,7 @@ def create_file_report_multi_asset():
             f"Pre-fetching {len(unique_tables)} unique tables "
             f"for {len(context.selected_asset_keys)} assets"
         )
-        with ThreadPoolExecutor(max_workers=8) as pool:
+        with ThreadPoolExecutor(max_workers=16) as pool:
             futures = {
                 pool.submit(fetch_table_cached, t): t for t in unique_tables
             }
@@ -171,12 +171,18 @@ def create_file_report_multi_asset():
             for key, value in batch_attrs.items():
                 batch_span.set_attribute(key, value)
 
-            for asset_key in context.selected_asset_keys:
+            # Capture span context for worker threads (Step 2)
+            from opentelemetry import context as otel_context
+
+            batch_ctx = otel_context.get_current()
+
+            def process_one(asset_key: dg.AssetKey):
                 report_job, file_config = asset_key_to_job_config[asset_key]
                 asset_key_str = asset_key.to_user_string()
 
                 with tracer.start_as_current_span(
-                    f"file_report_{asset_key_str}"
+                    f"file_report_{asset_key_str}",
+                    context=batch_ctx,
                 ) as asset_span:
                     asset_span.set_attribute("asset.name", asset_key_str)
                     asset_span.set_attribute("report.norm", report_job.norm)
@@ -194,6 +200,16 @@ def create_file_report_multi_asset():
                         run_id=context.run_id,
                         log=context.log.info,
                     )
+                    return asset_key, result
+
+            # Phase 2: parallel format + upload (cache is warm)
+            with ThreadPoolExecutor(max_workers=16) as pool:
+                futures = {
+                    pool.submit(process_one, k): k
+                    for k in context.selected_asset_keys
+                }
+                for f in as_completed(futures):
+                    asset_key, result = f.result()
 
                     gcs_path = result["gcs_path"]
                     if gcs_path.startswith("gs://"):
