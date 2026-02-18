@@ -18,6 +18,14 @@ use crate::{
 
 use super::error::PendingCreditFacilityError;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct PendingFacilityCollateralization {
+    pub state: PendingCreditFacilityCollateralizationState,
+    pub collateral: Option<Satoshis>,
+    pub price_at_state_change: Option<PriceOfOneBTC>,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -162,17 +170,30 @@ impl PendingCreditFacility {
     }
 
     pub fn last_collateralization_state(&self) -> PendingCreditFacilityCollateralizationState {
+        self.last_collateralization().state
+    }
+
+    pub fn last_collateralization(&self) -> PendingFacilityCollateralization {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 PendingCreditFacilityEvent::CollateralizationStateChanged {
                     collateralization_state,
-                    ..
-                } => Some(*collateralization_state),
+                    collateral,
+                    price,
+                } => Some(PendingFacilityCollateralization {
+                    state: *collateralization_state,
+                    collateral: Some(*collateral),
+                    price_at_state_change: Some(*price),
+                }),
                 _ => None,
             })
-            .unwrap_or(PendingCreditFacilityCollateralizationState::UnderCollateralized)
+            .unwrap_or(PendingFacilityCollateralization {
+                state: PendingCreditFacilityCollateralizationState::NotYetCollateralized,
+                collateral: None,
+                price_at_state_change: None,
+            })
     }
 
     pub fn completed_at(&self) -> Option<DateTime<Utc>> {

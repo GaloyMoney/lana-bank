@@ -2579,26 +2579,22 @@ impl Subscription {
             .await?;
 
         let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
-            let payload = event.payload.as_ref()?;
+        let updates = stream.filter_map(move |message| async move {
+            let payload = message.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
-                CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
-                    id,
-                    state,
-                    collateral,
-                    price,
-                    recorded_at,
-                    effective,
-                } if *id == pending_credit_facility_id => {
+                CoreCreditEvent::PendingCreditFacilityCollateralizationChanged { entity }
+                    if entity.id == pending_credit_facility_id =>
+                {
+                    let collateralization = &entity.collateralization;
                     Some(PendingCreditFacilityCollateralizationPayload {
                         pending_credit_facility_id,
                         update: PendingCreditFacilityCollateralizationUpdated {
-                            state: *state,
-                            collateral: *collateral,
-                            price: price.into_inner(),
-                            recorded_at: (*recorded_at).into(),
-                            effective: (*effective).into(),
+                            state: collateralization.state,
+                            collateral: collateralization.collateral.expect("collateral must be set for PendingCreditFacilityCollateralizationChanged"),
+                            price: collateralization.price_at_state_change.expect("price must be set for PendingCreditFacilityCollateralizationChanged").into_inner(),
+                            recorded_at: message.recorded_at.into(),
+                            effective: message.recorded_at.date_naive().into(),
                         },
                     })
                 }

@@ -18,6 +18,8 @@ export const PendingFacilityCollateralizationStateLabel: React.FC<
         return "success"
       case PendingCreditFacilityCollateralizationState.UnderCollateralized:
         return "destructive"
+      case PendingCreditFacilityCollateralizationState.NotYetCollateralized:
+        return "secondary"
       default: {
         const exhaustiveCheck: never = state
         return exhaustiveCheck

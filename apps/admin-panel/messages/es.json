@@ -805,7 +805,8 @@
     },
     "pendingCollateralizationState": {
       "fullyCollateralized": "Totalmente garantizado",
-      "underCollateralized": "Insuficientemente garantizado"
+      "underCollateralized": "Insuficientemente garantizado",
+      "notYetCollateralized": "Aún no colateralizado"
     },
     "errors": {
       "general": "Ocurrió un error"
@@ -1066,7 +1067,8 @@
     },
     "collateralizationState": {
       "fully_collateralized": "Totalmente Garantizado",
-      "under_collateralized": "Insuficientemente Garantizado"
+      "under_collateralized": "Insuficientemente Garantizado",
+      "not_yet_collateralized": "Aún no colateralizado"
     },
     "PendingDetails": {
       "CollateralCard": {

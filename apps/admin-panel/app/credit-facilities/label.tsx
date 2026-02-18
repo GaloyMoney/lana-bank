@@ -78,9 +78,13 @@ export const PendingFacilityCollateralizationStateLabel = ({
         return t("fullyCollateralized")
       case PendingCreditFacilityCollateralizationState.UnderCollateralized:
         return t("underCollateralized")
+      case PendingCreditFacilityCollateralizationState.NotYetCollateralized:
+        return t("notYetCollateralized")
+      default: {
+        const exhaustiveCheck: never = state
+        return exhaustiveCheck
+      }
     }
-    const exhaustiveCheck: never = state
-    return exhaustiveCheck
   }
 
   return <Badge variant={variant()}>{getText()}</Badge>

@@ -114,24 +114,20 @@ impl CreditFacilityHistory {
                     },
                 ));
             }
-            PendingCreditFacilityCollateralizationChanged {
-                state,
-                collateral,
-                price,
-                recorded_at,
-                effective,
-                ..
-            } => self.entries.push(
-                CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
-                    PendingCreditFacilityCollateralizationUpdated {
-                        state: *state,
-                        collateral: *collateral,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                        price: *price,
-                    },
-                ),
-            ),
+            PendingCreditFacilityCollateralizationChanged { entity } => {
+                let collateralization = &entity.collateralization;
+                self.entries.push(
+                    CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
+                        PendingCreditFacilityCollateralizationUpdated {
+                            state: collateralization.state,
+                            collateral: collateralization.collateral.expect("collateral must be set for PendingCreditFacilityCollateralizationChanged"),
+                            recorded_at: message_recorded_at,
+                            effective: message_recorded_at.date_naive(),
+                            price: collateralization.price_at_state_change.expect("price must be set for PendingCreditFacilityCollateralizationChanged"),
+                        },
+                    ),
+                );
+            }
             PendingCreditFacilityCompleted { .. } => {}
             FacilityCompleted { .. } => {}
             PartialLiquidationInitiated { .. } => {}
