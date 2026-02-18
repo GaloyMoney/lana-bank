@@ -665,6 +665,10 @@ pub struct ActiveFacilityState {
 
 /// Creates a pending facility and triggers activation by updating collateral.
 /// Returns once the facility is active.
+///
+/// Uses the outbox event stream (`expect_event`) instead of polling, so that
+/// activation is detected immediately via push notification rather than
+/// sleeping in a loop — avoiding flaky timeouts under CI load.
 pub async fn create_active_facility(
     ctx: &TestContext,
     terms: TermValues,
@@ -673,37 +677,38 @@ pub async fn create_active_facility(
 
     let collateral_satoshis = Satoshis::from(50_000_000); // 0.5 BTC
     let effective = chrono::Utc::now().date_naive();
-    ctx.credit
-        .collaterals()
-        .update_collateral_by_id(
-            &DummySubject,
-            state.collateral_id,
-            collateral_satoshis,
-            effective,
-        )
-        .await?;
-
     let facility_id: CreditFacilityId = state.pending_facility_id.into();
-    for attempt in 0..100 {
-        if let Some(facility) = ctx
-            .credit
-            .facilities()
-            .find_by_id(&DummySubject, facility_id)
-            .await?
-            && facility.status() == CreditFacilityStatus::Active
-        {
-            return Ok(ActiveFacilityState {
-                facility_id,
-                collateral_id: state.collateral_id,
-                deposit_account_id: state.deposit_account_id,
-                customer_id: state.customer_id,
-                amount: state.amount,
-            });
-        }
-        if attempt == 99 {
-            panic!("Timed out waiting for facility activation");
-        }
-        tokio::time::sleep(Duration::from_millis(50)).await;
-    }
-    unreachable!()
+
+    let collaterals = ctx.credit.collaterals().clone();
+    let collateral_id = state.collateral_id;
+
+    event::expect_event(
+        &ctx.outbox,
+        move || {
+            let collaterals = collaterals.clone();
+            async move {
+                collaterals
+                    .update_collateral_by_id(
+                        &DummySubject,
+                        collateral_id,
+                        collateral_satoshis,
+                        effective,
+                    )
+                    .await
+            }
+        },
+        |_result, e| match e {
+            CoreCreditEvent::FacilityActivated { entity } if entity.id == facility_id => Some(()),
+            _ => None,
+        },
+    )
+    .await?;
+
+    Ok(ActiveFacilityState {
+        facility_id,
+        collateral_id: state.collateral_id,
+        deposit_account_id: state.deposit_account_id,
+        customer_id: state.customer_id,
+        amount: state.amount,
+    })
 }
