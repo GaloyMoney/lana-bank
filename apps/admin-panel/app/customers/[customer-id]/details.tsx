@@ -10,12 +10,13 @@ import { Label } from "@lana/web/ui/label"
 
 import { ActivityStatusBadge } from "../activity-status-badge"
 
+import { CustomerTypeBadge } from "../customer-type-badge"
+
 import UpdateTelegramHandleDialog from "./update-telegram-handle"
 import UpdateEmailDialog from "./update-email"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
-import { CustomerTypeBadge } from "../customer-type-badge"
 
 type CustomerDetailsCardProps = {
   customer: NonNullable<GetCustomerBasicDetailsQuery["customerByPublicId"]>
