@@ -3,7 +3,7 @@ pub mod error;
 mod jobs;
 pub mod ledger;
 pub mod liquidation;
-mod repo;
+pub(crate) mod repo;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -21,7 +21,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     FacilityProceedsFromLiquidationAccountId,
-    collateral::ledger::CollateralLedgerAccountIds,
+    credit_facility::CreditFacilityRepo,
     primitives::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject},
 };
 
@@ -29,14 +29,17 @@ use es_entity::Idempotent;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
-use ledger::{CollateralLedger, LiquidationProceedsAccountIds};
+use ledger::{
+    CollateralLedger, CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
+    LiquidationProceedsAccountIds,
+};
 
 pub(super) use entity::*;
 use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync};
 pub use {
     entity::{Collateral, CollateralAdjustment},
     liquidation::Liquidation,
-    repo::liquidation_cursor,
+    repo::{CollateralRepo, liquidation_cursor},
 };
 
 #[cfg(feature = "json-schema")]
@@ -44,7 +47,6 @@ pub use entity::CollateralEvent;
 use error::CollateralError;
 #[cfg(feature = "json-schema")]
 pub use liquidation::LiquidationEvent;
-use repo::CollateralRepo;
 
 pub struct Collaterals<Perms, E>
 where
@@ -56,7 +58,9 @@ where
 {
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
+    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ledger: Arc<CollateralLedger>,
+    liquidation_proceeds_omnibus_account_id: CalaAccountId,
     clock: ClockHandle,
 }
 
@@ -72,7 +76,9 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
+            credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
+            liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             clock: self.clock.clone(),
         }
     }
@@ -96,6 +102,7 @@ where
         authz: Arc<Perms>,
         publisher: &CreditFacilityPublisher<E>,
         ledger: Arc<CollateralLedger>,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
         collections: Arc<core_credit_collection::CoreCreditCollection<Perms, E>>,
@@ -129,13 +136,15 @@ where
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
                 collections,
-                credit_facility_repo,
+                repo_arc.clone(),
+                credit_facility_repo.clone(),
             ));
 
         let collateral_liquidations_job_spawner = jobs.add_initializer(
             collateral_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
+                liquidation_proceeds_omnibus_account_id,
                 liquidation_payment_job_spawner,
             ),
         );
@@ -150,7 +159,9 @@ where
         Ok(Self {
             authz,
             repo: repo_arc,
+            credit_facility_repo,
             ledger,
+            liquidation_proceeds_omnibus_account_id,
             clock,
         })
     }
@@ -160,6 +171,13 @@ where
         ids: &[CollateralId],
     ) -> Result<HashMap<CollateralId, T>, CollateralError> {
         self.repo.find_all(ids).await
+    }
+
+    pub async fn find_by_id_without_audit(
+        &self,
+        id: CollateralId,
+    ) -> Result<Collateral, CollateralError> {
+        self.repo.find_by_id(id).await
     }
 
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CollateralError> {
@@ -173,6 +191,7 @@ where
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
         account_ids: CollateralLedgerAccountIds,
+        facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
     ) -> Result<Collateral, CollateralError> {
         self.ledger
             .create_collateral_accounts_in_op(db, collateral_id, account_ids)
@@ -184,6 +203,9 @@ where
             .pending_credit_facility_id(pending_credit_facility_id)
             .custody_wallet_id(custody_wallet_id)
             .account_ids(account_ids)
+            .facility_ledger_account_ids_for_liquidation(
+                facility_ledger_account_ids_for_liquidation,
+            )
             .build()
             .expect("all fields for new collateral provided");
 
@@ -255,12 +277,7 @@ where
             self.repo.update_in_op(&mut db, &mut collateral).await?;
 
             self.ledger
-                .update_collateral_amount_in_op(
-                    &mut db,
-                    collateral_update,
-                    collateral.account_ids.collateral_account_id,
-                    sub,
-                )
+                .update_collateral_amount_in_op(&mut db, collateral_update, sub)
                 .await?;
         }
 
@@ -306,8 +323,7 @@ where
                     &mut db,
                     data.tx_id,
                     amount_sent,
-                    collateral.account_ids.collateral_account_id,
-                    collateral.account_ids.collateral_in_liquidation_account_id,
+                    collateral.account_ids,
                     initiated_by,
                 )
                 .await?;

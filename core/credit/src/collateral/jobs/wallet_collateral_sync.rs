@@ -186,7 +186,6 @@ where
                 .update_collateral_amount_in_op(
                     &mut db,
                     data,
-                    collateral.account_ids.collateral_account_id,
                     &S::system(crate::primitives::COLLATERALIZATION_SYNC),
                 )
                 .await?;

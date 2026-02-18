@@ -12,12 +12,15 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
+use core_credit_collection::{
+    CoreCreditCollection, CoreCreditCollectionEvent, PaymentLedgerAccountIds,
+};
 
 use crate::{
-    CoreCreditCollectionEvent, CoreCreditEvent,
+    collateral::CollateralRepo,
     credit_facility::CreditFacilityRepo,
-    primitives::{CreditFacilityId, LiquidationId},
+    primitives::{CollateralId, CreditFacilityId, LiquidationId},
+    public::CoreCreditEvent,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -28,6 +31,7 @@ struct LiquidationPaymentJobData {
 #[derive(Serialize, Deserialize)]
 pub struct LiquidationPaymentJobConfig<E> {
     pub liquidation_id: LiquidationId,
+    pub collateral_id: CollateralId,
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<E>,
 }
@@ -36,6 +40,7 @@ impl<E> Clone for LiquidationPaymentJobConfig<E> {
     fn clone(&self) -> Self {
         Self {
             liquidation_id: self.liquidation_id,
+            collateral_id: self.collateral_id,
             credit_facility_id: self.credit_facility_id,
             _phantom: std::marker::PhantomData,
         }
@@ -49,6 +54,7 @@ where
 {
     outbox: Outbox<E>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
 }
 
@@ -60,11 +66,13 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         collections: Arc<CoreCreditCollection<Perms, E>>,
+        collateral_repo: Arc<CollateralRepo<E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             collections,
+            collateral_repo,
             credit_facility_repo,
         }
     }
@@ -95,6 +103,7 @@ where
             config: job.config()?,
             outbox: self.outbox.clone(),
             collections: self.collections.clone(),
+            collateral_repo: self.collateral_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
         }))
     }
@@ -108,6 +117,7 @@ where
     config: LiquidationPaymentJobConfig<E>,
     outbox: Outbox<E>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
 }
 
@@ -169,17 +179,17 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
 
-                let account_ids = self
-                    .credit_facility_repo
-                    .find_by_id_in_op(db, credit_facility_id)
-                    .await?
-                    .account_ids;
+                let collateral = self
+                    .collateral_repo
+                    .find_by_id_in_op(db, self.config.collateral_id)
+                    .await?;
+                let facility_ids = &collateral.facility_ledger_account_ids_for_liquidation;
 
                 let payment_ledger_account_ids = PaymentLedgerAccountIds {
-                    facility_payment_holding_account_id: account_ids.payment_holding_account_id,
-                    facility_uncovered_outstanding_account_id: account_ids
+                    facility_payment_holding_account_id: facility_ids.payment_holding_account_id,
+                    facility_uncovered_outstanding_account_id: facility_ids
                         .uncovered_outstanding_account_id,
-                    payment_source_account_id: account_ids
+                    payment_source_account_id: facility_ids
                         .proceeds_from_liquidation_account_id
                         .into(),
                 };

@@ -20,8 +20,8 @@ use super::{
 };
 use crate::{
     CoreCreditEvent,
-    collateral::error::CollateralError,
-    primitives::{CollateralId, CreditFacilityId, PriceOfOneBTC},
+    collateral::ledger::LiquidationProceedsAccountIds,
+    primitives::{CalaAccountId, CollateralId, PriceOfOneBTC},
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -40,6 +40,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
+    liquidation_proceeds_omnibus_account_id: CalaAccountId,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
@@ -52,11 +53,13 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         repo: Arc<CollateralRepo<E>>,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             repo,
+            liquidation_proceeds_omnibus_account_id,
             liquidation_payment_job_spawner,
         }
     }
@@ -83,6 +86,7 @@ where
         Ok(Box::new(CreditFacilityLiquidationsJobRunner::<E> {
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
+            liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
         }))
     }
@@ -96,6 +100,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
+    liquidation_proceeds_omnibus_account_id: CalaAccountId,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
@@ -177,7 +182,6 @@ where
             self.create_if_not_exist_in_op(
                 db,
                 entity.collateral_id,
-                entity.id,
                 trigger.trigger_price,
                 trigger.initially_expected_to_receive,
                 trigger.initially_estimated_to_liquidate,
@@ -196,18 +200,24 @@ where
         &self,
         db: &mut DbOp<'_>,
         collateral_id: CollateralId,
-        credit_facility_id: CreditFacilityId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
-    ) -> Result<(), CollateralError> {
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
+
+        let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(
+            &collateral.account_ids,
+            &collateral.facility_ledger_account_ids_for_liquidation,
+            self.liquidation_proceeds_omnibus_account_id,
+        );
 
         let liquidation_id = if let Idempotent::Executed(id) = collateral
             .record_liquidation_started(
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
+                liquidation_proceeds_account_ids,
             ) {
             id
         } else {
@@ -222,7 +232,8 @@ where
                 JobId::new(),
                 LiquidationPaymentJobConfig::<E> {
                     liquidation_id,
-                    credit_facility_id,
+                    collateral_id,
+                    credit_facility_id: collateral.credit_facility_id,
                     _phantom: std::marker::PhantomData,
                 },
             )

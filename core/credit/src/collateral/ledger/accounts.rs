@@ -18,34 +18,33 @@ pub struct CollateralLedgerAccountIds {
     /// Holds BTC collateral for this credit facility, that is being
     /// liquidated.
     pub collateral_in_liquidation_account_id: CalaAccountId,
-
-    pub(crate) liquidation_proceeds_omnibus_account_id: CalaAccountId,
-
-    /// Holds proceeds received from liquidator for the connected
-    /// facility.
-    pub(crate) facility_proceeds_from_liquidation_account_id:
-        FacilityProceedsFromLiquidationAccountId,
-
-    pub(crate) facility_uncovered_outstanding_account_id: CalaAccountId,
-
-    pub(crate) facility_payment_holding_account_id: CalaAccountId,
 }
 
 impl CollateralLedgerAccountIds {
-    pub(crate) fn new(
-        pending_ids: PendingCreditFacilityAccountIds,
-        liquidation_proceeds_omnibus_account_id: CalaAccountId,
-    ) -> Self {
+    pub(crate) fn new() -> Self {
         Self {
-            collateral_account_id: pending_ids.collateral_account_id,
+            collateral_account_id: CalaAccountId::new(),
             liquidated_collateral_account_id: CalaAccountId::new(),
             collateral_in_liquidation_account_id: CalaAccountId::new(),
-            liquidation_proceeds_omnibus_account_id,
-            facility_proceeds_from_liquidation_account_id: pending_ids
-                .facility_proceeds_from_liquidation_account_id,
-            facility_uncovered_outstanding_account_id: pending_ids
-                .facility_uncovered_outstanding_account_id,
-            facility_payment_holding_account_id: pending_ids.facility_payment_holding_account_id,
+        }
+    }
+}
+
+/// Facility-level account IDs needed by the Collateral entity for liquidation operations.
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub struct FacilityLedgerAccountIdsForLiquidation {
+    pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
+    pub payment_holding_account_id: CalaAccountId,
+    pub uncovered_outstanding_account_id: CalaAccountId,
+}
+
+impl From<PendingCreditFacilityAccountIds> for FacilityLedgerAccountIdsForLiquidation {
+    fn from(ids: PendingCreditFacilityAccountIds) -> Self {
+        Self {
+            proceeds_from_liquidation_account_id: ids.facility_proceeds_from_liquidation_account_id,
+            payment_holding_account_id: ids.facility_payment_holding_account_id,
+            uncovered_outstanding_account_id: ids.facility_uncovered_outstanding_account_id,
         }
     }
 }
@@ -60,15 +59,19 @@ pub struct LiquidationProceedsAccountIds {
     pub liquidated_collateral_account_id: CalaAccountId,
 }
 
-impl From<CollateralLedgerAccountIds> for LiquidationProceedsAccountIds {
-    fn from(account_ids: CollateralLedgerAccountIds) -> Self {
+impl LiquidationProceedsAccountIds {
+    pub fn new(
+        collateral_accounts: &CollateralLedgerAccountIds,
+        facility_account_ids: &FacilityLedgerAccountIdsForLiquidation,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
+    ) -> Self {
         Self {
-            liquidation_proceeds_omnibus_account_id: account_ids
-                .liquidation_proceeds_omnibus_account_id,
-            proceeds_from_liquidation_account_id: account_ids
-                .facility_proceeds_from_liquidation_account_id,
-            collateral_in_liquidation_account_id: account_ids.collateral_in_liquidation_account_id,
-            liquidated_collateral_account_id: account_ids.liquidated_collateral_account_id,
+            liquidation_proceeds_omnibus_account_id,
+            proceeds_from_liquidation_account_id: facility_account_ids
+                .proceeds_from_liquidation_account_id,
+            collateral_in_liquidation_account_id: collateral_accounts
+                .collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id: collateral_accounts.liquidated_collateral_account_id,
         }
     }
 }

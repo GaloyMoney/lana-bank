@@ -19,25 +19,8 @@
           "format": "uuid",
           "type": "string"
         },
-        "facility_payment_holding_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "facility_proceeds_from_liquidation_account_id": {
-          "description": "Holds proceeds received from liquidator for the connected\nfacility.",
-          "format": "uuid",
-          "type": "string"
-        },
-        "facility_uncovered_outstanding_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "liquidated_collateral_account_id": {
           "description": "Holds BTC collateral for this credit facility, that has\nalready been liquidated.",
-          "format": "uuid",
-          "type": "string"
-        },
-        "liquidation_proceeds_omnibus_account_id": {
           "format": "uuid",
           "type": "string"
         }
@@ -45,39 +28,30 @@
       "required": [
         "collateral_account_id",
         "liquidated_collateral_account_id",
-        "collateral_in_liquidation_account_id",
-        "liquidation_proceeds_omnibus_account_id",
-        "facility_proceeds_from_liquidation_account_id",
-        "facility_uncovered_outstanding_account_id",
-        "facility_payment_holding_account_id"
+        "collateral_in_liquidation_account_id"
       ],
       "type": "object"
     },
-    "LiquidationProceedsAccountIds": {
-      "description": "Account IDs needed for recording proceeds from liquidation.",
+    "FacilityLedgerAccountIdsForLiquidation": {
+      "description": "Facility-level account IDs needed by the Collateral entity for liquidation operations.",
       "properties": {
-        "collateral_in_liquidation_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "liquidated_collateral_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "liquidation_proceeds_omnibus_account_id": {
+        "payment_holding_account_id": {
           "format": "uuid",
           "type": "string"
         },
         "proceeds_from_liquidation_account_id": {
           "format": "uuid",
           "type": "string"
+        },
+        "uncovered_outstanding_account_id": {
+          "format": "uuid",
+          "type": "string"
         }
       },
       "required": [
-        "liquidation_proceeds_omnibus_account_id",
         "proceeds_from_liquidation_account_id",
-        "collateral_in_liquidation_account_id",
-        "liquidated_collateral_account_id"
+        "payment_holding_account_id",
+        "uncovered_outstanding_account_id"
       ],
       "type": "object"
     },
@@ -110,6 +84,9 @@
             "null"
           ]
         },
+        "facility_ledger_account_ids_for_liquidation": {
+          "$ref": "#/$defs/FacilityLedgerAccountIdsForLiquidation"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -128,6 +105,7 @@
         "id",
         "credit_facility_id",
         "account_ids",
+        "facility_ledger_account_ids_for_liquidation",
         "pending_credit_facility_id"
       ],
       "type": "object"
@@ -226,9 +204,6 @@
     },
     {
       "properties": {
-        "account_ids": {
-          "$ref": "#/$defs/LiquidationProceedsAccountIds"
-        },
         "liquidation_id": {
           "format": "uuid",
           "type": "string"
@@ -240,8 +215,7 @@
       },
       "required": [
         "type",
-        "liquidation_id",
-        "account_ids"
+        "liquidation_id"
       ],
       "type": "object"
     },

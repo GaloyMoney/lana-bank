@@ -301,6 +301,10 @@ impl CreditFacility {
         self.account_ids.uncovered_outstanding_account_id
     }
 
+    pub fn proceeds_from_liquidation_account_id(&self) -> FacilityProceedsFromLiquidationAccountId {
+        self.account_ids.proceeds_from_liquidation_account_id
+    }
+
     fn structuring_fee_on_activation(&self) -> Option<StructuringFeeOnActivation> {
         let tx_id = self.structuring_fee_tx_id?;
 
@@ -729,8 +733,6 @@ impl CreditFacility {
 
         let res = CreditFacilityCompletion {
             tx_id: LedgerTxId::new(),
-            collateral: balances.collateral(),
-            credit_facility_account_ids: self.account_ids,
         };
 
         self.events.push(CreditFacilityEvent::Completed {});

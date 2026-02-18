@@ -122,7 +122,21 @@ where
             clock.clone(),
         ));
 
-        let spawner = jobs.add_initializer(jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::new(outbox, repo_arc.clone(), price.clone(), ledger.clone()));
+        let collateral_repo_arc = Arc::new(crate::collateral::repo::CollateralRepo::new(
+            pool,
+            publisher,
+            clock.clone(),
+        ));
+
+        let spawner = jobs.add_initializer(
+            jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::new(
+                outbox,
+                repo_arc.clone(),
+                collateral_repo_arc,
+                price.clone(),
+                ledger.clone(),
+            ),
+        );
 
         spawner.spawn_unique(job::JobId::new(), jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsJobConfig::<E>{
             _phantom: std::marker::PhantomData
@@ -199,12 +213,8 @@ where
                         new_pending_facility.collateral_id,
                         new_pending_facility.id,
                         wallet_id,
-                        CollateralLedgerAccountIds::new(
-                            new_pending_facility.account_ids,
-                            self.ledger
-                                .liquidation_proceeds_omnibus_account_ids()
-                                .account_id,
-                        ),
+                        CollateralLedgerAccountIds::new(),
+                        new_pending_facility.account_ids.into(),
                     )
                     .await?;
 
@@ -248,9 +258,18 @@ where
 
         let price = self.price.usd_cents_per_btc().await;
 
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(pending_facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_id();
+
         let balances = self
             .ledger
-            .get_pending_credit_facility_balance(pending_facility.account_ids)
+            .get_pending_credit_facility_balance(
+                pending_facility.account_ids,
+                collateral_account_id,
+            )
             .await?;
 
         match pending_facility.complete(balances, price, self.clock.now()) {
@@ -381,11 +400,15 @@ where
 
         let pending_credit_facility = self.repo.find_by_id(id).await?;
 
+        let collateral_entity = self
+            .collaterals
+            .find_by_id_without_audit(pending_credit_facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral_entity.account_id();
+
         let collateral = self
             .ledger
-            .get_collateral_for_pending_facility(
-                pending_credit_facility.account_ids.collateral_account_id,
-            )
+            .get_collateral_for_pending_facility(collateral_account_id)
             .await?;
 
         Ok(collateral)

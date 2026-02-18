@@ -5,9 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::primitives::*;
-
-use super::RecordProceedsFromLiquidationData;
+use crate::{collateral::ledger::LiquidationProceedsAccountIds, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -20,6 +18,7 @@ pub enum LiquidationEvent {
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
+        account_ids: LiquidationProceedsAccountIds,
     },
     CollateralSentOut {
         amount: Satoshis,
@@ -27,7 +26,6 @@ pub enum LiquidationEvent {
     },
     ProceedsReceivedAndLiquidationCompleted {
         amount: UsdCents,
-        payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
     },
 }
@@ -37,6 +35,7 @@ pub enum LiquidationEvent {
 pub struct Liquidation {
     pub id: LiquidationId,
     pub collateral_id: CollateralId,
+    pub account_ids: LiquidationProceedsAccountIds,
     pub expected_to_receive: UsdCents,
     pub sent_total: Satoshis,
     pub amount_received: UsdCents,
@@ -69,7 +68,7 @@ impl Liquidation {
     pub(in crate::collateral) fn record_proceeds_from_liquidation_and_complete(
         &mut self,
         amount_received: UsdCents,
-    ) -> Idempotent<RecordProceedsFromLiquidationData> {
+    ) -> Idempotent<LedgerTxId> {
         idempotency_guard!(
             self.events.iter_all(),
             LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { .. },
@@ -78,18 +77,13 @@ impl Liquidation {
         self.amount_received = amount_received;
 
         let ledger_tx_id = LedgerTxId::new();
-        let payment_id = PaymentId::new();
         self.events
             .push(LiquidationEvent::ProceedsReceivedAndLiquidationCompleted {
                 amount: amount_received,
-                payment_id,
                 ledger_tx_id,
             });
 
-        Idempotent::Executed(RecordProceedsFromLiquidationData::new(
-            ledger_tx_id,
-            payment_id,
-        ))
+        Idempotent::Executed(ledger_tx_id)
     }
 
     pub fn is_completed(&self) -> bool {
@@ -121,7 +115,6 @@ impl Liquidation {
                 LiquidationEvent::ProceedsReceivedAndLiquidationCompleted {
                     amount,
                     ledger_tx_id,
-                    ..
                 } => Some((*amount, *ledger_tx_id)),
                 _ => None,
             })
@@ -142,11 +135,13 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     id,
                     collateral_id,
                     initially_expected_to_receive,
+                    account_ids,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .collateral_id(*collateral_id)
+                        .account_ids(*account_ids)
                         .expected_to_receive(*initially_expected_to_receive)
                 }
                 LiquidationEvent::CollateralSentOut { amount, .. } => {
@@ -174,6 +169,7 @@ pub struct NewLiquidation {
     pub(crate) trigger_price: PriceOfOneBTC,
     pub(crate) initially_expected_to_receive: UsdCents,
     pub(crate) initially_estimated_to_liquidate: Satoshis,
+    pub(crate) account_ids: LiquidationProceedsAccountIds,
 }
 
 impl NewLiquidation {
@@ -192,6 +188,7 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
                 trigger_price: self.trigger_price,
                 initially_expected_to_receive: self.initially_expected_to_receive,
                 initially_estimated_to_liquidate: self.initially_estimated_to_liquidate,
+                account_ids: self.account_ids,
             }],
         )
     }
@@ -200,7 +197,19 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
+    use crate::{
+        ledger::FacilityProceedsFromLiquidationAccountId,
+        primitives::{CalaAccountId, PriceOfOneBTC, Satoshis, UsdCents},
+    };
+
+    fn default_liquidation_proceeds_account_ids() -> LiquidationProceedsAccountIds {
+        LiquidationProceedsAccountIds {
+            liquidation_proceeds_omnibus_account_id: CalaAccountId::new(),
+            proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId::new(),
+            collateral_in_liquidation_account_id: CalaAccountId::new(),
+            liquidated_collateral_account_id: CalaAccountId::new(),
+        }
+    }
 
     fn default_new_liquidation() -> NewLiquidation {
         NewLiquidation::builder()
@@ -209,6 +218,7 @@ mod tests {
             .trigger_price(PriceOfOneBTC::new(UsdCents::from(5000000)))
             .initially_expected_to_receive(UsdCents::from(1000))
             .initially_estimated_to_liquidate(Satoshis::from(100000))
+            .account_ids(default_liquidation_proceeds_account_ids())
             .build()
             .unwrap()
     }

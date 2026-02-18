@@ -13,6 +13,7 @@ CREATE TABLE core_collateral_events_rollup (
   credit_facility_id UUID,
   custody_wallet_id UUID,
   direction VARCHAR,
+  facility_ledger_account_ids_for_liquidation JSONB,
   liquidation_id UUID,
   payment_id UUID,
   pending_credit_facility_id UUID,
@@ -62,6 +63,7 @@ BEGIN
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
     new_row.direction := (NEW.event ->> 'direction');
+    new_row.facility_ledger_account_ids_for_liquidation := (NEW.event -> 'facility_ledger_account_ids_for_liquidation');
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
@@ -80,6 +82,7 @@ BEGIN
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.custody_wallet_id := current_row.custody_wallet_id;
     new_row.direction := current_row.direction;
+    new_row.facility_ledger_account_ids_for_liquidation := current_row.facility_ledger_account_ids_for_liquidation;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.liquidation_id := current_row.liquidation_id;
     new_row.payment_id := current_row.payment_id;
@@ -92,6 +95,7 @@ BEGIN
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
+      new_row.facility_ledger_account_ids_for_liquidation := (NEW.event -> 'facility_ledger_account_ids_for_liquidation');
       new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
     WHEN 'updated_via_manual_input' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
@@ -107,7 +111,6 @@ BEGIN
       new_row.direction := (NEW.event ->> 'direction');
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     WHEN 'liquidation_started' THEN
-      new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     WHEN 'liquidation_proceeds_received' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
@@ -132,6 +135,7 @@ BEGIN
     credit_facility_id,
     custody_wallet_id,
     direction,
+    facility_ledger_account_ids_for_liquidation,
     ledger_tx_ids,
     liquidation_id,
     payment_id,
@@ -150,6 +154,7 @@ BEGIN
     new_row.credit_facility_id,
     new_row.custody_wallet_id,
     new_row.direction,
+    new_row.facility_ledger_account_ids_for_liquidation,
     new_row.ledger_tx_ids,
     new_row.liquidation_id,
     new_row.payment_id,

@@ -220,7 +220,7 @@ where
             journal_id,
             clock.clone(),
             *ledger_arc.collateral_omnibus_account_ids(),
-            ledger_arc.liquidation_account_sets(),
+            ledger_arc.collateral_account_sets(),
         )
         .await?;
         let collateral_ledger_arc = Arc::new(collateral_ledger);
@@ -253,6 +253,9 @@ where
             authz_arc.clone(),
             &publisher,
             collateral_ledger_arc.clone(),
+            ledger_arc
+                .liquidation_proceeds_omnibus_account_ids()
+                .account_id,
             outbox,
             jobs,
             collections_arc.clone(),
@@ -487,6 +490,7 @@ where
             customer_id,
             &self.authz,
             &self.facilities,
+            &self.collaterals,
             &self.collections,
             &self.disbursals,
             &self.histories,
@@ -616,9 +620,16 @@ where
         if !facility.check_disbursal_date(now) {
             return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
         }
+
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_id();
+
         let balance = self
             .ledger
-            .get_credit_facility_balance(facility.account_ids)
+            .get_credit_facility_balance(facility.account_ids, collateral_account_id)
             .await?;
 
         let price = self.price.usd_cents_per_btc().await;
@@ -843,19 +854,22 @@ where
         {
             CompletionOutcome::AlreadyApplied(facility) => facility,
 
-            CompletionOutcome::Completed((facility, completion)) => {
-                self.collaterals
+            CompletionOutcome::Completed((facility, _completion)) => {
+                if let Some(collateral_update) = self
+                    .collaterals
                     .record_collateral_update_via_manual_input_in_op(
                         &mut db,
                         facility.collateral_id,
                         Satoshis::ZERO,
                         self.clock.today(),
                     )
-                    .await?;
+                    .await?
+                {
+                    self.collateral_ledger
+                        .update_collateral_amount_in_op(&mut db, collateral_update, sub)
+                        .await?;
+                }
 
-                self.ledger
-                    .complete_credit_facility_in_op(&mut db, completion, sub)
-                    .await?;
                 db.commit().await?;
 
                 facility
@@ -870,18 +884,30 @@ where
     }
 
     pub async fn current_cvl(&self, entity: &CreditFacility) -> Result<CVLPct, CoreCreditError> {
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(entity.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_id();
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(entity.account_ids)
+            .get_credit_facility_balance(entity.account_ids, collateral_account_id)
             .await?;
         let price = self.price.usd_cents_per_btc().await;
         Ok(balances.current_cvl(price))
     }
 
     pub async fn outstanding(&self, entity: &CreditFacility) -> Result<UsdCents, CoreCreditError> {
+        let collateral = self
+            .collaterals
+            .find_by_id_without_audit(entity.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_id();
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(entity.account_ids)
+            .get_credit_facility_balance(entity.account_ids, collateral_account_id)
             .await?;
         Ok(balances.total_outstanding_payable())
     }

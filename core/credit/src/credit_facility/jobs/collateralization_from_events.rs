@@ -21,6 +21,7 @@ use core_price::{CorePriceEvent, Price};
 
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
+    collateral::repo::CollateralRepo,
     credit_facility::{
         CreditFacilitiesByCollateralizationRatioCursor, CreditFacilityRepo, CreditFacilityStatus,
     },
@@ -52,6 +53,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CreditFacilityRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     price: Arc<Price>,
     ledger: Arc<CreditLedger>,
     authz: Arc<Perms>,
@@ -69,6 +71,7 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         repo: Arc<CreditFacilityRepo<E>>,
+        collateral_repo: Arc<CollateralRepo<E>>,
         price: Arc<Price>,
         ledger: Arc<CreditLedger>,
         authz: Arc<Perms>,
@@ -76,6 +79,7 @@ where
         Self {
             outbox: outbox.clone(),
             repo,
+            collateral_repo,
             price,
             ledger,
             authz,
@@ -114,6 +118,7 @@ where
         > {
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
+            collateral_repo: self.collateral_repo.clone(),
             price: self.price.clone(),
             ledger: self.ledger.clone(),
             authz: self.authz.clone(),
@@ -144,6 +149,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CreditFacilityRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     price: Arc<Price>,
     ledger: Arc<CreditLedger>,
     authz: Arc<Perms>,
@@ -252,9 +258,15 @@ where
 
         tracing::Span::current().record("credit_facility_id", credit_facility.id.to_string());
 
+        let collateral = self
+            .collateral_repo
+            .find_by_id_in_op(&mut op, credit_facility.collateral_id)
+            .await?;
+        let collateral_account_id = collateral.account_id();
+
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
+            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
             .await?;
         let price = self.price.usd_cents_per_btc().await;
 
@@ -318,9 +330,14 @@ where
                 if facility.status() == CreditFacilityStatus::Closed {
                     continue;
                 }
+                let collateral = self
+                    .collateral_repo
+                    .find_by_id_in_op(&mut op, facility.collateral_id)
+                    .await?;
+                let collateral_account_id = collateral.account_id();
                 let balances = self
                     .ledger
-                    .get_credit_facility_balance(facility.account_ids)
+                    .get_credit_facility_balance(facility.account_ids, collateral_account_id)
                     .await?;
                 if facility
                     .update_collateralization(price, CVLPct::UPGRADE_BUFFER, balances)
