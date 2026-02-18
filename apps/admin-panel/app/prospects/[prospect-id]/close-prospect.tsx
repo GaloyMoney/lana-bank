@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
+import { gql } from "@apollo/client"
 
 import {
   Dialog,
@@ -14,10 +15,17 @@ import {
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
-import {
-  useProspectCloseMutation,
-  GetProspectBasicDetailsDocument,
-} from "@/lib/graphql/generated"
+import { useProspectCloseMutation } from "@/lib/graphql/generated"
+
+gql`
+  mutation ProspectClose($input: ProspectCloseInput!) {
+    prospectClose(input: $input) {
+      prospect {
+        ...ProspectDetailsFragment
+      }
+    }
+  }
+`
 
 type CloseProspectDialogProps = {
   setOpenCloseDialog: (isOpen: boolean) => void
@@ -33,9 +41,7 @@ export const CloseProspectDialog: React.FC<CloseProspectDialogProps> = ({
   const t = useTranslations("Prospects.ProspectDetails.closeProspect")
   const commonT = useTranslations("Common")
 
-  const [closeProspect, { loading, reset }] = useProspectCloseMutation({
-    refetchQueries: [GetProspectBasicDetailsDocument],
-  })
+  const [closeProspect, { loading, reset }] = useProspectCloseMutation()
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {

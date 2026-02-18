@@ -31,7 +31,6 @@ import { cn } from "@lana/web/utils"
 import {
   ConfigType,
   type DomainConfig,
-  DomainConfigsDocument,
   useDomainConfigsQuery,
   useDomainConfigUpdateMutation,
 } from "@/lib/graphql/generated"
@@ -140,12 +139,6 @@ export default function ConfigurationsPage() {
             value: parsed.value,
           },
         },
-        refetchQueries: [
-          {
-            query: DomainConfigsDocument,
-            variables: { first: DOMAIN_CONFIG_PAGE_SIZE },
-          },
-        ],
       })
 
       const updated = result.data?.domainConfigUpdate.domainConfig

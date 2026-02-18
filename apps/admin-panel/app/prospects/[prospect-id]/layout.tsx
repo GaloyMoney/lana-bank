@@ -47,26 +47,6 @@ gql`
       ...ProspectDetailsFragment
     }
   }
-
-  mutation ProspectClose($input: ProspectCloseInput!) {
-    prospectClose(input: $input) {
-      prospect {
-        id
-        prospectId
-        status
-        kycStatus
-      }
-    }
-  }
-
-  mutation ProspectConvert($input: ProspectConvertInput!) {
-    prospectConvert(input: $input) {
-      customer {
-        id
-        customerId
-      }
-    }
-  }
 `
 
 export default function ProspectLayout({
