@@ -72,7 +72,7 @@ Eventos relacionados con el ciclo de vida y operaciones de facilidades de credit
 |-------|-------------|----------------|
 | `PartialLiquidationInitiated` | Se inicio una liquidacion parcial | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 | `PartialLiquidationCollateralSentOut` | Se envio colateral para liquidacion | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at` |
-| `PartialLiquidationProceedsReceived` | Se recibieron los ingresos de liquidacion | `amount`, `credit_facility_id`, `effective`, `facility_payment_holding_account_id`, `facility_proceeds_from_liquidation_account_id`, `facility_uncovered_outstanding_account_id`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
+| `PartialLiquidationProceedsReceived` | Se recibieron los ingresos de liquidacion | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
 | `PartialLiquidationCompleted` | Se completo la liquidacion | `credit_facility_id`, `liquidation_id` |
 
 | Event | Description | Payload Fields |
