@@ -6,11 +6,11 @@ CREATE TABLE core_liquidation_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
+  account_ids JSONB,
   amount BIGINT,
   collateral_id UUID,
   initially_estimated_to_liquidate BIGINT,
   initially_expected_to_receive BIGINT,
-  payment_id UUID,
   trigger_price BIGINT,
 
   -- Collection rollups
@@ -54,6 +54,7 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
+    new_row.account_ids := (NEW.event -> 'account_ids');
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
     new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
@@ -65,23 +66,23 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     new_row.trigger_price := (NEW.event ->> 'trigger_price')::BIGINT;
   ELSE
     -- Default all fields to current values
+    new_row.account_ids := current_row.account_ids;
     new_row.amount := current_row.amount;
     new_row.collateral_id := current_row.collateral_id;
     new_row.initially_estimated_to_liquidate := current_row.initially_estimated_to_liquidate;
     new_row.initially_expected_to_receive := current_row.initially_expected_to_receive;
     new_row.is_completed := current_row.is_completed;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.payment_id := current_row.payment_id;
     new_row.trigger_price := current_row.trigger_price;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
+      new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
@@ -91,7 +92,6 @@ BEGIN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
     WHEN 'proceeds_received_and_liquidation_completed' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     WHEN 'proceeds_from_liquidation_received' THEN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
   END CASE;
@@ -102,13 +102,13 @@ BEGIN
     created_at,
     modified_at,
     event_type,
+    account_ids,
     amount,
     collateral_id,
     initially_estimated_to_liquidate,
     initially_expected_to_receive,
     is_completed,
     ledger_tx_ids,
-    payment_id,
     trigger_price
   )
   VALUES (
@@ -117,13 +117,13 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.event_type,
+    new_row.account_ids,
     new_row.amount,
     new_row.collateral_id,
     new_row.initially_estimated_to_liquidate,
     new_row.initially_expected_to_receive,
     new_row.is_completed,
     new_row.ledger_tx_ids,
-    new_row.payment_id,
     new_row.trigger_price
   );
 

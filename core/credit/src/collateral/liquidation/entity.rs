@@ -7,8 +7,6 @@ use es_entity::*;
 
 use crate::{collateral::ledger::LiquidationProceedsAccountIds, primitives::*};
 
-use super::RecordProceedsFromLiquidationData;
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -28,7 +26,6 @@ pub enum LiquidationEvent {
     },
     ProceedsReceivedAndLiquidationCompleted {
         amount: UsdCents,
-        payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
     },
 }
@@ -71,7 +68,7 @@ impl Liquidation {
     pub(in crate::collateral) fn record_proceeds_from_liquidation_and_complete(
         &mut self,
         amount_received: UsdCents,
-    ) -> Idempotent<RecordProceedsFromLiquidationData> {
+    ) -> Idempotent<LedgerTxId> {
         idempotency_guard!(
             self.events.iter_all(),
             LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { .. },
@@ -80,18 +77,13 @@ impl Liquidation {
         self.amount_received = amount_received;
 
         let ledger_tx_id = LedgerTxId::new();
-        let payment_id = PaymentId::new();
         self.events
             .push(LiquidationEvent::ProceedsReceivedAndLiquidationCompleted {
                 amount: amount_received,
-                payment_id,
                 ledger_tx_id,
             });
 
-        Idempotent::Executed(RecordProceedsFromLiquidationData::new(
-            ledger_tx_id,
-            payment_id,
-        ))
+        Idempotent::Executed(ledger_tx_id)
     }
 
     pub fn is_completed(&self) -> bool {
@@ -123,7 +115,6 @@ impl Liquidation {
                 LiquidationEvent::ProceedsReceivedAndLiquidationCompleted {
                     amount,
                     ledger_tx_id,
-                    ..
                 } => Some((*amount, *ledger_tx_id)),
                 _ => None,
             })

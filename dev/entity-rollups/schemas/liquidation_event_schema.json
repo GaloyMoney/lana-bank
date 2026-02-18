@@ -112,10 +112,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "payment_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "type": {
           "const": "proceeds_received_and_liquidation_completed",
           "type": "string"
@@ -124,7 +120,6 @@
       "required": [
         "type",
         "amount",
-        "payment_id",
         "ledger_tx_id"
       ],
       "type": "object"
