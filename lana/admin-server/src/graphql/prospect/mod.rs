@@ -45,32 +45,29 @@ impl Prospect {
     }
 
     async fn email(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
-        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
-        // go via data loader for this
-        let party = app
-            .customers()
-            .find_party_by_id_without_audit(self.entity.party_id)
-            .await?;
-        Ok(party.email)
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let party = loader
+            .load_one(self.entity.party_id)
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Party not found"))?;
+        Ok(party.email.clone())
     }
 
     async fn telegram_handle(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
-        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
-        // go via data loader for this
-        let party = app
-            .customers()
-            .find_party_by_id_without_audit(self.entity.party_id)
-            .await?;
-        Ok(party.telegram_handle)
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let party = loader
+            .load_one(self.entity.party_id)
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Party not found"))?;
+        Ok(party.telegram_handle.clone())
     }
 
     async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {
-        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
-        // go via data loader for this
-        let party = app
-            .customers()
-            .find_party_by_id_without_audit(self.entity.party_id)
-            .await?;
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let party = loader
+            .load_one(self.entity.party_id)
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Party not found"))?;
         Ok(party.customer_type)
     }
 
@@ -96,12 +93,12 @@ impl Prospect {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<PersonalInfo>> {
-        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
-        let party = app
-            .customers()
-            .find_party_by_id_without_audit(self.entity.party_id)
-            .await?;
-        Ok(party.personal_info)
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let party = loader
+            .load_one(self.entity.party_id)
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Party not found"))?;
+        Ok(party.personal_info.clone())
     }
 
     async fn customer(

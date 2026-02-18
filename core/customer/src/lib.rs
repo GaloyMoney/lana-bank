@@ -819,6 +819,14 @@ where
         Ok(self.prospect_repo.find_all(ids).await?)
     }
 
+    #[instrument(name = "customer.find_all_parties", skip(self))]
+    pub async fn find_all_parties<T: From<Party>>(
+        &self,
+        ids: &[PartyId],
+    ) -> Result<HashMap<PartyId, T>, CustomerError> {
+        Ok(self.party_repo.find_all(ids).await?)
+    }
+
     #[record_error_severity]
     #[instrument(name = "customer.update_telegram_handle", skip(self))]
     pub async fn update_telegram_handle(
@@ -836,6 +844,7 @@ where
             )
             .await?;
 
+        let customer = self.repo.find_by_party_id(party_id).await?;
         let mut party = self.party_repo.find_by_id(party_id).await?;
         if party
             .update_telegram_handle(new_telegram_handle)
@@ -843,8 +852,6 @@ where
         {
             self.party_repo.update(&mut party).await?;
         }
-
-        let customer = self.repo.find_by_party_id(party_id).await?;
 
         Ok(customer)
     }
@@ -866,12 +873,11 @@ where
             )
             .await?;
 
+        let customer = self.repo.find_by_party_id(party_id).await?;
         let mut party = self.party_repo.find_by_id(party_id).await?;
         if party.update_email(new_email).did_execute() {
             self.party_repo.update(&mut party).await?;
         }
-
-        let customer = self.repo.find_by_party_id(party.id).await?;
         Ok(customer)
     }
 

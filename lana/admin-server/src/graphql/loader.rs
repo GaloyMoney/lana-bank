@@ -16,7 +16,7 @@ use lana_app::{
     },
     app::LanaApp,
     custody::error::CoreCustodyError,
-    customer::CustomerDocumentId,
+    customer::{CustomerDocumentId, Party, PartyId},
     deposit::error::CoreDepositError,
     governance::error::GovernanceError,
     report::{ReportId, ReportRunId, error::ReportError},
@@ -198,6 +198,20 @@ impl Loader<ProspectId> for LanaLoader {
         self.app
             .customers()
             .find_all_prospects(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<PartyId> for LanaLoader {
+    type Value = Arc<Party>;
+    type Error = Arc<lana_app::customer::error::CustomerError>;
+
+    #[instrument(name = "loader.parties", skip(self), fields(count = keys.len()), err)]
+    async fn load(&self, keys: &[PartyId]) -> Result<HashMap<PartyId, Arc<Party>>, Self::Error> {
+        self.app
+            .customers()
+            .find_all_parties(keys)
             .await
             .map_err(Arc::new)
     }
