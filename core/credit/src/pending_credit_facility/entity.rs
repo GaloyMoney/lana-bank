@@ -230,53 +230,19 @@ impl PendingCreditFacility {
         let maturity_date = self.terms.maturity_date(time);
         let account_ids = crate::CreditFacilityLedgerAccountIds::from(self.account_ids);
 
-        let collateralization_state = self.terms.collateralization(cvl);
-        let collateralization = match collateralization_state {
-            CollateralizationState::FullyCollateralized => {
-                FacilityCollateralization::FullyCollateralized {
-                    collateral: balances.collateral(),
-                    outstanding: CreditFacilityReceivable {
-                        disbursed: if self.is_single_disbursal() {
-                            self.amount
-                        } else {
-                            UsdCents::ZERO
-                        },
-                        interest: UsdCents::ZERO,
-                    },
-                    price,
-                }
-            }
-            CollateralizationState::UnderMarginCallThreshold => {
-                FacilityCollateralization::UnderMarginCallThreshold {
-                    collateral: balances.collateral(),
-                    outstanding: CreditFacilityReceivable {
-                        disbursed: if self.is_single_disbursal() {
-                            self.amount
-                        } else {
-                            UsdCents::ZERO
-                        },
-                        interest: UsdCents::ZERO,
-                    },
-                    price,
-                }
-            }
-            CollateralizationState::UnderLiquidationThreshold => {
-                FacilityCollateralization::UnderLiquidationThreshold {
-                    collateral: balances.collateral(),
-                    outstanding: CreditFacilityReceivable {
-                        disbursed: if self.is_single_disbursal() {
-                            self.amount
-                        } else {
-                            UsdCents::ZERO
-                        },
-                        interest: UsdCents::ZERO,
-                    },
-                    price,
-                }
-            }
-            CollateralizationState::NoCollateral => FacilityCollateralization::NoCollateral,
-            CollateralizationState::NoExposure => FacilityCollateralization::NoExposure,
-        };
+        let collateralization = FacilityCollateralization::new(
+            self.terms.collateralization(cvl),
+            balances.collateral(),
+            CreditFacilityReceivable {
+                disbursed: if self.is_single_disbursal() {
+                    self.amount
+                } else {
+                    UsdCents::ZERO
+                },
+                interest: UsdCents::ZERO,
+            },
+            price,
+        );
 
         new_credit_facility
             .id(self.id)

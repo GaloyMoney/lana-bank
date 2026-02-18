@@ -212,6 +212,33 @@ pub enum FacilityCollateralization {
 }
 
 impl FacilityCollateralization {
+    pub fn new(
+        state: CollateralizationState,
+        collateral: Satoshis,
+        outstanding: CreditFacilityReceivable,
+        price: PriceOfOneBTC,
+    ) -> Self {
+        match state {
+            CollateralizationState::FullyCollateralized => Self::FullyCollateralized {
+                collateral,
+                outstanding,
+                price,
+            },
+            CollateralizationState::UnderMarginCallThreshold => Self::UnderMarginCallThreshold {
+                collateral,
+                outstanding,
+                price,
+            },
+            CollateralizationState::UnderLiquidationThreshold => Self::UnderLiquidationThreshold {
+                collateral,
+                outstanding,
+                price,
+            },
+            CollateralizationState::NoCollateral => Self::NoCollateral,
+            CollateralizationState::NoExposure => Self::NoExposure,
+        }
+    }
+
     pub fn state(&self) -> CollateralizationState {
         match self {
             Self::FullyCollateralized { .. } => CollateralizationState::FullyCollateralized,
@@ -695,32 +722,8 @@ impl CreditFacility {
             CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
         };
 
-        let collateral = balances.collateral();
-        let outstanding = balances.into();
-        let new_collateralization = new_state.map(|state| match state {
-            CollateralizationState::FullyCollateralized => {
-                FacilityCollateralization::FullyCollateralized {
-                    collateral,
-                    outstanding,
-                    price,
-                }
-            }
-            CollateralizationState::UnderMarginCallThreshold => {
-                FacilityCollateralization::UnderMarginCallThreshold {
-                    collateral,
-                    outstanding,
-                    price,
-                }
-            }
-            CollateralizationState::UnderLiquidationThreshold => {
-                FacilityCollateralization::UnderLiquidationThreshold {
-                    collateral,
-                    outstanding,
-                    price,
-                }
-            }
-            CollateralizationState::NoCollateral => FacilityCollateralization::NoCollateral,
-            CollateralizationState::NoExposure => FacilityCollateralization::NoExposure,
+        let new_collateralization = new_state.map(|state| {
+            FacilityCollateralization::new(state, balances.collateral(), balances.into(), price)
         });
 
         if let Some(collateralization) = new_collateralization {
