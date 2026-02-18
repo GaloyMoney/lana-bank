@@ -99,39 +99,11 @@ class BigQueryTableFetcher(BaseTableFetcher):
             TabularReportContents with field names and records.
         """
         query = f"SELECT * FROM `{self.project_id}.{self.dataset}.{table_name}`;"
-        # [DIAG] Log exact query
-        print(f"[DIAG] BQ query: {query}")
         query_job = self._bq_client.query(query)
-        # [DIAG] Log BQ job ID for tracing in BQ console
-        print(f"[DIAG] BQ job_id={query_job.job_id} for table={table_name}")
-        try:
-            rows = query_job.result()
-        except Exception as e:
-            # [DIAG] Log failure details including job ID
-            print(
-                f"[DIAG] !!! BQ query FAILED for table={table_name} "
-                f"job_id={query_job.job_id} error={e}"
-            )
-            # [DIAG] Try to get the job status for more detail
-            try:
-                job_ref = self._bq_client.get_job(query_job.job_id)
-                print(
-                    f"[DIAG] !!! BQ job state={job_ref.state} "
-                    f"errors={job_ref.errors} "
-                    f"error_result={job_ref.error_result}"
-                )
-            except Exception as e2:
-                print(f"[DIAG] !!! Could not fetch job details: {e2}")
-            raise
+        rows = query_job.result()
 
         field_names = tuple(field.name for field in rows.schema)
         records = [{name: row[name] for name in field_names} for row in rows]
-        # [DIAG] Log success
-        print(
-            f"[DIAG] BQ query OK for table={table_name} "
-            f"job_id={query_job.job_id} "
-            f"rows={len(records)} fields={len(field_names)}"
-        )
 
         return TabularReportContents(field_names=field_names, records=records)
 

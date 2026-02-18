@@ -1,5 +1,4 @@
-import time
-import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Literal, Optional, Tuple, TypedDict
 
 import requests
@@ -115,93 +114,46 @@ def create_file_report_multi_asset():
         required_resource_keys={RESOURCE_KEY_FILE_REPORTS_BUCKET, RESOURCE_KEY_DW_BQ},
     )
     def file_report_assets(context: dg.AssetExecutionContext):
-        log = context.log
         dw_bq = context.resources.dw_bq
         file_reports_bucket = context.resources.file_reports_bucket
 
-        dataset = dw_bq.get_dbt_dataset()
-        creds_dict = dw_bq.get_credentials_dict()
-        project_id = creds_dict["project_id"]
-
         table_fetcher = BigQueryTableFetcher(
-            credentials_dict=creds_dict,
-            dataset=dataset,
+            credentials_dict=dw_bq.get_credentials_dict(),
+            dataset=dw_bq.get_dbt_dataset(),
         )
-
-        # [DIAG] Log BQ context
-        log.info(f"[DIAG] BigQuery project={project_id} dataset={dataset}")
-
-        # [DIAG] Probe: list all report_* and static_* tables/views in dataset
-        try:
-            from google.cloud import bigquery as bq_module
-            from google.oauth2 import service_account as sa_module
-
-            probe_creds = sa_module.Credentials.from_service_account_info(creds_dict)
-            probe_client = bq_module.Client(
-                project=project_id, credentials=probe_creds
-            )
-            probe_query = (
-                f"SELECT table_name, table_type "
-                f"FROM `{project_id}.{dataset}.INFORMATION_SCHEMA.TABLES` "
-                f"WHERE table_name LIKE 'report\\_%' "
-                f"OR table_name LIKE 'static\\_%' "
-                f"OR table_name LIKE 'seed\\_%' "
-                f"ORDER BY table_name"
-            )
-            probe_job = probe_client.query(probe_query)
-            probe_rows = list(probe_job.result())
-            log.info(
-                f"[DIAG] INFORMATION_SCHEMA probe: found {len(probe_rows)} "
-                f"report_*/static_*/seed_* tables/views in {dataset}"
-            )
-            for row in probe_rows:
-                log.info(f"[DIAG]   {row['table_name']} ({row['table_type']})")
-        except Exception as e:
-            log.warning(f"[DIAG] INFORMATION_SCHEMA probe failed: {e}")
 
         # Cache fetched tables to avoid duplicate BigQuery reads
         # when multiple formats share the same source table
         table_cache: Dict[str, Tuple] = {}
-        # [DIAG] Track fetch timing
-        fetch_times: Dict[str, float] = {}
 
         def fetch_table_cached(table_name: str):
-            if table_name in table_cache:
-                log.info(f"[DIAG] Cache HIT for {table_name}")
-                return table_cache[table_name]
-            log.info(f"[DIAG] Cache MISS for {table_name} — querying BQ")
-            t0 = time.monotonic()
-            contents = table_fetcher.fetch_table_contents(table_name)
-            elapsed = time.monotonic() - t0
-            fetch_times[table_name] = elapsed
-            log.info(
-                f"[DIAG] BQ fetch for {table_name} took {elapsed:.2f}s "
-                f"({len(contents.records)} rows, {len(contents.fields)} cols)"
-            )
-            table_cache[table_name] = (contents.fields, contents.records)
+            if table_name not in table_cache:
+                contents = table_fetcher.fetch_table_contents(table_name)
+                table_cache[table_name] = (contents.fields, contents.records)
             return table_cache[table_name]
 
-        # [DIAG] Log iteration order
-        ordered_keys = list(context.selected_asset_keys)
+        # Pre-fetch all unique source tables in parallel (Step 1)
+        unique_tables = {
+            asset_key_to_job_config[k][0].source_table_name
+            for k in context.selected_asset_keys
+        }
+        log = context.log
         log.info(
-            f"[DIAG] Iteration order ({len(ordered_keys)} assets):"
+            f"Pre-fetching {len(unique_tables)} unique tables "
+            f"for {len(context.selected_asset_keys)} assets"
         )
-        for i, ak in enumerate(ordered_keys):
-            rj, fc = asset_key_to_job_config[ak]
-            log.info(
-                f"[DIAG]   #{i+1:3d} {ak.to_user_string()} "
-                f"table={rj.source_table_name} fmt={fc.file_extension}"
-            )
-
-        # [DIAG] Collect unique tables and log them
-        unique_tables = set()
-        for ak in ordered_keys:
-            rj, _ = asset_key_to_job_config[ak]
-            unique_tables.add(rj.source_table_name)
-        log.info(
-            f"[DIAG] Unique source tables: {len(unique_tables)} "
-            f"for {len(ordered_keys)} assets"
-        )
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {
+                pool.submit(fetch_table_cached, t): t for t in unique_tables
+            }
+            for f in as_completed(futures):
+                table_name = futures[f]
+                try:
+                    f.result()
+                    log.info(f"Pre-fetched table: {table_name}")
+                except Exception:
+                    log.error(f"Failed to pre-fetch table: {table_name}")
+                    raise
 
         selected_keys = [
             key.to_user_string() for key in context.selected_asset_keys
@@ -213,24 +165,15 @@ def create_file_report_multi_asset():
         batch_attrs["file_report.asset_count"] = str(len(selected_keys))
         batch_attrs["file_report.assets"] = str(selected_keys)
 
-        completed_keys: List[str] = []
-        batch_t0 = time.monotonic()
-
         with tracer.start_as_current_span(
             "file_report_batch", context=parent_ctx
         ) as batch_span:
             for key, value in batch_attrs.items():
                 batch_span.set_attribute(key, value)
 
-            for idx, asset_key in enumerate(ordered_keys):
+            for asset_key in context.selected_asset_keys:
                 report_job, file_config = asset_key_to_job_config[asset_key]
                 asset_key_str = asset_key.to_user_string()
-                table_name = report_job.source_table_name
-
-                log.info(
-                    f"[DIAG] === Asset #{idx+1}/{len(ordered_keys)}: "
-                    f"{asset_key_str} (table={table_name}) ==="
-                )
 
                 with tracer.start_as_current_span(
                     f"file_report_{asset_key_str}"
@@ -241,63 +184,16 @@ def create_file_report_multi_asset():
                         "report.format", file_config.file_extension
                     )
 
-                    try:
-                        asset_t0 = time.monotonic()
-                        result = generate_single_report(
-                            fetch_table=fetch_table_cached,
-                            upload_file=file_reports_bucket.upload_file,
-                            table_name=report_job.source_table_name,
-                            norm=report_job.norm,
-                            friendly_name=report_job.friendly_name,
-                            file_output_config=file_config,
-                            run_id=context.run_id,
-                            log=context.log.info,
-                        )
-                        asset_elapsed = time.monotonic() - asset_t0
-                        log.info(
-                            f"[DIAG] Asset {asset_key_str} completed in "
-                            f"{asset_elapsed:.2f}s"
-                        )
-                    except Exception as e:
-                        asset_elapsed = time.monotonic() - asset_t0
-                        batch_elapsed = time.monotonic() - batch_t0
-                        log.error(
-                            f"[DIAG] !!! FAILURE at asset #{idx+1} "
-                            f"{asset_key_str} after {asset_elapsed:.2f}s"
-                        )
-                        log.error(
-                            f"[DIAG] !!! Error type: {type(e).__name__}: {e}"
-                        )
-                        log.error(
-                            f"[DIAG] !!! Table: {table_name}, "
-                            f"Format: {file_config.file_extension}"
-                        )
-                        log.error(
-                            f"[DIAG] !!! Cache state: "
-                            f"{sorted(table_cache.keys())}"
-                        )
-                        log.error(
-                            f"[DIAG] !!! Was table in cache? "
-                            f"{table_name in table_cache}"
-                        )
-                        log.error(
-                            f"[DIAG] !!! Completed {len(completed_keys)}/"
-                            f"{len(ordered_keys)} assets in "
-                            f"{batch_elapsed:.2f}s before failure"
-                        )
-                        remaining = [
-                            ak.to_user_string()
-                            for ak in ordered_keys[idx + 1 :]
-                        ]
-                        log.error(
-                            f"[DIAG] !!! Remaining {len(remaining)} assets "
-                            f"that will NOT run: {remaining}"
-                        )
-                        log.error(
-                            f"[DIAG] !!! Full traceback:\n"
-                            f"{traceback.format_exc()}"
-                        )
-                        raise
+                    result = generate_single_report(
+                        fetch_table=fetch_table_cached,
+                        upload_file=file_reports_bucket.upload_file,
+                        table_name=report_job.source_table_name,
+                        norm=report_job.norm,
+                        friendly_name=report_job.friendly_name,
+                        file_output_config=file_config,
+                        run_id=context.run_id,
+                        log=context.log.info,
+                    )
 
                     gcs_path = result["gcs_path"]
                     if gcs_path.startswith("gs://"):
@@ -316,26 +212,12 @@ def create_file_report_multi_asset():
                         ],
                     }
 
-                    completed_keys.append(asset_key_str)
                     yield dg.MaterializeResult(
                         asset_key=asset_key,
                         metadata={
                             "report": dg.MetadataValue.json(report),
                         },
                     )
-
-            # [DIAG] Summary
-            batch_elapsed = time.monotonic() - batch_t0
-            log.info(
-                f"[DIAG] === BATCH COMPLETE: {len(completed_keys)}/"
-                f"{len(ordered_keys)} assets in {batch_elapsed:.2f}s ==="
-            )
-            log.info(
-                f"[DIAG] BQ fetches: {len(fetch_times)} unique tables, "
-                f"total fetch time: {sum(fetch_times.values()):.2f}s"
-            )
-            for tbl, t in sorted(fetch_times.items(), key=lambda x: -x[1]):
-                log.info(f"[DIAG]   {tbl}: {t:.2f}s")
 
     return file_report_assets
 
