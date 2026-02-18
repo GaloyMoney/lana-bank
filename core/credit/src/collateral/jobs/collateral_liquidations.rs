@@ -232,6 +232,7 @@ where
                 JobId::new(),
                 LiquidationPaymentJobConfig::<E> {
                     liquidation_id,
+                    collateral_id,
                     credit_facility_id: collateral.credit_facility_id,
                     _phantom: std::marker::PhantomData,
                 },

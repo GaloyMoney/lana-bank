@@ -136,6 +136,7 @@ where
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
                 collections,
+                repo_arc.clone(),
                 credit_facility_repo.clone(),
             ));
 
