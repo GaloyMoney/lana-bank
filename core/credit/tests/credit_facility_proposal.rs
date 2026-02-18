@@ -29,7 +29,7 @@ async fn facility_proposal_created_event_on_create() -> anyhow::Result<()> {
 
     let customer = ctx
         .customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("test-{}@example.com", uuid::Uuid::new_v4()),
             format!("telegram-{}", uuid::Uuid::new_v4()),
@@ -103,7 +103,7 @@ async fn facility_proposal_concluded_event_on_approval() -> anyhow::Result<()> {
 
     let customer = ctx
         .customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("test-{}@example.com", uuid::Uuid::new_v4()),
             format!("telegram-{}", uuid::Uuid::new_v4()),
