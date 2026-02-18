@@ -28,17 +28,14 @@ where
         _op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        match event.as_event() {
-            Some(access_event @ CoreAccessEvent::UserCreated { entity }) => {
-                event.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", access_event.as_ref());
+        if let Some(access_event @ CoreAccessEvent::UserCreated { entity }) = event.as_event() {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", access_event.as_ref());
 
-                self.keycloak_client
-                    .create_user(entity.email.clone(), entity.id.into())
-                    .await?;
-            }
-            _ => {}
+            self.keycloak_client
+                .create_user(entity.email.clone(), entity.id.into())
+                .await?;
         }
         Ok(())
     }
