@@ -7,11 +7,7 @@ import { useTranslations } from "next-intl"
 
 import { ProspectStageBadge } from "./prospect-stage-badge"
 
-import {
-  Prospect,
-  ProspectStage,
-  useProspectsQuery,
-} from "@/lib/graphql/generated"
+import { Prospect, ProspectStage, useProspectsQuery } from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
@@ -20,11 +16,7 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 
 gql`
-  query Prospects(
-    $first: Int!
-    $after: String
-    $stage: ProspectStage
-  ) {
+  query Prospects($first: Int!, $after: String, $stage: ProspectStage) {
     prospects(first: $first, after: $after, stage: $stage) {
       edges {
         node {
@@ -53,9 +45,7 @@ gql`
 
 const ProspectsList = () => {
   const t = useTranslations("Prospects")
-  const [stageFilter, setStageFilter] = useState<ProspectStage | undefined>(
-    undefined,
-  )
+  const [stageFilter, setStageFilter] = useState<ProspectStage | undefined>(undefined)
 
   const { data, loading, error, fetchMore } = useProspectsQuery({
     variables: {
@@ -104,10 +94,8 @@ const ProspectsList = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(prospect) => `/prospects/${prospect.publicId}`}
-        onFilter={(column, value) => {
-          if (column === "stage") {
-            setStageFilter(value as ProspectStage | undefined)
-          }
+        onFilter={(filters) => {
+          setStageFilter(filters.stage as ProspectStage)
         }}
       />
     </div>

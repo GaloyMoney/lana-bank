@@ -14,12 +14,12 @@ import ConvertProspectDialog from "./convert-prospect"
 import { ProspectStageBadge } from "@/app/prospects/prospect-stage-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
-  CustomerType,
   GetProspectBasicDetailsQuery,
   ProspectStage,
   ProspectStatus,
   useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
+import { CustomerTypeBadge } from "@/app/customers/customer-type-badge"
 
 type ProspectDetailsCardProps = {
   prospect: NonNullable<GetProspectBasicDetailsQuery["prospectByPublicId"]>
@@ -41,27 +41,6 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
   const showConvertButton =
     requireVerifiedCustomer?.isSet && String(requireVerifiedCustomer.value) === "false"
 
-  const getCustomerTypeDisplay = (customerType: CustomerType) => {
-    switch (customerType) {
-      case CustomerType.Individual:
-        return t("customerType.individual")
-      case CustomerType.GovernmentEntity:
-        return t("customerType.governmentEntity")
-      case CustomerType.PrivateCompany:
-        return t("customerType.privateCompany")
-      case CustomerType.Bank:
-        return t("customerType.bank")
-      case CustomerType.FinancialInstitution:
-        return t("customerType.financialInstitution")
-      case CustomerType.ForeignAgencyOrSubsidiary:
-        return t("customerType.foreignAgency")
-      case CustomerType.NonDomiciledCompany:
-        return t("customerType.nonDomiciledCompany")
-      default:
-        return customerType
-    }
-  }
-
   const personalInfo = prospect.personalInfo
 
   const details: DetailItemProps[] = [
@@ -80,7 +59,7 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
     { label: t("labels.createdOn"), value: formatDate(prospect.createdAt) },
     {
       label: t("labels.customerType"),
-      value: getCustomerTypeDisplay(prospect.customerType),
+      value: <CustomerTypeBadge customerType={prospect.customerType} />,
     },
     {
       label: t("labels.firstName"),

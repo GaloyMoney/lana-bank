@@ -14,7 +14,8 @@ import UpdateTelegramHandleDialog from "./update-telegram-handle"
 import UpdateEmailDialog from "./update-email"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { CustomerType, GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
+import { GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
+import { CustomerTypeBadge } from "../customer-type-badge"
 
 type CustomerDetailsCardProps = {
   customer: NonNullable<GetCustomerBasicDetailsQuery["customerByPublicId"]>
@@ -26,37 +27,16 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
   const [openUpdateTelegramHandleDialog, setOpenUpdateTelegramHandleDialog] = useState(false)
   const [openUpdateEmailDialog, setOpenUpdateEmailDialog] = useState(false)
 
-  const getCustomerTypeDisplay = (customerType: CustomerType) => {
-    switch (customerType) {
-      case CustomerType.Individual:
-        return t("customerType.individual")
-      case CustomerType.GovernmentEntity:
-        return t("customerType.governmentEntity")
-      case CustomerType.PrivateCompany:
-        return t("customerType.privateCompany")
-      case CustomerType.Bank:
-        return t("customerType.bank")
-      case CustomerType.FinancialInstitution:
-        return t("customerType.financialInstitution")
-      case CustomerType.ForeignAgencyOrSubsidiary:
-        return t("customerType.foreignAgency")
-      case CustomerType.NonDomiciledCompany:
-        return t("customerType.nonDomiciledCompany")
-      default:
-        return customerType
-    }
-  }
-
   const personalInfo = customer.personalInfo
 
   const details: DetailItemProps[] = [
     {
       label: t("labels.firstName"),
-      value: personalInfo.firstName,
+      value: personalInfo?.firstName ?? "-",
     },
     {
       label: t("labels.lastName"),
-      value: personalInfo.lastName,
+      value: personalInfo?.lastName ?? "-",
     },
     {
       label: (
@@ -93,15 +73,15 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
     },
     {
       label: t("labels.customerType"),
-      value: getCustomerTypeDisplay(customer.customerType),
+      value: <CustomerTypeBadge customerType={customer.customerType} />,
     },
-    ...(personalInfo.dateOfBirth
+    ...(personalInfo?.dateOfBirth
       ? [{ label: t("labels.dateOfBirth"), value: personalInfo.dateOfBirth }]
       : []),
-    ...(personalInfo.nationality
+    ...(personalInfo?.nationality
       ? [{ label: t("labels.nationality"), value: personalInfo.nationality }]
       : []),
-    ...(personalInfo.address
+    ...(personalInfo?.address
       ? [{ label: t("labels.address"), value: personalInfo.address }]
       : []),
   ]

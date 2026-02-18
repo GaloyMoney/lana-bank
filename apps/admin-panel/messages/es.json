@@ -327,16 +327,6 @@
           "closeProspect": "Cerrar prospecto",
           "convertToCustomer": "Convertir en cliente",
           "viewCustomer": "View Customer"
-        },
-        "customerType": {
-          "individual": "Individual",
-          "company": "Empresa",
-          "governmentEntity": "Entidad gubernamental",
-          "privateCompany": "Empresa privada",
-          "bank": "Banco",
-          "financialInstitution": "Institución financiera",
-          "foreignAgency": "Agencia o subsidiaria extranjera",
-          "nonDomiciledCompany": "Empresa no domiciliada"
         }
       },
       "closeProspect": {
@@ -396,6 +386,15 @@
       "inactive": "Inactivo",
       "suspended": "Suspendido"
     },
+    "customerType": {
+      "individual": "Individual",
+      "governmentEntity": "Entidad gubernamental",
+      "privateCompany": "Empresa privada",
+      "bank": "Banco",
+      "financialInstitution": "Institución financiera",
+      "foreignAgency": "Agencia o subsidiaria extranjera",
+      "nonDomiciledCompany": "Empresa no domiciliada"
+    },
     "create": {
       "title": "Añadir nuevo cliente",
       "confirmTitle": "Confirmar Detalles del Cliente",
@@ -441,16 +440,6 @@
         "customer": "Cliente",
         "customerDetails": "Detalles del cliente",
         "updateTelegramHandle": "Actualizar handle de Telegram",
-        "customerType": {
-          "individual": "Particular",
-          "company": "Empresa",
-          "governmentEntity": "Entidad gubernamental",
-          "privateCompany": "Empresa privada",
-          "bank": "Banco",
-          "financialInstitution": "Institución financiera",
-          "foreignAgency": "Agencia o subsidiaria extranjera",
-          "nonDomiciledCompany": "Empresa no domiciliada"
-        },
         "labels": {
           "email": "Correo electrónico",
           "createdOn": "Fecha de registro",

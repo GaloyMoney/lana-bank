@@ -247,14 +247,6 @@ checksums:
     Prospects/ProspectDetails/details/buttons/closeProspect: 13c6753109d70226efe543d03070f75e
     Prospects/ProspectDetails/details/buttons/convertToCustomer: 10f8a6e3404e4489083453a7e0ad7c21
     Prospects/ProspectDetails/details/buttons/viewCustomer: 232903fb7e397b92489b7a3c62edb67f
-    Prospects/ProspectDetails/details/customerType/individual: 52ebce389ed97a13b6089802055ed667
-    Prospects/ProspectDetails/details/customerType/company: 9e36d11fa82d1bd4563eef2abc4fcfba
-    Prospects/ProspectDetails/details/customerType/governmentEntity: f528833b92b299e24071fe069cf3ed82
-    Prospects/ProspectDetails/details/customerType/privateCompany: c74836e7192c45f43c2445cf6d78c358
-    Prospects/ProspectDetails/details/customerType/bank: cbb449f467876b4137a66df51486d1dc
-    Prospects/ProspectDetails/details/customerType/financialInstitution: 995847f0f3bb3a2a846c07a22360d6f9
-    Prospects/ProspectDetails/details/customerType/foreignAgency: 0e850ab06238e94737cc1914b4b1263d
-    Prospects/ProspectDetails/details/customerType/nonDomiciledCompany: a86570d266088428c8e5195324770a80
     Prospects/ProspectDetails/closeProspect/title: 13c6753109d70226efe543d03070f75e
     Prospects/ProspectDetails/closeProspect/description: 6a2da01dfda42062fdae4c2096a04737
     Prospects/ProspectDetails/closeProspect/buttons/close: 13c6753109d70226efe543d03070f75e
@@ -289,6 +281,13 @@ checksums:
     Customers/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
+    Customers/customerType/individual: 52ebce389ed97a13b6089802055ed667
+    Customers/customerType/governmentEntity: f528833b92b299e24071fe069cf3ed82
+    Customers/customerType/privateCompany: c74836e7192c45f43c2445cf6d78c358
+    Customers/customerType/bank: cbb449f467876b4137a66df51486d1dc
+    Customers/customerType/financialInstitution: 995847f0f3bb3a2a846c07a22360d6f9
+    Customers/customerType/foreignAgency: 0e850ab06238e94737cc1914b4b1263d
+    Customers/customerType/nonDomiciledCompany: a86570d266088428c8e5195324770a80
     Customers/create/title: b6e91545c3b71ffb5958ab19ffb1d51e
     Customers/create/confirmTitle: f0f217e36a6d0817c62edd48d560fcca
     Customers/create/description: 83b80348dac269ef8b459bd903753d2f
@@ -324,14 +323,6 @@ checksums:
     Customers/CustomerDetails/details/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     Customers/CustomerDetails/details/customerDetails: 485fc4d04d3466ee971a1b73d2a5ee6f
     Customers/CustomerDetails/details/updateTelegramHandle: 12ed74e25ce3d7a91cb9281c3b868215
-    Customers/CustomerDetails/details/customerType/individual: 52ebce389ed97a13b6089802055ed667
-    Customers/CustomerDetails/details/customerType/company: 9e36d11fa82d1bd4563eef2abc4fcfba
-    Customers/CustomerDetails/details/customerType/governmentEntity: f528833b92b299e24071fe069cf3ed82
-    Customers/CustomerDetails/details/customerType/privateCompany: c74836e7192c45f43c2445cf6d78c358
-    Customers/CustomerDetails/details/customerType/bank: cbb449f467876b4137a66df51486d1dc
-    Customers/CustomerDetails/details/customerType/financialInstitution: 995847f0f3bb3a2a846c07a22360d6f9
-    Customers/CustomerDetails/details/customerType/foreignAgency: 0e850ab06238e94737cc1914b4b1263d
-    Customers/CustomerDetails/details/customerType/nonDomiciledCompany: a86570d266088428c8e5195324770a80
     Customers/CustomerDetails/details/labels/email: e7f34943a0c2fb849db1839ff6ef5cb5
     Customers/CustomerDetails/details/labels/createdOn: 24d89e2759464207b31141138abf2e81
     Customers/CustomerDetails/details/labels/telegram: 0719cb55ded3146892d106733a8431b2

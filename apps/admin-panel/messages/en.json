@@ -327,16 +327,6 @@
           "closeProspect": "Close Prospect",
           "convertToCustomer": "Convert to Customer",
           "viewCustomer": "View Customer"
-        },
-        "customerType": {
-          "individual": "Individual",
-          "company": "Company",
-          "governmentEntity": "Government Entity",
-          "privateCompany": "Private Company",
-          "bank": "Bank",
-          "financialInstitution": "Financial Institution",
-          "foreignAgency": "Foreign Agency or Subsidiary",
-          "nonDomiciledCompany": "Non-Domiciled Company"
         }
       },
       "closeProspect": {
@@ -396,6 +386,15 @@
       "inactive": "Inactive",
       "suspended": "Suspended"
     },
+    "customerType": {
+      "individual": "Individual",
+      "governmentEntity": "Government Entity",
+      "privateCompany": "Private Company",
+      "bank": "Bank",
+      "financialInstitution": "Financial Institution",
+      "foreignAgency": "Foreign Agency or Subsidiary",
+      "nonDomiciledCompany": "Non-Domiciled Company"
+    },
     "create": {
       "title": "Add new customer",
       "confirmTitle": "Confirm Customer Details",
@@ -441,16 +440,6 @@
         "customer": "Customer",
         "customerDetails": "Customer Details",
         "updateTelegramHandle": "Update Telegram Handle",
-        "customerType": {
-          "individual": "Individual",
-          "company": "Company",
-          "governmentEntity": "Government Entity",
-          "privateCompany": "Private Company",
-          "bank": "Bank",
-          "financialInstitution": "Financial Institution",
-          "foreignAgency": "Foreign Agency or Subsidiary",
-          "nonDomiciledCompany": "Non-Domiciled Company"
-        },
         "labels": {
           "email": "Email",
           "createdOn": "Created on",
