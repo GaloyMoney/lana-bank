@@ -14,7 +14,6 @@ import { DepositAccount } from "./deposit-account"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 import {
   Customer as CustomerType,
-  useCustomerKycUpdatedSubscription,
   useGetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
@@ -27,7 +26,7 @@ gql`
     id
     customerId
     email
-    telegramId
+    telegramHandle
     kycVerification
     activity
     level
@@ -35,6 +34,13 @@ gql`
     customerType
     createdAt
     publicId
+    personalInfo {
+      firstName
+      lastName
+      dateOfBirth
+      nationality
+      address
+    }
     depositAccount {
       id
       status
@@ -54,14 +60,6 @@ gql`
   query GetCustomerBasicDetails($id: PublicId!) {
     customerByPublicId(id: $id) {
       ...CustomerDetailsFragment
-    }
-  }
-
-  subscription CustomerKycUpdated($customerId: UUID!) {
-    customerKycUpdated(customerId: $customerId) {
-      customer {
-        ...CustomerDetailsFragment
-      }
     }
   }
 `
@@ -102,12 +100,6 @@ export default function CustomerLayout({
     variables: { id: customerId },
   })
 
-  useCustomerKycUpdatedSubscription(
-    data?.customerByPublicId?.customerId
-      ? { variables: { customerId: data.customerByPublicId.customerId } }
-      : { skip: true },
-  )
-
   useEffect(() => {
     if (data?.customerByPublicId) setCustomer(data.customerByPublicId as CustomerType)
     return () => setCustomer(null)
@@ -142,7 +134,6 @@ export default function CustomerLayout({
       <CustomerDetailsCard customer={data.customerByPublicId} />
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
         <KycStatus
-          customerId={data.customerByPublicId.customerId}
           kycVerification={data.customerByPublicId.kycVerification}
           level={data.customerByPublicId.level}
           applicantId={data.customerByPublicId.applicantId}

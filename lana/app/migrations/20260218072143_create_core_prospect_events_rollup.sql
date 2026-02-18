@@ -1,0 +1,164 @@
+-- Auto-generated rollup table for ProspectEvent
+CREATE TABLE core_prospect_events_rollup (
+  id UUID NOT NULL,
+  version INT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  modified_at TIMESTAMPTZ NOT NULL,
+  event_type TEXT NOT NULL,
+  -- Flattened fields from the event JSON
+  applicant_id VARCHAR,
+  customer_type VARCHAR,
+  email VARCHAR,
+  level VARCHAR,
+  party_id UUID,
+  personal_info JSONB,
+  public_id VARCHAR,
+  stage VARCHAR,
+  telegram_handle VARCHAR,
+  url VARCHAR,
+
+  -- Toggle fields
+  is_kyc_approved BOOLEAN DEFAULT false
+,
+  PRIMARY KEY (id, version)
+);
+
+
+-- Auto-generated trigger function for ProspectEvent
+CREATE OR REPLACE FUNCTION core_prospect_events_rollup_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+  event_type TEXT;
+  current_row core_prospect_events_rollup%ROWTYPE;
+  new_row core_prospect_events_rollup%ROWTYPE;
+BEGIN
+  event_type := NEW.event_type;
+
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_prospect_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
+  END IF;
+
+  -- Validate event type is known
+  IF event_type NOT IN ('initialized', 'party_linked', 'kyc_started', 'kyc_approved', 'kyc_pending', 'kyc_declined', 'manually_converted', 'verification_link_created', 'closed', 'telegram_handle_updated', 'personal_info_updated') THEN
+    RAISE EXCEPTION 'Unknown event type: %', event_type;
+  END IF;
+
+  -- Construct the new row based on event type
+  new_row.id := NEW.id;
+  new_row.version := NEW.sequence;
+  new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
+  new_row.modified_at := NEW.recorded_at;
+  new_row.event_type := NEW.event_type;
+
+  -- Initialize fields with default values if this is a new record
+  IF current_row.id IS NULL THEN
+    new_row.applicant_id := (NEW.event ->> 'applicant_id');
+    new_row.customer_type := (NEW.event ->> 'customer_type');
+    new_row.email := (NEW.event ->> 'email');
+    new_row.is_kyc_approved := false;
+    new_row.level := (NEW.event ->> 'level');
+    new_row.party_id := (NEW.event ->> 'party_id')::UUID;
+    new_row.personal_info := (NEW.event -> 'personal_info');
+    new_row.public_id := (NEW.event ->> 'public_id');
+    new_row.stage := (NEW.event ->> 'stage');
+    new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
+    new_row.url := (NEW.event ->> 'url');
+  ELSE
+    -- Default all fields to current values
+    new_row.applicant_id := current_row.applicant_id;
+    new_row.customer_type := current_row.customer_type;
+    new_row.email := current_row.email;
+    new_row.is_kyc_approved := current_row.is_kyc_approved;
+    new_row.level := current_row.level;
+    new_row.party_id := current_row.party_id;
+    new_row.personal_info := current_row.personal_info;
+    new_row.public_id := current_row.public_id;
+    new_row.stage := current_row.stage;
+    new_row.telegram_handle := current_row.telegram_handle;
+    new_row.url := current_row.url;
+  END IF;
+
+  -- Update only the fields that are modified by the specific event
+  CASE event_type
+    WHEN 'initialized' THEN
+      new_row.customer_type := (NEW.event ->> 'customer_type');
+      new_row.email := (NEW.event ->> 'email');
+      new_row.party_id := (NEW.event ->> 'party_id')::UUID;
+      new_row.public_id := (NEW.event ->> 'public_id');
+      new_row.stage := (NEW.event ->> 'stage');
+      new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
+    WHEN 'party_linked' THEN
+      new_row.party_id := (NEW.event ->> 'party_id')::UUID;
+    WHEN 'kyc_started' THEN
+      new_row.applicant_id := (NEW.event ->> 'applicant_id');
+      new_row.stage := (NEW.event ->> 'stage');
+    WHEN 'kyc_approved' THEN
+      new_row.is_kyc_approved := true;
+      new_row.level := (NEW.event ->> 'level');
+      new_row.stage := (NEW.event ->> 'stage');
+    WHEN 'kyc_pending' THEN
+      new_row.stage := (NEW.event ->> 'stage');
+    WHEN 'kyc_declined' THEN
+      new_row.stage := (NEW.event ->> 'stage');
+    WHEN 'manually_converted' THEN
+      new_row.stage := (NEW.event ->> 'stage');
+    WHEN 'verification_link_created' THEN
+      new_row.url := (NEW.event ->> 'url');
+    WHEN 'closed' THEN
+      new_row.stage := (NEW.event ->> 'stage');
+    WHEN 'telegram_handle_updated' THEN
+      new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
+    WHEN 'personal_info_updated' THEN
+      new_row.personal_info := (NEW.event -> 'personal_info');
+  END CASE;
+
+  INSERT INTO core_prospect_events_rollup (
+    id,
+    version,
+    created_at,
+    modified_at,
+    event_type,
+    applicant_id,
+    customer_type,
+    email,
+    is_kyc_approved,
+    level,
+    party_id,
+    personal_info,
+    public_id,
+    stage,
+    telegram_handle,
+    url
+  )
+  VALUES (
+    new_row.id,
+    new_row.version,
+    new_row.created_at,
+    new_row.modified_at,
+    new_row.event_type,
+    new_row.applicant_id,
+    new_row.customer_type,
+    new_row.email,
+    new_row.is_kyc_approved,
+    new_row.level,
+    new_row.party_id,
+    new_row.personal_info,
+    new_row.public_id,
+    new_row.stage,
+    new_row.telegram_handle,
+    new_row.url
+  );
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Auto-generated trigger for ProspectEvent
+CREATE TRIGGER core_prospect_events_rollup_trigger
+  AFTER INSERT ON core_prospect_events
+  FOR EACH ROW
+  EXECUTE FUNCTION core_prospect_events_rollup_trigger();

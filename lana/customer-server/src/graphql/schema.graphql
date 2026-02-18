@@ -160,12 +160,13 @@ enum CreditFacilityStatus {
 type Customer {
 	id: ID!
 	customerId: UUID!
-	customerType: CustomerType!
 	kycVerification: KycVerification!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
-	telegramId: String!
+	telegramHandle: String!
+	customerType: CustomerType!
+	personalInfo: PersonalInfo
 	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
 }
@@ -300,7 +301,7 @@ enum KycLevel {
 }
 
 enum KycVerification {
-	PENDING_VERIFICATION
+	NO_KYC
 	VERIFIED
 	REJECTED
 }
@@ -357,6 +358,14 @@ type PendingCreditFacilityCollateralizationUpdated {
 
 enum Period {
 	MONTHS
+}
+
+type PersonalInfo {
+	firstName: String!
+	lastName: String!
+	dateOfBirth: String
+	nationality: String
+	address: String
 }
 
 type Query {

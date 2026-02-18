@@ -42,6 +42,7 @@ export type Column<T> = {
     label: string
     sortable?: boolean
     filterValues?: Array<T[K]>
+    filterLabel?: (value: T[K]) => React.ReactNode
     render?: (value: T[K], record: T) => React.ReactNode
     labelClassName?: string
   }
@@ -347,7 +348,7 @@ const PaginatedTable = <T,>({
                       onCheckedChange={() => handleFilter(col.key, value)}
                       className="capitalize"
                     >
-                      {String(value).split("_").join(" ").toLowerCase()}
+                      {col.filterLabel ? col.filterLabel(value) : String(value).split("_").join(" ").toLowerCase()}
                     </DropdownMenuCheckboxItem>
                   ))}
                 </DropdownMenuContent>
@@ -534,7 +535,7 @@ const PaginatedTable = <T,>({
                                 onCheckedChange={() => handleFilter(col.key, value)}
                                 className="capitalize"
                               >
-                                {String(value).split("_").join(" ").toLowerCase()}
+                                {col.filterLabel ? col.filterLabel(value) : String(value).split("_").join(" ").toLowerCase()}
                               </DropdownMenuCheckboxItem>
                             ))}
                           </DropdownMenuContent>

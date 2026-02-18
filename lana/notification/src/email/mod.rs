@@ -104,6 +104,10 @@ where
             .customers
             .find_by_id_without_audit(credit_facility.customer_id)
             .await?;
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(customer.party_id)
+            .await?;
 
         let email_data = OverduePaymentEmailData {
             public_id: credit_facility.public_id.to_string(),
@@ -114,7 +118,7 @@ where
             original_amount: obligation.initial_amount,
             outstanding_amount: *amount,
             due_date: obligation.due_at(),
-            customer_email: customer.email,
+            customer_email: party.email,
         };
 
         let mut has_next_page = true;
@@ -161,6 +165,10 @@ where
             .customers
             .find_by_id_without_audit(*customer_id)
             .await?;
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(customer.party_id)
+            .await?;
 
         let email_data = PartialLiquidationInitiatedEmailData {
             facility_id: credit_facility_id.to_string(),
@@ -197,7 +205,7 @@ where
         }
 
         let email_config = EmailSenderConfig {
-            recipient: customer.email,
+            recipient: party.email,
             email_type: EmailType::PartialLiquidationInitiated(email_data),
         };
 
@@ -222,6 +230,10 @@ where
             .customers
             .find_by_id_without_audit(*customer_id)
             .await?;
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(customer.party_id)
+            .await?;
 
         let total_outstanding = *outstanding_disbursed + *outstanding_interest;
         let email_data = UnderMarginCallEmailData {
@@ -235,7 +247,7 @@ where
         };
 
         let email_config = EmailSenderConfig {
-            recipient: customer.email,
+            recipient: party.email,
             email_type: EmailType::UnderMarginCall(email_data),
         };
 
@@ -253,14 +265,18 @@ where
     ) -> Result<(), EmailError> {
         let customer_id: core_customer::CustomerId = (*account_holder_id).into();
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(customer.party_id)
+            .await?;
 
         let email_data = DepositAccountCreatedEmailData {
             account_id: account_id.to_string(),
-            customer_email: customer.email.clone(),
+            customer_email: party.email.clone(),
         };
 
         let email_config = EmailSenderConfig {
-            recipient: customer.email,
+            recipient: party.email,
             email_type: EmailType::DepositAccountCreated(email_data),
         };
 

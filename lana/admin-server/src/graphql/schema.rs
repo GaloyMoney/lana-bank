@@ -8,7 +8,7 @@ use obix::out::OutboxEventMarker;
 
 use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
-use lana_app::customer::CoreCustomerEvent;
+use lana_app::customer::prospect_cursor::ProspectsByCreatedAtCursor;
 use lana_app::price::CorePriceEvent;
 use lana_app::report::CoreReportEvent;
 use lana_app::{
@@ -25,7 +25,7 @@ use super::{
     access::*, accounting::*, approval_process::*, audit::*, committee::*, contract_creation::*,
     credit_config::*, credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*,
     deposit_config::*, document::*, domain_config::*, loader::*, me::*, policy::*, price::*,
-    public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
+    prospect::*, public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -158,6 +158,56 @@ impl Query {
             after,
             first,
             |query| app.customers().list(sub, query, filter, sort)
+        )
+    }
+
+    async fn prospect(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Prospect>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Prospect,
+            ProspectId,
+            ctx,
+            app.customers().find_prospect_by_id(sub, id)
+        )
+    }
+
+    async fn prospect_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<Prospect>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Prospect,
+            ctx,
+            app.customers().find_prospect_by_public_id(sub, id)
+        )
+    }
+
+    async fn prospects(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+        stage: Option<lana_app::customer::ProspectStage>,
+    ) -> async_graphql::Result<
+        Connection<ProspectsByCreatedAtCursor, Prospect, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor_and_id!(
+            ProspectsByCreatedAtCursor,
+            Prospect,
+            ProspectId,
+            ctx,
+            after,
+            first,
+            |query| app
+                .customers()
+                .list_prospects(sub, query, ListDirection::Descending, stage,)
         )
     }
 
@@ -1050,7 +1100,11 @@ impl Query {
                 .disbursal(ctx, public_id.target_id.into())
                 .await?
                 .map(PublicIdTarget::CreditFacilityDisbursal),
-            _ => unreachable!(),
+            "prospect" => self
+                .prospect(ctx, public_id.target_id.into())
+                .await?
+                .map(PublicIdTarget::Prospect),
+            _ => None,
         };
         Ok(res)
     }
@@ -1151,7 +1205,7 @@ impl Mutation {
             .customer_kyc()
             .create_verification_link(
                 sub,
-                lana_app::primitives::CustomerId::from(input.customer_id),
+                lana_app::primitives::ProspectId::from(input.prospect_id),
             )
             .await?;
         Ok(SumsubPermalinkCreatePayload { url: permalink.url })
@@ -1168,8 +1222,8 @@ impl Mutation {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
         let applicant_id = app
             .customer_kyc()
-            .create_complete_test_applicant(lana_app::primitives::CustomerId::from(
-                input.customer_id,
+            .create_complete_test_applicant(lana_app::primitives::ProspectId::from(
+                input.prospect_id,
             ))
             .await?;
         Ok(SumsubTestApplicantCreatePayload { applicant_id })
@@ -1257,33 +1311,77 @@ impl Mutation {
         )
     }
 
-    async fn customer_create(
+    async fn prospect_create(
         &self,
         ctx: &Context<'_>,
-        input: CustomerCreateInput,
-    ) -> async_graphql::Result<CustomerCreatePayload> {
+        input: ProspectCreateInput,
+    ) -> async_graphql::Result<ProspectCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CustomerCreatePayload,
-            Customer,
+            ProspectCreatePayload,
+            Prospect,
+            ProspectId,
             ctx,
-            app.customers()
-                .create(sub, input.email, input.telegram_id, input.customer_type)
+            app.customers().create_prospect(
+                sub,
+                input.email,
+                input.telegram_handle,
+                input.customer_type
+            )
         )
     }
 
-    async fn customer_telegram_id_update(
+    async fn prospect_close(
         &self,
         ctx: &Context<'_>,
-        input: CustomerTelegramIdUpdateInput,
-    ) -> async_graphql::Result<CustomerTelegramIdUpdatePayload> {
+        input: ProspectCloseInput,
+    ) -> async_graphql::Result<ProspectClosePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CustomerTelegramIdUpdatePayload,
+            ProspectClosePayload,
+            Prospect,
+            ProspectId,
+            ctx,
+            app.customers().close_prospect(sub, input.prospect_id)
+        )
+    }
+
+    async fn prospect_convert(
+        &self,
+        ctx: &Context<'_>,
+        input: ProspectConvertInput,
+    ) -> async_graphql::Result<ProspectConvertPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let require_verified = app
+            .exposed_domain_configs()
+            .get::<lana_app::deposit::RequireVerifiedCustomerForAccount>(sub)
+            .await?
+            .value();
+        if require_verified {
+            return Err(Error::new(
+                "Manual conversion is only available when 'Require verified customer for account' is disabled",
+            ));
+        }
+        exec_mutation!(
+            ProspectConvertPayload,
+            Customer,
+            ctx,
+            app.customers().convert_prospect(sub, input.prospect_id)
+        )
+    }
+
+    async fn customer_telegram_handle_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerTelegramHandleUpdateInput,
+    ) -> async_graphql::Result<CustomerTelegramHandleUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerTelegramHandleUpdatePayload,
             Customer,
             ctx,
             app.customers()
-                .update_telegram_id(sub, input.customer_id, input.telegram_id)
+                .update_telegram_handle(sub, input.customer_id, input.telegram_handle)
         )
     }
 
@@ -2466,37 +2564,6 @@ pub struct Subscription;
 
 #[Subscription]
 impl Subscription {
-    async fn customer_kyc_updated(
-        &self,
-        ctx: &Context<'_>,
-        customer_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = CustomerKycUpdatedPayload>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let customer_id = CustomerId::from(customer_id);
-
-        app.customers()
-            .find_by_id(sub, customer_id)
-            .await?
-            .ok_or_else(|| Error::new("Customer not found"))?;
-
-        let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
-            let payload = event.payload.as_ref()?;
-            let event: &CoreCustomerEvent = payload.as_event()?;
-            match event {
-                CoreCustomerEvent::CustomerKycUpdated { entity } if entity.id == customer_id => {
-                    Some(CustomerKycUpdatedPayload {
-                        customer_id: entity.id,
-                        kyc_verification: entity.kyc_verification,
-                    })
-                }
-                _ => None,
-            }
-        });
-
-        Ok(updates)
-    }
-
     async fn pending_credit_facility_collateralization_updated(
         &self,
         ctx: &Context<'_>,

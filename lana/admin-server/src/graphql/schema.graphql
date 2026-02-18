@@ -985,11 +985,12 @@ type Customer {
 	activity: Activity!
 	level: KycLevel!
 	createdAt: Timestamp!
-	customerType: CustomerType!
 	email: String!
-	telegramId: String!
+	telegramHandle: String!
 	publicId: PublicId!
-	applicantId: String
+	applicantId: String!
+	customerType: CustomerType!
+	personalInfo: PersonalInfo
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
 	pendingCreditFacilities: [PendingCreditFacility!]!
@@ -1011,16 +1012,6 @@ type CustomerConnection {
 	A list of nodes.
 	"""
 	nodes: [Customer!]!
-}
-
-input CustomerCreateInput {
-	email: String!
-	telegramId: String!
-	customerType: CustomerType!
-}
-
-type CustomerCreatePayload {
-	customer: Customer!
 }
 
 type CustomerDocument {
@@ -1088,17 +1079,12 @@ type CustomerEmailUpdatePayload {
 	customer: Customer!
 }
 
-type CustomerKycUpdatedPayload {
-	kycVerification: KycVerification!
-	customer: Customer!
-}
-
-input CustomerTelegramIdUpdateInput {
+input CustomerTelegramHandleUpdateInput {
 	customerId: UUID!
-	telegramId: String!
+	telegramHandle: String!
 }
 
-type CustomerTelegramIdUpdatePayload {
+type CustomerTelegramHandleUpdatePayload {
 	customer: Customer!
 }
 
@@ -1117,14 +1103,12 @@ input CustomersFilter {
 }
 
 input CustomersSort {
-	by: CustomersSortBy! = EMAIL
+	by: CustomersSortBy! = CREATED_AT
 	direction: SortDirection! = ASC
 }
 
 enum CustomersSortBy {
 	CREATED_AT
-	EMAIL
-	TELEGRAM_ID
 }
 
 union Cvlpct = FiniteCVLPct | InfiniteCVLPct
@@ -1644,8 +1628,16 @@ enum KycLevel {
 	ADVANCED
 }
 
+enum KycStatus {
+	NOT_STARTED
+	STARTED
+	PENDING
+	APPROVED
+	DECLINED
+}
+
 enum KycVerification {
-	PENDING_VERIFICATION
+	NO_KYC
 	VERIFIED
 	REJECTED
 }
@@ -1840,7 +1832,7 @@ type ManualTransactionExecutePayload {
 type Me {
 	user: User!
 	visibleNavigationItems: VisibleNavigationItems!
-	userCanCreateCustomer: Boolean!
+	userCanCreateProspect: Boolean!
 	userCanCreateUser: Boolean!
 	userCanCreateTermsTemplate: Boolean!
 }
@@ -1853,8 +1845,10 @@ type Mutation {
 	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
-	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
-	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
+	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
+	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
+	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
+	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
@@ -2065,6 +2059,14 @@ type PermissionSetEdge {
 	cursor: String!
 }
 
+type PersonalInfo {
+	firstName: String!
+	lastName: String!
+	dateOfBirth: String
+	nationality: String
+	address: String
+}
+
 type Policy {
 	id: ID!
 	policyId: UUID!
@@ -2117,9 +2119,98 @@ type ProfitAndLossStatement {
 	categories: [LedgerAccount!]!
 }
 
+type Prospect {
+	id: ID!
+	prospectId: UUID!
+	status: ProspectStatus!
+	kycStatus: KycStatus!
+	level: KycLevel!
+	createdAt: Timestamp!
+	stage: ProspectStage!
+	email: String!
+	telegramHandle: String!
+	customerType: CustomerType!
+	publicId: PublicId!
+	applicantId: String
+	verificationLink: String
+	verificationLinkCreatedAt: Timestamp
+	personalInfo: PersonalInfo
+	customer: Customer
+}
+
+input ProspectCloseInput {
+	prospectId: UUID!
+}
+
+type ProspectClosePayload {
+	prospect: Prospect!
+}
+
+type ProspectConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ProspectEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Prospect!]!
+}
+
+input ProspectConvertInput {
+	prospectId: UUID!
+}
+
+type ProspectConvertPayload {
+	customer: Customer!
+}
+
+input ProspectCreateInput {
+	email: String!
+	telegramHandle: String!
+	customerType: CustomerType!
+}
+
+type ProspectCreatePayload {
+	prospect: Prospect!
+}
+
+"""
+An edge in a connection.
+"""
+type ProspectEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Prospect!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+enum ProspectStage {
+	NEW
+	KYC_STARTED
+	KYC_PENDING
+	KYC_DECLINED
+	CONVERTED
+	CLOSED
+}
+
+enum ProspectStatus {
+	OPEN
+	CONVERTED
+	CLOSED
+}
+
 scalar PublicId
 
-union PublicIdTarget = Customer | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
+union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
 	me: Me!
@@ -2132,7 +2223,10 @@ type Query {
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
 	customerByPublicId(id: PublicId!): Customer
-	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}, filter: CustomersFilter): CustomerConnection!
+	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: ASC}, filter: CustomersFilter): CustomerConnection!
+	prospect(id: UUID!): Prospect
+	prospectByPublicId(id: PublicId!): Prospect
+	prospects(first: Int!, after: String, stage: ProspectStage): ProspectConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawalByPublicId(id: PublicId!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
@@ -2354,7 +2448,6 @@ enum SortDirection {
 }
 
 type Subscription {
-	customerKycUpdated(customerId: UUID!): CustomerKycUpdatedPayload!
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!
@@ -2365,7 +2458,7 @@ type Subscription {
 }
 
 input SumsubPermalinkCreateInput {
-	customerId: UUID!
+	prospectId: UUID!
 }
 
 type SumsubPermalinkCreatePayload {

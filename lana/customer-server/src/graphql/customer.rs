@@ -1,7 +1,9 @@
 use async_graphql::*;
 use std::sync::Arc;
 
-use lana_app::customer::{Customer as DomainCustomer, CustomerType, KycLevel, KycVerification};
+use lana_app::customer::{
+    Customer as DomainCustomer, CustomerType, KycLevel, KycVerification, PersonalInfo,
+};
 
 use crate::primitives::*;
 
@@ -20,7 +22,6 @@ pub enum CustomerError {
 pub struct Customer {
     id: ID,
     customer_id: UUID,
-    customer_type: CustomerType,
     kyc_verification: KycVerification,
     level: KycLevel,
     created_at: Timestamp,
@@ -34,7 +35,6 @@ impl From<DomainCustomer> for Customer {
         Customer {
             id: customer.id.to_global_id(),
             customer_id: UUID::from(customer.id),
-            customer_type: customer.customer_type,
             kyc_verification: customer.kyc_verification,
             level: customer.level,
             created_at: customer.created_at().into(),
@@ -45,12 +45,43 @@ impl From<DomainCustomer> for Customer {
 
 #[ComplexObject]
 impl Customer {
-    async fn email(&self) -> &str {
-        &self.entity.email
+    async fn email(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.email)
     }
 
-    async fn telegram_id(&self) -> &str {
-        &self.entity.telegram_id
+    async fn telegram_handle(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.telegram_handle)
+    }
+
+    async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.customer_type)
+    }
+
+    async fn personal_info(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<PersonalInfo>> {
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        let party = app
+            .customers()
+            .find_party_by_id_without_audit(self.entity.party_id)
+            .await?;
+        Ok(party.personal_info)
     }
 
     async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {

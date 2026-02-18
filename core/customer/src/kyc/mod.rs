@@ -17,7 +17,7 @@ use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, CustomerType, Customers,
+    CoreCustomerAction, CoreCustomerEvent, CustomerObject, CustomerType, Customers, ProspectId,
 };
 use callback::{KycCallbackPayload, ReviewAnswer, ReviewResult};
 use error::KycError;
@@ -84,6 +84,7 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     customers: Customers<Perms, E>,
+    sumsub_client: SumsubClient,
 }
 
 impl<Perms, E> Clone for KycCallbackHandler<Perms, E>
@@ -94,6 +95,7 @@ where
     fn clone(&self) -> Self {
         Self {
             customers: self.customers.clone(),
+            sumsub_client: self.sumsub_client.clone(),
         }
     }
 }
@@ -113,7 +115,7 @@ where
         payload["externalUserId"]
             .as_str()
             .ok_or_else(|| KycError::MissingExternalUserId(payload.to_string()))?
-            .parse::<CustomerId>()?;
+            .parse::<ProspectId>()?;
 
         match self.process_payload(payload).await {
             Ok(_) => (),
@@ -135,9 +137,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
 {
-    fn new(customers: &Customers<Perms, E>) -> Self {
+    fn new(customers: &Customers<Perms, E>, sumsub_client: &SumsubClient) -> Self {
         Self {
             customers: customers.clone(),
+            sumsub_client: sumsub_client.clone(),
         }
     }
 
@@ -173,9 +176,16 @@ where
                         tracing::Span::current().record("ignore_for_sandbox", true);
                     }
                 } else {
-                    self.customers
-                        .handle_kyc_started(external_user_id, applicant_id)
+                    let res = self
+                        .customers
+                        .handle_kyc_started_if_exists(external_user_id, applicant_id)
                         .await?;
+                    if res.is_none() {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            "No prospect found for KYC started callback"
+                        );
+                    }
                 }
             }
             KycCallbackPayload::ApplicantReviewed {
@@ -207,9 +217,16 @@ where
                         tracing::Span::current().record("ignore_for_sandbox", true);
                     }
                 } else {
-                    self.customers
-                        .handle_kyc_declined(external_user_id, applicant_id)
+                    let res = self
+                        .customers
+                        .handle_kyc_declined_if_exists(external_user_id, applicant_id)
                         .await?;
+                    if res.is_none() {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            "No prospect found for KYC declined callback"
+                        );
+                    }
                 }
             }
             KycCallbackPayload::ApplicantReviewed {
@@ -239,39 +256,121 @@ where
                     }
                 };
 
+                let personal_info = match self
+                    .sumsub_client
+                    .get_applicant_details(external_user_id)
+                    .await
+                {
+                    Ok(details) => crate::PersonalInfo::from(&details.info),
+                    Err(e) => {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            error = %e,
+                            "Failed to fetch applicant details for PII, using dummy"
+                        );
+                        crate::PersonalInfo::dummy()
+                    }
+                };
+
                 if sandbox {
                     let res = self
                         .customers
-                        .handle_kyc_approved_if_exists(external_user_id, applicant_id)
+                        .handle_kyc_approved_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            personal_info,
+                        )
                         .await?;
                     if res.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
                     }
                 } else {
-                    self.customers
-                        .handle_kyc_approved(external_user_id, applicant_id)
+                    let res = self
+                        .customers
+                        .handle_kyc_approved_if_exists(
+                            external_user_id,
+                            applicant_id,
+                            personal_info,
+                        )
                         .await?;
+                    if res.is_none() {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            "No prospect found for KYC approved callback"
+                        );
+                    }
                 }
             }
             KycCallbackPayload::ApplicantPending {
                 applicant_id,
+                external_user_id,
                 sandbox_mode,
                 ..
             } => {
-                // No-op: we don't need to process pending applicants
                 tracing::Span::current().record("callback_type", "ApplicantPending");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
+                tracing::Span::current()
+                    .record("customer_id", external_user_id.to_string().as_str());
+
+                if sandbox_mode.unwrap_or(false) {
+                    let res = self
+                        .customers
+                        .handle_kyc_pending_if_exists(external_user_id)
+                        .await?;
+                    if res.is_none() {
+                        tracing::Span::current().record("ignore_for_sandbox", true);
+                    }
+                } else {
+                    let res = self
+                        .customers
+                        .handle_kyc_pending_if_exists(external_user_id)
+                        .await?;
+                    if res.is_none() {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            "No prospect found for KYC pending callback"
+                        );
+                    }
+                }
             }
             KycCallbackPayload::ApplicantPersonalInfoChanged {
                 applicant_id,
+                external_user_id,
                 sandbox_mode,
                 ..
             } => {
-                // No-op: we don't need to process personal info changes
                 tracing::Span::current().record("callback_type", "ApplicantPersonalInfoChanged");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
+                tracing::Span::current()
+                    .record("customer_id", external_user_id.to_string().as_str());
+
+                let personal_info = match self
+                    .sumsub_client
+                    .get_applicant_details(external_user_id)
+                    .await
+                {
+                    Ok(details) => crate::PersonalInfo::from(&details.info),
+                    Err(e) => {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            error = %e,
+                            "Failed to fetch applicant details for personal info change"
+                        );
+                        return Ok(());
+                    }
+                };
+
+                let prospect = self
+                    .customers
+                    .find_prospect_by_id_without_audit(external_user_id)
+                    .await;
+                if let Ok(prospect) = prospect {
+                    self.customers
+                        .handle_personal_info_changed_if_exists(prospect.party_id, personal_info)
+                        .await?;
+                }
             }
             KycCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
@@ -338,7 +437,7 @@ where
             sumsub_secret,
         };
         let sumsub_client = SumsubClient::new(&sumsub_config);
-        let handler = KycCallbackHandler::new(customers);
+        let handler = KycCallbackHandler::new(customers, &sumsub_client);
 
         let inbox_config = InboxConfig::new(KYC_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);
@@ -389,41 +488,47 @@ where
     pub async fn create_verification_link(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        prospect_id: impl Into<ProspectId> + std::fmt::Debug,
     ) -> Result<PermalinkResponse, KycError> {
-        let customer_id: CustomerId = customer_id.into();
+        let prospect_id: ProspectId = prospect_id.into();
 
-        self.authz
-            .enforce_permission(
-                sub,
-                CustomerObject::customer(customer_id),
-                CoreCustomerAction::CUSTOMER_READ,
-            )
+        let prospect = self
+            .customers
+            .find_prospect_by_id_without_audit(prospect_id)
+            .await?;
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(prospect.party_id)
+            .await?;
+        let level: KycLevel = party.customer_type.into();
+
+        let response = self
+            .sumsub_client
+            .create_permalink(prospect_id, &level.to_string())
             .await?;
 
-        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
-        let level: KycLevel = customer.customer_type.into();
+        self.customers
+            .record_prospect_verification_link(sub, prospect_id, response.url.clone())
+            .await?;
 
-        Ok(self
-            .sumsub_client
-            .create_permalink(customer_id, &level.to_string())
-            .await?)
+        Ok(response)
     }
 
     #[record_error_severity]
     #[instrument(name = "kyc.get_applicant_info_without_audit", skip(self))]
     pub async fn get_applicant_info_without_audit(
         &self,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        prospect_id: impl Into<ProspectId> + std::fmt::Debug,
     ) -> Result<ApplicantInfo, KycError> {
-        let customer_id: CustomerId = customer_id.into();
+        let prospect_id: ProspectId = prospect_id.into();
 
-        // will return error if customer not found
-        self.customers.find_by_id_without_audit(customer_id).await?;
+        self.customers
+            .find_prospect_by_id_without_audit(prospect_id)
+            .await?;
 
         let applicant_details = self
             .sumsub_client
-            .get_applicant_details(customer_id)
+            .get_applicant_details(prospect_id)
             .await?;
 
         Ok(applicant_details.info)
@@ -436,23 +541,29 @@ where
     #[instrument(name = "kyc.create_complete_test_applicant", skip(self))]
     pub async fn create_complete_test_applicant(
         &self,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        prospect_id: impl Into<ProspectId> + std::fmt::Debug,
     ) -> Result<String, KycError> {
-        let customer_id: CustomerId = customer_id.into();
+        let prospect_id: ProspectId = prospect_id.into();
 
-        // will return error if customer not found
-        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
-        let level: KycLevel = customer.customer_type.into();
+        let prospect = self
+            .customers
+            .find_prospect_by_id_without_audit(prospect_id)
+            .await?;
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(prospect.party_id)
+            .await?;
+        let level: KycLevel = party.customer_type.into();
 
         tracing::info!(
-            customer_id = %customer_id,
+            prospect_id = %prospect_id,
             "Creating complete test applicant with full KYC flow"
         );
 
         // Step 1: Create applicant via API
         let applicant_id = self
             .sumsub_client
-            .create_applicant(customer_id, &level.to_string())
+            .create_applicant(prospect_id, &level.to_string())
             .await?;
 
         tracing::info!(applicant_id = %applicant_id, "Applicant created");
@@ -591,7 +702,7 @@ where
 
         tracing::info!(
             applicant_id = %applicant_id,
-            customer_id = %customer_id,
+            prospect_id = %prospect_id,
             "Complete test applicant created and approved successfully"
         );
 

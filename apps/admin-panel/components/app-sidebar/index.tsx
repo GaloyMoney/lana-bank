@@ -30,6 +30,7 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
 
   const {
     navDashboardItems,
+    navCustomerItems,
     navLoansItems,
     navTransactionItems,
     navAdminItems,
@@ -45,6 +46,7 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent className="mt-4">
         <NavSection items={navDashboardItems} />
+        <NavSection items={navCustomerItems} label={t("labels.customers")} />
         <NavSection items={navLoansItems} label={t("labels.loans")} />
         <NavSection items={navTransactionItems} label={t("labels.transactions")} />
         <NavSection items={navAdminItems} label={t("labels.administration")} />

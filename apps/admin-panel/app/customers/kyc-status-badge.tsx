@@ -14,10 +14,10 @@ const getStatusConfig = (status: KycVerification) => {
         translationKey: "verified",
         className: "text-green-600",
       }
-    case KycVerification.PendingVerification:
+    case KycVerification.NoKyc:
       return {
         icon: Clock,
-        translationKey: "pending",
+        translationKey: "noKyc",
         className: "text-muted-foreground",
       }
     case KycVerification.Rejected:

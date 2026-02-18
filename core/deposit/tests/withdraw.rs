@@ -71,7 +71,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     .await?;
 
     let customer = customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),

@@ -19,7 +19,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       takeScreenshot(filename: string): Chainable<null>
-      createCustomer(email: string, telegramId: string): Chainable<Customer>
+      createCustomer(email: string, telegramHandle: string): Chainable<Customer>
       createTermsTemplate(input: TermsTemplateCreateInput): Chainable<string>
       graphqlRequest<T>(query: string, variables?: Record<string, unknown>): Chainable<T>
       getIdFromUrl(pathSegment: string): Chainable<string>
@@ -114,9 +114,19 @@ Cypress.Commands.add("takeScreenshot", (filename): Cypress.Chainable<null> => {
   return cy.wrap(null)
 })
 
-interface CustomerCreateResponse {
+interface ProspectCreateResponse {
   data: {
-    customerCreate: {
+    prospectCreate: {
+      prospect: {
+        prospectId: string
+        publicId: string
+      }
+    }
+  }
+}
+interface ProspectConvertResponse {
+  data: {
+    prospectConvert: {
       customer: Customer
     }
   }
@@ -129,22 +139,33 @@ interface CustomerQueryResponse {
 
 Cypress.Commands.add(
   "createCustomer",
-  (email: string, telegramId: string): Cypress.Chainable<Customer> => {
-    const mutation = `
-      mutation CustomerCreate($input: CustomerCreateInput!) {
-        customerCreate(input: $input) {
+  (email: string, telegramHandle: string): Cypress.Chainable<Customer> => {
+    const prospectMutation = `
+      mutation ProspectCreate($input: ProspectCreateInput!) {
+        prospectCreate(input: $input) {
+          prospect {
+            prospectId
+            publicId
+          }
+        }
+      }
+    `
+    const convertMutation = `
+      mutation ProspectConvert($input: ProspectConvertInput!) {
+        prospectConvert(input: $input) {
           customer {
             customerId
             publicId
             depositAccount {
               id
               depositAccountId
+              publicId
             }
           }
         }
       }
     `
-    const query = `
+    const customerQuery = `
       query Customer($id: UUID!) {
         customer(id: $id) {
           customerId
@@ -161,15 +182,21 @@ Cypress.Commands.add(
       }
     `
     return cy
-      .graphqlRequest<CustomerCreateResponse>(mutation, {
-        input: { email, telegramId, customerType: CustomerType.Individual },
+      .graphqlRequest<ProspectCreateResponse>(prospectMutation, {
+        input: { email, telegramHandle, customerType: CustomerType.Individual },
       })
       .then((response) => {
-        const customerId = response.data.customerCreate.customer.customerId
+        const prospectId = response.data.prospectCreate.prospect.prospectId
+        return cy.graphqlRequest<ProspectConvertResponse>(convertMutation, {
+          input: { prospectId },
+        })
+      })
+      .then((response) => {
+        const customerId = response.data.prospectConvert.customer.customerId
         return cy
           .createDepositAccount(customerId)
           .then(() =>
-            cy.graphqlRequest<CustomerQueryResponse>(query, {
+            cy.graphqlRequest<CustomerQueryResponse>(customerQuery, {
               id: customerId,
             }),
           )

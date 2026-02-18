@@ -93,7 +93,7 @@ async fn deposit() -> anyhow::Result<()> {
     let (deposit, customers, _outbox, _jobs) = setup().await?;
 
     let customer = customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
@@ -127,7 +127,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
     let (deposit, customers, _outbox, _jobs) = setup().await?;
 
     let customer = customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
@@ -173,7 +173,7 @@ async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
 
     let customer = customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
@@ -209,7 +209,7 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
 
     let customer = customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
@@ -257,7 +257,7 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
     jobs.start_poll().await?;
 
     let customer = customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),
@@ -329,7 +329,7 @@ async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
 
     let customer = customers
-        .create(
+        .create_customer_bypassing_kyc(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
             format!("telegram{}", Uuid::new_v4()),

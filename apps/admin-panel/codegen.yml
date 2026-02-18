@@ -51,7 +51,7 @@ generates:
             const generateMockValue = {
               uuid: () => faker.string.uuid(),
               email: () => faker.internet.email(),
-              telegramId: () => faker.string.alphanumeric(10),
+              telegramHandle: () => faker.string.alphanumeric(10),
               name: () => faker.person.fullName(),
               url: () => faker.internet.url(),
               description: () => faker.lorem.paragraph(),
@@ -120,7 +120,7 @@ generates:
               maturesAt: "generateMockValue.timestamp()"
               recordedAt: "generateMockValue.timestamp()"
               votedAt: "generateMockValue.timestamp()"
-              telegramId: "generateMockValue.telegramId()"
+              telegramHandle: "generateMockValue.telegramHandle()"
               hasSubAccounts: "generateMockValue.boolean()"
               canBeCompleted: "generateMockValue.boolean()"
               stillEligible: "generateMockValue.boolean()"

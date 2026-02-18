@@ -227,6 +227,10 @@ where
 
         let customer_id = CustomerId::from(holder_id.into());
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(customer.party_id)
+            .await?;
 
         let require_verified = self
             .domain_configs
@@ -261,7 +265,7 @@ where
             .await?;
 
         self.ledger
-            .create_deposit_accounts_in_op(&mut op, &account, customer.customer_type)
+            .create_deposit_accounts_in_op(&mut op, &account, party.customer_type)
             .await?;
 
         op.commit().await?;

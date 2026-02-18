@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "CustomerType": {
+      "enum": [
+        "Individual",
+        "GovernmentEntity",
+        "PrivateCompany",
+        "Bank",
+        "FinancialInstitution",
+        "ForeignAgencyOrSubsidiary",
+        "NonDomiciledCompany"
+      ],
+      "type": "string"
+    },
+    "PersonalInfo": {
+      "properties": {
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dateOfBirth": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "nationality": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "firstName",
+        "lastName"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "customer_type": {
+          "$ref": "#/$defs/CustomerType"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "telegram_handle": {
+          "type": "string"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "email",
+        "telegram_handle",
+        "customer_type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "type": {
+          "const": "email_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "email"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "telegram_handle": {
+          "type": "string"
+        },
+        "type": {
+          "const": "telegram_handle_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "telegram_handle"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "personal_info": {
+          "$ref": "#/$defs/PersonalInfo"
+        },
+        "type": {
+          "const": "personal_info_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "personal_info"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "PartyEvent"
+}

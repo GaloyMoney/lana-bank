@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::error::KycError;
-use crate::CustomerId;
+use crate::primitives::ProspectId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
 #[serde(rename_all = "UPPERCASE")]
@@ -33,7 +33,7 @@ pub enum KycCallbackPayload {
         inspection_id: String,
         correlation_id: String,
         level_name: String,
-        external_user_id: CustomerId,
+        external_user_id: ProspectId,
         review_status: String,
         created_at_ms: String,
         client_id: Option<String>,
@@ -45,7 +45,7 @@ pub enum KycCallbackPayload {
         applicant_id: String,
         inspection_id: String,
         correlation_id: String,
-        external_user_id: CustomerId,
+        external_user_id: ProspectId,
         level_name: String,
         review_result: ReviewResult,
         review_status: String,
@@ -56,12 +56,14 @@ pub enum KycCallbackPayload {
     #[serde(rename_all = "camelCase")]
     ApplicantPending {
         applicant_id: String,
+        external_user_id: ProspectId,
         sandbox_mode: Option<bool>,
     },
     #[serde(rename = "applicantPersonalInfoChanged")]
     #[serde(rename_all = "camelCase")]
     ApplicantPersonalInfoChanged {
         applicant_id: String,
+        external_user_id: ProspectId,
         sandbox_mode: Option<bool>,
     },
     #[serde(other)]

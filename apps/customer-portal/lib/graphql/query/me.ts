@@ -14,7 +14,14 @@ gql`
         level
         createdAt
         email
-        telegramId
+        telegramHandle
+        personalInfo {
+          firstName
+          lastName
+          dateOfBirth
+          nationality
+          address
+        }
         depositAccount {
           id
           depositAccountId

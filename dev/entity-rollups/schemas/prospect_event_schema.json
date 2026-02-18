@@ -1,0 +1,299 @@
+{
+  "$defs": {
+    "CustomerType": {
+      "enum": [
+        "Individual",
+        "GovernmentEntity",
+        "PrivateCompany",
+        "Bank",
+        "FinancialInstitution",
+        "ForeignAgencyOrSubsidiary",
+        "NonDomiciledCompany"
+      ],
+      "type": "string"
+    },
+    "KycLevel": {
+      "enum": [
+        "NotKyced",
+        "Basic",
+        "Advanced"
+      ],
+      "type": "string"
+    },
+    "PersonalInfo": {
+      "properties": {
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dateOfBirth": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "nationality": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "firstName",
+        "lastName"
+      ],
+      "type": "object"
+    },
+    "ProspectStage": {
+      "enum": [
+        "new",
+        "kyc-started",
+        "kyc-pending",
+        "kyc-declined",
+        "converted",
+        "closed"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "customer_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CustomerType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "email": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "party_id": {
+          "default": null,
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "public_id": {
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
+        "telegram_handle": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "public_id",
+        "stage"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "party_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "party_linked",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "party_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "applicant_id": {
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
+        "type": {
+          "const": "kyc_started",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "applicant_id",
+        "stage"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "level": {
+          "$ref": "#/$defs/KycLevel"
+        },
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
+        "type": {
+          "const": "kyc_approved",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "level",
+        "stage"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
+        "type": {
+          "const": "kyc_pending",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "stage"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
+        "type": {
+          "const": "kyc_declined",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "stage"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
+        "type": {
+          "const": "manually_converted",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "stage"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "verification_link_created",
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "url"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
+        "type": {
+          "const": "closed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "stage"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "telegram_handle": {
+          "type": "string"
+        },
+        "type": {
+          "const": "telegram_handle_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "telegram_handle"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "personal_info": {
+          "$ref": "#/$defs/PersonalInfo"
+        },
+        "type": {
+          "const": "personal_info_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "personal_info"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ProspectEvent"
+}

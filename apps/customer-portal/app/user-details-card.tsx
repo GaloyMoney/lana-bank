@@ -41,15 +41,15 @@ function UserDetailsCard({
         >
           {customer.kycVerification === KycVerification.Verified
             ? "Verified"
-            : customer.kycVerification === KycVerification.PendingVerification
-              ? "Pending"
+            : customer.kycVerification === KycVerification.NoKyc
+              ? "No KYC"
               : "Rejected"}
         </Badge>
       ),
     },
     {
       label: "Telegram",
-      value: customer.telegramId,
+      value: customer.telegramHandle,
     },
     {
       label: "Joined on",
@@ -57,9 +57,11 @@ function UserDetailsCard({
     },
   ]
 
+  const name = `${customer.personalInfo?.firstName ?? "-"} ${customer.personalInfo?.lastName ?? "-"}`
+
   return (
     <DetailsCard
-      title={<div className="text-md font-semibold text-primary">{customer.email}</div>}
+      title={<div className="text-md font-semibold text-primary">{name}</div>}
       details={details}
     />
   )

@@ -92,6 +92,13 @@ const getResultInfo = (
         secondary: t("searchResultTypes.withdrawal"),
         id: result.publicId,
       }
+    case "Prospect":
+      return {
+        url: `/prospects/${result.publicId}`,
+        primary: result.email,
+        secondary: t("searchResultTypes.prospect"),
+        id: result.publicId,
+      }
     default:
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const _exhaustiveCheck: never = result

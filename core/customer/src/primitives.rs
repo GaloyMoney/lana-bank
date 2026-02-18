@@ -10,40 +10,38 @@ pub use public_id::PublicId;
 
 es_entity::entity_id! {
     CustomerId,
-    CustomerDocumentId;
+    CustomerDocumentId,
+    ProspectId,
+    PartyId;
 
     CustomerId => document_storage::ReferenceId,
     CustomerId => public_id::PublicIdTargetId,
-    CustomerDocumentId => document_storage::DocumentId
+    CustomerDocumentId => document_storage::DocumentId,
+    ProspectId => public_id::PublicIdTargetId,
+    ProspectId => CustomerId,
+
+    PartyId => CustomerId,
+    PartyId => ProspectId
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
+#[derive(Debug, Default, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub enum KycLevel {
+    #[default]
     NotKyced,
     Basic,
     Advanced,
 }
 
 #[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-    Serialize,
-    Deserialize,
+    Debug, Clone, Copy, PartialEq, Eq, strum::Display, strum::EnumString, Serialize, Deserialize,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum KycVerification {
-    #[default]
-    PendingVerification,
+    NoKyc,
     Verified,
     Rejected,
 }
@@ -100,9 +98,120 @@ impl Display for CustomerType {
     }
 }
 
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+    Serialize,
+    Deserialize,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+pub enum KycStatus {
+    #[default]
+    NotStarted,
+    Started,
+    Pending,
+    Approved,
+    Declined,
+}
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+    Serialize,
+    Deserialize,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+pub enum ProspectStatus {
+    #[default]
+    Open,
+    Converted,
+    Closed,
+}
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+    Serialize,
+    Deserialize,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+pub enum ProspectStage {
+    #[default]
+    New,
+    KycStarted,
+    KycPending,
+    KycDeclined,
+    Converted,
+    Closed,
+}
+
 impl KycVerification {
     pub fn is_verified(&self) -> bool {
         matches!(self, KycVerification::Verified)
+    }
+
+    pub fn no_kyc() -> Self {
+        Self::NoKyc
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::SimpleObject))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "camelCase")]
+pub struct PersonalInfo {
+    pub first_name: String,
+    pub last_name: String,
+    pub date_of_birth: Option<String>,
+    pub nationality: Option<String>,
+    pub address: Option<String>,
+}
+
+impl PersonalInfo {
+    pub fn dummy() -> Self {
+        Self {
+            first_name: "John".into(),
+            last_name: "Doe".into(),
+            date_of_birth: None,
+            nationality: None,
+            address: None,
+        }
+    }
+}
+
+impl From<&sumsub::ApplicantInfo> for PersonalInfo {
+    fn from(info: &sumsub::ApplicantInfo) -> Self {
+        Self {
+            first_name: info.first_name.clone().unwrap_or_else(|| "Unknown".into()),
+            last_name: info.last_name.clone().unwrap_or_else(|| "Unknown".into()),
+            date_of_birth: info.dob.clone(),
+            nationality: info.nationality().map(String::from),
+            address: info.primary_address().map(String::from),
+        }
     }
 }
 
@@ -122,6 +231,8 @@ impl From<CustomerType> for String {
 
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
+pub type ProspectAllOrOne = AllOrOne<ProspectId>;
+pub type PartyAllOrOne = AllOrOne<PartyId>;
 
 permission_sets_macro::permission_sets! {
     CustomerViewer("Can view customer profiles and account details"),
@@ -130,6 +241,8 @@ permission_sets_macro::permission_sets! {
 
 pub const CUSTOMER_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("customer");
+pub const PROSPECT_REF_TARGET: public_id::PublicIdTargetType =
+    public_id::PublicIdTargetType::new("prospect");
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -137,6 +250,8 @@ pub const CUSTOMER_REF_TARGET: public_id::PublicIdTargetType =
 pub enum CustomerObject {
     Customer(CustomerAllOrOne),
     CustomerDocument(CustomerDocumentAllOrOne),
+    Prospect(ProspectAllOrOne),
+    Party(PartyAllOrOne),
 }
 
 impl CustomerObject {
@@ -158,6 +273,24 @@ impl CustomerObject {
             None => CustomerObject::all_customer_documents(),
         }
     }
+    pub fn all_prospects() -> CustomerObject {
+        CustomerObject::Prospect(AllOrOne::All)
+    }
+    pub fn prospect(id: impl Into<Option<ProspectId>>) -> CustomerObject {
+        match id.into() {
+            Some(id) => CustomerObject::Prospect(AllOrOne::ById(id)),
+            None => CustomerObject::all_prospects(),
+        }
+    }
+    pub fn all_parties() -> CustomerObject {
+        CustomerObject::Party(AllOrOne::All)
+    }
+    pub fn party(id: impl Into<Option<PartyId>>) -> CustomerObject {
+        match id.into() {
+            Some(id) => CustomerObject::Party(AllOrOne::ById(id)),
+            None => CustomerObject::all_parties(),
+        }
+    }
 }
 
 impl Display for CustomerObject {
@@ -167,6 +300,8 @@ impl Display for CustomerObject {
         match self {
             Customer(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             CustomerDocument(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Prospect(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Party(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -186,8 +321,59 @@ impl FromStr for CustomerObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
                 CustomerObject::CustomerDocument(obj_ref)
             }
+            Prospect => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
+                CustomerObject::Prospect(obj_ref)
+            }
+            Party => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
+                CustomerObject::Party(obj_ref)
+            }
         };
         Ok(res)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum ProspectEntityAction {
+    Read,
+    Create,
+    List,
+    Update,
+    Close,
+    StartKyc,
+    ApproveKyc,
+    DeclineKyc,
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum PartyEntityAction {
+    Read,
+    Update,
+}
+
+impl ActionPermission for PartyEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_CUSTOMER_VIEWER,
+            Self::Update => PERMISSION_SET_CUSTOMER_WRITER,
+        }
+    }
+}
+
+impl ActionPermission for ProspectEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_CUSTOMER_VIEWER,
+            Self::Create
+            | Self::Update
+            | Self::Close
+            | Self::StartKyc
+            | Self::ApproveKyc
+            | Self::DeclineKyc => PERMISSION_SET_CUSTOMER_WRITER,
+        }
     }
 }
 
@@ -197,6 +383,8 @@ impl FromStr for CustomerObject {
 pub enum CoreCustomerAction {
     Customer(CustomerEntityAction),
     CustomerDocument(CustomerDocumentEntityAction),
+    Prospect(ProspectEntityAction),
+    Party(PartyEntityAction),
 }
 
 impl CoreCustomerAction {
@@ -220,6 +408,19 @@ impl CoreCustomerAction {
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::Delete);
     pub const CUSTOMER_DOCUMENT_GENERATE_DOWNLOAD_LINK: Self =
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::GenerateDownloadLink);
+    pub const PROSPECT_CREATE: Self = CoreCustomerAction::Prospect(ProspectEntityAction::Create);
+    pub const PROSPECT_READ: Self = CoreCustomerAction::Prospect(ProspectEntityAction::Read);
+    pub const PROSPECT_LIST: Self = CoreCustomerAction::Prospect(ProspectEntityAction::List);
+    pub const PROSPECT_UPDATE: Self = CoreCustomerAction::Prospect(ProspectEntityAction::Update);
+    pub const PROSPECT_CLOSE: Self = CoreCustomerAction::Prospect(ProspectEntityAction::Close);
+    pub const PROSPECT_START_KYC: Self =
+        CoreCustomerAction::Prospect(ProspectEntityAction::StartKyc);
+    pub const PROSPECT_APPROVE_KYC: Self =
+        CoreCustomerAction::Prospect(ProspectEntityAction::ApproveKyc);
+    pub const PROSPECT_DECLINE_KYC: Self =
+        CoreCustomerAction::Prospect(ProspectEntityAction::DeclineKyc);
+    pub const PARTY_READ: Self = CoreCustomerAction::Party(PartyEntityAction::Read);
+    pub const PARTY_UPDATE: Self = CoreCustomerAction::Party(PartyEntityAction::Update);
 
     pub fn actions() -> Vec<ActionMapping> {
         use CoreCustomerActionDiscriminants::*;
@@ -232,6 +433,8 @@ impl CoreCustomerAction {
                 CustomerDocument => {
                     map_action!(customer, CustomerDocument, CustomerDocumentEntityAction)
                 }
+                Prospect => map_action!(customer, Prospect, ProspectEntityAction),
+                Party => map_action!(customer, Party, PartyEntityAction),
             })
             .collect()
     }
@@ -269,6 +472,8 @@ impl Display for CoreCustomerAction {
         match self {
             Customer(action) => action.fmt(f),
             CustomerDocument(action) => action.fmt(f),
+            Prospect(action) => action.fmt(f),
+            Party(action) => action.fmt(f),
         }
     }
 }
@@ -284,6 +489,8 @@ impl FromStr for CoreCustomerAction {
             CustomerDocument => {
                 CoreCustomerAction::from(action.parse::<CustomerDocumentEntityAction>()?)
             }
+            Prospect => CoreCustomerAction::from(action.parse::<ProspectEntityAction>()?),
+            Party => CoreCustomerAction::from(action.parse::<PartyEntityAction>()?),
         };
         Ok(res)
     }
@@ -292,6 +499,18 @@ impl FromStr for CoreCustomerAction {
 impl From<CustomerEntityAction> for CoreCustomerAction {
     fn from(action: CustomerEntityAction) -> Self {
         CoreCustomerAction::Customer(action)
+    }
+}
+
+impl From<ProspectEntityAction> for CoreCustomerAction {
+    fn from(action: ProspectEntityAction) -> Self {
+        CoreCustomerAction::Prospect(action)
+    }
+}
+
+impl From<PartyEntityAction> for CoreCustomerAction {
+    fn from(action: PartyEntityAction) -> Self {
+        CoreCustomerAction::Party(action)
     }
 }
 

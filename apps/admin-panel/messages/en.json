@@ -138,6 +138,7 @@
   },
   "Sidebar": {
     "labels": {
+      "customers": "Customers",
       "loans": "Loans",
       "transactions": "Transactions",
       "administration": "Administration",
@@ -175,7 +176,8 @@
       "transactionTemplates": "Transaction Templates",
       "rolesAndPermissions": "Roles & Permissions",
       "custodians": "Custodians",
-      "configurations": "Configurations"
+      "configurations": "Configurations",
+      "prospects": "Prospects"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -228,6 +230,7 @@
     },
     "searchResultTypes": {
       "customer": "Customer",
+      "prospect": "Prospect",
       "depositAccount": "Deposit Account",
       "creditFacility": "Credit Facility",
       "disbursal": "Disbursal",
@@ -237,12 +240,141 @@
       "facilityAmount": "Facility Amount"
     }
   },
+  "Prospects": {
+    "title": "Prospects",
+    "description": "Individuals or entities who are awaiting KYC verification",
+    "columns": {
+      "email": "Email",
+      "telegramHandle": "Telegram",
+      "stage": "Stage",
+      "customerType": "Type"
+    },
+    "stage": {
+      "new": "New",
+      "kycStarted": "KYC Started",
+      "kycPending": "KYC Pending",
+      "kycDeclined": "KYC Declined",
+      "converted": "Converted",
+      "closed": "Closed"
+    },
+    "status": {
+      "open": "Open",
+      "converted": "Converted",
+      "closed": "Closed"
+    },
+    "kycStatus": {
+      "notStarted": "Not Started",
+      "started": "Started",
+      "pending": "Pending",
+      "approved": "Approved",
+      "declined": "Declined"
+    },
+    "create": {
+      "title": "Add new prospect",
+      "confirmTitle": "Confirm Prospect Details",
+      "description": "Add a new Prospect by providing their email address and Telegram ID",
+      "confirmDescription": "Please review the details before submitting",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Please enter the email address",
+      "telegramLabel": "Telegram ID",
+      "telegramPlaceholder": "Please enter the Telegram ID",
+      "customerTypeLabel": "Customer Type",
+      "individualLabel": "Individual",
+      "companyLabel": "Company",
+      "companyTypeLabel": "Company Type",
+      "governmentEntityLabel": "Government Entity",
+      "privateCompanyLabel": "Private Company",
+      "bankLabel": "Bank",
+      "financialInstitutionLabel": "Financial Institution",
+      "foreignAgencyLabel": "Foreign Agency or Subsidiary",
+      "nonDomiciledCompanyLabel": "Non-Domiciled Company",
+      "selectCompanyType": "Select a company type",
+      "reviewButton": "Review Details",
+      "backButton": "Back",
+      "confirmButton": "Confirm and Submit",
+      "successMessage": "Prospect created successfully",
+      "errorMessage": "Failed to create prospect",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "failedToCreate": "Failed to create prospect. Please try again."
+    },
+    "ProspectDetails": {
+      "layout": {
+        "tabs": {
+          "documents": "Documents"
+        },
+        "errors": {
+          "loading": "Loading...",
+          "error": "An error occurred"
+        }
+      },
+      "details": {
+        "title": "Prospect",
+        "labels": {
+          "stage": "Stage",
+          "email": "Email",
+          "createdOn": "Created on",
+          "telegram": "Telegram",
+          "customerType": "Type",
+          "publicId": "Public ID",
+          "firstName": "First Name",
+          "lastName": "Last Name",
+          "dateOfBirth": "Date of Birth",
+          "nationality": "Nationality",
+          "address": "Address",
+          "customer": "Customer"
+        },
+        "buttons": {
+          "closeProspect": "Close Prospect",
+          "convertToCustomer": "Convert to Customer",
+          "viewCustomer": "View Customer"
+        }
+      },
+      "closeProspect": {
+        "title": "Close Prospect",
+        "description": "Are you sure you want to close this prospect? This action cannot be undone.",
+        "buttons": {
+          "close": "Close Prospect"
+        },
+        "success": "Prospect closed successfully"
+      },
+      "convertProspect": {
+        "title": "Convert to Customer",
+        "description": "This will convert the prospect to an active customer without KYC verification. This is intended for testing purposes only.",
+        "buttons": {
+          "convert": "Convert to Customer"
+        },
+        "success": "Prospect converted to customer successfully"
+      },
+      "kycStatus": {
+        "title": "KYC",
+        "notStarted": "Not Started",
+        "pending": "Pending",
+        "approved": "Approved",
+        "declined": "Declined",
+        "labels": {
+          "level": "Level",
+          "status": "Status",
+          "kycApplicationLink": "KYC Application Link"
+        },
+        "actions": {
+          "createLink": "Create link",
+          "creatingLink": "Creating link...",
+          "refreshLink": "Refresh link",
+          "copyLink": "Copy link"
+        },
+        "messages": {
+          "copied": "Copied to clipboard",
+          "linkExpired": "Link may have expired — consider refreshing"
+        }
+      }
+    }
+  },
   "Customers": {
     "title": "Customers",
     "description": "Individuals or entities who hold accounts, loans, or credit facilities with the bank",
     "columns": {
       "email": "Email",
-      "telegramId": "Telegram",
+      "telegramHandle": "Telegram",
       "status": "Status",
       "kycVerification": "KYC Verification",
       "depositAccount": "USD Balance"
@@ -253,6 +385,15 @@
       "active": "Active",
       "inactive": "Inactive",
       "suspended": "Suspended"
+    },
+    "customerType": {
+      "individual": "Individual",
+      "governmentEntity": "Government Entity",
+      "privateCompany": "Private Company",
+      "bank": "Bank",
+      "financialInstitution": "Financial Institution",
+      "foreignAgency": "Foreign Agency or Subsidiary",
+      "nonDomiciledCompany": "Non-Domiciled Company"
     },
     "create": {
       "title": "Add new customer",
@@ -298,24 +439,19 @@
         "title": "Customer",
         "customer": "Customer",
         "customerDetails": "Customer Details",
-        "updateTelegramId": "Update Telegram ID",
-        "customerType": {
-          "individual": "Individual",
-          "company": "Company",
-          "governmentEntity": "Government Entity",
-          "privateCompany": "Private Company",
-          "bank": "Bank",
-          "financialInstitution": "Financial Institution",
-          "foreignAgency": "Foreign Agency or Subsidiary",
-          "nonDomiciledCompany": "Non-Domiciled Company"
-        },
+        "updateTelegramHandle": "Update Telegram Handle",
         "labels": {
           "email": "Email",
           "createdOn": "Created on",
           "telegram": "Telegram",
           "status": "Status",
           "customerType": "Type",
-          "publicId": "Public ID"
+          "publicId": "Public ID",
+          "firstName": "First Name",
+          "lastName": "Last Name",
+          "dateOfBirth": "Date of Birth",
+          "nationality": "Nationality",
+          "address": "Address"
         },
         "status": {
           "active": "Active",
@@ -323,25 +459,18 @@
           "suspended": "Suspended"
         },
         "actions": {
-          "editTelegram": "Edit Telegram ID"
+          "editTelegram": "Edit Telegram Handle"
         }
       },
       "kycStatus": {
         "title": "KYC",
         "verified": "Verified",
-        "pending": "Pending",
+        "noKyc": "No KYC",
         "rejected": "Rejected",
         "labels": {
           "level": "Level",
           "status": "Status",
           "kycApplicationLink": "KYC Application Link"
-        },
-        "actions": {
-          "createLink": "Create link",
-          "creatingLink": "Creating link..."
-        },
-        "messages": {
-          "copied": "Copied to clipboard"
         }
       },
       "depositAccount": {
@@ -365,21 +494,21 @@
         "success": "Deposit account created successfully"
       },
       "updateTelegram": {
-        "title": "Update Telegram ID",
-        "description": "Update the Telegram ID for this customer",
+        "title": "Update Telegram Handle",
+        "description": "Update the Telegram handle for this customer",
         "labels": {
-          "newTelegramId": "New Telegram ID"
+          "newTelegramId": "New Telegram Handle"
         },
         "placeholders": {
-          "newTelegramId": "Please enter the new Telegram ID"
+          "newTelegramId": "Please enter the new Telegram handle"
         },
         "errors": {
-          "emptyTelegramId": "Telegram ID cannot be empty",
+          "emptyTelegramId": "Telegram handle cannot be empty",
           "unexpected": "An unexpected error occurred",
-          "updateFailed": "Failed to update Telegram ID: {error}"
+          "updateFailed": "Failed to update Telegram handle: {error}"
         },
         "messages": {
-          "updateSuccess": "Telegram ID updated successfully"
+          "updateSuccess": "Telegram handle updated successfully"
         },
         "actions": {
           "update": "Update",
@@ -2217,7 +2346,7 @@
     "menuItems": {
       "deposit": "Deposit",
       "withdrawal": "Withdrawal",
-      "customer": "Customer",
+      "prospect": "Prospect",
       "creditFacility": "Credit Facility Proposal",
       "disbursal": "Disbursal",
       "payment": "Payment",

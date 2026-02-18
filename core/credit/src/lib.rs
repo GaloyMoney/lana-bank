@@ -523,6 +523,10 @@ where
             .expect("audit info missing");
 
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
+        let party = self
+            .customer
+            .find_party_by_id_without_audit(customer.party_id)
+            .await?;
         let require_verified = self
             .domain_configs
             .get_without_audit::<RequireVerifiedCustomerForAccount>()
@@ -543,7 +547,7 @@ where
         let new_facility_proposal = NewCreditFacilityProposal::builder()
             .id(proposal_id)
             .customer_id(customer.id)
-            .customer_type(customer.customer_type)
+            .customer_type(party.customer_type)
             .custodian_id(custodian_id.map(|id| id.into()))
             .disbursal_credit_account_id(deposit_account_id)
             .terms(terms)

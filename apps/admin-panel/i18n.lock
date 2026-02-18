@@ -100,6 +100,7 @@ checksums:
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
     period/months: ae7bef950efc406ff0980affabc1a64c
+    Sidebar/labels/customers: c31a0dfd0d92496ba6f5673781db24ef
     Sidebar/labels/loans: 799b76634ee27191b9e0072482c2a6b9
     Sidebar/labels/transactions: 59973447457c6bd57c161d594f551651
     Sidebar/labels/administration: 2ac17b11fbfddf3617b3754acc55534c
@@ -136,6 +137,7 @@ checksums:
     Sidebar/navItems/rolesAndPermissions: 766190959c36bdfa5506b087f190707d
     Sidebar/navItems/custodians: c69cf14ea7b8332077f570c0c8b06585
     Sidebar/navItems/configurations: 073691963088b401d00d351cd4f6a58b
+    Sidebar/navItems/prospects: 8fd9acd1c9f666b0afa89fa9a1af3b96
     Sidebar/footer/appName: 7dfeb06f156f842109c07f26a73cb311
     Sidebar/footer/version: d640a8609bd8374f70e40f862250cb70
     UserBlock/settings: 8df6777277469c1fd88cc18dde2f1cc3
@@ -172,6 +174,7 @@ checksums:
     CommandMenu/actions/createRole: f085b4f05432198e6eb1d87ca8caf6b7
     CommandMenu/keyboardInstructions/commandPalette: 27374fec801ecad6a2a5c58d98c7f531
     CommandMenu/searchResultTypes/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    CommandMenu/searchResultTypes/prospect: 461df0adcbe6fef86c68f0d1a3b07356
     CommandMenu/searchResultTypes/depositAccount: 23d240412c0bf14efcff84a2325587be
     CommandMenu/searchResultTypes/creditFacility: d96f87cd95639f3ba97b53f681f2fb5f
     CommandMenu/searchResultTypes/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
@@ -179,10 +182,97 @@ checksums:
     CommandMenu/searchResultTypes/withdrawal: 90991ef39c923572c15cac977346ee77
     CommandMenu/searchResultTypes/amount: a0ae9c6ff98b57475cdce56f66066aa4
     CommandMenu/searchResultTypes/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
+    Prospects/title: 8fd9acd1c9f666b0afa89fa9a1af3b96
+    Prospects/description: a73f70ba16073481ad0ec5b88368a760
+    Prospects/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5
+    Prospects/columns/telegramHandle: 0719cb55ded3146892d106733a8431b2
+    Prospects/columns/stage: 791b091ce29b771e471bd0818fd63466
+    Prospects/columns/customerType: f04471a7ddac844b9ad145eb9911ef75
+    Prospects/stage/new: 126d036fae5fb6b629728ecb97e6195b
+    Prospects/stage/kycStarted: f9d466b1b1cce7474ed7da50efccc604
+    Prospects/stage/kycPending: 0c234209231aedf1aa2317858f79c67c
+    Prospects/stage/kycDeclined: 90c74054ff0d874a1bdbf1121717da59
+    Prospects/stage/converted: 1d0247b1c49b79f4ed79dfcdf9eeea9b
+    Prospects/stage/closed: 180560eb657a20f3d4edc44d5f7e7c2a
+    Prospects/status/open: 9a8c3b16091ea6cef3f771fc6715ab67
+    Prospects/status/converted: 1d0247b1c49b79f4ed79dfcdf9eeea9b
+    Prospects/status/closed: 180560eb657a20f3d4edc44d5f7e7c2a
+    Prospects/kycStatus/notStarted: 5d3574bf6f78fdcb400c5e8a6a034111
+    Prospects/kycStatus/started: b3e31f20f0df77554b9baf6cf9a5496c
+    Prospects/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
+    Prospects/kycStatus/approved: e5231b13f1fb9008823144a21a81a1b3
+    Prospects/kycStatus/declined: d9330b2f64bfd767cfcfedd9afe86c77
+    Prospects/create/title: b92b78626e6273c7179849cad229cb95
+    Prospects/create/confirmTitle: ef0363bb83f6367fbec32fc16c3d26c1
+    Prospects/create/description: 3e97a4b3316f5cbd63b851bd355b641b
+    Prospects/create/confirmDescription: bba4dee3c65a099d8c3145c9713aced7
+    Prospects/create/emailLabel: e7f34943a0c2fb849db1839ff6ef5cb5
+    Prospects/create/emailPlaceholder: 5eed7fb7e109b4ab618bce37c6bed35d
+    Prospects/create/telegramLabel: 5b869865612135085d626758b8d447a7
+    Prospects/create/telegramPlaceholder: f98d5a7bdb51eafc8754b561481f151d
+    Prospects/create/customerTypeLabel: 84318756282cff0923bb4f1a81748506
+    Prospects/create/individualLabel: 52ebce389ed97a13b6089802055ed667
+    Prospects/create/companyLabel: 9e36d11fa82d1bd4563eef2abc4fcfba
+    Prospects/create/companyTypeLabel: 54672f3df836908e70ecfb5cacc20f70
+    Prospects/create/governmentEntityLabel: f528833b92b299e24071fe069cf3ed82
+    Prospects/create/privateCompanyLabel: c74836e7192c45f43c2445cf6d78c358
+    Prospects/create/bankLabel: cbb449f467876b4137a66df51486d1dc
+    Prospects/create/financialInstitutionLabel: 995847f0f3bb3a2a846c07a22360d6f9
+    Prospects/create/foreignAgencyLabel: 0e850ab06238e94737cc1914b4b1263d
+    Prospects/create/nonDomiciledCompanyLabel: a86570d266088428c8e5195324770a80
+    Prospects/create/selectCompanyType: 38f7e1efacf6a2cc4e1b29dd428473d6
+    Prospects/create/reviewButton: a39de287a6a60912916975468730f5b0
+    Prospects/create/backButton: f541015a827e37cb3b1234e56bc2aa3c
+    Prospects/create/confirmButton: 51513935f1cf81f830d434f64a05270e
+    Prospects/create/successMessage: 2f5ea22ff5310c18b4eb5cda8643f602
+    Prospects/create/errorMessage: ccf9c4a949a46a43d1001e19c874b42f
+    Prospects/create/unexpectedError: dd9aef0a9c3638442bc8f6151feb33d6
+    Prospects/create/failedToCreate: 06d2a7e22406108368eab4c78bf15ce0
+    Prospects/ProspectDetails/layout/tabs/documents: c3882fc98216636873ab9091f3453f0c
+    Prospects/ProspectDetails/layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
+    Prospects/ProspectDetails/layout/errors/error: 53a2b5f5e7d83c737c8e02fe18fb4bdb
+    Prospects/ProspectDetails/details/title: 461df0adcbe6fef86c68f0d1a3b07356
+    Prospects/ProspectDetails/details/labels/stage: 791b091ce29b771e471bd0818fd63466
+    Prospects/ProspectDetails/details/labels/email: e7f34943a0c2fb849db1839ff6ef5cb5
+    Prospects/ProspectDetails/details/labels/createdOn: 24d89e2759464207b31141138abf2e81
+    Prospects/ProspectDetails/details/labels/telegram: 0719cb55ded3146892d106733a8431b2
+    Prospects/ProspectDetails/details/labels/customerType: f04471a7ddac844b9ad145eb9911ef75
+    Prospects/ProspectDetails/details/labels/publicId: 916fc3fdca16a23af44dbcfec824984d
+    Prospects/ProspectDetails/details/labels/firstName: cf040a5d6a9fd696be400380cc99f54b
+    Prospects/ProspectDetails/details/labels/lastName: 2c9a7de7738ca007ba9023c385149c26
+    Prospects/ProspectDetails/details/labels/dateOfBirth: 8c0517839acdee5c6fff3f23e1f1aeb2
+    Prospects/ProspectDetails/details/labels/nationality: 676a006a7f9c4e1d976e31d470a7cd7c
+    Prospects/ProspectDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
+    Prospects/ProspectDetails/details/labels/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    Prospects/ProspectDetails/details/buttons/closeProspect: 13c6753109d70226efe543d03070f75e
+    Prospects/ProspectDetails/details/buttons/convertToCustomer: 10f8a6e3404e4489083453a7e0ad7c21
+    Prospects/ProspectDetails/details/buttons/viewCustomer: 232903fb7e397b92489b7a3c62edb67f
+    Prospects/ProspectDetails/closeProspect/title: 13c6753109d70226efe543d03070f75e
+    Prospects/ProspectDetails/closeProspect/description: 6a2da01dfda42062fdae4c2096a04737
+    Prospects/ProspectDetails/closeProspect/buttons/close: 13c6753109d70226efe543d03070f75e
+    Prospects/ProspectDetails/closeProspect/success: d31227347ae5c58d4b5fdae2fe51801f
+    Prospects/ProspectDetails/convertProspect/title: 10f8a6e3404e4489083453a7e0ad7c21
+    Prospects/ProspectDetails/convertProspect/description: b278c85650c9d735f18b2c4ba56c66c4
+    Prospects/ProspectDetails/convertProspect/buttons/convert: 10f8a6e3404e4489083453a7e0ad7c21
+    Prospects/ProspectDetails/convertProspect/success: 67bed32f2a25ac852dbbc38635367658
+    Prospects/ProspectDetails/kycStatus/title: 4bd5d2fae73d8ec19511c2d011a48025
+    Prospects/ProspectDetails/kycStatus/notStarted: 5d3574bf6f78fdcb400c5e8a6a034111
+    Prospects/ProspectDetails/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
+    Prospects/ProspectDetails/kycStatus/approved: e5231b13f1fb9008823144a21a81a1b3
+    Prospects/ProspectDetails/kycStatus/declined: d9330b2f64bfd767cfcfedd9afe86c77
+    Prospects/ProspectDetails/kycStatus/labels/level: 1e3bf31d5c6083e898dd3e3359fbb0c2
+    Prospects/ProspectDetails/kycStatus/labels/status: 4e1fcce15854d824919b4a582c697c90
+    Prospects/ProspectDetails/kycStatus/labels/kycApplicationLink: c7544d6cfc5e07b0fb4998c9b861c2fa
+    Prospects/ProspectDetails/kycStatus/actions/createLink: 0cbb6dc593591ff291d0f39715b32880
+    Prospects/ProspectDetails/kycStatus/actions/creatingLink: 244b61a2b6acf3ec0ce4f083c2887b49
+    Prospects/ProspectDetails/kycStatus/actions/refreshLink: b4ab40cf176240312e17fb4606316b6c
+    Prospects/ProspectDetails/kycStatus/actions/copyLink: 8d515c2c48d1060d9c87c8930ff5aa54
+    Prospects/ProspectDetails/kycStatus/messages/copied: 6a3c394a9a51646bad2f72d7311b242d
+    Prospects/ProspectDetails/kycStatus/messages/linkExpired: aa769fab936035ee0f36e9a7af2e24df
     Customers/title: c31a0dfd0d92496ba6f5673781db24ef
     Customers/description: 38b688862c41b7af092a0dc32856806f
     Customers/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5
-    Customers/columns/telegramId: 0719cb55ded3146892d106733a8431b2
+    Customers/columns/telegramHandle: 0719cb55ded3146892d106733a8431b2
     Customers/columns/status: 4e1fcce15854d824919b4a582c697c90
     Customers/columns/kycVerification: 150eea9193777cbe2aed03e4dc774f8c
     Customers/columns/depositAccount: 857ee8a777580666ef3e60098e442c11
@@ -191,6 +281,13 @@ checksums:
     Customers/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
+    Customers/customerType/individual: 52ebce389ed97a13b6089802055ed667
+    Customers/customerType/governmentEntity: f528833b92b299e24071fe069cf3ed82
+    Customers/customerType/privateCompany: c74836e7192c45f43c2445cf6d78c358
+    Customers/customerType/bank: cbb449f467876b4137a66df51486d1dc
+    Customers/customerType/financialInstitution: 995847f0f3bb3a2a846c07a22360d6f9
+    Customers/customerType/foreignAgency: 0e850ab06238e94737cc1914b4b1263d
+    Customers/customerType/nonDomiciledCompany: a86570d266088428c8e5195324770a80
     Customers/create/title: b6e91545c3b71ffb5958ab19ffb1d51e
     Customers/create/confirmTitle: f0f217e36a6d0817c62edd48d560fcca
     Customers/create/description: 83b80348dac269ef8b459bd903753d2f
@@ -225,35 +322,29 @@ checksums:
     Customers/CustomerDetails/details/title: 846b48bb14b3d62c75cde5031e6bbfd7
     Customers/CustomerDetails/details/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     Customers/CustomerDetails/details/customerDetails: 485fc4d04d3466ee971a1b73d2a5ee6f
-    Customers/CustomerDetails/details/updateTelegramId: eae68442cc96d8e9715e82d49633eb65
-    Customers/CustomerDetails/details/customerType/individual: 52ebce389ed97a13b6089802055ed667
-    Customers/CustomerDetails/details/customerType/company: 9e36d11fa82d1bd4563eef2abc4fcfba
-    Customers/CustomerDetails/details/customerType/governmentEntity: f528833b92b299e24071fe069cf3ed82
-    Customers/CustomerDetails/details/customerType/privateCompany: c74836e7192c45f43c2445cf6d78c358
-    Customers/CustomerDetails/details/customerType/bank: cbb449f467876b4137a66df51486d1dc
-    Customers/CustomerDetails/details/customerType/financialInstitution: 995847f0f3bb3a2a846c07a22360d6f9
-    Customers/CustomerDetails/details/customerType/foreignAgency: 0e850ab06238e94737cc1914b4b1263d
-    Customers/CustomerDetails/details/customerType/nonDomiciledCompany: a86570d266088428c8e5195324770a80
+    Customers/CustomerDetails/details/updateTelegramHandle: 12ed74e25ce3d7a91cb9281c3b868215
     Customers/CustomerDetails/details/labels/email: e7f34943a0c2fb849db1839ff6ef5cb5
     Customers/CustomerDetails/details/labels/createdOn: 24d89e2759464207b31141138abf2e81
     Customers/CustomerDetails/details/labels/telegram: 0719cb55ded3146892d106733a8431b2
     Customers/CustomerDetails/details/labels/status: 4e1fcce15854d824919b4a582c697c90
     Customers/CustomerDetails/details/labels/customerType: f04471a7ddac844b9ad145eb9911ef75
     Customers/CustomerDetails/details/labels/publicId: 916fc3fdca16a23af44dbcfec824984d
+    Customers/CustomerDetails/details/labels/firstName: cf040a5d6a9fd696be400380cc99f54b
+    Customers/CustomerDetails/details/labels/lastName: 2c9a7de7738ca007ba9023c385149c26
+    Customers/CustomerDetails/details/labels/dateOfBirth: 8c0517839acdee5c6fff3f23e1f1aeb2
+    Customers/CustomerDetails/details/labels/nationality: 676a006a7f9c4e1d976e31d470a7cd7c
+    Customers/CustomerDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
-    Customers/CustomerDetails/details/actions/editTelegram: f75713ea7482c56d5fd7dc78ce25c6e1
+    Customers/CustomerDetails/details/actions/editTelegram: 4ae315a304c3159b982b203be81a5f98
     Customers/CustomerDetails/kycStatus/title: 4bd5d2fae73d8ec19511c2d011a48025
     Customers/CustomerDetails/kycStatus/verified: 9566bd61c1f754dd5082eea5101f15a8
-    Customers/CustomerDetails/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
+    Customers/CustomerDetails/kycStatus/noKyc: 10d02f136823bff246bf59bcb4cea64b
     Customers/CustomerDetails/kycStatus/rejected: 30202c9a9a2093021b0e9a1c61717fe9
     Customers/CustomerDetails/kycStatus/labels/level: 1e3bf31d5c6083e898dd3e3359fbb0c2
     Customers/CustomerDetails/kycStatus/labels/status: 4e1fcce15854d824919b4a582c697c90
     Customers/CustomerDetails/kycStatus/labels/kycApplicationLink: c7544d6cfc5e07b0fb4998c9b861c2fa
-    Customers/CustomerDetails/kycStatus/actions/createLink: 0cbb6dc593591ff291d0f39715b32880
-    Customers/CustomerDetails/kycStatus/actions/creatingLink: 244b61a2b6acf3ec0ce4f083c2887b49
-    Customers/CustomerDetails/kycStatus/messages/copied: 6a3c394a9a51646bad2f72d7311b242d
     Customers/CustomerDetails/depositAccount/title: 23d240412c0bf14efcff84a2325587be
     Customers/CustomerDetails/depositAccount/labels/checkingSettled: 08322f64253c1bfbc8fe14cb3c1a2174
     Customers/CustomerDetails/depositAccount/labels/pendingWithdrawals: 790c83ce094081b2db9e0064dec0ad41
@@ -264,14 +355,14 @@ checksums:
     Customers/CustomerDetails/createDepositAccount/descriptionWithEmail: 02e111a8283e5a6da27d0e1971c3a7f4
     Customers/CustomerDetails/createDepositAccount/buttons/submit: 89687f36e355fae00975f44da877d957
     Customers/CustomerDetails/createDepositAccount/success: a58ca013b6330ebae5598833a85b1cb6
-    Customers/CustomerDetails/updateTelegram/title: eae68442cc96d8e9715e82d49633eb65
-    Customers/CustomerDetails/updateTelegram/description: 6a3e0dee99c56a34368e8fef03646670
-    Customers/CustomerDetails/updateTelegram/labels/newTelegramId: aff61550ac71d9a4edcd78d5fe719ed9
-    Customers/CustomerDetails/updateTelegram/placeholders/newTelegramId: 7d975b0f6be339db626d749092eec8cb
-    Customers/CustomerDetails/updateTelegram/errors/emptyTelegramId: 6e492e3ce41015988526f2a56a8f8d6e
+    Customers/CustomerDetails/updateTelegram/title: 12ed74e25ce3d7a91cb9281c3b868215
+    Customers/CustomerDetails/updateTelegram/description: 0fdfe8991b6982bc0fd6f9d6247b7914
+    Customers/CustomerDetails/updateTelegram/labels/newTelegramId: 4252db822712321d1a77484bede820b0
+    Customers/CustomerDetails/updateTelegram/placeholders/newTelegramId: fd1eb820bfd574b8df671d8e55a91b25
+    Customers/CustomerDetails/updateTelegram/errors/emptyTelegramId: 10bc4b5c58b31b3268c4d484f56535a2
     Customers/CustomerDetails/updateTelegram/errors/unexpected: fe07b9cdb1fc3f7397f6d89c102c60af
-    Customers/CustomerDetails/updateTelegram/errors/updateFailed: facab8c73dc5fabafaab3863da23b1dc
-    Customers/CustomerDetails/updateTelegram/messages/updateSuccess: 3a58f8918e96f48cd20f72f96388674c
+    Customers/CustomerDetails/updateTelegram/errors/updateFailed: d5bd3f5fc00ba430e37f58136ba7ee9a
+    Customers/CustomerDetails/updateTelegram/messages/updateSuccess: 30ff99f195417cb9582a53a017a14f53
     Customers/CustomerDetails/updateTelegram/actions/update: 079fc039262fd31b10532929685c2d1b
     Customers/CustomerDetails/updateTelegram/actions/updating: 0d59644e851a6a76f1fb45de9353c447
     Customers/CustomerDetails/updateEmail/title: b520b3755d6f79cc294c4d5e9590c90e
@@ -1295,7 +1386,7 @@ checksums:
     CreateButton/disabledMessages/fiscalYearCannotOpenNextYet: 0fe3c5608a6550671e7491fbf4bc3f56
     CreateButton/menuItems/deposit: e233d53e369427d12f87d610bcf56ccb
     CreateButton/menuItems/withdrawal: 90991ef39c923572c15cac977346ee77
-    CreateButton/menuItems/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    CreateButton/menuItems/prospect: 461df0adcbe6fef86c68f0d1a3b07356
     CreateButton/menuItems/creditFacility: 062cd96fc0ef418286ef0edddf72b3e7
     CreateButton/menuItems/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
     CreateButton/menuItems/payment: 95142d3fd8b6a6f551aba771842e9c11
