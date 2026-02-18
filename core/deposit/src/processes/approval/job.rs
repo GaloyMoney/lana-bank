@@ -56,19 +56,16 @@ where
         _op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        match event.as_event() {
-            Some(e @ GovernanceEvent::ApprovalProcessConcluded { entity }) => {
-                if entity.process_type == super::APPROVE_WITHDRAWAL_PROCESS {
-                    event.inject_trace_parent();
-                    Span::current().record("handled", true);
-                    Span::current().record("event_type", e.as_ref());
-                    Span::current().record("process_type", entity.process_type.to_string());
-                    self.process
-                        .execute_withdrawal_approval(entity.id, entity.status.is_approved())
-                        .await?;
-                }
-            }
-            _ => {}
+        if let Some(e @ GovernanceEvent::ApprovalProcessConcluded { entity }) = event.as_event()
+            && entity.process_type == super::APPROVE_WITHDRAWAL_PROCESS
+        {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", e.as_ref());
+            Span::current().record("process_type", entity.process_type.to_string());
+            self.process
+                .execute_withdrawal_approval(entity.id, entity.status.is_approved())
+                .await?;
         }
         Ok(())
     }

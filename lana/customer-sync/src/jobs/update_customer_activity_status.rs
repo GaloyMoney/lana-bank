@@ -63,17 +63,14 @@ where
         _op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        match event.as_event() {
-            Some(e @ CoreTimeEvent::EndOfDay { closing_time, .. }) => {
-                event.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", e.as_ref());
+        if let Some(e @ CoreTimeEvent::EndOfDay { closing_time, .. }) = event.as_event() {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", e.as_ref());
 
-                self.customers
-                    .perform_customer_activity_status_update(*closing_time)
-                    .await?;
-            }
-            _ => {}
+            self.customers
+                .perform_customer_activity_status_update(*closing_time)
+                .await?;
         }
         Ok(())
     }

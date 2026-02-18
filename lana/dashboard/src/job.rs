@@ -29,11 +29,11 @@ where
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let mut dashboard = self.repo.load().await?;
-        if let Some(payload) = event.as_event::<lana_events::LanaEvent>() {
-            if dashboard.process_event(event.recorded_at, payload) {
-                event.inject_trace_parent();
-                Span::current().record("handled", true);
-            }
+        if let Some(payload) = event.as_event::<lana_events::LanaEvent>()
+            && dashboard.process_event(event.recorded_at, payload)
+        {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
         }
         self.repo.persist_in_tx(op.tx_mut(), &dashboard).await?;
         Ok(())
