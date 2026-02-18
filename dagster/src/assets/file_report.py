@@ -117,43 +117,14 @@ def create_file_report_multi_asset():
         dw_bq = context.resources.dw_bq
         file_reports_bucket = context.resources.file_reports_bucket
 
-        table_fetcher = BigQueryTableFetcher(
-            credentials_dict=dw_bq.get_credentials_dict(),
-            dataset=dw_bq.get_dbt_dataset(),
-        )
+        credentials_dict = dw_bq.get_credentials_dict()
+        dataset = dw_bq.get_dbt_dataset()
 
-        # Cache fetched tables to avoid duplicate BigQuery reads
-        # when multiple formats share the same source table
-        table_cache: Dict[str, Tuple] = {}
-
-        def fetch_table_cached(table_name: str):
-            if table_name not in table_cache:
-                contents = table_fetcher.fetch_table_contents(table_name)
-                table_cache[table_name] = (contents.fields, contents.records)
-            return table_cache[table_name]
-
-        # Pre-fetch all unique source tables in parallel (Step 1)
-        unique_tables = {
-            asset_key_to_job_config[k][0].source_table_name
-            for k in context.selected_asset_keys
-        }
         log = context.log
         log.info(
-            f"Pre-fetching {len(unique_tables)} unique tables "
-            f"for {len(context.selected_asset_keys)} assets"
+            f"Processing {len(context.selected_asset_keys)} assets "
+            f"with 16 workers (no cache, full pipeline per thread)"
         )
-        with ThreadPoolExecutor(max_workers=16) as pool:
-            futures = {
-                pool.submit(fetch_table_cached, t): t for t in unique_tables
-            }
-            for f in as_completed(futures):
-                table_name = futures[f]
-                try:
-                    f.result()
-                    log.info(f"Pre-fetched table: {table_name}")
-                except Exception:
-                    log.error(f"Failed to pre-fetch table: {table_name}")
-                    raise
 
         selected_keys = [
             key.to_user_string() for key in context.selected_asset_keys
@@ -171,7 +142,6 @@ def create_file_report_multi_asset():
             for key, value in batch_attrs.items():
                 batch_span.set_attribute(key, value)
 
-            # Capture span context for worker threads (Step 2)
             from opentelemetry import context as otel_context
 
             batch_ctx = otel_context.get_current()
@@ -190,8 +160,18 @@ def create_file_report_multi_asset():
                         "report.format", file_config.file_extension
                     )
 
+                    # Each thread fetches its own data — no shared cache
+                    fetcher = BigQueryTableFetcher(
+                        credentials_dict=credentials_dict,
+                        dataset=dataset,
+                    )
+
+                    def fetch_table(table_name: str):
+                        contents = fetcher.fetch_table_contents(table_name)
+                        return (contents.fields, contents.records)
+
                     result = generate_single_report(
-                        fetch_table=fetch_table_cached,
+                        fetch_table=fetch_table,
                         upload_file=file_reports_bucket.upload_file,
                         table_name=report_job.source_table_name,
                         norm=report_job.norm,
@@ -202,7 +182,6 @@ def create_file_report_multi_asset():
                     )
                     return asset_key, result
 
-            # Phase 2: parallel format + upload (cache is warm)
             with ThreadPoolExecutor(max_workers=16) as pool:
                 futures = {
                     pool.submit(process_one, k): k
