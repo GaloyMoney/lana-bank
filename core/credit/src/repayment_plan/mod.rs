@@ -405,7 +405,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct,
+        CreditFacilityReceivable, DisbursalPolicy, FacilityCollateralization, FacilityDuration,
+        InterestInterval, ObligationDuration, OneTimeFeeRatePct,
     };
     use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 
@@ -450,6 +451,18 @@ mod tests {
 
     fn default_facility_amount() -> UsdCents {
         UsdCents::from(1_000_000_00)
+    }
+
+    fn default_collateralization() -> FacilityCollateralization {
+        FacilityCollateralization {
+            state: CollateralizationState::FullyCollateralized,
+            collateral: Satoshis::from(1_000_000),
+            outstanding: CreditFacilityReceivable {
+                disbursed: default_facility_amount(),
+                interest: UsdCents::ZERO,
+            },
+            price_at_state_change: PriceOfOneBTC::new(UsdCents::from(5_000_000)),
+        }
     }
 
     fn plan(terms: TermValues) -> CreditFacilityRepaymentPlan {
@@ -603,6 +616,7 @@ mod tests {
                 amount: default_facility_amount(),
                 completed_at: None,
                 liquidation_trigger: None,
+                collateralization: default_collateralization(),
             },
         }];
         process_credit_events(&mut plan, events);
@@ -637,6 +651,7 @@ mod tests {
                     amount: default_facility_amount(),
                     completed_at: None,
                     liquidation_trigger: None,
+                    collateralization: default_collateralization(),
                 },
             },
             accrual_posted_event(period),
@@ -674,6 +689,7 @@ mod tests {
                     amount: default_facility_amount(),
                     completed_at: None,
                     liquidation_trigger: None,
+                    collateralization: default_collateralization(),
                 },
             },
             accrual_posted_event(period_1),
@@ -711,6 +727,7 @@ mod tests {
                     amount: default_facility_amount(),
                     completed_at: None,
                     liquidation_trigger: None,
+                    collateralization: default_collateralization(),
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -761,6 +778,7 @@ mod tests {
                     amount: default_facility_amount(),
                     completed_at: None,
                     liquidation_trigger: None,
+                    collateralization: default_collateralization(),
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -827,6 +845,7 @@ mod tests {
                     amount: default_facility_amount(),
                     completed_at: None,
                     liquidation_trigger: None,
+                    collateralization: default_collateralization(),
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -919,6 +938,7 @@ mod tests {
                     amount: default_facility_amount(),
                     completed_at: None,
                     liquidation_trigger: None,
+                    collateralization: default_collateralization(),
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -1047,6 +1067,7 @@ mod tests {
                     amount: default_facility_amount(),
                     completed_at: None,
                     liquidation_trigger: None,
+                    collateralization: default_collateralization(),
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -1157,6 +1178,7 @@ mod tests {
                     amount: default_facility_amount(),
                     completed_at: None,
                     liquidation_trigger: None,
+                    collateralization: default_collateralization(),
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {
@@ -1261,6 +1283,7 @@ mod tests {
                 amount: default_facility_amount(),
                 completed_at: None,
                 liquidation_trigger: None,
+                collateralization: default_collateralization(),
             },
         };
         plan.process_credit_event(
@@ -1330,6 +1353,7 @@ mod tests {
                 amount: default_facility_amount(),
                 completed_at: None,
                 liquidation_trigger: None,
+                collateralization: default_collateralization(),
             },
         };
         plan.process_credit_event(
@@ -1434,6 +1458,7 @@ mod tests {
                 amount: default_facility_amount(),
                 completed_at: None,
                 liquidation_trigger: None,
+                collateralization: default_collateralization(),
             },
         };
 
@@ -1488,6 +1513,7 @@ mod tests {
                     amount: default_facility_amount(),
                     completed_at: None,
                     liquidation_trigger: None,
+                    collateralization: default_collateralization(),
                 },
             }),
             TestEvent::Collection(CoreCreditCollectionEvent::ObligationCreated {

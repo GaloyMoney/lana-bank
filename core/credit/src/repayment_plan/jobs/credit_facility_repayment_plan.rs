@@ -152,8 +152,11 @@ where
                 )
                 .await?;
             }
-            Some(event @ FacilityCollateralizationChanged { id, .. })
-            | Some(
+            Some(event @ FacilityCollateralizationChanged { entity }) => {
+                self.handle_credit_event(db, message, event, entity.id, sequence, clock)
+                    .await?;
+            }
+            Some(
                 event @ PartialLiquidationCompleted {
                     credit_facility_id: id,
                     ..

@@ -4,10 +4,9 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use core_credit_terms::collateralization::CollateralizationState;
 use money::{Satoshis, UsdCents};
 
-use crate::{credit_facility::CreditFacilityReceivable, primitives::*};
+use crate::primitives::*;
 
 use super::{
     PublicCollateral, PublicCreditFacility, PublicCreditFacilityProposal, PublicDisbursal,
@@ -45,14 +44,7 @@ pub enum CoreCreditEvent {
         entity: PublicCollateral,
     },
     FacilityCollateralizationChanged {
-        id: CreditFacilityId,
-        customer_id: CustomerId,
-        state: CollateralizationState,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
-        collateral: Satoshis,
-        outstanding: CreditFacilityReceivable,
-        price: PriceOfOneBTC,
+        entity: PublicCreditFacility,
     },
     DisbursalSettled {
         entity: PublicDisbursal,
