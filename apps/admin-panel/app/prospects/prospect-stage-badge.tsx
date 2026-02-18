@@ -2,29 +2,45 @@
 
 import { useTranslations } from "next-intl"
 
-import { Badge } from "@lana/web/ui/badge"
+import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
 import { ProspectStage } from "@/lib/graphql/generated"
 
-const ProspectStageBadge = ({ stage }: { stage: ProspectStage }) => {
-  const t = useTranslations("Prospects.stage")
-
+const getConfig = (
+  stage: ProspectStage,
+  t: ReturnType<typeof useTranslations<"Prospects.stage">>,
+): { label: string; variant: BadgeProps["variant"] } => {
   switch (stage) {
     case ProspectStage.New:
-      return <Badge variant="secondary">{t("new")}</Badge>
+      return { label: t("new"), variant: "secondary" }
     case ProspectStage.KycStarted:
-      return <Badge variant="warning">{t("kycStarted")}</Badge>
+      return { label: t("kycStarted"), variant: "warning" }
     case ProspectStage.KycPending:
-      return <Badge variant="warning">{t("kycPending")}</Badge>
+      return { label: t("kycPending"), variant: "warning" }
     case ProspectStage.KycDeclined:
-      return <Badge variant="destructive">{t("kycDeclined")}</Badge>
+      return { label: t("kycDeclined"), variant: "destructive" }
     case ProspectStage.Converted:
-      return <Badge variant="success">{t("converted")}</Badge>
+      return { label: t("converted"), variant: "success" }
     case ProspectStage.Closed:
-      return <Badge variant="default">{t("closed")}</Badge>
-    default:
-      return <Badge variant="secondary">{stage}</Badge>
+      return { label: t("closed"), variant: "default" }
+    default: {
+      const _: never = stage
+      return _
+    }
   }
+}
+
+const ProspectStageBadge = ({
+  stage,
+  plain,
+}: {
+  stage: ProspectStage
+  plain?: boolean
+}) => {
+  const t = useTranslations("Prospects.stage")
+  const { label, variant } = getConfig(stage, t)
+  if (plain) return label
+  return <Badge variant={variant}>{label}</Badge>
 }
 
 export { ProspectStageBadge }

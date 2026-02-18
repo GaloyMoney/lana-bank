@@ -15,17 +15,15 @@ const Prospects: React.FC = () => {
   const t = useTranslations("Prospects")
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProspectsList />
-        </CardContent>
-      </Card>
-    </>
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ProspectsList />
+      </CardContent>
+    </Card>
   )
 }
 

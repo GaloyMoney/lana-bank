@@ -20,8 +20,10 @@ const KycStatusBadge = ({ status }: { status: KycStatus }) => {
       return <Badge variant="destructive">{t("declined")}</Badge>
     case KycStatus.NotStarted:
       return <Badge variant="secondary">{t("notStarted")}</Badge>
-    default:
-      return <Badge variant="secondary">{status}</Badge>
+    default: {
+      const _: never = status
+      return _
+    }
   }
 }
 
