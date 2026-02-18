@@ -248,17 +248,18 @@ where
         .await?;
         let proposals_arc = Arc::new(credit_facility_proposals);
 
-        let collaterals = Collaterals::init(
+        let collateral_repo = Arc::new(crate::collateral::repo::CollateralRepo::new(
             pool,
-            authz_arc.clone(),
             &publisher,
+            clock.clone(),
+        ));
+
+        let collaterals = Collaterals::init(
+            authz_arc.clone(),
             collateral_ledger_arc.clone(),
-            ledger_arc
-                .liquidation_proceeds_omnibus_account_ids()
-                .account_id,
             outbox,
             jobs,
-            collections_arc.clone(),
+            collateral_repo.clone(),
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);
@@ -305,6 +306,7 @@ where
             public_ids_arc.clone(),
             outbox,
             clock.clone(),
+            collateral_repo,
         )
         .await?;
         let facilities_arc = Arc::new(credit_facilities);

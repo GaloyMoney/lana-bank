@@ -132,11 +132,10 @@ where
         public_ids: Arc<PublicIds>,
         outbox: &Outbox<E>,
         clock: ClockHandle,
+        collateral_repo: Arc<crate::collateral::repo::CollateralRepo<E>>,
     ) -> Result<Self, CreditFacilityError> {
         let repo = CreditFacilityRepo::new(pool, publisher, clock.clone());
         let repo_arc = Arc::new(repo);
-
-        let collateral_repo = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
 
         let collateralization_from_events_spawner = jobs.add_initializer(
             jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
@@ -174,6 +173,30 @@ where
                 authz.clone(),
             ),
         );
+
+        let liquidation_payment_job_spawner =
+            jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
+                outbox,
+                collections.clone(),
+                collateral_repo.clone(),
+                repo_arc.clone(),
+            ));
+
+        let collateral_liquidations_job_spawner = jobs.add_initializer(
+            jobs::collateral_liquidations::CreditFacilityLiquidationsInit::new(
+                outbox,
+                collateral_repo.clone(),
+                ledger.liquidation_proceeds_omnibus_account_ids().account_id,
+                liquidation_payment_job_spawner.clone(),
+            ),
+        );
+
+        collateral_liquidations_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                jobs::collateral_liquidations::CreditFacilityLiquidationsJobConfig,
+            )
+            .await?;
 
         Ok(Self {
             repo: repo_arc,
