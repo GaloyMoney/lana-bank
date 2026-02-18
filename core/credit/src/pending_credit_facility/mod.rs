@@ -214,6 +214,7 @@ where
                         new_pending_facility.id,
                         wallet_id,
                         CollateralLedgerAccountIds::new(),
+                        new_pending_facility.account_ids.into(),
                     )
                     .await?;
 

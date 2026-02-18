@@ -29,7 +29,10 @@ use es_entity::Idempotent;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
-use ledger::{CollateralLedger, CollateralLedgerAccountIds, LiquidationProceedsAccountIds};
+use ledger::{
+    CollateralLedger, CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
+    LiquidationProceedsAccountIds,
+};
 
 pub(super) use entity::*;
 use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync};
@@ -188,6 +191,7 @@ where
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
         account_ids: CollateralLedgerAccountIds,
+        facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
     ) -> Result<Collateral, CollateralError> {
         self.ledger
             .create_collateral_accounts_in_op(db, collateral_id, account_ids)
@@ -199,6 +203,9 @@ where
             .pending_credit_facility_id(pending_credit_facility_id)
             .custody_wallet_id(custody_wallet_id)
             .account_ids(account_ids)
+            .facility_ledger_account_ids_for_liquidation(
+                facility_ledger_account_ids_for_liquidation,
+            )
             .build()
             .expect("all fields for new collateral provided");
 

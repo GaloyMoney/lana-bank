@@ -214,13 +214,9 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
-        let credit_facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
-            .await?;
         let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(
             &collateral.account_ids,
-            credit_facility.proceeds_from_liquidation_account_id(),
+            &collateral.facility_ledger_account_ids_for_liquidation,
             self.liquidation_proceeds_omnibus_account_id,
         );
 

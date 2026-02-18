@@ -16,7 +16,10 @@ use crate::primitives::{
 use super::{
     CollateralUpdate, RecordProceedsFromLiquidationData,
     error::CollateralError,
-    ledger::{CollateralLedgerAccountIds, LiquidationProceedsAccountIds},
+    ledger::{
+        CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
+        LiquidationProceedsAccountIds,
+    },
     liquidation::{Liquidation, NewLiquidation},
 };
 
@@ -29,6 +32,7 @@ pub enum CollateralEvent {
         id: CollateralId,
         credit_facility_id: CreditFacilityId,
         account_ids: CollateralLedgerAccountIds,
+        facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
     },
@@ -71,6 +75,7 @@ pub struct Collateral {
     pub id: CollateralId,
     pub credit_facility_id: CreditFacilityId,
     pub account_ids: CollateralLedgerAccountIds,
+    pub facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
     pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
@@ -347,6 +352,7 @@ pub struct NewCollateral {
     #[builder(default)]
     pub(super) custody_wallet_id: Option<CustodyWalletId>,
     pub(super) account_ids: CollateralLedgerAccountIds,
+    pub(super) facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
 }
 
 impl NewCollateral {
@@ -367,10 +373,14 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     pending_credit_facility_id,
                     custody_wallet_id,
                     account_ids,
+                    facility_ledger_account_ids_for_liquidation,
                 } => {
                     builder = builder
                         .id(*id)
                         .account_ids(*account_ids)
+                        .facility_ledger_account_ids_for_liquidation(
+                            *facility_ledger_account_ids_for_liquidation,
+                        )
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
                         .credit_facility_id(*credit_facility_id)
@@ -407,6 +417,8 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
                 account_ids: self.account_ids,
+                facility_ledger_account_ids_for_liquidation: self
+                    .facility_ledger_account_ids_for_liquidation,
                 pending_credit_facility_id: self.pending_credit_facility_id,
                 custody_wallet_id: self.custody_wallet_id,
             }],
@@ -426,19 +438,31 @@ mod tests {
         CollateralLedgerAccountIds::new()
     }
 
-    fn default_liquidation_proceeds_account_ids() -> LiquidationProceedsAccountIds {
-        LiquidationProceedsAccountIds {
-            liquidation_proceeds_omnibus_account_id: CalaAccountId::new(),
+    fn default_facility_ledger_account_ids_for_liquidation()
+    -> FacilityLedgerAccountIdsForLiquidation {
+        FacilityLedgerAccountIdsForLiquidation {
             proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId::new(),
-            collateral_in_liquidation_account_id: CalaAccountId::new(),
-            liquidated_collateral_account_id: CalaAccountId::new(),
+            payment_holding_account_id: CalaAccountId::new(),
+            uncovered_outstanding_account_id: CalaAccountId::new(),
         }
+    }
+
+    fn default_liquidation_proceeds_account_ids() -> LiquidationProceedsAccountIds {
+        let facility_ids = default_facility_ledger_account_ids_for_liquidation();
+        LiquidationProceedsAccountIds::new(
+            &default_account_ids(),
+            &facility_ids,
+            CalaAccountId::new(),
+        )
     }
 
     fn default_new_collateral() -> NewCollateral {
         NewCollateral::builder()
             .id(CollateralId::new())
             .account_ids(default_account_ids())
+            .facility_ledger_account_ids_for_liquidation(
+                default_facility_ledger_account_ids_for_liquidation(),
+            )
             .credit_facility_id(CreditFacilityId::new())
             .pending_credit_facility_id(PendingCreditFacilityId::new())
             .build()

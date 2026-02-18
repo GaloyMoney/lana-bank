@@ -32,6 +32,29 @@
       ],
       "type": "object"
     },
+    "FacilityLedgerAccountIdsForLiquidation": {
+      "description": "Facility-level account IDs needed by the Collateral entity for liquidation operations.",
+      "properties": {
+        "payment_holding_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "proceeds_from_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "uncovered_outstanding_account_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proceeds_from_liquidation_account_id",
+        "payment_holding_account_id",
+        "uncovered_outstanding_account_id"
+      ],
+      "type": "object"
+    },
     "Satoshis": {
       "format": "uint64",
       "minimum": 0,
@@ -61,6 +84,9 @@
             "null"
           ]
         },
+        "facility_ledger_account_ids_for_liquidation": {
+          "$ref": "#/$defs/FacilityLedgerAccountIdsForLiquidation"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -79,6 +105,7 @@
         "id",
         "credit_facility_id",
         "account_ids",
+        "facility_ledger_account_ids_for_liquidation",
         "pending_credit_facility_id"
       ],
       "type": "object"
