@@ -1537,7 +1537,6 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
- "async-trait",
  "audit",
  "authz",
  "base64 0.22.1",
@@ -1550,7 +1549,6 @@ dependencies = [
  "document-storage",
  "domain-config",
  "es-entity",
- "futures",
  "governance",
  "job",
  "money",
