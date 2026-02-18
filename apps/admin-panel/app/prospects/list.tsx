@@ -68,14 +68,8 @@ const ProspectsList = () => {
     {
       key: "stage",
       label: t("columns.stage"),
-      filterValues: [
-        ProspectStage.New,
-        ProspectStage.KycStarted,
-        ProspectStage.KycPending,
-        ProspectStage.KycDeclined,
-        ProspectStage.Converted,
-        ProspectStage.Closed,
-      ],
+      filterValues: Object.values(ProspectStage),
+      filterLabel: (stage) => <ProspectStageBadge stage={stage} plain />,
       render: (stage) => <ProspectStageBadge stage={stage} />,
     },
     {
