@@ -532,6 +532,7 @@ checksums:
     CreditFacilities/collateralizationState/noExposure: 25de75d010cf97f834518f4bbacb9d75
     CreditFacilities/pendingCollateralizationState/fullyCollateralized: ac0dd4d27277fd887b8a195d815af373
     CreditFacilities/pendingCollateralizationState/underCollateralized: 08bc680351a0f5bb35acf0cc4f7859f8
+    CreditFacilities/pendingCollateralizationState/notYetCollateralized: a4a3eab71ea3eb3f17dfa5f5e1709c35
     CreditFacilities/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/title: 416716dbfa4883b589c792610e827d74
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/description: bd2b59bc9d5747e458cdd85fd63cecc0
@@ -681,6 +682,7 @@ checksums:
     PendingCreditFacilities/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
     PendingCreditFacilities/collateralizationState/fully_collateralized: ac0dd4d27277fd887b8a195d815af373
     PendingCreditFacilities/collateralizationState/under_collateralized: 08bc680351a0f5bb35acf0cc4f7859f8
+    PendingCreditFacilities/collateralizationState/not_yet_collateralized: a4a3eab71ea3eb3f17dfa5f5e1709c35
     PendingCreditFacilities/PendingDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     PendingCreditFacilities/PendingDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     PendingCreditFacilities/PendingDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
