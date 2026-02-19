@@ -747,9 +747,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.13.14"
+version = "0.13.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40276756d882775d6a88a5c611e2bd47ac1367f8b663ed648312857a83afd2db"
+checksum = "bb02e2fe62b917e9dfc76ac9ebb95a10d915a02a4d9fbed7a0becc8f46f742d4"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -766,21 +766,21 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.13.14"
+version = "0.13.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fdbafa57702f87e72165eaf16477e77b7e97c395113cdb3db04807ee6020edd"
+checksum = "15925b2b7eafec5f160a64db4b2a57a4c272cb940d93dc27be490bf20c25b88c"
 dependencies = [
  "cached",
  "lalrpop",
- "lalrpop-util",
+ "lalrpop-util 0.23.0",
  "tracing",
 ]
 
 [[package]]
 name = "cala-ledger"
-version = "0.13.14"
+version = "0.13.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc9c1f5df08faa931a4908ea27cb57f5aa9c8d29ea21215e1e8cb1b0ed807c68"
+checksum = "38d2b0b73f26361a4be5abccabf7cf03054cb8e33b2ee19999191f5b1b4358f8"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -811,9 +811,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.13.14"
+version = "0.13.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d86b3eb9f350ded7ab81c121924d85aca7e4f1f7c075f8772e77482701938cd6"
+checksum = "bbd275591f30d16623d524dbbcf24bfe14ef7161e9c4d777eeba09f6f6c8b57b"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -833,9 +833,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.13.14"
+version = "0.13.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b65f019b9454b09803ecebc2ff02dda645890d5c3730d710abe12f0808d8b598"
+checksum = "0655ab3115d76c684160185d817383584686f17cac94b7c2821e48117510b47e"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -3645,16 +3645,16 @@ dependencies = [
 
 [[package]]
 name = "lalrpop"
-version = "0.22.2"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba4ebbd48ce411c1d10fb35185f5a51a7bfa3d8b24b4e330d30c9e3a34129501"
+checksum = "6e15283adc509c301924c886fcf9e0c8b0cdf4212c138edc7cca4bd89b31aa1c"
 dependencies = [
  "ascii-canvas",
  "bit-set",
  "ena",
  "itertools",
- "lalrpop-util",
- "petgraph 0.7.1",
+ "lalrpop-util 0.23.0",
+ "petgraph 0.8.3",
  "pico-args",
  "regex",
  "regex-syntax",
@@ -3673,6 +3673,15 @@ checksum = "b5baa5e9ff84f1aefd264e6869907646538a52147a755d494517a8007fb48733"
 dependencies = [
  "regex-automata",
  "rustversion",
+]
+
+[[package]]
+name = "lalrpop-util"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c3afd1d719c117a3801a2740840c22e40f59e13f51fcd631068fe80266a001d"
+dependencies = [
+ "regex-automata",
 ]
 
 [[package]]
@@ -4462,11 +4471,12 @@ dependencies = [
 
 [[package]]
 name = "petgraph"
-version = "0.7.1"
+version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3672b37090dbd86368a4145bc067582552b29c27377cad4e0a306c97f9bd7772"
+checksum = "8701b58ea97060d5e5b155d383a69952a60943f0e6dfe30b04c287beb0b27455"
 dependencies = [
  "fixedbitset 0.5.7",
+ "hashbrown 0.15.5",
  "indexmap 2.12.0",
 ]
 
@@ -4481,18 +4491,18 @@ dependencies = [
 
 [[package]]
 name = "phf_shared"
-version = "0.11.3"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67eabc2ef2a60eb7faa00097bd1ffdb5bd28e62bf39990626a582201b7a754e5"
+checksum = "06005508882fb681fd97892ecff4b7fd0fee13ef1aa569f8695dae7ab9099981"
 dependencies = [
  "siphasher",
 ]
 
 [[package]]
 name = "phf_shared"
-version = "0.12.1"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06005508882fb681fd97892ecff4b7fd0fee13ef1aa569f8695dae7ab9099981"
+checksum = "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266"
 dependencies = [
  "siphasher",
 ]
@@ -6179,13 +6189,13 @@ checksum = "d7beae5182595e9a8b683fa98c4317f956c9a2dec3b9716990d20023cc60c766"
 
 [[package]]
 name = "string_cache"
-version = "0.8.9"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf776ba3fa74f83bf4b63c3dcbbf82173db2632ed8452cb2d891d33f459de70f"
+checksum = "a18596f8c785a729f2819c0f6a7eae6ebeebdfffbfe4214ae6b087f690e31901"
 dependencies = [
  "new_debug_unreachable",
  "parking_lot",
- "phf_shared 0.11.3",
+ "phf_shared 0.13.1",
  "precomputed-hash",
 ]
 
@@ -7813,7 +7823,7 @@ dependencies = [
  "indexmap 2.12.0",
  "inout",
  "job",
- "lalrpop-util",
+ "lalrpop-util 0.22.2",
  "log",
  "memchr",
  "num-traits",
