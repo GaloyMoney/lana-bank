@@ -8,11 +8,7 @@ import { toast } from "sonner"
 import { Dialog, DialogContent, DialogFooter } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
-import {
-  FiscalYear,
-  useFiscalYearCloseMutation,
-  FiscalYearsDocument,
-} from "@/lib/graphql/generated"
+import { FiscalYear, useFiscalYearCloseMutation } from "@/lib/graphql/generated"
 import { useDialogSnapshot } from "@/hooks/use-dialog-snapshot"
 import { useFiscalYearCloseConfirmation } from "@/hooks/use-fiscal-year-close-confirmation"
 import { FiscalYearCloseDialogContent } from "@/components/fiscal-year-close-dialog-content"
@@ -53,9 +49,7 @@ export function CloseYearDialog({
         ),
       })
     : null
-  const [closeYearMutation, { loading }] = useFiscalYearCloseMutation({
-    refetchQueries: [FiscalYearsDocument],
-  })
+  const [closeYearMutation, { loading }] = useFiscalYearCloseMutation()
 
   const resetState = () => {
     setError(null)

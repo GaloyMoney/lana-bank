@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
+import { gql } from "@apollo/client"
 
 import {
   Dialog,
@@ -14,10 +15,20 @@ import {
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
-import {
-  useProspectConvertMutation,
-  GetProspectBasicDetailsDocument,
-} from "@/lib/graphql/generated"
+import { useProspectConvertMutation } from "@/lib/graphql/generated"
+import { useModalNavigation } from "@/hooks/use-modal-navigation"
+
+gql`
+  mutation ProspectConvert($input: ProspectConvertInput!) {
+    prospectConvert(input: $input) {
+      customer {
+        id
+        customerId
+        publicId
+      }
+    }
+  }
+`
 
 type ConvertProspectDialogProps = {
   setOpenConvertDialog: (isOpen: boolean) => void
@@ -33,27 +44,28 @@ export const ConvertProspectDialog: React.FC<ConvertProspectDialogProps> = ({
   const t = useTranslations("Prospects.ProspectDetails.convertProspect")
   const commonT = useTranslations("Common")
 
-  const [convertProspect, { loading, reset }] = useProspectConvertMutation({
-    refetchQueries: [GetProspectBasicDetailsDocument],
+  const { navigate, isNavigating } = useModalNavigation({
+    closeModal: () => setOpenConvertDialog(false),
   })
+
+  const [convertProspect, { loading, reset }] = useProspectConvertMutation()
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     try {
-      const result = await convertProspect({
+      await convertProspect({
         variables: {
           input: {
             prospectId,
           },
         },
+        onCompleted: (data) => {
+          toast.success(t("success"))
+          navigate(`/customers/${data.prospectConvert.customer.publicId}`)
+        },
       })
-
-      if (result.data) {
-        toast.success(t("success"))
-        handleCloseDialog()
-      }
     } catch (error) {
       console.error("Error converting prospect:", error)
       setError(error instanceof Error ? error.message : commonT("error"))
@@ -78,7 +90,7 @@ export const ConvertProspectDialog: React.FC<ConvertProspectDialogProps> = ({
           <DialogFooter>
             <Button
               type="submit"
-              disabled={loading}
+              loading={loading || isNavigating}
               data-testid="confirm-convert-prospect-btn"
             >
               {t("buttons.convert")}

@@ -14,28 +14,32 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useCreateContext } from "@/app/create"
 gql`
+  fragment DepositAccountDetailsFragment on DepositAccount {
+    id
+    publicId
+    depositAccountId
+    createdAt
+    status
+    balance {
+      settled
+      pending
+    }
+    ledgerAccounts {
+      depositAccountId
+      frozenDepositAccountId
+    }
+    customer {
+      id
+      customerId
+      publicId
+      applicantId
+      email
+    }
+  }
+
   query GetDepositAccountDetails($publicId: PublicId!, $first: Int!, $after: String) {
     depositAccountByPublicId(id: $publicId) {
-      id
-      publicId
-      depositAccountId
-      createdAt
-      status
-      balance {
-        settled
-        pending
-      }
-      ledgerAccounts {
-        depositAccountId
-        frozenDepositAccountId
-      }
-      customer {
-        id
-        customerId
-        publicId
-        applicantId
-        email
-      }
+      ...DepositAccountDetailsFragment
       history(first: $first, after: $after) {
         pageInfo {
           hasNextPage

@@ -15,16 +15,13 @@ import {
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
-import {
-  useDepositAccountCloseMutation,
-  GetDepositAccountDetailsDocument,
-} from "@/lib/graphql/generated"
+import { useDepositAccountCloseMutation } from "@/lib/graphql/generated"
 
 gql`
   mutation DepositAccountClose($input: DepositAccountCloseInput!) {
     depositAccountClose(input: $input) {
       account {
-        id
+        ...DepositAccountDetailsFragment
       }
     }
   }
@@ -44,9 +41,7 @@ export const CloseDepositAccountDialog: React.FC<CloseDepositAccountDialogProps>
   const t = useTranslations("DepositAccounts.DepositAccountDetails.closeDepositAccount")
   const commonT = useTranslations("Common")
 
-  const [closeDepositAccount, { loading, reset }] = useDepositAccountCloseMutation({
-    refetchQueries: [GetDepositAccountDetailsDocument],
-  })
+  const [closeDepositAccount, { loading, reset }] = useDepositAccountCloseMutation()
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {

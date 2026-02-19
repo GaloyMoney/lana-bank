@@ -4052,7 +4052,7 @@ export type DepositAccountCloseMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountCloseMutation = { __typename?: 'Mutation', depositAccountClose: { __typename?: 'DepositAccountClosePayload', account: { __typename?: 'DepositAccount', id: string } } };
+export type DepositAccountCloseMutation = { __typename?: 'Mutation', depositAccountClose: { __typename?: 'DepositAccountClosePayload', account: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string } } } };
 
 export type DepositAccountFreezeMutationVariables = Exact<{
   input: DepositAccountFreezeInput;
@@ -4061,6 +4061,8 @@ export type DepositAccountFreezeMutationVariables = Exact<{
 
 export type DepositAccountFreezeMutation = { __typename?: 'Mutation', depositAccountFreeze: { __typename?: 'DepositAccountFreezePayload', account: { __typename?: 'DepositAccount', id: string } } };
 
+export type DepositAccountDetailsFragmentFragment = { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string } };
+
 export type GetDepositAccountDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
   first: Scalars['Int']['input'];
@@ -4068,7 +4070,7 @@ export type GetDepositAccountDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string }, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
+export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: any, status: DepositAccountStatus, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
           | { __typename: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
           | { __typename: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus } }
           | { __typename: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }
@@ -4077,7 +4079,7 @@ export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccou
           | { __typename: 'UnfreezeEntry', txId: string, recordedAt: any, amount: UsdCents }
           | { __typename?: 'UnknownEntry' }
           | { __typename: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
-         }> } } | null };
+         }> }, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string } } | null };
 
 export type DepositAccountUnfreezeMutationVariables = Exact<{
   input: DepositAccountUnfreezeInput;
@@ -4585,6 +4587,20 @@ export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossS
           | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
          }> }> } };
 
+export type ProspectCloseMutationVariables = Exact<{
+  input: ProspectCloseInput;
+}>;
+
+
+export type ProspectCloseMutation = { __typename?: 'Mutation', prospectClose: { __typename?: 'ProspectClosePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: any | null, customerType: CustomerType, createdAt: any, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
+
+export type ProspectConvertMutationVariables = Exact<{
+  input: ProspectConvertInput;
+}>;
+
+
+export type ProspectConvertMutation = { __typename?: 'Mutation', prospectConvert: { __typename?: 'ProspectConvertPayload', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any } } };
+
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
 }>;
@@ -4600,20 +4616,6 @@ export type GetProspectBasicDetailsQueryVariables = Exact<{
 
 
 export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: any | null, customerType: CustomerType, createdAt: any, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } | null };
-
-export type ProspectCloseMutationVariables = Exact<{
-  input: ProspectCloseInput;
-}>;
-
-
-export type ProspectCloseMutation = { __typename?: 'Mutation', prospectClose: { __typename?: 'ProspectClosePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, status: ProspectStatus, kycStatus: KycStatus } } };
-
-export type ProspectConvertMutationVariables = Exact<{
-  input: ProspectConvertInput;
-}>;
-
-
-export type ProspectConvertMutation = { __typename?: 'Mutation', prospectConvert: { __typename?: 'ProspectConvertPayload', customer: { __typename?: 'Customer', id: string, customerId: string } } };
 
 export type ProspectCreateMutationVariables = Exact<{
   input: ProspectCreateInput;
@@ -5455,6 +5457,30 @@ export const CustomerDetailsFragmentFragmentDoc = gql`
       depositAccountId
       frozenDepositAccountId
     }
+  }
+}
+    `;
+export const DepositAccountDetailsFragmentFragmentDoc = gql`
+    fragment DepositAccountDetailsFragment on DepositAccount {
+  id
+  publicId
+  depositAccountId
+  createdAt
+  status
+  balance {
+    settled
+    pending
+  }
+  ledgerAccounts {
+    depositAccountId
+    frozenDepositAccountId
+  }
+  customer {
+    id
+    customerId
+    publicId
+    applicantId
+    email
   }
 }
     `;
@@ -8345,11 +8371,11 @@ export const DepositAccountCloseDocument = gql`
     mutation DepositAccountClose($input: DepositAccountCloseInput!) {
   depositAccountClose(input: $input) {
     account {
-      id
+      ...DepositAccountDetailsFragment
     }
   }
 }
-    `;
+    ${DepositAccountDetailsFragmentFragmentDoc}`;
 export type DepositAccountCloseMutationFn = Apollo.MutationFunction<DepositAccountCloseMutation, DepositAccountCloseMutationVariables>;
 
 /**
@@ -8414,26 +8440,7 @@ export type DepositAccountFreezeMutationOptions = Apollo.BaseMutationOptions<Dep
 export const GetDepositAccountDetailsDocument = gql`
     query GetDepositAccountDetails($publicId: PublicId!, $first: Int!, $after: String) {
   depositAccountByPublicId(id: $publicId) {
-    id
-    publicId
-    depositAccountId
-    createdAt
-    status
-    balance {
-      settled
-      pending
-    }
-    ledgerAccounts {
-      depositAccountId
-      frozenDepositAccountId
-    }
-    customer {
-      id
-      customerId
-      publicId
-      applicantId
-      email
-    }
+    ...DepositAccountDetailsFragment
     history(first: $first, after: $after) {
       pageInfo {
         hasNextPage
@@ -8525,7 +8532,7 @@ export const GetDepositAccountDetailsDocument = gql`
     }
   }
 }
-    `;
+    ${DepositAccountDetailsFragmentFragmentDoc}`;
 
 /**
  * __useGetDepositAccountDetailsQuery__
@@ -10976,6 +10983,78 @@ export type ProfitAndLossStatementQueryHookResult = ReturnType<typeof useProfitA
 export type ProfitAndLossStatementLazyQueryHookResult = ReturnType<typeof useProfitAndLossStatementLazyQuery>;
 export type ProfitAndLossStatementSuspenseQueryHookResult = ReturnType<typeof useProfitAndLossStatementSuspenseQuery>;
 export type ProfitAndLossStatementQueryResult = Apollo.QueryResult<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>;
+export const ProspectCloseDocument = gql`
+    mutation ProspectClose($input: ProspectCloseInput!) {
+  prospectClose(input: $input) {
+    prospect {
+      ...ProspectDetailsFragment
+    }
+  }
+}
+    ${ProspectDetailsFragmentFragmentDoc}`;
+export type ProspectCloseMutationFn = Apollo.MutationFunction<ProspectCloseMutation, ProspectCloseMutationVariables>;
+
+/**
+ * __useProspectCloseMutation__
+ *
+ * To run a mutation, you first call `useProspectCloseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProspectCloseMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [prospectCloseMutation, { data, loading, error }] = useProspectCloseMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useProspectCloseMutation(baseOptions?: Apollo.MutationHookOptions<ProspectCloseMutation, ProspectCloseMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProspectCloseMutation, ProspectCloseMutationVariables>(ProspectCloseDocument, options);
+      }
+export type ProspectCloseMutationHookResult = ReturnType<typeof useProspectCloseMutation>;
+export type ProspectCloseMutationResult = Apollo.MutationResult<ProspectCloseMutation>;
+export type ProspectCloseMutationOptions = Apollo.BaseMutationOptions<ProspectCloseMutation, ProspectCloseMutationVariables>;
+export const ProspectConvertDocument = gql`
+    mutation ProspectConvert($input: ProspectConvertInput!) {
+  prospectConvert(input: $input) {
+    customer {
+      id
+      customerId
+      publicId
+    }
+  }
+}
+    `;
+export type ProspectConvertMutationFn = Apollo.MutationFunction<ProspectConvertMutation, ProspectConvertMutationVariables>;
+
+/**
+ * __useProspectConvertMutation__
+ *
+ * To run a mutation, you first call `useProspectConvertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProspectConvertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [prospectConvertMutation, { data, loading, error }] = useProspectConvertMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useProspectConvertMutation(baseOptions?: Apollo.MutationHookOptions<ProspectConvertMutation, ProspectConvertMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProspectConvertMutation, ProspectConvertMutationVariables>(ProspectConvertDocument, options);
+      }
+export type ProspectConvertMutationHookResult = ReturnType<typeof useProspectConvertMutation>;
+export type ProspectConvertMutationResult = Apollo.MutationResult<ProspectConvertMutation>;
+export type ProspectConvertMutationOptions = Apollo.BaseMutationOptions<ProspectConvertMutation, ProspectConvertMutationVariables>;
 export const SumsubPermalinkCreateDocument = gql`
     mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
   sumsubPermalinkCreate(input: $input) {
@@ -11052,80 +11131,6 @@ export type GetProspectBasicDetailsQueryHookResult = ReturnType<typeof useGetPro
 export type GetProspectBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsLazyQuery>;
 export type GetProspectBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsSuspenseQuery>;
 export type GetProspectBasicDetailsQueryResult = Apollo.QueryResult<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>;
-export const ProspectCloseDocument = gql`
-    mutation ProspectClose($input: ProspectCloseInput!) {
-  prospectClose(input: $input) {
-    prospect {
-      id
-      prospectId
-      status
-      kycStatus
-    }
-  }
-}
-    `;
-export type ProspectCloseMutationFn = Apollo.MutationFunction<ProspectCloseMutation, ProspectCloseMutationVariables>;
-
-/**
- * __useProspectCloseMutation__
- *
- * To run a mutation, you first call `useProspectCloseMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useProspectCloseMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [prospectCloseMutation, { data, loading, error }] = useProspectCloseMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useProspectCloseMutation(baseOptions?: Apollo.MutationHookOptions<ProspectCloseMutation, ProspectCloseMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ProspectCloseMutation, ProspectCloseMutationVariables>(ProspectCloseDocument, options);
-      }
-export type ProspectCloseMutationHookResult = ReturnType<typeof useProspectCloseMutation>;
-export type ProspectCloseMutationResult = Apollo.MutationResult<ProspectCloseMutation>;
-export type ProspectCloseMutationOptions = Apollo.BaseMutationOptions<ProspectCloseMutation, ProspectCloseMutationVariables>;
-export const ProspectConvertDocument = gql`
-    mutation ProspectConvert($input: ProspectConvertInput!) {
-  prospectConvert(input: $input) {
-    customer {
-      id
-      customerId
-    }
-  }
-}
-    `;
-export type ProspectConvertMutationFn = Apollo.MutationFunction<ProspectConvertMutation, ProspectConvertMutationVariables>;
-
-/**
- * __useProspectConvertMutation__
- *
- * To run a mutation, you first call `useProspectConvertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useProspectConvertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [prospectConvertMutation, { data, loading, error }] = useProspectConvertMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useProspectConvertMutation(baseOptions?: Apollo.MutationHookOptions<ProspectConvertMutation, ProspectConvertMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ProspectConvertMutation, ProspectConvertMutationVariables>(ProspectConvertDocument, options);
-      }
-export type ProspectConvertMutationHookResult = ReturnType<typeof useProspectConvertMutation>;
-export type ProspectConvertMutationResult = Apollo.MutationResult<ProspectConvertMutation>;
-export type ProspectConvertMutationOptions = Apollo.BaseMutationOptions<ProspectConvertMutation, ProspectConvertMutationVariables>;
 export const ProspectCreateDocument = gql`
     mutation ProspectCreate($input: ProspectCreateInput!) {
   prospectCreate(input: $input) {
