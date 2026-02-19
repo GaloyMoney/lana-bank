@@ -83,10 +83,10 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record(
                     "pending_credit_facility_id",
-                    tracing::field::display(entity.pending_secured_loan_id),
+                    tracing::field::display(entity.secured_loan_id),
                 );
 
-                self.update_collateralization_from_events(entity.pending_secured_loan_id)
+                self.update_collateralization_from_events(entity.secured_loan_id)
                     .await?;
             }
             _ => {}

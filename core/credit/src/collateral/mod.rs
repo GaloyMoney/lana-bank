@@ -27,7 +27,6 @@ use crate::{
 
 use es_entity::Idempotent;
 
-use crate::collateral::primitives::PendingSecuredLoanId;
 use crate::{CoreCreditEvent, primitives::*};
 
 use ledger::{
@@ -40,6 +39,7 @@ use jobs::wallet_collateral_sync;
 pub use {
     entity::{Collateral, CollateralAdjustment},
     liquidation::Liquidation,
+    primitives::*,
     repo::{CollateralRepo, liquidation_cursor},
 };
 
@@ -144,7 +144,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
-        pending_secured_loan_id: PendingSecuredLoanId,
+        secured_loan_id: SecuredLoanId,
         custody_wallet_id: Option<CustodyWalletId>,
         account_ids: CollateralLedgerAccountIds,
         facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
@@ -155,8 +155,7 @@ where
 
         let new_collateral = NewCollateral::builder()
             .id(collateral_id)
-            .secured_loan_id(pending_secured_loan_id)
-            .pending_secured_loan_id(pending_secured_loan_id)
+            .secured_loan_id(secured_loan_id)
             .custody_wallet_id(custody_wallet_id)
             .account_ids(account_ids)
             .facility_ledger_account_ids_for_liquidation(

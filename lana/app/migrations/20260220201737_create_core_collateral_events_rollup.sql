@@ -10,13 +10,12 @@ CREATE TABLE core_collateral_events_rollup (
   account_ids JSONB,
   amount BIGINT,
   collateral_amount BIGINT,
-  credit_facility_id UUID,
   custody_wallet_id UUID,
   direction VARCHAR,
   facility_ledger_account_ids_for_liquidation JSONB,
   liquidation_id UUID,
   payment_id UUID,
-  pending_credit_facility_id UUID,
+  secured_loan_id UUID,
 
   -- Collection rollups
   ledger_tx_ids UUID[]
@@ -60,7 +59,6 @@ BEGIN
     new_row.account_ids := (NEW.event -> 'account_ids');
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
-    new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
     new_row.direction := (NEW.event ->> 'direction');
     new_row.facility_ledger_account_ids_for_liquidation := (NEW.event -> 'facility_ledger_account_ids_for_liquidation');
@@ -72,31 +70,29 @@ BEGIN
 ;
     new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
-    new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
+    new_row.secured_loan_id := (NEW.event ->> 'secured_loan_id')::UUID;
   ELSE
     -- Default all fields to current values
     new_row.abs_diff := current_row.abs_diff;
     new_row.account_ids := current_row.account_ids;
     new_row.amount := current_row.amount;
     new_row.collateral_amount := current_row.collateral_amount;
-    new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.custody_wallet_id := current_row.custody_wallet_id;
     new_row.direction := current_row.direction;
     new_row.facility_ledger_account_ids_for_liquidation := current_row.facility_ledger_account_ids_for_liquidation;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.liquidation_id := current_row.liquidation_id;
     new_row.payment_id := current_row.payment_id;
-    new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
+    new_row.secured_loan_id := current_row.secured_loan_id;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_ids := (NEW.event -> 'account_ids');
-      new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
       new_row.facility_ledger_account_ids_for_liquidation := (NEW.event -> 'facility_ledger_account_ids_for_liquidation');
-      new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
+      new_row.secured_loan_id := (NEW.event ->> 'secured_loan_id')::UUID;
     WHEN 'updated_via_manual_input' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
       new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
@@ -132,14 +128,13 @@ BEGIN
     account_ids,
     amount,
     collateral_amount,
-    credit_facility_id,
     custody_wallet_id,
     direction,
     facility_ledger_account_ids_for_liquidation,
     ledger_tx_ids,
     liquidation_id,
     payment_id,
-    pending_credit_facility_id
+    secured_loan_id
   )
   VALUES (
     new_row.id,
@@ -151,14 +146,13 @@ BEGIN
     new_row.account_ids,
     new_row.amount,
     new_row.collateral_amount,
-    new_row.credit_facility_id,
     new_row.custody_wallet_id,
     new_row.direction,
     new_row.facility_ledger_account_ids_for_liquidation,
     new_row.ledger_tx_ids,
     new_row.liquidation_id,
     new_row.payment_id,
-    new_row.pending_credit_facility_id
+    new_row.secured_loan_id
   );
 
   RETURN NEW;
