@@ -14,11 +14,9 @@ version = "0.0.0"
 dependencies = [
  "admin-graphql-shared",
  "async-graphql",
- "es-entity",
  "lana-app",
  "rust_decimal",
  "serde",
- "thiserror 2.0.18",
  "workspace-hack",
 ]
 
@@ -30,7 +28,6 @@ dependencies = [
  "async-graphql",
  "es-entity",
  "lana-app",
- "tracing",
  "url",
  "workspace-hack",
 ]
@@ -41,7 +38,6 @@ version = "0.0.0"
 dependencies = [
  "admin-graphql-shared",
  "async-graphql",
- "es-entity",
  "lana-app",
  "workspace-hack",
 ]
@@ -52,7 +48,6 @@ version = "0.0.0"
 dependencies = [
  "admin-graphql-shared",
  "async-graphql",
- "es-entity",
  "lana-app",
  "workspace-hack",
 ]
@@ -96,7 +91,6 @@ dependencies = [
  "lana-app",
  "obix",
  "permission-sets-macro",
- "rust_decimal",
  "serde",
  "serde_json",
  "tokio",

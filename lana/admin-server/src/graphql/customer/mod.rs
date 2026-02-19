@@ -73,7 +73,7 @@ impl CustomerCrossDomain {
             .deposits()
             .list_accounts_by_created_at_for_account_holder(
                 sub,
-                CustomerId::from(self.entity.id),
+                self.entity.id,
                 Default::default(),
                 ListDirection::Descending,
             )

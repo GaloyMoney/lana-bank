@@ -37,7 +37,6 @@ serde_json = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
-rust_decimal = { workspace = true }
 anyhow = { workspace = true }
 
 futures = { workspace = true }
