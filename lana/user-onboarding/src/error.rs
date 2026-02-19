@@ -8,6 +8,8 @@ pub enum UserOnboardingError {
     Job(#[from] ::job::error::JobError),
     #[error("UserOnboardingError - KeycloakClientError: {0}")]
     KeycloakClient(#[from] keycloak_client::KeycloakClientError),
+    #[error("UserOnboardingError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
 impl ErrorSeverity for UserOnboardingError {
@@ -15,6 +17,7 @@ impl ErrorSeverity for UserOnboardingError {
         match self {
             Self::Job(_) => Level::ERROR,
             Self::KeycloakClient(e) => e.severity(),
+            Self::RegisterEventHandler(_) => Level::ERROR,
         }
     }
 }

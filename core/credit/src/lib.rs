@@ -34,7 +34,7 @@ use domain_config::{
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -346,15 +346,13 @@ where
             AllocateCreditFacilityPayment::new(collections_arc.clone());
         let allocate_credit_facility_payment_arc = Arc::new(allocate_credit_facility_payment);
 
-        let allocate_payment_job_spawner =
-            jobs.add_initializer(AllocateCreditFacilityPaymentInit::new(
-                outbox,
-                allocate_credit_facility_payment_arc.as_ref(),
-            ));
-        allocate_payment_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                AllocateCreditFacilityPaymentJobConfig::<Perms, E>::new(),
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(ALLOCATE_CREDIT_FACILITY_PAYMENT),
+                AllocateCreditFacilityPaymentHandler::new(
+                    allocate_credit_facility_payment_arc.as_ref(),
+                ),
             )
             .await?;
 
@@ -365,34 +363,27 @@ where
         );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
-        let approve_disbursal_job_spawner = jobs.add_initializer(DisbursalApprovalInit::new(
-            outbox,
-            approve_disbursal_arc.as_ref(),
-        ));
-        approve_disbursal_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                DisbursalApprovalJobConfig::<Perms, E>::new(),
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(DISBURSAL_APPROVE_JOB),
+                DisbursalApprovalHandler::new(approve_disbursal_arc.as_ref()),
             )
             .await?;
 
-        let credit_facility_activation_job_spawner = jobs.add_initializer(
-            CreditFacilityActivationInit::new(outbox, activate_credit_facility_arc.as_ref()),
-        );
-        credit_facility_activation_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                CreditFacilityActivationJobConfig::<Perms, E>::new(),
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CREDIT_FACILITY_ACTIVATE),
+                CreditFacilityActivationHandler::new(activate_credit_facility_arc.as_ref()),
             )
             .await?;
 
-        let credit_facility_proposal_approval_job_spawner = jobs.add_initializer(
-            CreditFacilityProposalApprovalInit::new(outbox, approve_proposal_arc.as_ref()),
-        );
-        credit_facility_proposal_approval_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CREDIT_FACILITY_PROPOSAL_APPROVE_JOB),
+                CreditFacilityProposalApprovalHandler::new(approve_proposal_arc.as_ref()),
             )
             .await?;
 

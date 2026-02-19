@@ -27,6 +27,7 @@ impl Default for DbOpConventionRule {
 struct FunctionVisitor<'a> {
     violations: Vec<Violation>,
     path: &'a Path,
+    in_trait_impl: bool,
 }
 
 impl<'a> FunctionVisitor<'a> {
@@ -34,6 +35,7 @@ impl<'a> FunctionVisitor<'a> {
         Self {
             violations: Vec::new(),
             path,
+            in_trait_impl: false,
         }
     }
 
@@ -176,7 +178,20 @@ impl<'a> Visit<'a> for FunctionVisitor<'a> {
         syn::visit::visit_item_fn(self, node);
     }
 
+    fn visit_item_impl(&mut self, node: &'a syn::ItemImpl) {
+        let prev = self.in_trait_impl;
+        self.in_trait_impl = node.trait_.is_some();
+        syn::visit::visit_item_impl(self, node);
+        self.in_trait_impl = prev;
+    }
+
     fn visit_impl_item_fn(&mut self, node: &'a syn::ImplItemFn) {
+        // Skip trait impl methods — the function name is dictated by the trait
+        if self.in_trait_impl {
+            syn::visit::visit_impl_item_fn(self, node);
+            return;
+        }
+
         let fn_name = node.sig.ident.to_string();
         let start_line = node.span().start().line;
 
@@ -399,6 +414,30 @@ mod tests {
         let violations = check_code(code);
         assert_eq!(violations.len(), 1);
         assert!(violations[0].message.contains("_in_op"));
+    }
+
+    #[test]
+    fn test_trait_impl_excluded() {
+        let code = r#"
+            impl<E> OutboxEventHandler<E> for MyHandler
+            where
+                E: OutboxEventMarker<MyEvent>,
+            {
+                async fn handle_persistent(
+                    &self,
+                    op: &mut es_entity::DbOp<'_>,
+                    event: &PersistentOutboxEvent<E>,
+                ) -> Result<(), Box<dyn std::error::Error>> {
+                    Ok(())
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert!(
+            violations.is_empty(),
+            "Trait impl methods should be excluded: {:?}",
+            violations
+        );
     }
 
     #[test]

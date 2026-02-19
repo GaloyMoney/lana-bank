@@ -1,15 +1,10 @@
-use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
-use tokio::select;
 use tracing::{Span, instrument};
-
-use futures::StreamExt;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use job::*;
-use obix::EventSequence;
-use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
+
+use job::JobType;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
@@ -18,36 +13,18 @@ use crate::{
 
 use super::AllocateCreditFacilityPayment;
 
-#[derive(Serialize, Deserialize, Default)]
-pub struct AllocateCreditFacilityPaymentJobConfig<Perms, E> {
-    pub _phantom: std::marker::PhantomData<(Perms, E)>,
-}
+pub const ALLOCATE_CREDIT_FACILITY_PAYMENT: JobType =
+    JobType::new("outbox.allocate-credit-facility-payment");
 
-impl<Perms, E> Clone for AllocateCreditFacilityPaymentJobConfig<Perms, E> {
-    fn clone(&self) -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-impl<Perms, E> AllocateCreditFacilityPaymentJobConfig<Perms, E> {
-    pub fn new() -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-
-pub struct AllocateCreditFacilityPaymentInit<Perms, E>
+pub struct AllocateCreditFacilityPaymentHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    outbox: Outbox<E>,
     process: AllocateCreditFacilityPayment<Perms, E>,
 }
 
-impl<Perms, E> AllocateCreditFacilityPaymentInit<Perms, E>
+impl<Perms, E> AllocateCreditFacilityPaymentHandler<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -56,18 +33,14 @@ where
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, process: &AllocateCreditFacilityPayment<Perms, E>) -> Self {
+    pub fn new(process: &AllocateCreditFacilityPayment<Perms, E>) -> Self {
         Self {
-            outbox: outbox.clone(),
             process: process.clone(),
         }
     }
 }
 
-const ALLOCATE_CREDIT_FACILITY_PAYMENT: JobType =
-    JobType::new("outbox.allocate-credit-facility-payment");
-
-impl<Perms, E> JobInitializer for AllocateCreditFacilityPaymentInit<Perms, E>
+impl<Perms, E> OutboxEventHandler<E> for AllocateCreditFacilityPaymentHandler<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -76,62 +49,18 @@ where
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    type Config = AllocateCreditFacilityPaymentJobConfig<Perms, E>;
-    fn job_type(&self) -> JobType {
-        ALLOCATE_CREDIT_FACILITY_PAYMENT
-    }
-
-    fn init(
+    #[instrument(name = "core_credit.allocate_credit_facility_payment_job.process_message_in_op", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
+    async fn handle_persistent(
         &self,
-        _: &Job,
-        _: JobSpawner<Self::Config>,
-    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(AllocateCreditFacilityPaymentJobRunner {
-            outbox: self.outbox.clone(),
-            process: self.process.clone(),
-        }))
-    }
-
-    fn retry_on_error_settings(&self) -> RetrySettings {
-        RetrySettings::repeat_indefinitely()
-    }
-}
-
-#[derive(Default, Clone, Deserialize, Serialize)]
-struct AllocateCreditFacilityPaymentJobData {
-    sequence: EventSequence,
-}
-
-pub struct AllocateCreditFacilityPaymentJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
-{
-    outbox: Outbox<E>,
-    process: AllocateCreditFacilityPayment<Perms, E>,
-}
-
-impl<Perms, E> AllocateCreditFacilityPaymentJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
-{
-    #[instrument(name = "core_credit.allocate_credit_facility_payment_job.process_message_in_op", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
-    async fn process_message_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+        op: &mut es_entity::DbOp<'_>,
+        event: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         use CoreCreditCollectionEvent::*;
 
-        if let Some(event @ PaymentCreated { entity }) = message.as_event() {
-            message.inject_trace_parent();
+        if let Some(e @ PaymentCreated { entity }) = event.as_event() {
+            event.inject_trace_parent();
             Span::current().record("handled", true);
-            Span::current().record("event_type", event.as_ref());
+            Span::current().record("event_type", e.as_ref());
             Span::current().record(
                 "credit_facility_id",
                 tracing::field::display(&entity.beneficiary_id),
@@ -139,7 +68,7 @@ where
 
             self.process
                 .execute_in_op(
-                    db,
+                    op,
                     entity.id,
                     &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
                         crate::primitives::CREDIT_FACILITY_PAYMENT_ALLOCATION,
@@ -148,60 +77,5 @@ where
                 .await?;
         }
         Ok(())
-    }
-}
-
-#[async_trait]
-impl<Perms, E> JobRunner for AllocateCreditFacilityPaymentJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
-{
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<AllocateCreditFacilityPaymentJobData>()?
-            .unwrap_or_default();
-
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
-
-        loop {
-            select! {
-                biased;
-
-                _ = current_job.shutdown_requested() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %ALLOCATE_CREDIT_FACILITY_PAYMENT,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
-                }
-                message = stream.next() => {
-                    match message {
-                        Some(message) => {
-                            let mut db = current_job.begin_op().await?;
-                            self.process_message_in_op(&mut db, &message).await?;
-
-                            state.sequence = message.sequence;
-                            current_job
-                                .update_execution_state_in_op(&mut db, &state)
-                                .await?;
-                            db.commit().await?;
-                        }
-                        None => {
-                            return Ok(JobCompletion::RescheduleNow);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

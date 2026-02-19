@@ -1,126 +1,41 @@
-use async_trait::async_trait;
-use futures::StreamExt;
-use serde::{Deserialize, Serialize};
-use tokio::select;
 use tracing::{Span, instrument};
 
-use job::*;
-use obix::out::PersistentOutboxEvent;
+use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{Outbox, repo::DashboardRepo, values::*};
+use job::JobType;
 
-#[derive(Serialize, Deserialize)]
-pub struct DashboardProjectionJobConfig;
+use crate::repo::DashboardRepo;
 
-pub struct DashboardProjectionInit {
-    outbox: Outbox,
+pub const DASHBOARD_PROJECTION_JOB: JobType = JobType::new("outbox.dashboard-projection");
+
+pub struct DashboardProjectionHandler {
     repo: DashboardRepo,
 }
 
-impl DashboardProjectionInit {
-    pub fn new(outbox: &Outbox, repo: &DashboardRepo) -> Self {
-        Self {
-            repo: repo.clone(),
-            outbox: outbox.clone(),
-        }
+impl DashboardProjectionHandler {
+    pub fn new(repo: &DashboardRepo) -> Self {
+        Self { repo: repo.clone() }
     }
 }
 
-const DASHBOARD_PROJECTION_JOB: JobType = JobType::new("outbox.dashboard-projection");
-impl JobInitializer for DashboardProjectionInit {
-    type Config = DashboardProjectionJobConfig;
-    fn job_type(&self) -> JobType {
-        DASHBOARD_PROJECTION_JOB
-    }
-
-    fn init(
+impl<E> OutboxEventHandler<E> for DashboardProjectionHandler
+where
+    E: OutboxEventMarker<lana_events::LanaEvent>,
+{
+    #[instrument(name = "dashboard.projection_job.process_message", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false))]
+    async fn handle_persistent(
         &self,
-        _: &Job,
-        _: JobSpawner<Self::Config>,
-    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(DashboardProjectionJobRunner {
-            outbox: self.outbox.clone(),
-            repo: self.repo.clone(),
-        }))
-    }
-
-    fn retry_on_error_settings(&self) -> RetrySettings {
-        RetrySettings::repeat_indefinitely()
-    }
-}
-
-#[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct DashboardProjectionJobData {
-    sequence: obix::EventSequence,
-    dashboard: DashboardValues,
-}
-
-pub struct DashboardProjectionJobRunner {
-    outbox: Outbox,
-    repo: DashboardRepo,
-}
-
-impl DashboardProjectionJobRunner {
-    #[instrument(name = "dashboard.projection_job.process_message", parent = None, skip(self, message, dashboard), fields(seq = %message.sequence, handled = false))]
-    async fn process_message(
-        &self,
-        message: &PersistentOutboxEvent<lana_events::LanaEvent>,
-        dashboard: &mut DashboardValues,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(payload) = &message.payload
-            && dashboard.process_event(message.recorded_at, payload)
+        op: &mut es_entity::DbOp<'_>,
+        event: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let mut dashboard = self.repo.load().await?;
+        if let Some(payload) = event.as_event::<lana_events::LanaEvent>()
+            && dashboard.process_event(event.recorded_at, payload)
         {
-            message.inject_trace_parent();
+            event.inject_trace_parent();
             Span::current().record("handled", true);
         }
+        self.repo.persist_in_tx(op.tx_mut(), &dashboard).await?;
         Ok(())
-    }
-}
-
-#[async_trait]
-impl JobRunner for DashboardProjectionJobRunner {
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<DashboardProjectionJobData>()?
-            .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
-
-        loop {
-            select! {
-                biased;
-
-                _ = current_job.shutdown_requested() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %DASHBOARD_PROJECTION_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
-                }
-                message = stream.next() => {
-                    match message {
-                        Some(message) => {
-                            let mut db = self.repo.begin().await?;
-                            self.process_message(&message, &mut state.dashboard).await?;
-                            self.repo.persist_in_tx(&mut db, &state.dashboard).await?;
-
-                            state.sequence = message.sequence;
-                            current_job
-                                .update_execution_state_in_op(&mut db, &state)
-                                .await?;
-
-                            db.commit().await?;
-                        }
-                        None => {
-                            return Ok(JobCompletion::RescheduleNow);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

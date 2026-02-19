@@ -16,10 +16,6 @@ impl DashboardRepo {
         Self { pool: pool.clone() }
     }
 
-    pub async fn begin(&self) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, DashboardError> {
-        Ok(self.pool.begin().await?)
-    }
-
     #[record_error_severity]
     #[tracing::instrument(name = "dashboard.persist_in_tx", skip_all)]
     pub async fn persist_in_tx(

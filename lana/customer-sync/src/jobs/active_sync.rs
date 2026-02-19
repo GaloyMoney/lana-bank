@@ -1,7 +1,3 @@
-use async_trait::async_trait;
-use futures::StreamExt;
-use serde::{Deserialize, Serialize};
-use tokio::select;
 use tracing::{Span, instrument};
 
 use audit::{AuditSvc, SystemSubject};
@@ -12,50 +8,37 @@ use core_deposit::{
     DepositAccountHolderStatus, GovernanceAction, GovernanceObject,
 };
 use governance::GovernanceEvent;
-use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::*;
+use job::JobType;
 
-#[derive(Serialize, Deserialize)]
-pub struct CustomerActiveSyncJobConfig<Perms, E> {
-    _phantom: std::marker::PhantomData<(Perms, E)>,
-}
-impl<Perms, E> CustomerActiveSyncJobConfig<Perms, E> {
-    pub fn new() -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
+pub const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("outbox.customer-active-sync");
 
-pub struct CustomerActiveSyncInit<Perms, E>
+pub struct CustomerActiveSyncHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    outbox: Outbox<E>,
     deposit: CoreDeposit<Perms, E>,
 }
 
-impl<Perms, E> CustomerActiveSyncInit<Perms, E>
+impl<Perms, E> CustomerActiveSyncHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, deposit: &CoreDeposit<Perms, E>) -> Self {
+    pub fn new(deposit: &CoreDeposit<Perms, E>) -> Self {
         Self {
-            outbox: outbox.clone(),
             deposit: deposit.clone(),
         }
     }
 }
 
-const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("outbox.customer-active-sync");
-impl<Perms, E> JobInitializer for CustomerActiveSyncInit<Perms, E>
+impl<Perms, E> OutboxEventHandler<E> for CustomerActiveSyncHandler<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -66,77 +49,38 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Config = CustomerActiveSyncJobConfig<Perms, E>;
-    fn job_type(&self) -> JobType {
-        CUSTOMER_ACTIVE_SYNC
-    }
-
-    fn init(
+    #[instrument(name = "customer_sync.active_sync_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn handle_persistent(
         &self,
-        _: &Job,
-        _: JobSpawner<Self::Config>,
-    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CustomerActiveSyncJobRunner {
-            outbox: self.outbox.clone(),
-            deposit: self.deposit.clone(),
-        }))
-    }
-
-    fn retry_on_error_settings(&self) -> RetrySettings {
-        RetrySettings::repeat_indefinitely()
-    }
-}
-
-#[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct CustomerActiveSyncJobData {
-    sequence: obix::EventSequence,
-}
-
-pub struct CustomerActiveSyncJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    outbox: Outbox<E>,
-    deposit: CoreDeposit<Perms, E>,
-}
-
-impl<Perms, E> CustomerActiveSyncJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    #[instrument(name = "customer_sync.active_sync_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-    #[allow(clippy::single_match)]
-    async fn process_message(
-        &self,
-        message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        match message.as_event() {
-            Some(event @ CoreCustomerEvent::CustomerCreated { entity }) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-                self.handle_customer_created(entity.id).await?;
-            }
-            _ => {}
+        _op: &mut es_entity::DbOp<'_>,
+        event: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        if let Some(e @ CoreCustomerEvent::CustomerCreated { entity }) = event.as_event() {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", e.as_ref());
+            self.handle_customer_created(entity.id).await?;
         }
         Ok(())
     }
+}
 
+impl<Perms, E> CustomerActiveSyncHandler<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
+{
     #[instrument(name = "customer_sync.active_sync_job.handle", skip(self), fields(id = ?id))]
     async fn handle_customer_created(
         &self,
         id: core_customer::CustomerId,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         self.deposit
             .update_account_status_for_holder(
                 &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
@@ -147,56 +91,5 @@ where
             )
             .await?;
         Ok(())
-    }
-}
-
-#[async_trait]
-impl<Perms, E> JobRunner for CustomerActiveSyncJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<CustomerActiveSyncJobData>()?
-            .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
-
-        loop {
-            select! {
-                biased;
-
-                _ = current_job.shutdown_requested() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %CUSTOMER_ACTIVE_SYNC,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
-                }
-                message = stream.next() => {
-                    match message {
-                        Some(message) => {
-                            self.process_message(message.as_ref()).await?;
-                            state.sequence = message.sequence;
-                            current_job.update_execution_state(&state).await?;
-                        }
-                        None => {
-                            return Ok(JobCompletion::RescheduleNow);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

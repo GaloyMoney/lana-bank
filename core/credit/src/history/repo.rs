@@ -16,12 +16,6 @@ impl HistoryRepo {
         Self { pool: pool.clone() }
     }
 
-    pub async fn begin(
-        &self,
-    ) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, CreditFacilityHistoryError> {
-        Ok(self.pool.begin().await?)
-    }
-
     #[record_error_severity]
     #[tracing::instrument(name = "credit_facility_history.persist_in_tx", skip_all)]
     pub async fn persist_in_tx(

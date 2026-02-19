@@ -15,6 +15,8 @@ pub enum NotificationError {
     DomainConfig(#[from] domain_config::DomainConfigError),
     #[error("NotificationError - Authorization: {0}")]
     Authorization(#[from] authz::error::AuthorizationError),
+    #[error("NotificationError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
 impl ErrorSeverity for NotificationError {
@@ -24,6 +26,7 @@ impl ErrorSeverity for NotificationError {
             Self::Job(_) => Level::ERROR,
             Self::DomainConfig(e) => e.severity(),
             Self::Authorization(e) => e.severity(),
+            Self::RegisterEventHandler(_) => Level::ERROR,
         }
     }
 }

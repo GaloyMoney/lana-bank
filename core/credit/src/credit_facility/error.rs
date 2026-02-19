@@ -76,6 +76,8 @@ pub enum CreditFacilityError {
     PaymentAllocationError(#[from] core_credit_collection::PaymentAllocationError),
     #[error("CreditFacilityError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("CreditFacilityError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
     #[error("CreditFacilityError - CreditFacilityProposalError: {0}")]
     CreditFacilityProposalError(
         #[from] crate::pending_credit_facility::error::PendingCreditFacilityError,
@@ -119,6 +121,7 @@ impl ErrorSeverity for CreditFacilityError {
             Self::PublicIdError(e) => e.severity(),
             Self::PaymentAllocationError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
+            Self::RegisterEventHandler(_) => Level::ERROR,
             Self::CreditFacilityProposalError(e) => e.severity(),
             Self::CollateralError(e) => e.severity(),
         }

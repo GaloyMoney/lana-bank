@@ -11,7 +11,7 @@ use sqlx::PgPool;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use lana_events::LanaEvent;
+use obix::out::OutboxEventJobConfig;
 use tracing_macros::record_error_severity;
 
 use error::*;
@@ -20,7 +20,7 @@ pub use primitives::*;
 use repo::*;
 pub use values::*;
 
-pub type Outbox = obix::Outbox<LanaEvent>;
+pub type Outbox = obix::Outbox<lana_events::LanaEvent>;
 
 pub struct Dashboard<Perms>
 where
@@ -56,11 +56,13 @@ where
         outbox: &Outbox,
     ) -> Result<Self, DashboardError> {
         let repo = DashboardRepo::new(pool);
-        let dashboard_projection_job_spawner =
-            jobs.add_initializer(DashboardProjectionInit::new(outbox, &repo));
 
-        dashboard_projection_job_spawner
-            .spawn_unique(::job::JobId::new(), DashboardProjectionJobConfig)
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(DASHBOARD_PROJECTION_JOB),
+                DashboardProjectionHandler::new(&repo),
+            )
             .await?;
 
         Ok(Self {

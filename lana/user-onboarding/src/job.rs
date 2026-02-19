@@ -1,162 +1,42 @@
-use async_trait::async_trait;
 use core_access::CoreAccessEvent;
-use serde::{Deserialize, Serialize};
-use tokio::select;
 use tracing::{Span, instrument};
 
-use futures::StreamExt;
+use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::*;
-
-use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
-
+use job::JobType;
 use keycloak_client::KeycloakClient;
 
-#[derive(Serialize, Deserialize)]
-pub struct UserOnboardingJobConfig<E> {
-    _phantom: std::marker::PhantomData<E>,
-}
-impl<E> UserOnboardingJobConfig<E> {
-    pub fn new() -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
+pub const USER_ONBOARDING_JOB: JobType = JobType::new("outbox.user-onboarding");
 
-impl<E> Clone for UserOnboardingJobConfig<E> {
-    fn clone(&self) -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-
-pub struct UserOnboardingInit<E>
-where
-    E: OutboxEventMarker<CoreAccessEvent>,
-{
-    outbox: Outbox<E>,
+pub struct UserOnboardingHandler {
     keycloak_client: KeycloakClient,
 }
 
-impl<E> UserOnboardingInit<E>
-where
-    E: OutboxEventMarker<CoreAccessEvent>,
-{
-    pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
-        Self {
-            outbox: outbox.clone(),
-            keycloak_client,
-        }
+impl UserOnboardingHandler {
+    pub fn new(keycloak_client: KeycloakClient) -> Self {
+        Self { keycloak_client }
     }
 }
 
-const USER_ONBOARDING_JOB: JobType = JobType::new("outbox.user-onboarding");
-impl<E> JobInitializer for UserOnboardingInit<E>
+impl<E> OutboxEventHandler<E> for UserOnboardingHandler
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    type Config = UserOnboardingJobConfig<E>;
-    fn job_type(&self) -> JobType {
-        USER_ONBOARDING_JOB
-    }
-
-    fn init(
+    #[instrument(name = "user_onboarding.job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn handle_persistent(
         &self,
-        _: &Job,
-        _: JobSpawner<Self::Config>,
-    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UserOnboardingJobRunner::<E> {
-            outbox: self.outbox.clone(),
-            keycloak_client: self.keycloak_client.clone(),
-        }))
-    }
+        _op: &mut es_entity::DbOp<'_>,
+        event: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        if let Some(access_event @ CoreAccessEvent::UserCreated { entity }) = event.as_event() {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", access_event.as_ref());
 
-    fn retry_on_error_settings(&self) -> RetrySettings {
-        RetrySettings::repeat_indefinitely()
-    }
-}
-
-#[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct UserOnboardingJobData {
-    sequence: obix::EventSequence,
-}
-
-pub struct UserOnboardingJobRunner<E>
-where
-    E: OutboxEventMarker<CoreAccessEvent>,
-{
-    outbox: Outbox<E>,
-    keycloak_client: KeycloakClient,
-}
-
-impl<E> UserOnboardingJobRunner<E>
-where
-    E: OutboxEventMarker<CoreAccessEvent>,
-{
-    #[instrument(name = "user_onboarding.job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-    #[allow(clippy::single_match)]
-    async fn process_message(
-        &self,
-        message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        match message.as_event() {
-            Some(event @ CoreAccessEvent::UserCreated { entity }) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-
-                self.keycloak_client
-                    .create_user(entity.email.clone(), entity.id.into())
-                    .await?;
-            }
-            _ => {}
+            self.keycloak_client
+                .create_user(entity.email.clone(), entity.id.into())
+                .await?;
         }
         Ok(())
-    }
-}
-
-#[async_trait]
-impl<E> JobRunner for UserOnboardingJobRunner<E>
-where
-    E: OutboxEventMarker<CoreAccessEvent>,
-{
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<UserOnboardingJobData>()?
-            .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
-
-        loop {
-            select! {
-                biased;
-
-                _ = current_job.shutdown_requested() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %USER_ONBOARDING_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
-                }
-                message = stream.next() => {
-                    match message {
-                        Some(message) => {
-                            self.process_message(message.as_ref()).await?;
-                            state.sequence = message.sequence;
-                            current_job.update_execution_state(&state).await?;
-                        }
-                        None => {
-                            return Ok(JobCompletion::RescheduleNow);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

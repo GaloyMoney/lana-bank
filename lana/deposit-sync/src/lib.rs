@@ -7,7 +7,7 @@ mod job;
 use error::*;
 use job::*;
 
-use ::job::{JobId, Jobs};
+use ::job::Jobs;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
@@ -16,7 +16,7 @@ use core_deposit::{
     GovernanceObject,
 };
 use governance::GovernanceEvent;
-use obix::out::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use sumsub::SumsubClient;
 use tracing_macros::record_error_severity;
 
@@ -74,15 +74,12 @@ where
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
     ) -> Result<Self, DepositSyncError> {
-        let sumsub_export_job_spawner = jobs.add_initializer(SumsubExportInit::new(
-            outbox,
-            sumsub_client,
-            deposits,
-            customers,
-        ));
-
-        sumsub_export_job_spawner
-            .spawn_unique(JobId::new(), SumsubExportJobConfig::new())
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(SUMSUB_EXPORT_JOB),
+                SumsubExportHandler::new(sumsub_client, deposits, customers),
+            )
             .await?;
 
         Ok(Self {

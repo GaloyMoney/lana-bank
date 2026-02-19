@@ -14,6 +14,8 @@ pub enum DepositSyncError {
     DecimalConversion(#[from] rust_decimal::Error),
     #[error("DepositSyncError - CoreDepositError: {0}")]
     CoreDeposit(#[from] core_deposit::error::CoreDepositError),
+    #[error("DepositSyncError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
 impl ErrorSeverity for DepositSyncError {
@@ -24,6 +26,7 @@ impl ErrorSeverity for DepositSyncError {
             Self::CoreMoney(e) => e.severity(),
             Self::DecimalConversion(_) => Level::ERROR,
             Self::CoreDeposit(e) => e.severity(),
+            Self::RegisterEventHandler(_) => Level::ERROR,
         }
     }
 }

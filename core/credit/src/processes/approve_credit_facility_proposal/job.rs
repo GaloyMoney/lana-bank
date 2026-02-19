@@ -1,70 +1,35 @@
-use async_trait::async_trait;
-use futures::StreamExt;
-use serde::{Deserialize, Serialize};
-use tokio::select;
 use tracing::{Span, instrument};
-
-use job::*;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
-use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
+
+use job::JobType;
 
 use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 use core_credit_collection::CoreCreditCollectionEvent;
 
 use super::ApproveCreditFacilityProposal;
 
-#[derive(Serialize, Deserialize)]
-pub struct CreditFacilityProposalApprovalJobConfig<Perms, E> {
-    _phantom: std::marker::PhantomData<(Perms, E)>,
-}
-impl<Perms, E> Clone for CreditFacilityProposalApprovalJobConfig<Perms, E> {
-    fn clone(&self) -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-impl<Perms, E> CreditFacilityProposalApprovalJobConfig<Perms, E> {
-    pub fn new() -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
+pub const CREDIT_FACILITY_PROPOSAL_APPROVE_JOB: JobType =
+    JobType::new("outbox.credit-facility-proposal-approval");
 
-impl<Perms, E> Default for CreditFacilityProposalApprovalJobConfig<Perms, E> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-pub(crate) struct CreditFacilityProposalApprovalInit<Perms, E>
+pub(crate) struct CreditFacilityProposalApprovalHandler<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
-        + From<GovernanceAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
-        + From<GovernanceObject>
-        + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    outbox: Outbox<E>,
     process: ApproveCreditFacilityProposal<Perms, E>,
 }
 
-impl<Perms, E> CreditFacilityProposalApprovalInit<Perms, E>
+impl<Perms, E> CreditFacilityProposalApprovalHandler<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -81,17 +46,14 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, process: &ApproveCreditFacilityProposal<Perms, E>) -> Self {
+    pub fn new(process: &ApproveCreditFacilityProposal<Perms, E>) -> Self {
         Self {
             process: process.clone(),
-            outbox: outbox.clone(),
         }
     }
 }
 
-const CREDIT_FACILITY_PROPOSAL_APPROVE_JOB: JobType =
-    JobType::new("outbox.credit-facility-proposal-approval");
-impl<Perms, E> JobInitializer for CreditFacilityProposalApprovalInit<Perms, E>
+impl<Perms, E> OutboxEventHandler<E> for CreditFacilityProposalApprovalHandler<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -108,74 +70,19 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    type Config = CreditFacilityProposalApprovalJobConfig<Perms, E>;
-    fn job_type(&self) -> JobType {
-        CREDIT_FACILITY_PROPOSAL_APPROVE_JOB
-    }
-
-    fn init(
+    #[instrument(name = "core_credit.credit_facility_proposal_approval_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
+    async fn handle_persistent(
         &self,
-        _: &Job,
-        _: JobSpawner<Self::Config>,
-    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProposalApprovalJobRunner {
-            outbox: self.outbox.clone(),
-            process: self.process.clone(),
-        }))
-    }
-
-    fn retry_on_error_settings(&self) -> RetrySettings {
-        RetrySettings::repeat_indefinitely()
-    }
-}
-
-#[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
-struct CreditFacilityProposalApprovalJobData {
-    sequence: obix::EventSequence,
-}
-
-pub struct CreditFacilityProposalApprovalJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    outbox: Outbox<E>,
-    process: ApproveCreditFacilityProposal<Perms, E>,
-}
-
-impl<Perms, E> CreditFacilityProposalApprovalJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
-        + From<GovernanceAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
-        + From<GovernanceObject>
-        + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    #[instrument(name = "core_credit.credit_facility_proposal_approval_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
-    async fn process_message(
-        &self,
-        message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        match message.as_event() {
-            Some(event @ GovernanceEvent::ApprovalProcessConcluded { entity })
+        _op: &mut es_entity::DbOp<'_>,
+        event: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        match event.as_event() {
+            Some(e @ GovernanceEvent::ApprovalProcessConcluded { entity })
                 if entity.process_type == super::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS =>
             {
-                message.inject_trace_parent();
+                event.inject_trace_parent();
                 Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
+                Span::current().record("event_type", e.as_ref());
                 Span::current().record(
                     "credit_facility_proposal_id",
                     tracing::field::display(entity.id),
@@ -191,62 +98,5 @@ where
             _ => {}
         }
         Ok(())
-    }
-}
-
-#[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityProposalApprovalJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
-        + From<GovernanceAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
-        + From<GovernanceObject>
-        + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<CreditFacilityProposalApprovalJobData>()?
-            .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
-
-        loop {
-            select! {
-                biased;
-
-                _ = current_job.shutdown_requested() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %CREDIT_FACILITY_PROPOSAL_APPROVE_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
-                }
-                message = stream.next() => {
-                    match message {
-                        Some(message) => {
-                                self.process_message(message.as_ref()).await?;
-                                state.sequence = message.sequence;
-                                current_job.update_execution_state(&state).await?;
-                            }
-                        None => {
-                            return Ok(JobCompletion::RescheduleNow);
-                        }
-                    }
-                }
-            }
-        }
     }
 }
