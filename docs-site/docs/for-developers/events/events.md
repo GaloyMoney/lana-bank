@@ -48,16 +48,16 @@ Events related to credit facility lifecycle and operations.
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `FacilityProposalCreated` | A credit facility proposal was created | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `FacilityActivated` | A credit facility was activated | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
-| `FacilityCompleted` | A credit facility was fully repaid and closed | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
+| `FacilityActivated` | A credit facility was activated | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
+| `FacilityCompleted` | A credit facility was fully repaid and closed | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 
 ### Collateral Events
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `PendingCreditFacilityCollateralizationChanged` | Collateralization state changed for pending facility | `collateral`, `effective`, `id`, `price`, `recorded_at`, `state` |
+| `PendingCreditFacilityCollateralizationChanged` | Collateralization state changed for pending facility | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
 | `FacilityCollateralUpdated` | Collateral amount was updated | `entity.adjustment`, `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.pending_credit_facility_id` |
-| `FacilityCollateralizationChanged` | Collateralization state changed for active facility | `collateral`, `customer_id`, `effective`, `id`, `outstanding`, `price`, `recorded_at`, `state` |
+| `FacilityCollateralizationChanged` | Collateralization state changed for active facility | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 
 ### Payment Events
 
@@ -70,15 +70,15 @@ Events related to credit facility lifecycle and operations.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `PartialLiquidationInitiated` | A partial liquidation was initiated | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
+| `PartialLiquidationInitiated` | A partial liquidation was initiated | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 | `PartialLiquidationCollateralSentOut` | Collateral was sent for liquidation | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at` |
-| `PartialLiquidationProceedsReceived` | Liquidation proceeds were received | `amount`, `credit_facility_id`, `effective`, `facility_payment_holding_account_id`, `facility_proceeds_from_liquidation_account_id`, `facility_uncovered_outstanding_account_id`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
+| `PartialLiquidationProceedsReceived` | Liquidation proceeds were received | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
 | `PartialLiquidationCompleted` | Liquidation was completed | `credit_facility_id`, `liquidation_id` |
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `FacilityProposalConcluded` | No description available | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `PendingCreditFacilityCompleted` | No description available | `entity.amount`, `entity.collateralization_state`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `PendingCreditFacilityCompleted` | No description available | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
 
 ---
 
@@ -98,9 +98,16 @@ Events related to customer lifecycle and KYC.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `CustomerCreated` | A new customer was created | `entity.customer_type`, `entity.email`, `entity.id`, `entity.kyc_verification` |
-| `CustomerKycUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id`, `entity.kyc_verification` |
-| `CustomerEmailUpdated` | Customer email was updated | `entity.customer_type`, `entity.email`, `entity.id`, `entity.kyc_verification` |
+| `CustomerCreated` | A new customer was created | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
+| `CustomerKycUpdated` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
+| `PartyCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
+| `PartyEmailUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
+| `ProspectCreated` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectKycStarted` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectKycPending` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectKycDeclined` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectConverted` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectClosed` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
 
 ---
 
