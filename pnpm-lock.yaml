@@ -5,7 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  qs: '>=6.14.2'
   lodash-es: '>=4.17.23'
   systeminformation: '>=5.31.0'
 
