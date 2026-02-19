@@ -100,33 +100,27 @@ where
                 credit_event @ CoreCreditEvent::FacilityCollateralizationChanged { entity },
             )) if matches!(
                 entity.collateralization,
-                core_credit::FacilityCollateralization::UnderMarginCallThreshold { .. }
+                core_credit::FacilityCollateralization::UnderMarginCallThreshold(_)
             ) =>
             {
                 event.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", credit_event.as_ref());
 
-                if let core_credit::FacilityCollateralization::UnderMarginCallThreshold {
-                    collateral,
-                    outstanding,
-                    price,
-                } = &entity.collateralization
-                {
-                    let effective = event.recorded_at.date_naive();
-                    self.email_notification
-                        .send_under_margin_call_notification_in_op(
-                            op,
-                            &entity.id,
-                            &entity.customer_id,
-                            &effective,
-                            collateral,
-                            &outstanding.disbursed,
-                            &outstanding.interest,
-                            price,
-                        )
-                        .await?;
-                }
+                let d = entity.collateralization.data();
+                let effective = event.recorded_at.date_naive();
+                self.email_notification
+                    .send_under_margin_call_notification_in_op(
+                        op,
+                        &entity.id,
+                        &entity.customer_id,
+                        &effective,
+                        &d.collateral,
+                        &d.outstanding.disbursed,
+                        &d.outstanding.interest,
+                        &d.price,
+                    )
+                    .await?;
             }
             Some(LanaEvent::Deposit(
                 deposit_event @ CoreDepositEvent::DepositAccountCreated { entity },

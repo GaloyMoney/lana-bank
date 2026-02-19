@@ -2698,48 +2698,18 @@ impl Subscription {
                     if entity.id == credit_facility_id =>
                 {
                     let collateralization = &entity.collateralization;
-                    let (state, collateral, outstanding_interest, outstanding_disbursal, price) =
-                        match collateralization {
-                            lana_app::credit::FacilityCollateralization::FullyCollateralized {
-                                collateral,
-                                outstanding,
-                                price,
-                            }
-                            | lana_app::credit::FacilityCollateralization::UnderMarginCallThreshold {
-                                collateral,
-                                outstanding,
-                                price,
-                            }
-                            | lana_app::credit::FacilityCollateralization::UnderLiquidationThreshold {
-                                collateral,
-                                outstanding,
-                                price,
-                            } => (
-                                collateralization.state(),
-                                *collateral,
-                                outstanding.interest,
-                                outstanding.disbursed,
-                                *price,
-                            ),
-                            lana_app::credit::FacilityCollateralization::NoCollateral
-                            | lana_app::credit::FacilityCollateralization::NoExposure => (
-                                collateralization.state(),
-                                Satoshis::ZERO,
-                                UsdCents::ZERO,
-                                UsdCents::ZERO,
-                                lana_app::primitives::PriceOfOneBTC::new(UsdCents::ZERO),
-                            ),
-                        };
+                    let state = collateralization.state();
+                    let d = collateralization.data();
                     Some(CreditFacilityCollateralizationPayload {
                         credit_facility_id,
                         update: CreditFacilityCollateralizationUpdated {
                             state,
-                            collateral,
-                            outstanding_interest,
-                            outstanding_disbursal,
+                            collateral: d.collateral,
+                            outstanding_interest: d.outstanding.interest,
+                            outstanding_disbursal: d.outstanding.disbursed,
                             recorded_at: message.recorded_at.into(),
                             effective: message.recorded_at.date_naive().into(),
-                            price: price.into_inner(),
+                            price: d.price.into_inner(),
                         },
                     })
                 }

@@ -26,6 +26,25 @@
         }
       ]
     },
+    "CollateralizationData": {
+      "properties": {
+        "collateral": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "outstanding": {
+          "$ref": "#/$defs/CreditFacilityReceivable"
+        },
+        "price": {
+          "$ref": "#/$defs/PriceOfOneBTC"
+        }
+      },
+      "required": [
+        "collateral",
+        "outstanding",
+        "price"
+      ],
+      "type": "object"
+    },
     "CollateralizationRatio": {
       "oneOf": [
         {
@@ -183,23 +202,7 @@
           "additionalProperties": false,
           "properties": {
             "FullyCollateralized": {
-              "properties": {
-                "collateral": {
-                  "$ref": "#/$defs/Satoshis"
-                },
-                "outstanding": {
-                  "$ref": "#/$defs/CreditFacilityReceivable"
-                },
-                "price": {
-                  "$ref": "#/$defs/PriceOfOneBTC"
-                }
-              },
-              "required": [
-                "collateral",
-                "outstanding",
-                "price"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/CollateralizationData"
             }
           },
           "required": [
@@ -211,23 +214,7 @@
           "additionalProperties": false,
           "properties": {
             "UnderMarginCallThreshold": {
-              "properties": {
-                "collateral": {
-                  "$ref": "#/$defs/Satoshis"
-                },
-                "outstanding": {
-                  "$ref": "#/$defs/CreditFacilityReceivable"
-                },
-                "price": {
-                  "$ref": "#/$defs/PriceOfOneBTC"
-                }
-              },
-              "required": [
-                "collateral",
-                "outstanding",
-                "price"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/CollateralizationData"
             }
           },
           "required": [
@@ -239,23 +226,7 @@
           "additionalProperties": false,
           "properties": {
             "UnderLiquidationThreshold": {
-              "properties": {
-                "collateral": {
-                  "$ref": "#/$defs/Satoshis"
-                },
-                "outstanding": {
-                  "$ref": "#/$defs/CreditFacilityReceivable"
-                },
-                "price": {
-                  "$ref": "#/$defs/PriceOfOneBTC"
-                }
-              },
-              "required": [
-                "collateral",
-                "outstanding",
-                "price"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/CollateralizationData"
             }
           },
           "required": [

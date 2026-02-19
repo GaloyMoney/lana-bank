@@ -189,51 +189,34 @@ pub struct CreditFacility {
     events: EntityEvents<CreditFacilityEvent>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct CollateralizationData {
+    pub collateral: Satoshis,
+    pub outstanding: CreditFacilityReceivable,
+    pub price: PriceOfOneBTC,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum FacilityCollateralization {
-    FullyCollateralized {
-        collateral: Satoshis,
-        outstanding: CreditFacilityReceivable,
-        price: PriceOfOneBTC,
-    },
-    UnderMarginCallThreshold {
-        collateral: Satoshis,
-        outstanding: CreditFacilityReceivable,
-        price: PriceOfOneBTC,
-    },
-    UnderLiquidationThreshold {
-        collateral: Satoshis,
-        outstanding: CreditFacilityReceivable,
-        price: PriceOfOneBTC,
-    },
+    FullyCollateralized(CollateralizationData),
+    UnderMarginCallThreshold(CollateralizationData),
+    UnderLiquidationThreshold(CollateralizationData),
     NoCollateral,
     NoExposure,
 }
 
 impl FacilityCollateralization {
-    pub fn new(
-        state: CollateralizationState,
-        collateral: Satoshis,
-        outstanding: CreditFacilityReceivable,
-        price: PriceOfOneBTC,
-    ) -> Self {
+    pub fn new(state: CollateralizationState, data: CollateralizationData) -> Self {
         match state {
-            CollateralizationState::FullyCollateralized => Self::FullyCollateralized {
-                collateral,
-                outstanding,
-                price,
-            },
-            CollateralizationState::UnderMarginCallThreshold => Self::UnderMarginCallThreshold {
-                collateral,
-                outstanding,
-                price,
-            },
-            CollateralizationState::UnderLiquidationThreshold => Self::UnderLiquidationThreshold {
-                collateral,
-                outstanding,
-                price,
-            },
+            CollateralizationState::FullyCollateralized => Self::FullyCollateralized(data),
+            CollateralizationState::UnderMarginCallThreshold => {
+                Self::UnderMarginCallThreshold(data)
+            }
+            CollateralizationState::UnderLiquidationThreshold => {
+                Self::UnderLiquidationThreshold(data)
+            }
             CollateralizationState::NoCollateral => Self::NoCollateral,
             CollateralizationState::NoExposure => Self::NoExposure,
         }
@@ -241,20 +224,32 @@ impl FacilityCollateralization {
 
     pub fn state(&self) -> CollateralizationState {
         match self {
-            Self::FullyCollateralized { .. } => CollateralizationState::FullyCollateralized,
-            Self::UnderMarginCallThreshold { .. } => {
-                CollateralizationState::UnderMarginCallThreshold
-            }
-            Self::UnderLiquidationThreshold { .. } => {
-                CollateralizationState::UnderLiquidationThreshold
-            }
+            Self::FullyCollateralized(_) => CollateralizationState::FullyCollateralized,
+            Self::UnderMarginCallThreshold(_) => CollateralizationState::UnderMarginCallThreshold,
+            Self::UnderLiquidationThreshold(_) => CollateralizationState::UnderLiquidationThreshold,
             Self::NoCollateral => CollateralizationState::NoCollateral,
             Self::NoExposure => CollateralizationState::NoExposure,
         }
     }
 
+    pub fn data(&self) -> CollateralizationData {
+        match self {
+            Self::FullyCollateralized(d)
+            | Self::UnderMarginCallThreshold(d)
+            | Self::UnderLiquidationThreshold(d) => *d,
+            Self::NoCollateral | Self::NoExposure => CollateralizationData {
+                collateral: Satoshis::ZERO,
+                outstanding: CreditFacilityReceivable {
+                    disbursed: UsdCents::ZERO,
+                    interest: UsdCents::ZERO,
+                },
+                price: PriceOfOneBTC::new(UsdCents::ZERO),
+            },
+        }
+    }
+
     pub fn is_under_liquidation_threshold(&self) -> bool {
-        matches!(self, Self::UnderLiquidationThreshold { .. })
+        matches!(self, Self::UnderLiquidationThreshold(_))
     }
 }
 
@@ -723,7 +718,14 @@ impl CreditFacility {
         };
 
         let new_collateralization = new_state.map(|state| {
-            FacilityCollateralization::new(state, balances.collateral(), balances.into(), price)
+            FacilityCollateralization::new(
+                state,
+                CollateralizationData {
+                    collateral: balances.collateral(),
+                    outstanding: balances.into(),
+                    price,
+                },
+            )
         });
 
         if let Some(collateralization) = new_collateralization {
@@ -973,14 +975,16 @@ mod test {
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),
             activated_at: activated_at(),
             maturity_date: EffectiveDate::from(activated_at() + chrono::Duration::days(90)),
-            collateralization: FacilityCollateralization::FullyCollateralized {
-                collateral: Satoshis::from(1_000_000),
-                outstanding: CreditFacilityReceivable {
-                    disbursed: default_facility(),
-                    interest: UsdCents::ZERO,
+            collateralization: FacilityCollateralization::FullyCollateralized(
+                CollateralizationData {
+                    collateral: Satoshis::from(1_000_000),
+                    outstanding: CreditFacilityReceivable {
+                        disbursed: default_facility(),
+                        interest: UsdCents::ZERO,
+                    },
+                    price: default_price(),
                 },
-                price: default_price(),
-            },
+            ),
         }]
     }
 
@@ -1206,7 +1210,7 @@ mod test {
             assert!(state_update.did_execute());
             assert!(matches!(
                 state_update.unwrap(),
-                Some(FacilityCollateralization::UnderLiquidationThreshold { .. })
+                Some(FacilityCollateralization::UnderLiquidationThreshold(_))
             ));
 
             let liquidation_id = credit_facility
@@ -1260,7 +1264,7 @@ mod test {
             assert!(state_update.did_execute());
             assert!(matches!(
                 state_update.unwrap(),
-                Some(FacilityCollateralization::FullyCollateralized { .. })
+                Some(FacilityCollateralization::FullyCollateralized(_))
             ));
 
             // Acknowledge liquidation payment
@@ -1279,7 +1283,7 @@ mod test {
             assert!(state_update.did_execute());
             assert!(matches!(
                 state_update.unwrap(),
-                Some(FacilityCollateralization::UnderLiquidationThreshold { .. })
+                Some(FacilityCollateralization::UnderLiquidationThreshold(_))
             ));
 
             // Second liquidation (with different ID) is initiated

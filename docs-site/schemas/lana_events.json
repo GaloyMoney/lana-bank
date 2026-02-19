@@ -293,14 +293,23 @@
         "Remove"
       ]
     },
-    "CollateralizationState": {
-      "type": "string",
-      "enum": [
-        "FullyCollateralized",
-        "UnderMarginCallThreshold",
-        "UnderLiquidationThreshold",
-        "NoCollateral",
-        "NoExposure"
+    "CollateralizationData": {
+      "type": "object",
+      "properties": {
+        "collateral": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "outstanding": {
+          "$ref": "#/$defs/CreditFacilityReceivable"
+        },
+        "price": {
+          "$ref": "#/$defs/PriceOfOneBTC"
+        }
+      },
+      "required": [
+        "collateral",
+        "outstanding",
+        "price"
       ]
     },
     "CoreAccessEvent": {
@@ -621,33 +630,8 @@
         {
           "type": "object",
           "properties": {
-            "collateral": {
-              "$ref": "#/$defs/Satoshis"
-            },
-            "customer_id": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "effective": {
-              "type": "string",
-              "format": "date"
-            },
-            "id": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "outstanding": {
-              "$ref": "#/$defs/CreditFacilityReceivable"
-            },
-            "price": {
-              "$ref": "#/$defs/PriceOfOneBTC"
-            },
-            "recorded_at": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "state": {
-              "$ref": "#/$defs/CollateralizationState"
+            "entity": {
+              "$ref": "#/$defs/PublicCreditFacility"
             },
             "type": {
               "type": "string",
@@ -656,14 +640,7 @@
           },
           "required": [
             "type",
-            "id",
-            "customer_id",
-            "state",
-            "recorded_at",
-            "effective",
-            "collateral",
-            "outstanding",
-            "price"
+            "entity"
           ]
         },
         {
@@ -769,18 +746,6 @@
               "type": "string",
               "format": "date"
             },
-            "facility_payment_holding_account_id": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "facility_proceeds_from_liquidation_account_id": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "facility_uncovered_outstanding_account_id": {
-              "type": "string",
-              "format": "uuid"
-            },
             "ledger_tx_id": {
               "type": "string",
               "format": "uuid"
@@ -808,9 +773,6 @@
             "credit_facility_id",
             "amount",
             "payment_id",
-            "facility_payment_holding_account_id",
-            "facility_proceeds_from_liquidation_account_id",
-            "facility_uncovered_outstanding_account_id",
             "ledger_tx_id",
             "recorded_at",
             "effective"
@@ -898,11 +860,27 @@
           "type": "object",
           "properties": {
             "entity": {
-              "$ref": "#/$defs/PublicCustomer"
+              "$ref": "#/$defs/PublicParty"
             },
             "type": {
               "type": "string",
-              "const": "CustomerEmailUpdated"
+              "const": "PartyCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicParty"
+            },
+            "type": {
+              "type": "string",
+              "const": "PartyEmailUpdated"
             }
           },
           "required": [
@@ -919,6 +897,54 @@
             "type": {
               "type": "string",
               "const": "ProspectCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectKycStarted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectKycPending"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectKycDeclined"
             }
           },
           "required": [
@@ -1123,6 +1149,53 @@
       "type": "string",
       "format": "date"
     },
+    "FacilityCollateralization": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "NoCollateral",
+            "NoExposure"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "FullyCollateralized": {
+              "$ref": "#/$defs/CollateralizationData"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "FullyCollateralized"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "UnderMarginCallThreshold": {
+              "$ref": "#/$defs/CollateralizationData"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "UnderMarginCallThreshold"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "UnderLiquidationThreshold": {
+              "$ref": "#/$defs/CollateralizationData"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "UnderLiquidationThreshold"
+          ]
+        }
+      ]
+    },
     "FacilityDuration": {
       "oneOf": [
         {
@@ -1218,6 +1291,7 @@
       "type": "string",
       "enum": [
         "not-started",
+        "started",
         "pending",
         "approved",
         "declined"
@@ -1226,7 +1300,7 @@
     "KycVerification": {
       "type": "string",
       "enum": [
-        "pending-verification",
+        "no-kyc",
         "verified",
         "rejected"
       ]
@@ -1300,6 +1374,17 @@
     },
     "PriceOfOneBTC": {
       "$ref": "#/$defs/UsdCents"
+    },
+    "ProspectStage": {
+      "type": "string",
+      "enum": [
+        "new",
+        "kyc-started",
+        "kyc-pending",
+        "kyc-declined",
+        "converted",
+        "closed"
+      ]
     },
     "ProspectStatus": {
       "type": "string",
@@ -1387,6 +1472,9 @@
           "type": "string",
           "format": "uuid"
         },
+        "collateralization": {
+          "$ref": "#/$defs/FacilityCollateralization"
+        },
         "completed_at": {
           "type": [
             "string",
@@ -1419,7 +1507,8 @@
         "collateral_id",
         "activation_tx_id",
         "activated_at",
-        "amount"
+        "amount",
+        "collateralization"
       ]
     },
     "PublicCreditFacilityProposal": {
@@ -1459,24 +1548,21 @@
     "PublicCustomer": {
       "type": "object",
       "properties": {
-        "customer_type": {
-          "$ref": "#/$defs/CustomerType"
-        },
-        "email": {
-          "type": "string"
-        },
         "id": {
           "type": "string",
           "format": "uuid"
         },
         "kyc_verification": {
           "$ref": "#/$defs/KycVerification"
+        },
+        "party_id": {
+          "type": "string",
+          "format": "uuid"
         }
       },
       "required": [
         "id",
-        "email",
-        "customer_type",
+        "party_id",
         "kyc_verification"
       ]
     },
@@ -1647,6 +1733,26 @@
         "effective"
       ]
     },
+    "PublicParty": {
+      "type": "object",
+      "properties": {
+        "customer_type": {
+          "$ref": "#/$defs/CustomerType"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "customer_type"
+      ]
+    },
     "PublicPayment": {
       "type": "object",
       "properties": {
@@ -1766,12 +1872,6 @@
     "PublicProspect": {
       "type": "object",
       "properties": {
-        "customer_type": {
-          "$ref": "#/$defs/CustomerType"
-        },
-        "email": {
-          "type": "string"
-        },
         "id": {
           "type": "string",
           "format": "uuid"
@@ -1779,16 +1879,23 @@
         "kyc_status": {
           "$ref": "#/$defs/KycStatus"
         },
+        "party_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
         "status": {
           "$ref": "#/$defs/ProspectStatus"
         }
       },
       "required": [
         "id",
-        "email",
-        "customer_type",
+        "party_id",
         "status",
-        "kyc_status"
+        "kyc_status",
+        "stage"
       ]
     },
     "PublicReportRun": {

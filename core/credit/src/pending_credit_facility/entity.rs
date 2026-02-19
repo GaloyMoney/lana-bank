@@ -8,7 +8,8 @@ use es_entity::*;
 
 use crate::{
     credit_facility::{
-        CreditFacilityReceivable, FacilityCollateralization, NewCreditFacilityBuilder,
+        CollateralizationData, CreditFacilityReceivable, FacilityCollateralization,
+        NewCreditFacilityBuilder,
     },
     disbursal::NewDisbursalBuilder,
     ledger::{
@@ -232,16 +233,18 @@ impl PendingCreditFacility {
 
         let collateralization = FacilityCollateralization::new(
             self.terms.collateralization(cvl),
-            balances.collateral(),
-            CreditFacilityReceivable {
-                disbursed: if self.is_single_disbursal() {
-                    self.amount
-                } else {
-                    UsdCents::ZERO
+            CollateralizationData {
+                collateral: balances.collateral(),
+                outstanding: CreditFacilityReceivable {
+                    disbursed: if self.is_single_disbursal() {
+                        self.amount
+                    } else {
+                        UsdCents::ZERO
+                    },
+                    interest: UsdCents::ZERO,
                 },
-                interest: UsdCents::ZERO,
+                price,
             },
-            price,
         );
 
         new_credit_facility
