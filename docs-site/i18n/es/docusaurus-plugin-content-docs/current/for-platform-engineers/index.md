@@ -39,13 +39,11 @@ Para documentación de arquitectura de dominio, servicios de infraestructura e i
 - [Esquema del Libro Mayor Cala](erds/cala) - Base de datos del libro mayor subyacente
 - [Esquema Core de Lana](erds/lana) - Base de datos principal de la aplicación
 
-### Despliegue y Operaciones
+### Ingeniería de Releases
 
-- [Guía de Despliegue](deployment/) - Resumen de despliegue
-- [Sistema de Build](deployment/build-system) - Nix, compilación cruzada, Docker
-- [Entorno de Desarrollo](deployment/development-environment) - Configuración local
-- [Estrategia de Pruebas](deployment/testing-strategy) - Capas y herramientas de testing
-- [Pipeline CI/CD](deployment/ci-cd) - GitHub Actions, Concourse, releases
+- [Resumen de Ingeniería de Releases](deployment/) - Flujo de release de extremo a extremo
+- [Sistema de Build](deployment/build-system) - Nix, caché Cachix, imágenes Docker
+- [CI/CD e Ingeniería de Releases](deployment/ci-cd) - GitHub Actions, pipelines Concourse, Helm charts, control de entornos con Cepler
 
 ## Stack Tecnológico
 

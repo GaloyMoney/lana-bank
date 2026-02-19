@@ -13,12 +13,6 @@ Esta sección cubre los aspectos de construcción, despliegue y operación de La
 ### [Sistema de Build](build-system)
 Arquitectura del sistema de construcción, compilación cruzada, y generación de artefactos.
 
-### [Entorno de Desarrollo](development-environment)
-Configuración del entorno de desarrollo local con Nix, Tilt y Docker Compose.
-
-### [Estrategia de Pruebas](testing-strategy)
-Capas de pruebas, herramientas y metodologías para garantizar la calidad del código.
-
 ### [Pipeline CI/CD](ci-cd)
 Flujos de trabajo de GitHub Actions, Concourse y estrategia de releases.
 
