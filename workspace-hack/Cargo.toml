@@ -67,7 +67,6 @@ opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-root
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
 pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
-prost = { version = "0.13", features = ["prost-derive"] }
 quote = { version = "1" }
 rand = { version = "0.9" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
@@ -154,7 +153,6 @@ opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-root
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
 pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
-prost = { version = "0.13", features = ["prost-derive"] }
 quote = { version = "1" }
 rand = { version = "0.9" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
