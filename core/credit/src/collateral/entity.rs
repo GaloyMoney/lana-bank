@@ -13,7 +13,7 @@ use crate::primitives::{
     PaymentId, PriceOfOneBTC, Satoshis,
 };
 
-use super::primitives::{PendingSecuredLoanId, SecuredLoanId};
+use super::primitives::SecuredLoanId;
 
 use super::{
     CollateralUpdate, RecordProceedsFromLiquidationData,
@@ -35,7 +35,6 @@ pub enum CollateralEvent {
         secured_loan_id: SecuredLoanId,
         account_ids: CollateralLedgerAccountIds,
         facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
-        pending_secured_loan_id: PendingSecuredLoanId,
         custody_wallet_id: Option<CustodyWalletId>,
     },
     UpdatedViaManualInput {
@@ -78,7 +77,6 @@ pub struct Collateral {
     pub secured_loan_id: SecuredLoanId,
     pub account_ids: CollateralLedgerAccountIds,
     pub facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
-    pub pending_secured_loan_id: PendingSecuredLoanId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
 
@@ -349,8 +347,6 @@ pub struct NewCollateral {
     pub(super) id: CollateralId,
     #[builder(setter(into))]
     pub(super) secured_loan_id: SecuredLoanId,
-    #[builder(setter(into))]
-    pub(super) pending_secured_loan_id: PendingSecuredLoanId,
     #[builder(default)]
     pub(super) custody_wallet_id: Option<CustodyWalletId>,
     pub(super) account_ids: CollateralLedgerAccountIds,
@@ -372,7 +368,6 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 CollateralEvent::Initialized {
                     id,
                     secured_loan_id,
-                    pending_secured_loan_id,
                     custody_wallet_id,
                     account_ids,
                     facility_ledger_account_ids_for_liquidation,
@@ -386,7 +381,6 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
                         .secured_loan_id(*secured_loan_id)
-                        .pending_secured_loan_id(*pending_secured_loan_id)
                 }
                 CollateralEvent::UpdatedViaManualInput {
                     collateral_amount: new_value,
@@ -421,7 +415,6 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
                 account_ids: self.account_ids,
                 facility_ledger_account_ids_for_liquidation: self
                     .facility_ledger_account_ids_for_liquidation,
-                pending_secured_loan_id: self.pending_secured_loan_id,
                 custody_wallet_id: self.custody_wallet_id,
             }],
         )
@@ -463,7 +456,6 @@ mod tests {
             .id(CollateralId::new())
             .account_ids(default_account_ids())
             .secured_loan_id(SecuredLoanId::new())
-            .pending_secured_loan_id(PendingSecuredLoanId::new())
             .build()
             .unwrap()
     }
