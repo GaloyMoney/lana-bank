@@ -31,8 +31,8 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
   const details: DetailItemProps[] = [
     {
       label: t("details.customerEmail"),
-      value: liquidation.collateral.creditFacility.customer.email,
-      href: `/customers/${liquidation.collateral.creditFacility.customer.publicId}`,
+      value: liquidation.collateral.creditFacility?.customer.email,
+      href: `/customers/${liquidation.collateral.creditFacility?.customer.publicId}`,
     },
     {
       label: t("details.status"),
