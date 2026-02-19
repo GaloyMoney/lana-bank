@@ -201,15 +201,15 @@ This flow shows operational creation and management of deposits and withdrawals.
 
 **Step 14.** Click **Cancel**.
 
-![Cancel withdrawal button](/img/screenshots/current/en/transactions.cy.ts/14_withdrawal_cancel_button.png)
+![Cancel withdrawal button](/img/screenshots/current/es/transactions.cy.ts/14_withdrawal_cancel_button.png)
 
 **Step 15.** Confirm cancellation.
 
-![Confirm cancellation](/img/screenshots/current/en/transactions.cy.ts/15_withdrawal_cancel_confirm.png)
+![Confirm cancellation](/img/screenshots/current/es/transactions.cy.ts/15_withdrawal_cancel_confirm.png)
 
 **Step 16.** Verify status becomes cancelled.
 
-![Cancelled status](/img/screenshots/current/en/transactions.cy.ts/16_withdrawal_cancelled_status.png)
+![Cancelled status](/img/screenshots/current/es/transactions.cy.ts/16_withdrawal_cancelled_status.png)
 
 #### Approve a pending withdrawal
 

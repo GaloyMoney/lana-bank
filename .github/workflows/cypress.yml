@@ -178,32 +178,6 @@ jobs:
         run: |
           cp -r apps/admin-panel/cypress/manuals/screenshots apps/admin-panel/cypress/manuals/screenshots-es
 
-      - name: Reset backend for English run
-        if: >
-          github.event_name == 'push'
-          && env.NETLIFY_TOKEN_PRESENT == 'true'
-        env:
-          ENGINE_DEFAULT: podman
-        run: |
-          echo "Stopping core server..."
-          if [[ -f .core.pid ]]; then
-            kill "$(cat .core.pid)" 2>/dev/null || true
-            rm -f .core.pid
-          fi
-          echo "Resetting database..."
-          PG_MAINTENANCE="postgres://user:password@127.0.0.1:5433/postgres?sslmode=disable"
-          nix develop -c bash -c "
-            psql '$PG_MAINTENANCE' -c 'DROP DATABASE IF EXISTS pg WITH (FORCE);'
-            psql '$PG_MAINTENANCE' -c 'CREATE DATABASE pg;'
-          "
-          nix develop -c make setup-db
-          echo "Restarting core server..."
-          export LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
-          nohup ./result/bin/lana-cli --config ./bats/lana.yml >> cypress-stack.log 2>&1 &
-          echo $! > .core.pid
-          nix develop -c wait4x http http://localhost:5253/health --timeout 60s
-          echo "Core server restarted with clean database"
-
       - name: Run Cypress in English (for docs screenshots)
         if: >
           github.event_name == 'push'
