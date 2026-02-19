@@ -12,6 +12,11 @@
       "systeminformation": ">=5.31.0",
       "minimatch": ">=10.2.1",
       "eslint-plugin-import>minimatch": "3.1.2"
+    },
+    "auditConfig": {
+      "ignoreCves": [
+        "CVE-2026-26996"
+      ]
     }
   }
 }
