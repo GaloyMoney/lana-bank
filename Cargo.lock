@@ -57,6 +57,7 @@ version = "0.0.0"
 dependencies = [
  "admin-graphql-credit",
  "admin-graphql-custody",
+ "admin-graphql-deposit",
  "admin-graphql-shared",
  "anyhow",
  "async-graphql",

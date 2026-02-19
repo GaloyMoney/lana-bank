@@ -7,51 +7,20 @@ use super::{
     deposit_account::DepositAccount, loader::LanaDataLoader,
 };
 
-pub use lana_app::{
-    deposit::{Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor},
-    public_id::PublicId,
+pub use admin_graphql_deposit::{
+    DomainWithdrawal, WithdrawalBase, WithdrawalCancelInput, WithdrawalConfirmInput,
+    WithdrawalInitiateInput, WithdrawalRevertInput, WithdrawalsByCreatedAtCursor,
 };
 
-#[derive(SimpleObject, Clone)]
-#[graphql(complex)]
-pub struct Withdrawal {
-    id: ID,
-    withdrawal_id: UUID,
-    account_id: UUID,
-    approval_process_id: UUID,
-    amount: UsdCents,
-    status: WithdrawalStatus,
-    created_at: Timestamp,
+// ===== Withdrawal =====
 
-    #[graphql(skip)]
-    pub(super) entity: Arc<DomainWithdrawal>,
+#[derive(Clone)]
+pub(super) struct WithdrawalCrossDomain {
+    entity: Arc<DomainWithdrawal>,
 }
 
-impl From<lana_app::deposit::Withdrawal> for Withdrawal {
-    fn from(withdraw: lana_app::deposit::Withdrawal) -> Self {
-        Withdrawal {
-            id: withdraw.id.to_global_id(),
-            created_at: withdraw.created_at().into(),
-            account_id: withdraw.deposit_account_id.into(),
-            withdrawal_id: UUID::from(withdraw.id),
-            approval_process_id: UUID::from(withdraw.approval_process_id),
-            amount: withdraw.amount,
-            status: withdraw.status(),
-            entity: Arc::new(withdraw),
-        }
-    }
-}
-
-#[ComplexObject]
-impl Withdrawal {
-    async fn public_id(&self) -> &PublicId {
-        &self.entity.public_id
-    }
-
-    async fn reference(&self) -> &str {
-        &self.entity.reference
-    }
-
+#[Object]
+impl WithdrawalCrossDomain {
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let process = loader
@@ -85,28 +54,28 @@ impl Withdrawal {
     }
 }
 
-#[derive(InputObject)]
-pub struct WithdrawalInitiateInput {
-    pub deposit_account_id: UUID,
-    pub amount: UsdCents,
-    pub reference: Option<String>,
+#[derive(MergedObject, Clone)]
+#[graphql(name = "Withdrawal")]
+pub struct Withdrawal(pub WithdrawalBase, WithdrawalCrossDomain);
+
+impl From<DomainWithdrawal> for Withdrawal {
+    fn from(withdrawal: DomainWithdrawal) -> Self {
+        let base = WithdrawalBase::from(withdrawal);
+        let cross = WithdrawalCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
 }
+
+impl std::ops::Deref for Withdrawal {
+    type Target = WithdrawalBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 crate::mutation_payload! { WithdrawalInitiatePayload, withdrawal: Withdrawal }
-
-#[derive(InputObject)]
-pub struct WithdrawalConfirmInput {
-    pub withdrawal_id: UUID,
-}
 crate::mutation_payload! { WithdrawalConfirmPayload, withdrawal: Withdrawal }
-
-#[derive(InputObject)]
-pub struct WithdrawalCancelInput {
-    pub withdrawal_id: UUID,
-}
 crate::mutation_payload! { WithdrawalCancelPayload, withdrawal: Withdrawal }
-
-#[derive(InputObject)]
-pub struct WithdrawalRevertInput {
-    pub withdrawal_id: UUID,
-}
 crate::mutation_payload! { WithdrawalRevertPayload, withdrawal: Withdrawal }

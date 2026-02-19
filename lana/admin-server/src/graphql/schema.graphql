@@ -1149,10 +1149,10 @@ type DepositAccount {
 	createdAt: Timestamp!
 	status: DepositAccountStatus!
 	publicId: PublicId!
+	balance: DepositAccountBalance!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
 	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
-	balance: DepositAccountBalance!
 	customer: Customer!
 	ledgerAccounts: DepositAccountLedgerAccounts!
 }

@@ -2,57 +2,18 @@ use async_graphql::{connection::*, *};
 
 use crate::primitives::*;
 
-pub use lana_app::deposit::{
-    DepositAccount as DomainDepositAccount, DepositAccountHistoryCursor,
-    DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry, DepositAccountStatus,
+pub use admin_graphql_deposit::{
+    DepositAccountBase, DepositAccountHistoryCursor, DomainDepositAccount,
 };
+
+pub use lana_app::deposit::DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry;
 
 use super::{
     accounting::LedgerAccount, customer::Customer, deposit::*, deposit_account_history::*,
     loader::LanaDataLoader, withdrawal::*,
 };
 
-#[derive(SimpleObject, Clone)]
-#[graphql(complex)]
-pub struct DepositAccount {
-    id: ID,
-    deposit_account_id: UUID,
-    customer_id: UUID,
-    created_at: Timestamp,
-    status: DepositAccountStatus,
-
-    #[graphql(skip)]
-    pub(super) entity: Arc<DomainDepositAccount>,
-}
-
-impl From<DomainDepositAccount> for DepositAccount {
-    fn from(account: DomainDepositAccount) -> Self {
-        DepositAccount {
-            id: account.id.to_global_id(),
-            deposit_account_id: account.id.into(),
-            customer_id: account.account_holder_id.into(),
-            created_at: account.created_at().into(),
-            status: account.status,
-
-            entity: Arc::new(account),
-        }
-    }
-}
-
-#[derive(SimpleObject)]
-pub struct DepositAccountBalance {
-    settled: UsdCents,
-    pending: UsdCents,
-}
-
-impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
-    fn from(balance: lana_app::deposit::DepositAccountBalance) -> Self {
-        Self {
-            settled: balance.settled,
-            pending: balance.pending,
-        }
-    }
-}
+// ===== DepositAccountLedgerAccounts (stays in admin-server, cross-domain DataLoader) =====
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -82,12 +43,15 @@ impl DepositAccountLedgerAccounts {
     }
 }
 
-#[ComplexObject]
-impl DepositAccount {
-    async fn public_id(&self) -> &PublicId {
-        &self.entity.public_id
-    }
+// ===== DepositAccount =====
 
+#[derive(Clone)]
+pub(super) struct DepositAccountCrossDomain {
+    entity: Arc<DomainDepositAccount>,
+}
+
+#[Object]
+impl DepositAccountCrossDomain {
     async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let deposits = app
@@ -150,12 +114,6 @@ impl DepositAccount {
         .await
     }
 
-    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccountBalance> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let balance = app.deposits().account_balance(sub, self.entity.id).await?;
-        Ok(DepositAccountBalance::from(balance))
-    }
-
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let customer = app
@@ -172,5 +130,26 @@ impl DepositAccount {
             deposit_account_id: self.entity.account_ids.deposit_account_id.into(),
             frozen_deposit_account_id: self.entity.account_ids.frozen_deposit_account_id.into(),
         }
+    }
+}
+
+#[derive(MergedObject, Clone)]
+#[graphql(name = "DepositAccount")]
+pub struct DepositAccount(pub DepositAccountBase, DepositAccountCrossDomain);
+
+impl From<DomainDepositAccount> for DepositAccount {
+    fn from(account: DomainDepositAccount) -> Self {
+        let base = DepositAccountBase::from(account);
+        let cross = DepositAccountCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
+}
+
+impl std::ops::Deref for DepositAccount {
+    type Target = DepositAccountBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
