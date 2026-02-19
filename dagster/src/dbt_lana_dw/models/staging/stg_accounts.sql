@@ -14,9 +14,6 @@ with
             code,
             name,
             normal_balance_type,
-            -- TODO: need fixing: where did old latest_values go?
-            -- It held "$.config.is_account_set" flag
-            null as latest_values,
             created_at,
             timestamp_micros(
                 cast(cast(_dlt_load_id as decimal) * 1e6 as int64)

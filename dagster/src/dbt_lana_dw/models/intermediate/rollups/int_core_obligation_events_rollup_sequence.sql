@@ -43,8 +43,7 @@ with
             due_date,
             overdue_date,
             liquidation_date,
-            -- cast(defaulted_date as timestamp) as defaulted_date, -- TODO: fixme
-            overdue_date as defaulted_date,
+            defaulted_date,
             is_due_recorded,
             is_overdue_recorded,
             is_defaulted_recorded,

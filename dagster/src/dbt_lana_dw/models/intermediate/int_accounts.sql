@@ -5,13 +5,7 @@ with
             id as account_id,
             name as account_name,
             normal_balance_type,
-            code as account_code,
-            -- TODO: need fixing, where did old latest_values go
-            -- which held "$.config.is_account_set" flag
-            -- lax_bool(
-            -- parse_json(json_value(latest_values, "$.config.is_account_set"))
-            -- ) as is_account_set
-            false as is_account_set
+            code as account_code
 
         from {{ ref("stg_accounts") }}
         where
@@ -147,7 +141,6 @@ select
     account_name,
     normal_balance_type,
     account_code,
-    is_account_set,
     credit_facility_key,
     account_type,
     row_number() over () as account_key
