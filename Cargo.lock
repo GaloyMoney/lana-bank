@@ -8087,7 +8087,7 @@ dependencies = [
  "log",
  "memchr",
  "num-traits",
- "obix 0.2.14",
+ "obix 0.2.15-dev",
  "once_cell",
  "opentelemetry-http",
  "opentelemetry-otlp",
