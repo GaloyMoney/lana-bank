@@ -73,7 +73,10 @@
       "loanAgreement": "Obtiene un contrato de prestamo especifico por su identificador unico",
       "accountEntryCsv": "Obtiene el documento CSV de exportacion para una cuenta contable especifica",
       "reportRuns": "Devuelve una lista paginada de todas las ejecuciones de reportes",
-      "reportRun": "Obtiene una ejecucion de reporte especifica por su identificador unico"
+      "reportRun": "Obtiene una ejecucion de reporte especifica por su identificador unico",
+      "prospectByPublicId": "TODO: Agregar descripcion",
+      "prospect": "TODO: Agregar descripcion",
+      "prospects": "TODO: Agregar descripcion"
     },
     "mutations": {
       "customerDocumentAttach": "Carga y adjunta un documento al perfil de un cliente",
@@ -144,7 +147,11 @@
       "chartOfAccountsCsvImport": "Importa un catalogo de cuentas desde un archivo CSV",
       "collateralLiquidationRecordProceedsReceived": "Registra los ingresos recibidos de una liquidacion de colateral",
       "collateralRecordSentToLiquidation": "Registra el colateral enviado a liquidacion",
-      "collateralUpdate": "TODO: Agregar descripcion"
+      "collateralUpdate": "TODO: Agregar descripcion",
+      "customerTelegramHandleUpdate": "TODO: Agregar descripcion",
+      "prospectClose": "TODO: Agregar descripcion",
+      "prospectConvert": "TODO: Agregar descripcion",
+      "prospectCreate": "TODO: Agregar descripcion"
     }
   },
   "customer": {
