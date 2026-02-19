@@ -18,7 +18,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     CoreCreditEvent, PublicIds,
-    collateral::CollateralRepo,
+    collateral::{CollateralRepo, Collaterals},
     disbursal::Disbursals,
     ledger::{
         CreditFacilityBalanceSummary, CreditFacilityCompletion, CreditFacilityInterestAccrual,
@@ -57,6 +57,7 @@ where
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     authz: Arc<Perms>,
@@ -82,6 +83,7 @@ where
         Self {
             repo: self.repo.clone(),
             collateral_repo: self.collateral_repo.clone(),
+            collaterals: self.collaterals.clone(),
             collections: self.collections.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             disbursals: self.disbursals.clone(),
@@ -124,6 +126,7 @@ where
         collections: Arc<CoreCreditCollection<Perms, E>>,
         pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
         disbursals: Arc<Disbursals<Perms, E>>,
+        collaterals: Arc<Collaterals<Perms, E>>,
         ledger: Arc<CreditLedger>,
         price: Arc<Price>,
         jobs: &mut Jobs,
@@ -183,9 +186,9 @@ where
             ));
 
         let collateral_liquidations_job_spawner = jobs.add_initializer(
-            jobs::collateral_liquidations::CreditFacilityLiquidationsInit::new(
+            jobs::collateral_liquidations::CreditFacilityLiquidationsInit::<Perms, E>::new(
                 outbox,
-                collateral_repo.clone(),
+                collaterals.clone(),
                 ledger.liquidation_proceeds_omnibus_account_ids().account_id,
                 liquidation_payment_job_spawner.clone(),
             ),
@@ -194,13 +197,14 @@ where
         collateral_liquidations_job_spawner
             .spawn_unique(
                 job::JobId::new(),
-                jobs::collateral_liquidations::CreditFacilityLiquidationsJobConfig,
+                jobs::collateral_liquidations::CreditFacilityLiquidationsJobConfig::<Perms, E>::default(),
             )
             .await?;
 
         Ok(Self {
             repo: repo_arc,
             collateral_repo,
+            collaterals,
             collections,
             pending_credit_facilities,
             disbursals,

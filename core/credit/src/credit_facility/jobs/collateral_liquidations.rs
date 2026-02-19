@@ -6,22 +6,22 @@ use tracing::{Span, instrument};
 
 use std::sync::Arc;
 
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use core_custody::CoreCustodyEvent;
-use es_entity::{DbOp, Idempotent};
 use governance::GovernanceEvent;
 use job::*;
 use money::{Satoshis, UsdCents};
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use super::liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner};
 use crate::{
     CalaAccountId, CoreCreditEvent,
-    collateral::error::CollateralError,
-    collateral::ledger::LiquidationProceedsAccountIds,
-    collateral::repo::CollateralRepo,
-    primitives::{CollateralId, PriceOfOneBTC},
+    collateral::{Collaterals, LiquidationInitiated, error::CollateralError},
+    primitives::*,
 };
+
+use super::liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct CreditFacilityLiquidationsJobData {
@@ -29,35 +29,78 @@ struct CreditFacilityLiquidationsJobData {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct CreditFacilityLiquidationsJobConfig;
-
-pub struct CreditFacilityLiquidationsInit<E>
+pub struct CreditFacilityLiquidationsJobConfig<Perms, E>
 where
+    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
+{
+    _phantom: std::marker::PhantomData<(Perms, E)>,
+}
+
+impl<Perms, E> Clone for CreditFacilityLiquidationsJobConfig<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<Perms, E> Default for CreditFacilityLiquidationsJobConfig<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
+{
+    fn default() -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+pub struct CreditFacilityLiquidationsInit<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
-    repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     liquidation_proceeds_omnibus_account_id: CalaAccountId,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
-impl<E> CreditFacilityLiquidationsInit<E>
+impl<Perms, E> CreditFacilityLiquidationsInit<Perms, E>
 where
+    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
-        repo: Arc<CollateralRepo<E>>,
+        collaterals: Arc<Collaterals<Perms, E>>,
         liquidation_proceeds_omnibus_account_id: CalaAccountId,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            repo,
+            collaterals,
             liquidation_proceeds_omnibus_account_id,
             liquidation_payment_job_spawner,
         }
@@ -66,13 +109,20 @@ where
 
 const CREDIT_FACILITY_LIQUIDATIONS_JOB: JobType =
     JobType::new("outbox.credit-facility-liquidations");
-impl<E> JobInitializer for CreditFacilityLiquidationsInit<E>
+impl<Perms, E> JobInitializer for CreditFacilityLiquidationsInit<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<crate::CoreCreditAction> + From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<crate::CoreCreditObject> + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    type Config = CreditFacilityLiquidationsJobConfig;
+    type Config = CreditFacilityLiquidationsJobConfig<Perms, E>;
+
     fn job_type(&self) -> JobType {
         CREDIT_FACILITY_LIQUIDATIONS_JOB
     }
@@ -82,31 +132,39 @@ where
         _job: &job::Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityLiquidationsJobRunner::<E> {
+        Ok(Box::new(CreditFacilityLiquidationsJobRunner::<Perms, E> {
             outbox: self.outbox.clone(),
-            repo: self.repo.clone(),
+            collaterals: self.collaterals.clone(),
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
         }))
     }
 }
 
-pub struct CreditFacilityLiquidationsJobRunner<E>
+pub struct CreditFacilityLiquidationsJobRunner<Perms, E>
 where
+    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
-    repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     liquidation_proceeds_omnibus_account_id: CalaAccountId,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
 #[async_trait]
-impl<E> JobRunner for CreditFacilityLiquidationsJobRunner<E>
+impl<Perms, E> JobRunner for CreditFacilityLiquidationsJobRunner<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<crate::CoreCreditAction> + From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<crate::CoreCreditObject> + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
@@ -138,7 +196,7 @@ where
                         Some(message) => {
 
                             let mut db = self
-                                .repo
+                                .collaterals
                                 .begin_op()
                                 .await?;
                             self.process_message_in_op(&mut db, message.as_ref()).await?;
@@ -156,16 +214,22 @@ where
     }
 }
 
-impl<E> CreditFacilityLiquidationsJobRunner<E>
+impl<Perms, E> CreditFacilityLiquidationsJobRunner<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<crate::CoreCreditAction> + From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<crate::CoreCreditObject> + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[instrument(name = "outbox.core_credit.collateral_liquidations.process_message_in_op", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message_in_op(
         &self,
-        db: &mut DbOp<'_>,
+        db: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(event @ CoreCreditEvent::PartialLiquidationInitiated { entity }) =
@@ -197,46 +261,40 @@ where
     )]
     pub async fn create_if_not_exist_in_op(
         &self,
-        db: &mut DbOp<'_>,
+        db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
     ) -> Result<(), CollateralError> {
-        let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
-
-        let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(
-            &collateral.account_ids,
-            &collateral.facility_ledger_account_ids_for_liquidation,
-            self.liquidation_proceeds_omnibus_account_id,
-        );
-
-        let liquidation_id = if let Idempotent::Executed(id) = collateral
-            .record_liquidation_started(
+        if let LiquidationInitiated::Initiated {
+            liquidation_id,
+            secured_loan_id,
+        } = self
+            .collaterals
+            .initiate_liquidation_in_op(
+                db,
+                collateral_id,
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
-                liquidation_proceeds_account_ids,
-            ) {
-            id
-        } else {
-            return Ok(());
-        };
-
-        self.repo.update_in_op(db, &mut collateral).await?;
-
-        self.liquidation_payment_job_spawner
-            .spawn_in_op(
-                db,
-                JobId::new(),
-                LiquidationPaymentJobConfig::<E> {
-                    liquidation_id,
-                    collateral_id,
-                    credit_facility_id: collateral.credit_facility_id,
-                    _phantom: std::marker::PhantomData,
-                },
+                self.liquidation_proceeds_omnibus_account_id,
             )
-            .await?;
+            .await?
+        {
+            self.liquidation_payment_job_spawner
+                .spawn_in_op(
+                    db,
+                    JobId::new(),
+                    LiquidationPaymentJobConfig::<E> {
+                        liquidation_id,
+                        collateral_id,
+                        credit_facility_id: secured_loan_id.into(),
+                        _phantom: std::marker::PhantomData,
+                    },
+                )
+                .await?;
+        }
 
         Ok(())
     }
