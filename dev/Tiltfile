@@ -1,10 +1,19 @@
 compose_files = ["../docker-compose.yml", "../docker-compose.docker.yml"]
+if os.path.exists("../docker-compose.override.yml"):
+    compose_files.append("../docker-compose.override.yml")
 if os.getenv("DAGSTER", "false") == "true":
     compose_files.append("../docker-compose.dagster.yml")
+    dagster_override = "../.devenv/docker-compose.dagster.override.yml"
+    if os.path.exists(dagster_override):
+        compose_files.append(dagster_override)
 if os.getenv("GOTENBERG", "false") == "true":
     compose_files.append("../docker-compose.gotenberg.yml")
+    gotenberg_override = "../.devenv/docker-compose.gotenberg.override.yml"
+    if os.path.exists(gotenberg_override):
+        compose_files.append(gotenberg_override)
 
-docker_compose(compose_files, project_name = "lana-bank")
+project_name = os.getenv("COMPOSE_PROJECT_NAME", "lana-bank")
+docker_compose(compose_files, project_name = project_name)
 
 docker_groups = {
     "auth": ["keycloak", "keycloak-pg", "oathkeeper"],
@@ -20,7 +29,7 @@ if os.getenv("DAGSTER", "false") == "true":
     dagster_services = [
         {
             "service_name": "dagster_webserver",
-            "link": link("http://localhost:3000", "dagster-webserver")
+            "link": link("http://localhost:" + os.getenv("DAGSTER_PORT", "3000"), "dagster-webserver")
         },
         {
             "service_name": "dagster_daemon"
@@ -51,8 +60,8 @@ if os.getenv("GOTENBERG", "false") == "true":
     dc_resource("gotenberg", labels = ["gotenberg"])
 
 serve_env_core = {
-    "PG_CON": "postgres://user:password@localhost:5433/pg?sslmode=disable",
-    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+    "PG_CON": "postgres://user:password@localhost:" + os.getenv("CORE_PG_PORT", "5433") + "/pg?sslmode=disable",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:" + os.getenv("OTEL_GRPC_PORT", "4317"),
 }
 local_resource(
     "core",
@@ -64,7 +73,7 @@ local_resource(
         period_secs = 1,
         http_get = http_get_action(
             path = "/graphql",
-            port = 5253,
+            port = int(os.getenv("ADMIN_SERVER_PORT", "5253")),
         ),
     ),
     allow_parallel = True,
@@ -73,7 +82,7 @@ local_resource(
         "keycloak"
     ],
     links = [
-        link("http://admin.localhost:4455/graphql", "playground"),
+        link("http://admin.localhost:" + os.getenv("OATHKEEPER_PROXY_PORT", "4455") + "/graphql", "playground"),
     ]
 )
 
@@ -89,12 +98,12 @@ local_resource(
         period_secs = 1,
         http_get = http_get_action(
             path = "/",
-            port = 3001,
+            port = int(os.getenv("ADMIN_PANEL_PORT", "3001")),
         ),
     ),
     allow_parallel = True,
     links = [
-        link("http://admin.localhost:4455", "admin-panel"),
+        link("http://admin.localhost:" + os.getenv("OATHKEEPER_PROXY_PORT", "4455"), "admin-panel"),
     ]
 )
 
@@ -110,11 +119,11 @@ local_resource(
         period_secs = 1,
         http_get = http_get_action(
             path = "/",
-            port = 3002,
+            port = int(os.getenv("CUSTOMER_PORTAL_PORT", "3002")),
         ),
     ),
     allow_parallel = True,
     links = [
-        link("http://app.localhost:4455", "customer-portal"),
+        link("http://app.localhost:" + os.getenv("OATHKEEPER_PROXY_PORT", "4455"), "customer-portal"),
     ]
 )

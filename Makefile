@@ -53,16 +53,16 @@ gotenberg-down:
 	docker compose -f docker-compose.gotenberg.yml down
 
 run-server-normal:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana-normal.yml > >(tee .e2e-logs) 2>&1
+	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config $${LANA_CONFIG_NORMAL:-./bats/lana-normal.yml} > >(tee .e2e-logs) 2>&1
 
 run-server:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml > >(tee .e2e-logs) 2>&1
+	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config $${LANA_CONFIG:-./bats/lana.yml} > >(tee .e2e-logs) 2>&1
 
 run-server-nix:
 	nix run . -- --config ./bats/lana.yml 2>&1 | tee .e2e-logs
 
 run-server-with-bootstrap:
-	cargo run --all-features --bin lana-cli -- --config ./bats/lana-bootstrap.yml | tee .e2e-logs
+	cargo run --all-features --bin lana-cli -- --config $${LANA_CONFIG_BOOTSTRAP:-./bats/lana-bootstrap.yml} | tee .e2e-logs
 
 check-code: check-code-apps
 	nix flake check
