@@ -55,7 +55,7 @@ wait_for_approval() {
   # Simulate KYC start via SumSub applicantCreated webhook
   webhook_id="req-$(date +%s%N)"
   applicant_id="test-applicant-$webhook_id"
-  curl -s -X POST http://localhost:5253/webhook/sumsub \
+  curl -s -X POST http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
       "applicantId": "'"$applicant_id"'",
@@ -70,7 +70,7 @@ wait_for_approval() {
     }' > /dev/null
 
   # Simulate KYC approval via SumSub webhook
-  curl -s -X POST http://localhost:5253/webhook/sumsub \
+  curl -s -X POST http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
       "applicantId": "'"$applicant_id"'",
@@ -131,7 +131,7 @@ wait_for_approval() {
   # Simulate KYC start via SumSub applicantCreated webhook
   webhook_id="req-$(date +%s%N)"
   applicant_id="test-applicant-$webhook_id"
-  curl -s -X POST http://localhost:5253/webhook/sumsub \
+  curl -s -X POST http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
       "applicantId": "'"$applicant_id"'",
@@ -146,7 +146,7 @@ wait_for_approval() {
     }' > /dev/null
 
   # Simulate KYC approval via SumSub webhook
-  curl -s -X POST http://localhost:5253/webhook/sumsub \
+  curl -s -X POST http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
       "applicantId": "'"$applicant_id"'",

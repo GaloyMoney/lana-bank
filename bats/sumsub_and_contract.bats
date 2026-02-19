@@ -81,7 +81,7 @@ wait_for_loan_agreement_completion() {
 
   # Simulate Sumsub webhook callbacks since Sumsub can't reach our local server
   echo "Simulating applicantCreated webhook..."
-  curl -s -X POST http://localhost:5253/webhook/sumsub \
+  curl -s -X POST http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
       "applicantId": "'"$test_applicant_id"'",
@@ -97,7 +97,7 @@ wait_for_loan_agreement_completion() {
     }'
 
   echo "Simulating applicantReviewed (GREEN) webhook..."
-  curl -s -X POST http://localhost:5253/webhook/sumsub \
+  curl -s -X POST http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
       "applicantId": "'"$test_applicant_id"'",
@@ -208,7 +208,7 @@ wait_for_loan_agreement_completion() {
   echo "Testing webhook callback functionality..."
   
   # Test intermediate webhook calls should not return 500
-  status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5253/webhook/sumsub \
+  status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
       "applicantId": "66f1f52c27a518786597c113",
@@ -227,7 +227,7 @@ wait_for_loan_agreement_completion() {
 
   [[ "$status_code" -eq 200 ]] || exit 1
 
-  status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5253/webhook/sumsub \
+  status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
     "applicantId": "66f1f52c27a518786597c113",
@@ -248,7 +248,7 @@ wait_for_loan_agreement_completion() {
 
   # Test rejection webhook (should change status back to INACTIVE)
   echo "Testing rejection webhook with actual applicant ID..."
-  curl -s -X POST http://localhost:5253/webhook/sumsub \
+  curl -s -X POST http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
         "applicantId": "'"$test_applicant_id"'",

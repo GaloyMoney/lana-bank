@@ -163,6 +163,20 @@ generate_config "${REPO_ROOT}/bats/lana.yml" "${DEVENV_DIR}/bats/lana.yml"
 generate_config "${REPO_ROOT}/bats/lana-bootstrap.yml" "${DEVENV_DIR}/bats/lana-bootstrap.yml"
 generate_config "${REPO_ROOT}/bats/lana-normal.yml" "${DEVENV_DIR}/bats/lana-normal.yml"
 
+# Append admin_server and customer_server sections to each BATS config.
+# The source YAML files omit these sections, relying on Rust defaults (5253/5254, jwks on 4456).
+# For slot > 0 the servers must bind to offset ports and use the correct oathkeeper API port.
+for cfg in "${DEVENV_DIR}/bats/lana.yml" "${DEVENV_DIR}/bats/lana-bootstrap.yml" "${DEVENV_DIR}/bats/lana-normal.yml"; do
+  cat >> "${cfg}" <<YAML_EOF
+admin_server:
+  port: ${ADMIN_SERVER_PORT}
+  jwks_url: http://localhost:${OATHKEEPER_API_PORT}/.well-known/jwks.json
+customer_server:
+  port: ${CUSTOMER_SERVER_PORT}
+  jwks_url: http://localhost:${OATHKEEPER_API_PORT}/.well-known/jwks.json
+YAML_EOF
+done
+
 # --- Generate docker-compose.override.yml ---
 
 cat > "${REPO_ROOT}/docker-compose.override.yml" <<EOF
