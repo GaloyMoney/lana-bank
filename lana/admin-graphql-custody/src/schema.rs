@@ -16,13 +16,9 @@ impl CustodyQuery {
         Connection<CustodiansByNameCursor, Custodian, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            CustodiansByNameCursor,
-            Custodian,
-            after,
-            first,
-            |query| app.custody().list_custodians(sub, query)
-        )
+        list_with_cursor!(CustodiansByNameCursor, Custodian, after, first, |query| app
+            .custody()
+            .list_custodians(sub, query))
     }
 }
 

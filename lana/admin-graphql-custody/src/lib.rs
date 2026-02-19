@@ -1,10 +1,11 @@
-pub mod primitives;
 #[macro_use]
-pub mod macros;
+extern crate admin_graphql_shared;
+
 pub mod custodian;
-pub mod wallet;
+pub mod primitives;
 pub mod schema;
+pub mod wallet;
 
 pub use custodian::*;
-pub use wallet::*;
 pub use schema::*;
+pub use wallet::*;

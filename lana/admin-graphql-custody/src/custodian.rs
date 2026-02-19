@@ -134,6 +134,6 @@ pub struct CustodianConfigUpdateInput {
     pub config: CustodianConfigInput,
 }
 
-crate::mutation_payload! { CustodianCreatePayload, custodian: Custodian }
+mutation_payload! { CustodianCreatePayload, custodian: Custodian }
 
-crate::mutation_payload! { CustodianConfigUpdatePayload, custodian: Custodian }
+mutation_payload! { CustodianConfigUpdatePayload, custodian: Custodian }

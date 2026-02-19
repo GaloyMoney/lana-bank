@@ -27,10 +27,7 @@ macro_rules! list_with_cursor {
                     .edges
                     .extend(res.entities.into_iter().map(|entity| {
                         let cursor = <$cursor>::from(&entity);
-                        async_graphql::types::connection::Edge::new(
-                            cursor,
-                            <$entity>::from(entity),
-                        )
+                        async_graphql::types::connection::Edge::new(cursor, <$entity>::from(entity))
                     }));
 
                 Ok::<_, async_graphql::Error>(connection)

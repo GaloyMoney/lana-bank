@@ -12,13 +12,28 @@ checksum = "fe438c63458706e03479442743baae6c88256498e6431708f6dfc520a26515d3"
 name = "admin-graphql-custody"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-shared",
  "async-graphql",
- "chrono",
  "es-entity",
  "lana-app",
- "serde",
  "tracing",
  "url",
+ "workspace-hack",
+]
+
+[[package]]
+name = "admin-graphql-shared"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "audit",
+ "chrono",
+ "domain-config",
+ "es-entity",
+ "lana-app",
+ "rust_decimal",
+ "serde",
+ "serde_json",
  "workspace-hack",
 ]
 
@@ -27,6 +42,7 @@ name = "admin-server"
 version = "0.0.0"
 dependencies = [
  "admin-graphql-custody",
+ "admin-graphql-shared",
  "anyhow",
  "async-graphql",
  "async-graphql-axum",

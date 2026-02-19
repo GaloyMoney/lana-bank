@@ -25,9 +25,9 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, committee::*, contract_creation::*,
-    credit_config::*, credit_facility::*, customer::*, dashboard::*, deposit::*,
-    deposit_config::*, document::*, domain_config::*, loader::*, me::*, policy::*, price::*,
-    prospect::*, public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
+    credit_config::*, credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
+    document::*, domain_config::*, loader::*, me::*, policy::*, price::*, prospect::*,
+    public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 #[derive(MergedObject, Default)]
