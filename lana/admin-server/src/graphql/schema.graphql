@@ -985,10 +985,10 @@ type Customer {
 	activity: Activity!
 	level: KycLevel!
 	createdAt: Timestamp!
-	email: String!
-	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String!
+	email: String!
+	telegramHandle: String!
 	customerType: CustomerType!
 	personalInfo: PersonalInfo
 	depositAccount: DepositAccount
@@ -2128,13 +2128,13 @@ type Prospect {
 	level: KycLevel!
 	createdAt: Timestamp!
 	stage: ProspectStage!
-	email: String!
-	telegramHandle: String!
-	customerType: CustomerType!
 	publicId: PublicId!
 	applicantId: String
 	verificationLink: String
 	verificationLinkCreatedAt: Timestamp
+	email: String!
+	telegramHandle: String!
+	customerType: CustomerType!
 	personalInfo: PersonalInfo
 	customer: Customer
 }

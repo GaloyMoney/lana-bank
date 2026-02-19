@@ -1,49 +1,26 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-use lana_app::public_id::PublicId;
 
 use super::{
     credit_facility::*, deposit_account::*, document::CustomerDocument, loader::LanaDataLoader,
-    primitives::SortDirection,
 };
 
-pub use lana_app::customer::{
-    Activity, Customer as DomainCustomer, CustomerType, CustomersCursor,
-    CustomersFilters as DomainCustomersFilters, CustomersSortBy as DomainCustomersSortBy, KycLevel,
-    KycVerification, PersonalInfo, Sort,
+pub use admin_graphql_customer::{
+    CustomerBase, CustomerEmailUpdateInput, CustomerTelegramHandleUpdateInput, CustomersCursor,
+    CustomersFilter, CustomersSort, DomainCustomer, DomainCustomersFilters, DomainCustomersSortBy,
+    ListDirection,
 };
 
-#[derive(SimpleObject, Clone)]
-#[graphql(complex)]
-pub struct Customer {
-    id: ID,
-    customer_id: UUID,
-    kyc_verification: KycVerification,
-    activity: Activity,
-    level: KycLevel,
-    created_at: Timestamp,
+// ===== Customer =====
 
-    #[graphql(skip)]
-    pub(super) entity: Arc<DomainCustomer>,
+#[derive(Clone)]
+pub(super) struct CustomerCrossDomain {
+    entity: Arc<DomainCustomer>,
 }
 
-impl From<DomainCustomer> for Customer {
-    fn from(customer: DomainCustomer) -> Self {
-        Customer {
-            id: customer.id.to_global_id(),
-            customer_id: UUID::from(customer.id),
-            kyc_verification: customer.kyc_verification,
-            activity: customer.activity,
-            level: customer.level,
-            created_at: customer.created_at().into(),
-            entity: Arc::new(customer),
-        }
-    }
-}
-
-#[ComplexObject]
-impl Customer {
+#[Object]
+impl CustomerCrossDomain {
     async fn email(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let party = loader
@@ -62,15 +39,10 @@ impl Customer {
         Ok(party.telegram_handle.clone())
     }
 
-    async fn public_id(&self) -> &PublicId {
-        &self.entity.public_id
-    }
-
-    async fn applicant_id(&self) -> &str {
-        &self.entity.applicant_id
-    }
-
-    async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {
+    async fn customer_type(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<lana_app::customer::CustomerType> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let party = loader
             .load_one(self.entity.party_id)
@@ -82,7 +54,7 @@ impl Customer {
     async fn personal_info(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<PersonalInfo>> {
+    ) -> async_graphql::Result<Option<lana_app::customer::PersonalInfo>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let party = loader
             .load_one(self.entity.party_id)
@@ -101,7 +73,7 @@ impl Customer {
             .deposits()
             .list_accounts_by_created_at_for_account_holder(
                 sub,
-                self.customer_id,
+                CustomerId::from(self.entity.id),
                 Default::default(),
                 ListDirection::Descending,
             )
@@ -128,7 +100,7 @@ impl Customer {
                     customer_id: Some(self.entity.id),
                     ..Default::default()
                 },
-                Sort {
+                admin_graphql_credit::Sort {
                     by: DomainCreditFacilitiesSortBy::CreatedAt,
                     direction: ListDirection::Descending,
                 },
@@ -145,7 +117,7 @@ impl Customer {
     async fn pending_credit_facilities(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<crate::graphql::credit_facility::PendingCreditFacility>> {
+    ) -> async_graphql::Result<Vec<PendingCreditFacility>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let proposals = app
@@ -154,7 +126,7 @@ impl Customer {
             .list_for_customer_by_created_at(sub, self.entity.id)
             .await?
             .into_iter()
-            .map(crate::graphql::credit_facility::PendingCreditFacility::from)
+            .map(PendingCreditFacility::from)
             .collect();
 
         Ok(proposals)
@@ -163,7 +135,7 @@ impl Customer {
     async fn credit_facility_proposals(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<crate::graphql::credit_facility::CreditFacilityProposal>> {
+    ) -> async_graphql::Result<Vec<CreditFacilityProposal>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let proposals = app
@@ -172,7 +144,7 @@ impl Customer {
             .list_for_customer_by_created_at(sub, self.entity.id)
             .await?
             .into_iter()
-            .map(crate::graphql::credit_facility::CreditFacilityProposal::from)
+            .map(CreditFacilityProposal::from)
             .collect();
 
         Ok(proposals)
@@ -196,58 +168,26 @@ impl Customer {
     }
 }
 
-#[derive(InputObject)]
-pub struct CustomerTelegramHandleUpdateInput {
-    pub customer_id: UUID,
-    pub telegram_handle: String,
+#[derive(MergedObject, Clone)]
+#[graphql(name = "Customer")]
+pub struct Customer(pub CustomerBase, CustomerCrossDomain);
+
+impl From<DomainCustomer> for Customer {
+    fn from(customer: DomainCustomer) -> Self {
+        let base = CustomerBase::from(customer);
+        let cross = CustomerCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
 }
+
+impl std::ops::Deref for Customer {
+    type Target = CustomerBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 crate::mutation_payload! { CustomerTelegramHandleUpdatePayload, customer: Customer }
-
-#[derive(InputObject)]
-pub struct CustomerEmailUpdateInput {
-    pub customer_id: UUID,
-    pub email: String,
-}
 crate::mutation_payload! { CustomerEmailUpdatePayload, customer: Customer }
-
-#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum CustomersSortBy {
-    #[default]
-    CreatedAt,
-}
-
-impl From<CustomersSortBy> for DomainCustomersSortBy {
-    fn from(by: CustomersSortBy) -> Self {
-        match by {
-            CustomersSortBy::CreatedAt => DomainCustomersSortBy::CreatedAt,
-        }
-    }
-}
-
-#[derive(InputObject, Default, Clone, Copy)]
-pub struct CustomersSort {
-    #[graphql(default)]
-    pub by: CustomersSortBy,
-    #[graphql(default)]
-    pub direction: SortDirection,
-}
-
-impl From<CustomersSort> for DomainCustomersSortBy {
-    fn from(sort: CustomersSort) -> Self {
-        sort.by.into()
-    }
-}
-
-impl From<CustomersSort> for Sort<DomainCustomersSortBy> {
-    fn from(sort: CustomersSort) -> Self {
-        Self {
-            by: sort.by.into(),
-            direction: sort.direction.into(),
-        }
-    }
-}
-
-#[derive(InputObject)]
-pub struct CustomersFilter {
-    pub kyc_verification: Option<KycVerification>,
-}

@@ -1,49 +1,23 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-use lana_app::public_id::PublicId;
 
 use super::loader::LanaDataLoader;
 
-pub use lana_app::customer::Prospect as DomainProspect;
-use lana_app::customer::{
-    CustomerType, KycLevel, KycStatus, PersonalInfo, ProspectStage, ProspectStatus,
+pub use admin_graphql_customer::{
+    DomainProspect, ProspectBase, ProspectCloseInput, ProspectConvertInput, ProspectCreateInput,
+    ProspectStatus,
 };
 
-#[derive(SimpleObject, Clone)]
-#[graphql(complex)]
-pub struct Prospect {
-    id: ID,
-    prospect_id: UUID,
-    status: ProspectStatus,
-    kyc_status: KycStatus,
-    level: KycLevel,
-    created_at: Timestamp,
+// ===== Prospect =====
 
-    #[graphql(skip)]
-    pub(super) entity: Arc<DomainProspect>,
+#[derive(Clone)]
+pub(super) struct ProspectCrossDomain {
+    entity: Arc<DomainProspect>,
 }
 
-impl From<DomainProspect> for Prospect {
-    fn from(prospect: DomainProspect) -> Self {
-        Prospect {
-            id: prospect.id.to_global_id(),
-            prospect_id: UUID::from(prospect.id),
-            status: prospect.status,
-            kyc_status: prospect.kyc_status,
-            level: prospect.level,
-            created_at: prospect.created_at().into(),
-            entity: Arc::new(prospect),
-        }
-    }
-}
-
-#[ComplexObject]
-impl Prospect {
-    async fn stage(&self) -> ProspectStage {
-        self.entity.stage
-    }
-
+#[Object]
+impl ProspectCrossDomain {
     async fn email(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let party = loader
@@ -62,7 +36,10 @@ impl Prospect {
         Ok(party.telegram_handle.clone())
     }
 
-    async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {
+    async fn customer_type(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<lana_app::customer::CustomerType> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let party = loader
             .load_one(self.entity.party_id)
@@ -71,28 +48,10 @@ impl Prospect {
         Ok(party.customer_type)
     }
 
-    async fn public_id(&self) -> &PublicId {
-        &self.entity.public_id
-    }
-
-    async fn applicant_id(&self) -> Option<&str> {
-        self.entity.applicant_id.as_deref()
-    }
-
-    async fn verification_link(&self) -> Option<&str> {
-        self.entity.verification_link.as_deref()
-    }
-
-    async fn verification_link_created_at(&self) -> Option<Timestamp> {
-        self.entity
-            .verification_link_created_at()
-            .map(Timestamp::from)
-    }
-
     async fn personal_info(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<PersonalInfo>> {
+    ) -> async_graphql::Result<Option<lana_app::customer::PersonalInfo>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let party = loader
             .load_one(self.entity.party_id)
@@ -115,22 +74,27 @@ impl Prospect {
     }
 }
 
-#[derive(InputObject)]
-pub struct ProspectCreateInput {
-    pub email: String,
-    pub telegram_handle: String,
-    pub customer_type: CustomerType,
+#[derive(MergedObject, Clone)]
+#[graphql(name = "Prospect")]
+pub struct Prospect(pub ProspectBase, ProspectCrossDomain);
+
+impl From<DomainProspect> for Prospect {
+    fn from(prospect: DomainProspect) -> Self {
+        let base = ProspectBase::from(prospect);
+        let cross = ProspectCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
 }
+
+impl std::ops::Deref for Prospect {
+    type Target = ProspectBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 crate::mutation_payload! { ProspectCreatePayload, prospect: Prospect }
-
-#[derive(InputObject)]
-pub struct ProspectCloseInput {
-    pub prospect_id: UUID,
-}
 crate::mutation_payload! { ProspectClosePayload, prospect: Prospect }
-
-#[derive(InputObject)]
-pub struct ProspectConvertInput {
-    pub prospect_id: UUID,
-}
 crate::mutation_payload! { ProspectConvertPayload, customer: super::customer::Customer }

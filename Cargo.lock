@@ -36,6 +36,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "admin-graphql-customer"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "workspace-hack",
+]
+
+[[package]]
+name = "admin-graphql-deposit"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "workspace-hack",
+]
+
+[[package]]
 name = "admin-graphql-shared"
 version = "0.0.0"
 dependencies = [
@@ -57,6 +79,7 @@ version = "0.0.0"
 dependencies = [
  "admin-graphql-credit",
  "admin-graphql-custody",
+ "admin-graphql-customer",
  "admin-graphql-deposit",
  "admin-graphql-shared",
  "anyhow",
