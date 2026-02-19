@@ -105,7 +105,7 @@ where
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
         let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(

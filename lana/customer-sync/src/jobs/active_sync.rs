@@ -2,7 +2,7 @@ use tracing::{Span, instrument};
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, KycVerification};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject,
     DepositAccountHolderStatus, GovernanceAction, GovernanceObject,
@@ -55,12 +55,11 @@ where
         _op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        if let Some(e @ CoreCustomerEvent::CustomerKycUpdated { entity }) = event.as_event() {
+        if let Some(e @ CoreCustomerEvent::CustomerCreated { entity }) = event.as_event() {
             event.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
-            self.handle_status_updated(entity.id, entity.kyc_verification)
-                .await?;
+            self.handle_customer_created(entity.id).await?;
         }
         Ok(())
     }
@@ -77,26 +76,18 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(name = "customer_sync.active_sync_job.handle", skip(self), fields(id = ?id, kyc = ?kyc_verification))]
-    async fn handle_status_updated(
+    #[instrument(name = "customer_sync.active_sync_job.handle", skip(self), fields(id = ?id))]
+    async fn handle_customer_created(
         &self,
         id: core_customer::CustomerId,
-        kyc_verification: KycVerification,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let deposit_account_status = match kyc_verification {
-            KycVerification::Rejected | KycVerification::NoKyc => {
-                DepositAccountHolderStatus::Inactive
-            }
-            KycVerification::Verified => DepositAccountHolderStatus::Active,
-        };
-
         self.deposit
             .update_account_status_for_holder(
                 &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
                     core_customer::CUSTOMER_SYNC,
                 ),
                 id,
-                deposit_account_status,
+                DepositAccountHolderStatus::Active,
             )
             .await?;
         Ok(())
