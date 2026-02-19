@@ -27,6 +27,7 @@ Accounts are organized into the standard financial categories:
 
 The normal balance type determines how the effective balance is calculated. For debit-normal accounts (assets, expenses), the effective balance is debits minus credits. For credit-normal accounts (liabilities, equity, revenue), the effective balance is credits minus debits.
 
+
 ### Account Hierarchy
 
 The chart of accounts uses a parent-child hierarchy where top-level codes represent major categories and sub-codes represent increasingly specific account groups. For example:
@@ -41,6 +42,35 @@ The chart of accounts uses a parent-child hierarchy where top-level codes repres
   - **31** — Retained Earnings
 
 Each account in the hierarchy is backed by an account set in the Cala ledger, which allows the system to aggregate balances across all child accounts when generating reports for a parent node.
+
+### Accounting Base Configuration
+
+Accounting base configuration is a map of account categories (as well as **retained earnings**, which is nested under the **Equity** category) to sections in the chart of accounts. Accounting base configuration is required for accounting operations like monthly and fiscal year-end closing. Accounting base configuration also enables the attachment of product modules to the chart of accounts. 
+
+It takes the form of JSON, where each key is an account category (or a **retained earnings** target for each of positive and negative net income) and each value represents a code in the chart of accounts.
+
+```
+{
+  "assets_code": "1",
+  "liabilities_code": "2",
+  "equity_code": "3",
+  "equity_retained_earnings_gain_code": "32.01",
+  "equity_retained_earnings_loss_code": "32.02"
+  "revenue_code": "4",
+  "cost_of_revenue_code": "5",
+  "expenses_code": "6",
+}
+```
+
+Any root-level node in the chart that is not represented by a key/value pair in accounting base configuration is considered off-balance sheet. Off-balance sheet account sets are typically used for tracking contingencies or representing transactions into and out of the system.
+
+### Setup
+
+The accounting module is required to be seeded on initial `lana-bank` startup, which requires two on-disk configuration files:
+
+(1) Chart of Accounts (CSV)
+
+(2) Accounting Base Configuration (JSON)
 
 ### Integration Configuration
 
