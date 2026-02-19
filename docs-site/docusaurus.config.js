@@ -43,7 +43,8 @@ const config = {
   markdown: {
     mermaid: true,
     hooks: {
-      onBrokenMarkdownLinks: "warn",
+      onBrokenMarkdownLinks: "throw",
+      onBrokenMarkdownImages: "throw",
     },
   },
 
@@ -56,7 +57,7 @@ const config = {
         id: "admin",
         schema: "../lana/admin-server/src/graphql/schema.graphql",
         rootPath: "./docs",
-        baseURL: "for-developers/admin-api",
+        baseURL: "apis/admin-api",
         docOptions: {
           index: true,
           pagination: true,
@@ -75,7 +76,7 @@ const config = {
         id: "customer",
         schema: "../lana/customer-server/src/graphql/schema.graphql",
         rootPath: "./docs",
-        baseURL: "for-developers/customer-api",
+        baseURL: "apis/customer-api",
         docOptions: {
           index: true,
           pagination: true,
@@ -125,7 +126,7 @@ const config = {
             label: "Documentation",
           },
           {
-            to: "/for-developers",
+            to: "/apis",
             label: "API Reference",
             position: "left",
           },
@@ -155,12 +156,16 @@ const config = {
                 to: "/getting-started",
               },
               {
-                label: "For Developers",
-                to: "/for-developers",
+                label: "Technical Documentation",
+                to: "/technical-documentation",
               },
               {
-                label: "For Operators",
-                to: "/for-operators",
+                label: "For Internal Developers",
+                to: "/for-internal-developers",
+              },
+              {
+                label: "For External Developers",
+                to: "/for-external-developers",
               },
               {
                 label: "For Platform Engineers",
@@ -173,15 +178,15 @@ const config = {
             items: [
               {
                 label: "Admin API",
-                to: "/for-developers/admin-api",
+                to: "/apis/admin-api",
               },
               {
                 label: "Customer API",
-                to: "/for-developers/customer-api",
+                to: "/apis/customer-api",
               },
               {
                 label: "Domain Events",
-                to: "/for-developers/events",
+                to: "/apis/events",
               },
             ],
           },

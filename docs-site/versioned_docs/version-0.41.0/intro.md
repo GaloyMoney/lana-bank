@@ -12,39 +12,55 @@ Lana is a modern banking core platform built for digital lending and custody ope
 ## Choose Your Path
 
 <div className="row">
-  <div className="col col--4">
+  <div className="col col--6">
     <div className="card">
       <div className="card__header">
-        <h3>For Developers</h3>
+        <h3>Technical Documentation</h3>
       </div>
       <div className="card__body">
-        <p>Integrate with Lana's GraphQL APIs to build banking applications.</p>
+        <p>Business processes, domain concepts, and admin panel procedures for bank staff.</p>
       </div>
       <div className="card__footer">
-        <a className="button button--primary button--block" href="for-developers/">Developer Guide</a>
+        <a className="button button--primary button--block" href="technical-documentation/">Technical Docs</a>
       </div>
     </div>
   </div>
-  <div className="col col--4">
+  <div className="col col--6">
     <div className="card">
       <div className="card__header">
-        <h3>For Operators</h3>
+        <h3>For External Developers</h3>
       </div>
       <div className="card__body">
-        <p>Manage customers, credit facilities, and accounting operations.</p>
+        <p>Integrate with Lana's GraphQL APIs from external applications.</p>
       </div>
       <div className="card__footer">
-        <a className="button button--primary button--block" href="for-operators/">Operator Guide</a>
+        <a className="button button--primary button--block" href="for-external-developers/">External Dev Guide</a>
       </div>
     </div>
   </div>
-  <div className="col col--4">
+</div>
+
+<div className="row" style={{marginTop: '1rem'}}>
+  <div className="col col--6">
+    <div className="card">
+      <div className="card__header">
+        <h3>For Internal Developers</h3>
+      </div>
+      <div className="card__body">
+        <p>Local setup, frontend apps, domain architecture, and code patterns.</p>
+      </div>
+      <div className="card__footer">
+        <a className="button button--primary button--block" href="for-internal-developers/">Internal Dev Guide</a>
+      </div>
+    </div>
+  </div>
+  <div className="col col--6">
     <div className="card">
       <div className="card__header">
         <h3>For Platform Engineers</h3>
       </div>
       <div className="card__body">
-        <p>Understand system design, deployment, and integration patterns.</p>
+        <p>System architecture, deployment, CI/CD, and data pipelines.</p>
       </div>
       <div className="card__footer">
         <a className="button button--primary button--block" href="for-platform-engineers/">Platform Guide</a>
@@ -67,17 +83,18 @@ Lana is a modern banking core platform built for digital lending and custody ope
 ## Quick Links
 
 ### APIs
-- [Admin API Reference](for-developers/admin-api/) - Full administrative operations
-- [Customer API Reference](for-developers/customer-api/) - Customer-facing operations
-- [Domain Events](for-developers/events/) - Event catalog
+- [Admin API Reference](apis/admin-api/) - Full administrative operations
+- [Customer API Reference](apis/customer-api/) - Customer-facing operations
+- [Domain Events](apis/events/) - Event catalog
 
 ### Operations
-- [Credit Management](for-operators/credit/) - Facility lifecycle
-- [Accounting](for-operators/accounting/) - Financial operations
+- [Credit Management](technical-documentation/credit/) - Facility lifecycle
+- [Accounting](technical-documentation/accounting/) - Financial operations
 
 ### Technical
 - [System Architecture](for-platform-engineers/functional-architecture) - Comprehensive technical design
 - [Data Models](for-platform-engineers/erds/) - Entity relationship diagrams
+- [Local Development](for-internal-developers/local-development) - Dev environment setup
 
 ## Getting Started
 

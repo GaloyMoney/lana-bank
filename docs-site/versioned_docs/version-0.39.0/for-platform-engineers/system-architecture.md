@@ -65,56 +65,47 @@ graph TD
 
 Lana follows a layered architecture that separates concerns and enables maintainability:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                       CLIENT LAYER                              │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │  Admin Panel    │  │ Customer Portal │  │  External APIs  │ │
-│  │  (Next.js)      │  │   (Next.js)     │  │                 │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    API GATEWAY LAYER                            │
-│  ┌─────────────────┐  ┌─────────────────┐                      │
-│  │   Oathkeeper    │  │    Keycloak     │                      │
-│  │  (Port 4455)    │  │   (Port 8081)   │                      │
-│  └─────────────────┘  └─────────────────┘                      │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   APPLICATION LAYER                             │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │   admin-server  │  │ customer-server │  │    lana-cli     │ │
-│  │   (GraphQL)     │  │   (GraphQL)     │  │                 │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                      lana-app                            │   │
-│  │              (Business Logic Orchestrator)               │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      DOMAIN LAYER                               │
-│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐       │
-│  │Customer│ │ Credit │ │Deposit │ │Governan│ │Accounti│       │
-│  │        │ │        │ │        │ │   ce   │ │   ng   │       │
-│  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘       │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  INFRASTRUCTURE LAYER                           │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │   PostgreSQL    │  │  Cala Ledger    │  │  External APIs  │ │
-│  │                 │  │                 │  │ (BitGo, Sumsub) │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph ClientLayer["Client Layer"]
+        AP["Admin Panel<br/>(Next.js)"]
+        CPO["Customer Portal<br/>(Next.js)"]
+        EAPI["External APIs"]
+    end
+
+    subgraph GatewayLayer["API Gateway Layer"]
+        OAT["Oathkeeper<br/>(Port 4455)"]
+        KC["Keycloak<br/>(Port 8081)"]
+    end
+
+    subgraph AppLayer["Application Layer"]
+        ASRV["admin-server<br/>(GraphQL)"]
+        CSRV["customer-server<br/>(GraphQL)"]
+        LCLI["lana-cli"]
+        LAPP["lana-app<br/>(Business Logic Orchestrator)"]
+        ASRV --> LAPP
+        CSRV --> LAPP
+        LCLI --> LAPP
+    end
+
+    subgraph DomainLayer["Domain Layer"]
+        CUST["Customer"]
+        CRED["Credit"]
+        DEP["Deposit"]
+        GOV["Governance"]
+        ACCT["Accounting"]
+    end
+
+    subgraph InfraLayer["Infrastructure Layer"]
+        PG["PostgreSQL"]
+        CALA["Cala Ledger"]
+        EXT["External APIs<br/>(BitGo, Sumsub)"]
+    end
+
+    ClientLayer --> GatewayLayer
+    GatewayLayer --> AppLayer
+    LAPP --> DomainLayer
+    DomainLayer --> InfraLayer
 ```
 
 ## Client Layer
@@ -255,16 +246,16 @@ Double-entry accounting system:
 
 ### Request Processing
 
-```
-Client Request → Oathkeeper → JWT Validation → GraphQL Server →
-Domain Services → Cala Ledger → Response
+```mermaid
+graph LR
+    REQ["Client Request"] --> OAT["Oathkeeper"] --> JWT["JWT Validation"] --> GQL["GraphQL Server"] --> DOM["Domain Services"] --> CALA["Cala Ledger"] --> RESP["Response"]
 ```
 
 ### Event Flow
 
-```
-Domain Event → Outbox Table → Event Processor →
-Dependent Domains → External Notifications
+```mermaid
+graph LR
+    EVT["Domain Event"] --> OUT["Outbox Table"] --> PROC["Event Processor"] --> DEP["Dependent Domains"] --> NOTIF["External Notifications"]
 ```
 
 ## Key Architectural Decisions

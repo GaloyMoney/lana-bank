@@ -22,22 +22,11 @@ Lana is a modern banking core built on:
 ### System Architecture
 
 - [System Architecture](system-architecture) - System layers and component overview
-- [Domain Services](domain-services) - Domain-Driven Design implementation
 - [Functional Architecture](functional-architecture) - Comprehensive technical architecture
+- [Authentication Architecture](authentication-architecture) - Keycloak, OAuth 2.0, gateway design
 
-### Technical Infrastructure
+### Data Pipelines
 
-- [Authentication and Authorization](authentication-architecture) - Keycloak, OAuth 2.0, RBAC
-- [Event System](event-system) - Event sourcing and outbox pattern
-- [Background Jobs](background-jobs) - Task processing system
-- [Infrastructure Services](infrastructure-services) - Audit, authorization, traceability
-- [Observability](observability) - OpenTelemetry and instrumentation
-- [Audit System](audit-system) - Logging and compliance
-
-### Integrations
-
-- [Cala Ledger Integration](cala-ledger-integration) - Double-entry accounting
-- [Custody and Portfolio Management](custody-portfolio) - BitGo, Komainu, collateral
 - [Data Pipelines](data-pipelines) - Meltano, dbt, BigQuery
 
 ### Data Models
@@ -53,6 +42,10 @@ Lana is a modern banking core built on:
 - [Development Environment](deployment/development-environment) - Local setup
 - [Testing Strategy](deployment/testing-strategy) - Testing layers and tools
 - [CI/CD Pipeline](deployment/ci-cd) - GitHub Actions, Concourse, releases
+
+:::tip
+Looking for domain internals, event sourcing, background jobs, or observability? See the [Internal Developer Guide](../for-internal-developers/) — those topics have moved there.
+:::
 
 ## Technology Stack
 

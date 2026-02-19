@@ -36,30 +36,21 @@ graph TD
 
 ## Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    CI/CD PIPELINE                               │
-│                                                                  │
-│  ┌─────────────────┐    ┌─────────────────┐                    │
-│  │   Pull Request  │───▶│  GitHub Actions │                    │
-│  │                 │    │   (CI Checks)   │                    │
-│  └─────────────────┘    └─────────────────┘                    │
-│                                │                                │
-│                                ▼                                │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    Test Suite                            │   │
-│  │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐           │   │
-│  │  │ Lint   │ │ Unit   │ │ E2E    │ │Security│           │   │
-│  │  │        │ │ Tests  │ │ Tests  │ │ Scan   │           │   │
-│  │  └────────┘ └────────┘ └────────┘ └────────┘           │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                │                                │
-│                                ▼ (on merge)                     │
-│  ┌─────────────────┐    ┌─────────────────┐                    │
-│  │    Concourse    │───▶│     Deploy      │                    │
-│  │   (CD Pipeline) │    │   to Staging    │                    │
-│  └─────────────────┘    └─────────────────┘                    │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    PR["Pull Request"] --> GHA["GitHub Actions<br/>(CI Checks)"]
+
+    GHA --> SUITE
+
+    subgraph SUITE["Test Suite"]
+        LINT["Lint"]
+        UNIT["Unit Tests"]
+        E2E["E2E Tests"]
+        SEC["Security Scan"]
+    end
+
+    SUITE -->|"on merge"| CONC["Concourse<br/>(CD Pipeline)"]
+    CONC --> DEPLOY["Deploy to Staging"]
 ```
 
 ## GitHub Actions

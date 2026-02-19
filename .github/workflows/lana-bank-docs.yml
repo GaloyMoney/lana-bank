@@ -58,6 +58,15 @@ jobs:
         run: |
           nix develop -c bash -lc "cd docs-site && npm run validate-api-descriptions"
 
+      - name: Fetch screenshots from Netlify
+        continue-on-error: true
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run fetch-screenshots"
+
+      - name: Create screenshot placeholders for missing images
+        run: |
+          nix develop -c bash -lc "cd docs-site && bash scripts/create-screenshot-placeholders.sh"
+
       - name: Build docs site
         run: |
           nix develop -c bash -lc "cd docs-site && npx docusaurus build"
