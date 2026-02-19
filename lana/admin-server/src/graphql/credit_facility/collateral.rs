@@ -65,7 +65,7 @@ impl Collateral {
     async fn credit_facility(&self, ctx: &Context<'_>) -> Result<CreditFacility> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let facility = loader
-            .load_one(self.entity.credit_facility_id)
+            .load_one(CreditFacilityId::from(self.entity.secured_loan_id))
             .await?
             .expect("Credit facility not found");
         Ok(facility)

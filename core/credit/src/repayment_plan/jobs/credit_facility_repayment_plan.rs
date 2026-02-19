@@ -146,7 +146,7 @@ where
                     db,
                     message,
                     event,
-                    entity.credit_facility_id,
+                    entity.secured_loan_id,
                     sequence,
                     clock,
                 )
