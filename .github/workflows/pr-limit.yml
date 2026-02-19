@@ -5,6 +5,7 @@ on:
 
 jobs:
   enforce-pr-limit:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - name: Check open PR count and enforce limit
