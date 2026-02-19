@@ -151,6 +151,7 @@ async fn create_active_facility(
 /// Test that attempting to pay more than the outstanding obligations returns
 /// the `PaymentAmountGreaterThanOutstandingObligations` error.
 #[tokio::test]
+#[serial_test::file_serial(core_credit_shared_jobs)]
 async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     // Infrastructure setup
     let pool = helpers::init_pool().await?;

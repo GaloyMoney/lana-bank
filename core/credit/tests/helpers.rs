@@ -650,7 +650,7 @@ pub async fn create_pending_facility(
         if attempt == 99 {
             panic!("Timed out waiting for pending facility creation");
         }
-        tokio::time::sleep(Duration::from_millis(50)).await;
+        tokio::time::sleep(Duration::from_millis(100)).await;
     }
     unreachable!()
 }
