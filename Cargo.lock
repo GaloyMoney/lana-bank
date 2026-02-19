@@ -375,15 +375,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
-name = "autotools"
-version = "0.2.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef941527c41b0fc0dd48511a8154cd5fc7e29200a0ff8b7203c5d777dbc795cf"
-dependencies = [
- "cc",
-]
-
-[[package]]
 name = "aws-lc-rs"
 version = "1.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -756,9 +747,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.13.11"
+version = "0.13.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "873fe93adea8fd23ff8291284fc5cbf89bfe3141da80bdda31447d86232bcdc4"
+checksum = "40276756d882775d6a88a5c611e2bd47ac1367f8b663ed648312857a83afd2db"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -775,9 +766,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.13.11"
+version = "0.13.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1651800737571f862813654f52f8f2fb75cb5214f13854eb77b5bc517449d61d"
+checksum = "9fdbafa57702f87e72165eaf16477e77b7e97c395113cdb3db04807ee6020edd"
 dependencies = [
  "cached",
  "lalrpop",
@@ -787,9 +778,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.13.11"
+version = "0.13.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bcba3e2082bbeeac18c5bb5ca62f11a4236624678599e1e1f2a254b518f584d7"
+checksum = "bc9c1f5df08faa931a4908ea27cb57f5aa9c8d29ea21215e1e8cb1b0ed807c68"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -804,9 +795,6 @@ dependencies = [
  "job",
  "obix",
  "opentelemetry",
- "prost 0.13.5",
- "prost-wkt-types",
- "protobuf-src",
  "regex",
  "rust_decimal",
  "schemars 1.2.1",
@@ -816,9 +804,6 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-stream",
- "tonic 0.13.1",
- "tonic-build",
- "tonic-health",
  "tracing",
  "tracing-opentelemetry",
  "uuid",
@@ -826,9 +811,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.13.11"
+version = "0.13.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee638f7ee7db149183644aa62e80b0ee7914ebb89d3a23de4be4c5aca5a21d0a"
+checksum = "d86b3eb9f350ded7ab81c121924d85aca7e4f1f7c075f8772e77482701938cd6"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -848,9 +833,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.13.11"
+version = "0.13.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3119cc74de25420b95eae715522526301336233a96df2e969125d81f510bb72"
+checksum = "b65f019b9454b09803ecebc2ff02dda645890d5c3730d710abe12f0808d8b598"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -860,7 +845,6 @@ dependencies = [
  "opentelemetry_sdk",
  "serde",
  "serde_json",
- "tonic 0.13.1",
  "tracing",
  "tracing-opentelemetry",
  "tracing-subscriber",
@@ -1155,7 +1139,7 @@ version = "3.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1185,8 +1169,8 @@ checksum = "e8599749b6667e2f0c910c1d0dff6901163ff698a52d5a39720f61b5be4b20d3"
 dependencies = [
  "futures-core",
  "prost 0.14.1",
- "prost-types 0.14.1",
- "tonic 0.14.3",
+ "prost-types",
+ "tonic",
  "tonic-prost",
  "tracing-core",
 ]
@@ -1205,13 +1189,13 @@ dependencies = [
  "humantime",
  "hyper-util",
  "prost 0.14.1",
- "prost-types 0.14.1",
+ "prost-types",
  "serde",
  "serde_json",
  "thread_local",
  "tokio",
  "tokio-stream",
- "tonic 0.14.3",
+ "tonic",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -2327,24 +2311,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
-name = "erased-serde"
-version = "0.4.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "259d404d09818dec19332e31d94558aeb442fea04c817006456c24b5460bbd4b"
-dependencies = [
- "serde",
- "serde_core",
- "typeid",
-]
-
-[[package]]
 name = "errno"
 version = "0.3.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2741,7 +2714,7 @@ dependencies = [
  "percent-encoding",
  "pin-project",
  "prost 0.14.1",
- "prost-types 0.14.1",
+ "prost-types",
  "reqwest 0.13.2",
  "rustc_version",
  "serde",
@@ -2749,7 +2722,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-stream",
- "tonic 0.14.3",
+ "tonic",
  "tonic-prost",
  "tower",
  "tracing",
@@ -2852,7 +2825,7 @@ dependencies = [
  "percent-encoding",
  "pin-project",
  "prost 0.14.1",
- "prost-types 0.14.1",
+ "prost-types",
  "reqwest 0.13.2",
  "serde",
  "serde_json",
@@ -2861,7 +2834,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-stream",
- "tonic 0.14.3",
+ "tonic",
  "tracing",
  "url",
  "uuid",
@@ -3244,7 +3217,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.5.10",
+ "socket2",
  "system-configuration",
  "tokio",
  "tower-service",
@@ -3856,7 +3829,7 @@ dependencies = [
  "percent-encoding",
  "quoted_printable",
  "rustls",
- "socket2 0.6.1",
+ "socket2",
  "tokio",
  "tokio-rustls",
  "url",
@@ -4061,12 +4034,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "multimap"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
-
-[[package]]
 name = "new_debug_unreachable"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4141,7 +4108,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4320,7 +4287,7 @@ dependencies = [
  "reqwest 0.12.28",
  "thiserror 2.0.18",
  "tokio",
- "tonic 0.14.3",
+ "tonic",
 ]
 
 [[package]]
@@ -4332,7 +4299,7 @@ dependencies = [
  "opentelemetry",
  "opentelemetry_sdk",
  "prost 0.14.1",
- "tonic 0.14.3",
+ "tonic",
  "tonic-prost",
 ]
 
@@ -4741,26 +4708,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "prost-build"
-version = "0.13.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
-dependencies = [
- "heck",
- "itertools",
- "log",
- "multimap",
- "once_cell",
- "petgraph 0.7.1",
- "prettyplease",
- "prost 0.13.5",
- "prost-types 0.13.5",
- "regex",
- "syn 2.0.114",
- "tempfile",
-]
-
-[[package]]
 name = "prost-derive"
 version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4788,76 +4735,11 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.13.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52c2c1bf36ddb1a1c396b3601a3cec27c2462e45f07c386894ec3ccf5332bd16"
-dependencies = [
- "prost 0.13.5",
-]
-
-[[package]]
-name = "prost-types"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9b4db3d6da204ed77bb26ba83b6122a73aeb2e87e25fbf7ad2e84c4ccbf8f72"
 dependencies = [
  "prost 0.14.1",
-]
-
-[[package]]
-name = "prost-wkt"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "497e1e938f0c09ef9cabe1d49437b4016e03e8f82fbbe5d1c62a9b61b9decae1"
-dependencies = [
- "chrono",
- "inventory",
- "prost 0.13.5",
- "serde",
- "serde_derive",
- "serde_json",
- "typetag",
-]
-
-[[package]]
-name = "prost-wkt-build"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07b8bf115b70a7aa5af1fd5d6e9418492e9ccb6e4785e858c938e28d132a884b"
-dependencies = [
- "heck",
- "prost 0.13.5",
- "prost-build",
- "prost-types 0.13.5",
- "quote",
-]
-
-[[package]]
-name = "prost-wkt-types"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01ef068e9b82e654614b22e6b13699bd545b6c0e2e721736008b00b38aeb4f64"
-dependencies = [
- "chrono",
- "prost 0.13.5",
- "prost-build",
- "prost-types 0.13.5",
- "prost-wkt",
- "prost-wkt-build",
- "protobuf-src",
- "regex",
- "serde",
- "serde_derive",
- "serde_json",
-]
-
-[[package]]
-name = "protobuf-src"
-version = "1.1.0+21.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7ac8852baeb3cc6fb83b93646fb93c0ffe5d14bf138c945ceb4b9948ee0e3c1"
-dependencies = [
- "autotools",
 ]
 
 [[package]]
@@ -4929,7 +4811,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.5.10",
+ "socket2",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -4967,9 +4849,9 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5463,7 +5345,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -5522,7 +5404,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -6041,16 +5923,6 @@ dependencies = [
 
 [[package]]
 name = "socket2"
-version = "0.5.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e22376abed350d73dd1cd119b57ffccad95b4e585a7cda43e286245ce23c0678"
-dependencies = [
- "libc",
- "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "socket2"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17129e116933cf371d018bb80ae557e889637989d8638274fb25622827b03881"
@@ -6482,7 +6354,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -6491,7 +6363,7 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2111ef44dae28680ae9752bb89409e7310ca33a8c621ebe7b106cf5c928b3ac0"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -6629,7 +6501,7 @@ dependencies = [
  "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
- "socket2 0.6.1",
+ "socket2",
  "tokio-macros",
  "tracing",
  "windows-sys 0.61.2",
@@ -6726,35 +6598,6 @@ dependencies = [
 
 [[package]]
 name = "tonic"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e581ba15a835f4d9ea06c55ab1bd4dce26fc53752c69a04aac00703bfb49ba9"
-dependencies = [
- "async-trait",
- "axum",
- "base64 0.22.1",
- "bytes",
- "h2",
- "http",
- "http-body",
- "http-body-util",
- "hyper",
- "hyper-timeout",
- "hyper-util",
- "percent-encoding",
- "pin-project",
- "prost 0.13.5",
- "socket2 0.5.10",
- "tokio",
- "tokio-stream",
- "tower",
- "tower-layer",
- "tower-service",
- "tracing",
-]
-
-[[package]]
-name = "tonic"
 version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a286e33f82f8a1ee2df63f4fa35c0becf4a85a0cb03091a15fd7bf0b402dc94a"
@@ -6773,7 +6616,7 @@ dependencies = [
  "percent-encoding",
  "pin-project",
  "rustls-native-certs",
- "socket2 0.6.1",
+ "socket2",
  "sync_wrapper",
  "tokio",
  "tokio-rustls",
@@ -6785,33 +6628,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tonic-build"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eac6f67be712d12f0b41328db3137e0d0757645d8904b4cb7d51cd9c2279e847"
-dependencies = [
- "prettyplease",
- "proc-macro2",
- "prost-build",
- "prost-types 0.13.5",
- "quote",
- "syn 2.0.114",
-]
-
-[[package]]
-name = "tonic-health"
-version = "0.14.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "163e5ad9be2924d9cef75f02fcd44c1803a5af250f4ef7e085992270ac51fb9b"
-dependencies = [
- "prost 0.14.1",
- "tokio",
- "tokio-stream",
- "tonic 0.14.3",
- "tonic-prost",
-]
-
-[[package]]
 name = "tonic-prost"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6819,7 +6635,7 @@ checksum = "66bd50ad6ce1252d87ef024b3d64fe4c3cf54a86fb9ef4c631fdd0ded7aeaa67"
 dependencies = [
  "bytes",
  "prost 0.14.1",
- "tonic 0.14.3",
+ "tonic",
 ]
 
 [[package]]
@@ -7035,40 +6851,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "typeid"
-version = "1.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc7d623258602320d5c55d1bc22793b57daff0ec7efc270ea7d55ce1d5f5471c"
-
-[[package]]
 name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
-
-[[package]]
-name = "typetag"
-version = "0.2.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be2212c8a9b9bcfca32024de14998494cf9a5dfa59ea1b829de98bac374b86bf"
-dependencies = [
- "erased-serde",
- "inventory",
- "once_cell",
- "serde",
- "typetag-impl",
-]
-
-[[package]]
-name = "typetag-impl"
-version = "0.2.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27a7a9b72ba121f6f1f6c3632b85604cac41aedb5ddc70accbebb6cac83de846"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.114",
-]
 
 [[package]]
 name = "ucd-trie"
@@ -7500,7 +7286,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -8089,7 +7875,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-util",
- "tonic 0.14.3",
+ "tonic",
  "tower",
  "tracing-core",
  "url",
