@@ -31,9 +31,7 @@ mod access;
 mod policy;
 mod schema;
 
-pub(crate) mod custody {
-    pub use admin_graphql_custody::*;
-}
+mod custody;
 
 use async_graphql::*;
 
