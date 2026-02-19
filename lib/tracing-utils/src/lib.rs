@@ -51,10 +51,6 @@ pub struct TracerHandle {
 static TRACER_HANDLE: Mutex<Option<TracerHandle>> = Mutex::new(None);
 
 pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
-    let enable_tokio_console = std::env::var("TOKIO_CONSOLE")
-        .map(|v| v == "1" || v.to_lowercase() == "true")
-        .unwrap_or(false);
-
     global::set_text_map_propagator(TraceContextPropagator::new());
 
     let endpoint = std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT")
@@ -123,54 +119,15 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
 
     let fmt_layer = fmt::layer().compact().with_filter(fmt_filter);
 
-    #[cfg_attr(not(tokio_unstable), allow(unused_mut))]
-    let mut base_filter = EnvFilter::try_from_default_env()
+    let base_filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info,sqlx=debug"))
         .expect("default EnvFilter should be valid");
 
-    // If tokio-console is enabled AND tokio_unstable is available,
-    // ensure tokio and runtime traces are at TRACE level
-    // This is required by console-subscriber as per the documentation
-    #[cfg(tokio_unstable)]
-    if enable_tokio_console {
-        base_filter = base_filter
-            .add_directive(
-                "tokio=trace"
-                    .parse()
-                    .expect("tokio=trace directive is valid"),
-            )
-            .add_directive(
-                "runtime=trace"
-                    .parse()
-                    .expect("runtime=trace directive is valid"),
-            );
-    }
-
-    let registry = tracing_subscriber::registry()
+    tracing_subscriber::registry()
         .with(base_filter)
         .with(fmt_layer)
-        .with(telemetry);
-
-    // Add console layer if both env var is set AND tokio_unstable cfg is enabled
-    // Note: console-subscriber requires tokio_unstable to work
-    #[cfg(tokio_unstable)]
-    if enable_tokio_console {
-        let console_layer = console_subscriber::spawn();
-        registry.with(console_layer).init();
-    } else {
-        registry.init();
-    }
-
-    #[cfg(not(tokio_unstable))]
-    {
-        if enable_tokio_console {
-            eprintln!("WARNING: TOKIO_CONSOLE=true but tokio_unstable is not enabled.");
-            eprintln!("To enable tokio-console, you must also set:");
-            eprintln!("  RUSTFLAGS=\"--cfg tokio_unstable\"");
-            eprintln!("in your .env file");
-        }
-        registry.init();
-    }
+        .with(telemetry)
+        .init();
 
     setup_panic_hook();
 

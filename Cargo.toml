@@ -17,7 +17,7 @@ exclude = [
 ]
 
 [workspace.lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tokio_unstable)'] }
+unexpected_cfgs = { level = "warn", check-cfg = [] }
 
 [workspace.package]
 version = "0.0.0"
@@ -144,7 +144,6 @@ tokio = { version = "1.49.0", features = [
   "tracing",
 ] }
 tokio-stream = { version = "0.1.18", features = ["sync"] }
-console-subscriber = "0.5"
 strum = { version = "0.27", features = ["derive"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_yaml = "0.9.32"
