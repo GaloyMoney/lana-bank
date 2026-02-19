@@ -72,7 +72,7 @@ where
                     .await?;
             }
             Some(e @ FacilityCollateralUpdated { entity }) => {
-                self.handle_credit_event(db, event, e, entity.credit_facility_id)
+                self.handle_credit_event(db, event, e, entity.secured_loan_id)
                     .await?;
             }
             Some(e @ PartialLiquidationInitiated { entity }) => {

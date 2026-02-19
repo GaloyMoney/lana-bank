@@ -174,7 +174,7 @@ where
                     },
                     CoreCreditEvent::PartialLiquidationCollateralSentOut {
                         liquidation_id: *liquidation_id,
-                        credit_facility_id: entity.credit_facility_id,
+                        credit_facility_id: entity.secured_loan_id.into(),
                         amount: *abs_diff,
                         ledger_tx_id: *ledger_tx_id,
                         recorded_at: event.recorded_at,
@@ -189,7 +189,7 @@ where
                 } => {
                     vec![CoreCreditEvent::PartialLiquidationProceedsReceived {
                         liquidation_id: *liquidation_id,
-                        credit_facility_id: entity.credit_facility_id,
+                        credit_facility_id: entity.secured_loan_id.into(),
                         amount: *amount,
                         payment_id: *payment_id,
                         ledger_tx_id: *ledger_tx_id,
@@ -200,7 +200,7 @@ where
                 LiquidationCompleted { liquidation_id } => {
                     vec![CoreCreditEvent::PartialLiquidationCompleted {
                         liquidation_id: *liquidation_id,
-                        credit_facility_id: entity.credit_facility_id,
+                        credit_facility_id: entity.secured_loan_id.into(),
                     }]
                 }
                 _ => vec![],
