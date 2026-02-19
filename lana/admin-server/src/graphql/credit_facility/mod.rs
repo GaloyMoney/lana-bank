@@ -1,119 +1,66 @@
-mod balance;
-mod collateral;
-pub(super) mod disbursal;
-mod history;
 mod ledger_accounts;
-mod liquidation;
-pub(super) mod payment_allocation;
-mod pending_facility;
-mod proposal;
-mod repayment;
 
 use async_graphql::*;
 
-use crate::primitives::*;
-
-use super::{
-    approval_process::ApprovalProcess, custody::Wallet, customer::*, loader::LanaDataLoader,
-    primitives::SortDirection, terms::*,
-};
-pub use lana_app::{
-    credit::{
-        CreditFacilitiesCursor, CreditFacilitiesFilters as DomainCreditFacilitiesFilters,
-        CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
-        CreditFacility as DomainCreditFacility, DisbursalsFilters,
-        DisbursalsSortBy as DomainDisbursalsSortBy, ListDirection, Sort,
+use crate::{
+    graphql::{
+        accounting::LedgerTransaction, approval_process::ApprovalProcess, custody::*, customer::*,
+        loader::LanaDataLoader,
     },
-    custody::WalletId,
-    primitives::CreditFacilityStatus,
-    public_id::PublicId,
+    primitives::*,
 };
 
-pub use balance::*;
-pub use collateral::*;
-pub use disbursal::*;
-pub use history::*;
+// Re-export base types and value types from the credit crate
+pub use admin_graphql_credit::{
+    CollateralBase, CollateralRecordProceedsFromLiquidationInput,
+    CollateralRecordSentToLiquidationInput, CollateralUpdateInput, CreditFacilitiesCursor,
+    CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacilityBase,
+    CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput,
+    CreditFacilityDisbursalBase, CreditFacilityDisbursalInitiateInput,
+    CreditFacilityPartialPaymentRecordInput, CreditFacilityPartialPaymentWithDateRecordInput,
+    CreditFacilityPaymentAllocationBase, CreditFacilityProposalBase,
+    CreditFacilityProposalCreateInput, CreditFacilityProposalCustomerApprovalConcludeInput,
+    CreditFacilityProposalsByCreatedAtCursor, DisbursalsCursor, DisbursalsFilters,
+    DomainCollateral, DomainCreditFacilitiesFilters, DomainCreditFacilitiesSortBy,
+    DomainCreditFacility, DomainCreditFacilityProposal, DomainDisbursal, DomainDisbursalsSortBy,
+    DomainLiquidation, DomainPendingCreditFacility, LiquidationBase, ListDirection,
+    PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacilityBase,
+    PendingCreditFacilityCollateralizationUpdated, Sort,
+};
+
+use lana_app::custody::WalletId;
 use ledger_accounts::*;
-pub use liquidation::*;
-pub use pending_facility::*;
-pub use proposal::*;
-pub use repayment::*;
 
-#[derive(SimpleObject, Clone)]
-#[graphql(complex)]
-pub struct CreditFacility {
-    id: ID,
-    credit_facility_id: UUID,
-    collateral_id: UUID,
-    matures_at: Timestamp,
-    activated_at: Timestamp,
-    collateralization_state: CollateralizationState,
-    status: CreditFacilityStatus,
-    facility_amount: UsdCents,
+// ===== CreditFacility =====
 
-    #[graphql(skip)]
-    pub(super) entity: Arc<DomainCreditFacility>,
+#[derive(Clone)]
+pub(super) struct CreditFacilityCrossDomain {
+    entity: Arc<DomainCreditFacility>,
 }
 
-impl From<DomainCreditFacility> for CreditFacility {
-    fn from(credit_facility: DomainCreditFacility) -> Self {
-        Self {
-            id: credit_facility.id.to_global_id(),
-            credit_facility_id: UUID::from(credit_facility.id),
-            collateral_id: UUID::from(credit_facility.collateral_id),
-            activated_at: Timestamp::from(credit_facility.activated_at),
-            matures_at: Timestamp::from(credit_facility.matures_at()),
-            facility_amount: credit_facility.amount,
-            status: credit_facility.status(),
-            collateralization_state: credit_facility.last_collateralization_state(),
+#[Object]
+impl CreditFacilityCrossDomain {
+    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let customer = loader
+            .load_one(self.entity.customer_id)
+            .await?
+            .expect("customer not found");
+        Ok(customer)
+    }
 
-            entity: Arc::new(credit_facility),
+    async fn wallet(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Wallet>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let collateral = loader
+            .load_one(self.entity.collateral_id)
+            .await?
+            .expect("credit facility has collateral");
+
+        if let Some(wallet_id) = collateral.wallet_id {
+            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
+        } else {
+            Ok(None)
         }
-    }
-}
-
-#[ComplexObject]
-impl CreditFacility {
-    async fn public_id(&self) -> &PublicId {
-        &self.entity.public_id
-    }
-    async fn can_be_completed(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().can_be_completed(&self.entity).await?)
-    }
-
-    async fn credit_facility_terms(&self) -> TermValues {
-        self.entity.terms.into()
-    }
-
-    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
-        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().current_cvl(&self.entity).await?.into())
-    }
-
-    async fn history(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<CreditFacilityHistoryEntry>> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
-        Ok(app
-            .credit()
-            .histories()
-            .find_for_credit_facility_id(sub, self.entity.id)
-            .await?)
-    }
-
-    async fn repayment_plan(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<CreditFacilityRepaymentPlanEntry>> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit()
-            .repayment_plans()
-            .find_for_credit_facility_id(sub, self.entity.id)
-            .await?)
     }
 
     async fn disbursals(
@@ -164,84 +111,6 @@ impl CreditFacility {
             .into_iter()
             .map(Liquidation::from)
             .collect())
-    }
-
-    async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit()
-            .collaterals()
-            .subject_can_update_collateral(sub, false)
-            .await
-            .is_ok())
-    }
-
-    async fn user_can_initiate_disbursal(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit()
-            .subject_can_initiate_disbursal(sub, false)
-            .await
-            .is_ok())
-    }
-
-    async fn user_can_record_payment(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit()
-            .subject_can_record_payment(sub, false)
-            .await
-            .is_ok())
-    }
-
-    async fn user_can_record_payment_with_date(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit()
-            .subject_can_record_payment_with_date(sub, false)
-            .await
-            .is_ok())
-    }
-
-    async fn user_can_complete(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().subject_can_complete(sub, false).await.is_ok())
-    }
-
-    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let customer = loader
-            .load_one(self.entity.customer_id)
-            .await?
-            .expect("customer not found");
-        Ok(customer)
-    }
-
-    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let balance = app
-            .credit()
-            .facilities()
-            .balance(sub, self.entity.id)
-            .await?;
-        Ok(CreditFacilityBalance::from(balance))
-    }
-
-    async fn wallet(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Wallet>> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let collateral = loader
-            .load_one(self.entity.collateral_id)
-            .await?
-            .expect("credit facility has collateral");
-
-        if let Some(wallet_id) = collateral.wallet_id {
-            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
-        } else {
-            Ok(None)
-        }
     }
 
     async fn ledger_accounts(
@@ -325,70 +194,454 @@ impl CreditFacility {
     }
 }
 
-#[derive(InputObject)]
-pub struct CreditFacilityPartialPaymentRecordInput {
-    pub credit_facility_id: UUID,
-    pub amount: UsdCents,
+#[derive(MergedObject, Clone)]
+#[graphql(name = "CreditFacility")]
+pub struct CreditFacility(pub CreditFacilityBase, CreditFacilityCrossDomain);
+
+impl From<DomainCreditFacility> for CreditFacility {
+    fn from(cf: DomainCreditFacility) -> Self {
+        let base = CreditFacilityBase::from(cf);
+        let cross = CreditFacilityCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
 }
 
-#[derive(InputObject)]
-pub struct CreditFacilityPartialPaymentWithDateRecordInput {
-    pub credit_facility_id: UUID,
-    pub amount: UsdCents,
-    pub effective: Date,
+impl std::ops::Deref for CreditFacility {
+    type Target = CreditFacilityBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
+
 crate::mutation_payload! { CreditFacilityPartialPaymentRecordPayload, credit_facility: CreditFacility }
-
-#[derive(InputObject)]
-pub struct CreditFacilityCompleteInput {
-    pub credit_facility_id: UUID,
-}
 crate::mutation_payload! { CreditFacilityCompletePayload, credit_facility: CreditFacility }
 
-#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum CreditFacilitiesSortBy {
-    #[default]
-    CreatedAt,
-    Cvl,
+// ===== CreditFacilityProposal =====
+
+#[derive(Clone)]
+pub(super) struct CreditFacilityProposalCrossDomain {
+    entity: Arc<DomainCreditFacilityProposal>,
 }
 
-impl From<CreditFacilitiesSortBy> for DomainCreditFacilitiesSortBy {
-    fn from(by: CreditFacilitiesSortBy) -> Self {
-        match by {
-            CreditFacilitiesSortBy::CreatedAt => DomainCreditFacilitiesSortBy::CreatedAt,
-            CreditFacilitiesSortBy::Cvl => DomainCreditFacilitiesSortBy::CollateralizationRatio,
+#[Object]
+impl CreditFacilityProposalCrossDomain {
+    async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Custodian>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        if let Some(custodian_id) = self.entity.custodian_id {
+            let custodian = loader
+                .load_one(custodian_id)
+                .await?
+                .expect("custodian not found");
+
+            return Ok(Some(custodian));
+        }
+        Ok(None)
+    }
+
+    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let customer = loader
+            .load_one(self.entity.customer_id)
+            .await?
+            .expect("customer not found");
+        Ok(customer)
+    }
+
+    async fn approval_process(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ApprovalProcess>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        if let Some(approval_process_id) = self.entity.approval_process_id {
+            let process = loader
+                .load_one(approval_process_id)
+                .await?
+                .expect("process not found");
+            return Ok(Some(process));
+        }
+        Ok(None)
+    }
+}
+
+#[derive(MergedObject, Clone)]
+#[graphql(name = "CreditFacilityProposal")]
+pub struct CreditFacilityProposal(
+    pub CreditFacilityProposalBase,
+    CreditFacilityProposalCrossDomain,
+);
+
+impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {
+    fn from(proposal: DomainCreditFacilityProposal) -> Self {
+        let base = CreditFacilityProposalBase::from(proposal);
+        let cross = CreditFacilityProposalCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
+}
+
+impl std::ops::Deref for CreditFacilityProposal {
+    type Target = CreditFacilityProposalBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+crate::mutation_payload! { CreditFacilityProposalCreatePayload, credit_facility_proposal: CreditFacilityProposal }
+crate::mutation_payload! { CreditFacilityProposalCustomerApprovalConcludePayload, credit_facility_proposal: CreditFacilityProposal }
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct CreditFacilityProposalConcludedPayload {
+    pub status: CreditFacilityProposalStatus,
+    #[graphql(skip)]
+    pub credit_facility_proposal_id: CreditFacilityProposalId,
+}
+
+#[ComplexObject]
+impl CreditFacilityProposalConcludedPayload {
+    async fn credit_facility_proposal(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<CreditFacilityProposal> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let proposal = loader
+            .load_one(self.credit_facility_proposal_id)
+            .await?
+            .expect("credit facility proposal not found");
+        Ok(proposal)
+    }
+}
+
+// ===== PendingCreditFacility =====
+
+#[derive(Clone)]
+pub(super) struct PendingCreditFacilityCrossDomain {
+    entity: Arc<DomainPendingCreditFacility>,
+}
+
+#[Object]
+impl PendingCreditFacilityCrossDomain {
+    async fn wallet(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Wallet>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let collateral = loader
+            .load_one(self.entity.collateral_id)
+            .await?
+            .expect("credit facility proposal has collateral");
+
+        if let Some(wallet_id) = collateral.wallet_id {
+            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
+        } else {
+            Ok(None)
         }
     }
-}
 
-#[derive(InputObject, Default, Debug, Clone, Copy)]
-pub struct CreditFacilitiesSort {
-    #[graphql(default)]
-    pub by: CreditFacilitiesSortBy,
-    #[graphql(default)]
-    pub direction: SortDirection,
-}
+    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let customer = loader
+            .load_one(self.entity.customer_id)
+            .await?
+            .expect("customer not found");
+        Ok(customer)
+    }
 
-impl From<CreditFacilitiesSort> for Sort<DomainCreditFacilitiesSortBy> {
-    fn from(sort: CreditFacilitiesSort) -> Self {
-        Self {
-            by: sort.by.into(),
-            direction: sort.direction.into(),
-        }
+    async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let process = loader
+            .load_one(self.entity.approval_process_id)
+            .await?
+            .expect("process not found");
+        Ok(process)
     }
 }
 
-impl From<CreditFacilitiesSort> for DomainCreditFacilitiesSortBy {
-    fn from(sort: CreditFacilitiesSort) -> Self {
-        sort.by.into()
+#[derive(MergedObject, Clone)]
+#[graphql(name = "PendingCreditFacility")]
+pub struct PendingCreditFacility(
+    pub PendingCreditFacilityBase,
+    PendingCreditFacilityCrossDomain,
+);
+
+impl From<DomainPendingCreditFacility> for PendingCreditFacility {
+    fn from(pending: DomainPendingCreditFacility) -> Self {
+        let base = PendingCreditFacilityBase::from(pending);
+        let cross = PendingCreditFacilityCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
     }
 }
 
-#[derive(InputObject)]
-pub struct CreditFacilitiesFilter {
-    pub status: Option<CreditFacilityStatus>,
-    pub collateralization_state: Option<CollateralizationState>,
+impl std::ops::Deref for PendingCreditFacility {
+    type Target = PendingCreditFacilityBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct PendingCreditFacilityCollateralizationPayload {
+    #[graphql(flatten)]
+    pub update: PendingCreditFacilityCollateralizationUpdated,
+    #[graphql(skip)]
+    pub pending_credit_facility_id: PendingCreditFacilityId,
+}
+
+#[ComplexObject]
+impl PendingCreditFacilityCollateralizationPayload {
+    async fn pending_credit_facility(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<PendingCreditFacility> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let facility = loader
+            .load_one(self.pending_credit_facility_id)
+            .await?
+            .expect("pending credit facility not found");
+        Ok(facility)
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct PendingCreditFacilityCompleted {
+    pub status: PendingCreditFacilityStatus,
+    pub recorded_at: Timestamp,
+}
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct PendingCreditFacilityCompletedPayload {
+    #[graphql(flatten)]
+    pub update: PendingCreditFacilityCompleted,
+    #[graphql(skip)]
+    pub pending_credit_facility_id: PendingCreditFacilityId,
+}
+
+#[ComplexObject]
+impl PendingCreditFacilityCompletedPayload {
+    async fn pending_credit_facility(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<PendingCreditFacility> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let facility = loader
+            .load_one(self.pending_credit_facility_id)
+            .await?
+            .expect("pending credit facility not found");
+        Ok(facility)
+    }
+}
+
+// ===== CreditFacilityDisbursal =====
+
+#[derive(Clone)]
+pub(super) struct CreditFacilityDisbursalCrossDomain {
+    entity: Arc<DomainDisbursal>,
+}
+
+#[Object]
+impl CreditFacilityDisbursalCrossDomain {
+    async fn credit_facility(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacility> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let facility = loader
+            .load_one(self.entity.facility_id)
+            .await?
+            .expect("committee not found");
+        Ok(facility)
+    }
+
+    async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let process = loader
+            .load_one(self.entity.approval_process_id)
+            .await?
+            .expect("process not found");
+        Ok(process)
+    }
+
+    async fn ledger_transactions(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<LedgerTransaction>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let tx_ids = self.entity.ledger_tx_ids();
+        let loaded_transactions = loader.load_many(tx_ids.iter().copied()).await?;
+
+        Ok(tx_ids
+            .iter()
+            .filter_map(|id| loaded_transactions.get(id).cloned())
+            .collect())
+    }
+}
+
+#[derive(MergedObject, Clone)]
+#[graphql(name = "CreditFacilityDisbursal")]
+pub struct CreditFacilityDisbursal(
+    pub CreditFacilityDisbursalBase,
+    CreditFacilityDisbursalCrossDomain,
+);
+
+impl From<DomainDisbursal> for CreditFacilityDisbursal {
+    fn from(disbursal: DomainDisbursal) -> Self {
+        let base = CreditFacilityDisbursalBase::from(disbursal);
+        let cross = CreditFacilityDisbursalCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
+}
+
+impl std::ops::Deref for CreditFacilityDisbursal {
+    type Target = CreditFacilityDisbursalBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+crate::mutation_payload! { CreditFacilityDisbursalInitiatePayload, disbursal: CreditFacilityDisbursal }
+
+// ===== Collateral =====
+
+#[derive(Clone)]
+pub(super) struct CollateralCrossDomain {
+    entity: Arc<DomainCollateral>,
+}
+
+#[Object]
+impl CollateralCrossDomain {
+    async fn account(&self, ctx: &Context<'_>) -> Result<super::accounting::LedgerAccount> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let collateral = loader
+            .load_one(LedgerAccountId::from(
+                self.entity.account_ids.collateral_account_id,
+            ))
+            .await?
+            .expect("Collateral account not found");
+        Ok(collateral)
+    }
+
+    async fn credit_facility(&self, ctx: &Context<'_>) -> Result<Option<CreditFacility>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let facility = loader.load_one(self.entity.credit_facility_id).await?;
+        Ok(facility)
+    }
+}
+
+#[derive(MergedObject, Clone)]
+#[graphql(name = "Collateral")]
+pub struct Collateral(pub CollateralBase, CollateralCrossDomain);
+
+impl From<DomainCollateral> for Collateral {
+    fn from(collateral: DomainCollateral) -> Self {
+        let base = CollateralBase::from(collateral);
+        let cross = CollateralCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
+}
+
+impl std::ops::Deref for Collateral {
+    type Target = CollateralBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+crate::mutation_payload! { CollateralUpdatePayload, collateral: Collateral }
+crate::mutation_payload! { CollateralRecordSentToLiquidationPayload, collateral: Collateral }
+crate::mutation_payload! { CollateralRecordProceedsFromLiquidationPayload, collateral: Collateral }
+
+// ===== Liquidation =====
+
+#[derive(Clone)]
+pub(super) struct LiquidationCrossDomain {
+    entity: Arc<DomainLiquidation>,
+}
+
+#[Object]
+impl LiquidationCrossDomain {
+    async fn collateral(&self, ctx: &Context<'_>) -> Result<Collateral> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let collateral = loader
+            .load_one(self.entity.collateral_id)
+            .await?
+            .expect("Collateral not found");
+        Ok(collateral)
+    }
+}
+
+#[derive(MergedObject, Clone)]
+#[graphql(name = "Liquidation")]
+pub struct Liquidation(pub LiquidationBase, LiquidationCrossDomain);
+
+impl From<DomainLiquidation> for Liquidation {
+    fn from(liquidation: DomainLiquidation) -> Self {
+        let base = LiquidationBase::from(liquidation);
+        let cross = LiquidationCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
+}
+
+impl std::ops::Deref for Liquidation {
+    type Target = LiquidationBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+// ===== CreditFacilityPaymentAllocation =====
+
+#[derive(Clone)]
+pub(super) struct CreditFacilityPaymentAllocationCrossDomain {
+    entity: Arc<admin_graphql_credit::DomainPaymentAllocation>,
+}
+
+#[Object]
+impl CreditFacilityPaymentAllocationCrossDomain {
+    async fn credit_facility(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacility> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let cf = app
+            .credit()
+            .for_subject(sub)?
+            .find_by_id(self.entity.beneficiary_id)
+            .await?
+            .expect("facility should exist for a payment");
+        Ok(CreditFacility::from(cf))
+    }
+}
+
+#[derive(MergedObject, Clone)]
+#[graphql(name = "CreditFacilityPaymentAllocation")]
+pub struct CreditFacilityPaymentAllocation(
+    pub CreditFacilityPaymentAllocationBase,
+    CreditFacilityPaymentAllocationCrossDomain,
+);
+
+impl From<admin_graphql_credit::DomainPaymentAllocation> for CreditFacilityPaymentAllocation {
+    fn from(allocation: admin_graphql_credit::DomainPaymentAllocation) -> Self {
+        let base = CreditFacilityPaymentAllocationBase::from(allocation);
+        let cross = CreditFacilityPaymentAllocationCrossDomain {
+            entity: base.entity.clone(),
+        };
+        Self(base, cross)
+    }
+}
+
+impl std::ops::Deref for CreditFacilityPaymentAllocation {
+    type Target = CreditFacilityPaymentAllocationBase;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+// ===== CreditFacilityCollateralizationPayload (subscription) =====
 
 #[derive(SimpleObject)]
 #[graphql(complex)]

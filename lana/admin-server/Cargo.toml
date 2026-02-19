@@ -11,6 +11,7 @@ sumsub-testing = ["lana-app/sumsub-testing"]
 
 [dependencies]
 lana-app = { workspace = true }
+admin-graphql-credit = { path = "../admin-graphql-credit" }
 admin-graphql-custody = { path = "../admin-graphql-custody" }
 admin-graphql-shared = { path = "../admin-graphql-shared" }
 domain-config = { workspace = true, features = ["graphql"] }

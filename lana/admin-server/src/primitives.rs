@@ -6,8 +6,6 @@ use serde::{Deserialize, Serialize};
 // Re-export shared primitives (AdminAuthContext, Timestamp, Date, UUID, ToGlobalId, all IDs)
 pub use admin_graphql_shared::primitives::*;
 
-pub use lana_app::terms::{CollateralizationState, PendingCreditFacilityCollateralizationState};
-
 // Admin-server-specific scalar types
 
 #[derive(Clone, Copy, Serialize, Deserialize)]

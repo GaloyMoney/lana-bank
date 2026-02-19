@@ -3,7 +3,7 @@ use async_graphql::*;
 use crate::primitives::*;
 
 #[derive(SimpleObject)]
-pub(super) struct CreditFacilityBalance {
+pub struct CreditFacilityBalance {
     facility_remaining: FacilityRemaining,
     disbursed: Disbursed,
     interest: Interest,

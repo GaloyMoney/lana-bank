@@ -456,16 +456,16 @@ type CreditFacility {
 	currentCvl: Cvlpct!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
-	disbursals: [CreditFacilityDisbursal!]!
-	liquidations: [Liquidation!]!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursal: Boolean!
 	userCanRecordPayment: Boolean!
 	userCanRecordPaymentWithDate: Boolean!
 	userCanComplete: Boolean!
-	customer: Customer!
 	balance: CreditFacilityBalance!
+	customer: Customer!
 	wallet: Wallet
+	disbursals: [CreditFacilityDisbursal!]!
+	liquidations: [Liquidation!]!
 	ledgerAccounts: CreditFacilityLedgerAccounts!
 }
 
@@ -702,9 +702,9 @@ type CreditFacilityProposal {
 	createdAt: Timestamp!
 	facilityAmount: UsdCents!
 	creditFacilityTerms: TermValues!
+	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	custodian: Custodian
 	customer: Customer!
-	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	approvalProcess: ApprovalProcess
 }
 
@@ -1948,11 +1948,11 @@ type PendingCreditFacility {
 	createdAt: Timestamp!
 	collateralizationState: PendingCreditFacilityCollateralizationState!
 	facilityAmount: UsdCents!
-	wallet: Wallet
 	collateral: CollateralBalance!
-	customer: Customer!
 	creditFacilityTerms: TermValues!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	wallet: Wallet
+	customer: Customer!
 	approvalProcess: ApprovalProcess!
 }
 

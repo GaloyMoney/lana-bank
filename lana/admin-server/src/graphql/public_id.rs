@@ -1,7 +1,7 @@
 use async_graphql::Union;
 
 use crate::graphql::{
-    credit_facility::{CreditFacility, disbursal::CreditFacilityDisbursal},
+    credit_facility::{CreditFacility, CreditFacilityDisbursal},
     customer::Customer,
     deposit::Deposit,
     deposit_account::DepositAccount,

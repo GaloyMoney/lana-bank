@@ -3,9 +3,7 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    credit_facility::{
-        disbursal::CreditFacilityDisbursal, payment_allocation::CreditFacilityPaymentAllocation,
-    },
+    credit_facility::{CreditFacilityDisbursal, CreditFacilityPaymentAllocation},
     deposit::Deposit,
     withdrawal::Withdrawal,
 };
