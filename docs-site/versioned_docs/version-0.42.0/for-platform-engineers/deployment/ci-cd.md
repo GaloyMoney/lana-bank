@@ -1,0 +1,208 @@
+---
+id: ci-cd
+title: CI/CD Pipeline
+sidebar_position: 5
+---
+
+# CI/CD Pipeline
+
+This document describes the continuous integration and deployment pipeline.
+
+```mermaid
+graph TD
+    subgraph Config["meltano.yml Configuration"]
+        SCHED["Schedule Definitions"]
+        ENV["Environments<br/>(dev, staging, prod)"]
+        PLUGINS["Plugin Definitions"]
+        JOBDEF["Job Definitions"]
+    end
+
+    subgraph PluginTypes["Plugin Types"]
+        EXT["Extractors<br/>(tap-postgres, tap-bitfinex,<br/>tap-sumsubapi)"]
+        LOAD["Loaders<br/>(target-bigquery)"]
+        TRANS["Transformers"]
+        UTIL["Utilities<br/>(sqlfluff, airflow,<br/>generate-es-reports)"]
+    end
+
+    SCHED -->|"triggers"| JOBDEF
+    ENV -->|"references"| PLUGINS
+    PLUGINS -->|"references"| EXT
+    PLUGINS -->|"references"| LOAD
+    PLUGINS -->|"references"| TRANS
+    PLUGINS -->|"references"| UTIL
+    JOBDEF -->|"references"| EXT
+    JOBDEF -->|"references"| LOAD
+```
+
+## Overview
+
+```mermaid
+graph TD
+    PR["Pull Request"] --> GHA["GitHub Actions<br/>(CI Checks)"]
+
+    GHA --> SUITE
+
+    subgraph SUITE["Test Suite"]
+        LINT["Lint"]
+        UNIT["Unit Tests"]
+        E2E["E2E Tests"]
+        SEC["Security Scan"]
+    end
+
+    SUITE -->|"on merge"| CONC["Concourse<br/>(CD Pipeline)"]
+    CONC --> DEPLOY["Deploy to Staging"]
+```
+
+## GitHub Actions
+
+### PR Checks
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v24
+      - uses: cachix/cachix-action@v14
+        with:
+          name: lana-bank
+      - run: nix develop -c make check-code-rust
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v24
+      - run: nix develop -c cargo nextest run
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v24
+      - run: nix develop -c make e2e
+```
+
+### Security Scanning
+
+```yaml
+security:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Cargo audit
+      run: cargo audit
+    - name: Cargo deny
+      run: cargo deny check
+    - name: pnpm audit
+      run: pnpm audit
+```
+
+## Concourse Pipeline
+
+### Pipeline Definition
+
+```yaml
+# ci/pipeline.yml
+resources:
+  - name: lana-repo
+    type: git
+    source:
+      uri: https://github.com/lana-bank/lana
+      branch: main
+
+jobs:
+  - name: build
+    plan:
+      - get: lana-repo
+        trigger: true
+      - task: build
+        file: lana-repo/ci/tasks/build.yml
+
+  - name: deploy-staging
+    plan:
+      - get: lana-repo
+        passed: [build]
+      - task: deploy
+        file: lana-repo/ci/tasks/deploy.yml
+        params:
+          ENVIRONMENT: staging
+```
+
+## Deployment Stages
+
+### Staging
+
+Automatic deployment on merge to main:
+
+1. Build Docker images
+2. Run database migrations
+3. Deploy to GKE cluster
+4. Run smoke tests
+
+### Production
+
+Manual promotion with approval:
+
+1. Review staging metrics
+2. Approve deployment
+3. Blue-green deployment
+4. Gradual traffic shift
+
+## Cachix Caching
+
+Binary caching for Nix builds:
+
+```yaml
+- uses: cachix/cachix-action@v14
+  with:
+    name: lana-bank
+    authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    pushFilter: '(-source$|\.tar\.gz$)'
+```
+
+## Secrets Management
+
+| Secret | Usage |
+|--------|-------|
+| `CACHIX_AUTH_TOKEN` | Nix binary cache |
+| `GCP_SA_KEY` | GCloud deployment |
+| `DOCKER_TOKEN` | Container registry |
+
+## Monitoring
+
+### Deployment Metrics
+
+- Deployment frequency
+- Lead time for changes
+- Change failure rate
+- Time to recovery
+
+### Alerts
+
+- Build failures
+- Deployment failures
+- Test flakiness
+- Security vulnerabilities
+
+## Rollback Procedure
+
+```bash
+# View deployment history
+kubectl rollout history deployment/lana-api
+
+# Rollback to previous version
+kubectl rollout undo deployment/lana-api
+
+# Rollback to specific revision
+kubectl rollout undo deployment/lana-api --to-revision=2
+```
+
