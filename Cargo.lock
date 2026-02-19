@@ -1867,22 +1867,32 @@ dependencies = [
 name = "customer-sync"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "audit",
  "authz",
+ "chrono",
+ "chrono-tz",
+ "cloud-storage",
  "core-customer",
  "core-deposit",
  "core-time-events",
+ "document-storage",
  "es-entity",
  "governance",
  "job",
  "keycloak-client",
  "lana-events",
  "obix",
+ "public-id",
  "serde",
+ "sqlx",
+ "strum",
  "thiserror 2.0.18",
+ "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "uuid",
  "workspace-hack",
 ]
 
