@@ -24,7 +24,6 @@ aws-lc-sys = { version = "0.37", default-features = false, features = ["prebuilt
 axum = { version = "0.8", features = ["macros"] }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
-byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
 cala-cel-interpreter = { version = "0.13", default-features = false, features = ["json-schema"] }
 cala-ledger = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
@@ -52,7 +51,7 @@ group = { version = "0.13", default-features = false, features = ["alloc"] }
 hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14" }
 hashbrown-986da7b5efc2b80e = { package = "hashbrown", version = "0.16" }
 hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
-hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "service"] }
+hyper-util = { version = "0.1", features = ["client-legacy", "http1", "server", "service"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
@@ -91,9 +90,9 @@ sqlx-postgres = { version = "0.8", default-features = false, features = ["any", 
 subtle = { version = "2", default-features = false, features = ["i128"] }
 syn = { version = "2", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }
 tokio = { version = "1", features = ["fs", "io-util", "macros", "net", "parking_lot", "process", "rt-multi-thread", "signal", "sync", "time", "tracing"] }
-tokio-stream = { version = "0.1", features = ["fs", "net", "sync"] }
+tokio-stream = { version = "0.1", features = ["fs", "sync"] }
 tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
-tonic = { version = "0.14", features = ["tls-native-roots"] }
+tonic = { version = "0.14", default-features = false, features = ["codegen", "tls-native-roots"] }
 tower = { version = "0.5", default-features = false, features = ["balance", "buffer", "limit", "load-shed", "log"] }
 tracing-core = { version = "0.1" }
 url = { version = "2", features = ["serde"] }
@@ -108,7 +107,6 @@ aws-lc-sys = { version = "0.37", default-features = false, features = ["prebuilt
 axum = { version = "0.8", features = ["macros"] }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
-byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
 cala-cel-interpreter = { version = "0.13", default-features = false, features = ["json-schema"] }
 cala-ledger = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
@@ -138,7 +136,7 @@ group = { version = "0.13", default-features = false, features = ["alloc"] }
 hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14" }
 hashbrown-986da7b5efc2b80e = { package = "hashbrown", version = "0.16" }
 hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
-hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "service"] }
+hyper-util = { version = "0.1", features = ["client-legacy", "http1", "server", "service"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
@@ -179,9 +177,9 @@ sqlx-postgres = { version = "0.8", default-features = false, features = ["any", 
 subtle = { version = "2", default-features = false, features = ["i128"] }
 syn = { version = "2", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }
 tokio = { version = "1", features = ["fs", "io-util", "macros", "net", "parking_lot", "process", "rt-multi-thread", "signal", "sync", "time", "tracing"] }
-tokio-stream = { version = "0.1", features = ["fs", "net", "sync"] }
+tokio-stream = { version = "0.1", features = ["fs", "sync"] }
 tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
-tonic = { version = "0.14", features = ["tls-native-roots"] }
+tonic = { version = "0.14", default-features = false, features = ["codegen", "tls-native-roots"] }
 tower = { version = "0.5", default-features = false, features = ["balance", "buffer", "limit", "load-shed", "log"] }
 tracing-core = { version = "0.1" }
 url = { version = "2", features = ["serde"] }
@@ -254,6 +252,7 @@ ignored = [
     "opentelemetry",
     "opentelemetry-http",
     "opentelemetry-otlp",
+    "opentelemetry-proto",
     "percent-encoding",
     "petgraph",
     "pkcs8",
