@@ -438,7 +438,7 @@ const getEntityforAccount = (
       }
     case "Collateral":
       return {
-        url: `/credit-facilities/${entity.creditFacility.publicId}`,
+        url: `/credit-facilities/${entity.creditFacility?.publicId}`,
         label: t("viewCreditFacility"),
       }
   }

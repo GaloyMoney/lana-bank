@@ -66,7 +66,7 @@ const LiquidationsList = () => {
       key: "collateral",
       label: t("table.headers.creditFacility"),
       render: (collateral) => (
-        <PublicIdBadge publicId={String(collateral.creditFacility.publicId)} />
+        <PublicIdBadge publicId={String(collateral.creditFacility?.publicId)} />
       ),
     },
     {

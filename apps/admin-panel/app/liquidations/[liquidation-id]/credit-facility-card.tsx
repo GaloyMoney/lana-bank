@@ -18,8 +18,8 @@ import { GetLiquidationDetailsQuery } from "@/lib/graphql/generated"
 import { formatCvl } from "@/lib/utils"
 
 type CreditFacility = NonNullable<
-  GetLiquidationDetailsQuery["liquidation"]
->["collateral"]["creditFacility"]
+  NonNullable<GetLiquidationDetailsQuery["liquidation"]>["collateral"]["creditFacility"]
+>
 
 type LiquidationCreditFacilityCardProps = {
   creditFacility: CreditFacility

@@ -116,9 +116,11 @@ function LiquidationPage({
   return (
     <main className="max-w-7xl m-auto space-y-2">
       <LiquidationDetailsCard liquidation={data.liquidation} />
-      <LiquidationCreditFacilityCard
-        creditFacility={data.liquidation.collateral.creditFacility}
-      />
+      {data.liquidation.collateral.creditFacility && (
+        <LiquidationCreditFacilityCard
+          creditFacility={data.liquidation.collateral.creditFacility}
+        />
+      )}
       <div className="flex flex-col md:flex-row gap-2 items-start">
         <LiquidationCollateralSentTable
           collateralSent={data.liquidation.sentCollateral}
