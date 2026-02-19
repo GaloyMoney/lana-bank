@@ -772,7 +772,7 @@ checksum = "15925b2b7eafec5f160a64db4b2a57a4c272cb940d93dc27be490bf20c25b88c"
 dependencies = [
  "cached",
  "lalrpop",
- "lalrpop-util 0.23.0",
+ "lalrpop-util",
  "tracing",
 ]
 
@@ -3653,7 +3653,7 @@ dependencies = [
  "bit-set",
  "ena",
  "itertools",
- "lalrpop-util 0.23.0",
+ "lalrpop-util",
  "petgraph 0.8.3",
  "pico-args",
  "regex",
@@ -3663,16 +3663,6 @@ dependencies = [
  "term",
  "unicode-xid",
  "walkdir",
-]
-
-[[package]]
-name = "lalrpop-util"
-version = "0.22.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5baa5e9ff84f1aefd264e6869907646538a52147a755d494517a8007fb48733"
-dependencies = [
- "regex-automata",
- "rustversion",
 ]
 
 [[package]]
@@ -7823,7 +7813,7 @@ dependencies = [
  "indexmap 2.12.0",
  "inout",
  "job",
- "lalrpop-util 0.22.2",
+ "lalrpop-util",
  "log",
  "memchr",
  "num-traits",
