@@ -199,7 +199,7 @@ jobs:
           nix develop -c make setup-db
           echo "Restarting core server..."
           export LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
-          nohup nix run . -- --config ./bats/lana.yml >> cypress-stack.log 2>&1 &
+          nohup ./result/bin/lana-cli --config ./bats/lana.yml >> cypress-stack.log 2>&1 &
           echo $! > .core.pid
           nix develop -c wait4x http http://localhost:5253/health --timeout 60s
           echo "Core server restarted with clean database"
