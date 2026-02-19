@@ -298,6 +298,7 @@ where
             collections_arc.clone(),
             pending_credit_facilities_arc.clone(),
             disbursals_arc.clone(),
+            collaterals_arc.clone(),
             ledger_arc.clone(),
             price_arc.clone(),
             jobs,

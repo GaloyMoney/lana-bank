@@ -17,7 +17,7 @@ use authz::PermissionCheck;
 use core_custody::CoreCustodyEvent;
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
-use money::UsdCents;
+use money::{Satoshis, UsdCents};
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
@@ -409,6 +409,42 @@ where
 
         Ok(self.repo.list_liquidations(query).await?)
     }
+
+    #[record_error_severity]
+    #[instrument(name = "collateral.initiate_liquidation_in_op", skip(db, self), err)]
+    pub async fn initiate_liquidation_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        collateral_id: CollateralId,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
+    ) -> Result<LiquidationInitiated, CollateralError> {
+        let mut collateral = self.repo.find_by_id_in_op(db, collateral_id).await?;
+
+        let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(
+            &collateral.account_ids,
+            &collateral.facility_ledger_account_ids_for_liquidation,
+            liquidation_proceeds_omnibus_account_id,
+        );
+
+        if let Idempotent::Executed(liquidation_id) = collateral.record_liquidation_started(
+            trigger_price,
+            initially_expected_to_receive,
+            initially_estimated_to_liquidate,
+            liquidation_proceeds_account_ids,
+        ) {
+            self.repo.update_in_op(db, &mut collateral).await?;
+
+            Ok(LiquidationInitiated::Initiated {
+                liquidation_id,
+                secured_loan_id: collateral.secured_loan_id,
+            })
+        } else {
+            Ok(LiquidationInitiated::AlreadyExists)
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -442,4 +478,13 @@ impl RecordProceedsFromLiquidationData {
             ledger_tx_id,
         }
     }
+}
+
+#[derive(Debug)]
+pub enum LiquidationInitiated {
+    Initiated {
+        liquidation_id: LiquidationId,
+        secured_loan_id: SecuredLoanId,
+    },
+    AlreadyExists,
 }
