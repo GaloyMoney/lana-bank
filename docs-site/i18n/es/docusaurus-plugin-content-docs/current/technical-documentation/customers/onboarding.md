@@ -195,7 +195,7 @@ ciclo de vida de cliente en dominio (crear -> verificar -> activar).
 
 **Paso 1.** Abre la lista de clientes.
 
-![Lista de clientes](/img/screenshots/current/es/customers.cy.ts/2_list_all_customers.png)
+![Lista de clientes](/img/screenshots/current/es/customers.cy.ts/2_list_all_prospects.png)
 
 **Paso 2.** Haz clic en **Crear**.
 
@@ -211,7 +211,7 @@ ciclo de vida de cliente en dominio (crear -> verificar -> activar).
 
 **Paso 5.** Ingresa un ID de Telegram único (si aplica en tu operación).
 
-![Ingresar Telegram ID](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_id.png)
+![Ingresar Telegram ID](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_handle.png)
 
 **Paso 6.** Revisa los datos antes del envío.
 
@@ -240,12 +240,9 @@ alimentados por webhooks.
 
 **Paso 11.** Abre la sección KYC y crea el enlace de verificación.
 
-![Sección KYC del cliente](/img/screenshots/current/es/customers.cy.ts/14_customer_kyc_details_page.png)
+![Sección KYC del cliente](/img/screenshots/current/es/customers.cy.ts/14_prospect_kyc_details_page.png)
 
 **Paso 12.** Confirma que el enlace KYC fue generado.
 
 ![Enlace KYC creado](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)
 
-**Paso 13.** Verifica actualización de estado KYC.
-
-![Estado KYC actualizado](/img/screenshots/current/es/customers.cy.ts/16_kyc_status_updated.png)

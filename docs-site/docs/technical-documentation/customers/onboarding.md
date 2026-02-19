@@ -138,7 +138,7 @@ domain lifecycle (create -> verify -> activate).
 
 **Step 1.** Open the customers list.
 
-![Customers list](/img/screenshots/current/en/customers.cy.ts/2_list_all_customers.png)
+![Customers list](/img/screenshots/current/en/customers.cy.ts/2_list_all_prospects.png)
 
 **Step 2.** Click **Create**.
 
@@ -154,7 +154,7 @@ domain lifecycle (create -> verify -> activate).
 
 **Step 5.** Enter a unique Telegram ID (if used by your process).
 
-![Enter telegram id](/img/screenshots/current/en/customers.cy.ts/6_enter_telegram_id.png)
+![Enter telegram id](/img/screenshots/current/en/customers.cy.ts/6_enter_telegram_handle.png)
 
 **Step 6.** Review details before submission.
 
@@ -183,12 +183,9 @@ changes driven by webhook updates.
 
 **Step 11.** Open customer KYC section and generate verification link.
 
-![Customer KYC detail section](/img/screenshots/current/en/customers.cy.ts/14_customer_kyc_details_page.png)
+![Customer KYC detail section](/img/screenshots/current/en/customers.cy.ts/14_prospect_kyc_details_page.png)
 
 **Step 12.** Confirm KYC link was created.
 
 ![KYC link created](/img/screenshots/current/en/customers.cy.ts/15_kyc_link_created.png)
 
-**Step 13.** Verify final KYC status update.
-
-![KYC status updated](/img/screenshots/current/en/customers.cy.ts/16_kyc_status_updated.png)
