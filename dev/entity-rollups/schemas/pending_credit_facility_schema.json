@@ -173,7 +173,8 @@
     "PendingCreditFacilityCollateralizationState": {
       "enum": [
         "FullyCollateralized",
-        "UnderCollateralized"
+        "UnderCollateralized",
+        "NotYetCollateralized"
       ],
       "type": "string"
     },

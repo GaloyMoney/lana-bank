@@ -623,10 +623,6 @@
       "denied": "Denied",
       "customer_denied": "Customer Denied"
     },
-    "collateralizationState": {
-      "fullycollateralized": "Fully Collateralized",
-      "undercollateralized": "Under Collateralized"
-    },
     "CreateCreditFacilityProposal": {
       "dialog": {
         "customerInfo": "Creating credit facility proposal for {email}",
@@ -805,7 +801,8 @@
     },
     "pendingCollateralizationState": {
       "fullyCollateralized": "Fully Collateralized",
-      "underCollateralized": "Under Collateralized"
+      "underCollateralized": "Under Collateralized",
+      "notYetCollateralized": "Not Yet Collateralized"
     },
     "errors": {
       "general": "An error occurred"
@@ -1066,7 +1063,8 @@
     },
     "collateralizationState": {
       "fully_collateralized": "Fully Collateralized",
-      "under_collateralized": "Under Collateralized"
+      "under_collateralized": "Under Collateralized",
+      "not_yet_collateralized": "Not Yet Collateralized"
     },
     "PendingDetails": {
       "CollateralCard": {

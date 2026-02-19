@@ -623,10 +623,6 @@
       "denied": "Denegado",
       "customer_denied": "Denegado por el Cliente"
     },
-    "collateralizationState": {
-      "fullycollateralized": "Totalmente garantizado",
-      "undercollateralized": "Insuficientemente garantizado"
-    },
     "CreateCreditFacilityProposal": {
       "dialog": {
         "customerInfo": "Creando propuesta de línea de crédito para {email}",
@@ -805,7 +801,8 @@
     },
     "pendingCollateralizationState": {
       "fullyCollateralized": "Totalmente garantizado",
-      "underCollateralized": "Insuficientemente garantizado"
+      "underCollateralized": "Insuficientemente garantizado",
+      "notYetCollateralized": "Aún no colateralizado"
     },
     "errors": {
       "general": "Ocurrió un error"
@@ -1066,7 +1063,8 @@
     },
     "collateralizationState": {
       "fully_collateralized": "Totalmente Garantizado",
-      "under_collateralized": "Insuficientemente Garantizado"
+      "under_collateralized": "Insuficientemente Garantizado",
+      "not_yet_collateralized": "Aún no colateralizado"
     },
     "PendingDetails": {
       "CollateralCard": {

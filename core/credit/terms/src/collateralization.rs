@@ -62,8 +62,9 @@ impl CollateralizationState {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum PendingCreditFacilityCollateralizationState {
     FullyCollateralized,
-    #[default]
     UnderCollateralized,
+    #[default]
+    NotYetCollateralized,
 }
 
 // SQLx implementations for database storage

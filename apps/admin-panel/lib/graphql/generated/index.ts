@@ -2266,6 +2266,7 @@ export type PendingCreditFacilityCollateralizationPayload = {
 
 export enum PendingCreditFacilityCollateralizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
+  NotYetCollateralized = 'NOT_YET_COLLATERALIZED',
   UnderCollateralized = 'UNDER_COLLATERALIZED'
 }
 

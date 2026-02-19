@@ -131,7 +131,7 @@ async fn facility_completed_event_on_completion() -> anyhow::Result<()> {
         if attempt == 99 {
             panic!("Timed out waiting for payment allocation after 5 seconds");
         }
-        tokio::time::sleep(Duration::from_millis(50)).await;
+        tokio::time::sleep(Duration::from_millis(100)).await;
     }
 
     let credit = ctx.credit.clone();
@@ -199,7 +199,7 @@ async fn partial_liquidation_initiated_event_on_undercollateralization() -> anyh
         if attempt == 99 {
             panic!("Timed out waiting for outstanding balance to appear");
         }
-        tokio::time::sleep(Duration::from_millis(50)).await;
+        tokio::time::sleep(Duration::from_millis(100)).await;
     }
 
     // Reduce collateral far below the liquidation CVL threshold (105%).

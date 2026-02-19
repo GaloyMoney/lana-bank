@@ -346,6 +346,7 @@ type PaymentEntry {
 enum PendingCreditFacilityCollateralizationState {
 	FULLY_COLLATERALIZED
 	UNDER_COLLATERALIZED
+	NOT_YET_COLLATERALIZED
 }
 
 type PendingCreditFacilityCollateralizationUpdated {

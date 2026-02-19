@@ -24,12 +24,7 @@ pub enum CoreCreditEvent {
         entity: PublicCreditFacilityProposal,
     },
     PendingCreditFacilityCollateralizationChanged {
-        id: PendingCreditFacilityId,
-        state: PendingCreditFacilityCollateralizationState,
-        collateral: Satoshis,
-        price: PriceOfOneBTC,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
+        entity: PublicPendingCreditFacility,
     },
     PendingCreditFacilityCompleted {
         entity: PublicPendingCreditFacility,
