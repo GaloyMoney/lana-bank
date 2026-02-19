@@ -198,9 +198,7 @@ def create_file_report_multi_asset():
         credentials_dict = dw_bq.get_credentials_dict()
         dataset = dw_bq.get_dbt_dataset()
 
-        selected_keys = [
-            key.to_user_string() for key in context.selected_asset_keys
-        ]
+        selected_keys = [key.to_user_string() for key in context.selected_asset_keys]
         parent_ctx, batch_attrs = get_asset_span_context_and_attrs(
             context, "file_report_assets"
         )
