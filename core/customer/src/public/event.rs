@@ -11,6 +11,7 @@ use super::{PublicCustomer, PublicParty, PublicProspect};
 pub enum CoreCustomerEvent {
     CustomerCreated { entity: PublicCustomer },
     CustomerKycUpdated { entity: PublicCustomer },
+    CustomerActivityUpdated { entity: PublicCustomer },
     PartyCreated { entity: PublicParty },
     PartyEmailUpdated { entity: PublicParty },
     ProspectCreated { entity: PublicProspect },
