@@ -49,7 +49,7 @@ where
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak);
 
         outbox
-            .register_event_handler_with::<UserOnboardingHandler, _>(
+            .register_event_handler_with(
                 jobs,
                 OutboxEventJobConfig::new(USER_ONBOARDING_JOB),
                 |ctx| {
