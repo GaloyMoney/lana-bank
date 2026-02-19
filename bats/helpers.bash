@@ -4,10 +4,10 @@ COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-${REPO_ROOT##*/}}"
 CACHE_DIR=${BATS_TMPDIR:-tmp/bats}/galoy-bats-cache
 mkdir -p "$CACHE_DIR"
 
-OATHKEEPER_PROXY="http://localhost:4455"
+OATHKEEPER_PROXY="${OATHKEEPER_PROXY:-http://localhost:${OATHKEEPER_PROXY_PORT:-4455}}"
 
-GQL_APP_ENDPOINT="http://app.localhost:4455/graphql"
-GQL_ADMIN_ENDPOINT="http://admin.localhost:4455/graphql"
+GQL_APP_ENDPOINT="${GQL_APP_ENDPOINT:-http://app.localhost:${OATHKEEPER_PROXY_PORT:-4455}/graphql}"
+GQL_ADMIN_ENDPOINT="${GQL_ADMIN_ENDPOINT:-http://admin.localhost:${OATHKEEPER_PROXY_PORT:-4455}/graphql}"
 
 LANA_HOME="${LANA_HOME:-.lana}"
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
@@ -15,18 +15,19 @@ SERVER_PID_FILE="${LANA_HOME}/server-pid"
 LOG_FILE=".e2e-logs"
 
 server_cmd() {
+  local config="${LANA_CONFIG:-${REPO_ROOT}/bats/lana.yml}"
   if [[ -n "${LANA_BIN:-}" ]]; then
-    export LANA_CONFIG="${REPO_ROOT}/bats/lana.yml"
+    export LANA_CONFIG="${config}"
     "${LANA_BIN}"
   else
-    SQLX_OFFLINE=true make run-server
+    SQLX_OFFLINE=true cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config "${config}"
   fi
 }
 wait_for_keycloak_user_ready() {
   local email="admin@galoy.io"
 
-  wait4x http http://localhost:8081/realms/master   --timeout 60s --interval 1s
-  wait4x http http://localhost:8081/realms/internal --timeout 10s --interval 1s
+  wait4x http http://localhost:${KEYCLOAK_PORT:-8081}/realms/master   --timeout 60s --interval 1s
+  wait4x http http://localhost:${KEYCLOAK_PORT:-8081}/realms/internal --timeout 10s --interval 1s
 
   for i in {1..60}; do
     access_token=$(get_user_access_token "$email" 2>/dev/null || true)
@@ -199,7 +200,7 @@ get_user_access_token() {
   local email=$1
   
   local response=$(curl -s -X POST \
-      "http://localhost:8081/realms/internal/protocol/openid-connect/token" \
+      "http://localhost:${KEYCLOAK_PORT:-8081}/realms/internal/protocol/openid-connect/token" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -d "client_id=admin-panel" \
       -d "username=${email}" \
@@ -218,7 +219,7 @@ get_customer_access_token() {
   local email=$1
   
   local response=$(curl -s -X POST \
-      "http://localhost:8081/realms/customer/protocol/openid-connect/token" \
+      "http://localhost:${KEYCLOAK_PORT:-8081}/realms/customer/protocol/openid-connect/token" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -d "client_id=customer-portal" \
       -d "username=${email}" \
@@ -291,7 +292,7 @@ exec_dagster_graphql() {
   ${run_cmd} curl -s -X POST \
     -H "Content-Type: application/json" \
     -d "$payload" \
-    "${DAGSTER_URL:-http://localhost:3000/graphql}"
+    "${DAGSTER_URL:-http://localhost:${DAGSTER_PORT:-3000}/graphql}"
 }
 
 exec_dagster_graphql_status() {
@@ -306,7 +307,7 @@ exec_dagster_graphql_status() {
   ${run_cmd} curl -s -o /dev/null -w "%{http_code}" -X POST \
     -H "Content-Type: application/json" \
     -d "$payload" \
-    "${DAGSTER_URL:-http://localhost:3000/graphql}"
+    "${DAGSTER_URL:-http://localhost:${DAGSTER_PORT:-3000}/graphql}"
 }
 
 dagster_validate_json() {
@@ -451,7 +452,7 @@ create_customer() {
   # Simulate KYC start via SumSub applicantCreated webhook
   local webhook_id="req-$(date +%s%N)"
   local applicant_id="test-applicant-$webhook_id"
-  curl -s -X POST http://localhost:5253/webhook/sumsub \
+  curl -s -X POST http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
       "applicantId": "'"$applicant_id"'",
@@ -466,7 +467,7 @@ create_customer() {
     }' > /dev/null
 
   # Simulate KYC approval via SumSub webhook
-  curl -s -X POST http://localhost:5253/webhook/sumsub \
+  curl -s -X POST http://localhost:${ADMIN_SERVER_PORT:-5253}/webhook/sumsub \
     -H "Content-Type: application/json" \
     -d '{
       "applicantId": "'"$applicant_id"'",
