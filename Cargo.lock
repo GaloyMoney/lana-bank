@@ -15,9 +15,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
+name = "admin-graphql-custody"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "chrono",
+ "es-entity",
+ "lana-app",
+ "serde",
+ "tracing",
+ "url",
+ "workspace-hack",
+]
+
+[[package]]
 name = "admin-server"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-custody",
  "anyhow",
  "async-graphql",
  "async-graphql-axum",

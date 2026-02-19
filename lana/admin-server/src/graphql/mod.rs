@@ -6,7 +6,6 @@ mod committee;
 mod contract_creation;
 mod credit_config;
 mod credit_facility;
-mod custody;
 mod customer;
 mod dashboard;
 mod deposit;
@@ -32,6 +31,10 @@ mod access;
 mod policy;
 mod schema;
 
+pub(crate) mod custody {
+    pub use admin_graphql_custody::*;
+}
+
 use async_graphql::*;
 
 use loader::LanaLoader;
@@ -40,8 +43,8 @@ pub use schema::*;
 use lana_app::app::LanaApp;
 
 pub fn schema(app: Option<LanaApp>) -> Schema<Query, Mutation, Subscription> {
-    let mut schema_builder =
-        Schema::build(Query, Mutation, Subscription).extension(extensions::Tracing);
+    let mut schema_builder = Schema::build(Query::default(), Mutation::default(), Subscription)
+        .extension(extensions::Tracing);
 
     if let Some(app) = app {
         schema_builder = schema_builder.data(LanaLoader::new(&app)).data(app);
