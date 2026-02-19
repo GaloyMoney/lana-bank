@@ -104,6 +104,8 @@ const sidebars = {
       },
       items: [
         "for-internal-developers/local-development",
+        "for-internal-developers/development-environment",
+        "for-internal-developers/testing-strategy",
         "for-internal-developers/authentication-local",
         "for-internal-developers/authorization",
         "for-internal-developers/graphql-development",
@@ -203,15 +205,13 @@ const sidebars = {
         },
         {
           type: "category",
-          label: "Deployment and Operations",
+          label: "Release Engineering",
           link: {
             type: "doc",
             id: "for-platform-engineers/deployment/index",
           },
           items: [
             "for-platform-engineers/deployment/build-system",
-            "for-platform-engineers/deployment/development-environment",
-            "for-platform-engineers/deployment/testing-strategy",
             "for-platform-engineers/deployment/ci-cd",
           ],
         },
