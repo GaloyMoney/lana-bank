@@ -222,7 +222,6 @@ const sidebars = {
       label: "Reference",
       items: [
         "reference/glossary",
-        "reference/changelog",
       ],
     },
   ],
