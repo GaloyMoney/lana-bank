@@ -65,7 +65,7 @@ Account Creation: Shared (1 account: credit-payments-made-omnibus-account)
 
 ## Summary Account Sets
 
-All summary account sets create accounts per credit facility.
+All summary account sets aggregate balances/transactions from accounts that are created per credit facility.
 
 ### Facility
 
