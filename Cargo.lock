@@ -14,7 +14,6 @@ version = "0.0.0"
 dependencies = [
  "admin-graphql-shared",
  "async-graphql",
- "es-entity",
  "lana-app",
  "permission-sets-macro",
  "workspace-hack",
@@ -137,7 +136,6 @@ dependencies = [
  "jwks-utils",
  "lana-app",
  "obix",
- "permission-sets-macro",
  "serde",
  "serde_json",
  "tokio",
