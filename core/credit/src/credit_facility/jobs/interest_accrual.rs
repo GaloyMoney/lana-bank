@@ -364,7 +364,7 @@ where
             let collateral_account_id = collateral.account_id();
             let balances = self
                 .ledger
-                .get_credit_facility_balance(account_ids, collateral_account_id)
+                .get_credit_facility_balance_in_op(op, account_ids, collateral_account_id)
                 .await?;
 
             let recorded = credit_facility
