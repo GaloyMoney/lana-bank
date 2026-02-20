@@ -73,7 +73,10 @@
       "loanAgreement": "Fetches a specific loan agreement by its unique identifier",
       "accountEntryCsv": "Fetches the CSV export document for a specific ledger account",
       "reportRuns": "Returns a paginated list of all report runs",
-      "reportRun": "Fetches a specific report run by its unique identifier"
+      "reportRun": "Fetches a specific report run by its unique identifier",
+      "prospectByPublicId": "TODO: Add description",
+      "prospect": "TODO: Add description",
+      "prospects": "TODO: Add description"
     },
     "mutations": {
       "customerDocumentAttach": "Uploads and attaches a document to a customer's profile",
@@ -144,7 +147,11 @@
       "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file",
       "collateralLiquidationRecordProceedsReceived": "Records proceeds received from a collateral liquidation",
       "collateralRecordSentToLiquidation": "Records collateral sent to liquidation",
-      "collateralUpdate": "TODO: Add description"
+      "collateralUpdate": "TODO: Add description",
+      "customerTelegramHandleUpdate": "TODO: Add description",
+      "prospectClose": "TODO: Add description",
+      "prospectConvert": "TODO: Add description",
+      "prospectCreate": "TODO: Add description"
     }
   },
   "customer": {

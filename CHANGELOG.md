@@ -1,3 +1,57 @@
+## [0.42.0] - 2026-02-20
+
+### 🚀 Features
+
+- Add local file serving endpoint with signed URLs (#3788)
+- Add collateralization data to CreditFacilityEvent::Initialized (#3825)
+- Split customer module into prospect + customer (#3778)
+
+### 🐛 Bug Fixes
+
+- Proper conditions for cold start (#3826)
+- Customer creation in tests (#3843)
+- Use event stream instead of polling in create_active_facility test helper (#3849)
+- Resolve high-severity pnpm audit vulnerabilities (#3855)
+- Override minimatch to >=10.2.1 (CVE-2026-26996) (#3856)
+- *(docs,ci)* Fix broken screenshot refs and reset DB between Cypress locale runs (#3862)
+- Make Collateral.creditFacility nullable to prevent panic (#3857)
+- Misc data issues on pipeline (#3866)
+- *(ci)* Use pre-built binary for English Cypress run server restart (#3877)
+- Bring latest cala_ledger_setup
+- *(ci)* Remove DB reset for English Cypress run, use ES screenshots as fallback (#3879)
+- Hakari
+- *(deps)* Update keccak 0.1.5 -> 0.1.6 to fix Dependabot alert #190 (#3886)
+
+### 🚜 Refactor
+
+- Deposit product mod `AccountSet` as value including accounting context (#3745)
+- Migrate to es-entity multi-filter list_for_filters API (#3833)
+- Use lib/encryption in domain config (#3829)
+- Facility collateralization changed event (#3798)
+- Separate collateral and facility ledger concerns (#3763)
+- *(admin-panel)* Replace refetchQueries with cache updates via fragments (#3846)
+- PendingCreditFacilityCollateralizationChanged public event (#3842)
+- Use OutboxEventHandler for all outbox job handlers (#3831)
+- Remove console-subscriber to eliminate protobuf-src compile cost (#3874)
+
+### 📚 Documentation
+
+- Improve docs v2 (#3771)
+
+### 🧪 Testing
+
+- Credit public events (#3824)
+- PendingCreditFacilityCollateralizationChanged event (#3864)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.41.1 [ci skip] (#3832)
+- Reengage liquidation-related public events (#3807)
+- Credit COA config update (UI) (#3748)
+- Deposit COA config update (UI) (#3753)
+- Bump flake (#3880)
+- Bump cala
+- Bump cala
 ## [0.41.1] - 2026-02-17
 
 ### 🐛 Bug Fixes
