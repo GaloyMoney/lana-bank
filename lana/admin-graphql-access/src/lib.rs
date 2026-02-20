@@ -6,6 +6,7 @@ pub mod role;
 pub mod schema;
 pub mod user;
 
+pub use admin_graphql_shared::access::*;
 pub use permission_set::*;
 pub use role::*;
 pub use schema::*;

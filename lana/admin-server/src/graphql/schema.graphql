@@ -1643,9 +1643,6 @@ enum Layer {
 	ENCUMBRANCE
 }
 
-"""
-LedgerAccount type — `.entity` Union field removed (was cross-domain: DepositAccount/CreditFacility/Collateral)
-"""
 type LedgerAccount {
 	id: ID!
 	ledgerAccountId: UUID!
@@ -1679,9 +1676,6 @@ type LedgerAccountCsvExportUploadedPayload {
 	documentId: UUID!
 }
 
-"""
-LedgerTransaction type — `.entity` and `.initiatedBy` Union fields removed (were cross-domain)
-"""
 type LedgerTransaction {
 	id: ID!
 	ledgerTransactionId: UUID!

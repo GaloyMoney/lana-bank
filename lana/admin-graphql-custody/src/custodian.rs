@@ -3,39 +3,13 @@ use url::Url;
 
 use crate::primitives::*;
 
+pub use admin_graphql_shared::custody::Custodian;
+
 pub use lana_app::custody::custodian::{
     BitgoConfig as DomainBitgoConfig, Custodian as DomainCustodian,
     CustodianConfig as DomainCustodianConfig, CustodiansByNameCursor,
     KomainuConfig as DomainKomainuConfig,
 };
-
-#[derive(SimpleObject, Clone)]
-#[graphql(complex)]
-pub struct Custodian {
-    id: ID,
-    custodian_id: UUID,
-    created_at: Timestamp,
-    #[graphql(skip)]
-    pub entity: Arc<DomainCustodian>,
-}
-
-impl From<DomainCustodian> for Custodian {
-    fn from(custodian: DomainCustodian) -> Self {
-        Self {
-            id: custodian.id.to_global_id(),
-            custodian_id: custodian.id.into(),
-            created_at: custodian.created_at().into(),
-            entity: Arc::new(custodian),
-        }
-    }
-}
-
-#[ComplexObject]
-impl Custodian {
-    async fn name(&self) -> &str {
-        &self.entity.name
-    }
-}
 
 #[derive(InputObject)]
 pub struct KomainuConfig {

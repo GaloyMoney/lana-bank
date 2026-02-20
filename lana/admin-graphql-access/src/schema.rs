@@ -2,6 +2,8 @@ use async_graphql::{Context, Object, types::connection::*};
 
 use admin_graphql_shared::primitives::UUID;
 
+use admin_graphql_shared::access::{PermissionSet, Role, User};
+
 use crate::permission_set::*;
 use crate::role::*;
 use crate::user::*;

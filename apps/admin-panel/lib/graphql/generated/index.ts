@@ -1636,7 +1636,6 @@ export enum Layer {
   Settled = 'SETTLED'
 }
 
-/** LedgerAccount type — `.entity` Union field removed (was cross-domain: DepositAccount/CreditFacility/Collateral) */
 export type LedgerAccount = {
   __typename?: 'LedgerAccount';
   ancestors: Array<LedgerAccount>;
@@ -1653,7 +1652,6 @@ export type LedgerAccount = {
 };
 
 
-/** LedgerAccount type — `.entity` Union field removed (was cross-domain: DepositAccount/CreditFacility/Collateral) */
 export type LedgerAccountHistoryArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
@@ -1681,7 +1679,6 @@ export type LedgerAccountCsvExportUploadedPayload = {
   documentId: Scalars['UUID']['output'];
 };
 
-/** LedgerTransaction type — `.entity` and `.initiatedBy` Union fields removed (were cross-domain) */
 export type LedgerTransaction = {
   __typename?: 'LedgerTransaction';
   createdAt: Scalars['Timestamp']['output'];
