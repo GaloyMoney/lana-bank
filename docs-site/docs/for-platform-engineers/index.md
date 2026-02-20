@@ -35,13 +35,11 @@ Lana is a modern banking core built on:
 - [Cala Ledger Schema](erds/cala) - Underlying ledger database
 - [Lana Core Schema](erds/lana) - Main application database
 
-### Deployment and Operations
+### Release Engineering
 
-- [Deployment Guide](deployment/) - Deployment overview
-- [Build System](deployment/build-system) - Nix, cross-compilation, Docker
-- [Development Environment](deployment/development-environment) - Local setup
-- [Testing Strategy](deployment/testing-strategy) - Testing layers and tools
-- [CI/CD Pipeline](deployment/ci-cd) - GitHub Actions, Concourse, releases
+- [Release Engineering Overview](deployment/) - End-to-end release flow
+- [Build System](deployment/build-system) - Nix, Cachix caching, Docker images
+- [CI/CD & Release Engineering](deployment/ci-cd) - GitHub Actions, Concourse pipelines, Helm charts, Cepler environment gating
 
 :::tip
 Looking for domain internals, event sourcing, background jobs, or observability? See the [Internal Developer Guide](../for-internal-developers/) — those topics have moved there.
