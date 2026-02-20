@@ -3,6 +3,9 @@ name = "lana-credit-ledger"
 license = "BUSL-1.1"
 edition = "2024"
 
+[package.metadata.cargo-machete]
+ignored = ["tracing-utils"]
+
 [features]
 fail-on-warnings = []
 
@@ -15,7 +18,6 @@ money = { workspace = true }
 audit = { workspace = true }
 es-entity = { workspace = true }
 uuid = { workspace = true }
-serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
 rust_decimal = { workspace = true }

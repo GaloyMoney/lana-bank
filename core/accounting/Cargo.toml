@@ -44,6 +44,9 @@ tokio = { workspace = true }
 anyhow = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
+[package.metadata.cargo-machete]
+ignored = ["permission-sets-macro"]
+
 [dev-dependencies]
 authz = { workspace = true, features = ["test-dummy"] }
 rand = { workspace = true }
