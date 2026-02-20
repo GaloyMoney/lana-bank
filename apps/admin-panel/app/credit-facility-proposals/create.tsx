@@ -50,13 +50,6 @@ gql`
       creditFacilityProposal {
         id
         creditFacilityProposalId
-        customer {
-          id
-          email
-          creditFacilityProposals {
-            id
-          }
-        }
       }
     }
   }

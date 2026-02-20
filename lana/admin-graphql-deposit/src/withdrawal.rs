@@ -8,7 +8,7 @@ pub use lana_app::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(name = "Withdrawal", complex)]
 pub struct WithdrawalBase {
     id: ID,
     withdrawal_id: UUID,
@@ -45,6 +45,42 @@ impl WithdrawalBase {
 
     async fn reference(&self) -> &str {
         &self.entity.reference
+    }
+
+    async fn approval_process(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<admin_graphql_governance::ApprovalProcess> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let processes: std::collections::HashMap<_, admin_graphql_governance::ApprovalProcess> =
+            app.governance()
+                .find_all_approval_processes(&[self.entity.approval_process_id])
+                .await?;
+        Ok(processes
+            .into_values()
+            .next()
+            .expect("withdrawal must have an approval process"))
+    }
+
+    async fn ledger_transactions(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<admin_graphql_accounting::LedgerTransaction>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let tx_ids = self.entity.ledger_tx_ids();
+        let loaded_transactions: std::collections::HashMap<
+            _,
+            admin_graphql_accounting::LedgerTransaction,
+        > = app
+            .accounting()
+            .ledger_transactions()
+            .find_all(&tx_ids)
+            .await?;
+
+        Ok(tx_ids
+            .iter()
+            .filter_map(|id| loaded_transactions.get(id).cloned())
+            .collect())
     }
 }
 

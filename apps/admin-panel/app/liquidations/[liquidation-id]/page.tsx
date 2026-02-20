@@ -71,12 +71,6 @@ gql`
             btcBalance
           }
         }
-        customer {
-          customerId
-          publicId
-          customerType
-          email
-        }
       }
     }
     sentCollateral {

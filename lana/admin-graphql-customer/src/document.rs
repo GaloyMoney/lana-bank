@@ -14,7 +14,7 @@ pub struct CustomerDocument {
     status: DocumentStatus,
 
     #[graphql(skip)]
-    pub(super) entity: Arc<DomainDocument>,
+    pub entity: Arc<DomainDocument>,
 }
 
 impl CustomerDocument {
@@ -47,7 +47,6 @@ pub struct CustomerDocumentCreateInput {
     pub file: Upload,
     pub customer_id: UUID,
 }
-crate::mutation_payload! { CustomerDocumentCreatePayload, document: CustomerDocument }
 
 #[derive(InputObject)]
 pub struct CustomerDocumentDownloadLinksGenerateInput {
@@ -84,4 +83,3 @@ pub struct CustomerDocumentDeletePayload {
 pub struct CustomerDocumentArchiveInput {
     pub document_id: UUID,
 }
-crate::mutation_payload! { CustomerDocumentArchivePayload, document: CustomerDocument }

@@ -23,9 +23,6 @@ gql`
     depositAccountCreate(input: $input) {
       account {
         id
-        customer {
-          ...CustomerDetailsFragment
-        }
       }
     }
   }

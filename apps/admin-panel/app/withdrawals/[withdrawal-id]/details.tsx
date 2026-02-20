@@ -2,14 +2,11 @@
 
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
-import Link from "next/link"
-
 import { Button } from "@lana/web/ui/button"
 
 import { formatDate } from "@lana/web/utils"
 
 import {
-  ArrowRight,
   ExternalLinkIcon,
   Check,
   X,
@@ -55,9 +52,8 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
 
   const details: DetailItemProps[] = [
     {
-      label: t("fields.customerEmail"),
-      value: withdrawal.account.customer.email,
-      href: `/customers/${withdrawal.account.customer.publicId}`,
+      label: t("fields.accountId"),
+      value: withdrawal.accountId,
     },
     {
       label: t("fields.withdrawalAmount"),
@@ -83,12 +79,6 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
 
   const footerContent = (
     <>
-      <Button variant="outline" asChild>
-        <Link href={`/deposit-accounts/${withdrawal.account.publicId}`}>
-          {t("buttons.viewDepositAccount")}
-          <ArrowRight />
-        </Link>
-      </Button>
       <Button variant="outline" asChild>
         <a
           href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}

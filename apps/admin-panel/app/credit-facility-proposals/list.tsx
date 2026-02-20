@@ -30,10 +30,6 @@ gql`
           createdAt
           facilityAmount
           status
-          customer {
-            customerId
-            email
-          }
         }
       }
       pageInfo {
@@ -79,12 +75,6 @@ const columns = (t: (key: string) => string): Column<CreditFacilityProposal>[] =
     label: t("table.headers.status"),
     labelClassName: "w-[20%]",
     render: (status) => <CreditFacilityProposalStatusBadge status={status} />,
-  },
-  {
-    key: "customer",
-    label: t("table.headers.customer"),
-    labelClassName: "w-[40%]",
-    render: (customer) => <div className="truncate">{customer.email}</div>,
   },
   {
     key: "facilityAmount",

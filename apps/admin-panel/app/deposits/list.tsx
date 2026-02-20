@@ -24,12 +24,6 @@ gql`
     createdAt
     amount
     status
-    account {
-      customer {
-        customerId
-        email
-      }
-    }
   }
 
   query Deposits($first: Int!, $after: String) {
@@ -80,11 +74,6 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
     key: "publicId",
     label: t("headers.depositId"),
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
-  },
-  {
-    key: "account",
-    label: t("headers.customer"),
-    render: (account) => account.customer.email,
   },
   {
     key: "reference",

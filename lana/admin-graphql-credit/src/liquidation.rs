@@ -1,10 +1,11 @@
 use async_graphql::*;
 
+use crate::collateral::CollateralBase;
 use crate::primitives::*;
 pub use lana_app::credit::Liquidation as DomainLiquidation;
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(name = "Liquidation", complex)]
 pub struct LiquidationBase {
     id: ID,
     liquidation_id: UUID,
@@ -69,5 +70,18 @@ impl LiquidationBase {
                 ledger_tx_id: ledger_tx_id.into(),
             })
             .collect()
+    }
+
+    async fn collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<CollateralBase> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let collaterals: std::collections::HashMap<_, CollateralBase> = app
+            .credit()
+            .collaterals()
+            .find_all(&[self.entity.collateral_id])
+            .await?;
+        Ok(collaterals
+            .into_values()
+            .next()
+            .expect("Collateral not found"))
     }
 }

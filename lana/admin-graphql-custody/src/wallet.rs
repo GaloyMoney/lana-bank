@@ -1,11 +1,11 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use crate::{custodian::Custodian, primitives::*};
 
 pub use lana_app::custody::{Wallet as DomainWallet, WalletNetwork};
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(name = "Wallet", complex)]
 pub struct WalletBase {
     id: ID,
     wallet_id: UUID,
@@ -32,5 +32,17 @@ impl WalletBase {
 
     async fn network(&self) -> WalletNetwork {
         self.entity.network
+    }
+
+    async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Custodian> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let custodians: std::collections::HashMap<_, Custodian> = app
+            .custody()
+            .find_all_custodians(&[self.entity.custodian_id])
+            .await?;
+        Ok(custodians
+            .into_values()
+            .next()
+            .expect("wallet must have a custodian"))
     }
 }

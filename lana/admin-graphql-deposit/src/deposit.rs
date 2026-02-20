@@ -11,7 +11,7 @@ pub use lana_app::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(name = "Deposit", complex)]
 pub struct DepositBase {
     id: ID,
     deposit_id: UUID,
@@ -49,6 +49,27 @@ impl DepositBase {
 
     async fn status(&self) -> DepositStatus {
         self.entity.status()
+    }
+
+    async fn ledger_transactions(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<admin_graphql_accounting::LedgerTransaction>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let tx_ids = self.entity.ledger_tx_ids();
+        let loaded_transactions: std::collections::HashMap<
+            _,
+            admin_graphql_accounting::LedgerTransaction,
+        > = app
+            .accounting()
+            .ledger_transactions()
+            .find_all(&tx_ids)
+            .await?;
+
+        Ok(tx_ids
+            .iter()
+            .filter_map(|id| loaded_transactions.get(id).cloned())
+            .collect())
     }
 }
 

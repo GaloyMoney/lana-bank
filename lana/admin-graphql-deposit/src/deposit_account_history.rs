@@ -1,12 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::*;
-
-use super::{
-    credit_facility::{CreditFacilityDisbursal, CreditFacilityPaymentAllocation},
-    deposit::Deposit,
-    withdrawal::Withdrawal,
-};
+use crate::{deposit::DepositBase, primitives::*, withdrawal::WithdrawalBase};
 
 #[derive(Union)]
 pub enum DepositAccountHistoryEntry {
@@ -35,6 +29,7 @@ pub struct WithdrawalEntry {
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
+
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct CancelledWithdrawalEntry {
@@ -81,59 +76,57 @@ pub struct UnknownEntry {
 
 #[ComplexObject]
 impl DepositEntry {
-    async fn deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<Deposit> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
+    async fn deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositBase> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let deposit = app
             .deposits()
             .find_deposit_by_id(sub, self.tx_id)
             .await?
             .expect("deposit should exist");
-
-        Ok(Deposit::from(deposit))
+        Ok(DepositBase::from(deposit))
     }
 }
 
 #[ComplexObject]
 impl WithdrawalEntry {
-    async fn withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<Withdrawal> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
+    async fn withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<WithdrawalBase> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let withdrawal = app
             .deposits()
             .find_withdrawal_by_id(sub, self.tx_id)
             .await?
             .expect("withdrawal should exist");
-
-        Ok(Withdrawal::from(withdrawal))
+        Ok(WithdrawalBase::from(withdrawal))
     }
 }
 
 #[ComplexObject]
 impl CancelledWithdrawalEntry {
-    async fn withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<Withdrawal> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
+    async fn withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<WithdrawalBase> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let withdrawal = app
             .deposits()
             .find_withdrawal_by_cancelled_tx_id(sub, self.tx_id)
             .await?;
-
-        Ok(Withdrawal::from(withdrawal))
+        Ok(WithdrawalBase::from(withdrawal))
     }
 }
+
 #[ComplexObject]
 impl DisbursalEntry {
-    async fn disbursal(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityDisbursal> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
+    async fn disbursal(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<admin_graphql_credit::CreditFacilityDisbursalBase> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let disbursal = app
             .credit()
             .disbursals()
             .find_by_concluded_tx_id(sub, self.tx_id)
             .await?;
-
-        Ok(CreditFacilityDisbursal::from(disbursal))
+        Ok(admin_graphql_credit::CreditFacilityDisbursalBase::from(
+            disbursal,
+        ))
     }
 }
 
@@ -142,17 +135,15 @@ impl PaymentEntry {
     async fn payment(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<CreditFacilityPaymentAllocation> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
+    ) -> async_graphql::Result<admin_graphql_credit::CreditFacilityPaymentAllocationBase> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let payment = app
             .credit()
             .collections()
             .obligations()
             .find_allocation_by_id(sub, self.tx_id)
             .await?;
-
-        Ok(CreditFacilityPaymentAllocation::from(payment))
+        Ok(admin_graphql_credit::CreditFacilityPaymentAllocationBase::from(payment))
     }
 }
 

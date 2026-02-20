@@ -18,29 +18,13 @@ gql`
     id
     depositId
     publicId
+    accountId
     amount
     createdAt
     reference
     status
     ledgerTransactions {
       ...LedgerTransactionFields
-    }
-    account {
-      id
-      publicId
-      customer {
-        id
-        customerId
-        publicId
-        applicantId
-        email
-        depositAccount {
-          balance {
-            settled
-            pending
-          }
-        }
-      }
     }
   }
 

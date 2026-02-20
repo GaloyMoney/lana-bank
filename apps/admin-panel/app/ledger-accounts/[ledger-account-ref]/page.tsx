@@ -14,7 +14,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@lana/web/ui/collapsible"
-import { FileDown, ArrowRight } from "lucide-react"
+import { FileDown } from "lucide-react"
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import Link from "next/link"
@@ -30,7 +30,6 @@ import {
   useLedgerAccountQuery,
   JournalEntry,
   DebitOrCredit,
-  LedgerAccountByCodeQuery,
   LedgerAccountDetailsFragment,
 } from "@/lib/graphql/generated"
 import PaginatedTable, {
@@ -50,24 +49,6 @@ gql`
     ledgerAccountId
     name
     code
-    entity {
-      __typename
-      ... on DepositAccount {
-        depositAccountId
-        publicId
-        customer {
-          publicId
-        }
-      }
-      ... on CreditFacility {
-        publicId
-      }
-      ... on Collateral {
-        creditFacility {
-          publicId
-        }
-      }
-    }
     ancestors {
       id
       ledgerAccountId
@@ -269,24 +250,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
     setIsExportDialogOpen(true)
   }
 
-  const entityInfo = getEntityforAccount(ledgerAccount?.entity, t)
-
-  const footerButtons = [
-    entityInfo && (
-      <Button variant="outline" key="entity" asChild>
-        <Link href={entityInfo.url}>
-          {entityInfo.label}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </Button>
-    ),
-  ].filter(Boolean)
-
-  const footerContent =
-    footerButtons.length > 0 ? (
-      <div className="flex gap-2">{footerButtons}</div>
-    ) : undefined
-
   const details = [
     { label: t("details.name"), value: ledgerAccount?.name },
     { label: t("details.code"), value: ledgerAccount?.code || "-" },
@@ -323,7 +286,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         }
         details={details}
         columns={3}
-        footerContent={footerContent}
         errorMessage={error?.message}
       />
 
@@ -415,36 +377,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
 }
 
 export default LedgerAccountPage
-
-type LedgerAccountEntityType = NonNullable<
-  NonNullable<NonNullable<LedgerAccountByCodeQuery["ledgerAccountByCode"]>["entity"]>
->
-
-const getEntityforAccount = (
-  entity: LedgerAccountEntityType | null | undefined,
-  t: (key: string) => string,
-): { url: string; label: string } | null => {
-  if (!entity) return null
-  switch (entity.__typename) {
-    case "DepositAccount":
-      return {
-        url: `/deposit-accounts/${entity.publicId}`,
-        label: t("viewDepositAccount"),
-      }
-    case "CreditFacility":
-      return {
-        url: `/credit-facilities/${entity.publicId}`,
-        label: t("viewCreditFacility"),
-      }
-    case "Collateral":
-      return {
-        url: `/credit-facilities/${entity.creditFacility?.publicId}`,
-        label: t("viewCreditFacility"),
-      }
-  }
-  const exhaustiveCheck: never = entity
-  return exhaustiveCheck
-}
 
 type CollapsibleAccountSectionProps = {
   title: string

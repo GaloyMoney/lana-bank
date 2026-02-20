@@ -8,10 +8,11 @@ pub use lana_app::credit::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(name = "CreditFacilityProposal", complex)]
 pub struct CreditFacilityProposalBase {
     id: ID,
     credit_facility_proposal_id: UUID,
+    customer_id: UUID,
     approval_process_id: Option<UUID>,
     status: CreditFacilityProposalStatus,
     created_at: Timestamp,
@@ -35,6 +36,36 @@ impl CreditFacilityProposalBase {
             .find_for_credit_facility_id(sub, self.entity.id)
             .await?)
     }
+
+    async fn custodian(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<admin_graphql_custody::Custodian>> {
+        if let Some(custodian_id) = self.entity.custodian_id {
+            let (app, _sub) = app_and_sub_from_ctx!(ctx);
+            let custodians: std::collections::HashMap<_, admin_graphql_custody::Custodian> =
+                app.custody().find_all_custodians(&[custodian_id]).await?;
+            Ok(custodians.into_values().next())
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn approval_process(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<admin_graphql_governance::ApprovalProcess>> {
+        if let Some(approval_process_id) = self.entity.approval_process_id {
+            let (app, _sub) = app_and_sub_from_ctx!(ctx);
+            let processes: std::collections::HashMap<_, admin_graphql_governance::ApprovalProcess> =
+                app.governance()
+                    .find_all_approval_processes(&[approval_process_id])
+                    .await?;
+            Ok(processes.into_values().next())
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 impl From<DomainCreditFacilityProposal> for CreditFacilityProposalBase {
@@ -44,6 +75,7 @@ impl From<DomainCreditFacilityProposal> for CreditFacilityProposalBase {
         Self {
             id: proposal.id.to_global_id(),
             credit_facility_proposal_id: UUID::from(proposal.id),
+            customer_id: UUID::from(proposal.customer_id),
             approval_process_id: proposal.approval_process_id.map(|id| id.into()),
             status: proposal.status(),
             created_at: created_at.into(),

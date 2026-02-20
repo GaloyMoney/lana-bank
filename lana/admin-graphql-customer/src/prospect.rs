@@ -8,7 +8,7 @@ pub use lana_app::{
 };
 
 #[derive(SimpleObject, Clone)]
-#[graphql(complex)]
+#[graphql(name = "Prospect", complex)]
 pub struct ProspectBase {
     id: ID,
     prospect_id: UUID,
@@ -57,6 +57,79 @@ impl ProspectBase {
         self.entity
             .verification_link_created_at()
             .map(Timestamp::from)
+    }
+
+    async fn email(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let parties: std::collections::HashMap<_, std::sync::Arc<lana_app::customer::Party>> = app
+            .customers()
+            .find_all_parties(&[self.entity.party_id])
+            .await?;
+        let party = parties
+            .into_values()
+            .next()
+            .ok_or_else(|| async_graphql::Error::new("Party not found"))?;
+        Ok(party.email.clone())
+    }
+
+    async fn telegram_handle(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let parties: std::collections::HashMap<_, std::sync::Arc<lana_app::customer::Party>> = app
+            .customers()
+            .find_all_parties(&[self.entity.party_id])
+            .await?;
+        let party = parties
+            .into_values()
+            .next()
+            .ok_or_else(|| async_graphql::Error::new("Party not found"))?;
+        Ok(party.telegram_handle.clone())
+    }
+
+    async fn customer_type(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<lana_app::customer::CustomerType> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let parties: std::collections::HashMap<_, std::sync::Arc<lana_app::customer::Party>> = app
+            .customers()
+            .find_all_parties(&[self.entity.party_id])
+            .await?;
+        let party = parties
+            .into_values()
+            .next()
+            .ok_or_else(|| async_graphql::Error::new("Party not found"))?;
+        Ok(party.customer_type)
+    }
+
+    async fn personal_info(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<lana_app::customer::PersonalInfo>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let parties: std::collections::HashMap<_, std::sync::Arc<lana_app::customer::Party>> = app
+            .customers()
+            .find_all_parties(&[self.entity.party_id])
+            .await?;
+        let party = parties
+            .into_values()
+            .next()
+            .ok_or_else(|| async_graphql::Error::new("Party not found"))?;
+        Ok(party.personal_info.clone())
+    }
+
+    async fn customer(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<crate::customer::CustomerBase>> {
+        if self.entity.status != ProspectStatus::Converted {
+            return Ok(None);
+        }
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let customers: std::collections::HashMap<_, crate::customer::CustomerBase> = app
+            .customers()
+            .find_all(&[lana_app::primitives::CustomerId::from(self.entity.id)])
+            .await?;
+        Ok(customers.into_values().next())
     }
 }
 

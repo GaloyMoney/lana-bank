@@ -22,7 +22,7 @@ pub struct DepositModuleConfig {
     chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code: Option<String>,
 
     #[graphql(skip)]
-    pub(super) _entity: Arc<DomainChartOfAccountsIntegrationConfig>,
+    pub _entity: Arc<DomainChartOfAccountsIntegrationConfig>,
 }
 
 impl From<DomainChartOfAccountsIntegrationConfig> for DepositModuleConfig {
@@ -114,4 +114,3 @@ pub struct DepositModuleConfigureInput {
     pub chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: String,
     pub chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code: String,
 }
-crate::mutation_payload! { DepositModuleConfigurePayload, deposit_config: DepositModuleConfig }
