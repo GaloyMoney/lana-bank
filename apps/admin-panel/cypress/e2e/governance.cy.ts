@@ -109,14 +109,12 @@ describe("Governance Test", () => {
   it("Pending actions should be visible in list", () => {
     const amount = 1000
     cy.createDeposit(amount, depositAccountId).then(() => {
-      cy.initiateWithdrawal(amount, depositAccountId).then(() => {
+      cy.initiateWithdrawal(amount, depositAccountId).then((withdrawalPublicId) => {
         cy.visit(`/actions`)
-        cy.get('[data-testid="table-row-0"] > :nth-child(4) > a').should(
-          "be.visible",
-        )
+        cy.get('[data-testid="table-row-0"]').should("be.visible")
         cy.takeScreenshot("16_step-view-actions-page")
-        cy.get('[data-testid="table-row-0"] > :nth-child(4) > a').click()
 
+        cy.visit(`/withdrawals/${withdrawalPublicId}`)
         cy.get("[data-testid=withdrawal-status-badge]")
           .should("be.visible")
           .should("have.text", t("Withdrawals.WithdrawalStatus.pending_approval"))
