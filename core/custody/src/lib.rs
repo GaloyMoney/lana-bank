@@ -241,8 +241,14 @@ where
         jobs: &mut job::Jobs,
         clock: ClockHandle,
     ) -> Result<Self, CoreCustodyError> {
-        let handler =
-            CustodianWebhookHandler::new(pool, authz, &encryption_config, &config, outbox, clock.clone());
+        let handler = CustodianWebhookHandler::new(
+            pool,
+            authz,
+            &encryption_config,
+            &config,
+            outbox,
+            clock.clone(),
+        );
 
         let inbox_config = InboxConfig::new(CUSTODY_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);
@@ -304,7 +310,7 @@ where
             .id(custodian_id)
             .name(custodian_name.as_ref().to_owned())
             .provider(custodian_config.discriminant().to_string())
-            .encrypted_custodian_config(custodian_config, &self.encryption.key)
+            .encrypted_custodian_config(custodian_config, &self.encryption_config.key)
             .build()
             .expect("should always build a new custodian");
 
@@ -496,8 +502,8 @@ where
             .find_by_id_in_op(&mut *db, &custodian_id)
             .await?;
 
-        let client =
-            custodian.custodian_client(&self.encryption_config.key, &self.config.custody_providers)?;
+        let client = custodian
+            .custodian_client(&self.encryption_config.key, &self.config.custody_providers)?;
 
         let external_wallet = client.initialize_wallet(wallet_label).await?;
 

@@ -222,7 +222,10 @@ pub struct ExposedDomainConfigsReadOnly {
 impl InternalDomainConfigs {
     pub fn new(pool: &sqlx::PgPool, encryption_config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
-        Self { repo, encryption_config }
+        Self {
+            repo,
+            encryption_config,
+        }
     }
 
     #[record_error_severity]
@@ -245,7 +248,8 @@ impl InternalDomainConfigs {
         C: InternalConfig,
     {
         let mut entity = self.repo.find_by_key(C::KEY).await?;
-        if C::Flavor::update_value::<C>(&mut entity, &self.encryption_config, value)?.did_execute() {
+        if C::Flavor::update_value::<C>(&mut entity, &self.encryption_config, value)?.did_execute()
+        {
             self.repo.update(&mut entity).await?;
         }
 
@@ -275,7 +279,8 @@ impl InternalDomainConfigs {
         C: InternalConfig,
     {
         let mut entity = self.repo.find_by_key_in_op(&mut *op, C::KEY).await?;
-        if C::Flavor::update_value::<C>(&mut entity, &self.encryption_config, value)?.did_execute() {
+        if C::Flavor::update_value::<C>(&mut entity, &self.encryption_config, value)?.did_execute()
+        {
             self.repo.update_in_op(op, &mut entity).await?;
         }
         Ok(())
@@ -285,7 +290,10 @@ impl InternalDomainConfigs {
 impl ExposedDomainConfigsReadOnly {
     pub fn new(pool: &sqlx::PgPool, encryption_config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
-        Self { repo, encryption_config }
+        Self {
+            repo,
+            encryption_config,
+        }
     }
 
     #[record_error_severity]
@@ -341,7 +349,8 @@ where
         self.ensure_write_permission(sub).await?;
         let mut entity = self.repo.find_by_key(C::KEY).await?;
 
-        if C::Flavor::update_value::<C>(&mut entity, &self.encryption_config, value)?.did_execute() {
+        if C::Flavor::update_value::<C>(&mut entity, &self.encryption_config, value)?.did_execute()
+        {
             self.repo.update(&mut entity).await?;
         }
 
