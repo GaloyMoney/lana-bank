@@ -237,6 +237,7 @@ ignored = [
     "opentelemetry-http",
     "opentelemetry-otlp",
     "opentelemetry-proto",
+    "opentelemetry-semantic-conventions",
     "percent-encoding",
     "petgraph",
     "pkcs8",
