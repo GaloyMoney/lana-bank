@@ -569,7 +569,6 @@ jobs:
             trigger: true
             passed: [release]
           - get: charts-repo
-            params: { skip_download: true }
           - get: pipeline-tasks
       - task: bump-image-digest-in-values
         config:
@@ -592,6 +591,21 @@ jobs:
             CHARTS_SUBDIR: lana-bank
           run:
             path: pipeline-tasks/ci/tasks/bump-image-digest.sh
+      - task: set-is-release-flag
+        config:
+          platform: linux
+          image_resource: #@ rust_task_image_config()
+          inputs:
+            - name: charts-repo
+          outputs:
+            - name: charts-repo
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                echo true > charts-repo/is-release
       - put: charts-repo-bot-branch
         params:
           repository: charts-repo
@@ -632,7 +646,6 @@ jobs:
             trigger: true
             passed: [build-rc]
           - get: charts-repo
-            params: { skip_download: true }
           - get: pipeline-tasks
       - task: bump-image-digest-in-values
         config:
@@ -655,6 +668,21 @@ jobs:
             CHARTS_SUBDIR: lana-bank
           run:
             path: pipeline-tasks/ci/tasks/bump-image-digest.sh
+      - task: set-is-release-flag
+        config:
+          platform: linux
+          image_resource: #@ rust_task_image_config()
+          inputs:
+            - name: charts-repo
+          outputs:
+            - name: charts-repo
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                echo false > charts-repo/is-release
       - put: charts-repo-bot-branch
         params:
           repository: charts-repo
