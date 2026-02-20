@@ -31,6 +31,7 @@ use super::{
         collateralization_state(
             ty = "CollateralizationState",
             list_for,
+            create(accessor = "collateralization_state()"),
             update(accessor = "last_collateralization_state()")
         ),
         status(ty = "CreditFacilityStatus", list_for, update(accessor = "status()")),

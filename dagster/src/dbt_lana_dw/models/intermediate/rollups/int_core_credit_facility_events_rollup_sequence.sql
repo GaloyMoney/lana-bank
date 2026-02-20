@@ -10,6 +10,23 @@ with
         select s.* from {{ ref("stg_core_credit_facility_events_rollup") }} as s
     ),
 
+    with_collateralization as (
+        select
+            * except (collateralization),
+            cast(
+                json_value(collateralization, "$.data.collateral") as numeric
+            ) as collateral,
+            cast(json_value(collateralization, "$.data.price") as numeric) as price,
+            json_value(
+                collateralization, "$.data.outstanding.interest"
+            ) as outstanding_interest,
+            json_value(
+                collateralization, "$.data.outstanding.disbursed"
+            ) as outstanding_disbursed,
+            json_value(collateralization, "$.state") as collateralization_state
+        from source
+    ),
+
     latest_proposal_version as (
         select credit_facility_proposal_id, max(`version`) as `version`
         from {{ ref("stg_core_credit_facility_proposal_events_rollup") }}
@@ -84,11 +101,10 @@ with
                 terms, "$.accrual_cycle_interval.type"
             ) as accrual_cycle_interval,
 
-            cast(collateral as numeric) as collateral_amount_sats,
-            cast(collateral as numeric)
-            / {{ var("sats_per_bitcoin") }} as collateral_amount_btc,
+            collateral as collateral_amount_sats,
+            collateral / {{ var("sats_per_bitcoin") }} as collateral_amount_btc,
             price / {{ var("cents_per_usd") }} as price_usd_per_btc,
-            cast(collateral as numeric)
+            collateral
             / {{ var("sats_per_bitcoin") }}
             * price
             / {{ var("cents_per_usd") }} as collateral_amount_usd,
@@ -114,9 +130,9 @@ with
                 interest_period, "$.interval.type"
             ) as interest_period_interval_type,
 
-            cast(json_value(outstanding, "$.interest") as numeric)
+            cast(outstanding_interest as numeric)
             / {{ var("cents_per_usd") }} as outstanding_interest_usd,
-            cast(json_value(outstanding, "$.disbursed") as numeric)
+            cast(outstanding_disbursed as numeric)
             / {{ var("cents_per_usd") }} as outstanding_disbursed_usd,
 
             cast(
@@ -192,6 +208,8 @@ with
                 price,
                 -- collateralization_ratio,
                 collateralization_state,
+                outstanding_interest,
+                outstanding_disbursed,
                 approval_process_id,
                 approved,
                 is_approval_process_concluded,
@@ -199,11 +217,10 @@ with
                 is_completed,
                 interest_accrual_cycle_idx,
                 interest_period,
-                outstanding,
                 created_at,
                 modified_at
             )
-        from source
+        from with_collateralization
         left join cf_pending_proposals using (pending_credit_facility_id)
     ),
 

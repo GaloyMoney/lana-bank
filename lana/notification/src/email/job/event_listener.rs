@@ -98,14 +98,14 @@ where
             }
             Some(LanaEvent::Credit(
                 credit_event @ CoreCreditEvent::FacilityCollateralizationChanged { entity },
-            )) if entity.collateralization.state
+            )) if entity.collateralization.state()
                 == core_credit::CollateralizationState::UnderMarginCallThreshold =>
             {
                 event.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", credit_event.as_ref());
 
-                let collateralization = &entity.collateralization;
+                let d = entity.collateralization.data();
                 let effective = event.recorded_at.date_naive();
                 self.email_notification
                     .send_under_margin_call_notification_in_op(
@@ -113,10 +113,10 @@ where
                         &entity.id,
                         &entity.customer_id,
                         &effective,
-                        &collateralization.collateral,
-                        &collateralization.outstanding.disbursed,
-                        &collateralization.outstanding.interest,
-                        &collateralization.price_at_state_change,
+                        &d.collateral,
+                        &d.outstanding.disbursed,
+                        &d.outstanding.interest,
+                        &d.price,
                     )
                     .await?;
             }

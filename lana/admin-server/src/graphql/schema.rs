@@ -2698,16 +2698,17 @@ impl Subscription {
                     if entity.id == credit_facility_id =>
                 {
                     let collateralization = &entity.collateralization;
+                    let d = collateralization.data();
                     Some(CreditFacilityCollateralizationPayload {
                         credit_facility_id,
                         update: CreditFacilityCollateralizationUpdated {
-                            state: collateralization.state,
-                            collateral: collateralization.collateral,
-                            outstanding_interest: collateralization.outstanding.interest,
-                            outstanding_disbursal: collateralization.outstanding.disbursed,
+                            state: collateralization.state(),
+                            collateral: d.collateral,
+                            outstanding_interest: d.outstanding.interest,
+                            outstanding_disbursal: d.outstanding.disbursed,
                             recorded_at: message.recorded_at.into(),
                             effective: message.recorded_at.date_naive().into(),
-                            price: collateralization.price_at_state_change.into_inner(),
+                            price: d.price.into_inner(),
                         },
                     })
                 }

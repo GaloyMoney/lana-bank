@@ -9,10 +9,9 @@ CREATE TABLE core_credit_facility_events_rollup (
   account_ids JSONB,
   activated_at TIMESTAMPTZ,
   amount BIGINT,
-  collateral BIGINT,
   collateral_id UUID,
+  collateralization JSONB,
   collateralization_ratio JSONB,
-  collateralization_state VARCHAR,
   customer_id UUID,
   customer_type VARCHAR,
   disbursal_credit_account_id UUID,
@@ -22,9 +21,7 @@ CREATE TABLE core_credit_facility_events_rollup (
   interest_period JSONB,
   liquidation_id UUID,
   maturity_date TIMESTAMPTZ,
-  outstanding JSONB,
   pending_credit_facility_id UUID,
-  price BIGINT,
   public_id VARCHAR,
   structuring_fee_tx_id UUID,
   terms JSONB,
@@ -77,10 +74,9 @@ BEGIN
     new_row.account_ids := (NEW.event -> 'account_ids');
     new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-    new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
+    new_row.collateralization := (NEW.event -> 'collateralization');
     new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
-    new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
     new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
@@ -110,9 +106,7 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.outstanding := (NEW.event -> 'outstanding');
     new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
-    new_row.price := (NEW.event ->> 'price')::BIGINT;
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
     new_row.terms := (NEW.event -> 'terms');
@@ -122,10 +116,9 @@ BEGIN
     new_row.account_ids := current_row.account_ids;
     new_row.activated_at := current_row.activated_at;
     new_row.amount := current_row.amount;
-    new_row.collateral := current_row.collateral;
     new_row.collateral_id := current_row.collateral_id;
+    new_row.collateralization := current_row.collateralization;
     new_row.collateralization_ratio := current_row.collateralization_ratio;
-    new_row.collateralization_state := current_row.collateralization_state;
     new_row.customer_id := current_row.customer_id;
     new_row.customer_type := current_row.customer_type;
     new_row.disbursal_credit_account_id := current_row.disbursal_credit_account_id;
@@ -140,9 +133,7 @@ BEGIN
     new_row.liquidation_id := current_row.liquidation_id;
     new_row.maturity_date := current_row.maturity_date;
     new_row.obligation_ids := current_row.obligation_ids;
-    new_row.outstanding := current_row.outstanding;
     new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
-    new_row.price := current_row.price;
     new_row.public_id := current_row.public_id;
     new_row.structuring_fee_tx_id := current_row.structuring_fee_tx_id;
     new_row.terms := current_row.terms;
@@ -155,17 +146,14 @@ BEGIN
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
-      new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
+      new_row.collateralization := (NEW.event -> 'collateralization');
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.maturity_date := (NEW.event ->> 'maturity_date')::TIMESTAMPTZ;
-      new_row.outstanding := (NEW.event -> 'outstanding');
       new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
-      new_row.price := (NEW.event ->> 'price')::BIGINT;
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
       new_row.terms := (NEW.event -> 'terms');
@@ -178,10 +166,7 @@ BEGIN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.obligation_ids := array_append(COALESCE(current_row.obligation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_id')::UUID);
     WHEN 'collateralization_state_changed' THEN
-      new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
-      new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
-      new_row.outstanding := (NEW.event -> 'outstanding');
-      new_row.price := (NEW.event ->> 'price')::BIGINT;
+      new_row.collateralization := (NEW.event -> 'collateralization');
     WHEN 'collateralization_ratio_changed' THEN
       new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     WHEN 'partial_liquidation_initiated' THEN
@@ -208,10 +193,9 @@ BEGIN
     account_ids,
     activated_at,
     amount,
-    collateral,
     collateral_id,
+    collateralization,
     collateralization_ratio,
-    collateralization_state,
     customer_id,
     customer_type,
     disbursal_credit_account_id,
@@ -226,9 +210,7 @@ BEGIN
     liquidation_id,
     maturity_date,
     obligation_ids,
-    outstanding,
     pending_credit_facility_id,
-    price,
     public_id,
     structuring_fee_tx_id,
     terms,
@@ -243,10 +225,9 @@ BEGIN
     new_row.account_ids,
     new_row.activated_at,
     new_row.amount,
-    new_row.collateral,
     new_row.collateral_id,
+    new_row.collateralization,
     new_row.collateralization_ratio,
-    new_row.collateralization_state,
     new_row.customer_id,
     new_row.customer_type,
     new_row.disbursal_credit_account_id,
@@ -261,9 +242,7 @@ BEGIN
     new_row.liquidation_id,
     new_row.maturity_date,
     new_row.obligation_ids,
-    new_row.outstanding,
     new_row.pending_credit_facility_id,
-    new_row.price,
     new_row.public_id,
     new_row.structuring_fee_tx_id,
     new_row.terms,

@@ -73,16 +73,17 @@ impl CreditFacilityHistory {
             }
             FacilityCollateralizationChanged { entity } => {
                 let collateralization = &entity.collateralization;
+                let d = collateralization.data();
                 self.entries
                     .push(CreditFacilityHistoryEntry::Collateralization(
                         CollateralizationUpdated {
-                            state: collateralization.state,
-                            collateral: collateralization.collateral,
-                            outstanding_interest: collateralization.outstanding.interest,
-                            outstanding_disbursal: collateralization.outstanding.disbursed,
+                            state: collateralization.state(),
+                            collateral: d.collateral,
+                            outstanding_interest: d.outstanding.interest,
+                            outstanding_disbursal: d.outstanding.disbursed,
                             recorded_at: message_recorded_at,
                             effective: message_recorded_at.date_naive(),
-                            price: collateralization.price_at_state_change,
+                            price: d.price,
                         },
                     ));
             }
