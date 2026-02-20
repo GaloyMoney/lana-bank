@@ -312,16 +312,16 @@ impl Collateral {
 
     pub fn record_liquidation_started(
         &mut self,
+        liquidation_id: LiquidationId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
         liquidation_proceeds_account_ids: LiquidationProceedsAccountIds,
-    ) -> Idempotent<LiquidationId> {
+    ) -> Idempotent<()> {
         if self.active_liquidation_id().is_some() {
             return Idempotent::AlreadyApplied;
         }
 
-        let liquidation_id = LiquidationId::new();
         let new_liquidation = NewLiquidation::builder()
             .id(liquidation_id)
             .collateral_id(self.id)
@@ -337,7 +337,7 @@ impl Collateral {
         self.events
             .push(CollateralEvent::LiquidationStarted { liquidation_id });
 
-        Idempotent::Executed(liquidation_id)
+        Idempotent::Executed(())
     }
 }
 
@@ -487,16 +487,16 @@ mod tests {
         collateral.liquidations.load(new_entities);
     }
 
-    fn start_liquidation(collateral: &mut Collateral) -> LiquidationId {
-        let result = collateral.record_liquidation_started(
+    fn start_liquidation(collateral: &mut Collateral) {
+        let liquidation_id = LiquidationId::new();
+        let _ = collateral.record_liquidation_started(
+            liquidation_id,
             default_trigger_price(),
             UsdCents::from(1000),
             Satoshis::from(100000),
             default_liquidation_proceeds_account_ids(),
         );
-        let liquidation_id = result.unwrap();
         hydrate_liquidations_in_collateral(collateral);
-        liquidation_id
     }
 
     mod record_liquidation_started {
@@ -507,14 +507,15 @@ mod tests {
             let new_collateral = default_new_collateral();
             let mut collateral = collateral_from(new_collateral);
 
+            let liquidation_id = LiquidationId::new();
             let result = collateral.record_liquidation_started(
+                liquidation_id,
                 default_trigger_price(),
                 UsdCents::from(1000),
                 Satoshis::from(100000),
                 default_liquidation_proceeds_account_ids(),
             );
             assert!(result.did_execute());
-            let liquidation_id = result.unwrap();
 
             hydrate_liquidations_in_collateral(&mut collateral);
             assert_eq!(collateral.active_liquidation_id(), Some(liquidation_id));
@@ -528,6 +529,7 @@ mod tests {
             start_liquidation(&mut collateral);
 
             let result = collateral.record_liquidation_started(
+                LiquidationId::new(),
                 default_trigger_price(),
                 UsdCents::from(1000),
                 Satoshis::from(100000),

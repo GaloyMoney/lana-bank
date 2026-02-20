@@ -3,7 +3,7 @@ use tracing::{Span, instrument};
 use std::sync::Arc;
 
 use core_custody::CoreCustodyEvent;
-use es_entity::{DbOp, Idempotent};
+use es_entity::DbOp;
 use governance::GovernanceEvent;
 use money::{Satoshis, UsdCents};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
@@ -16,7 +16,7 @@ use crate::{
     collateral::error::CollateralError,
     collateral::ledger::LiquidationProceedsAccountIds,
     collateral::repo::CollateralRepo,
-    primitives::{CollateralId, PriceOfOneBTC},
+    primitives::{CollateralId, LiquidationId, PriceOfOneBTC},
 };
 
 pub const CREDIT_FACILITY_LIQUIDATIONS_JOB: JobType =
@@ -73,9 +73,11 @@ where
                 .liquidation_trigger
                 .as_ref()
                 .expect("liquidation_trigger must be set for PartialLiquidationInitiated");
+
             self.create_if_not_exist_in_op(
                 op,
                 entity.collateral_id,
+                trigger.liquidation_id,
                 trigger.trigger_price,
                 trigger.initially_expected_to_receive,
                 trigger.initially_estimated_to_liquidate,
@@ -101,6 +103,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         collateral_id: CollateralId,
+        liquidation_id: LiquidationId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
@@ -113,32 +116,31 @@ where
             self.liquidation_proceeds_omnibus_account_id,
         );
 
-        let liquidation_id = if let Idempotent::Executed(id) = collateral
+        if collateral
             .record_liquidation_started(
+                liquidation_id,
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
                 liquidation_proceeds_account_ids,
-            ) {
-            id
-        } else {
-            return Ok(());
-        };
-
-        self.repo.update_in_op(db, &mut collateral).await?;
-
-        self.liquidation_payment_job_spawner
-            .spawn_in_op(
-                db,
-                job::JobId::new(),
-                LiquidationPaymentJobConfig::<E> {
-                    liquidation_id,
-                    collateral_id,
-                    credit_facility_id: collateral.credit_facility_id,
-                    _phantom: std::marker::PhantomData,
-                },
             )
-            .await?;
+            .did_execute()
+        {
+            self.repo.update_in_op(db, &mut collateral).await?;
+
+            self.liquidation_payment_job_spawner
+                .spawn_in_op(
+                    db,
+                    job::JobId::new(),
+                    LiquidationPaymentJobConfig::<E> {
+                        liquidation_id,
+                        collateral_id,
+                        credit_facility_id: collateral.credit_facility_id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                )
+                .await?;
+        }
 
         Ok(())
     }
