@@ -1,4 +1,5 @@
 import { defineConfig, globalIgnores } from "eslint/config"
+import { fixupConfigRules } from "@eslint/compat"
 import nextVitals from "eslint-config-next/core-web-vitals"
 import nextTs from "eslint-config-next/typescript"
 import storybook from "eslint-plugin-storybook"
@@ -6,8 +7,8 @@ import storybook from "eslint-plugin-storybook"
 import prettierConfig from "eslint-config-prettier/flat"
 
 export default defineConfig([
-  ...nextVitals,
-  ...nextTs,
+  ...fixupConfigRules(nextVitals),
+  ...fixupConfigRules(nextTs),
   ...storybook.configs["flat/recommended"],
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "**/generated/**"]),
   {
