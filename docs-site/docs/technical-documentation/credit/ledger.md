@@ -208,7 +208,7 @@ Account Creation: Per-facility
 ```
 Ref: credit-payment-holding-account-set
 Name: Credit Payment Holding Account Set
-Purpose: Temporarily holds payments being applied to obligations
+Purpose: Temporarily holds payments that are waiting to be applied to obligations
 Category: Asset
 Normal Balance: Credit
 Account Creation: Per-facility
