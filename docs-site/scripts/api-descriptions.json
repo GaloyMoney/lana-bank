@@ -74,9 +74,9 @@
       "accountEntryCsv": "Fetches the CSV export document for a specific ledger account",
       "reportRuns": "Returns a paginated list of all report runs",
       "reportRun": "Fetches a specific report run by its unique identifier",
-      "prospectByPublicId": "TODO: Add description",
-      "prospect": "TODO: Add description",
-      "prospects": "TODO: Add description"
+      "prospect": "Fetches a specific prospect by their unique identifier",
+      "prospectByPublicId": "Fetches a prospect by their public-facing identifier",
+      "prospects": "Returns a paginated list of all prospects, optionally filtered by stage"
     },
     "mutations": {
       "customerDocumentAttach": "Uploads and attaches a document to a customer's profile",
@@ -86,8 +86,12 @@
       "roleCreate": "Creates a new role with specified permission sets",
       "roleAddPermissionSets": "Adds permission sets to an existing role",
       "roleRemovePermissionSets": "Removes permission sets from an existing role",
+      "prospectCreate": "Creates a new prospect for potential customer onboarding",
+      "prospectClose": "Closes a prospect, ending their onboarding process",
+      "prospectConvert": "Converts a prospect into a full customer",
       "customerCreate": "Creates a new customer with email, telegram ID, and customer type",
       "customerTelegramIdUpdate": "Updates a customer's Telegram identifier",
+      "customerTelegramHandleUpdate": "Updates a customer's Telegram handle",
       "customerEmailUpdate": "Updates a customer's email address",
       "domainConfigUpdate": "Updates a domain configuration setting",
       "depositModuleConfigure": "Configures the deposit module's chart of accounts mappings",
@@ -147,11 +151,7 @@
       "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file",
       "collateralLiquidationRecordProceedsReceived": "Records proceeds received from a collateral liquidation",
       "collateralRecordSentToLiquidation": "Records collateral sent to liquidation",
-      "collateralUpdate": "TODO: Add description",
-      "customerTelegramHandleUpdate": "TODO: Add description",
-      "prospectClose": "TODO: Add description",
-      "prospectConvert": "TODO: Add description",
-      "prospectCreate": "TODO: Add description"
+      "collateralUpdate": "Updates the collateral amount for a credit facility with a specified effective date"
     }
   },
   "customer": {
