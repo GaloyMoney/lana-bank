@@ -10,6 +10,7 @@ admin-graphql-governance = { path = "../admin-graphql-governance" }
 admin-graphql-accounting = { path = "../admin-graphql-accounting" }
 admin-graphql-custody = { path = "../admin-graphql-custody" }
 
+es-entity = { workspace = true }
 async-graphql = { workspace = true }
 rust_decimal = { workspace = true }
 serde = { workspace = true }
