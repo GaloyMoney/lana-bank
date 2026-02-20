@@ -569,7 +569,6 @@ jobs:
             trigger: true
             passed: [release]
           - get: charts-repo
-            params: { skip_download: true }
           - get: pipeline-tasks
       - task: bump-image-digest-in-values
         config:
@@ -590,6 +589,7 @@ jobs:
           params:
             BRANCH: #@ data.values.git_charts_branch
             CHARTS_SUBDIR: lana-bank
+            IS_RELEASE: "true"
           run:
             path: pipeline-tasks/ci/tasks/bump-image-digest.sh
       - put: charts-repo-bot-branch
@@ -632,7 +632,6 @@ jobs:
             trigger: true
             passed: [build-rc]
           - get: charts-repo
-            params: { skip_download: true }
           - get: pipeline-tasks
       - task: bump-image-digest-in-values
         config:
@@ -653,6 +652,7 @@ jobs:
           params:
             BRANCH: #@ data.values.git_charts_branch
             CHARTS_SUBDIR: lana-bank
+            IS_RELEASE: "false"
           run:
             path: pipeline-tasks/ci/tasks/bump-image-digest.sh
       - put: charts-repo-bot-branch

@@ -20,6 +20,8 @@ sed -i "s|\(digest: \"${digest}\"\).*$|\1 # METADATA:: repository=https://github
 yq -i e '.lanaBank.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/values.yaml
 yq -i e '.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/Chart.yaml
 
+echo "${IS_RELEASE}" > "./charts/${CHARTS_SUBDIR}/is-release"
+
 rm -rf ./charts/${CHARTS_SUBDIR}/tf || true
 mkdir -p ./charts/${CHARTS_SUBDIR}/tf
 cp -r ../repo/tf/bq-setup ./charts/${CHARTS_SUBDIR}/tf/bq-setup
