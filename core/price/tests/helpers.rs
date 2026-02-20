@@ -22,24 +22,25 @@ pub enum DummyEvent {
 pub async fn wait_for_price_to_be_updated(
     price: &Price,
     expected_price: PriceOfOneBTC,
-    attempts: u32,
 ) -> anyhow::Result<PriceOfOneBTC> {
-    let mut current_price = price.usd_cents_per_btc().await;
+    let deadline = Duration::from_secs(10);
+    let poll_interval = Duration::from_millis(50);
 
-    for attempt in 0..attempts {
-        if current_price == expected_price {
-            break;
+    let result = tokio::time::timeout(deadline, async {
+        loop {
+            let current = price.usd_cents_per_btc().await;
+            if current == expected_price {
+                return current;
+            }
+            sleep(poll_interval).await;
         }
+    })
+    .await;
 
-        if attempt + 1 == attempts {
-            break;
-        }
-
-        sleep(Duration::from_millis(100)).await;
-        current_price = price.usd_cents_per_btc().await;
+    match result {
+        Ok(price) => Ok(price),
+        Err(_) => Ok(price.usd_cents_per_btc().await),
     }
-
-    Ok(current_price)
 }
 
 pub async fn publish_dummy_price_event(
