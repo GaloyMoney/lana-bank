@@ -1051,13 +1051,12 @@ where
             .customer_activity_repo
             .find_customers_needing_activity_update(start_threshold, end_threshold, activity)
             .await?;
-        // TODO: Add a batch update for the customers
-        for customer_id in customer_ids {
-            let mut customer = self.repo.find_by_id(customer_id).await?;
-            if customer.update_activity(activity).did_execute() {
-                self.repo.update(&mut customer).await?;
-            }
-        }
+        let all_customers = self.repo.find_all::<Customer>(&customer_ids).await?;
+        let mut customers: Vec<_> = all_customers
+            .into_values()
+            .filter_map(|mut c| c.update_activity(activity).did_execute().then_some(c))
+            .collect();
+        self.repo.update_all(&mut customers).await?;
 
         Ok(())
     }
