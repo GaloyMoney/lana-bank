@@ -9,6 +9,9 @@ use config::*;
 use error::*;
 use jobs::*;
 
+use jobs::active_sync_job::CustomerActiveSyncJobInitializer;
+use jobs::sync_email_job::SyncEmailJobInitializer;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
@@ -85,11 +88,11 @@ where
             .await?;
 
         outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(SYNC_EMAIL_JOB),
-                SyncEmailHandler::new(keycloak_client.clone()),
-            )
+            .register_event_handler_with(jobs, OutboxEventJobConfig::new(SYNC_EMAIL_JOB), |ctx| {
+                let spawner =
+                    ctx.add_initializer(SyncEmailJobInitializer::new(keycloak_client.clone()));
+                SyncEmailHandler::new(spawner)
+            })
             .await?;
 
         outbox
@@ -109,10 +112,14 @@ where
             .await?;
 
         outbox
-            .register_event_handler(
+            .register_event_handler_with(
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_ACTIVE_SYNC),
-                CustomerActiveSyncHandler::new(deposit),
+                |ctx| {
+                    let spawner =
+                        ctx.add_initializer(CustomerActiveSyncJobInitializer::new(deposit.clone()));
+                    CustomerActiveSyncHandler::new(spawner)
+                },
             )
             .await?;
 

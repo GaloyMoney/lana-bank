@@ -19,6 +19,7 @@ job = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 
+async-trait = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
