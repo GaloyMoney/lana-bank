@@ -13,78 +13,17 @@ with
     with_collateralization as (
         select
             * except (collateralization),
-            coalesce(
-                cast(
-                    json_value(
-                        collateralization, "$.FullyCollateralized.collateral"
-                    ) as numeric
-                ),
-                cast(
-                    json_value(
-                        collateralization, "$.UnderMarginCallThreshold.collateral"
-                    ) as numeric
-                ),
-                cast(
-                    json_value(
-                        collateralization, "$.UnderLiquidationThreshold.collateral"
-                    ) as numeric
-                )
+            cast(
+                json_value(collateralization, "$.data.collateral") as numeric
             ) as collateral,
-            coalesce(
-                cast(
-                    json_value(
-                        collateralization, "$.FullyCollateralized.price"
-                    ) as numeric
-                ),
-                cast(
-                    json_value(
-                        collateralization, "$.UnderMarginCallThreshold.price"
-                    ) as numeric
-                ),
-                cast(
-                    json_value(
-                        collateralization, "$.UnderLiquidationThreshold.price"
-                    ) as numeric
-                )
-            ) as price,
-            coalesce(
-                json_value(
-                    collateralization, "$.FullyCollateralized.outstanding.interest"
-                ),
-                json_value(
-                    collateralization, "$.UnderMarginCallThreshold.outstanding.interest"
-                ),
-                json_value(
-                    collateralization,
-                    "$.UnderLiquidationThreshold.outstanding.interest"
-                )
+            cast(json_value(collateralization, "$.data.price") as numeric) as price,
+            json_value(
+                collateralization, "$.data.outstanding.interest"
             ) as outstanding_interest,
-            coalesce(
-                json_value(
-                    collateralization, "$.FullyCollateralized.outstanding.disbursed"
-                ),
-                json_value(
-                    collateralization,
-                    "$.UnderMarginCallThreshold.outstanding.disbursed"
-                ),
-                json_value(
-                    collateralization,
-                    "$.UnderLiquidationThreshold.outstanding.disbursed"
-                )
+            json_value(
+                collateralization, "$.data.outstanding.disbursed"
             ) as outstanding_disbursed,
-            case
-                when json_query(collateralization, "$.FullyCollateralized") is not null
-                then 'FullyCollateralized'
-                when
-                    json_query(collateralization, "$.UnderMarginCallThreshold")
-                    is not null
-                then 'UnderMarginCallThreshold'
-                when
-                    json_query(collateralization, "$.UnderLiquidationThreshold")
-                    is not null
-                then 'UnderLiquidationThreshold'
-                else json_value(collateralization)
-            end as collateralization_state
+            json_value(collateralization, "$.state") as collateralization_state
         from source
     ),
 
