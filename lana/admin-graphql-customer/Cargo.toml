@@ -10,6 +10,5 @@ admin-graphql-credit = { path = "../admin-graphql-credit" }
 admin-graphql-deposit = { path = "../admin-graphql-deposit" }
 
 async-graphql = { workspace = true }
-es-entity = { workspace = true }
 
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

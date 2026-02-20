@@ -41,7 +41,6 @@ dependencies = [
  "admin-graphql-governance",
  "admin-graphql-shared",
  "async-graphql",
- "es-entity",
  "lana-app",
  "rust_decimal",
  "serde",
@@ -68,7 +67,6 @@ dependencies = [
  "admin-graphql-deposit",
  "admin-graphql-shared",
  "async-graphql",
- "es-entity",
  "lana-app",
  "workspace-hack",
 ]
@@ -94,7 +92,6 @@ dependencies = [
  "admin-graphql-access",
  "admin-graphql-shared",
  "async-graphql",
- "es-entity",
  "lana-app",
  "workspace-hack",
 ]
