@@ -54,10 +54,7 @@ impl TrialBalance {
                 Some(self.until.into_inner()),
             )
             .await?;
-        Ok(accounts
-            .into_iter()
-            .map(|a| LedgerAccount::from(a))
-            .collect())
+        Ok(accounts.into_iter().map(LedgerAccount::from).collect())
     }
 }
 

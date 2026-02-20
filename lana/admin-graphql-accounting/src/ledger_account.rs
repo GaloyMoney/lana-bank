@@ -74,7 +74,7 @@ impl LedgerAccount {
             .ancestor_ids
             .iter()
             .filter_map(|id| accounts.get(id).cloned())
-            .map(|a| LedgerAccount::from(a))
+            .map(LedgerAccount::from)
             .collect())
     }
 
@@ -104,7 +104,7 @@ impl LedgerAccount {
             .children_ids
             .iter()
             .filter_map(|id| accounts.get(id).cloned())
-            .map(|a| LedgerAccount::from(a))
+            .map(LedgerAccount::from)
             .collect())
     }
 

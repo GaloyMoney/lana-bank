@@ -53,7 +53,7 @@ impl BalanceSheet {
             .category_ids
             .iter()
             .filter_map(|id| categories.get(id).cloned())
-            .map(|a| LedgerAccount::from(a))
+            .map(LedgerAccount::from)
             .collect())
     }
 }
