@@ -589,23 +589,9 @@ jobs:
           params:
             BRANCH: #@ data.values.git_charts_branch
             CHARTS_SUBDIR: lana-bank
+            IS_RELEASE: "true"
           run:
             path: pipeline-tasks/ci/tasks/bump-image-digest.sh
-      - task: set-is-release-flag
-        config:
-          platform: linux
-          image_resource: #@ rust_task_image_config()
-          inputs:
-            - name: charts-repo
-          outputs:
-            - name: charts-repo
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                set -euo pipefail
-                echo true > "charts-repo/charts/lana-bank/is-release"
       - put: charts-repo-bot-branch
         params:
           repository: charts-repo
@@ -666,23 +652,9 @@ jobs:
           params:
             BRANCH: #@ data.values.git_charts_branch
             CHARTS_SUBDIR: lana-bank
+            IS_RELEASE: "false"
           run:
             path: pipeline-tasks/ci/tasks/bump-image-digest.sh
-      - task: set-is-release-flag
-        config:
-          platform: linux
-          image_resource: #@ rust_task_image_config()
-          inputs:
-            - name: charts-repo
-          outputs:
-            - name: charts-repo
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                set -euo pipefail
-                echo false > "charts-repo/charts/lana-bank/is-release"
       - put: charts-repo-bot-branch
         params:
           repository: charts-repo
