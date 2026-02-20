@@ -46,6 +46,10 @@ jobs:
         run: |
           nix develop -c bash -lc "cd docs-site && npm ci"
 
+      - name: Validate API descriptions
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run validate-api-descriptions"
+
       - name: Generate API docs (current version)
         run: |
           nix develop -c bash -lc "cd docs-site && npm run generate-api-docs"
@@ -53,10 +57,6 @@ jobs:
       - name: Generate API docs (versioned)
         run: |
           nix develop -c bash -lc "cd docs-site && npm run generate-versioned-api-docs"
-
-      - name: Validate API descriptions
-        run: |
-          nix develop -c bash -lc "cd docs-site && npm run validate-api-descriptions"
 
       - name: Fetch screenshots from Netlify
         continue-on-error: true
