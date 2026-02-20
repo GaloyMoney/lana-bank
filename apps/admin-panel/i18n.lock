@@ -975,7 +975,7 @@ checksums:
     DepositAccounts/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     DepositAccounts/status/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/title: 23d240412c0bf14efcff84a2325587be
-    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/customerId: 46e3fadc8b99b93e417b3482d85faf32
     DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/settledBalance: 7dce43b59aa5aa8a13e33d429e7f1a1b
     DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/pendingBalance: cec648baee62ec1c1fa0fa6ecf08467c
     DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
