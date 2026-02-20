@@ -98,10 +98,8 @@ where
             }
             Some(LanaEvent::Credit(
                 credit_event @ CoreCreditEvent::FacilityCollateralizationChanged { entity },
-            )) if matches!(
-                entity.collateralization,
-                core_credit::FacilityCollateralization::UnderMarginCallThreshold(_)
-            ) =>
+            )) if entity.collateralization.state()
+                == core_credit::CollateralizationState::UnderMarginCallThreshold =>
             {
                 event.inject_trace_parent();
                 Span::current().record("handled", true);

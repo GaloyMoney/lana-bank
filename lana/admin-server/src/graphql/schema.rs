@@ -2698,12 +2698,11 @@ impl Subscription {
                     if entity.id == credit_facility_id =>
                 {
                     let collateralization = &entity.collateralization;
-                    let state = collateralization.state();
                     let d = collateralization.data();
                     Some(CreditFacilityCollateralizationPayload {
                         credit_facility_id,
                         update: CreditFacilityCollateralizationUpdated {
-                            state,
+                            state: collateralization.state(),
                             collateral: d.collateral,
                             outstanding_interest: d.outstanding.interest,
                             outstanding_disbursal: d.outstanding.disbursed,

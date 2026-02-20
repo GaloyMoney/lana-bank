@@ -401,7 +401,7 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        CollateralizationData, CreditFacilityReceivable, DisbursalPolicy,
+        CollateralizationData, CollateralizationState, CreditFacilityReceivable, DisbursalPolicy,
         FacilityCollateralization, FacilityDuration, InterestInterval, ObligationDuration,
         OneTimeFeeRatePct,
     };
@@ -451,14 +451,17 @@ mod tests {
     }
 
     fn default_collateralization() -> FacilityCollateralization {
-        FacilityCollateralization::FullyCollateralized(CollateralizationData {
-            collateral: Satoshis::from(1_000_000),
-            outstanding: CreditFacilityReceivable {
-                disbursed: default_facility_amount(),
-                interest: UsdCents::ZERO,
+        FacilityCollateralization::new(
+            CollateralizationState::FullyCollateralized,
+            CollateralizationData {
+                collateral: Satoshis::from(1_000_000),
+                outstanding: CreditFacilityReceivable {
+                    disbursed: default_facility_amount(),
+                    interest: UsdCents::ZERO,
+                },
+                price: PriceOfOneBTC::new(UsdCents::from(5_000_000)),
             },
-            price: PriceOfOneBTC::new(UsdCents::from(5_000_000)),
-        })
+        )
     }
 
     fn plan(terms: TermValues) -> CreditFacilityRepaymentPlan {
