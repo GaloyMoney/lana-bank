@@ -132,11 +132,9 @@ where
         public_ids: Arc<PublicIds>,
         outbox: &Outbox<E>,
         clock: ClockHandle,
+        collateral_repo: Arc<crate::collateral::repo::CollateralRepo<E>>,
     ) -> Result<Self, CreditFacilityError> {
-        let repo = CreditFacilityRepo::new(pool, publisher, clock.clone());
-        let repo_arc = Arc::new(repo);
-
-        let collateral_repo = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
+        let repo = Arc::new(CreditFacilityRepo::new(pool, publisher, clock.clone()));
 
         outbox
             .register_event_handler(
@@ -148,7 +146,7 @@ where
                     Perms,
                     E,
                 >::new(
-                    repo_arc.clone(),
+                    repo.clone(),
                     collateral_repo.clone(),
                     price.clone(),
                     ledger.clone(),
@@ -158,21 +156,43 @@ where
             .await?;
 
         let credit_facility_maturity_job_spawner = jobs.add_initializer(
-            jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo_arc.clone()),
+            jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo.clone()),
         );
 
         let interest_accrual_job_spawner = jobs.add_initializer(
             jobs::interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
                 ledger.clone(),
                 collections.clone(),
-                repo_arc.clone(),
+                repo.clone(),
                 collateral_repo.clone(),
                 authz.clone(),
             ),
         );
 
+        let liquidation_payment_job_spawner =
+            jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
+                outbox,
+                collections.clone(),
+                collateral_repo.clone(),
+                repo.clone(),
+            ));
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(
+                    jobs::collateral_liquidations::CREDIT_FACILITY_LIQUIDATIONS_JOB,
+                ),
+                jobs::collateral_liquidations::CreditFacilityLiquidationsHandler::new(
+                    collateral_repo.clone(),
+                    ledger.liquidation_proceeds_omnibus_account_ids().account_id,
+                    liquidation_payment_job_spawner,
+                ),
+            )
+            .await?;
+
         Ok(Self {
-            repo: repo_arc,
+            repo,
             collateral_repo,
             collections,
             pending_credit_facilities,

@@ -21,13 +21,12 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use crate::{
     FacilityProceedsFromLiquidationAccountId,
-    credit_facility::CreditFacilityRepo,
     primitives::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject},
 };
 
 use es_entity::Idempotent;
 
-use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
+use crate::{CoreCreditEvent, primitives::*};
 
 use ledger::{
     CollateralLedger, CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
@@ -35,7 +34,7 @@ use ledger::{
 };
 
 pub(super) use entity::*;
-use jobs::{collateral_liquidations, liquidation_payment, wallet_collateral_sync};
+use jobs::wallet_collateral_sync;
 pub use {
     entity::{Collateral, CollateralAdjustment},
     liquidation::Liquidation,
@@ -58,9 +57,7 @@ where
 {
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
-    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ledger: Arc<CollateralLedger>,
-    liquidation_proceeds_omnibus_account_id: CalaAccountId,
     clock: ClockHandle,
 }
 
@@ -76,9 +73,7 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
-            credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
-            liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             clock: self.clock.clone(),
         }
     }
@@ -98,17 +93,13 @@ where
 {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
-        pool: &sqlx::PgPool,
         authz: Arc<Perms>,
-        publisher: &CreditFacilityPublisher<E>,
         ledger: Arc<CollateralLedger>,
-        liquidation_proceeds_omnibus_account_id: CalaAccountId,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
-        collections: Arc<core_credit_collection::CoreCreditCollection<Perms, E>>,
+        repo: Arc<CollateralRepo<E>>,
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
-        let repo_arc = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
 
         outbox
             .register_event_handler(
@@ -117,44 +108,14 @@ where
                 wallet_collateral_sync::WalletCollateralSyncHandler::<
                     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
                     E,
-                >::new(ledger.clone(), repo_arc.clone()),
-            )
-            .await?;
-
-        let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
-            pool,
-            publisher,
-            clock.clone(),
-        ));
-
-        let liquidation_payment_job_spawner =
-            jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
-                outbox,
-                collections,
-                repo_arc.clone(),
-                credit_facility_repo.clone(),
-            ));
-
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(
-                    collateral_liquidations::CREDIT_FACILITY_LIQUIDATIONS_JOB,
-                ),
-                collateral_liquidations::CreditFacilityLiquidationsHandler::new(
-                    repo_arc.clone(),
-                    liquidation_proceeds_omnibus_account_id,
-                    liquidation_payment_job_spawner,
-                ),
+                >::new(ledger.clone(), repo.clone()),
             )
             .await?;
 
         Ok(Self {
             authz,
-            repo: repo_arc,
-            credit_facility_repo,
+            repo,
             ledger,
-            liquidation_proceeds_omnibus_account_id,
             clock,
         })
     }

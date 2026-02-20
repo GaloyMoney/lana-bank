@@ -10,14 +10,13 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::JobType;
 
-use super::{
-    super::repo::CollateralRepo,
-    liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
-};
+use super::liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner};
 use crate::{
-    CoreCreditEvent,
+    CalaAccountId, CoreCreditEvent,
+    collateral::error::CollateralError,
     collateral::ledger::LiquidationProceedsAccountIds,
-    primitives::{CalaAccountId, CollateralId, PriceOfOneBTC},
+    collateral::repo::CollateralRepo,
+    primitives::{CollateralId, PriceOfOneBTC},
 };
 
 pub const CREDIT_FACILITY_LIQUIDATIONS_JOB: JobType =
@@ -105,7 +104,7 @@ where
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<(), CollateralError> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
         let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(
