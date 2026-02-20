@@ -605,7 +605,7 @@ jobs:
               - -exc
               - |
                 set -euo pipefail
-                echo true > charts-repo/is-release
+                echo true > "charts-repo/charts/lana-bank/is-release"
       - put: charts-repo-bot-branch
         params:
           repository: charts-repo
@@ -682,7 +682,7 @@ jobs:
               - -exc
               - |
                 set -euo pipefail
-                echo false > charts-repo/is-release
+                echo false > "charts-repo/charts/lana-bank/is-release"
       - put: charts-repo-bot-branch
         params:
           repository: charts-repo
