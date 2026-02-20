@@ -21,17 +21,13 @@ Lana es un core bancario moderno construido sobre:
 
 ### Arquitectura del Sistema
 
-- [Arquitectura del Sistema](system-architecture) - Visión general de capas y componentes
+- [Arquitectura del Sistema](system-architecture) - Capas del sistema y visión general de componentes
 - [Arquitectura Funcional](functional-architecture) - Arquitectura técnica integral
-- [Autenticación y Autorización](authentication-architecture) - Keycloak, OAuth 2.0, RBAC
+- [Arquitectura de Autenticación](authentication-architecture) - Keycloak, OAuth 2.0, diseño de gateway
 
-### Integraciones
+### Canalizaciones de Datos
 
-- [Canalización de Datos](data-pipelines) - Meltano, dbt, BigQuery
-
-:::tip
-Para documentación de arquitectura de dominio, servicios de infraestructura e integraciones internas, consulta la [Guía del Desarrollador Interno](../for-internal-developers/).
-:::
+- [Canalizaciones de Datos](data-pipelines) - Meltano, dbt, BigQuery
 
 ### Modelos de Datos
 
@@ -44,6 +40,10 @@ Para documentación de arquitectura de dominio, servicios de infraestructura e i
 - [Resumen de Ingeniería de Releases](deployment/) - Flujo de release de extremo a extremo
 - [Sistema de Build](deployment/build-system) - Nix, caché Cachix, imágenes Docker
 - [CI/CD e Ingeniería de Releases](deployment/ci-cd) - GitHub Actions, pipelines Concourse, Helm charts, control de entornos con Cepler
+
+:::tip
+¿Buscas información sobre los internos del dominio, event sourcing, trabajos en segundo plano u observabilidad? Consulta la [Guía del Desarrollador Interno](../for-internal-developers/) — esos temas se han trasladado allí.
+:::
 
 ## Stack Tecnológico
 

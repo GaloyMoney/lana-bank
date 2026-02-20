@@ -70,6 +70,7 @@ When a developer opens a pull request against `main`, GitHub Actions kicks off a
 | **data-pipeline** | Provisions a throwaway BigQuery environment, runs the data pipeline tests, then tears it down | Validates that the Dagster/dbt data pipeline still works with schema changes |
 | **cocogitto** | Checks that commit messages follow the conventional commits format | Needed because the version number and changelog are generated automatically from commit messages |
 | **spelling** | Runs the `typos` tool to catch common misspellings | Simple but catches embarrassing typos in code and docs |
+| **lana-bank-docs** | Builds the full documentation site (API docs, versioned docs, screenshot validation) | Catches broken doc builds, missing API descriptions, and invalid doc site configuration |
 
 ### How Nix caching makes this fast
 
