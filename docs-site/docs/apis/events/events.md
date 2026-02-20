@@ -102,6 +102,9 @@ Events related to customer lifecycle and KYC.
 | `CustomerCreated` | A new customer was created | `entity.customer_type`, `entity.email`, `entity.id`, `entity.kyc_verification` |
 | `CustomerKycUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id`, `entity.kyc_verification` |
 | `CustomerEmailUpdated` | Customer email was updated | `entity.customer_type`, `entity.email`, `entity.id`, `entity.kyc_verification` |
+| `ProspectCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id`, `entity.kyc_status`, `entity.status` |
+| `ProspectConverted` | No description available | `entity.customer_type`, `entity.email`, `entity.id`, `entity.kyc_status`, `entity.status` |
+| `ProspectClosed` | No description available | `entity.customer_type`, `entity.email`, `entity.id`, `entity.kyc_status`, `entity.status` |
 
 ---
 
