@@ -25,3 +25,16 @@ platforms = [
 
 # Write out exact versions rather than a semver range. (Defaults to false.)
 # exact-versions = true
+
+# Only unify features for crates that naturally appear in both target and host
+# dependency graphs. The default "auto" replicates nearly all target deps into
+# [build-dependencies], forcing heavy crates like cala-ledger to compile twice.
+unify-target-host = "unify-if-both"
+
+# Exclude proc-macro crates from getting workspace-hack as a dependency.
+# Proc-macros compile on the host platform, so adding workspace-hack pulls
+# all its deps (including cala-ledger ~30s) into the host graph. Since the
+# host graph has different features (e.g. axum without `ws`), this causes
+# heavy crates to be compiled twice instead of once.
+[traversal-excludes]
+workspace-members = ["tracing-macros", "tracing-utils"]
