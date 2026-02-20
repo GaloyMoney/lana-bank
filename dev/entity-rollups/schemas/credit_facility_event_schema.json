@@ -71,6 +71,16 @@
         }
       ]
     },
+    "CollateralizationState": {
+      "enum": [
+        "FullyCollateralized",
+        "UnderMarginCallThreshold",
+        "UnderLiquidationThreshold",
+        "NoCollateral",
+        "NoExposure"
+      ],
+      "type": "string"
+    },
     "CreditFacilityLedgerAccountIds": {
       "properties": {
         "disbursed_defaulted_account_id": {
@@ -190,51 +200,19 @@
       "type": "string"
     },
     "FacilityCollateralization": {
-      "oneOf": [
-        {
-          "enum": [
-            "NoCollateral",
-            "NoExposure"
-          ],
-          "type": "string"
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/CollateralizationData"
         },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "FullyCollateralized": {
-              "$ref": "#/$defs/CollateralizationData"
-            }
-          },
-          "required": [
-            "FullyCollateralized"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "UnderMarginCallThreshold": {
-              "$ref": "#/$defs/CollateralizationData"
-            }
-          },
-          "required": [
-            "UnderMarginCallThreshold"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "UnderLiquidationThreshold": {
-              "$ref": "#/$defs/CollateralizationData"
-            }
-          },
-          "required": [
-            "UnderLiquidationThreshold"
-          ],
-          "type": "object"
+        "state": {
+          "$ref": "#/$defs/CollateralizationState"
         }
-      ]
+      },
+      "required": [
+        "state",
+        "data"
+      ],
+      "type": "object"
     },
     "FacilityDuration": {
       "oneOf": [

@@ -293,23 +293,14 @@
         "Remove"
       ]
     },
-    "CollateralizationData": {
-      "type": "object",
-      "properties": {
-        "collateral": {
-          "$ref": "#/$defs/Satoshis"
-        },
-        "outstanding": {
-          "$ref": "#/$defs/CreditFacilityReceivable"
-        },
-        "price": {
-          "$ref": "#/$defs/PriceOfOneBTC"
-        }
-      },
-      "required": [
-        "collateral",
-        "outstanding",
-        "price"
+    "CollateralizationState": {
+      "type": "string",
+      "enum": [
+        "FullyCollateralized",
+        "UnderMarginCallThreshold",
+        "UnderLiquidationThreshold",
+        "NoCollateral",
+        "NoExposure"
       ]
     },
     "CoreAccessEvent": {
@@ -527,26 +518,8 @@
         {
           "type": "object",
           "properties": {
-            "collateral": {
-              "$ref": "#/$defs/Satoshis"
-            },
-            "effective": {
-              "type": "string",
-              "format": "date"
-            },
-            "id": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "price": {
-              "$ref": "#/$defs/PriceOfOneBTC"
-            },
-            "recorded_at": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "state": {
-              "$ref": "#/$defs/PendingCreditFacilityCollateralizationState"
+            "entity": {
+              "$ref": "#/$defs/PublicPendingCreditFacility"
             },
             "type": {
               "type": "string",
@@ -555,12 +528,7 @@
           },
           "required": [
             "type",
-            "id",
-            "state",
-            "collateral",
-            "price",
-            "recorded_at",
-            "effective"
+            "entity"
           ]
         },
         {
@@ -1150,50 +1118,26 @@
       "format": "date"
     },
     "FacilityCollateralization": {
-      "oneOf": [
-        {
-          "type": "string",
-          "enum": [
-            "NoCollateral",
-            "NoExposure"
-          ]
+      "type": "object",
+      "properties": {
+        "collateral": {
+          "$ref": "#/$defs/Satoshis"
         },
-        {
-          "type": "object",
-          "properties": {
-            "FullyCollateralized": {
-              "$ref": "#/$defs/CollateralizationData"
-            }
-          },
-          "additionalProperties": false,
-          "required": [
-            "FullyCollateralized"
-          ]
+        "outstanding": {
+          "$ref": "#/$defs/CreditFacilityReceivable"
         },
-        {
-          "type": "object",
-          "properties": {
-            "UnderMarginCallThreshold": {
-              "$ref": "#/$defs/CollateralizationData"
-            }
-          },
-          "additionalProperties": false,
-          "required": [
-            "UnderMarginCallThreshold"
-          ]
+        "price": {
+          "$ref": "#/$defs/PriceOfOneBTC"
         },
-        {
-          "type": "object",
-          "properties": {
-            "UnderLiquidationThreshold": {
-              "$ref": "#/$defs/CollateralizationData"
-            }
-          },
-          "additionalProperties": false,
-          "required": [
-            "UnderLiquidationThreshold"
-          ]
+        "state": {
+          "$ref": "#/$defs/CollateralizationState"
         }
+      },
+      "required": [
+        "state",
+        "collateral",
+        "outstanding",
+        "price"
       ]
     },
     "FacilityDuration": {
@@ -1362,7 +1306,8 @@
       "type": "string",
       "enum": [
         "FullyCollateralized",
-        "UnderCollateralized"
+        "UnderCollateralized",
+        "NotYetCollateralized"
       ]
     },
     "PendingCreditFacilityStatus": {
@@ -1370,6 +1315,37 @@
       "enum": [
         "PendingCollateralization",
         "Completed"
+      ]
+    },
+    "PendingFacilityCollateralization": {
+      "type": "object",
+      "properties": {
+        "collateral": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Satoshis"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "price_at_state_change": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PriceOfOneBTC"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/PendingCreditFacilityCollateralizationState"
+        }
+      },
+      "required": [
+        "state"
       ]
     },
     "PriceOfOneBTC": {
@@ -1830,8 +1806,8 @@
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "collateralization_state": {
-          "$ref": "#/$defs/PendingCreditFacilityCollateralizationState"
+        "collateralization": {
+          "$ref": "#/$defs/PendingFacilityCollateralization"
         },
         "completed_at": {
           "type": [
@@ -1862,7 +1838,7 @@
       "required": [
         "id",
         "status",
-        "collateralization_state",
+        "collateralization",
         "amount",
         "terms",
         "customer_id",
