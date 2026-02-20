@@ -8,7 +8,7 @@ from src.assets.dbt import (
     create_dbt_seed_assets,
 )
 from src.assets.file_report import (
-    generated_file_report_protoassets,
+    create_file_report_multi_asset,
     inform_lana_protoasset,
 )
 from src.assets.iris import iris_dataset_size

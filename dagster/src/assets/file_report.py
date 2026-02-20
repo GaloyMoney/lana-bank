@@ -1,4 +1,5 @@
-from typing import Callable, List, Literal, Optional, TypedDict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Dict, List, Literal, Optional, Tuple, TypedDict
 
 import requests
 
@@ -9,12 +10,14 @@ from generate_es_reports.generator import generate_single_report
 from generate_es_reports.io import BigQueryTableFetcher, load_report_jobs_from_yaml
 from src.assets.dbt import _get_dbt_asset_key, _load_dbt_manifest
 from src.core import COLD_START_CONDITION, Protoasset
-from src.otel import _current_span_to_traceparent
+from src.otel import (
+    _current_span_to_traceparent,
+    get_asset_span_context_and_attrs,
+    tracer,
+)
 from src.resources import (
     RESOURCE_KEY_DW_BQ,
     RESOURCE_KEY_FILE_REPORTS_BUCKET,
-    BigQueryResource,
-    GCSResource,
 )
 
 
@@ -49,70 +52,23 @@ def get_dbt_asset_key_for_table(table_name: str) -> Optional[dg.AssetKey]:
     return None
 
 
-def create_file_report_callable(
-    report_job: ReportJobDefinition,
-    file_config: BaseFileOutputConfig,
-) -> Callable:
-    """Create a callable that generates and uploads a single report file."""
+def _build_file_report_specs_and_lookup() -> Tuple[
+    List[dg.AssetSpec],
+    Dict[dg.AssetKey, Tuple[ReportJobDefinition, BaseFileOutputConfig]],
+]:
+    """Build AssetSpec list and lookup dict from reports YAML config.
 
-    def _report_callable(
-        context: dg.AssetExecutionContext,
-        dw_bq: BigQueryResource,
-        file_reports_bucket: GCSResource,
-    ) -> None:
-        table_fetcher = BigQueryTableFetcher(
-            credentials_dict=dw_bq.get_credentials_dict(),
-            dataset=dw_bq.get_dbt_dataset(),
-        )
-
-        def fetch_table(table_name: str):
-            contents = table_fetcher.fetch_table_contents(table_name)
-            return contents.fields, contents.records
-
-        result = generate_single_report(
-            fetch_table=fetch_table,
-            upload_file=file_reports_bucket.upload_file,
-            table_name=report_job.source_table_name,
-            norm=report_job.norm,
-            friendly_name=report_job.friendly_name,
-            file_output_config=file_config,
-            run_id=context.run_id,
-            log=context.log.info,
-        )
-
-        # Extract just the path portion from the full GCS URL
-        # gcs_path is "gs://bucket-name/path/to/file", we need just "path/to/file"
-        gcs_path = result["gcs_path"]
-        if gcs_path.startswith("gs://"):
-            # Remove "gs://bucket-name/" prefix to get just the path in bucket
-            path_in_bucket = "/".join(gcs_path.split("/")[3:])
-        else:
-            path_in_bucket = gcs_path
-
-        report_file: ReportFile = {
-            "type": result["file_type"],
-            "path_in_bucket": path_in_bucket,
-        }
-
-        report: Report = {
-            "name": result["friendly_name"],
-            "norm": result["norm"],
-            "files": [report_file],
-        }
-
-        context.add_output_metadata({"report": dg.MetadataValue.json(report)})
-
-    return _report_callable
-
-
-def generated_file_report_protoassets() -> List[Protoasset]:
-    """Create protoassets for all enabled file reports from reports.yml.
-
-    Each report job + file format combination becomes a separate asset.
-    Assets depend on their corresponding dbt model.
+    Returns:
+        Tuple of (specs, asset_key_to_job_config) where specs is the list of
+        AssetSpecs and asset_key_to_job_config maps each asset key to its
+        (report_job, file_config) pair.
     """
-    protoassets = []
     report_jobs = load_report_jobs_from_yaml(DEFAULT_REPORTS_YAML_PATH)
+
+    specs: List[dg.AssetSpec] = []
+    asset_key_to_job_config: Dict[
+        dg.AssetKey, Tuple[ReportJobDefinition, BaseFileOutputConfig]
+    ] = {}
 
     for report_job in report_jobs:
         for file_config in report_job.file_output_configs:
@@ -126,30 +82,179 @@ def generated_file_report_protoassets() -> List[Protoasset]:
             dbt_dep = get_dbt_asset_key_for_table(report_job.source_table_name)
             deps = [dbt_dep] if dbt_dep else []
 
-            protoassets.append(
-                Protoasset(
+            specs.append(
+                dg.AssetSpec(
                     key=asset_key,
-                    callable=create_file_report_callable(report_job, file_config),
                     deps=deps,
-                    required_resource_keys={
-                        RESOURCE_KEY_FILE_REPORTS_BUCKET,
-                        RESOURCE_KEY_DW_BQ,
-                    },
-                    automation_condition=COLD_START_CONDITION,
                     tags={
                         "category": "file_report",
                         "norm": report_job.norm,
                         "format": file_config.file_extension,
                     },
+                    automation_condition=COLD_START_CONDITION,
                 )
             )
 
-    return protoassets
+            asset_key_to_job_config[asset_key] = (report_job, file_config)
+
+    return specs, asset_key_to_job_config
+
+
+def _process_single_asset(
+    asset_key: dg.AssetKey,
+    report_job: ReportJobDefinition,
+    file_config: BaseFileOutputConfig,
+    credentials_dict: dict,
+    dataset: str,
+    upload_file,
+    run_id: str,
+    log,
+    otel_parent_ctx,
+) -> Tuple[dg.AssetKey, dict]:
+    """Fetch, format, and upload a single report file.
+
+    Runs in a worker thread. Creates its own BQ client to avoid
+    sharing connections across threads.
+    """
+    asset_key_str = asset_key.to_user_string()
+
+    with tracer.start_as_current_span(
+        f"file_report_{asset_key_str}",
+        context=otel_parent_ctx,
+    ) as span:
+        span.set_attribute("asset.name", asset_key_str)
+        span.set_attribute("report.norm", report_job.norm)
+        span.set_attribute("report.format", file_config.file_extension)
+
+        fetcher = BigQueryTableFetcher(
+            credentials_dict=credentials_dict,
+            dataset=dataset,
+        )
+
+        def fetch_table(table_name: str):
+            contents = fetcher.fetch_table_contents(table_name)
+            return (contents.fields, contents.records)
+
+        result = generate_single_report(
+            fetch_table=fetch_table,
+            upload_file=upload_file,
+            table_name=report_job.source_table_name,
+            norm=report_job.norm,
+            friendly_name=report_job.friendly_name,
+            file_output_config=file_config,
+            run_id=run_id,
+            log=log,
+        )
+        return asset_key, result
+
+
+def _build_materialize_result(
+    asset_key: dg.AssetKey, result: dict
+) -> dg.MaterializeResult:
+    """Build a MaterializeResult from a report generation result."""
+    gcs_path = result["gcs_path"]
+    if gcs_path.startswith("gs://"):
+        path_in_bucket = "/".join(gcs_path.split("/")[3:])
+    else:
+        path_in_bucket = gcs_path
+
+    report: Report = {
+        "name": result["friendly_name"],
+        "norm": result["norm"],
+        "files": [
+            {
+                "type": result["file_type"],
+                "path_in_bucket": path_in_bucket,
+            }
+        ],
+    }
+
+    return dg.MaterializeResult(
+        asset_key=asset_key,
+        metadata={
+            "report": dg.MetadataValue.json(report),
+        },
+    )
+
+
+def create_file_report_multi_asset():
+    """Create a single multi_asset for all file report generation.
+
+    Uses can_subset=True so individual reports can be materialized independently.
+    Each report is processed in its own thread (fetch → format → upload).
+    """
+    specs, asset_key_to_job_config = _build_file_report_specs_and_lookup()
+
+    @dg.multi_asset(
+        specs=specs,
+        can_subset=True,
+        required_resource_keys={RESOURCE_KEY_FILE_REPORTS_BUCKET, RESOURCE_KEY_DW_BQ},
+    )
+    def file_report_assets(context: dg.AssetExecutionContext):
+        from opentelemetry import context as otel_context
+
+        dw_bq = context.resources.dw_bq
+        file_reports_bucket = context.resources.file_reports_bucket
+        credentials_dict = dw_bq.get_credentials_dict()
+        dataset = dw_bq.get_dbt_dataset()
+
+        selected_keys = [key.to_user_string() for key in context.selected_asset_keys]
+        parent_ctx, batch_attrs = get_asset_span_context_and_attrs(
+            context, "file_report_assets"
+        )
+        batch_attrs["file_report.asset_count"] = str(len(selected_keys))
+        batch_attrs["file_report.assets"] = str(selected_keys)
+
+        with tracer.start_as_current_span(
+            "file_report_batch", context=parent_ctx
+        ) as batch_span:
+            for key, value in batch_attrs.items():
+                batch_span.set_attribute(key, value)
+
+            batch_ctx = otel_context.get_current()
+
+            failed_assets: list[tuple[dg.AssetKey, Exception]] = []
+
+            with ThreadPoolExecutor(max_workers=16) as pool:
+                futures = {
+                    pool.submit(
+                        _process_single_asset,
+                        asset_key=k,
+                        report_job=asset_key_to_job_config[k][0],
+                        file_config=asset_key_to_job_config[k][1],
+                        credentials_dict=credentials_dict,
+                        dataset=dataset,
+                        upload_file=file_reports_bucket.upload_file,
+                        run_id=context.run_id,
+                        log=context.log.info,
+                        otel_parent_ctx=batch_ctx,
+                    ): k
+                    for k in context.selected_asset_keys
+                }
+                for f in as_completed(futures):
+                    asset_key = futures[f]
+                    try:
+                        _, result = f.result()
+                        yield _build_materialize_result(asset_key, result)
+                    except Exception as e:
+                        context.log.error(
+                            f"Failed to generate report for {asset_key.to_user_string()}: {e}"
+                        )
+                        failed_assets.append((asset_key, e))
+
+            if failed_assets:
+                names = [k.to_user_string() for k, _ in failed_assets]
+                raise RuntimeError(
+                    f"{len(failed_assets)} report(s) failed: {', '.join(names)}"
+                )
+
+    return file_report_assets
 
 
 def _get_file_report_asset_keys() -> List[dg.AssetKey]:
     """Get all file report asset keys."""
-    return [p.key for p in generated_file_report_protoassets()]
+    specs, _ = _build_file_report_specs_and_lookup()
+    return [spec.key for spec in specs]
 
 
 def _extract_metadata_value(metadata: dict, key: str):

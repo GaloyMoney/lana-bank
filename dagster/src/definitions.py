@@ -8,7 +8,7 @@ from src.assets import (
     bitfinex_protoassets,
     create_dbt_model_assets,
     create_dbt_seed_assets,
-    generated_file_report_protoassets,
+    create_file_report_multi_asset,
     inform_lana_protoasset,
     iris_dataset_size,
     lana_source_protoassets,
@@ -208,15 +208,14 @@ dbt_seeds_job = dg.define_asset_job(
 definition_builder.jobs.append(dbt_seeds_job)
 definition_builder.add_job_schedule(job=dbt_seeds_job, cron_expression="0 0 * * *")
 
-file_report_protoassets_list = generated_file_report_protoassets()
+file_report_multi_asset = create_file_report_multi_asset()
+definition_builder.assets.append(file_report_multi_asset)
 
-file_report_assets = [
-    definition_builder.add_asset_from_protoasset(protoasset)
-    for protoasset in file_report_protoassets_list
-]
-file_reports_job = definition_builder.add_job_from_assets(
-    job_name="file_reports_generation", assets=tuple(file_report_assets)
+file_reports_job = dg.define_asset_job(
+    name="file_reports_generation",
+    selection=dg.AssetSelection.assets(file_report_multi_asset),
 )
+definition_builder.jobs.append(file_reports_job)
 definition_builder.add_job_schedule(job=file_reports_job, cron_expression="0 */2 * * *")
 
 inform_lana_asset = definition_builder.add_asset_from_protoasset(
