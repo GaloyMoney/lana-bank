@@ -30,4 +30,3 @@ opentelemetry-semantic-conventions = { workspace = true, features = ["semconv_ex
 opentelemetry_sdk = { workspace = true }
 opentelemetry-http = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }

@@ -12,7 +12,6 @@ syn = { version = "2.0", features = ["full", "extra-traits"] }
 quote = "1.0"
 tracing = { workspace = true }
 tracing-utils = { workspace = true }
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 thiserror = { workspace = true }

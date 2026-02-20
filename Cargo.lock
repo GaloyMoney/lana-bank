@@ -6597,7 +6597,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -6666,7 +6665,6 @@ dependencies = [
  "tracing",
  "tracing-opentelemetry",
  "tracing-subscriber",
- "workspace-hack",
 ]
 
 [[package]]
@@ -7664,13 +7662,18 @@ dependencies = [
  "form_urlencoded",
  "futures",
  "futures-channel",
+ "futures-core",
+ "futures-executor",
+ "futures-io",
  "futures-sink",
  "futures-task",
  "futures-util",
  "generic-array",
+ "getrandom 0.2.16",
  "group",
  "hashbrown 0.14.5",
  "hashbrown 0.16.0",
+ "hmac",
  "hyper",
  "hyper-util",
  "idna",
@@ -7684,14 +7687,14 @@ dependencies = [
  "obix",
  "once_cell",
  "opentelemetry",
- "opentelemetry-http",
- "opentelemetry-otlp",
+ "opentelemetry-semantic-conventions",
+ "percent-encoding",
  "pkcs8",
  "proc-macro2",
  "quote",
  "rand 0.9.2",
+ "rand_core 0.6.4",
  "regex-automata",
- "regex-syntax",
  "reqwest 0.12.28",
  "rust_decimal",
  "rustls",
@@ -7706,6 +7709,7 @@ dependencies = [
  "sha2",
  "signature",
  "smallvec",
+ "socket2",
  "sqlx",
  "sqlx-core",
  "sqlx-macros",
@@ -7718,11 +7722,13 @@ dependencies = [
  "tokio-util",
  "tonic",
  "tower",
+ "tracing",
  "tracing-core",
  "tracing-opentelemetry",
  "tracing-subscriber",
  "url",
  "uuid",
+ "zeroize",
 ]
 
 [[package]]
