@@ -196,7 +196,7 @@ pub mod event_schema {
 #[derive(Clone)]
 pub struct InternalDomainConfigs {
     repo: DomainConfigRepo,
-    config: EncryptionConfig,
+    encryption_config: EncryptionConfig,
 }
 
 #[derive(Clone)]
@@ -206,7 +206,7 @@ where
 {
     repo: DomainConfigRepo,
     authz: Perms,
-    config: EncryptionConfig,
+    encryption_config: EncryptionConfig,
 }
 
 /// Read-only access to exposed domain configs without authorization.
@@ -216,13 +216,13 @@ where
 #[derive(Clone)]
 pub struct ExposedDomainConfigsReadOnly {
     repo: DomainConfigRepo,
-    config: EncryptionConfig,
+    encryption_config: EncryptionConfig,
 }
 
 impl InternalDomainConfigs {
-    pub fn new(pool: &sqlx::PgPool, config: EncryptionConfig) -> Self {
+    pub fn new(pool: &sqlx::PgPool, encryption_config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
-        Self { repo, config }
+        Self { repo, encryption_config }
     }
 
     #[record_error_severity]
@@ -232,7 +232,7 @@ impl InternalDomainConfigs {
         C: InternalConfig,
     {
         let entity = self.repo.find_by_key(C::KEY).await?;
-        C::Flavor::try_new::<C>(entity, &self.config)
+        C::Flavor::try_new::<C>(entity, &self.encryption_config)
     }
 
     #[record_error_severity]
@@ -245,7 +245,7 @@ impl InternalDomainConfigs {
         C: InternalConfig,
     {
         let mut entity = self.repo.find_by_key(C::KEY).await?;
-        if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
+        if C::Flavor::update_value::<C>(&mut entity, &self.encryption_config, value)?.did_execute() {
             self.repo.update(&mut entity).await?;
         }
 
@@ -275,7 +275,7 @@ impl InternalDomainConfigs {
         C: InternalConfig,
     {
         let mut entity = self.repo.find_by_key_in_op(&mut *op, C::KEY).await?;
-        if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
+        if C::Flavor::update_value::<C>(&mut entity, &self.encryption_config, value)?.did_execute() {
             self.repo.update_in_op(op, &mut entity).await?;
         }
         Ok(())
@@ -283,9 +283,9 @@ impl InternalDomainConfigs {
 }
 
 impl ExposedDomainConfigsReadOnly {
-    pub fn new(pool: &sqlx::PgPool, config: EncryptionConfig) -> Self {
+    pub fn new(pool: &sqlx::PgPool, encryption_config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
-        Self { repo, config }
+        Self { repo, encryption_config }
     }
 
     #[record_error_severity]
@@ -295,7 +295,7 @@ impl ExposedDomainConfigsReadOnly {
         C: ExposedConfig,
     {
         let entity = self.repo.find_by_key(C::KEY).await?;
-        C::Flavor::try_new::<C>(entity, &self.config)
+        C::Flavor::try_new::<C>(entity, &self.encryption_config)
     }
 }
 
@@ -305,12 +305,12 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, config: EncryptionConfig) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, encryption_config: EncryptionConfig) -> Self {
         let repo = DomainConfigRepo::new(pool);
         Self {
             repo,
             authz: authz.clone(),
-            config,
+            encryption_config,
         }
     }
 
@@ -325,7 +325,7 @@ where
     {
         self.ensure_read_permission(sub).await?;
         let entity = self.repo.find_by_key(C::KEY).await?;
-        C::Flavor::try_new::<C>(entity, &self.config)
+        C::Flavor::try_new::<C>(entity, &self.encryption_config)
     }
 
     #[record_error_severity]
@@ -341,7 +341,7 @@ where
         self.ensure_write_permission(sub).await?;
         let mut entity = self.repo.find_by_key(C::KEY).await?;
 
-        if C::Flavor::update_value::<C>(&mut entity, &self.config, value)?.did_execute() {
+        if C::Flavor::update_value::<C>(&mut entity, &self.encryption_config, value)?.did_execute() {
             self.repo.update(&mut entity).await?;
         }
 
@@ -400,7 +400,7 @@ where
         })?;
 
         if entity
-            .apply_exposed_update_from_json(entry, &self.config, value)?
+            .apply_exposed_update_from_json(entry, &self.encryption_config, value)?
             .did_execute()
         {
             self.repo.update(&mut entity).await?;
