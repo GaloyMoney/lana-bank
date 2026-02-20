@@ -94,6 +94,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let custody = core_custody::CoreCustody::init(
         &pool,
         &authz,
+        helpers::custody_encryption_config(),
         helpers::custody_config(),
         &outbox,
         &mut jobs,

@@ -10,18 +10,20 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
 use core_credit::*;
 use core_credit::{CreditOmnibusAccountSetSpec, CreditSummaryAccountSetSpec};
-use core_custody::{CustodyConfig, EncryptionConfig};
+use core_custody::CustodyConfig;
 use document_storage::DocumentStorage;
 use domain_config::{
     EncryptionConfig as DomainEncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly,
     InternalDomainConfigs, RequireVerifiedCustomerForAccount,
 };
+use encryption::EncryptionConfig;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use money::Satoshis;
 use public_id::PublicIds;
 use rand::Rng;
 use rust_decimal_macros::dec;
 use std::time::Duration;
+
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
@@ -82,14 +84,15 @@ where
     Ok(seeded_price)
 }
 
-pub fn custody_config() -> CustodyConfig {
-    CustodyConfig {
-        encryption: EncryptionConfig {
-            key: [1u8; 32].into(),
-        },
-        deprecated_encryption_key: None,
-        custody_providers: Default::default(),
+pub fn custody_encryption_config() -> EncryptionConfig {
+    EncryptionConfig {
+        key: [1u8; 32].into(),
+        ..Default::default()
     }
+}
+
+pub fn custody_config() -> CustodyConfig {
+    CustodyConfig::default()
 }
 
 pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {
@@ -515,6 +518,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     let custody = core_custody::CoreCustody::init(
         &pool,
         &authz,
+        custody_encryption_config(),
         custody_config(),
         &outbox,
         &mut jobs,

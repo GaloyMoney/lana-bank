@@ -1,11 +1,12 @@
 use derive_builder::Builder;
+use es_entity::*;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use es_entity::*;
+use encryption::{Encrypted, EncryptionKey};
 
 use crate::primitives::CustodianId;
 
@@ -23,7 +24,7 @@ pub enum CustodianEvent {
         provider: String,
     },
     ConfigUpdated {
-        encrypted_custodian_config: Option<EncryptedCustodianConfig>,
+        encrypted_custodian_config: Option<Encrypted>,
     },
 }
 
@@ -31,7 +32,7 @@ pub enum CustodianEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Custodian {
     pub id: CustodianId,
-    encrypted_custodian_config: EncryptedCustodianConfig,
+    encrypted_custodian_config: Encrypted,
     pub name: String,
     pub(super) provider: String,
     events: EntityEvents<CustodianEvent>,
@@ -46,45 +47,42 @@ impl Custodian {
 
     pub fn update_custodian_config(
         &mut self,
-        config: CustodianConfig,
-        secret: &EncryptionKey,
+        new_config: CustodianConfig,
+        key: &EncryptionKey,
     ) -> Idempotent<()> {
-        let (current_cypher, current_nonce) = &self.encrypted_custodian_config;
-        let current_config = CustodianConfig::decrypt(secret, current_cypher, current_nonce);
-        if current_config == config {
+        let current_config = CustodianConfig::try_decrypt(key, &self.encrypted_custodian_config);
+        if current_config.as_ref() == Some(&new_config) {
             return Idempotent::AlreadyApplied;
         }
 
-        let encrypted_config = config.encrypt(secret);
-        self.encrypted_custodian_config = encrypted_config.clone();
+        let encrypted = new_config.encrypt(key);
+        self.encrypted_custodian_config = encrypted.clone();
 
         self.events.push(CustodianEvent::ConfigUpdated {
-            encrypted_custodian_config: Some(encrypted_config),
+            encrypted_custodian_config: Some(encrypted),
         });
 
         Idempotent::Executed(())
     }
 
-    fn custodian_config(&self, key: EncryptionKey) -> CustodianConfig {
-        let (encrypted_config, nonce) = &self.encrypted_custodian_config;
-        CustodianConfig::decrypt(&key, encrypted_config, nonce)
+    fn custodian_config(&self, key: &EncryptionKey) -> Result<CustodianConfig, CustodianError> {
+        CustodianConfig::decrypt(key, &self.encrypted_custodian_config)
     }
 
     pub fn rotate_encryption_key(
         &mut self,
-        encryption_key: &EncryptionKey,
-        deprecated_encryption_key: &DeprecatedEncryptionKey,
+        new_key: &EncryptionKey,
+        deprecated_key: &EncryptionKey,
     ) -> Result<Idempotent<()>, CustodianError> {
-        let (current_cypher, current_nonce) = &self.encrypted_custodian_config;
-        if CustodianConfig::try_decrypt(encryption_key, current_cypher, current_nonce).is_some() {
+        if CustodianConfig::try_decrypt(new_key, &self.encrypted_custodian_config).is_some() {
             return Ok(Idempotent::AlreadyApplied);
         }
 
         let encrypted_config = CustodianConfig::rotate_encryption_key(
-            encryption_key,
+            new_key,
+            deprecated_key,
             &self.encrypted_custodian_config,
-            deprecated_encryption_key,
-        );
+        )?;
 
         self.encrypted_custodian_config = encrypted_config.clone();
         self.events.push(CustodianEvent::ConfigUpdated {
@@ -98,10 +96,12 @@ impl Custodian {
     #[instrument(name = "custody.custodian_client", skip(self, key), fields(custodian_id = %self.id))]
     pub fn custodian_client(
         self,
-        key: EncryptionKey,
+        key: &EncryptionKey,
         provider_config: &CustodyProviderConfig,
     ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
-        self.custodian_config(key).custodian_client(provider_config)
+        self.custodian_config(key)
+            .map_err(CustodianClientError::client)?
+            .custodian_client(provider_config)
     }
 }
 
@@ -141,7 +141,7 @@ pub struct NewCustodian {
     pub(super) name: String,
     pub(super) provider: String,
     #[builder(setter(custom))]
-    pub(super) encrypted_custodian_config: EncryptedCustodianConfig,
+    pub(super) encrypted_custodian_config: Encrypted,
 }
 
 impl NewCustodian {
@@ -154,9 +154,9 @@ impl NewCustodianBuilder {
     pub fn encrypted_custodian_config(
         &mut self,
         custodian_config: CustodianConfig,
-        encryption_key: &EncryptionKey,
+        key: &EncryptionKey,
     ) -> &mut Self {
-        self.encrypted_custodian_config = Some(custodian_config.encrypt(encryption_key));
+        self.encrypted_custodian_config = Some(custodian_config.encrypt(key));
         self
     }
 }
