@@ -35,7 +35,7 @@ der = { version = "0.7", default-features = false, features = ["oid", "pem", "st
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 ecdsa = { version = "0.16", default-features = false, features = ["pem", "signing", "std", "verifying"] }
 either = { version = "1", features = ["serde", "use_std"] }
-elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "std"] }
+elliptic-curve = { version = "0.13", default-features = false, features = ["ecdh", "hazmat", "pem", "std"] }
 es-entity = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "tracing-context"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 form_urlencoded = { version = "1" }
@@ -64,12 +64,9 @@ once_cell = { version = "1", features = ["portable-atomic"] }
 opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
 pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
-ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = { version = "1" }
-rand-274715c4dabd11b0 = { package = "rand", version = "0.9" }
-rand-c38e5c1d305a1b54 = { package = "rand", version = "0.8", default-features = false, features = ["std", "std_rng"] }
-rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
+rand = { version = "0.9" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
 regex-syntax = { version = "0.8" }
 reqwest = { version = "0.12", default-features = false, features = ["charset", "http2", "json", "macos-system-configuration", "multipart", "rustls-tls"] }
@@ -120,7 +117,7 @@ der = { version = "0.7", default-features = false, features = ["oid", "pem", "st
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 ecdsa = { version = "0.16", default-features = false, features = ["pem", "signing", "std", "verifying"] }
 either = { version = "1", features = ["serde", "use_std"] }
-elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "std"] }
+elliptic-curve = { version = "0.13", default-features = false, features = ["ecdh", "hazmat", "pem", "std"] }
 es-entity = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "tracing-context"] }
 es-entity-macros = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
@@ -150,12 +147,9 @@ once_cell = { version = "1", features = ["portable-atomic"] }
 opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
 pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
-ppv-lite86 = { version = "0.2", default-features = false, features = ["simd", "std"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = { version = "1" }
-rand-274715c4dabd11b0 = { package = "rand", version = "0.9" }
-rand-c38e5c1d305a1b54 = { package = "rand", version = "0.8", default-features = false, features = ["std", "std_rng"] }
-rand_chacha = { version = "0.3", default-features = false, features = ["std"] }
+rand = { version = "0.9" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
 regex-syntax = { version = "0.8" }
 reqwest = { version = "0.12", default-features = false, features = ["charset", "http2", "json", "macos-system-configuration", "multipart", "rustls-tls"] }
@@ -242,13 +236,9 @@ ignored = [
     "opentelemetry-http",
     "opentelemetry-otlp",
     "pkcs8",
-    "ppv-lite86",
     "proc-macro2",
     "quote",
     "rand",
-    "rand-274715c4dabd11b0",
-    "rand-c38e5c1d305a1b54",
-    "rand_chacha",
     "regex-automata",
     "regex-syntax",
     "reqwest",
