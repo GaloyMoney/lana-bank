@@ -27,7 +27,6 @@ dependencies = [
  "async-graphql",
  "es-entity",
  "lana-app",
- "serde",
  "workspace-hack",
 ]
 

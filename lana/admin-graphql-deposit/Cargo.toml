@@ -11,3 +11,6 @@ async-graphql = { workspace = true }
 es-entity = { workspace = true }
 
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+
+[package.metadata.cargo-machete]
+ignored = ["es-entity"]
