@@ -5,32 +5,31 @@ use job::*;
 use keycloak_client::KeycloakClient;
 use tracing_macros::record_error_severity;
 
-use core_access::UserId;
+use core_customer::PartyId;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct CreateKeycloakUserConfig {
+pub struct SyncEmailConfig {
+    pub customer_id: PartyId,
     pub email: String,
-    pub user_id: UserId,
 }
 
-pub const CREATE_KEYCLOAK_USER_JOB: JobType =
-    JobType::new("task.user-onboarding.create-keycloak-user");
+pub const SYNC_EMAIL_TASK: JobType = JobType::new("task.customer-sync.sync-email");
 
-pub struct CreateKeycloakUserJobInitializer {
+pub struct SyncEmailJobInitializer {
     keycloak_client: KeycloakClient,
 }
 
-impl CreateKeycloakUserJobInitializer {
+impl SyncEmailJobInitializer {
     pub fn new(keycloak_client: KeycloakClient) -> Self {
         Self { keycloak_client }
     }
 }
 
-impl JobInitializer for CreateKeycloakUserJobInitializer {
-    type Config = CreateKeycloakUserConfig;
+impl JobInitializer for SyncEmailJobInitializer {
+    type Config = SyncEmailConfig;
 
     fn job_type(&self) -> JobType {
-        CREATE_KEYCLOAK_USER_JOB
+        SYNC_EMAIL_TASK
     }
 
     fn init(
@@ -38,32 +37,32 @@ impl JobInitializer for CreateKeycloakUserJobInitializer {
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreateKeycloakUserJobRunner {
+        Ok(Box::new(SyncEmailJobRunner {
             config: job.config()?,
             keycloak_client: self.keycloak_client.clone(),
         }))
     }
 }
 
-pub struct CreateKeycloakUserJobRunner {
-    config: CreateKeycloakUserConfig,
+pub struct SyncEmailJobRunner {
+    config: SyncEmailConfig,
     keycloak_client: KeycloakClient,
 }
 
 #[async_trait]
-impl JobRunner for CreateKeycloakUserJobRunner {
+impl JobRunner for SyncEmailJobRunner {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "user_onboarding.create_keycloak_user_job.run",
+        name = "customer_sync.sync_email_job.run",
         skip(self, _current_job),
-        fields(user_id = %self.config.user_id),
+        fields(customer_id = %self.config.customer_id),
     )]
     async fn run(
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         self.keycloak_client
-            .create_user(self.config.email.clone(), self.config.user_id.into())
+            .update_user_email(self.config.customer_id.into(), self.config.email.clone())
             .await?;
         Ok(JobCompletion::Complete)
     }
