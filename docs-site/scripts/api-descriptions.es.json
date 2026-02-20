@@ -74,9 +74,9 @@
       "accountEntryCsv": "Obtiene el documento CSV de exportacion para una cuenta contable especifica",
       "reportRuns": "Devuelve una lista paginada de todas las ejecuciones de reportes",
       "reportRun": "Obtiene una ejecucion de reporte especifica por su identificador unico",
-      "prospectByPublicId": "TODO: Agregar descripcion",
-      "prospect": "TODO: Agregar descripcion",
-      "prospects": "TODO: Agregar descripcion"
+      "prospect": "Obtiene un prospecto especifico por su identificador unico",
+      "prospectByPublicId": "Obtiene un prospecto por su identificador publico",
+      "prospects": "Devuelve una lista paginada de todos los prospectos, opcionalmente filtrada por etapa"
     },
     "mutations": {
       "customerDocumentAttach": "Carga y adjunta un documento al perfil de un cliente",
@@ -86,8 +86,12 @@
       "roleCreate": "Crea un nuevo rol con conjuntos de permisos especificados",
       "roleAddPermissionSets": "Agrega conjuntos de permisos a un rol existente",
       "roleRemovePermissionSets": "Elimina conjuntos de permisos de un rol existente",
+      "prospectCreate": "Crea un nuevo prospecto para la incorporacion de un cliente potencial",
+      "prospectClose": "Cierra un prospecto, finalizando su proceso de incorporacion",
+      "prospectConvert": "Convierte un prospecto en un cliente completo",
       "customerCreate": "Crea un nuevo cliente con correo electronico, ID de Telegram y tipo de cliente",
       "customerTelegramIdUpdate": "Actualiza el identificador de Telegram de un cliente",
+      "customerTelegramHandleUpdate": "Actualiza el nombre de usuario de Telegram de un cliente",
       "customerEmailUpdate": "Actualiza la direccion de correo electronico de un cliente",
       "domainConfigUpdate": "Actualiza una configuracion de dominio",
       "depositModuleConfigure": "Configura los mapeos del catalogo de cuentas del modulo de depositos",
@@ -147,11 +151,7 @@
       "chartOfAccountsCsvImport": "Importa un catalogo de cuentas desde un archivo CSV",
       "collateralLiquidationRecordProceedsReceived": "Registra los ingresos recibidos de una liquidacion de colateral",
       "collateralRecordSentToLiquidation": "Registra el colateral enviado a liquidacion",
-      "collateralUpdate": "TODO: Agregar descripcion",
-      "customerTelegramHandleUpdate": "TODO: Agregar descripcion",
-      "prospectClose": "TODO: Agregar descripcion",
-      "prospectConvert": "TODO: Agregar descripcion",
-      "prospectCreate": "TODO: Agregar descripcion"
+      "collateralUpdate": "Actualiza el monto de colateral para una facilidad crediticia con una fecha efectiva especificada"
     }
   },
   "customer": {

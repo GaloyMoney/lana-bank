@@ -10,6 +10,9 @@
  * Note: Extra descriptions for operations that no longer exist in the current
  * schema are allowed (warnings only) since they may be needed for versioned docs.
  *
+ * Operations are extracted directly from the GraphQL schema files,
+ * so this script is independent of the doc generation pipeline.
+ *
  * Exit codes:
  * 0 - All validations passed
  * 1 - Validation errors found
@@ -19,48 +22,50 @@ const fs = require("fs");
 const path = require("path");
 
 const SCRIPTS_DIR = __dirname;
-const DOCS_DIR = path.join(__dirname, "..", "docs");
+const ROOT_DIR = path.join(__dirname, "..");
 const DESCRIPTIONS_FILE = path.join(SCRIPTS_DIR, "api-descriptions.json");
 const DESCRIPTIONS_ES_FILE = path.join(SCRIPTS_DIR, "api-descriptions.es.json");
 
-/**
- * Convert kebab-case filename to camelCase operation name
- */
-function filenameToCamelCase(filename) {
-  const name = filename.replace(/\.mdx$/, "");
-  return name.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-}
+const SCHEMA_FILES = {
+  admin: path.join(ROOT_DIR, "..", "lana", "admin-server", "src", "graphql", "schema.graphql"),
+  customer: path.join(ROOT_DIR, "..", "lana", "customer-server", "src", "graphql", "schema.graphql"),
+};
 
 /**
- * Find all operation files in an API directory
+ * Parse a GraphQL schema file and extract field names from a root type (Query or Mutation).
  */
-function findOperationFiles(apiDir) {
-  const operationsDir = path.join(DOCS_DIR, apiDir, "operations");
-  const files = [];
+function extractFieldNames(schemaContent, typeName) {
+  const fields = new Set();
+  // Match `type Query {` or `type Mutation {` and extract the block
+  const regex = new RegExp(`^type\\s+${typeName}\\s*\\{`, "m");
+  const match = regex.exec(schemaContent);
+  if (!match) return fields;
 
-  if (!fs.existsSync(operationsDir)) return files;
+  let depth = 1;
+  let pos = match.index + match[0].length;
+  let block = "";
 
-  const subdirs = ["queries", "mutations"];
-  for (const subdir of subdirs) {
-    const dir = path.join(operationsDir, subdir);
-    if (!fs.existsSync(dir)) continue;
+  while (pos < schemaContent.length && depth > 0) {
+    const ch = schemaContent[pos];
+    if (ch === "{") depth++;
+    else if (ch === "}") depth--;
+    if (depth > 0) block += ch;
+    pos++;
+  }
 
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      if (entry.isFile() && entry.name.endsWith(".mdx")) {
-        files.push({
-          name: filenameToCamelCase(entry.name),
-          type: subdir === "queries" ? "queries" : "mutations",
-        });
-      }
+  // Each field line looks like: `  fieldName(args): ReturnType`
+  for (const line of block.split("\n")) {
+    const fieldMatch = line.match(/^\s+(\w+)\s*[:(]/);
+    if (fieldMatch) {
+      fields.add(fieldMatch[1]);
     }
   }
 
-  return files;
+  return fields;
 }
 
 /**
- * Get all current operations from the docs
+ * Get all current operations from the GraphQL schema files
  */
 function getCurrentOperations() {
   const operations = {
@@ -69,10 +74,15 @@ function getCurrentOperations() {
   };
 
   for (const apiId of ["admin", "customer"]) {
-    const files = findOperationFiles(`api/${apiId}`);
-    for (const file of files) {
-      operations[apiId][file.type].add(file.name);
+    const schemaPath = SCHEMA_FILES[apiId];
+    if (!fs.existsSync(schemaPath)) {
+      console.error(`Schema file not found: ${schemaPath}`);
+      process.exit(1);
     }
+
+    const schema = fs.readFileSync(schemaPath, "utf8");
+    operations[apiId].queries = extractFieldNames(schema, "Query");
+    operations[apiId].mutations = extractFieldNames(schema, "Mutation");
   }
 
   return operations;
@@ -109,7 +119,7 @@ function validateDescriptions() {
     return { errors, warnings };
   }
 
-  // Get current operations from docs
+  // Get current operations from GraphQL schemas
   const currentOperations = getCurrentOperations();
 
   const enDefault = enDescriptions._meta?.defaultDescription || "TODO: Add description";

@@ -139,7 +139,7 @@ const config = {
             position: "right",
           },
           {
-            href: "https://github.com/lana-bank/lana-bank",
+            href: "https://github.com/GaloyMoney/lana-bank",
             label: "GitHub",
             position: "right",
           },
