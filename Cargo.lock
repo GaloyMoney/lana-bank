@@ -7683,6 +7683,7 @@ dependencies = [
  "num-traits",
  "obix",
  "once_cell",
+ "opentelemetry",
  "opentelemetry-http",
  "opentelemetry-otlp",
  "pkcs8",
@@ -7718,6 +7719,8 @@ dependencies = [
  "tonic",
  "tower",
  "tracing-core",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
  "url",
  "uuid",
 ]
