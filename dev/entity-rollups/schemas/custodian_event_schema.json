@@ -58,14 +58,7 @@
     {
       "properties": {
         "encrypted_custodian_config": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Encrypted"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/Encrypted"
         },
         "type": {
           "const": "config_updated",
@@ -73,7 +66,8 @@
         }
       },
       "required": [
-        "type"
+        "type",
+        "encrypted_custodian_config"
       ],
       "type": "object"
     }
