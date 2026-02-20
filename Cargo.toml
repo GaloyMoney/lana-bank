@@ -200,7 +200,6 @@ debug = true
 incremental = false
 codegen-units = 64
 opt-level = 0
-lto = "thin"
 
 [workspace.metadata.crane]
 name = "lana-bank"
