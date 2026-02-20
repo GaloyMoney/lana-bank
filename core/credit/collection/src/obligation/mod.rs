@@ -177,7 +177,6 @@ where
             if let es_entity::Idempotent::Executed(new_allocation) =
                 obligation.allocate_payment(remaining, payment_details)
             {
-                self.repo.update_in_op(op, obligation).await?;
                 remaining -= new_allocation.amount;
                 new_allocations.push(new_allocation);
                 if remaining == UsdCents::ZERO {
@@ -185,6 +184,7 @@ where
                 }
             }
         }
+        self.repo.update_all_in_op(op, &mut obligations).await?;
 
         span.record("n_new_allocations", new_allocations.len());
 

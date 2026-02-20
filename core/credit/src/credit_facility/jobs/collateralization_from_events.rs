@@ -224,7 +224,7 @@ where
         let mut has_next_page = true;
         let mut after: Option<CreditFacilitiesByCollateralizationRatioCursor> = None;
         while has_next_page {
-            let mut credit_facilities =
+            let credit_facilities =
                 self.repo
                     .list_by_collateralization_ratio(
                         es_entity::PaginatedQueryArgs::<
@@ -251,9 +251,8 @@ where
                 )
                 .await?;
 
-            let mut at_least_one = false;
-
-            for facility in credit_facilities.entities.iter_mut() {
+            let mut updated = Vec::new();
+            for mut facility in credit_facilities.entities {
                 tracing::Span::current().record("credit_facility_id", facility.id.to_string());
 
                 if facility.status() == CreditFacilityStatus::Closed {
@@ -272,12 +271,13 @@ where
                     .update_collateralization(price, CVLPct::UPGRADE_BUFFER, balances)
                     .did_execute()
                 {
-                    self.repo.update_in_op(&mut op, facility).await?;
-                    at_least_one = true;
+                    updated.push(facility);
                 }
             }
 
-            if at_least_one {
+            let n = self.repo.update_all_in_op(&mut op, &mut updated).await?;
+
+            if n > 0 {
                 op.commit().await?;
             } else {
                 break;
