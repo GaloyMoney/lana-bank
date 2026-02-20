@@ -41,13 +41,18 @@ ff = { version = "0.13", default-features = false, features = ["alloc"] }
 form_urlencoded = { version = "1" }
 futures = { version = "0.3" }
 futures-channel = { version = "0.3", features = ["sink"] }
+futures-core = { version = "0.3" }
+futures-executor = { version = "0.3" }
+futures-io = { version = "0.3" }
 futures-sink = { version = "0.3" }
 futures-task = { version = "0.3" }
 futures-util = { version = "0.3", default-features = false, features = ["async-await-macro", "channel", "io", "sink"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
+getrandom = { version = "0.2", default-features = false, features = ["std"] }
 group = { version = "0.13", default-features = false, features = ["alloc"] }
 hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14" }
 hashbrown-986da7b5efc2b80e = { package = "hashbrown", version = "0.16" }
+hmac = { version = "0.12", default-features = false, features = ["reset"] }
 hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
 hyper-util = { version = "0.1", features = ["client-legacy", "http1", "server", "service"] }
 idna = { version = "1" }
@@ -61,17 +66,19 @@ memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
 obix = { version = "0.2", features = ["test-utils", "tracing"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
-opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
-opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
+opentelemetry = { version = "0.31" }
+opentelemetry-semantic-conventions = { version = "0.31", features = ["semconv_experimental"] }
+percent-encoding = { version = "2" }
 pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = { version = "1" }
 rand = { version = "0.9" }
+rand_core = { version = "0.6", default-features = false, features = ["std"] }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
-regex-syntax = { version = "0.8" }
 reqwest = { version = "0.12", default-features = false, features = ["charset", "http2", "json", "macos-system-configuration", "multipart", "rustls-tls"] }
 rust_decimal = { version = "1", features = ["maths"] }
 rustls = { version = "0.23", default-features = false, features = ["logging", "ring", "std", "tls12"] }
+rustls-webpki = { version = "0.103", default-features = false, features = ["ring", "std"] }
 schemars = { version = "1", features = ["chrono04", "rust_decimal1", "uuid1"] }
 sec1 = { version = "0.7", features = ["pem", "std", "subtle"] }
 semver = { version = "1", features = ["serde"] }
@@ -82,6 +89,7 @@ serde_with = { version = "3", features = ["base64"] }
 sha2 = { version = "0.10", features = ["oid"] }
 signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new", "serde", "union"] }
+socket2 = { version = "0.6", default-features = false, features = ["all"] }
 spin = { version = "0.9", default-features = false, features = ["once", "spin_mutex"] }
 sqlx = { version = "0.8", features = ["chrono", "postgres", "runtime-tokio-rustls", "rust_decimal", "uuid"] }
 sqlx-core = { version = "0.8", features = ["_rt-tokio", "_tls-rustls-ring-webpki", "any", "chrono", "json", "migrate", "offline", "rust_decimal", "uuid"] }
@@ -93,80 +101,56 @@ tokio-stream = { version = "0.1", features = ["fs", "sync"] }
 tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
 tonic = { version = "0.14", default-features = false, features = ["codegen", "tls-native-roots"] }
 tower = { version = "0.5", default-features = false, features = ["balance", "buffer", "limit", "load-shed", "log"] }
+tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
+tracing-opentelemetry = { version = "0.32" }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde", "v4", "v7"] }
+zeroize = { version = "1" }
 
 [build-dependencies]
-ahash = { version = "0.8", default-features = false, features = ["compile-time-rng", "runtime-rng", "std"] }
 arrayvec = { version = "0.7", default-features = false, features = ["std"] }
-async-graphql = { version = "7", default-features = false, features = ["chrono", "dataloader", "playground", "tempfile", "tracing"] }
-axum = { version = "0.8", features = ["macros"] }
-base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 bytes = { version = "1", features = ["serde"] }
-cala-cel-interpreter = { version = "0.13", default-features = false, features = ["json-schema"] }
-cala-ledger = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
-cala-ledger-core-types = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
-chrono-tz = { version = "0.10", features = ["serde"] }
-cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 crossbeam-utils = { version = "0.8" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
-der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
-ecdsa = { version = "0.16", default-features = false, features = ["pem", "signing", "std", "verifying"] }
 either = { version = "1", features = ["serde", "use_std"] }
-elliptic-curve = { version = "0.13", default-features = false, features = ["ecdh", "hazmat", "pem", "std"] }
-es-entity = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "tracing-context"] }
 es-entity-macros = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument"] }
-ff = { version = "0.13", default-features = false, features = ["alloc"] }
 form_urlencoded = { version = "1" }
-futures = { version = "0.3" }
 futures-channel = { version = "0.3", features = ["sink"] }
+futures-core = { version = "0.3" }
+futures-io = { version = "0.3" }
 futures-sink = { version = "0.3" }
 futures-task = { version = "0.3" }
 futures-util = { version = "0.3", default-features = false, features = ["async-await-macro", "channel", "io", "sink"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
-group = { version = "0.13", default-features = false, features = ["alloc"] }
-hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14" }
+getrandom = { version = "0.2", default-features = false, features = ["std"] }
 hashbrown-986da7b5efc2b80e = { package = "hashbrown", version = "0.16" }
-hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
-hyper-util = { version = "0.1", features = ["client-legacy", "http1", "server", "service"] }
+hmac = { version = "0.12", default-features = false, features = ["reset"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
-inout = { version = "0.1", default-features = false, features = ["block-padding"] }
-job = { version = "0.6", default-features = false, features = ["json-schema"] }
 lalrpop-util = { version = "0.23" }
-lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
-obix = { version = "0.2", features = ["test-utils", "tracing"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
-opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
-opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
-pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
+percent-encoding = { version = "2" }
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = { version = "1" }
-rand = { version = "0.9" }
+rand_core = { version = "0.6", default-features = false, features = ["std"] }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
-regex-syntax = { version = "0.8" }
-reqwest = { version = "0.12", default-features = false, features = ["charset", "http2", "json", "macos-system-configuration", "multipart", "rustls-tls"] }
 rust_decimal = { version = "1", features = ["maths"] }
 rustls = { version = "0.23", default-features = false, features = ["logging", "ring", "std", "tls12"] }
-schemars = { version = "1", features = ["chrono04", "rust_decimal1", "uuid1"] }
-sec1 = { version = "0.7", features = ["pem", "std", "subtle"] }
+rustls-webpki = { version = "0.103", default-features = false, features = ["ring", "std"] }
 semver = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["alloc", "derive", "rc"] }
 serde_core = { version = "1", features = ["alloc", "rc"] }
 serde_json = { version = "1", features = ["alloc", "raw_value", "unbounded_depth"] }
-serde_with = { version = "3", features = ["base64"] }
 sha2 = { version = "0.10", features = ["oid"] }
-signature = { version = "2", default-features = false, features = ["digest", "rand_core", "std"] }
 smallvec = { version = "1", default-features = false, features = ["const_new", "serde", "union"] }
-spin = { version = "0.9", default-features = false, features = ["once", "spin_mutex"] }
-sqlx = { version = "0.8", features = ["chrono", "postgres", "runtime-tokio-rustls", "rust_decimal", "uuid"] }
 sqlx-core = { version = "0.8", features = ["_rt-tokio", "_tls-rustls-ring-webpki", "any", "chrono", "json", "migrate", "offline", "rust_decimal", "uuid"] }
 sqlx-macros = { version = "0.8", features = ["_rt-tokio", "_tls-rustls-ring-webpki", "chrono", "derive", "json", "macros", "migrate", "postgres", "rust_decimal", "uuid"] }
 sqlx-macros-core = { version = "0.8", features = ["_rt-tokio", "_tls-rustls-ring-webpki", "chrono", "derive", "json", "macros", "migrate", "postgres", "rust_decimal", "uuid"] }
@@ -176,11 +160,11 @@ syn = { version = "2", features = ["extra-traits", "fold", "full", "visit", "vis
 tokio = { version = "1", features = ["fs", "io-util", "macros", "net", "parking_lot", "process", "rt-multi-thread", "signal", "sync", "time", "tracing"] }
 tokio-stream = { version = "0.1", features = ["fs", "sync"] }
 tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
-tonic = { version = "0.14", default-features = false, features = ["codegen", "tls-native-roots"] }
-tower = { version = "0.5", default-features = false, features = ["balance", "buffer", "limit", "load-shed", "log"] }
+tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde", "v4", "v7"] }
+zeroize = { version = "1" }
 
 ### END HAKARI SECTION
 
@@ -212,14 +196,19 @@ ignored = [
     "form_urlencoded",
     "futures",
     "futures-channel",
+    "futures-core",
+    "futures-executor",
+    "futures-io",
     "futures-sink",
     "futures-task",
     "futures-util",
     "generic-array",
+    "getrandom",
     "group",
     "hashbrown",
     "hashbrown-582f2526e08bb6a0",
     "hashbrown-986da7b5efc2b80e",
+    "hmac",
     "hyper",
     "hyper-util",
     "idna",
@@ -233,17 +222,19 @@ ignored = [
     "num-traits",
     "obix",
     "once_cell",
-    "opentelemetry-http",
-    "opentelemetry-otlp",
+    "opentelemetry",
+    "opentelemetry-semantic-conventions",
+    "percent-encoding",
     "pkcs8",
     "proc-macro2",
     "quote",
     "rand",
+    "rand_core",
     "regex-automata",
-    "regex-syntax",
     "reqwest",
     "rust_decimal",
     "rustls",
+    "rustls-webpki",
     "schemars",
     "sec1",
     "semver",
@@ -254,6 +245,7 @@ ignored = [
     "sha2",
     "signature",
     "smallvec",
+    "socket2",
     "spin",
     "sqlx",
     "sqlx-core",
@@ -267,7 +259,11 @@ ignored = [
     "tokio-util",
     "tonic",
     "tower",
+    "tracing",
     "tracing-core",
+    "tracing-opentelemetry",
+    "tracing-subscriber",
     "url",
     "uuid",
+    "zeroize",
 ]
