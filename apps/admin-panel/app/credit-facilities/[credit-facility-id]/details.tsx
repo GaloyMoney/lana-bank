@@ -26,7 +26,6 @@ import {
 } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { removeUnderscore } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 import { useLoanAgreement } from "@/hooks/use-loan-agreement"
 
@@ -49,7 +48,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
 
   const handleGenerateLoanAgreement = () => {
-    generateLoanAgreementPdf(creditFacilityDetails.customer.customerId)
+    generateLoanAgreementPdf(creditFacilityDetails.customerId)
   }
 
   const monthlyPaymentAmount = creditFacilityDetails.repaymentPlan.find(
@@ -58,9 +57,8 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 
   const details: DetailItemProps[] = [
     {
-      label: t("details.customer"),
-      value: `${creditFacilityDetails.customer.email} (${removeUnderscore(creditFacilityDetails.customer.customerType)})`,
-      href: `/customers/${creditFacilityDetails.customer.publicId}`,
+      label: t("details.customerId"),
+      value: creditFacilityDetails.customerId,
     },
     {
       label: t("details.status"),

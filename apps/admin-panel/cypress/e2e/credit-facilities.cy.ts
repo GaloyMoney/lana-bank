@@ -165,7 +165,7 @@ describe("credit facility", () => {
 
   it("should show newly created proposal in the list", () => {
     cy.visit(`/credit-facility-proposals`)
-    cy.get('[data-testid="table-row-0"] > :nth-child(5) > a').click()
+    cy.get('[data-testid="table-row-0"] > :nth-child(4) > a').click()
     cy.contains("$5,000.00").should("be.visible")
     cy.takeScreenshot("06_proposal_in_list")
   })
@@ -369,7 +369,7 @@ describe("credit facility", () => {
 
   it("should show newly created credit facility in the list", () => {
     cy.visit(`/credit-facilities`)
-    cy.get('[data-testid="table-row-0"] > :nth-child(7) > a').click()
+    cy.get('[data-testid="table-row-0"] > :nth-child(6) > a').click()
     cy.contains("$5,000.00").should("be.visible")
     cy.takeScreenshot("22_credit_facility_in_list")
   })

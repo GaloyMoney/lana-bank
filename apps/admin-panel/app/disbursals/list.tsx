@@ -28,9 +28,7 @@ gql`
           createdAt
           status
           creditFacility {
-            customer {
-              email
-            }
+            publicId
           }
         }
         cursor
@@ -62,10 +60,10 @@ const Disbursals = () => {
     },
     {
       key: "creditFacility",
-      label: t("table.headers.customer"),
+      label: t("table.headers.creditFacility"),
       labelClassName: "w-[35%]",
       render: (creditFacility) => (
-        <div className="truncate">{creditFacility.customer.email}</div>
+        <div className="truncate">{creditFacility.publicId}</div>
       ),
     },
     {

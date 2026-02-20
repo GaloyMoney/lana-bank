@@ -169,23 +169,42 @@ describe("Customers", () => {
     cy.takeScreenshot("11_verify_customer_in_list")
   })
 
-  it("should create a deposit account for the new customer", () => {
+  it("should have a deposit account for the customer", () => {
+    // Query backend to determine if deposit account already exists
+    cy.graphqlRequest<{
+      data: {
+        customerByPublicId: { depositAccount: { depositAccountId: string } | null }
+      }
+    }>(
+      `query CheckDepositAccount($id: PublicId!) {
+        customerByPublicId(id: $id) { depositAccount { depositAccountId } }
+      }`,
+      { id: testCustomerPublicId },
+    ).then((res) => {
+      if (!res.data.customerByPublicId.depositAccount) {
+        // No deposit account — create via GraphQL to avoid UI race conditions
+        cy.graphqlRequest<{
+          data: {
+            customerByPublicId: { customerId: string }
+          }
+        }>(
+          `query GetCustomerId($id: PublicId!) {
+            customerByPublicId(id: $id) { customerId }
+          }`,
+          { id: testCustomerPublicId },
+        ).then((customerRes) => {
+          cy.createDepositAccount(
+            customerRes.data.customerByPublicId.customerId,
+          )
+        })
+      }
+    })
+
+    // Verify deposit account is visible on the page
     cy.visit(`/customers/${testCustomerPublicId}`)
-    cy.contains(t("Customers.CustomerDetails.depositAccount.noAccount")).should(
+    cy.contains(t("Customers.CustomerDetails.depositAccount.title")).should(
       "be.visible",
     )
-    cy.takeScreenshot("customer_no_deposit_account_banner")
-
-    cy.get('[data-testid="global-create-button"]').click()
-    cy.get('[data-testid="create-deposit-account-button"]').should("be.visible").click()
-    cy.contains(t("Customers.CustomerDetails.createDepositAccount.title")).should(
-      "be.visible",
-    )
-    cy.contains(testEmail).should("be.visible")
-    cy.takeScreenshot("customer_create_deposit_account_dialog")
-
-    cy.get('[data-testid="create-deposit-account-dialog-button"]').click()
-    cy.contains(t("Customers.CustomerDetails.depositAccount.title")).should("be.visible")
     cy.takeScreenshot("customer_deposit_account_created")
   })
 

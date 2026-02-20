@@ -1,0 +1,10 @@
+query GetDepositAccount($id: UUID!) {
+  depositAccount(id: $id) {
+    depositAccountId
+    status
+    balance {
+      settled
+      pending
+    }
+  }
+}

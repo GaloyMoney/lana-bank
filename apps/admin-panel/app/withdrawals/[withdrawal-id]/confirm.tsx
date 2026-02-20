@@ -87,8 +87,8 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <DetailsGroup layout="horizontal">
             <DetailItem
-              label={t("fields.customerEmail")}
-              value={withdrawalData.account.customer?.email || t("values.na")}
+              label={t("fields.accountId")}
+              value={withdrawalData.accountId}
             />
             <DetailItem
               label={t("fields.amount")}

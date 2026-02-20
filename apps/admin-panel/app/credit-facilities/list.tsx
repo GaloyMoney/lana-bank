@@ -73,10 +73,6 @@ gql`
               usdBalance
             }
           }
-          customer {
-            customerId
-            email
-          }
         }
       }
       pageInfo {
@@ -136,12 +132,6 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     labelClassName: "w-[13%]",
     render: (status) => <LoanAndCreditFacilityStatusBadge status={status} />,
     filterValues: Object.values(CreditFacilityStatus),
-  },
-  {
-    key: "customer",
-    label: t("table.headers.customer"),
-    labelClassName: "w-[27%]",
-    render: (customer) => <div className="truncate">{customer.email}</div>,
   },
   {
     key: "balance",

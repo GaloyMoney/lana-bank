@@ -20,16 +20,11 @@ gql`
   fragment CreditFacilityProposalLayoutFragment on CreditFacilityProposal {
     id
     creditFacilityProposalId
+    customerId
     approvalProcessId
     createdAt
     status
     facilityAmount
-    customer {
-      customerId
-      customerType
-      publicId
-      email
-    }
     custodian {
       name
     }

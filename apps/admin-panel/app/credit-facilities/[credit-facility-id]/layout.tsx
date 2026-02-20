@@ -26,6 +26,7 @@ gql`
   fragment CreditFacilityLayoutFragment on CreditFacility {
     id
     creditFacilityId
+    customerId
     collateralId
     status
     facilityAmount
@@ -119,12 +120,6 @@ gql`
       outstanding
       accrualAt
       dueAt
-    }
-    customer {
-      customerId
-      publicId
-      customerType
-      email
     }
     wallet {
       id

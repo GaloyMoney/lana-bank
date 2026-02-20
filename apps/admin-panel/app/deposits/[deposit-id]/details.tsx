@@ -2,8 +2,7 @@
 
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
-import { ArrowRight, ExternalLinkIcon, RotateCcw } from "lucide-react"
-import Link from "next/link"
+import { ExternalLinkIcon, RotateCcw } from "lucide-react"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -30,9 +29,8 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
 
   const details: DetailItemProps[] = [
     {
-      label: t("fields.customerEmail"),
-      value: deposit.account.customer.email,
-      href: `/customers/${deposit.account.customer.publicId}`,
+      label: t("fields.accountId"),
+      value: deposit.accountId,
     },
     {
       label: t("fields.depositAmount"),
@@ -55,12 +53,6 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
 
   const footerContent = (
     <>
-      <Button variant="outline" asChild>
-        <Link href={`/deposit-accounts/${deposit.account.publicId}`}>
-          {t("buttons.viewDepositAccount")}
-          <ArrowRight />
-        </Link>
-      </Button>
       {deposit.status === DepositStatus.Confirmed && (
         <Button
           data-testid="deposit-revert-button"

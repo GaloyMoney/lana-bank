@@ -1,0 +1,18 @@
+[package]
+name = "admin-graphql-custody"
+license = "BUSL-1.1"
+edition = "2024"
+
+[package.metadata.cargo-machete]
+ignored = ["es-entity"]
+
+[dependencies]
+lana-app = { workspace = true }
+admin-graphql-shared = { path = "../admin-graphql-shared" }
+
+es-entity = { workspace = true }
+
+async-graphql = { workspace = true }
+url = { workspace = true }
+
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }

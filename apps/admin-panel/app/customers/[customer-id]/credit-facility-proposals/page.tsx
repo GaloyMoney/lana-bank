@@ -18,10 +18,6 @@ gql`
         createdAt
         facilityAmount
         status
-        customer {
-          customerId
-          email
-        }
       }
     }
   }
