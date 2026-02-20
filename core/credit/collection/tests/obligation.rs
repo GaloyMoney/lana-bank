@@ -2,7 +2,7 @@ mod helpers;
 
 use audit::SystemSubject;
 use authz::dummy::DummySubject;
-use cala_ledger::primitives::TransactionId as LedgerTxId;
+use cala_ledger_core_types::primitives::TransactionId as LedgerTxId;
 use core_credit_collection::{
     BeneficiaryId, CoreCreditCollectionEvent, NewObligation, Obligation, ObligationId,
     ObligationType, PaymentDetailsForAllocation, PaymentId, PaymentLedgerAccountIds,

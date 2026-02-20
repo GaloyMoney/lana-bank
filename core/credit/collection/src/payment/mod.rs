@@ -12,7 +12,7 @@ use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    ledger::CollectionLedger, primitives::*, public::CoreCreditCollectionEvent,
+    ledger::CollectionLedgerOps, primitives::*, public::CoreCreditCollectionEvent,
     publisher::CollectionPublisher,
 };
 
@@ -24,20 +24,22 @@ pub use entity::PaymentLedgerAccountIds;
 use error::PaymentError;
 pub use repo::PaymentRepo;
 
-pub struct Payments<Perms, E>
+pub struct Payments<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     repo: Arc<PaymentRepo<E>>,
     authz: Arc<Perms>,
-    ledger: Arc<CollectionLedger>,
+    ledger: Arc<L>,
 }
 
-impl<Perms, E> Clone for Payments<Perms, E>
+impl<Perms, E, L> Clone for Payments<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -48,17 +50,18 @@ where
     }
 }
 
-impl<Perms, E> Payments<Perms, E>
+impl<Perms, E, L> Payments<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     pub fn new(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
-        ledger: Arc<CollectionLedger>,
+        ledger: Arc<L>,
         clock: ClockHandle,
         publisher: &CollectionPublisher<E>,
     ) -> Self {
@@ -98,7 +101,7 @@ where
         payment_ledger_account_ids: PaymentLedgerAccountIds,
         amount: UsdCents,
         effective: chrono::NaiveDate,
-        initiated_by: &impl SystemSubject,
+        initiated_by: &(impl SystemSubject + Send + Sync),
     ) -> Result<Option<Payment>, PaymentError> {
         let new_payment = NewPayment::builder()
             .id(payment_id)
@@ -135,7 +138,7 @@ where
         payment_ledger_account_ids: PaymentLedgerAccountIds,
         amount: UsdCents,
         effective: chrono::NaiveDate,
-        initiated_by: &impl SystemSubject,
+        initiated_by: &(impl SystemSubject + Send + Sync),
     ) -> Result<Option<Payment>, PaymentError> {
         let mut db = self.repo.begin_op().await?;
         let res = self

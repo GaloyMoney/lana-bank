@@ -29,7 +29,7 @@ use crate::{
 pub const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.credit-facility-collateralization");
 
-pub struct CreditFacilityCollateralizationFromEventsHandler<Perms, E>
+pub struct CreditFacilityCollateralizationFromEventsHandler<Perms, E, L: CreditLedgerOps>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -41,11 +41,11 @@ where
     repo: Arc<CreditFacilityRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
     price: Arc<Price>,
-    ledger: Arc<CreditLedger>,
+    ledger: Arc<L>,
     authz: Arc<Perms>,
 }
 
-impl<Perms, E> CreditFacilityCollateralizationFromEventsHandler<Perms, E>
+impl<Perms, E, L: CreditLedgerOps> CreditFacilityCollateralizationFromEventsHandler<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -58,7 +58,7 @@ where
         repo: Arc<CreditFacilityRepo<E>>,
         collateral_repo: Arc<CollateralRepo<E>>,
         price: Arc<Price>,
-        ledger: Arc<CreditLedger>,
+        ledger: Arc<L>,
         authz: Arc<Perms>,
     ) -> Self {
         Self {
@@ -71,7 +71,8 @@ where
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for CreditFacilityCollateralizationFromEventsHandler<Perms, E>
+impl<Perms, E, L: CreditLedgerOps> OutboxEventHandler<E>
+    for CreditFacilityCollateralizationFromEventsHandler<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -145,7 +146,7 @@ where
     }
 }
 
-impl<Perms, E> CreditFacilityCollateralizationFromEventsHandler<Perms, E>
+impl<Perms, E, L: CreditLedgerOps> CreditFacilityCollateralizationFromEventsHandler<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,

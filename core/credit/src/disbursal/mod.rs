@@ -14,7 +14,7 @@ use obix::out::OutboxEventMarker;
 
 use crate::{CoreCreditEvent, primitives::*};
 
-use core_credit_collection::{CoreCreditCollection, Obligation};
+use core_credit_collection::{CollectionLedgerOps, CoreCreditCollection, Obligation};
 
 pub(super) use entity::*;
 use error::DisbursalError;
@@ -26,25 +26,27 @@ pub use entity::{Disbursal, DisbursalSettlement};
 #[cfg(feature = "json-schema")]
 pub use entity::DisbursalEvent;
 
-pub struct Disbursals<Perms, E>
+pub struct Disbursals<Perms, E, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>,
+    ColL: CollectionLedgerOps,
 {
     repo: Arc<DisbursalRepo<E>>,
     authz: Arc<Perms>,
-    collections: Arc<CoreCreditCollection<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E, ColL>>,
     governance: Arc<Governance<Perms, E>>,
 }
 
-impl<Perms, E> Clone for Disbursals<Perms, E>
+impl<Perms, E, ColL> Clone for Disbursals<Perms, E, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>,
+    ColL: CollectionLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -62,7 +64,7 @@ pub(super) enum ApprovalProcessOutcome {
     Denied(Disbursal),
 }
 
-impl<Perms, E> Disbursals<Perms, E>
+impl<Perms, E, ColL> Disbursals<Perms, E, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -72,12 +74,13 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>,
+    ColL: CollectionLedgerOps,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
-        collections: Arc<CoreCreditCollection<Perms, E>>,
+        collections: Arc<CoreCreditCollection<Perms, E, ColL>>,
         governance: Arc<Governance<Perms, E>>,
         clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, DisbursalError> {

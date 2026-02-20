@@ -32,6 +32,8 @@ core-access = { workspace = true, features = ["graphql"] }
 core-custody = { workspace = true, features = ["graphql"] }
 core-credit = { workspace = true, features = ["graphql"] }
 core-credit-terms = { workspace = true }
+lana-credit-ledger = { workspace = true }
+lana-collection-ledger = { workspace = true }
 core-customer = { workspace = true, features = ["graphql"] }
 core-price = { workspace = true }
 core-deposit = { workspace = true, features = ["graphql"] }

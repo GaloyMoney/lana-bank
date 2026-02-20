@@ -27,7 +27,7 @@ use crate::{
 pub const PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.pending-credit-facility-collateralization-from-events");
 
-pub struct PendingCreditFacilityCollateralizationFromEventsHandler<E>
+pub struct PendingCreditFacilityCollateralizationFromEventsHandler<E, L: CreditLedgerOps>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -37,10 +37,10 @@ where
     repo: Arc<PendingCreditFacilityRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
     price: Arc<Price>,
-    ledger: Arc<CreditLedger>,
+    ledger: Arc<L>,
 }
 
-impl<E> PendingCreditFacilityCollateralizationFromEventsHandler<E>
+impl<E, L: CreditLedgerOps> PendingCreditFacilityCollateralizationFromEventsHandler<E, L>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -51,7 +51,7 @@ where
         repo: Arc<PendingCreditFacilityRepo<E>>,
         collateral_repo: Arc<CollateralRepo<E>>,
         price: Arc<Price>,
-        ledger: Arc<CreditLedger>,
+        ledger: Arc<L>,
     ) -> Self {
         Self {
             repo,
@@ -62,7 +62,8 @@ where
     }
 }
 
-impl<E> OutboxEventHandler<E> for PendingCreditFacilityCollateralizationFromEventsHandler<E>
+impl<E, L: CreditLedgerOps> OutboxEventHandler<E>
+    for PendingCreditFacilityCollateralizationFromEventsHandler<E, L>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -115,7 +116,7 @@ where
     }
 }
 
-impl<E> PendingCreditFacilityCollateralizationFromEventsHandler<E>
+impl<E, L: CreditLedgerOps> PendingCreditFacilityCollateralizationFromEventsHandler<E, L>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>

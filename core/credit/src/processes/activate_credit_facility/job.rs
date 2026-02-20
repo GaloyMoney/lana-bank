@@ -11,14 +11,17 @@ use job::JobType;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
-    PendingCreditFacilityCollateralizationState,
+    PendingCreditFacilityCollateralizationState, collateral::ledger::CollateralLedgerOps,
+    ledger::CreditLedgerOps,
 };
+
+use core_credit_collection::CollectionLedgerOps;
 
 use super::ActivateCreditFacility;
 
 pub const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("outbox.credit-facility-activation");
 
-pub(crate) struct CreditFacilityActivationHandler<Perms, E>
+pub(crate) struct CreditFacilityActivationHandler<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -26,11 +29,14 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
-    process: ActivateCreditFacility<Perms, E>,
+    process: ActivateCreditFacility<Perms, E, L, CL, ColL>,
 }
 
-impl<Perms, E> CreditFacilityActivationHandler<Perms, E>
+impl<Perms, E, L, CL, ColL> CreditFacilityActivationHandler<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -46,15 +52,19 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
-    pub fn new(process: &ActivateCreditFacility<Perms, E>) -> Self {
+    pub fn new(process: &ActivateCreditFacility<Perms, E, L, CL, ColL>) -> Self {
         Self {
             process: process.clone(),
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for CreditFacilityActivationHandler<Perms, E>
+impl<Perms, E, L, CL, ColL> OutboxEventHandler<E>
+    for CreditFacilityActivationHandler<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -70,6 +80,9 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     #[instrument(name = "core_credit.credit_facility_activation_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, pending_credit_facility_id = tracing::field::Empty))]
     async fn handle_persistent(

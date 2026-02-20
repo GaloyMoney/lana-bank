@@ -1,4 +1,4 @@
-use cala_ledger::DebitOrCredit;
+use cala_ledger_core_types::primitives::DebitOrCredit;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum::Display, strum::EnumString)]
 pub enum CreditAccountCategory {

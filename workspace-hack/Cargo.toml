@@ -132,6 +132,7 @@ hashbrown-986da7b5efc2b80e = { package = "hashbrown", version = "0.16" }
 hmac = { version = "0.12", default-features = false, features = ["reset"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
+itertools = { version = "0.14" }
 lalrpop-util = { version = "0.23" }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }

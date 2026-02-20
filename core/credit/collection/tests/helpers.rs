@@ -7,6 +7,7 @@ use core_credit_collection::{
     CalaAccountId, CollectionPublisher, CoreCreditCollection, ObligationReceivableAccountIds,
 };
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use lana_collection_ledger::CollectionLedger;
 use obix::Outbox;
 
 use event::DummyEvent;
@@ -26,7 +27,7 @@ pub struct TestContext {
     pub pool: sqlx::PgPool,
     pub clock: ClockHandle,
     pub outbox: Outbox<DummyEvent>,
-    pub collections: CoreCreditCollection<TestPerms, DummyEvent>,
+    pub collections: CoreCreditCollection<TestPerms, DummyEvent, CollectionLedger>,
     pub jobs: job::Jobs,
     pub accounts: TestAccounts,
 }
@@ -116,18 +117,18 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     )
     .await?;
 
+    let collection_ledger =
+        CollectionLedger::init(&cala, journal_id, accounts.payments_made_omnibus).await?;
+
     let publisher = CollectionPublisher::new(&outbox);
-    let collections = CoreCreditCollection::init(
+    let collections = CoreCreditCollection::new(
         &pool,
         Arc::new(authz),
-        &cala,
-        journal_id,
-        accounts.payments_made_omnibus,
+        Arc::new(collection_ledger),
         &mut jobs,
         &publisher,
         clock.clone(),
-    )
-    .await?;
+    );
 
     Ok(TestContext {
         pool,

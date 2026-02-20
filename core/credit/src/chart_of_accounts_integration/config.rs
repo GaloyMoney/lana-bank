@@ -91,32 +91,32 @@ pub struct ChartOfAccountsIntegrationConfig {
 
 define_internal_config! {
     #[derive(Serialize, Deserialize, Clone)]
-    pub(crate) struct ResolvedChartOfAccountsIntegrationConfig {
-        pub(crate) config: ChartOfAccountsIntegrationConfig,
+    pub struct ResolvedChartOfAccountsIntegrationConfig {
+        pub config: ChartOfAccountsIntegrationConfig,
 
-        pub(crate) facility_omnibus_parent_account_set_id: CalaAccountSetId,
-        pub(crate) collateral_omnibus_parent_account_set_id: CalaAccountSetId,
-        pub(crate) liquidation_proceeds_omnibus_parent_account_set_id: CalaAccountSetId,
-        pub(crate) payments_made_omnibus_parent_account_set_id: CalaAccountSetId,
-        pub(crate) interest_added_to_obligations_omnibus_parent_account_set_id: CalaAccountSetId,
+        pub facility_omnibus_parent_account_set_id: CalaAccountSetId,
+        pub collateral_omnibus_parent_account_set_id: CalaAccountSetId,
+        pub liquidation_proceeds_omnibus_parent_account_set_id: CalaAccountSetId,
+        pub payments_made_omnibus_parent_account_set_id: CalaAccountSetId,
+        pub interest_added_to_obligations_omnibus_parent_account_set_id: CalaAccountSetId,
 
-        pub(crate) facility_parent_account_set_id: CalaAccountSetId,
-        pub(crate) collateral_parent_account_set_id: CalaAccountSetId,
-        pub(crate) collateral_in_liquidation_parent_account_set_id: CalaAccountSetId,
-        pub(crate) liquidated_collateral_parent_account_set_id: CalaAccountSetId,
-        pub(crate) proceeds_from_liquidation_parent_account_set_id: CalaAccountSetId,
-        pub(crate) interest_income_parent_account_set_id: CalaAccountSetId,
-        pub(crate) fee_income_parent_account_set_id: CalaAccountSetId,
-        pub(crate) payment_holding_parent_account_set_id: CalaAccountSetId,
-        pub(crate) uncovered_outstanding_parent_account_set_id: CalaAccountSetId,
-        pub(crate) disbursed_defaulted_parent_account_set_id: CalaAccountSetId,
-        pub(crate) interest_defaulted_parent_account_set_id: CalaAccountSetId,
+        pub facility_parent_account_set_id: CalaAccountSetId,
+        pub collateral_parent_account_set_id: CalaAccountSetId,
+        pub collateral_in_liquidation_parent_account_set_id: CalaAccountSetId,
+        pub liquidated_collateral_parent_account_set_id: CalaAccountSetId,
+        pub proceeds_from_liquidation_parent_account_set_id: CalaAccountSetId,
+        pub interest_income_parent_account_set_id: CalaAccountSetId,
+        pub fee_income_parent_account_set_id: CalaAccountSetId,
+        pub payment_holding_parent_account_set_id: CalaAccountSetId,
+        pub uncovered_outstanding_parent_account_set_id: CalaAccountSetId,
+        pub disbursed_defaulted_parent_account_set_id: CalaAccountSetId,
+        pub interest_defaulted_parent_account_set_id: CalaAccountSetId,
 
-        pub(crate) short_term_disbursed_integration_meta: ShortTermDisbursedIntegrationMeta,
-        pub(crate) long_term_disbursed_integration_meta: LongTermDisbursedIntegrationMeta,
-        pub(crate) short_term_interest_integration_meta: ShortTermInterestIntegrationMeta,
-        pub(crate) long_term_interest_integration_meta: LongTermInterestIntegrationMeta,
-        pub(crate) overdue_disbursed_integration_meta: OverdueDisbursedIntegrationMeta,
+        pub short_term_disbursed_integration_meta: ShortTermDisbursedIntegrationMeta,
+        pub long_term_disbursed_integration_meta: LongTermDisbursedIntegrationMeta,
+        pub short_term_interest_integration_meta: ShortTermInterestIntegrationMeta,
+        pub long_term_interest_integration_meta: LongTermInterestIntegrationMeta,
+        pub overdue_disbursed_integration_meta: OverdueDisbursedIntegrationMeta,
     }
 
     spec {

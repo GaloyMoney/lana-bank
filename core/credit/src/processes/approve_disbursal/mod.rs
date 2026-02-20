@@ -17,13 +17,16 @@ use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, Disbursals,
-    credit_facility::CreditFacilities, ledger::CreditLedger, primitives::DisbursalId,
+    collateral::ledger::CollateralLedgerOps, credit_facility::CreditFacilities,
+    ledger::CreditLedgerOps, primitives::DisbursalId,
 };
+
+use core_credit_collection::CollectionLedgerOps;
 
 pub use job::*;
 pub const APPROVE_DISBURSAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursal");
 
-pub struct ApproveDisbursal<Perms, E>
+pub struct ApproveDisbursal<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -31,14 +34,17 @@ where
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
-    disbursals: Arc<Disbursals<Perms, E>>,
-    credit_facilities: Arc<CreditFacilities<Perms, E>>,
+    disbursals: Arc<Disbursals<Perms, E, ColL>>,
+    credit_facilities: Arc<CreditFacilities<Perms, E, L, CL, ColL>>,
     governance: Arc<Governance<Perms, E>>,
-    ledger: Arc<CreditLedger>,
+    ledger: Arc<L>,
 }
 
-impl<Perms, E> Clone for ApproveDisbursal<Perms, E>
+impl<Perms, E, L, CL, ColL> Clone for ApproveDisbursal<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -46,6 +52,9 @@ where
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -57,7 +66,7 @@ where
     }
 }
 
-impl<Perms, E> ApproveDisbursal<Perms, E>
+impl<Perms, E, L, CL, ColL> ApproveDisbursal<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -73,12 +82,15 @@ where
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     pub fn new(
-        disbursals: Arc<Disbursals<Perms, E>>,
-        credit_facilities: Arc<CreditFacilities<Perms, E>>,
+        disbursals: Arc<Disbursals<Perms, E, ColL>>,
+        credit_facilities: Arc<CreditFacilities<Perms, E, L, CL, ColL>>,
         governance: Arc<Governance<Perms, E>>,
-        ledger: Arc<CreditLedger>,
+        ledger: Arc<L>,
     ) -> Self {
         Self {
             disbursals,

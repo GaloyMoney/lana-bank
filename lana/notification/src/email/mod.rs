@@ -23,18 +23,21 @@ pub use config::{EmailInfraConfig, NotificationFromEmail, NotificationFromName};
 pub use error::EmailError;
 
 #[derive(Clone)]
-pub struct EmailNotification<Perms>
+pub struct EmailNotification<Perms, L, CL, ColL>
 where
     Perms: authz::PermissionCheck,
+    L: core_credit::CreditLedgerOps,
+    CL: core_credit::CollateralLedgerOps,
+    ColL: core_credit_collection::CollectionLedgerOps,
 {
     users: Users<Perms::Audit, LanaEvent>,
-    credit: CoreCredit<Perms, LanaEvent>,
+    credit: CoreCredit<Perms, LanaEvent, L, CL, ColL>,
     customers: Customers<Perms, LanaEvent>,
     email_sender_job_spawner: EmailSenderJobSpawner,
     _authz: std::marker::PhantomData<Perms>,
 }
 
-impl<Perms> EmailNotification<Perms>
+impl<Perms, L, CL, ColL> EmailNotification<Perms, L, CL, ColL>
 where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
@@ -53,13 +56,16 @@ where
         + From<core_custody::CoreCustodyObject>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
+    L: core_credit::CreditLedgerOps,
+    CL: core_credit::CollateralLedgerOps,
+    ColL: core_credit_collection::CollectionLedgerOps,
 {
     pub async fn init(
         jobs: &mut Jobs,
         domain_configs: &ExposedDomainConfigsReadOnly,
         infra_config: EmailInfraConfig,
         users: &Users<Perms::Audit, LanaEvent>,
-        credit: &CoreCredit<Perms, LanaEvent>,
+        credit: &CoreCredit<Perms, LanaEvent, L, CL, ColL>,
         customers: &Customers<Perms, LanaEvent>,
     ) -> Result<Self, EmailError> {
         let template = EmailTemplate::try_new(infra_config.admin_panel_url.clone())?;

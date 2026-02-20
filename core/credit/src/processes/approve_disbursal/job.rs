@@ -12,13 +12,16 @@ use job::JobType;
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
     CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
+    collateral::ledger::CollateralLedgerOps, ledger::CreditLedgerOps,
 };
+
+use core_credit_collection::CollectionLedgerOps;
 
 use super::ApproveDisbursal;
 
 pub const DISBURSAL_APPROVE_JOB: JobType = JobType::new("outbox.disbursal-approval");
 
-pub(crate) struct DisbursalApprovalHandler<Perms, E>
+pub(crate) struct DisbursalApprovalHandler<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -26,11 +29,14 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
-    process: ApproveDisbursal<Perms, E>,
+    process: ApproveDisbursal<Perms, E, L, CL, ColL>,
 }
 
-impl<Perms, E> DisbursalApprovalHandler<Perms, E>
+impl<Perms, E, L, CL, ColL> DisbursalApprovalHandler<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -46,15 +52,19 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
-    pub fn new(process: &ApproveDisbursal<Perms, E>) -> Self {
+    pub fn new(process: &ApproveDisbursal<Perms, E, L, CL, ColL>) -> Self {
         Self {
             process: process.clone(),
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for DisbursalApprovalHandler<Perms, E>
+impl<Perms, E, L, CL, ColL> OutboxEventHandler<E>
+    for DisbursalApprovalHandler<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -70,6 +80,9 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     #[instrument(name = "core_credit.disbursal_approval_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty))]
     async fn handle_persistent(

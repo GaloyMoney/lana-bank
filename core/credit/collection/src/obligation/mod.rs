@@ -15,7 +15,7 @@ use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    ledger::CollectionLedger,
+    ledger::CollectionLedgerOps,
     payment_allocation::{PaymentAllocation, PaymentAllocationRepo},
     primitives::*,
     public::CoreCreditCollectionEvent,
@@ -26,30 +26,32 @@ pub use entity::Obligation;
 use jobs::{obligation_defaulted, obligation_due, obligation_overdue};
 
 pub use entity::NewObligation;
-pub(crate) use entity::ObligationDefaultedReallocationData;
-pub(crate) use entity::ObligationDueReallocationData;
+pub use entity::ObligationDefaultedReallocationData;
+pub use entity::ObligationDueReallocationData;
 pub use entity::ObligationEvent;
-pub(crate) use entity::ObligationOverdueReallocationData;
+pub use entity::ObligationOverdueReallocationData;
 use error::ObligationError;
 pub(crate) use repo::ObligationRepo;
 
-pub struct Obligations<Perms, E>
+pub struct Obligations<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     authz: Arc<Perms>,
     repo: Arc<ObligationRepo<E>>,
     payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
-    ledger: Arc<CollectionLedger>,
+    ledger: Arc<L>,
     obligation_due_job_spawner: obligation_due::ObligationDueJobSpawner<Perms, E>,
     clock: ClockHandle,
 }
 
-impl<Perms, E> Clone for Obligations<Perms, E>
+impl<Perms, E, L> Clone for Obligations<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -63,30 +65,30 @@ where
     }
 }
 
-impl<Perms, E> Obligations<Perms, E>
+impl<Perms, E, L> Obligations<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     pub fn new(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
-        ledger: Arc<CollectionLedger>,
+        ledger: Arc<L>,
         jobs: &mut job::Jobs,
         publisher: &CollectionPublisher<E>,
         clock: ClockHandle,
     ) -> Self {
         let obligation_repo_arc = Arc::new(ObligationRepo::new(pool, publisher, clock.clone()));
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher, clock.clone());
-        let obligation_defaulted_job_spawner = jobs.add_initializer(
-            obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
+        let obligation_defaulted_job_spawner =
+            jobs.add_initializer(obligation_defaulted::ObligationDefaultedInit::new(
                 ledger.clone(),
                 obligation_repo_arc.clone(),
                 authz.clone(),
-            ),
-        );
+            ));
 
         let obligation_overdue_job_spawner =
             jobs.add_initializer(obligation_overdue::ObligationOverdueInit::new(
@@ -162,7 +164,7 @@ where
             amount,
             ..
         }: PaymentDetailsForAllocation,
-        initiated_by: &impl SystemSubject,
+        initiated_by: &(impl SystemSubject + Send + Sync),
     ) -> Result<(), ObligationError> {
         let span = Span::current();
         span.record("beneficiary_id", tracing::field::display(beneficiary_id));

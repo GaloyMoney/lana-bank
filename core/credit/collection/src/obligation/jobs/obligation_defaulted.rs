@@ -9,7 +9,7 @@ use job::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    ledger::CollectionLedger,
+    ledger::CollectionLedgerOps,
     obligation::{ObligationRepo, error::ObligationError},
     primitives::*,
     public::CoreCreditCollectionEvent,
@@ -32,28 +32,26 @@ impl<Perms, E> Clone for ObligationDefaultedJobConfig<Perms, E> {
     }
 }
 
-pub(crate) struct ObligationDefaultedInit<Perms, E>
+pub(crate) struct ObligationDefaultedInit<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     repo: Arc<ObligationRepo<E>>,
     authz: Arc<Perms>,
-    ledger: Arc<CollectionLedger>,
+    ledger: Arc<L>,
 }
 
-impl<Perms, E> ObligationDefaultedInit<Perms, E>
+impl<Perms, E, L> ObligationDefaultedInit<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
-    pub fn new(
-        ledger: Arc<CollectionLedger>,
-        obligation_repo: Arc<ObligationRepo<E>>,
-        authz: Arc<Perms>,
-    ) -> Self {
+    pub fn new(ledger: Arc<L>, obligation_repo: Arc<ObligationRepo<E>>, authz: Arc<Perms>) -> Self {
         Self {
             ledger,
             authz,
@@ -63,12 +61,13 @@ where
 }
 
 const OBLIGATION_DEFAULTED_JOB: JobType = JobType::new("task.obligation-defaulted");
-impl<Perms, E> JobInitializer for ObligationDefaultedInit<Perms, E>
+impl<Perms, E, L> JobInitializer for ObligationDefaultedInit<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     type Config = ObligationDefaultedJobConfig<Perms, E>;
     fn job_type(&self) -> JobType {
@@ -80,7 +79,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ObligationDefaultedJobRunner::<Perms, E> {
+        Ok(Box::new(ObligationDefaultedJobRunner::<Perms, E, L> {
             config: job.config()?,
             repo: self.repo.clone(),
             authz: self.authz.clone(),
@@ -89,24 +88,26 @@ where
     }
 }
 
-pub struct ObligationDefaultedJobRunner<Perms, E>
+pub struct ObligationDefaultedJobRunner<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     config: ObligationDefaultedJobConfig<Perms, E>,
     repo: Arc<ObligationRepo<E>>,
     authz: Arc<Perms>,
-    ledger: Arc<CollectionLedger>,
+    ledger: Arc<L>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ObligationDefaultedJobRunner<Perms, E>
+impl<Perms, E, L> JobRunner for ObligationDefaultedJobRunner<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     async fn run(
         &self,
@@ -119,12 +120,13 @@ where
     }
 }
 
-impl<Perms, E> ObligationDefaultedJobRunner<Perms, E>
+impl<Perms, E, L> ObligationDefaultedJobRunner<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     pub async fn record_defaulted(
         &self,

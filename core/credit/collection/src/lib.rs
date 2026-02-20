@@ -19,7 +19,8 @@ use obix::out::OutboxEventMarker;
 
 pub use error::CoreCreditCollectionError;
 pub use obligation::{
-    NewObligation, Obligation, ObligationEvent, Obligations, error::ObligationError,
+    NewObligation, Obligation, ObligationDefaultedReallocationData, ObligationDueReallocationData,
+    ObligationEvent, ObligationOverdueReallocationData, Obligations, error::ObligationError,
 };
 pub use payment::{Payment, PaymentEvent, PaymentLedgerAccountIds, Payments, error::PaymentError};
 pub use payment_allocation::{
@@ -36,22 +37,24 @@ pub use primitives::{
 pub use public::*;
 pub use publisher::CollectionPublisher;
 
-use ledger::CollectionLedger;
+pub use ledger::CollectionLedgerOps;
 pub use ledger::error::CollectionLedgerError;
 
-pub struct CoreCreditCollection<Perms, E>
+pub struct CoreCreditCollection<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
-    obligations: Arc<Obligations<Perms, E>>,
-    payments: Arc<Payments<Perms, E>>,
+    obligations: Arc<Obligations<Perms, E, L>>,
+    payments: Arc<Payments<Perms, E, L>>,
 }
 
-impl<Perms, E> Clone for CoreCreditCollection<Perms, E>
+impl<Perms, E, L> Clone for CoreCreditCollection<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -61,51 +64,46 @@ where
     }
 }
 
-impl<Perms, E> CoreCreditCollection<Perms, E>
+impl<Perms, E, L> CoreCreditCollection<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
-    pub async fn init(
+    pub fn new(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
-        cala: &cala_ledger::CalaLedger,
-        journal_id: cala_ledger::JournalId,
-        payments_made_omnibus_account_id: CalaAccountId,
+        ledger: Arc<L>,
         jobs: &mut job::Jobs,
         publisher: &CollectionPublisher<E>,
         clock: ClockHandle,
-    ) -> Result<Self, CoreCreditCollectionError> {
-        let ledger =
-            CollectionLedger::init(cala, journal_id, payments_made_omnibus_account_id).await?;
-        let ledger_arc = Arc::new(ledger);
-
+    ) -> Self {
         let obligations = Obligations::new(
             pool,
             authz.clone(),
-            ledger_arc.clone(),
+            ledger.clone(),
             jobs,
             publisher,
             clock.clone(),
         );
         let obligations_arc = Arc::new(obligations);
 
-        let payments = Payments::new(pool, authz, ledger_arc, clock, publisher);
+        let payments = Payments::new(pool, authz, ledger, clock, publisher);
         let payments_arc = Arc::new(payments);
 
-        Ok(Self {
+        Self {
             obligations: obligations_arc,
             payments: payments_arc,
-        })
+        }
     }
 
-    pub fn obligations(&self) -> &Obligations<Perms, E> {
+    pub fn obligations(&self) -> &Obligations<Perms, E, L> {
         self.obligations.as_ref()
     }
 
-    pub fn payments(&self) -> &Payments<Perms, E> {
+    pub fn payments(&self) -> &Payments<Perms, E, L> {
         self.payments.as_ref()
     }
 }

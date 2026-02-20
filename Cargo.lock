@@ -1220,6 +1220,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
+ "core-accounting-types",
  "csv",
  "derive_builder",
  "document-storage",
@@ -1246,6 +1247,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-accounting-types"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "audit",
+ "authz",
+ "cala-ledger-core-types",
+ "chrono",
+ "es-entity",
+ "job",
+ "money",
+ "permission-sets-macro",
+ "schemars 1.2.1",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-utils",
+ "uuid",
+]
+
+[[package]]
 name = "core-credit"
 version = "0.0.0"
 dependencies = [
@@ -1255,6 +1280,7 @@ dependencies = [
  "audit",
  "authz",
  "cala-ledger",
+ "cala-ledger-core-types",
  "chrono",
  "cloud-storage",
  "core-access",
@@ -1273,6 +1299,8 @@ dependencies = [
  "futures",
  "governance",
  "job",
+ "lana-collection-ledger",
+ "lana-credit-ledger",
  "money",
  "obix",
  "permission-sets-macro",
@@ -1306,11 +1334,13 @@ dependencies = [
  "audit",
  "authz",
  "cala-ledger",
+ "cala-ledger-core-types",
  "chrono",
  "core-credit-terms",
  "derive_builder",
  "es-entity",
  "job",
+ "lana-collection-ledger",
  "money",
  "obix",
  "permission-sets-macro",
@@ -3609,6 +3639,8 @@ dependencies = [
  "gotenberg",
  "governance",
  "job",
+ "lana-collection-ledger",
+ "lana-credit-ledger",
  "lana-events",
  "lana-ids",
  "money",
@@ -3655,6 +3687,47 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-utils",
+ "workspace-hack",
+]
+
+[[package]]
+name = "lana-collection-ledger"
+version = "0.0.0"
+dependencies = [
+ "audit",
+ "cala-ledger",
+ "chrono",
+ "core-credit-collection",
+ "es-entity",
+ "money",
+ "rust_decimal",
+ "serde_json",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
+ "uuid",
+ "workspace-hack",
+]
+
+[[package]]
+name = "lana-credit-ledger"
+version = "0.0.0"
+dependencies = [
+ "audit",
+ "cala-ledger",
+ "chrono",
+ "core-accounting",
+ "core-credit",
+ "core-credit-collection",
+ "es-entity",
+ "money",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
+ "uuid",
  "workspace-hack",
 ]
 
@@ -7679,6 +7752,7 @@ dependencies = [
  "idna",
  "indexmap 2.12.0",
  "inout",
+ "itertools",
  "job",
  "lalrpop-util",
  "lazy_static",

@@ -9,9 +9,11 @@ use core_price::CorePriceEvent;
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
 
-use core_credit_collection::{CoreCreditCollection, PaymentAllocation};
+use crate::collateral::ledger::CollateralLedgerOps;
+use crate::ledger::CreditLedgerOps;
+use core_credit_collection::{CollectionLedgerOps, CoreCreditCollection, PaymentAllocation};
 
-pub struct CreditFacilitiesForSubject<'a, Perms, E>
+pub struct CreditFacilitiesForSubject<'a, Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -19,20 +21,23 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
-    credit_facilities: &'a CreditFacilities<Perms, E>,
-    collaterals: &'a Collaterals<Perms, E>,
-    collections: &'a CoreCreditCollection<Perms, E>,
-    disbursals: &'a Disbursals<Perms, E>,
+    credit_facilities: &'a CreditFacilities<Perms, E, L, CL, ColL>,
+    collaterals: &'a Collaterals<Perms, E, CL>,
+    collections: &'a CoreCreditCollection<Perms, E, ColL>,
+    disbursals: &'a Disbursals<Perms, E, ColL>,
     histories: &'a Histories<Perms>,
     repayment_plans: &'a RepaymentPlans<Perms>,
-    ledger: &'a CreditLedger,
+    ledger: &'a L,
 }
 
-impl<'a, Perms, E> CreditFacilitiesForSubject<'a, Perms, E>
+impl<'a, Perms, E, L, CL, ColL> CreditFacilitiesForSubject<'a, Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -48,18 +53,21 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: CustomerId,
         authz: &'a Perms,
-        credit_facilities: &'a CreditFacilities<Perms, E>,
-        collaterals: &'a Collaterals<Perms, E>,
-        collections: &'a CoreCreditCollection<Perms, E>,
-        disbursals: &'a Disbursals<Perms, E>,
+        credit_facilities: &'a CreditFacilities<Perms, E, L, CL, ColL>,
+        collaterals: &'a Collaterals<Perms, E, CL>,
+        collections: &'a CoreCreditCollection<Perms, E, ColL>,
+        disbursals: &'a Disbursals<Perms, E, ColL>,
         history: &'a Histories<Perms>,
         repayment_plans: &'a RepaymentPlans<Perms>,
-        ledger: &'a CreditLedger,
+        ledger: &'a L,
     ) -> Self {
         Self {
             customer_id,

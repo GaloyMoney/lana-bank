@@ -2,7 +2,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cala_ledger::AccountId as CalaAccountId;
+use cala_ledger_core_types::primitives::AccountId as CalaAccountId;
 
 use super::CreditFacilityLedgerAccountIds;
 

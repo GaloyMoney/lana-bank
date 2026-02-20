@@ -11,21 +11,23 @@ use domain_config::InternalDomainConfigs;
 use crate::{CoreCreditAction, CoreCreditObject, ledger::*};
 
 pub use config::ChartOfAccountsIntegrationConfig;
-pub(crate) use config::ResolvedChartOfAccountsIntegrationConfig;
+pub use config::ResolvedChartOfAccountsIntegrationConfig;
 use error::ChartOfAccountsIntegrationError;
 
-pub struct ChartOfAccountsIntegrations<Perms>
+pub struct ChartOfAccountsIntegrations<Perms, L>
 where
     Perms: PermissionCheck,
+    L: CreditLedgerOps,
 {
     authz: Arc<Perms>,
     domain_configs: Arc<InternalDomainConfigs>,
-    ledger: Arc<CreditLedger>,
+    ledger: Arc<L>,
 }
 
-impl<Perms> Clone for ChartOfAccountsIntegrations<Perms>
+impl<Perms, L> Clone for ChartOfAccountsIntegrations<Perms, L>
 where
     Perms: PermissionCheck,
+    L: CreditLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -36,15 +38,16 @@ where
     }
 }
 
-impl<Perms> ChartOfAccountsIntegrations<Perms>
+impl<Perms, L> ChartOfAccountsIntegrations<Perms, L>
 where
     Perms: PermissionCheck,
+    L: CreditLedgerOps,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     pub fn new(
         authz: Arc<Perms>,
-        ledger: Arc<CreditLedger>,
+        ledger: Arc<L>,
         domain_configs: Arc<InternalDomainConfigs>,
     ) -> Self {
         Self {

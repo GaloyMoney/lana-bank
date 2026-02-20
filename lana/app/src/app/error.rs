@@ -20,6 +20,12 @@ pub enum ApplicationError {
     NotificationError(#[from] notification::error::NotificationError),
     #[error("ApplicationError - CreditFacilityError: {0}")]
     CreditFacilityError(#[from] crate::credit::error::CoreCreditError),
+    #[error("ApplicationError - CreditLedgerError: {0}")]
+    CreditLedgerError(#[from] core_credit::CreditLedgerError),
+    #[error("ApplicationError - CollateralLedgerError: {0}")]
+    CollateralLedgerError(#[from] core_credit::CollateralLedgerError),
+    #[error("ApplicationError - CollectionLedgerError: {0}")]
+    CollectionLedgerError(#[from] core_credit::CollectionLedgerError),
     #[error("ApplicationError - TrialBalanceError: {0}")]
     TrialBalanceError(#[from] crate::trial_balance::error::TrialBalanceError),
     #[error("ApplicationError - ProfitAndLossStatementError: {0}")]
@@ -81,6 +87,9 @@ impl ErrorSeverity for ApplicationError {
             Self::DepositSyncError(e) => e.severity(),
             Self::NotificationError(e) => e.severity(),
             Self::CreditFacilityError(e) => e.severity(),
+            Self::CreditLedgerError(_) => Level::ERROR,
+            Self::CollateralLedgerError(_) => Level::ERROR,
+            Self::CollectionLedgerError(_) => Level::ERROR,
             Self::TrialBalanceError(e) => e.severity(),
             Self::ProfitAndLossStatementError(e) => e.severity(),
             Self::BalanceSheetError(e) => e.severity(),

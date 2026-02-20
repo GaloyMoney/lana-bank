@@ -9,7 +9,10 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::JobType;
 
-use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
+use crate::{
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, collateral::ledger::CollateralLedgerOps,
+    ledger::CreditLedgerOps,
+};
 use core_credit_collection::CoreCreditCollectionEvent;
 
 use super::ApproveCreditFacilityProposal;
@@ -17,7 +20,7 @@ use super::ApproveCreditFacilityProposal;
 pub const CREDIT_FACILITY_PROPOSAL_APPROVE_JOB: JobType =
     JobType::new("outbox.credit-facility-proposal-approval");
 
-pub(crate) struct CreditFacilityProposalApprovalHandler<Perms, E>
+pub(crate) struct CreditFacilityProposalApprovalHandler<Perms, E, L, CL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -25,11 +28,13 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
 {
-    process: ApproveCreditFacilityProposal<Perms, E>,
+    process: ApproveCreditFacilityProposal<Perms, E, L, CL>,
 }
 
-impl<Perms, E> CreditFacilityProposalApprovalHandler<Perms, E>
+impl<Perms, E, L, CL> CreditFacilityProposalApprovalHandler<Perms, E, L, CL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -45,15 +50,18 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
 {
-    pub fn new(process: &ApproveCreditFacilityProposal<Perms, E>) -> Self {
+    pub fn new(process: &ApproveCreditFacilityProposal<Perms, E, L, CL>) -> Self {
         Self {
             process: process.clone(),
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for CreditFacilityProposalApprovalHandler<Perms, E>
+impl<Perms, E, L, CL> OutboxEventHandler<E>
+    for CreditFacilityProposalApprovalHandler<Perms, E, L, CL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -69,6 +77,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
 {
     #[instrument(name = "core_credit.credit_facility_proposal_approval_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
     async fn handle_persistent(

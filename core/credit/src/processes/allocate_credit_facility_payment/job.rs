@@ -11,20 +11,23 @@ use crate::{
     CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
 };
 
+use core_credit_collection::CollectionLedgerOps;
+
 use super::AllocateCreditFacilityPayment;
 
 pub const ALLOCATE_CREDIT_FACILITY_PAYMENT: JobType =
     JobType::new("outbox.allocate-credit-facility-payment");
 
-pub struct AllocateCreditFacilityPaymentHandler<Perms, E>
+pub struct AllocateCreditFacilityPaymentHandler<Perms, E, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    ColL: CollectionLedgerOps,
 {
-    process: AllocateCreditFacilityPayment<Perms, E>,
+    process: AllocateCreditFacilityPayment<Perms, E, ColL>,
 }
 
-impl<Perms, E> AllocateCreditFacilityPaymentHandler<Perms, E>
+impl<Perms, E, ColL> AllocateCreditFacilityPaymentHandler<Perms, E, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -32,15 +35,16 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    ColL: CollectionLedgerOps,
 {
-    pub fn new(process: &AllocateCreditFacilityPayment<Perms, E>) -> Self {
+    pub fn new(process: &AllocateCreditFacilityPayment<Perms, E, ColL>) -> Self {
         Self {
             process: process.clone(),
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for AllocateCreditFacilityPaymentHandler<Perms, E>
+impl<Perms, E, ColL> OutboxEventHandler<E> for AllocateCreditFacilityPaymentHandler<Perms, E, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -48,6 +52,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    ColL: CollectionLedgerOps,
 {
     #[instrument(name = "core_credit.allocate_credit_facility_payment_job.process_message_in_op", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
     async fn handle_persistent(

@@ -1,0 +1,32 @@
+[package]
+name = "core-accounting-types"
+version.workspace = true
+edition = "2024"
+license = "BUSL-1.1"
+
+[features]
+fail-on-warnings = []
+graphql = ["es-entity/graphql", "cala-ledger-core-types/graphql", "dep:async-graphql"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger-core-types/json-schema"]
+
+[dependencies]
+cala-ledger-core-types = { workspace = true }
+es-entity = { workspace = true }
+audit = { workspace = true }
+money = { workspace = true }
+job = { workspace = true }
+authz = { workspace = true }
+permission-sets-macro = { workspace = true }
+tracing-utils = { workspace = true }
+sqlx = { workspace = true }
+
+uuid = { workspace = true }
+serde = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+
+async-graphql = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }

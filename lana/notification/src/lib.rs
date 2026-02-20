@@ -61,15 +61,20 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(name = "notification.init", skip_all)]
-    pub async fn init(
+    pub async fn init<L, CL, ColL>(
         config: NotificationConfig,
         jobs: &mut Jobs,
         outbox: &obix::Outbox<LanaEvent>,
         users: &Users<AuthzType::Audit, LanaEvent>,
-        credit: &CoreCredit<AuthzType, LanaEvent>,
+        credit: &CoreCredit<AuthzType, LanaEvent, L, CL, ColL>,
         customers: &Customers<AuthzType, LanaEvent>,
         domain_configs: &ExposedDomainConfigsReadOnly,
-    ) -> Result<Self, NotificationError> {
+    ) -> Result<Self, NotificationError>
+    where
+        L: core_credit::CreditLedgerOps,
+        CL: core_credit::CollateralLedgerOps,
+        ColL: core_credit_collection::CollectionLedgerOps,
+    {
         let email = EmailNotification::init(
             jobs,
             domain_configs,

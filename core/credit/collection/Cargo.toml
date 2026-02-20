@@ -5,13 +5,13 @@ edition = "2024"
 
 [features]
 fail-on-warnings = []
-graphql = ["es-entity/graphql", "cala-ledger/graphql"]
+graphql = ["es-entity/graphql", "cala-ledger-core-types/graphql"]
 json-schema = [
     "dep:schemars",
     "es-entity/json-schema",
     "money/json-schema",
     "job/json-schema",
-    "cala-ledger/json-schema",
+    "cala-ledger-core-types/json-schema",
 ]
 
 [dependencies]
@@ -24,7 +24,7 @@ authz = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
 
-cala-ledger = { workspace = true }
+cala-ledger-core-types = { workspace = true }
 es-entity = { workspace = true }
 sqlx = { workspace = true }
 
@@ -46,5 +46,7 @@ workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
 [dev-dependencies]
 anyhow = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
+cala-ledger = { workspace = true }
+lana-collection-ledger = { workspace = true }
 obix = { workspace = true, features = ["test-utils"] }
 tokio = { workspace = true }

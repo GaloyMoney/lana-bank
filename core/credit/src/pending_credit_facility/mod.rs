@@ -18,7 +18,7 @@ use es_entity::clock::ClockHandle;
 
 use crate::{
     Collaterals, CoreCreditEvent, CreditFacilityProposals,
-    collateral::ledger::CollateralLedgerAccountIds,
+    collateral::ledger::{CollateralLedgerAccountIds, CollateralLedgerOps},
     credit_facility::NewCreditFacilityBuilder,
     credit_facility_proposal::{CreditFacilityProposal, ProposalApprovalOutcome},
     disbursal::NewDisbursalBuilder,
@@ -43,7 +43,7 @@ pub enum PendingCreditFacilityCompletionOutcome {
     },
 }
 
-pub struct PendingCreditFacilities<Perms, E>
+pub struct PendingCreditFacilities<Perms, E, L, CL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -51,18 +51,20 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
 {
     repo: Arc<PendingCreditFacilityRepo<E>>,
     proposals: Arc<CreditFacilityProposals<Perms, E>>,
     custody: Arc<CoreCustody<Perms, E>>,
-    collaterals: Arc<Collaterals<Perms, E>>,
+    collaterals: Arc<Collaterals<Perms, E, CL>>,
     authz: Arc<Perms>,
     price: Arc<Price>,
-    ledger: Arc<CreditLedger>,
+    ledger: Arc<L>,
     governance: Arc<Governance<Perms, E>>,
     clock: ClockHandle,
 }
-impl<Perms, E> Clone for PendingCreditFacilities<Perms, E>
+impl<Perms, E, L, CL> Clone for PendingCreditFacilities<Perms, E, L, CL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -70,6 +72,8 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -86,7 +90,7 @@ where
     }
 }
 
-impl<Perms, E> PendingCreditFacilities<Perms, E>
+impl<Perms, E, L, CL> PendingCreditFacilities<Perms, E, L, CL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -102,14 +106,16 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
         proposals: Arc<CreditFacilityProposals<Perms, E>>,
         custody: Arc<CoreCustody<Perms, E>>,
-        collaterals: Arc<Collaterals<Perms, E>>,
+        collaterals: Arc<Collaterals<Perms, E, CL>>,
         authz: Arc<Perms>,
-        ledger: Arc<CreditLedger>,
+        ledger: Arc<L>,
         price: Arc<Price>,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,

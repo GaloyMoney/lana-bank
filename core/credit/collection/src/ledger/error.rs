@@ -6,23 +6,23 @@ use tracing_utils::ErrorSeverity;
 pub enum CollectionLedgerError {
     #[error("CollectionLedgerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CollectionLedgerError - CalaLedger: {0}")]
-    CalaLedger(#[from] cala_ledger::error::LedgerError),
-    #[error("CollectionLedgerError - CalaTxTemplateError: {0}")]
-    CalaTxTemplate(#[from] cala_ledger::tx_template::error::TxTemplateError),
-    #[error("CollectionLedgerError - CalaVelocityError: {0}")]
-    CalaVelocity(#[from] cala_ledger::velocity::error::VelocityError),
+    #[error("CollectionLedgerError - Ledger: {0}")]
+    Ledger(Box<dyn std::error::Error + Send + Sync>),
     #[error("CollectionLedgerError - PaymentAmountGreaterThanOutstandingObligations")]
     PaymentAmountGreaterThanOutstandingObligations,
+}
+
+impl CollectionLedgerError {
+    pub fn from_ledger(e: impl std::error::Error + Send + Sync + 'static) -> Self {
+        Self::Ledger(Box::new(e))
+    }
 }
 
 impl ErrorSeverity for CollectionLedgerError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::CalaLedger(_) => Level::ERROR,
-            Self::CalaTxTemplate(_) => Level::ERROR,
-            Self::CalaVelocity(_) => Level::ERROR,
+            Self::Ledger(_) => Level::ERROR,
             Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,
         }
     }

@@ -11,6 +11,8 @@ use core_credit_collection::{CollectionLedgerError, PaymentError};
 use core_deposit::DepositAccountId;
 use document_storage::DocumentStorage;
 use helpers::{action, event, object};
+use lana_collection_ledger::CollectionLedger;
+use lana_credit_ledger::{CollateralLedger, CreditLedger};
 use public_id::PublicIds;
 
 use core_credit::error::CoreCreditError;
@@ -52,7 +54,7 @@ type TestEvent = event::DummyEvent;
 
 /// Creates a customer, deposit account, and activates a credit facility.
 async fn create_active_facility(
-    credit: &CoreCredit<TestPerms, TestEvent>,
+    credit: &CoreCredit<TestPerms, TestEvent, CreditLedger, CollateralLedger, CollectionLedger>,
     deposit: &core_deposit::CoreDeposit<TestPerms, TestEvent>,
     customers: &core_customer::Customers<TestPerms, TestEvent>,
     facility_amount: UsdCents,
@@ -218,6 +220,27 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     .await?;
     let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
 
+    let credit_ledger = CreditLedger::init(&cala, journal_id, clock.clone()).await?;
+    let credit_ledger = std::sync::Arc::new(credit_ledger);
+
+    let collateral_ledger = CollateralLedger::init(
+        &cala,
+        journal_id,
+        clock.clone(),
+        *credit_ledger.collateral_omnibus_account_ids(),
+        credit_ledger.collateral_account_sets(),
+    )
+    .await?;
+    let collateral_ledger = std::sync::Arc::new(collateral_ledger);
+
+    let collection_ledger = CollectionLedger::init(
+        &cala,
+        journal_id,
+        credit_ledger.payments_made_omnibus_account_ids().account_id,
+    )
+    .await?;
+    let collection_ledger = std::sync::Arc::new(collection_ledger);
+
     let credit = CoreCredit::init(
         &pool,
         CreditConfig::default(),
@@ -228,8 +251,9 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         &custody,
         &price,
         &outbox,
-        &cala,
-        journal_id,
+        credit_ledger,
+        collateral_ledger,
+        collection_ledger,
         &credit_public_ids,
         &domain_configs,
         &internal_domain_configs,

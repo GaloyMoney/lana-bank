@@ -56,7 +56,7 @@ use crate::{
     ledger::*,
 };
 
-use core_credit_collection::CoreCreditCollection;
+use core_credit_collection::{CollectionLedgerOps, CoreCreditCollection};
 
 /// State machine states for the interest accrual job.
 ///
@@ -102,7 +102,7 @@ impl<Perms, E> Clone for InterestAccrualJobConfig<Perms, E> {
     }
 }
 
-pub struct InterestAccrualJobInit<Perms, E>
+pub struct InterestAccrualJobInit<Perms, E, L: CreditLedgerOps, ColL: CollectionLedgerOps>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -111,14 +111,15 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    ledger: Arc<CreditLedger>,
-    collections: Arc<CoreCreditCollection<Perms, E>>,
+    ledger: Arc<L>,
+    collections: Arc<CoreCreditCollection<Perms, E, ColL>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
     authz: Arc<Perms>,
 }
 
-impl<Perms, E> InterestAccrualJobInit<Perms, E>
+impl<Perms, E, L: CreditLedgerOps, ColL: CollectionLedgerOps>
+    InterestAccrualJobInit<Perms, E, L, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -136,8 +137,8 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
-        ledger: Arc<CreditLedger>,
-        collections: Arc<CoreCreditCollection<Perms, E>>,
+        ledger: Arc<L>,
+        collections: Arc<CoreCreditCollection<Perms, E, ColL>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         collateral_repo: Arc<CollateralRepo<E>>,
         authz: Arc<Perms>,
@@ -154,7 +155,8 @@ where
 
 const INTEREST_ACCRUAL_JOB: JobType = JobType::new("task.interest-accrual");
 
-impl<Perms, E> JobInitializer for InterestAccrualJobInit<Perms, E>
+impl<Perms, E, L: CreditLedgerOps, ColL: CollectionLedgerOps> JobInitializer
+    for InterestAccrualJobInit<Perms, E, L, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -181,7 +183,7 @@ where
         job: &Job,
         spawner: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(InterestAccrualJobRunner::<Perms, E> {
+        Ok(Box::new(InterestAccrualJobRunner::<Perms, E, L, ColL> {
             config: job.config()?,
             collections: self.collections.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
@@ -193,7 +195,7 @@ where
     }
 }
 
-struct InterestAccrualJobRunner<Perms, E>
+struct InterestAccrualJobRunner<Perms, E, L: CreditLedgerOps, ColL: CollectionLedgerOps>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -203,16 +205,17 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     config: InterestAccrualJobConfig<Perms, E>,
-    collections: Arc<CoreCreditCollection<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E, ColL>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
-    ledger: Arc<CreditLedger>,
+    ledger: Arc<L>,
     spawner: InterestAccrualJobSpawner<Perms, E>,
     authz: Arc<Perms>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for InterestAccrualJobRunner<Perms, E>
+impl<Perms, E, L: CreditLedgerOps, ColL: CollectionLedgerOps> JobRunner
+    for InterestAccrualJobRunner<Perms, E, L, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -254,7 +257,8 @@ where
     }
 }
 
-impl<Perms, E> InterestAccrualJobRunner<Perms, E>
+impl<Perms, E, L: CreditLedgerOps, ColL: CollectionLedgerOps>
+    InterestAccrualJobRunner<Perms, E, L, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>

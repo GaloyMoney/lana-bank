@@ -8,28 +8,6 @@ use money::{Satoshis, UsdCents};
 
 use crate::{CVLPct, CollateralizationRatio};
 
-#[cfg(not(test))]
-#[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct CreditFacilityBalanceSummary {
-    pub(super) facility: UsdCents,
-    pub(super) facility_remaining: UsdCents,
-    pub(super) collateral: Satoshis,
-    pub(super) disbursed: UsdCents,
-    pub(super) not_yet_due_disbursed_outstanding: UsdCents,
-    pub(super) due_disbursed_outstanding: UsdCents,
-    pub(super) overdue_disbursed_outstanding: UsdCents,
-    pub(super) disbursed_defaulted: UsdCents,
-    pub(super) interest_posted: UsdCents,
-    pub(super) not_yet_due_interest_outstanding: UsdCents,
-    pub(super) due_interest_outstanding: UsdCents,
-    pub(super) overdue_interest_outstanding: UsdCents,
-    pub(super) interest_defaulted: UsdCents,
-    pub(super) payments_unapplied: UsdCents,
-}
-
-// For testing we want to be able to construct the struct
-#[cfg(test)]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityBalanceSummary {

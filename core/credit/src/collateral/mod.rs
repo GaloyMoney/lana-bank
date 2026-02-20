@@ -29,7 +29,7 @@ use es_entity::Idempotent;
 use crate::{CoreCreditEvent, primitives::*};
 
 use ledger::{
-    CollateralLedger, CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
+    CollateralLedgerAccountIds, CollateralLedgerOps, FacilityLedgerAccountIdsForLiquidation,
     LiquidationProceedsAccountIds,
 };
 
@@ -47,27 +47,29 @@ use error::CollateralError;
 #[cfg(feature = "json-schema")]
 pub use liquidation::LiquidationEvent;
 
-pub struct Collaterals<Perms, E>
+pub struct Collaterals<Perms, E, CL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
+    CL: CollateralLedgerOps,
 {
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
-    ledger: Arc<CollateralLedger>,
+    ledger: Arc<CL>,
     clock: ClockHandle,
 }
 
-impl<Perms, E> Clone for Collaterals<Perms, E>
+impl<Perms, E, CL> Clone for Collaterals<Perms, E, CL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
+    CL: CollateralLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -79,7 +81,7 @@ where
     }
 }
 
-impl<Perms, E> Collaterals<Perms, E>
+impl<Perms, E, CL> Collaterals<Perms, E, CL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -90,11 +92,12 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<GovernanceEvent>,
+    CL: CollateralLedgerOps,
 {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
         authz: Arc<Perms>,
-        ledger: Arc<CollateralLedger>,
+        ledger: Arc<CL>,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
         repo: Arc<CollateralRepo<E>>,
@@ -108,6 +111,7 @@ where
                 wallet_collateral_sync::WalletCollateralSyncHandler::<
                     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
                     E,
+                    CL,
                 >::new(ledger.clone(), repo.clone()),
             )
             .await?;

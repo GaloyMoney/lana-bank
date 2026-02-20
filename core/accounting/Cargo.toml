@@ -9,6 +9,7 @@ graphql = [ "dep:async-graphql" ]
 json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "document-storage/json-schema"]
 
 [dependencies]
+core-accounting-types = { workspace = true }
 permission-sets-macro = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }

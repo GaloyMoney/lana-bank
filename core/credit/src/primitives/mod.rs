@@ -25,7 +25,7 @@ pub const CREDIT_FACILITY_PAYMENT_ALLOCATION: audit::SystemActor =
     audit::SystemActor::new("credit-facility-payment-allocation");
 pub const DISBURSAL_APPROVAL: audit::SystemActor = audit::SystemActor::new("disbursal-approval");
 
-pub use cala_ledger::primitives::{
+pub use cala_ledger_core_types::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,

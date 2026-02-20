@@ -11,27 +11,37 @@ use crate::email::EmailNotification;
 
 pub const EMAIL_LISTENER_JOB: JobType = JobType::new("outbox.email-listener");
 
-pub struct EmailEventListenerHandler<Perms>
+pub struct EmailEventListenerHandler<Perms, L, CL, ColL>
 where
     Perms: authz::PermissionCheck,
+    L: core_credit::CreditLedgerOps,
+    CL: core_credit::CollateralLedgerOps,
+    ColL: core_credit_collection::CollectionLedgerOps,
 {
-    email_notification: EmailNotification<Perms>,
+    email_notification: EmailNotification<Perms, L, CL, ColL>,
 }
 
-impl<Perms> EmailEventListenerHandler<Perms>
+impl<Perms, L, CL, ColL> EmailEventListenerHandler<Perms, L, CL, ColL>
 where
     Perms: authz::PermissionCheck,
+    L: core_credit::CreditLedgerOps,
+    CL: core_credit::CollateralLedgerOps,
+    ColL: core_credit_collection::CollectionLedgerOps,
 {
-    pub fn new(email_notification: &EmailNotification<Perms>) -> Self {
+    pub fn new(email_notification: &EmailNotification<Perms, L, CL, ColL>) -> Self {
         Self {
             email_notification: email_notification.clone(),
         }
     }
 }
 
-impl<Perms> OutboxEventHandler<LanaEvent> for EmailEventListenerHandler<Perms>
+impl<Perms, L, CL, ColL> OutboxEventHandler<LanaEvent>
+    for EmailEventListenerHandler<Perms, L, CL, ColL>
 where
     Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    L: core_credit::CreditLedgerOps,
+    CL: core_credit::CollateralLedgerOps,
+    ColL: core_credit_collection::CollectionLedgerOps,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_credit_collection::CoreCreditCollectionAction>
         + From<core_customer::CoreCustomerAction>

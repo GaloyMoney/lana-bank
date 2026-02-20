@@ -7,7 +7,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_credit_collection::CoreCreditCollection;
+use core_credit_collection::{CollectionLedgerOps, CoreCreditCollection};
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -18,18 +18,20 @@ use crate::{
 
 pub use job::*;
 
-pub struct AllocateCreditFacilityPayment<Perms, E>
+pub struct AllocateCreditFacilityPayment<Perms, E, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    ColL: CollectionLedgerOps,
 {
-    collections: Arc<CoreCreditCollection<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E, ColL>>,
 }
 
-impl<Perms, E> Clone for AllocateCreditFacilityPayment<Perms, E>
+impl<Perms, E, ColL> Clone for AllocateCreditFacilityPayment<Perms, E, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    ColL: CollectionLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -38,7 +40,7 @@ where
     }
 }
 
-impl<Perms, E> AllocateCreditFacilityPayment<Perms, E>
+impl<Perms, E, ColL> AllocateCreditFacilityPayment<Perms, E, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -46,8 +48,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    ColL: CollectionLedgerOps,
 {
-    pub fn new(collections: Arc<CoreCreditCollection<Perms, E>>) -> Self {
+    pub fn new(collections: Arc<CoreCreditCollection<Perms, E, ColL>>) -> Self {
         Self { collections }
     }
 
@@ -59,7 +62,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,
-        initiated_by: &impl SystemSubject,
+        initiated_by: &(impl SystemSubject + Send + Sync),
     ) -> Result<(), CoreCreditError> {
         if let Some(payment) = self.collections.payments().find_by_id(payment_id).await? {
             self.collections

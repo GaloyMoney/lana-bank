@@ -7,6 +7,8 @@ use core_accounting::{AccountCode, CalaAccountSetId, CoreAccounting};
 use core_credit::*;
 use document_storage::DocumentStorage;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use lana_collection_ledger::CollectionLedger;
+use lana_credit_ledger::{CollateralLedger, CreditLedger};
 use std::collections::HashMap;
 
 use helpers::{
@@ -121,6 +123,27 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
     let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
+    let credit_ledger = CreditLedger::init(&cala, journal_id, clock.clone()).await?;
+    let credit_ledger = std::sync::Arc::new(credit_ledger);
+
+    let collateral_ledger = CollateralLedger::init(
+        &cala,
+        journal_id,
+        clock.clone(),
+        *credit_ledger.collateral_omnibus_account_ids(),
+        credit_ledger.collateral_account_sets(),
+    )
+    .await?;
+    let collateral_ledger = std::sync::Arc::new(collateral_ledger);
+
+    let collection_ledger = CollectionLedger::init(
+        &cala,
+        journal_id,
+        credit_ledger.payments_made_omnibus_account_ids().account_id,
+    )
+    .await?;
+    let collection_ledger = std::sync::Arc::new(collection_ledger);
+
     let credit = CoreCredit::init(
         &pool,
         Default::default(),
@@ -131,8 +154,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &custody,
         &price,
         &outbox,
-        &cala,
-        journal_id,
+        credit_ledger,
+        collateral_ledger,
+        collection_ledger,
         &public_ids,
         &exposed_domain_configs,
         &internal_domain_configs,

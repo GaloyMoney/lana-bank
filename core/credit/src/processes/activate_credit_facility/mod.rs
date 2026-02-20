@@ -17,14 +17,17 @@ pub use job::*;
 
 use crate::{
     CoreCreditEvent,
+    collateral::ledger::CollateralLedgerOps,
     credit_facility::CreditFacilities,
     disbursal::Disbursals,
     error::CoreCreditError,
-    ledger::CreditLedger,
+    ledger::CreditLedgerOps,
     primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId},
 };
 
-pub struct ActivateCreditFacility<Perms, E>
+use core_credit_collection::CollectionLedgerOps;
+
+pub struct ActivateCreditFacility<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -32,16 +35,19 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
-    credit_facilities: Arc<CreditFacilities<Perms, E>>,
-    disbursals: Arc<Disbursals<Perms, E>>,
-    ledger: Arc<CreditLedger>,
+    credit_facilities: Arc<CreditFacilities<Perms, E, L, CL, ColL>>,
+    disbursals: Arc<Disbursals<Perms, E, ColL>>,
+    ledger: Arc<L>,
     price: Arc<Price>,
     audit: Arc<Perms::Audit>,
     public_ids: Arc<PublicIds>,
 }
 
-impl<Perms, E> Clone for ActivateCreditFacility<Perms, E>
+impl<Perms, E, L, CL, ColL> Clone for ActivateCreditFacility<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -49,6 +55,9 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -61,7 +70,7 @@ where
         }
     }
 }
-impl<Perms, E> ActivateCreditFacility<Perms, E>
+impl<Perms, E, L, CL, ColL> ActivateCreditFacility<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -77,11 +86,14 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     pub fn new(
-        credit_facilities: Arc<CreditFacilities<Perms, E>>,
-        disbursals: Arc<Disbursals<Perms, E>>,
-        ledger: Arc<CreditLedger>,
+        credit_facilities: Arc<CreditFacilities<Perms, E, L, CL, ColL>>,
+        disbursals: Arc<Disbursals<Perms, E, ColL>>,
+        ledger: Arc<L>,
         price: Arc<Price>,
         audit: Arc<Perms::Audit>,
         public_ids: Arc<PublicIds>,

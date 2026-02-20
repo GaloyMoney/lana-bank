@@ -42,8 +42,12 @@ pub mod user_onboarding {
 pub mod notification {
     pub use notification::config::NotificationConfig;
     pub type Notification = notification::Notification<crate::authorization::Authorization>;
-    pub type EmailNotification =
-        notification::email::EmailNotification<crate::authorization::Authorization>;
+    pub type EmailNotification = notification::email::EmailNotification<
+        crate::authorization::Authorization,
+        lana_credit_ledger::CreditLedger,
+        lana_credit_ledger::CollateralLedger,
+        lana_collection_ledger::CollectionLedger,
+    >;
     pub use notification::{NotificationFromEmail, NotificationFromName};
 }
 
@@ -185,8 +189,13 @@ pub mod credit {
         ProceedsFromLiquidationReceived, RepaymentStatus, RepaymentType, Sort, error,
     };
 
-    pub type Credit =
-        core_credit::CoreCredit<crate::authorization::Authorization, lana_events::LanaEvent>;
+    pub type Credit = core_credit::CoreCredit<
+        crate::authorization::Authorization,
+        lana_events::LanaEvent,
+        lana_credit_ledger::CreditLedger,
+        lana_credit_ledger::CollateralLedger,
+        lana_collection_ledger::CollectionLedger,
+    >;
 }
 
 pub mod terms_template {

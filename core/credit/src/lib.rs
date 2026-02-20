@@ -22,7 +22,6 @@ use std::sync::Arc;
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
-use cala_ledger::CalaLedger;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -41,10 +40,12 @@ use tracing_macros::record_error_severity;
 
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrations,
-    error::ChartOfAccountsIntegrationError,
+    ResolvedChartOfAccountsIntegrationConfig, error::ChartOfAccountsIntegrationError,
 };
 pub use collateral::{
-    Collateral, Collaterals, Liquidation, RecordProceedsFromLiquidationData, liquidation_cursor,
+    Collateral, Collaterals, Liquidation, RecordProceedsFromLiquidationData,
+    ledger::CollateralAccountSets, ledger::CollateralLedgerAccountIds,
+    ledger::CollateralLedgerError, ledger::CollateralLedgerOps, liquidation_cursor,
     liquidation_cursor::*,
 };
 pub use config::*;
@@ -66,7 +67,8 @@ pub use public::*;
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 
-use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
+pub use core_credit_collection::CollectionLedgerError;
+use core_credit_collection::{CollectionLedgerOps, CoreCreditCollection, PaymentLedgerAccountIds};
 
 #[cfg(feature = "json-schema")]
 pub use core_credit_collection::{ObligationEvent, PaymentAllocationEvent, PaymentEvent};
@@ -82,7 +84,7 @@ pub mod event_schema {
     };
 }
 
-pub struct CoreCredit<Perms, E>
+pub struct CoreCredit<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -91,34 +93,36 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     authz: Arc<Perms>,
     credit_facility_proposals: Arc<CreditFacilityProposals<Perms, E>>,
-    pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
-    facilities: Arc<CreditFacilities<Perms, E>>,
-    disbursals: Arc<Disbursals<Perms, E>>,
-    collections: Arc<CoreCreditCollection<Perms, E>>,
+    pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E, L, CL>>,
+    facilities: Arc<CreditFacilities<Perms, E, L, CL, ColL>>,
+    disbursals: Arc<Disbursals<Perms, E, ColL>>,
+    collections: Arc<CoreCreditCollection<Perms, E, ColL>>,
     repayment_plans: Arc<RepaymentPlans<Perms>>,
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
-    ledger: Arc<CreditLedger>,
-    collateral_ledger: Arc<collateral::ledger::CollateralLedger>,
+    ledger: Arc<L>,
+    collateral_ledger: Arc<CL>,
     price: Arc<Price>,
     config: Arc<CreditConfig>,
     domain_configs: ExposedDomainConfigsReadOnly,
-    approve_disbursal: Arc<ApproveDisbursal<Perms, E>>,
-    approve_proposal: Arc<ApproveCreditFacilityProposal<Perms, E>>,
-    cala: Arc<CalaLedger>,
-    activate_credit_facility: Arc<ActivateCreditFacility<Perms, E>>,
-    collaterals: Arc<Collaterals<Perms, E>>,
+    approve_disbursal: Arc<ApproveDisbursal<Perms, E, L, CL, ColL>>,
+    approve_proposal: Arc<ApproveCreditFacilityProposal<Perms, E, L, CL>>,
+    activate_credit_facility: Arc<ActivateCreditFacility<Perms, E, L, CL, ColL>>,
+    collaterals: Arc<Collaterals<Perms, E, CL>>,
     custody: Arc<CoreCustody<Perms, E>>,
-    chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
+    chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms, L>>,
     public_ids: Arc<PublicIds>,
     histories: Arc<Histories<Perms>>,
     clock: ClockHandle,
 }
 
-impl<Perms, E> Clone for CoreCredit<Perms, E>
+impl<Perms, E, L, CL, ColL> Clone for CoreCredit<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -127,6 +131,9 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -148,7 +155,6 @@ where
             price: self.price.clone(),
             config: self.config.clone(),
             domain_configs: self.domain_configs.clone(),
-            cala: self.cala.clone(),
             approve_disbursal: self.approve_disbursal.clone(),
             approve_proposal: self.approve_proposal.clone(),
             activate_credit_facility: self.activate_credit_facility.clone(),
@@ -158,7 +164,7 @@ where
     }
 }
 
-impl<Perms, E> CoreCredit<Perms, E>
+impl<Perms, E, L, CL, ColL> CoreCredit<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -177,9 +183,12 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     #[record_error_severity]
-    #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id))]
+    #[instrument(name = "credit.init", skip_all)]
     pub async fn init(
         pool: &sqlx::PgPool,
         config: CreditConfig,
@@ -190,8 +199,9 @@ where
         custody: &CoreCustody<Perms, E>,
         price: &Price,
         outbox: &Outbox<E>,
-        cala: &CalaLedger,
-        journal_id: cala_ledger::JournalId,
+        ledger: Arc<L>,
+        collateral_ledger: Arc<CL>,
+        collection_ledger: Arc<ColL>,
         public_ids: &PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
         internal_domain_configs: &InternalDomainConfigs,
@@ -201,41 +211,26 @@ where
         // Create Arc-wrapped versions of parameters once
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());
-        // let jobs_arc = Arc::new(jobs.clone());
         let price_arc = Arc::new(price.clone());
         let public_ids_arc = Arc::new(public_ids.clone());
         let customer_arc = Arc::new(customer.clone());
         let custody_arc = Arc::new(custody.clone());
-        let cala_arc = Arc::new(cala.clone());
         let config_arc = Arc::new(config);
         let internal_domain_configs_arc = Arc::new(internal_domain_configs.clone());
 
         let publisher = CreditFacilityPublisher::new(outbox);
         let collections_publisher = core_credit_collection::CollectionPublisher::new(outbox);
-        let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
-        let ledger_arc = Arc::new(ledger);
+        let ledger_arc = ledger;
+        let collateral_ledger_arc = collateral_ledger;
 
-        let collateral_ledger = collateral::ledger::CollateralLedger::init(
-            cala,
-            journal_id,
-            clock.clone(),
-            *ledger_arc.collateral_omnibus_account_ids(),
-            ledger_arc.collateral_account_sets(),
-        )
-        .await?;
-        let collateral_ledger_arc = Arc::new(collateral_ledger);
-
-        let collections = CoreCreditCollection::init(
+        let collections = CoreCreditCollection::new(
             pool,
             authz_arc.clone(),
-            cala,
-            journal_id,
-            ledger_arc.payments_made_omnibus_account_ids().account_id,
+            collection_ledger,
             jobs,
             &collections_publisher,
             clock.clone(),
-        )
-        .await?;
+        );
         let collections_arc = Arc::new(collections);
 
         let credit_facility_proposals = CreditFacilityProposals::init(
@@ -408,7 +403,6 @@ where
             price: price_arc,
             config: config_arc,
             domain_configs: domain_configs.clone(),
-            cala: cala_arc,
             approve_disbursal: approve_disbursal_arc,
             approve_proposal: approve_proposal_arc,
             activate_credit_facility: activate_credit_facility_arc,
@@ -417,15 +411,15 @@ where
         })
     }
 
-    pub fn collections(&self) -> &CoreCreditCollection<Perms, E> {
+    pub fn collections(&self) -> &CoreCreditCollection<Perms, E, ColL> {
         self.collections.as_ref()
     }
 
-    pub fn collaterals(&self) -> &Collaterals<Perms, E> {
+    pub fn collaterals(&self) -> &Collaterals<Perms, E, CL> {
         self.collaterals.as_ref()
     }
 
-    pub fn disbursals(&self) -> &Disbursals<Perms, E> {
+    pub fn disbursals(&self) -> &Disbursals<Perms, E, ColL> {
         self.disbursals.as_ref()
     }
 
@@ -433,15 +427,15 @@ where
         self.credit_facility_proposals.as_ref()
     }
 
-    pub fn pending_credit_facilities(&self) -> &PendingCreditFacilities<Perms, E> {
+    pub fn pending_credit_facilities(&self) -> &PendingCreditFacilities<Perms, E, L, CL> {
         self.pending_credit_facilities.as_ref()
     }
 
-    pub fn facilities(&self) -> &CreditFacilities<Perms, E> {
+    pub fn facilities(&self) -> &CreditFacilities<Perms, E, L, CL, ColL> {
         self.facilities.as_ref()
     }
 
-    pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms> {
+    pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms, L> {
         self.chart_of_accounts_integrations.as_ref()
     }
 
@@ -472,7 +466,7 @@ where
     pub fn for_subject<'s>(
         &'s self,
         sub: &'s <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<CreditFacilitiesForSubject<'s, Perms, E>, CoreCreditError>
+    ) -> Result<CreditFacilitiesForSubject<'s, Perms, E, L, CL, ColL>, CoreCreditError>
     where
         CustomerId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {

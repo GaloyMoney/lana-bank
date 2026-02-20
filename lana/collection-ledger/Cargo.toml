@@ -1,0 +1,22 @@
+[package]
+name = "lana-collection-ledger"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+
+[dependencies]
+core-credit-collection = { workspace = true }
+cala-ledger = { workspace = true }
+money = { workspace = true }
+audit = { workspace = true }
+es-entity = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+rust_decimal = { workspace = true }
+tracing = { workspace = true }
+tracing-macros = { workspace = true }
+tracing-utils = { workspace = true }
+serde_json = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }

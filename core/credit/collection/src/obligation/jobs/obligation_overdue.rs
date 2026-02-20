@@ -9,7 +9,7 @@ use job::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    ledger::CollectionLedger,
+    ledger::CollectionLedgerOps,
     obligation::{ObligationError, ObligationRepo},
     primitives::*,
     public::CoreCreditCollectionEvent,
@@ -34,26 +34,28 @@ impl<Perms, E> Clone for ObligationOverdueJobConfig<Perms, E> {
     }
 }
 
-pub struct ObligationOverdueInit<Perms, E>
+pub struct ObligationOverdueInit<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     repo: Arc<ObligationRepo<E>>,
-    ledger: Arc<CollectionLedger>,
+    ledger: Arc<L>,
     authz: Arc<Perms>,
     obligation_defaulted_job_spawner: ObligationDefaultedJobSpawner<Perms, E>,
 }
 
-impl<Perms, E> ObligationOverdueInit<Perms, E>
+impl<Perms, E, L> ObligationOverdueInit<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     pub fn new(
-        ledger: Arc<CollectionLedger>,
+        ledger: Arc<L>,
         obligation_repo: Arc<ObligationRepo<E>>,
         authz: Arc<Perms>,
         obligation_defaulted_job_spawner: ObligationDefaultedJobSpawner<Perms, E>,
@@ -68,12 +70,13 @@ where
 }
 
 const OBLIGATION_OVERDUE_JOB: JobType = JobType::new("task.obligation-overdue");
-impl<Perms, E> JobInitializer for ObligationOverdueInit<Perms, E>
+impl<Perms, E, L> JobInitializer for ObligationOverdueInit<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     type Config = ObligationOverdueJobConfig<Perms, E>;
 
@@ -86,7 +89,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ObligationOverdueJobRunner::<Perms, E> {
+        Ok(Box::new(ObligationOverdueJobRunner::<Perms, E, L> {
             config: job.config()?,
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
@@ -96,25 +99,27 @@ where
     }
 }
 
-pub struct ObligationOverdueJobRunner<Perms, E>
+pub struct ObligationOverdueJobRunner<Perms, E, L>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     config: ObligationOverdueJobConfig<Perms, E>,
     repo: Arc<ObligationRepo<E>>,
-    ledger: Arc<CollectionLedger>,
+    ledger: Arc<L>,
     authz: Arc<Perms>,
     obligation_defaulted_job_spawner: ObligationDefaultedJobSpawner<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ObligationOverdueJobRunner<Perms, E>
+impl<Perms, E, L> JobRunner for ObligationOverdueJobRunner<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     async fn run(
         &self,
@@ -127,12 +132,13 @@ where
     }
 }
 
-impl<Perms, E> ObligationOverdueJobRunner<Perms, E>
+impl<Perms, E, L> ObligationOverdueJobRunner<Perms, E, L>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
+    L: CollectionLedgerOps,
 {
     pub async fn record_overdue(
         &self,

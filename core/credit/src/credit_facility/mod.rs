@@ -18,18 +18,18 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use crate::{
     CoreCreditEvent, PublicIds,
-    collateral::CollateralRepo,
+    collateral::{CollateralRepo, ledger::CollateralLedgerOps},
     disbursal::Disbursals,
     ledger::{
         CreditFacilityBalanceSummary, CreditFacilityCompletion, CreditFacilityInterestAccrual,
-        CreditFacilityInterestAccrualCycle, CreditLedger, InitialDisbursalOnActivation,
+        CreditFacilityInterestAccrualCycle, CreditLedgerOps, InitialDisbursalOnActivation,
     },
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
     primitives::*,
     publisher::CreditFacilityPublisher,
 };
 
-use core_credit_collection::CoreCreditCollection;
+use core_credit_collection::{CollectionLedgerOps, CoreCreditCollection};
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
@@ -45,7 +45,7 @@ pub use repo::{
     credit_facility_cursor::*,
 };
 
-pub struct CreditFacilities<Perms, E>
+pub struct CreditFacilities<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -53,14 +53,17 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
-    pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
+    pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E, L, CL>>,
     repo: Arc<CreditFacilityRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
-    collections: Arc<CoreCreditCollection<Perms, E>>,
-    disbursals: Arc<Disbursals<Perms, E>>,
+    collections: Arc<CoreCreditCollection<Perms, E, ColL>>,
+    disbursals: Arc<Disbursals<Perms, E, ColL>>,
     authz: Arc<Perms>,
-    ledger: Arc<CreditLedger>,
+    ledger: Arc<L>,
     price: Arc<Price>,
     governance: Arc<Governance<Perms, E>>,
     public_ids: Arc<PublicIds>,
@@ -69,7 +72,7 @@ where
     interest_accrual_job_spawner: jobs::interest_accrual::InterestAccrualJobSpawner<Perms, E>,
 }
 
-impl<Perms, E> Clone for CreditFacilities<Perms, E>
+impl<Perms, E, L, CL, ColL> Clone for CreditFacilities<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -77,6 +80,9 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     fn clone(&self) -> Self {
         Self {
@@ -101,7 +107,7 @@ pub(super) enum CompletionOutcome {
     Completed((CreditFacility, CreditFacilityCompletion)),
 }
 
-impl<Perms, E> CreditFacilities<Perms, E>
+impl<Perms, E, L, CL, ColL> CreditFacilities<Perms, E, L, CL, ColL>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -117,14 +123,17 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
+    L: CreditLedgerOps,
+    CL: CollateralLedgerOps,
+    ColL: CollectionLedgerOps,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
-        collections: Arc<CoreCreditCollection<Perms, E>>,
-        pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
-        disbursals: Arc<Disbursals<Perms, E>>,
-        ledger: Arc<CreditLedger>,
+        collections: Arc<CoreCreditCollection<Perms, E, ColL>>,
+        pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E, L, CL>>,
+        disbursals: Arc<Disbursals<Perms, E, ColL>>,
+        ledger: Arc<L>,
         price: Arc<Price>,
         jobs: &mut Jobs,
         publisher: &CreditFacilityPublisher<E>,
@@ -145,6 +154,7 @@ where
                 jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsHandler::<
                     Perms,
                     E,
+                    L,
                 >::new(
                     repo.clone(),
                     collateral_repo.clone(),
@@ -159,15 +169,14 @@ where
             jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo.clone()),
         );
 
-        let interest_accrual_job_spawner = jobs.add_initializer(
-            jobs::interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
+        let interest_accrual_job_spawner =
+            jobs.add_initializer(jobs::interest_accrual::InterestAccrualJobInit::new(
                 ledger.clone(),
                 collections.clone(),
                 repo.clone(),
                 collateral_repo.clone(),
                 authz.clone(),
-            ),
-        );
+            ));
 
         let liquidation_payment_job_spawner =
             jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(

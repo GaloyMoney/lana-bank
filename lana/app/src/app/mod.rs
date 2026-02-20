@@ -221,6 +221,29 @@ impl LanaApp {
         )
         .await?;
 
+        let credit_ledger =
+            lana_credit_ledger::CreditLedger::init(&cala, journal_init.journal_id, clock.clone())
+                .await?;
+        let credit_ledger = std::sync::Arc::new(credit_ledger);
+
+        let collateral_ledger = lana_credit_ledger::CollateralLedger::init(
+            &cala,
+            journal_init.journal_id,
+            clock.clone(),
+            *credit_ledger.collateral_omnibus_account_ids(),
+            credit_ledger.collateral_account_sets(),
+        )
+        .await?;
+        let collateral_ledger = std::sync::Arc::new(collateral_ledger);
+
+        let collection_ledger = lana_collection_ledger::CollectionLedger::init(
+            &cala,
+            journal_init.journal_id,
+            credit_ledger.payments_made_omnibus_account_ids().account_id,
+        )
+        .await?;
+        let collection_ledger = std::sync::Arc::new(collection_ledger);
+
         let credit = Credit::init(
             &pool,
             config.credit,
@@ -231,8 +254,9 @@ impl LanaApp {
             &custody,
             &price,
             &outbox,
-            &cala,
-            journal_init.journal_id,
+            credit_ledger,
+            collateral_ledger,
+            collection_ledger,
             &public_ids,
             &exposed_domain_configs_readonly,
             &internal_domain_configs,

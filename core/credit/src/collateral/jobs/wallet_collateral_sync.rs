@@ -12,27 +12,29 @@ use core_custody::CoreCustodyEvent;
 
 use crate::{
     CoreCreditEvent,
-    collateral::{CollateralError, CollateralRepo, ledger::CollateralLedger},
+    collateral::{CollateralError, CollateralRepo, ledger::CollateralLedgerOps},
 };
 
 pub const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-collateral-sync");
 
-pub struct WalletCollateralSyncHandler<S, E>
+pub struct WalletCollateralSyncHandler<S, E, CL>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    CL: CollateralLedgerOps,
 {
     repo: Arc<CollateralRepo<E>>,
-    ledger: Arc<CollateralLedger>,
+    ledger: Arc<CL>,
     _phantom: std::marker::PhantomData<S>,
 }
 
-impl<S, E> WalletCollateralSyncHandler<S, E>
+impl<S, E, CL> WalletCollateralSyncHandler<S, E, CL>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCustodyEvent> + OutboxEventMarker<CoreCreditEvent>,
+    CL: CollateralLedgerOps,
 {
-    pub fn new(ledger: Arc<CollateralLedger>, repo: Arc<CollateralRepo<E>>) -> Self {
+    pub fn new(ledger: Arc<CL>, repo: Arc<CollateralRepo<E>>) -> Self {
         Self {
             ledger,
             repo,
@@ -41,10 +43,11 @@ where
     }
 }
 
-impl<S, E> OutboxEventHandler<E> for WalletCollateralSyncHandler<S, E>
+impl<S, E, CL> OutboxEventHandler<E> for WalletCollateralSyncHandler<S, E, CL>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    CL: CollateralLedgerOps,
 {
     #[instrument(name = "core_credit.wallet_collateral_sync_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
@@ -77,10 +80,11 @@ where
     }
 }
 
-impl<S, E> WalletCollateralSyncHandler<S, E>
+impl<S, E, CL> WalletCollateralSyncHandler<S, E, CL>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    CL: CollateralLedgerOps,
 {
     #[record_error_severity]
     #[instrument(

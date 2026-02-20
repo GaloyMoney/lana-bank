@@ -6,10 +6,10 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
-graphql = ["dep:async-graphql", "cala-ledger/graphql", "es-entity/graphql", "core-credit-collection/graphql", "core-credit-terms/graphql"]
+graphql = ["dep:async-graphql", "cala-ledger-core-types/graphql", "es-entity/graphql", "core-credit-collection/graphql", "core-credit-terms/graphql"]
 json-schema = [
     "dep:schemars",
-    "cala-ledger/json-schema",
+    "cala-ledger-core-types/json-schema",
     "es-entity/json-schema",
     "money/json-schema",
     "job/json-schema",
@@ -39,7 +39,7 @@ job = { workspace = true }
 cloud-storage = { workspace = true }
 public-id = { workspace = true }
 
-cala-ledger = { workspace = true }
+cala-ledger-core-types = { workspace = true }
 es-entity = { workspace = true }
 sqlx = { workspace = true }
 
@@ -66,8 +66,11 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 [dev-dependencies]
 document-storage = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
+cala-ledger = { workspace = true }
 domain-config = { workspace = true, features = ["test-utils"] }
 encryption = { workspace = true }
+lana-credit-ledger = { workspace = true }
+lana-collection-ledger = { workspace = true }
 rand = { workspace = true }
 anyhow = { workspace = true }
 serde_yaml = { workspace = true }
