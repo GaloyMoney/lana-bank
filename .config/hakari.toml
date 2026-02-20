@@ -38,3 +38,11 @@ unify-target-host = "unify-if-both"
 # heavy crates to be compiled twice instead of once.
 [traversal-excludes]
 workspace-members = ["tracing-macros", "tracing-utils"]
+third-party = [
+    { name = "cala-ledger" },
+    { name = "cala-ledger-core-types" },
+    { name = "cala-cel-interpreter" },
+    { name = "es-entity" },
+    { name = "obix" },
+    { name = "job" },
+]
