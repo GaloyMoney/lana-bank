@@ -5,6 +5,6 @@ license = "LicenseRef-BUSL-1.1"
 edition = "2024"
 
 [dependencies]
-inventory = { workspace = true }
+linkme = { workspace = true }
 paste = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

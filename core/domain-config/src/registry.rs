@@ -9,10 +9,11 @@ pub struct ConfigSpecEntry {
     pub validate_json: fn(&serde_json::Value) -> Result<(), crate::DomainConfigError>,
 }
 
-inventory::collect!(ConfigSpecEntry);
+#[linkme::distributed_slice]
+pub static CONFIG_SPECS: [ConfigSpecEntry];
 
 pub fn all_specs() -> impl Iterator<Item = &'static ConfigSpecEntry> {
-    inventory::iter::<ConfigSpecEntry>.into_iter()
+    CONFIG_SPECS.iter()
 }
 
 pub fn maybe_find_by_key(key: &str) -> Option<&'static ConfigSpecEntry> {

@@ -2,9 +2,9 @@
 #[doc(hidden)]
 pub use paste;
 
-// Re-export inventory so the macro can use it
+// Re-export linkme so the macro can use it
 #[doc(hidden)]
-pub use inventory;
+pub use linkme;
 
 /// An entry registered at program start for each permission set variant.
 pub struct PermissionSetEntry {
@@ -12,18 +12,17 @@ pub struct PermissionSetEntry {
     pub description: &'static str,
 }
 
-inventory::collect!(PermissionSetEntry);
+#[linkme::distributed_slice]
+pub static PERMISSION_SET_ENTRIES: [PermissionSetEntry];
 
 /// Look up a permission set entry by name.
 pub fn find_by_name(name: &str) -> Option<&'static PermissionSetEntry> {
-    inventory::iter::<PermissionSetEntry>
-        .into_iter()
-        .find(|e| e.name == name)
+    PERMISSION_SET_ENTRIES.iter().find(|e| e.name == name)
 }
 
 /// Iterate over all registered permission set entries.
 pub fn all_entries() -> impl Iterator<Item = &'static PermissionSetEntry> {
-    inventory::iter::<PermissionSetEntry>.into_iter()
+    PERMISSION_SET_ENTRIES.iter()
 }
 
 /// Declarative macro for defining permission sets.
@@ -45,7 +44,7 @@ pub fn all_entries() -> impl Iterator<Item = &'static PermissionSetEntry> {
 /// - `pub const PERMISSION_SET_CUSTODY_VIEWER: &str = "custody_viewer";`
 /// - `pub const PERMISSION_SET_CUSTODY_WRITER: &str = "custody_writer";`
 ///
-/// Each variant is also registered via `inventory` for runtime discovery.
+/// Each variant is also registered via `linkme` for runtime discovery.
 ///
 /// ## Naming Rules:
 /// - Crate `core-custody` → module prefix `CUSTODY` → string prefix `custody_`
@@ -58,12 +57,12 @@ macro_rules! permission_sets {
                 #[doc = concat!("Permission set: ", stringify!($variant))]
                 pub const [<PERMISSION_SET_ $variant:snake:upper>]: &str = stringify!([<$variant:snake>]);
 
-                $crate::inventory::submit! {
-                    $crate::PermissionSetEntry {
-                        name: [<PERMISSION_SET_ $variant:snake:upper>],
-                        description: $description,
-                    }
-                }
+                #[$crate::linkme::distributed_slice($crate::PERMISSION_SET_ENTRIES)]
+                #[linkme(crate = $crate::linkme)]
+                static [<__PERM_ENTRY_ $variant:snake:upper>]: $crate::PermissionSetEntry = $crate::PermissionSetEntry {
+                    name: [<PERMISSION_SET_ $variant:snake:upper>],
+                    description: $description,
+                };
             }
         )*
     };

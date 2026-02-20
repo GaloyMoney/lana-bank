@@ -8,7 +8,7 @@ use serde_json::json;
 
 fn main() {
     // Reference admin_server to ensure all domain crates are linked,
-    // which registers their permission set entries via inventory.
+    // which registers their permission set entries via linkme.
     let _ = admin_server::graphql::schema(None);
 
     // 1. Permission labels

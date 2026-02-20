@@ -170,7 +170,9 @@ pub use entity::DomainConfig;
 pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
 #[doc(hidden)]
-pub use inventory;
+pub use linkme;
+#[doc(hidden)]
+pub use paste;
 pub use primitives::{
     ConfigType, DomainConfigAction, DomainConfigEntityAction, DomainConfigId, DomainConfigKey,
     DomainConfigObject, ExposedConfigAllOrOne, PERMISSION_SET_EXPOSED_CONFIG_VIEWER,

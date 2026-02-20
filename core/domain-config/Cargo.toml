@@ -4,7 +4,7 @@ edition = "2024"
 license = "BUSL-1.1"
 
 [package.metadata.cargo-machete]
-ignored = ["async-graphql"]
+ignored = ["async-graphql", "paste"]
 
 [features]
 fail-on-warnings = []
@@ -20,7 +20,8 @@ es-entity = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 derive_builder = { workspace = true }
 serde_json = { workspace = true }
-inventory = { workspace = true }
+linkme = { workspace = true }
+paste = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }

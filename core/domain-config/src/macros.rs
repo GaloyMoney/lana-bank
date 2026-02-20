@@ -29,14 +29,16 @@ macro_rules! __define_config_spec {
         impl $marker for $name {}
         impl $crate::DefaultedConfig for $name {}
 
-        $crate::inventory::submit! {
-            $crate::registry::ConfigSpecEntry {
+        $crate::paste::paste! {
+            #[$crate::linkme::distributed_slice($crate::registry::CONFIG_SPECS)]
+            #[linkme(crate = $crate::linkme)]
+            static [<__CONFIG_SPEC_ $name:snake:upper>]: $crate::registry::ConfigSpecEntry = $crate::registry::ConfigSpecEntry {
                 key: $key,
                 visibility: $visibility,
                 config_type: <$kind as $crate::ValueKind>::TYPE,
                 encrypted: $encrypted,
                 validate_json: <$name as $crate::ConfigSpec>::validate_json,
-            }
+            };
         }
     };
     // Without default: does not implement DefaultedConfig
@@ -64,14 +66,16 @@ macro_rules! __define_config_spec {
 
         impl $marker for $name {}
 
-        $crate::inventory::submit! {
-            $crate::registry::ConfigSpecEntry {
+        $crate::paste::paste! {
+            #[$crate::linkme::distributed_slice($crate::registry::CONFIG_SPECS)]
+            #[linkme(crate = $crate::linkme)]
+            static [<__CONFIG_SPEC_ $name:snake:upper>]: $crate::registry::ConfigSpecEntry = $crate::registry::ConfigSpecEntry {
                 key: $key,
                 visibility: $visibility,
                 config_type: <$kind as $crate::ValueKind>::TYPE,
                 encrypted: $encrypted,
                 validate_json: <$name as $crate::ConfigSpec>::validate_json,
-            }
+            };
         }
     };
 }
