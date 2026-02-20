@@ -1,6 +1,7 @@
 mod helpers;
 
 use authz::dummy::DummySubject;
+use chrono::{NaiveDate, TimeZone};
 use core_customer::{Activity, CoreCustomerEvent};
 use core_time_events::CoreTimeEvent;
 
@@ -12,10 +13,15 @@ fn new_telegram() -> String {
     format!("telegram-{}", uuid::Uuid::new_v4())
 }
 
-fn end_of_day_now() -> CoreTimeEvent {
-    let now = chrono::Utc::now();
+/// Fixed "today" used across all tests: 2025-01-15T12:00:00Z
+fn today() -> chrono::DateTime<chrono::Utc> {
+    chrono::Utc.with_ymd_and_hms(2025, 1, 15, 12, 0, 0).unwrap()
+}
+
+fn end_of_day_event() -> CoreTimeEvent {
+    let now = today();
     CoreTimeEvent::EndOfDay {
-        day: now.date_naive(),
+        day: NaiveDate::from_ymd_opt(2025, 1, 15).unwrap(),
         closing_time: now,
         timezone: chrono_tz::Tz::UTC,
     }
@@ -38,13 +44,13 @@ async fn end_of_day_transitions_active_to_inactive() -> anyhow::Result<()> {
         .await?;
     assert_eq!(customer.activity, Activity::Active);
 
-    // ~2 years ago falls in the Inactive range (1–10 years)
-    let two_years_ago = chrono::Utc::now() - chrono::Duration::days(730);
+    // 2023-01-15 is ~2 years before "today" (2025-01-15), falls in Inactive range (1–10 years)
+    let two_years_ago = chrono::Utc.with_ymd_and_hms(2023, 1, 15, 12, 0, 0).unwrap();
     ctx.customer_activity_repo
         .upsert_activity(customer.id, two_years_ago)
         .await?;
 
-    let end_of_day_event = end_of_day_now();
+    let end_of_day_event = end_of_day_event();
 
     let entity = helpers::expect_handler_reaction(
         &ctx.outbox,
@@ -81,13 +87,13 @@ async fn end_of_day_transitions_active_to_suspended() -> anyhow::Result<()> {
         .await?;
     assert_eq!(customer.activity, Activity::Active);
 
-    // ~15 years ago falls in the Suspended range (10+ years)
-    let fifteen_years_ago = chrono::Utc::now() - chrono::Duration::days(5475);
+    // 2010-01-15 is ~15 years before "today" (2025-01-15), falls in Suspended range (10+ years)
+    let fifteen_years_ago = chrono::Utc.with_ymd_and_hms(2010, 1, 15, 12, 0, 0).unwrap();
     ctx.customer_activity_repo
         .upsert_activity(customer.id, fifteen_years_ago)
         .await?;
 
-    let end_of_day_event = end_of_day_now();
+    let end_of_day_event = end_of_day_event();
 
     let entity = helpers::expect_handler_reaction(
         &ctx.outbox,
@@ -124,23 +130,23 @@ async fn end_of_day_transitions_inactive_to_active() -> anyhow::Result<()> {
 
     // First transition the customer to Inactive by giving them old activity
     // and calling perform_customer_activity_status_update directly.
-    let two_years_ago = chrono::Utc::now() - chrono::Duration::days(730);
+    let two_years_ago = chrono::Utc.with_ymd_and_hms(2023, 1, 15, 12, 0, 0).unwrap();
     ctx.customer_activity_repo
         .upsert_activity(customer.id, two_years_ago)
         .await?;
     ctx.customers
-        .perform_customer_activity_status_update(chrono::Utc::now())
+        .perform_customer_activity_status_update(today())
         .await?;
 
-    // Now set recent activity and start the job poller
-    let yesterday = chrono::Utc::now() - chrono::Duration::days(1);
+    // Now set recent activity (2025-01-14, one day before "today") and start the job poller
+    let yesterday = chrono::Utc.with_ymd_and_hms(2025, 1, 14, 12, 0, 0).unwrap();
     ctx.customer_activity_repo
         .upsert_activity(customer.id, yesterday)
         .await?;
 
     ctx.jobs.start_poll().await?;
 
-    let end_of_day_event = end_of_day_now();
+    let end_of_day_event = end_of_day_event();
 
     let entity = helpers::expect_handler_reaction(
         &ctx.outbox,
