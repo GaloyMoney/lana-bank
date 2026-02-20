@@ -1,5 +1,6 @@
 pub mod primitives;
 
+#[allow(clippy::module_inception)]
 pub mod deposit;
 pub mod deposit_account;
 pub mod deposit_account_history;
