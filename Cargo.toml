@@ -107,7 +107,7 @@ chrono = { version = "0.4.43", features = [
   "serde",
 ], default-features = false }
 chrono-tz = "0.10.4"
-clap = { version = "4.5.56", features = ["derive", "env"] }
+clap = { version = "4.5.58", features = ["derive", "env"] }
 derive_builder = "0.20.0"
 heck = "0.5"
 graphql_client = { version = "0.14.0", features = ["reqwest-rustls"] }
@@ -172,19 +172,19 @@ cached = { version = "0.56.0", features = ["async"] }
 walkdir = "2.5"
 google-cloud-auth = { version = "1.5.0", default-features = false }
 google-cloud-storage = { version = "1.7.0", default-features = false }
-rand = "0.9"
+rand = "0.10"
 serial_test = { version = "3.3.1", features = ["file_locks"] }
 chacha20poly1305 = "0.10.1"
 handlebars = "6.4.0"
 inventory = "0.3.15"
 schemars = { version = "1.2.1", features = ["derive", "chrono04", "rust_decimal1"] }
-tempfile = "3.24.0"
+tempfile = "3.25.0"
 p256 = "0.13.2"
 paste = "1.0"
 pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 bytes = "1.11"
-keycloak = "26.4.0"
+keycloak = "26.5.200"
 
 [profile.dev]
 debug = "line-tables-only"
