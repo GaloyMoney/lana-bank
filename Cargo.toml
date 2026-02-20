@@ -78,8 +78,8 @@ user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
 es-entity = { version = "0.10.15", features = ["event-context", "tracing-context", "instrument"] }
-cala-ledger = "0.13.15"
-cala-cel-interpreter = "0.13.15"
+cala-ledger = "0.13.16"
+cala-cel-interpreter = "0.13.16"
 job = { version = "0.6.5", features = ["es-entity"] }
 obix = { version = "0.2.14", features = ["tracing"] }
 
@@ -208,6 +208,4 @@ name = "lana-bank"
 [workspace.metadata.cargo-machete]
 ignored = ["workspace-hack"]
 
-[patch.crates-io]
-cala-cel-interpreter = { path = "../cala/cala-cel-interpreter" }
 
