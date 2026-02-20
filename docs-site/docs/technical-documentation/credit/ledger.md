@@ -79,7 +79,7 @@ Account Creation: Per-facility
 ────────────────────────────────────────
 Ref: credit-uncovered-outstanding-account-set
 Name: Credit Uncovered Outstanding Account Set
-Purpose: Tracks outstanding amount not covered by collateral
+Purpose: Tracks outstanding amount not yet covered by an unapplied payment
 Category: Off-Balance Sheet
 Normal Balance: Credit
 Account Creation: Per-facility
