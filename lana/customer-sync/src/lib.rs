@@ -3,7 +3,7 @@
 
 pub mod config;
 pub mod error;
-mod jobs;
+pub mod jobs;
 
 use config::*;
 use error::*;
