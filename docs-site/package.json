@@ -60,6 +60,7 @@
   },
   "overrides": {
     "lodash": ">=4.17.23",
-    "lodash-es": ">=4.17.23"
+    "lodash-es": ">=4.17.23",
+    "minimatch": ">=10.2.1"
   }
 }
