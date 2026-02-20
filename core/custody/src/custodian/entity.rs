@@ -24,7 +24,7 @@ pub enum CustodianEvent {
         provider: String,
     },
     ConfigUpdated {
-        encrypted_custodian_config: Option<Encrypted>,
+        encrypted_custodian_config: Encrypted,
     },
 }
 
@@ -59,7 +59,7 @@ impl Custodian {
         self.encrypted_custodian_config = encrypted.clone();
 
         self.events.push(CustodianEvent::ConfigUpdated {
-            encrypted_custodian_config: Some(encrypted),
+            encrypted_custodian_config: encrypted,
         });
 
         Idempotent::Executed(())
@@ -86,7 +86,7 @@ impl Custodian {
 
         self.encrypted_custodian_config = encrypted_config.clone();
         self.events.push(CustodianEvent::ConfigUpdated {
-            encrypted_custodian_config: Some(encrypted_config),
+            encrypted_custodian_config: encrypted_config,
         });
 
         Ok(Idempotent::Executed(()))
@@ -123,9 +123,7 @@ impl TryFromEvents<CustodianEvent> for Custodian {
                     encrypted_custodian_config,
                     ..
                 } => {
-                    if let Some(config) = encrypted_custodian_config {
-                        builder = builder.encrypted_custodian_config(config.clone())
-                    }
+                    builder = builder.encrypted_custodian_config(encrypted_custodian_config.clone())
                 }
             }
         }
@@ -172,7 +170,7 @@ impl IntoEvents<CustodianEvent> for NewCustodian {
                     provider: self.provider,
                 },
                 CustodianEvent::ConfigUpdated {
-                    encrypted_custodian_config: Some(self.encrypted_custodian_config),
+                    encrypted_custodian_config: self.encrypted_custodian_config,
                 },
             ],
         )
