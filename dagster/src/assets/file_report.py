@@ -213,6 +213,8 @@ def create_file_report_multi_asset():
 
             batch_ctx = otel_context.get_current()
 
+            failed_assets: list[tuple[dg.AssetKey, Exception]] = []
+
             with ThreadPoolExecutor(max_workers=16) as pool:
                 futures = {
                     pool.submit(
@@ -230,8 +232,21 @@ def create_file_report_multi_asset():
                     for k in context.selected_asset_keys
                 }
                 for f in as_completed(futures):
-                    asset_key, result = f.result()
-                    yield _build_materialize_result(asset_key, result)
+                    asset_key = futures[f]
+                    try:
+                        _, result = f.result()
+                        yield _build_materialize_result(asset_key, result)
+                    except Exception as e:
+                        context.log.error(
+                            f"Failed to generate report for {asset_key.to_user_string()}: {e}"
+                        )
+                        failed_assets.append((asset_key, e))
+
+            if failed_assets:
+                names = [k.to_user_string() for k, _ in failed_assets]
+                raise RuntimeError(
+                    f"{len(failed_assets)} report(s) failed: {', '.join(names)}"
+                )
 
     return file_report_assets
 
