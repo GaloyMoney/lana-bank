@@ -74,3 +74,75 @@ async fn pending_credit_facility_completed_event_on_activation() -> anyhow::Resu
     ctx.jobs.shutdown().await?;
     Ok(())
 }
+
+/// `PendingCreditFacilityCollateralizationChanged` is published when the
+/// collateralization state of a pending facility changes.
+///
+/// # Trigger
+/// `Collaterals::update_collateral_by_id`
+/// (which drives pending-facility collateralization jobs)
+///
+/// # Consumers
+/// - `History::process_credit_event` - records collateralization state changes
+/// - `ActivateCreditFacility` job - triggers activation when `FullyCollateralized`
+/// - Admin GraphQL subscription - pushes real-time updates to the admin panel
+///
+/// # Event Contents
+/// - `id`: Pending facility identifier
+/// - `customer_id`: Facility owner
+/// - `amount`: Facility amount
+/// - `collateralization`: Updated collateralization state, collateral, and price
+#[tokio::test]
+#[serial_test::file_serial(core_credit_shared_jobs)]
+async fn pending_credit_facility_collateralization_changed_event_on_collateral_update()
+-> anyhow::Result<()> {
+    let mut ctx = helpers::setup().await?;
+    ctx.jobs.start_poll().await?;
+
+    let state = helpers::create_pending_facility(&ctx, helpers::test_terms()).await?;
+
+    let collateral_satoshis = Satoshis::from(50_000_000);
+    let effective = chrono::Utc::now().date_naive();
+
+    let collaterals = ctx.credit.collaterals().clone();
+    let collateral_id = state.collateral_id;
+    let pending_facility_id = state.pending_facility_id;
+    let (_, recorded) = expect_event(
+        &ctx.outbox,
+        move || {
+            let collaterals = collaterals.clone();
+            async move {
+                collaterals
+                    .update_collateral_by_id(
+                        &DummySubject,
+                        collateral_id,
+                        collateral_satoshis,
+                        effective,
+                    )
+                    .await
+            }
+        },
+        |_result, e| match e {
+            CoreCreditEvent::PendingCreditFacilityCollateralizationChanged { entity }
+                if entity.id == pending_facility_id =>
+            {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, state.pending_facility_id);
+    assert_eq!(recorded.customer_id, state.customer_id);
+    assert_eq!(recorded.amount, state.amount);
+    assert_eq!(
+        recorded.collateralization.state,
+        PendingCreditFacilityCollateralizationState::FullyCollateralized,
+    );
+    assert!(recorded.collateralization.collateral.is_some());
+    assert!(recorded.collateralization.price_at_state_change.is_some());
+
+    ctx.jobs.shutdown().await?;
+    Ok(())
+}
