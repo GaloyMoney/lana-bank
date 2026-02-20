@@ -3,13 +3,15 @@ name = "lana-collection-ledger"
 license = "BUSL-1.1"
 edition = "2024"
 
+[package.metadata.cargo-machete]
+ignored = ["tracing-utils"]
+
 [features]
 fail-on-warnings = []
 
 [dependencies]
 core-credit-collection = { workspace = true }
 cala-ledger = { workspace = true }
-money = { workspace = true }
 audit = { workspace = true }
 es-entity = { workspace = true }
 uuid = { workspace = true }
