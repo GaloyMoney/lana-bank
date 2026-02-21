@@ -352,19 +352,19 @@ where
 
         let mut credit_facility = self
             .credit_facility_repo
-            .find_by_id(credit_facility_id)
+            .find_by_id_in_op(op, credit_facility_id)
             .await?;
 
         let confirmed_accrual = {
             let account_ids = credit_facility.account_ids;
             let collateral = self
                 .collateral_repo
-                .find_by_id(credit_facility.collateral_id)
+                .find_by_id_in_op(op, credit_facility.collateral_id)
                 .await?;
             let collateral_account_id = collateral.account_id();
             let balances = self
                 .ledger
-                .get_credit_facility_balance(account_ids, collateral_account_id)
+                .get_credit_facility_balance_in_op(op, account_ids, collateral_account_id)
                 .await?;
 
             let recorded = credit_facility
@@ -507,7 +507,7 @@ where
     ) -> Result<CompletedAccrualCycle, CreditFacilityError> {
         let mut credit_facility = self
             .credit_facility_repo
-            .find_by_id(credit_facility_id)
+            .find_by_id_in_op(db, credit_facility_id)
             .await?;
 
         let (accrual_cycle_data, new_obligation) = credit_facility

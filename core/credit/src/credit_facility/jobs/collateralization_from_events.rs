@@ -170,7 +170,10 @@ where
         let mut op = self.repo.begin_op().await?;
         // if the pending facility is not collateralized enough to be activated there will be no
         // credit facility to update the collateralization state for
-        let Some(mut credit_facility) = self.repo.maybe_find_by_id(credit_facility_id).await?
+        let Some(mut credit_facility) = self
+            .repo
+            .maybe_find_by_id_in_op(&mut op, credit_facility_id)
+            .await?
         else {
             return Ok(());
         };
@@ -195,7 +198,11 @@ where
 
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
+            .get_credit_facility_balance_in_op(
+                &mut op,
+                credit_facility.account_ids,
+                collateral_account_id,
+            )
             .await?;
         let price = self.price.usd_cents_per_btc().await;
 
@@ -265,7 +272,11 @@ where
                 let collateral_account_id = collateral.account_id();
                 let balances = self
                     .ledger
-                    .get_credit_facility_balance(facility.account_ids, collateral_account_id)
+                    .get_credit_facility_balance_in_op(
+                        &mut op,
+                        facility.account_ids,
+                        collateral_account_id,
+                    )
                     .await?;
                 if facility
                     .update_collateralization(price, CVLPct::UPGRADE_BUFFER, balances)
