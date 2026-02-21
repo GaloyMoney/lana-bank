@@ -223,7 +223,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
 }
 
 async fn setup_test() -> anyhow::Result<Test> {
-    use rand::Rng;
+    use rand::RngExt;
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
 

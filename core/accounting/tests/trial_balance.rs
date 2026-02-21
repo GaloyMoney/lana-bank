@@ -13,7 +13,7 @@ use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, object}
 
 #[tokio::test]
 async fn atomic_import_adds_accounts_to_trial_balance() -> anyhow::Result<()> {
-    use rand::Rng;
+    use rand::RngExt;
 
     let pool = helpers::init_pool().await?;
     let start_time = Utc.with_ymd_and_hms(2024, 6, 15, 12, 0, 0).unwrap();

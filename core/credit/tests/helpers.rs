@@ -20,7 +20,7 @@ use encryption::EncryptionConfig;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use money::Satoshis;
 use public_id::PublicIds;
-use rand::Rng;
+use rand::RngExt;
 use rust_decimal_macros::dec;
 use std::time::Duration;
 

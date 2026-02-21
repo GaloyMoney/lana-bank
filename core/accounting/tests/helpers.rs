@@ -1,6 +1,6 @@
 use cala_ledger::CalaLedger;
 use obix::out::Outbox;
-use rand::Rng;
+use rand::RngExt;
 
 use core_accounting::{AccountingBaseConfig, CoreAccounting};
 

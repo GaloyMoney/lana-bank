@@ -1,6 +1,6 @@
 mod helpers;
 
-use rand::Rng;
+use rand::RngExt;
 use std::collections::HashMap;
 
 use authz::dummy::DummySubject;

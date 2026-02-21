@@ -2,7 +2,7 @@ mod helpers;
 
 use std::sync::Arc;
 
-use rand::Rng;
+use rand::RngExt;
 use rust_decimal_macros::dec;
 
 use bfx_client::BfxClient;
