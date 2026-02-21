@@ -50,15 +50,20 @@ fn main() {
     );
 }
 
-/// Discover all `templates/` directories under `core/`.
+/// Discover all `*templates*` directories under `core/` and `lana/`.
 fn discover_template_dirs() -> Vec<std::path::PathBuf> {
     let mut dirs = Vec::new();
-    for entry in walkdir::WalkDir::new("core")
-        .into_iter()
-        .filter_map(|e| e.ok())
-    {
-        if entry.file_type().is_dir() && entry.file_name() == "templates" {
-            dirs.push(entry.path().to_path_buf());
+    for root in &["core", "lana"] {
+        for entry in walkdir::WalkDir::new(root)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            if entry.file_type().is_dir() {
+                let name = entry.file_name().to_string_lossy();
+                if name.ends_with("templates") {
+                    dirs.push(entry.path().to_path_buf());
+                }
+            }
         }
     }
     dirs
