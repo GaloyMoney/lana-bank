@@ -52,6 +52,19 @@ impl Price {
         })
     }
 
+    pub async fn init_listener_only<E>(outbox: &Outbox<E>) -> Result<Self, PriceError>
+    where
+        E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
+    {
+        let (tx, rx) = watch::channel(None);
+        let handle = Self::spawn_price_listener(tx, outbox.clone());
+
+        Ok(Self {
+            receiver: rx,
+            _handle: Arc::new(handle),
+        })
+    }
+
     pub async fn usd_cents_per_btc(&self) -> PriceOfOneBTC {
         let mut rec = self.receiver.clone();
         loop {
