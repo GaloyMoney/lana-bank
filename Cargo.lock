@@ -35,7 +35,6 @@ dependencies = [
  "tracing-utils",
  "url",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -341,7 +340,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -359,7 +357,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -489,7 +486,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -557,7 +553,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "url",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1063,7 +1058,6 @@ dependencies = [
  "tracing",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1076,7 +1070,6 @@ dependencies = [
  "permission-sets-macro",
  "serde_json",
  "walkdir",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1166,7 +1159,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1203,7 +1195,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1242,7 +1233,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1294,7 +1284,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1326,7 +1315,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1352,7 +1340,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1390,7 +1377,6 @@ dependencies = [
  "tracing-utils",
  "url",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1424,7 +1410,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1465,7 +1450,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1517,7 +1501,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1545,7 +1528,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1567,7 +1549,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1742,7 +1723,6 @@ dependencies = [
  "rayon",
  "syn 2.0.114",
  "walkdir",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1765,7 +1745,6 @@ dependencies = [
  "tracing-utils",
  "url",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1788,7 +1767,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1804,7 +1782,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "url",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1934,7 +1911,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -1963,7 +1939,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -2057,7 +2032,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -2085,7 +2059,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -2213,7 +2186,6 @@ dependencies = [
  "thiserror 2.0.18",
  "tracing",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -2241,7 +2213,6 @@ dependencies = [
  "serde_json",
  "similar",
  "tempfile",
- "workspace-hack",
 ]
 
 [[package]]
@@ -2806,7 +2777,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -2832,7 +2802,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3467,7 +3436,6 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3519,7 +3487,6 @@ dependencies = [
  "tracing-utils",
  "url",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3543,7 +3510,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "url",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3629,7 +3595,6 @@ dependencies = [
  "tracing-utils",
  "user-onboarding",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3655,7 +3620,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3677,7 +3641,6 @@ dependencies = [
  "schemars 1.2.1",
  "serde",
  "strum",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3691,7 +3654,6 @@ dependencies = [
  "schemars 1.2.1",
  "serde",
  "sqlx",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3898,7 +3860,6 @@ dependencies = [
  "thiserror 2.0.18",
  "tracing",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3974,7 +3935,6 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "url",
- "workspace-hack",
 ]
 
 [[package]]
@@ -4291,7 +4251,6 @@ version = "0.0.0"
 dependencies = [
  "inventory",
  "paste",
- "workspace-hack",
 ]
 
 [[package]]
@@ -4643,7 +4602,6 @@ dependencies = [
  "lana-events",
  "schemars 1.2.1",
  "serde_json",
- "workspace-hack",
 ]
 
 [[package]]
@@ -4660,7 +4618,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -4876,7 +4833,6 @@ dependencies = [
  "tracing",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -4958,7 +4914,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -5706,7 +5661,6 @@ dependencies = [
  "serde",
  "tokio",
  "tracing",
- "workspace-hack",
 ]
 
 [[package]]
@@ -5773,7 +5727,6 @@ dependencies = [
  "thiserror 2.0.18",
  "tracing",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -6127,7 +6080,6 @@ dependencies = [
  "tracing",
  "tracing-utils",
  "uuid",
- "workspace-hack",
 ]
 
 [[package]]
@@ -6805,7 +6757,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "workspace-hack",
 ]
 
 [[package]]
@@ -7630,85 +7581,6 @@ dependencies = [
  "serde_json",
  "unicode-xid",
  "wasmparser",
-]
-
-[[package]]
-name = "workspace-hack"
-version = "0.1.0"
-dependencies = [
- "ahash 0.8.12",
- "arrayvec",
- "base16ct",
- "base64",
- "bytes",
- "chrono",
- "chrono-tz",
- "cipher",
- "crossbeam-utils",
- "crypto-common",
- "der",
- "digest",
- "ecdsa",
- "either",
- "elliptic-curve",
- "ff",
- "form_urlencoded",
- "futures",
- "futures-channel",
- "futures-core",
- "futures-io",
- "futures-sink",
- "futures-task",
- "futures-util",
- "generic-array",
- "getrandom 0.2.16",
- "getrandom 0.3.4",
- "group",
- "hashbrown 0.14.5",
- "hashbrown 0.16.0",
- "hmac",
- "hyper",
- "hyper-util",
- "idna",
- "indexmap 2.12.0",
- "inout",
- "lazy_static",
- "memchr",
- "num-traits",
- "once_cell",
- "percent-encoding",
- "pkcs8",
- "proc-macro2",
- "quote",
- "rand 0.9.2",
- "rand_core 0.6.4",
- "rust_decimal",
- "rustls",
- "rustls-webpki",
- "sec1",
- "semver",
- "serde",
- "serde_core",
- "serde_json",
- "serde_with",
- "sha2",
- "signature",
- "smallvec",
- "socket2",
- "spin 0.9.8",
- "sqlx-core",
- "sqlx-postgres",
- "subtle",
- "syn 2.0.114",
- "sync_wrapper",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "tower",
- "tracing",
- "url",
- "uuid",
- "zeroize",
 ]
 
 [[package]]

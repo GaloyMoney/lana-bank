@@ -25,4 +25,3 @@ cala-ledger = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true, optional = true }
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }

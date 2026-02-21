@@ -15,4 +15,3 @@ tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true, features = ["http", "reqwest"] }
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }

@@ -28,7 +28,6 @@ tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 url = { workspace = true }
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [package.metadata.cargo-machete]
 ignored = ["url"]
