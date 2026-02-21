@@ -232,7 +232,6 @@
           cargo-watch
           cargo-deny
           cargo-machete
-          cargo-hakari
           cocogitto
           bacon
           typos
@@ -719,23 +718,6 @@
 
           workspace-deny = craneLib.cargoDeny {
             src = rustSource;
-          };
-
-          workspace-hakari = craneLib.mkCargoDerivation {
-            src = rustSource;
-            pname = "workspace-hakari";
-            cargoArtifacts = null;
-            doInstallCargoArtifacts = false;
-
-            buildPhaseCargoCommand = ''
-              cargo hakari generate --diff
-              cargo hakari manage-deps --dry-run
-              cargo hakari verify
-            '';
-
-            nativeBuildInputs = [
-              pkgs.cargo-hakari
-            ];
           };
 
           workspace-machete = craneLib.mkCargoDerivation {

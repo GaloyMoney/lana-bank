@@ -41,7 +41,6 @@ hmac = { workspace = true }
 sha2 = { workspace = true }
 
 async-graphql = { workspace = true, optional = true }
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 obix = { workspace = true, features = ["test-utils"] }

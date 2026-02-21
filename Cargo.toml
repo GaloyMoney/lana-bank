@@ -9,7 +9,6 @@ members = [
   "dev/entity-rollups",
   "dev/custom-lints",
   "dev/public-events-schema",
-  "workspace-hack",
 ]
 exclude = [
   "core/credit/src",
@@ -203,8 +202,5 @@ opt-level = 0
 
 [workspace.metadata.crane]
 name = "lana-bank"
-
-[workspace.metadata.cargo-machete]
-ignored = ["workspace-hack"]
 
 
