@@ -427,7 +427,7 @@ async function main() {
       // Run docusaurus graphql-to-doc commands (generates to apis/admin-api, apis/customer-api)
       console.log("  Generating Admin API docs...");
       try {
-        execSync("npm run generate-api-docs:admin", {
+        execSync("pnpm run generate-api-docs:admin", {
           cwd: DOCS_SITE_DIR,
           stdio: "pipe",
         });
@@ -437,7 +437,7 @@ async function main() {
 
       console.log("  Generating Customer API docs...");
       try {
-        execSync("npm run generate-api-docs:customer", {
+        execSync("pnpm run generate-api-docs:customer", {
           cwd: DOCS_SITE_DIR,
           stdio: "pipe",
         });
@@ -495,7 +495,7 @@ async function main() {
   // Regenerate current docs with original schemas
   console.log("\n=== Regenerating current docs ===\n");
   try {
-    execSync("npm run generate-api-docs", {
+    execSync("pnpm run generate-api-docs", {
       cwd: DOCS_SITE_DIR,
       stdio: "inherit",
     });

@@ -7,11 +7,13 @@ on:
       - "docs-site/**"
       - "lana/admin-server/src/graphql/schema.graphql"
       - "lana/customer-server/src/graphql/schema.graphql"
+      - "pnpm-lock.yaml"
   pull_request:
     paths:
       - "docs-site/**"
       - "lana/admin-server/src/graphql/schema.graphql"
       - "lana/customer-server/src/graphql/schema.graphql"
+      - "pnpm-lock.yaml"
 
 permissions:
   contents: read
@@ -44,24 +46,24 @@ jobs:
 
       - name: Install dependencies
         run: |
-          nix develop -c bash -lc "cd docs-site && npm ci"
+          nix develop -c bash -lc "pnpm install --frozen-lockfile"
 
       - name: Validate API descriptions
         run: |
-          nix develop -c bash -lc "cd docs-site && npm run validate-api-descriptions"
+          nix develop -c bash -lc "cd docs-site && pnpm run validate-api-descriptions"
 
       - name: Generate API docs (current version)
         run: |
-          nix develop -c bash -lc "cd docs-site && npm run generate-api-docs"
+          nix develop -c bash -lc "cd docs-site && pnpm run generate-api-docs"
 
       - name: Generate API docs (versioned)
         run: |
-          nix develop -c bash -lc "cd docs-site && npm run generate-versioned-api-docs"
+          nix develop -c bash -lc "cd docs-site && pnpm run generate-versioned-api-docs"
 
       - name: Fetch screenshots from Netlify
         continue-on-error: true
         run: |
-          nix develop -c bash -lc "cd docs-site && npm run fetch-screenshots"
+          nix develop -c bash -lc "cd docs-site && pnpm run fetch-screenshots"
 
       - name: Create screenshot placeholders for missing images
         run: |
@@ -69,4 +71,4 @@ jobs:
 
       - name: Build docs site
         run: |
-          nix develop -c bash -lc "cd docs-site && npx docusaurus build"
+          nix develop -c bash -lc "cd docs-site && pnpm exec docusaurus build"
