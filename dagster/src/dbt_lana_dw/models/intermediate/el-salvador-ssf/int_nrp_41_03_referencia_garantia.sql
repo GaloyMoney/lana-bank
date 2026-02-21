@@ -12,16 +12,16 @@ with
     )
 
 select
-    disbursement_public_ids.id as `num_referencia`,
+    disbursement_public_ids.id as {{ ident('num_referencia') }},
     '{{ npb4_17_01_tipos_de_cartera("Cartera propia Ley Acceso al Crédito (19)") }}'
-    as `cod_cartera`,
-    '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
-    disbursement_public_ids.id as `identificacion_garantia`,
+    as {{ ident('cod_cartera') }},
+    '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as {{ ident('cod_activo') }},
+    disbursement_public_ids.id as {{ ident('identificacion_garantia') }},
     '{{ npb4_17_09_tipos_de_garantias("Pignorada - Depósito de dinero") }}'
-    as `tipo_garantia`,
+    as {{ ident('tipo_garantia') }},
     coalesce(
         safe_divide(collateral_amount_usd, loan_amount_usd) * 100, 1
-    ) as `valor_garantia_proporcional`
+    ) as {{ ident('valor_garantia_proporcional') }}
 
 from loans_and_credit_facilities
 left join

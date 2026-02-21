@@ -1,20 +1,20 @@
 select
-    disbursement_public_ids.id as `identificacion_garantia`,
+    disbursement_public_ids.id as {{ ident('identificacion_garantia') }},
 
-    customer_public_ids.id as `nit_depositante`,
+    customer_public_ids.id as {{ ident('nit_depositante') }},
 
-    disbursal_end_date as `fecha_vencimiento`,
+    disbursal_end_date as {{ ident('fecha_vencimiento') }},
 
     -- loan-to-collateral being 1-to-1
-    collateral_amount_usd as `valor_deposito`,
+    collateral_amount_usd as {{ ident('valor_deposito') }},
 
     -- "DE" for cash deposits
-    'DE' as `tipo_deposito`,
+    'DE' as {{ ident('tipo_deposito') }},
 
-    null as `cod_banco`,
+    null as {{ ident('cod_banco') }},
 
     -- Deposit date.
-    date(most_recent_collateral_deposit_at) as `fecha_deposito`
+    date(most_recent_collateral_deposit_at) as {{ ident('fecha_deposito') }}
 
 from {{ ref("int_approved_credit_facility_loans") }}
 left join

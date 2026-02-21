@@ -2,11 +2,11 @@ with
     dummy as (
 
         select
-            null as `identificacion_garantia`,
-            null as `valor_garantia`,
-            null as `valor_porcentual`,
-            null as `tipo_fondo`,
-            null as `estado`
+            null as {{ ident('identificacion_garantia') }},
+            null as {{ ident('valor_garantia') }},
+            null as {{ ident('valor_porcentual') }},
+            null as {{ ident('tipo_fondo') }},
+            null as {{ ident('estado') }}
 
     )
 

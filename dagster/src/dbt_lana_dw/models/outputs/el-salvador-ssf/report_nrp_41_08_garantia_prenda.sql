@@ -2,13 +2,13 @@ with
     dummy as (
 
         select
-            null as `identificacion_garantia`,
-            null as `denominacion_titulo`,
-            null as `local_extranjera`,
-            null as `monto_inversion`,
-            null as `fecha_vencimiento`,
-            null as `clasificación`,
-            null as `nombre_clasificadora`
+            null as {{ ident('identificacion_garantia') }},
+            null as {{ ident('denominacion_titulo') }},
+            null as {{ ident('local_extranjera') }},
+            null as {{ ident('monto_inversion') }},
+            null as {{ ident('fecha_vencimiento') }},
+            null as {{ ident('clasificación') }},
+            null as {{ ident('nombre_clasificadora') }}
 
     )
 

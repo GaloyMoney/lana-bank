@@ -11,7 +11,7 @@ with
     ),
 
     latest_proposal_version as (
-        select credit_facility_proposal_id, max(`version`) as `version`
+        select credit_facility_proposal_id, max({{ ident('version') }}) as {{ ident('version') }}
         from {{ ref("stg_core_credit_facility_proposal_events_rollup") }}
         group by credit_facility_proposal_id
     ),
@@ -25,11 +25,11 @@ with
         select *
         from all_proposal_version
         inner join
-            latest_proposal_version using (credit_facility_proposal_id, `version`)
+            latest_proposal_version using (credit_facility_proposal_id, {{ ident('version') }})
     ),
 
     latest_pending_version as (
-        select pending_credit_facility_id, max(`version`) as `version`
+        select pending_credit_facility_id, max({{ ident('version') }}) as {{ ident('version') }}
         from {{ ref("stg_core_pending_credit_facility_events_rollup") }}
         where is_completed = true
         group by pending_credit_facility_id
@@ -44,7 +44,7 @@ with
     cf_pending as (
         select *
         from all_pending_version
-        inner join latest_pending_version using (pending_credit_facility_id, `version`)
+        inner join latest_pending_version using (pending_credit_facility_id, {{ ident('version') }})
     ),
 
     cf_pending_proposals as (

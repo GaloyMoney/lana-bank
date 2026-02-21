@@ -3,14 +3,14 @@ with
 
         select
             null as `Nombre`,
-            null as `num_referencia`,
-            null as `cod_cartera`,
-            null as `cod_activo`,
-            null as `identificacion_garantia`,
-            null as `cod_banco`,
-            null as `monto_aval`,
-            null as `fecha_otorgamiento`,
-            null as `fecha_vencimiento`
+            null as {{ ident('num_referencia') }},
+            null as {{ ident('cod_cartera') }},
+            null as {{ ident('cod_activo') }},
+            null as {{ ident('identificacion_garantia') }},
+            null as {{ ident('cod_banco') }},
+            null as {{ ident('monto_aval') }},
+            null as {{ ident('fecha_otorgamiento') }},
+            null as {{ ident('fecha_vencimiento') }}
 
     )
 

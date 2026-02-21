@@ -1,7 +1,7 @@
 select
-    left(`id_codigo_banco`, 10) as `id_codigo_banco`,
-    left(`nom_banco`, 80) as `nom_banco`,
+    left({{ ident('id_codigo_banco') }}, 10) as {{ ident('id_codigo_banco') }},
+    left({{ ident('nom_banco') }}, 80) as {{ ident('nom_banco') }},
     left(`Pais`, 20) as `Pais`,
-    left(`categoria`, 2) as `categoria`,
-    cast(round(`valor_aval_fianza`, 2) as string) as `valor_aval_fianza`
+    left({{ ident('categoria') }}, 2) as {{ ident('categoria') }},
+    cast(round({{ ident('valor_aval_fianza') }}, 2) as string) as {{ ident('valor_aval_fianza') }}
 from {{ ref("int_nrp_51_06_aval_garantizado") }}

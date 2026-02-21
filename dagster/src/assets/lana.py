@@ -1,22 +1,17 @@
-from typing import List
+from typing import List, Union
 
 import dlt
 
 import dagster as dg
 from src.core import COLD_START_CONDITION_SKIP_DEPS, Protoasset
-from src.dlt_destinations.bigquery import create_bigquery_destination
+from src.dlt_destinations import create_dw_destination, get_dw_target
 from src.dlt_resources.postgres import create_dlt_postgres_resource
 from src.resources import (
-    RESOURCE_KEY_DW_BQ,
+    RESOURCE_KEY_DW,
     RESOURCE_KEY_LANA_CORE_PG,
-    BigQueryResource,
+    BigQueryDWResource,
+    PostgresDWResource,
     PostgresResource,
-)
-from src.utils import (
-    create_empty_table,
-    get_postgres_table_schema,
-    postgres_schema_to_bigquery_schema,
-    table_exists,
 )
 
 LANA_EL_TABLE_NAMES = (
@@ -89,29 +84,29 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
     def lana_to_dw_el_asset(
         context: dg.AssetExecutionContext,
         lana_core_pg: PostgresResource,
-        dw_bq: BigQueryResource,
+        dw: Union[BigQueryDWResource, PostgresDWResource],
     ):
         context.log.info(
             f"Running lana_to_dw_el_asset pipeline for table {table_name}."
         )
 
         runnable_pipeline = prepare_lana_el_pipeline(
-            lana_core_pg=lana_core_pg, dw_bq=dw_bq, table_name=table_name
+            lana_core_pg=lana_core_pg, dw=dw, table_name=table_name
         )
         load_info = runnable_pipeline()
 
         context.log.info("Pipeline completed.")
         context.log.info(load_info)
 
-        # Why wouldn't a table exist?
-        # Because if the source table has no data, dlt won't even create the
-        # destination table.
-        ensure_target_table_exists(
-            context=context,
-            lana_core_pg=lana_core_pg,
-            dw_bq=dw_bq,
-            table_name=table_name,
-        )
+        # Ensure target table exists (for BigQuery, create if empty source)
+        target = get_dw_target()
+        if target == "bigquery":
+            ensure_target_table_exists_bq(
+                context=context,
+                lana_core_pg=lana_core_pg,
+                dw=dw,
+                table_name=table_name,
+            )
 
         return load_info
 
@@ -126,17 +121,17 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         ],
         tags={"asset_type": EL_TARGET_ASSET_DESCRIPTION, "system": LANA_SYSTEM_NAME},
         callable=lana_to_dw_el_asset,
-        required_resource_keys={RESOURCE_KEY_LANA_CORE_PG, RESOURCE_KEY_DW_BQ},
+        required_resource_keys={RESOURCE_KEY_LANA_CORE_PG, RESOURCE_KEY_DW},
         automation_condition=COLD_START_CONDITION_SKIP_DEPS,
     )
 
     return lana_to_dw_protoasset
 
 
-def ensure_target_table_exists(
+def ensure_target_table_exists_bq(
     context: dg.AssetExecutionContext,
     lana_core_pg: PostgresResource,
-    dw_bq: BigQueryResource,
+    dw: BigQueryDWResource,
     table_name: str,
 ) -> None:
     """
@@ -145,10 +140,17 @@ def ensure_target_table_exists(
     If the table doesn't exist (because DLT didn't create it due to empty source),
     create it with schema inferred from the Postgres source table.
     """
-    bq_dataset = dw_bq.get_target_dataset()
-    bq_client = dw_bq.get_client()
+    from src.utils import (
+        create_empty_table,
+        get_postgres_table_schema,
+        postgres_schema_to_bigquery_schema,
+        table_exists,
+    )
 
-    if table_exists(bq_client, bq_dataset, table_name):
+    raw_schema = dw.get_raw_schema()
+    bq_client = dw.get_client()
+
+    if table_exists(bq_client, raw_schema, table_name):
         context.log.info(f"Target table {table_name} already exists in BigQuery.")
         return
 
@@ -171,7 +173,7 @@ def ensure_target_table_exists(
 
     create_empty_table(
         client=bq_client,
-        dataset=bq_dataset,
+        dataset=raw_schema,
         table_name=table_name,
         schema=bq_schema,
     )
@@ -181,16 +183,23 @@ def ensure_target_table_exists(
     )
 
 
-def prepare_lana_el_pipeline(lana_core_pg, dw_bq, table_name):
+def prepare_lana_el_pipeline(
+    lana_core_pg: PostgresResource,
+    dw: Union[BigQueryDWResource, PostgresDWResource],
+    table_name: str,
+):
+    """Prepare a dlt pipeline for loading data from lana-core to the data warehouse."""
     dlt_postgres_resource = create_dlt_postgres_resource(
         connection_string=lana_core_pg.get_connection_string(), table_name=table_name
     )
-    dlt_bq_destination = create_bigquery_destination(dw_bq.get_credentials_dict())
+    
+    dlt_destination = create_dw_destination(dw.get_credentials())
+    raw_schema = dw.get_raw_schema()
 
     pipeline = dlt.pipeline(
         pipeline_name=table_name,
-        destination=dlt_bq_destination,
-        dataset_name=dw_bq.get_target_dataset(),
+        destination=dlt_destination,
+        dataset_name=raw_schema,
     )
 
     # Ready to be called with source and disposition already hardcoded

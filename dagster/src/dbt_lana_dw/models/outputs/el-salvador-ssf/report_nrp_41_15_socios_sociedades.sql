@@ -2,9 +2,9 @@ with
     dummy as (
 
         select
-            null as `nit_deudor`,
-            null as `nit_socio`,
-            null as `porcentaje_participacion`
+            null as {{ ident('nit_deudor') }},
+            null as {{ ident('nit_socio') }},
+            null as {{ ident('porcentaje_participacion') }}
 
     )
 

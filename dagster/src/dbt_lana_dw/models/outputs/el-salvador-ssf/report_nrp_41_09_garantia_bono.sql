@@ -2,13 +2,13 @@ with
     dummy as (
 
         select
-            null as `identificacion_garantia`,
-            null as `tipo_prenda`,
-            null as `descripción`,
-            null as `fecha_certificado`,
-            null as `valor_prenda`,
-            null as `saldo_prenda`,
-            null as `cod_almacenadora`
+            null as {{ ident('identificacion_garantia') }},
+            null as {{ ident('tipo_prenda') }},
+            null as {{ ident('descripción') }},
+            null as {{ ident('fecha_certificado') }},
+            null as {{ ident('valor_prenda') }},
+            null as {{ ident('saldo_prenda') }},
+            null as {{ ident('cod_almacenadora') }}
 
     )
 

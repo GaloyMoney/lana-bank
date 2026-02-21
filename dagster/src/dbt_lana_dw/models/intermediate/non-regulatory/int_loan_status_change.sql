@@ -6,7 +6,7 @@ with
         select
             ref.* except (customer_id, disbursal_id),
             estado,
-            `explicación`,
+            {{ ident('explicación') }},
             status,
             explanation,
             coalesce(dias_mora_k, 0) as days_past_due_on_principal,
@@ -34,7 +34,7 @@ with
 
             days_past_due_on_interest,
             payment_overdue_days,
-            `explicación`,
+            {{ ident('explicación') }},
             explanation,
             disbursal_start_date as date_and_time,
             'Disbursement' as transaction,

@@ -1,6 +1,6 @@
 with
     latest_sequence as (
-        select payment_id, max(`version`) as `version`
+        select payment_id, max({{ ident('version') }}) as {{ ident('version') }}
         from {{ ref("int_core_payment_events_rollup_sequence") }}
         group by payment_id
     ),
@@ -12,7 +12,7 @@ with
     final as (
         select *
         from all_event_sequence
-        inner join latest_sequence using (payment_id, `version`)
+        inner join latest_sequence using (payment_id, {{ ident('version') }})
 
     )
 

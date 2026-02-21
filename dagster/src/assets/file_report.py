@@ -15,9 +15,11 @@ from src.otel import (
     get_asset_span_context_and_attrs,
     tracer,
 )
+from src.dlt_destinations import get_dw_target
 from src.resources import (
-    RESOURCE_KEY_DW_BQ,
+    RESOURCE_KEY_DW,
     RESOURCE_KEY_FILE_REPORTS_BUCKET,
+    BigQueryDWResource,
 )
 
 
@@ -188,15 +190,23 @@ def create_file_report_multi_asset():
     @dg.multi_asset(
         specs=specs,
         can_subset=True,
-        required_resource_keys={RESOURCE_KEY_FILE_REPORTS_BUCKET, RESOURCE_KEY_DW_BQ},
+        required_resource_keys={RESOURCE_KEY_FILE_REPORTS_BUCKET, RESOURCE_KEY_DW},
     )
     def file_report_assets(context: dg.AssetExecutionContext):
         from opentelemetry import context as otel_context
 
-        dw_bq = context.resources.dw_bq
+        # File reports currently only work with BigQuery
+        target = get_dw_target()
+        if target != "bigquery":
+            raise RuntimeError(
+                f"File report generation requires BigQuery (DW_TARGET=bigquery), "
+                f"but current target is '{target}'"
+            )
+
+        dw: BigQueryDWResource = context.resources.dw
         file_reports_bucket = context.resources.file_reports_bucket
-        credentials_dict = dw_bq.get_credentials_dict()
-        dataset = dw_bq.get_dbt_dataset()
+        credentials_dict = dw.get_credentials()
+        dataset = dw.get_dbt_schema()
 
         selected_keys = [key.to_user_string() for key in context.selected_asset_keys]
         parent_ctx, batch_attrs = get_asset_span_context_and_attrs(

@@ -6,7 +6,7 @@ with
         select
             ref.* except (customer_id, disbursal_id),
             estado,
-            `explicación`,
+            {{ ident('explicación') }},
             status,
             explanation,
             coalesce(dias_mora_k, 0) as days_past_due_on_principal,
@@ -34,7 +34,7 @@ with
 
             days_past_due_on_interest,
             payment_overdue_days,
-            `explicación`,
+            {{ ident('explicación') }},
             explanation,
             disbursal_start_date as date_and_time,
             'Disbursement' as disbursement_transaction,
@@ -46,7 +46,7 @@ with
             total_disbursed_usd as total_transaction,
             first_name || ' ' || last_name as customer_name,
             coalesce(estado, 'Cancelado') as estado,
-            coalesce(status, 'Canceled') as `status`
+            coalesce(status, 'Canceled') as {{ ident('status') }}
         from {{ ref("int_approved_credit_facility_loans") }}
         left join customers using (customer_id)
         left join statuses using (credit_facility_id)

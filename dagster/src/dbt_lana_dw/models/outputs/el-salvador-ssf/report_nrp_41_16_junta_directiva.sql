@@ -2,12 +2,12 @@ with
     dummy as (
 
         select
-            null as `nit_deudor`,
-            null as `nit_miembro`,
-            null as `cod_cargo`,
-            null as `fecha_inicial_jd`,
-            null as `fecha_final_jd`,
-            null as `numero_credencial`
+            null as {{ ident('nit_deudor') }},
+            null as {{ ident('nit_miembro') }},
+            null as {{ ident('cod_cargo') }},
+            null as {{ ident('fecha_inicial_jd') }},
+            null as {{ ident('fecha_final_jd') }},
+            null as {{ ident('numero_credencial') }}
 
     )
 

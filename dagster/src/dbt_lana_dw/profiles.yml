@@ -1,10 +1,26 @@
+# Cross-platform dbt profiles
+# Select target via DW_TARGET environment variable: "bigquery" or "postgres"
+
 dbt_lana_dw:
-  target: lana-dw
+  target: "{{ env_var('DW_TARGET', 'bigquery') }}"
   outputs:
-    lana-dw:
+
+    # BigQuery target (production default)
+    bigquery:
       type: bigquery
       method: service-account-json
-      project: "{{ env_var('DBT_BIGQUERY_PROJECT') }}"
-      dataset: "{{ env_var('DBT_BIGQUERY_DATASET') }}"
+      project: "{{ env_var('DBT_BIGQUERY_PROJECT', '') }}"
+      dataset: "{{ env_var('DW_DBT_SCHEMA', 'dbt_dev') }}"
       threads: 4
-      keyfile_json: "{{ fromjson(env_var('DBT_BIGQUERY_CREDENTIALS_JSON')) }}"
+      keyfile_json: "{{ fromjson(env_var('DBT_BIGQUERY_CREDENTIALS_JSON', '{}')) }}"
+
+    # Postgres target (local dev / CI)
+    postgres:
+      type: postgres
+      host: "{{ env_var('DW_PG_HOST', 'localhost') }}"
+      port: "{{ env_var('DW_PG_PORT', '5432') | as_number }}"
+      user: "{{ env_var('DW_PG_USER', 'postgres') }}"
+      password: "{{ env_var('DW_PG_PASSWORD', '') }}"
+      dbname: "{{ env_var('DW_PG_DATABASE', 'lana_dw') }}"
+      schema: "{{ env_var('DW_DBT_SCHEMA', 'dbt') }}"
+      threads: 4

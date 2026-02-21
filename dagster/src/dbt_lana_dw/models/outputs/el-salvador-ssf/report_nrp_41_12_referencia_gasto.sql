@@ -2,12 +2,12 @@ with
     dummy as (
 
         select
-            null as `cod_cartera`,
-            null as `cod_activo`,
-            null as `num_referencia`,
-            null as `codigo_gasto`,
-            null as `tipo_gasto`,
-            null as `monto_gasto`
+            null as {{ ident('cod_cartera') }},
+            null as {{ ident('cod_activo') }},
+            null as {{ ident('num_referencia') }},
+            null as {{ ident('codigo_gasto') }},
+            null as {{ ident('tipo_gasto') }},
+            null as {{ ident('monto_gasto') }}
 
     )
 

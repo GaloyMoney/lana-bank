@@ -5,8 +5,8 @@ with
     final as (select * from account_balances)
 
 select
-    cast(null as string) as `id_codigo_banco`,
-    cast(null as string) as `nom_banco`,
+    cast(null as string) as {{ ident('id_codigo_banco') }},
+    cast(null as string) as {{ ident('nom_banco') }},
     cast(null as string) as `Pais`,
     cast(null as string) as `Categoria`,
     cast(null as numeric) as `Valor`

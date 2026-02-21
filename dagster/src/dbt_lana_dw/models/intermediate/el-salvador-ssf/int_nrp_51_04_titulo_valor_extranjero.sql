@@ -5,7 +5,7 @@ with
     final as (select * from account_balances)
 
 select
-    cast(null as string) as `id_codigo_titulo_extranjero`,
-    cast(null as string) as `desc_tv_extranj`,
-    cast(null as numeric) as `valor_tv_extranj`
+    cast(null as string) as {{ ident('id_codigo_titulo_extranjero') }},
+    cast(null as string) as {{ ident('desc_tv_extranj') }},
+    cast(null as numeric) as {{ ident('valor_tv_extranj') }}
 from final

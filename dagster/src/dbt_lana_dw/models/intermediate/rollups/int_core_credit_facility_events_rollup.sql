@@ -2,8 +2,8 @@ with
     latest_sequence as (
         select
             credit_facility_id,
-            max(`version`) as `version`,
-            max(`proposal_version`) as `proposal_version`
+            max({{ ident('version') }}) as {{ ident('version') }},
+            max({{ ident('proposal_version') }}) as {{ ident('proposal_version') }}
         from {{ ref("int_core_credit_facility_events_rollup_sequence") }}
         group by credit_facility_id
     ),
@@ -16,7 +16,7 @@ with
         select *
         from all_event_sequence
         inner join
-            latest_sequence using (credit_facility_id, `version`, `proposal_version`)
+            latest_sequence using (credit_facility_id, {{ ident('version') }}, {{ ident('proposal_version') }})
 
     )
 

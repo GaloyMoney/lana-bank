@@ -2,13 +2,13 @@ with
     dummy as (
 
         select
-            null as `identificacion_garantia`,
-            null as `monto_poliza`,
-            null as `fecha_inicial`,
-            null as `fecha_final`,
-            null as `nombre_asegurado`,
-            null as `monto_reserva`,
-            null as `valor_garantia`
+            null as {{ ident('identificacion_garantia') }},
+            null as {{ ident('monto_poliza') }},
+            null as {{ ident('fecha_inicial') }},
+            null as {{ ident('fecha_final') }},
+            null as {{ ident('nombre_asegurado') }},
+            null as {{ ident('monto_reserva') }},
+            null as {{ ident('valor_garantia') }}
 
     )
 
