@@ -23,15 +23,8 @@ async fn update_price() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
     let outbox = Outbox::<DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?).await?;
-    let mut jobs = job::Jobs::init(
-        job::JobSvcConfig::builder()
-            .pool(pool.clone())
-            .build()
-            .unwrap(),
-    )
-    .await?;
 
-    let price = Price::init(&mut jobs, &outbox).await?;
+    let price = Price::init_listener_only(&outbox).await?;
 
     let initial_price_cents = rand::rng().random_range(1_000_000..10_000_000);
     let initial_price = PriceOfOneBTC::new(UsdCents::from(initial_price_cents));
