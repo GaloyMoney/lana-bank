@@ -1871,11 +1871,11 @@ export const mockFacilityRemaining = (overrides?: Partial<FacilityRemaining>, _r
     };
 };
 
-export const mockFiniteCvlPct = (overrides?: Partial<FiniteCvlPct>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'FiniteCVLPct' } & FiniteCvlPct => {
+export const mockFiniteCvlPct = (overrides?: Partial<FiniteCvlPct>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'FiniteCvlPct' } & FiniteCvlPct => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('FiniteCvlPct');
     return {
-        __typename: 'FiniteCVLPct',
+        __typename: 'FiniteCvlPct',
         value: overrides && overrides.hasOwnProperty('value') ? overrides.value! : faker.lorem.word(),
     };
 };
@@ -2020,11 +2020,11 @@ export const mockGovernanceNavigationItems = (overrides?: Partial<GovernanceNavi
     };
 };
 
-export const mockInfiniteCvlPct = (overrides?: Partial<InfiniteCvlPct>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'InfiniteCVLPct' } & InfiniteCvlPct => {
+export const mockInfiniteCvlPct = (overrides?: Partial<InfiniteCvlPct>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'InfiniteCvlPct' } & InfiniteCvlPct => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('InfiniteCvlPct');
     return {
-        __typename: 'InfiniteCVLPct',
+        __typename: 'InfiniteCvlPct',
         isInfinite: overrides && overrides.hasOwnProperty('isInfinite') ? overrides.isInfinite! : faker.datatype.boolean(),
     };
 };

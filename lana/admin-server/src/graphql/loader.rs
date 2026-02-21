@@ -41,11 +41,16 @@ pub struct LanaLoader {
 
 impl LanaLoader {
     pub fn new(app: &LanaApp) -> LanaDataLoader {
-        DataLoader::new(Self { app: app.clone() }, tokio::task::spawn)
-            // Set delay to 0 as per https://github.com/async-graphql/async-graphql/issues/1306
-            .delay(std::time::Duration::from_millis(5))
+        DataLoader::new(
+            Self { app: app.clone() },
+            async_graphql::runtime::TokioSpawner::current(),
+            async_graphql::runtime::TokioTimer::default(),
+        )
+        // Set delay to 0 as per https://github.com/async-graphql/async-graphql/issues/1306
+        .delay(std::time::Duration::from_millis(5))
     }
 }
+
 impl Loader<UserId> for LanaLoader {
     type Value = User;
     type Error = Arc<UserError>;
@@ -60,6 +65,7 @@ impl Loader<UserId> for LanaLoader {
             .map_err(Arc::new)
     }
 }
+
 impl Loader<PermissionSetId> for LanaLoader {
     type Value = PermissionSet;
     type Error = Arc<CoreAccessError>;

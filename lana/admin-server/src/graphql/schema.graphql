@@ -453,7 +453,7 @@ type CreditFacility {
 	publicId: PublicId!
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
-	currentCvl: Cvlpct!
+	currentCvl: CvlPct!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
@@ -1111,7 +1111,7 @@ enum CustomersSortBy {
 	CREATED_AT
 }
 
-union Cvlpct = FiniteCVLPct | InfiniteCVLPct
+union CvlPct = FiniteCvlPct | InfiniteCvlPct
 
 type Dashboard {
 	activeFacilities: Int!
@@ -1455,7 +1455,7 @@ type FacilityRemaining {
 	usdBalance: UsdCents!
 }
 
-type FiniteCVLPct {
+type FiniteCvlPct {
 	value: CVLPctValue!
 }
 
@@ -1551,7 +1551,7 @@ type GovernanceNavigationItems {
 	approvalProcess: Boolean!
 }
 
-type InfiniteCVLPct {
+type InfiniteCvlPct {
 	isInfinite: Boolean!
 }
 
@@ -2481,9 +2481,9 @@ type TermValues {
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	disbursalPolicy: DisbursalPolicy!
 	duration: Duration!
-	liquidationCvl: Cvlpct!
-	marginCallCvl: Cvlpct!
-	initialCvl: Cvlpct!
+	liquidationCvl: CvlPct!
+	marginCallCvl: CvlPct!
+	initialCvl: CvlPct!
 }
 
 input TermsInput {
@@ -2686,8 +2686,8 @@ type Wallet {
 }
 
 enum WalletNetwork {
-	TESTNET_3
-	TESTNET_4
+	TESTNET3
+	TESTNET4
 	MAINNET
 }
 

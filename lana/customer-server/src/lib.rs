@@ -43,7 +43,7 @@ where
         .route("/health", get(health_check))
         .route(
             "/graphql",
-            get(playground).post(axum::routing::post(graphql_handler)),
+            get(health_check).post(axum::routing::post(graphql_handler)),
         )
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
@@ -143,13 +143,6 @@ pub async fn graphql_handler(
         }
     }
     response.into()
-}
-
-async fn playground() -> impl axum::response::IntoResponse {
-    axum::response::Html(async_graphql::http::playground_source(
-        async_graphql::http::GraphQLPlaygroundConfig::new("/customer/graphql")
-            .with_setting("request.credentials", "include"),
-    ))
 }
 
 async fn health_check() -> &'static str {

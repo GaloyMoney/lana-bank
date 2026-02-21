@@ -34,28 +34,28 @@ gql`
       annualRate
       liquidationCvl {
         __typename
-        ... on FiniteCVLPct {
+        ... on FiniteCvlPct {
           value
         }
-        ... on InfiniteCVLPct {
+        ... on InfiniteCvlPct {
           isInfinite
         }
       }
       marginCallCvl {
         __typename
-        ... on FiniteCVLPct {
+        ... on FiniteCvlPct {
           value
         }
-        ... on InfiniteCVLPct {
+        ... on InfiniteCvlPct {
           isInfinite
         }
       }
       initialCvl {
         __typename
-        ... on FiniteCVLPct {
+        ... on FiniteCvlPct {
           value
         }
-        ... on InfiniteCVLPct {
+        ... on InfiniteCvlPct {
           isInfinite
         }
       }

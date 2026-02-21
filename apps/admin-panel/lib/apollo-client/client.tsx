@@ -22,7 +22,7 @@ import {
   CreditFacility,
   CreditFacilityProposal,
   PendingCreditFacility,
-  Cvlpct,
+  CvlPct,
   GetRealtimePriceUpdatesDocument,
   GetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
@@ -202,7 +202,7 @@ const getRealtimePriceFromCache = (
 const calculateRequiredCollateralInSats = async (
   cache: InMemoryCache,
   facilityAmount: number,
-  initialCvl: Cvlpct,
+  initialCvl: CvlPct,
 ): Promise<number | null> => {
   const priceInfo = await getRealtimePriceFromCache(cache)
   if (!priceInfo) return null
@@ -211,7 +211,7 @@ const calculateRequiredCollateralInSats = async (
   const basisAmountInUsd = facilityAmount / CENTS_PER_USD
 
   const initialCvlDecimal =
-    initialCvl.__typename === "FiniteCVLPct"
+    initialCvl.__typename === "FiniteCvlPct"
       ? Number(initialCvl.value || 0) / 100
       : Infinity
 

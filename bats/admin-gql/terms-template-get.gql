@@ -10,26 +10,26 @@ query TermsTemplateGet($id: UUID!) {
         units
       }
       liquidationCvl {
-        ... on FiniteCVLPct {
+        ... on FiniteCvlPct {
           value
         }
-        ... on InfiniteCVLPct {
+        ... on InfiniteCvlPct {
           isInfinite
         }
       }
       marginCallCvl {
-        ... on FiniteCVLPct {
+        ... on FiniteCvlPct {
           value
         }
-        ... on InfiniteCVLPct {
+        ... on InfiniteCvlPct {
           isInfinite
         }
       }
       initialCvl {
-        ... on FiniteCVLPct {
+        ... on FiniteCvlPct {
           value
         }
-        ... on InfiniteCVLPct {
+        ... on InfiniteCvlPct {
           isInfinite
         }
       }

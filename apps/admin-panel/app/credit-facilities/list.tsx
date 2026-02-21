@@ -29,12 +29,12 @@ import Balance from "@/components/balance/balance"
 import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
-  fragment CVLPctData on Cvlpct {
+  fragment CVLPctData on CvlPct {
     __typename
-    ... on FiniteCVLPct {
+    ... on FiniteCvlPct {
       value
     }
-    ... on InfiniteCVLPct {
+    ... on InfiniteCvlPct {
       isInfinite
     }
   }
@@ -58,10 +58,10 @@ gql`
           facilityAmount
           currentCvl {
             __typename
-            ... on FiniteCVLPct {
+            ... on FiniteCvlPct {
               value
             }
-            ... on InfiniteCVLPct {
+            ... on InfiniteCvlPct {
               isInfinite
             }
           }
@@ -162,7 +162,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     key: "currentCvl",
     label: t("table.headers.cvl"),
     labelClassName: "w-[10%]",
-    render: (cvl) => (cvl.__typename === "FiniteCVLPct" ? `${cvl.value}%` : "∞"),
+    render: (cvl) => (cvl.__typename === "FiniteCvlPct" ? `${cvl.value}%` : "∞"),
     sortable: true,
   },
   {
