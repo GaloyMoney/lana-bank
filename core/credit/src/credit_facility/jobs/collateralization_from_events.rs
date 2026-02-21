@@ -96,10 +96,10 @@ where
             Span::current().record("event_type", event.as_ref());
             Span::current().record(
                 "credit_facility_id",
-                tracing::field::display(entity.credit_facility_id),
+                tracing::field::display(entity.secured_loan_id),
             );
 
-            self.update_collateralization_from_events(entity.credit_facility_id)
+            self.update_collateralization_from_events(entity.secured_loan_id)
                 .await?;
         }
 
@@ -113,12 +113,15 @@ where
         ) = message.as_event()
         {
             message.inject_trace_parent();
-            let id = (*beneficiary_id).into();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
-            Span::current().record("credit_facility_id", tracing::field::display(id));
+            Span::current().record(
+                "credit_facility_id",
+                tracing::field::display(beneficiary_id),
+            );
 
-            self.update_collateralization_from_events(id).await?;
+            self.update_collateralization_from_events(*beneficiary_id)
+                .await?;
         }
 
         Ok(())
@@ -165,12 +168,15 @@ where
     #[es_entity::retry_on_concurrent_modification]
     pub(super) async fn update_collateralization_from_events(
         &self,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Display + Copy,
     ) -> Result<(), crate::credit_facility::error::CreditFacilityError> {
         let mut op = self.repo.begin_op().await?;
         // if the pending facility is not collateralized enough to be activated there will be no
         // credit facility to update the collateralization state for
-        let Some(mut credit_facility) = self.repo.maybe_find_by_id(credit_facility_id).await?
+        let Some(mut credit_facility) = self
+            .repo
+            .maybe_find_by_id(credit_facility_id.into())
+            .await?
         else {
             return Ok(());
         };

@@ -3,6 +3,7 @@ pub mod error;
 mod jobs;
 pub mod ledger;
 pub mod liquidation;
+pub mod primitives;
 pub(crate) mod repo;
 
 use std::collections::HashMap;
@@ -38,6 +39,7 @@ use jobs::wallet_collateral_sync;
 pub use {
     entity::{Collateral, CollateralAdjustment},
     liquidation::Liquidation,
+    primitives::*,
     repo::{CollateralRepo, liquidation_cursor},
 };
 
@@ -142,7 +144,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
-        pending_credit_facility_id: PendingCreditFacilityId,
+        secured_loan_id: SecuredLoanId,
         custody_wallet_id: Option<CustodyWalletId>,
         account_ids: CollateralLedgerAccountIds,
         facility_ledger_account_ids_for_liquidation: FacilityLedgerAccountIdsForLiquidation,
@@ -153,8 +155,7 @@ where
 
         let new_collateral = NewCollateral::builder()
             .id(collateral_id)
-            .credit_facility_id(pending_credit_facility_id)
-            .pending_credit_facility_id(pending_credit_facility_id)
+            .secured_loan_id(secured_loan_id)
             .custody_wallet_id(custody_wallet_id)
             .account_ids(account_ids)
             .facility_ledger_account_ids_for_liquidation(

@@ -211,7 +211,7 @@ where
                     .create_in_op(
                         &mut db,
                         new_pending_facility.collateral_id,
-                        new_pending_facility.id,
+                        new_pending_facility.id.into(),
                         wallet_id,
                         CollateralLedgerAccountIds::new(),
                         new_pending_facility.account_ids.into(),

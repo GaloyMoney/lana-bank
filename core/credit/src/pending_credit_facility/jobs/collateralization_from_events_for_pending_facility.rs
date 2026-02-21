@@ -83,10 +83,10 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record(
                     "pending_credit_facility_id",
-                    tracing::field::display(entity.pending_credit_facility_id),
+                    tracing::field::display(entity.secured_loan_id),
                 );
 
-                self.update_collateralization_from_events(entity.pending_credit_facility_id)
+                self.update_collateralization_from_events(entity.secured_loan_id)
                     .await?;
             }
             _ => {}
@@ -130,10 +130,10 @@ where
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub(super) async fn update_collateralization_from_events(
         &self,
-        id: PendingCreditFacilityId,
+        id: impl Into<PendingCreditFacilityId> + std::fmt::Debug + Copy,
     ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
         let mut op = self.repo.begin_op().await?;
-        let mut pending_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
+        let mut pending_facility = self.repo.find_by_id_in_op(&mut op, id.into()).await?;
 
         tracing::Span::current().record(
             "pending_credit_facility_id",
