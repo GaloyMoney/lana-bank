@@ -195,7 +195,7 @@ function main() {
     console.log("\nTo fix:");
     console.log("  1. For missing descriptions: Add descriptions to both api-descriptions.json and api-descriptions.es.json");
     console.log("  2. For default descriptions: Replace placeholder text with actual descriptions");
-    console.log("  3. Run 'npm run generate-api-docs' to regenerate documentation");
+    console.log("  3. Run 'pnpm run generate-api-docs' to regenerate documentation");
     process.exit(1);
   }
 

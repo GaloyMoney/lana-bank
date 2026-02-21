@@ -3,12 +3,12 @@
 /**
  * Snapshot current GraphQL schemas for a documentation version.
  *
- * This script should be run AFTER `npm run docusaurus docs:version X.X.X`
+ * This script should be run AFTER `pnpm run docusaurus docs:version X.X.X`
  * to capture the schemas that correspond to that version.
  *
  * Usage:
  *   node scripts/snapshot-schemas.js 0.0.2
- *   npm run snapshot-schemas -- 0.0.2
+ *   pnpm run snapshot-schemas -- 0.0.2
  *
  * This copies:
  *   - ../lana/admin-server/src/graphql/schema.graphql → schemas/versions/{version}/admin.graphql
@@ -108,7 +108,7 @@ function main() {
   console.log(`\nSchema snapshot complete for version ${version}`);
   console.log("\nNext steps:");
   console.log("  1. Commit the schema snapshot: git add schemas/versions/");
-  console.log("  2. Run build to generate versioned API docs: npm run build");
+  console.log("  2. Run build to generate versioned API docs: pnpm run build");
 }
 
 main();
