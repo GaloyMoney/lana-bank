@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{Result, anyhow};
-use cargo_metadata::{CargoOpt, MetadataCommand};
+use cargo_metadata::{CargoOpt, DependencyKind, MetadataCommand};
 
 use crate::{Violation, WorkspaceRule};
 
@@ -84,6 +84,10 @@ impl WorkspaceRule for DependencyDagRule {
             };
 
             for dependency in &package.dependencies {
+                // Dev-dependencies are allowed to violate the DAG (e.g., core tests using lana adapters)
+                if dependency.kind == DependencyKind::Development {
+                    continue;
+                }
                 if let Some(dep_path) = &dependency.path {
                     let dep_relative = dep_path.strip_prefix(&metadata.workspace_root).unwrap();
                     let dep_tier = match get_tier(dep_relative.as_ref()) {
