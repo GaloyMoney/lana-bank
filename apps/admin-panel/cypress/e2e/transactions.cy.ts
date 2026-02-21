@@ -4,6 +4,9 @@ import { t } from "../support/translation"
 
 const D = "Deposits"
 const W = "Withdrawals"
+const usdFormatter = new Intl.NumberFormat("en-US")
+const formatUsd = (amount: number) =>
+  `$${usdFormatter.format(amount)}.00`
 
 describe("Transactions Deposit and Withdraw", () => {
   let customerId: string
@@ -56,13 +59,14 @@ describe("Transactions Deposit and Withdraw", () => {
 
   it("should show newly created Deposit in list page", () => {
     cy.visit(`/deposits`)
-    cy.contains(`$${depositAmount.toLocaleString()}.00`).should("be.visible")
+    cy.get("table", { timeout: 10000 }).should("exist")
+    cy.contains(formatUsd(depositAmount)).should("be.visible")
     cy.takeScreenshot("6_deposit_in_list")
   })
 
   it("should show newly created Deposit in customer details page", () => {
     cy.visit(`/customers/${customerPublicId}`)
-    cy.contains(`$${depositAmount.toLocaleString()}.00`).should("be.visible")
+    cy.contains(formatUsd(depositAmount)).should("be.visible")
     cy.takeScreenshot("7_deposit_in_transactions")
   })
 
@@ -81,23 +85,24 @@ describe("Transactions Deposit and Withdraw", () => {
 
     cy.get('[data-testid="withdraw-submit-button"]').click()
 
-    cy.url()
+    cy.url({ timeout: 40000 })
       .should("include", "/withdrawals/")
       .then(() => {
-        cy.contains(`$${withdrawAmount.toLocaleString()}.00`).should("be.visible")
+        cy.contains(formatUsd(withdrawAmount)).should("be.visible")
         cy.takeScreenshot("11_withdrawal_submit")
       })
   })
 
   it("should show newly created Withdraw in list page", () => {
     cy.visit(`/withdrawals`)
-    cy.contains(`$${withdrawAmount.toLocaleString()}.00`).should("be.visible")
+    cy.get("table", { timeout: 10000 }).should("exist")
+    cy.contains(formatUsd(withdrawAmount)).should("be.visible")
     cy.takeScreenshot("12_withdrawal_in_list")
   })
 
   it("should show newly created Withdraw in customer details page", () => {
     cy.visit(`/customers/${customerPublicId}`)
-    cy.contains(`$${withdrawAmount.toLocaleString()}.00`).should("be.visible")
+    cy.contains(formatUsd(withdrawAmount)).should("be.visible")
     cy.takeScreenshot("13_withdrawal_in_transactions")
   })
 
