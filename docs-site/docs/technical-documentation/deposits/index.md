@@ -104,6 +104,7 @@ Similarly, when a customer makes a payment on a credit facility, the funds are d
 ## Related Documentation
 
 - [Deposit Operations](operations) - Deposits and withdrawals
+- [Ledger](ledger) - Overview of account sets and transaction templates
 
 ## Admin Panel Walkthrough: Deposit Account Setup
 

@@ -128,3 +128,4 @@ For the full mechanics, see [Interest Processing](./interest-process).
 | [Payments](./payment) | Payment processing, allocation priority rules, and accounting impact |
 | [Terms](./terms) | Interest rates, fee schedules, timing intervals, CVL thresholds, and terms templates |
 | [Interest Processing](./interest-process) | Daily accrual, monthly cycles, obligation creation, and ledger entries |
+| [Ledger](./ledger.md) | Overview of account sets and transaction templates |
