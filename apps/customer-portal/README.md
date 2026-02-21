@@ -5,13 +5,7 @@ This is a [Next.js](https://nextjs.org/) project
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://app.localhost:4455/](http://app.localhost:4455/) with your browser to see the result.
