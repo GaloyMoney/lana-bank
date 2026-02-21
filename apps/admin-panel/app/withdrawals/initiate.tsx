@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import {
@@ -19,7 +20,6 @@ import { Label } from "@lana/web/ui/label"
 
 import { useWithdrawalInitiateMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
-import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
   mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
@@ -58,18 +58,6 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
 }) => {
   const t = useTranslations("Withdrawals.WithdrawalInitiateDialog")
 
-  const handleCloseDialog = () => {
-    setOpenWithdrawalInitiateDialog(false)
-    setAmount("")
-    setReference("")
-    setError(null)
-    reset()
-  }
-
-  const { navigate, isNavigating } = useModalNavigation({
-    closeModal: handleCloseDialog,
-  })
-
   const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation({
     update: (cache) => {
       cache.modify({
@@ -81,16 +69,24 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
     },
   })
 
-  const isLoading = loading || isNavigating
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  const handleCloseDialog = () => {
+    setOpenWithdrawalInitiateDialog(false)
+    setAmount("")
+    setReference("")
+    setError(null)
+    reset()
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     try {
-      await initiateWithdrawal({
+      const result = await initiateWithdrawal({
         variables: {
           input: {
             depositAccountId,
@@ -98,12 +94,14 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
             reference,
           },
         },
-        onCompleted: (data) => {
-          toast.success(t("success"))
-          navigate(`/withdrawals/${data.withdrawalInitiate.withdrawal.publicId}`)
-          handleCloseDialog()
-        },
       })
+      if (result.data) {
+        toast.success(t("success"))
+        handleCloseDialog()
+        router.push(
+          `/withdrawals/${result.data.withdrawalInitiate.withdrawal.publicId}`,
+        )
+      }
     } catch (error) {
       console.error("Error initiating withdrawal:", error)
       setError(error instanceof Error ? error.message : t("errors.unknown"))
@@ -129,7 +127,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
                 placeholder={t("placeholders.amount")}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                disabled={isLoading}
+                disabled={loading}
                 endAdornment={`USD`}
               />
             </div>
@@ -142,17 +140,17 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
               placeholder={t("placeholders.reference")}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
             <Button
               type="submit"
-              loading={isLoading}
+              loading={loading}
               data-testid="withdraw-submit-button"
             >
-              {isLoading ? t("buttons.processing") : t("buttons.submit")}
+              {loading ? t("buttons.processing") : t("buttons.submit")}
             </Button>
           </DialogFooter>
         </form>
