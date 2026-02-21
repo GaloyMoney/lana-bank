@@ -45,20 +45,20 @@ gql`
         maturesAt
         currentCvl {
           __typename
-          ... on FiniteCVLPct {
+          ... on FiniteCvlPct {
             value
           }
-          ... on InfiniteCVLPct {
+          ... on InfiniteCvlPct {
             isInfinite
           }
         }
         creditFacilityTerms {
           liquidationCvl {
             __typename
-            ... on FiniteCVLPct {
+            ... on FiniteCvlPct {
               value
             }
-            ... on InfiniteCVLPct {
+            ... on InfiniteCvlPct {
               isInfinite
             }
           }

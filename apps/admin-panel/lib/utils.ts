@@ -140,10 +140,10 @@ export const getCurrentLocalDate = (): string => {
 }
 
 export const formatCvl = (cvl: CvlPctDataFragment): string =>
-  cvl.__typename === "FiniteCVLPct" ? `${Number(cvl.value || 0)}%` : "-"
+  cvl.__typename === "FiniteCvlPct" ? `${Number(cvl.value || 0)}%` : "-"
 
 export const getCvlValue = (cvl: CvlPctDataFragment): number =>
-  cvl.__typename === "FiniteCVLPct" ? Number(cvl.value) : Infinity
+  cvl.__typename === "FiniteCvlPct" ? Number(cvl.value) : Infinity
 
 /**
  * Validates and sanitizes a URL to ensure it's a safe internal navigation path.

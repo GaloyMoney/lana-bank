@@ -69,15 +69,15 @@ const createTermsTemplates = () => {
       values: mockTermValues({
         annualRate: riskProfile.annualRate,
         liquidationCvl: {
-          __typename: "FiniteCVLPct",
+          __typename: "FiniteCvlPct",
           value: riskProfile.liquidationCvl,
         },
         marginCallCvl: {
-          __typename: "FiniteCVLPct",
+          __typename: "FiniteCvlPct",
           value: riskProfile.marginCallCvl,
         },
         initialCvl: {
-          __typename: "FiniteCVLPct",
+          __typename: "FiniteCvlPct",
           value: riskProfile.initialCvl,
         },
         oneTimeFeeRate: 0.5,
