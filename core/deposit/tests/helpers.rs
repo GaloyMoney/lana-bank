@@ -9,7 +9,7 @@ use domain_config::{
     EncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
     RequireVerifiedCustomerForAccount,
 };
-use rand::Rng;
+use rand::RngExt;
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;

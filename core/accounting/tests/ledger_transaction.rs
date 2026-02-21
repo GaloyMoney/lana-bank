@@ -186,7 +186,7 @@ async fn prepare_test() -> anyhow::Result<(
     CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>, helpers::event::TestEvent>,
     Chart,
 )> {
-    use rand::Rng;
+    use rand::RngExt;
     let pool = helpers::init_pool().await?;
     let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let cala_config = CalaLedgerConfig::builder()

@@ -183,7 +183,7 @@ paste = "1.0"
 pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 bytes = "1.11"
-keycloak = "26.5.200"
+keycloak = "26.4.0"
 
 [profile.dev]
 debug = "line-tables-only"

@@ -14,7 +14,7 @@ use helpers::{
     object, resolve_account_set_ids, resolve_omnibus_account_set_ids,
 };
 use public_id::PublicIds;
-use rand::Rng;
+use rand::RngExt;
 
 const CREDIT_ACCOUNTS_CSV: &str = r#"
 81,,,Facility Omnibus Parent,,
