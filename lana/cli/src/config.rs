@@ -71,6 +71,7 @@ pub struct EnvSecrets {
     pub smtp_username: String,
     pub smtp_password: String,
     pub encryption_key: String,
+    pub deprecated_encryption_key: Option<String>,
     pub keycloak_internal_client_secret: String,
     pub keycloak_customer_client_secret: String,
 }
@@ -83,6 +84,7 @@ impl Config {
             smtp_username,
             smtp_password,
             encryption_key,
+            deprecated_encryption_key,
             keycloak_internal_client_secret,
             keycloak_customer_client_secret,
         }: EnvSecrets,
@@ -99,16 +101,18 @@ impl Config {
         config.app.user_onboarding.keycloak.client_secret = keycloak_internal_client_secret;
         config.app.customer_sync.keycloak.client_secret = keycloak_customer_client_secret;
 
-        let key_bytes = hex::decode(encryption_key)?;
-        if key_bytes.len() != 32 {
-            return Err(anyhow::anyhow!(
-                "Encryption key must be 32 bytes, got {}",
-                key_bytes.len()
-            ));
-        }
+        let parse_key = |hex_str: String| -> anyhow::Result<[u8; 32]> {
+            let bytes = hex::decode(hex_str)?;
+            bytes.try_into().map_err(|v: Vec<u8>| {
+                anyhow::anyhow!("Encryption key must be 32 bytes, got {}", v.len())
+            })
+        };
 
-        let key_array: [u8; 32] = key_bytes.as_slice().try_into().expect("key is 32 bytes");
-        config.app.encryption.key = key_array.into();
+        config.app.encryption.key = parse_key(encryption_key)?.into();
+        config.app.encryption.deprecated_encryption_key = deprecated_encryption_key
+            .map(parse_key)
+            .transpose()?
+            .map(Into::into);
 
         Ok(config)
     }

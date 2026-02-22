@@ -106,6 +106,10 @@ impl LanaApp {
 
         domain_config::apply_startup_configs(&pool, &config.encryption, startup_domain_configs)
             .await?;
+        if let Some(deprecated_key) = config.encryption.deprecated_encryption_key {
+            domain_config::rotate_encryption_key(&pool, &config.encryption.key, &deprecated_key)
+                .await?;
+        }
 
         let access = Access::init(
             &pool,

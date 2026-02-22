@@ -245,6 +245,24 @@ impl DomainConfig {
 
         Ok(())
     }
+
+    pub(super) fn rotate_encryption_key(
+        &mut self,
+        new_key: &EncryptionKey,
+        deprecated_key: &EncryptionKey,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        let Some(current) = self.current_stored_value() else {
+            return Ok(Idempotent::AlreadyApplied);
+        };
+
+        let Some(new_value) = current.try_rotate(new_key, deprecated_key)? else {
+            return Ok(Idempotent::AlreadyApplied);
+        };
+
+        self.events
+            .push(DomainConfigEvent::Updated { value: new_value });
+        Ok(Idempotent::Executed(()))
+    }
 }
 
 impl TryFromEvents<DomainConfigEvent> for DomainConfig {

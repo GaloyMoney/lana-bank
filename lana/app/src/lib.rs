@@ -241,7 +241,7 @@ pub mod time_events {
 pub mod domain_config {
     pub use domain_config::{
         ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
-        apply_startup_configs,
+        apply_startup_configs, rotate_encryption_key,
     };
 }
 

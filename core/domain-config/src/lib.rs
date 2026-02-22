@@ -505,6 +505,31 @@ async fn seed_registered_for_visibility(
     Ok(())
 }
 
+#[instrument(name = "domain_config.rotate_encryption_key", skip_all)]
+pub async fn rotate_encryption_key(
+    pool: &sqlx::PgPool,
+    new_key: &EncryptionKey,
+    deprecated_key: &EncryptionKey,
+) -> Result<(), DomainConfigError> {
+    let repo = DomainConfigRepo::new(pool);
+    let mut op = repo.begin_op().await?;
+    let configs = repo.list_all_in_op(&mut op).await?;
+    let mut updated_configs = Vec::new();
+
+    for mut entity in configs.into_iter() {
+        if entity
+            .rotate_encryption_key(&new_key, &deprecated_key)?
+            .did_execute()
+        {
+            updated_configs.push(entity);
+        }
+    }
+
+    repo.update_all_in_op(&mut op, &mut updated_configs).await?;
+    op.commit().await?;
+    Ok(())
+}
+
 /// Apply domain config settings at startup from key-value pairs.
 ///
 /// This is intended for bootstrap scenarios where configs need to be set

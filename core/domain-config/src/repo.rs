@@ -50,4 +50,20 @@ impl DomainConfigRepo {
             .map(|entity| (entity.id, Out::from(entity)))
             .collect())
     }
+
+    pub async fn list_all_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+    ) -> Result<Vec<DomainConfig>, DomainConfigError> {
+        let mut next = Some(PaginatedQueryArgs::default());
+        let mut domain_configs = Vec::new();
+        while let Some(query) = next {
+            let mut ret = self
+                .list_by_id_in_op(&mut *op, query, Default::default())
+                .await?;
+            domain_configs.append(&mut ret.entities);
+            next = ret.into_next_query();
+        }
+        Ok(domain_configs)
+    }
 }
