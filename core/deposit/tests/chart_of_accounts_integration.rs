@@ -186,7 +186,13 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     deposit
         .chart_of_accounts_integrations()
-        .set_config(&DummySubject, &chart, chart_of_accounts_config.clone())
+        .set_config(
+            &DummySubject,
+            chart.id,
+            chart.accounting_base_config().is_some(),
+            &|code, cat| chart.find_account_set_id_in_category(code, cat),
+            chart_of_accounts_config.clone(),
+        )
         .await?;
 
     let catalog = DEPOSIT_ACCOUNT_SET_CATALOG;
@@ -345,7 +351,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .chart_of_accounts_integrations()
         .set_config(
             &DummySubject,
-            &chart,
+            chart.id,
+            chart.accounting_base_config().is_some(),
+            &|code, cat| chart.find_account_set_id_in_category(code, cat),
             chart_of_accounts_integration_config.clone(),
         )
         .await

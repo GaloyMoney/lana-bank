@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use core_accounting::{AccountCode, CalaAccountSetId, Chart, ChartId};
+use core_accounting_primitives::{
+    AccountCategory, AccountCode, CalaAccountSetId, ChartId, ChartLookupError,
+};
 use domain_config::define_internal_config;
 
 use super::error::ChartOfAccountsIntegrationError;
@@ -56,24 +58,20 @@ define_internal_config! {
 impl ResolvedChartOfAccountsIntegrationConfig {
     pub(super) fn try_new(
         config: ChartOfAccountsIntegrationConfig,
-        chart: &Chart,
+        account_set_lookup: &impl Fn(&AccountCode, AccountCategory) -> Option<CalaAccountSetId>,
     ) -> Result<Self, ChartOfAccountsIntegrationError> {
-        let category_account_set_member_parent_id = |code: &AccountCode,
-                                                     category: DepositAccountCategory|
-         -> Result<
-            CalaAccountSetId,
-            ChartOfAccountsIntegrationError,
-        > {
-            chart
-                .find_account_set_id_in_category(code, category.into())
-                .ok_or_else(|| {
-                    core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
+        let category_account_set_member_parent_id =
+            |code: &AccountCode,
+             category: DepositAccountCategory|
+             -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
+                account_set_lookup(code, category.into()).ok_or_else(|| {
+                    ChartLookupError::InvalidAccountCategory {
                         code: code.clone(),
                         category: category.into(),
                     }
                     .into()
                 })
-        };
+            };
 
         let catalog = DEPOSIT_ACCOUNT_SET_CATALOG;
         let deposit = catalog.deposit();
