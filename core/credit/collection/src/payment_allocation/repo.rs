@@ -21,6 +21,7 @@ use super::{entity::*, error::PaymentAllocationError};
         obligation_id(ty = "ObligationId", update(persist = false)),
     ),
     tbl_prefix = "core",
+    list_for_by = false,
     post_persist_hook = "publish_in_op"
 )]
 pub struct PaymentAllocationRepo<E>

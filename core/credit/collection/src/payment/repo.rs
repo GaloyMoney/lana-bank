@@ -17,6 +17,7 @@ use super::{entity::*, error::PaymentError};
     err = "PaymentError",
     columns(beneficiary_id(ty = "BeneficiaryId", list_for, update(persist = false)),),
     tbl_prefix = "core",
+    list_for_by = false,
     post_persist_hook = "publish_in_op"
 )]
 pub struct PaymentRepo<E>

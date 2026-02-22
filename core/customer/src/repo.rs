@@ -20,6 +20,7 @@ use super::{entity::*, error::*};
         public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
+    list_for_by = false,
     post_persist_hook = "publish_in_op"
 )]
 pub struct CustomerRepo<E>

@@ -987,8 +987,11 @@ where
             .await?;
         Ok(self
             .deposits
-            .list_for_deposit_account_id_by_created_at(
-                account_id,
+            .list_for_filters_by_created_at(
+                DepositsFilters {
+                    deposit_account_id: Some(account_id),
+                    ..Default::default()
+                },
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )
@@ -1013,8 +1016,11 @@ where
             .await?;
         Ok(self
             .withdrawals
-            .list_for_deposit_account_id_by_created_at(
-                account_id,
+            .list_for_filters_by_created_at(
+                WithdrawalsFilters {
+                    deposit_account_id: Some(account_id),
+                    ..Default::default()
+                },
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )

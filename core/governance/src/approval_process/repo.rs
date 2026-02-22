@@ -21,7 +21,8 @@ use super::{entity::*, error::*};
         ),
         policy_id(ty = "PolicyId")
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    list_for_by = false
 )]
 pub(crate) struct ApprovalProcessRepo {
     #[allow(dead_code)]

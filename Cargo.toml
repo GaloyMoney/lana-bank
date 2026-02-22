@@ -203,4 +203,9 @@ opt-level = 0
 [workspace.metadata.crane]
 name = "lana-bank"
 
+[patch.crates-io]
+es-entity = { git = "https://github.com/GaloyMoney/es-entity", branch = "build/list-for-by-attribute" }
+es-entity-macros = { git = "https://github.com/GaloyMoney/es-entity", branch = "build/list-for-by-attribute" }
+cala-ledger = { git = "https://github.com/GaloyMoney/cala", branch = "build/pregenerate-lalrpop-parser" }
+cala-cel-interpreter = { git = "https://github.com/GaloyMoney/cala", branch = "build/pregenerate-lalrpop-parser" }
 
