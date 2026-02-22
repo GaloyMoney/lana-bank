@@ -108,16 +108,20 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
     };
 
     let jump_hint = match app.jump_info() {
-        JumpInfo::LanaToCala { total } => Span::styled(
-            format!("  g: jump to CALA ({total} locations)"),
+        JumpInfo::LanaToCala { total } if total > 1 => Span::styled(
+            format!("  g: cycle LANA ↔ CALA ({total} locations)"),
+            Style::default().fg(Color::Yellow),
+        ),
+        JumpInfo::LanaToCala { .. } => Span::styled(
+            "  g: jump to CALA".to_string(),
+            Style::default().fg(Color::Yellow),
+        ),
+        JumpInfo::Ring { step, cala_total } => Span::styled(
+            format!("  g: next (CALA {step}/{cala_total})"),
             Style::default().fg(Color::Yellow),
         ),
         JumpInfo::CalaToLana => Span::styled(
             "  g: jump to LANA".to_string(),
-            Style::default().fg(Color::Yellow),
-        ),
-        JumpInfo::CalaRing { current, total } => Span::styled(
-            format!("  g: next CALA match ({current}/{total})"),
             Style::default().fg(Color::Yellow),
         ),
         JumpInfo::NotAvailable => Span::raw(""),

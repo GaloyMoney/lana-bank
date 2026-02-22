@@ -14,14 +14,26 @@ pub enum ActiveView {
 /// Info about available jump actions for the UI.
 pub enum JumpInfo {
     NotAvailable,
-    LanaToCala { total: usize },
+    /// On LANA view, ready to jump into CALA (shows how many CALA locations).
+    LanaToCala {
+        total: usize,
+    },
+    /// On CALA view with a ring active — shows position within the full cycle.
+    /// `step` is 1-based within the CALA portion, `cala_total` is # of CALA locations.
+    Ring {
+        step: usize,
+        cala_total: usize,
+    },
+    /// On CALA view without a ring (e.g. navigated here manually), can jump to LANA.
     CalaToLana,
-    CalaRing { current: usize, total: usize },
 }
 
-/// Tracks a multi-match jump ring for LANA→CALA cycling.
+/// Tracks a LANA ↔ CALA round-robin.
+/// index 0 = LANA, index 1..N = CALA locations.
 struct JumpRing {
-    paths: Vec<Vec<String>>,
+    lana_path: Vec<String>,
+    cala_paths: Vec<Vec<String>>,
+    /// 0 = LANA, 1..=cala_paths.len() = CALA positions
     index: usize,
 }
 
@@ -140,16 +152,22 @@ impl<'a> App<'a> {
 
     /// Info about the jump ring for the status bar / details panel.
     pub fn jump_info(&self) -> JumpInfo {
-        // If we're in a CALA jump ring, report it
+        // If there's an active ring, report position
         if let Some(ref ring) = self.jump_ring {
-            if self.active_view == ActiveView::Cala && ring.paths.len() > 1 {
-                return JumpInfo::CalaRing {
-                    current: ring.index + 1,
-                    total: ring.paths.len(),
+            if ring.index == 0 {
+                // We're on the LANA step of the ring
+                return JumpInfo::LanaToCala {
+                    total: ring.cala_paths.len(),
+                };
+            } else {
+                return JumpInfo::Ring {
+                    step: ring.index,
+                    cala_total: ring.cala_paths.len(),
                 };
             }
         }
 
+        // No ring — check if a jump is possible from scratch
         let Some(set_id) = self.selected_set_id() else {
             return JumpInfo::NotAvailable;
         };
@@ -173,18 +191,30 @@ impl<'a> App<'a> {
     }
 
     /// Handle the `g` key press.
+    /// Cycles: LANA → CALA#1 → CALA#2 → … → LANA → CALA#1 → …
     pub fn jump(&mut self) {
-        // If we're in a CALA jump ring, cycle to next match
+        // If there's an active ring, advance to the next step
         if let Some(ref mut ring) = self.jump_ring {
-            if self.active_view == ActiveView::Cala && ring.paths.len() > 1 {
-                ring.index = (ring.index + 1) % ring.paths.len();
-                let path = ring.paths[ring.index].clone();
+            let total = 1 + ring.cala_paths.len(); // 1 for LANA + N CALA
+            ring.index = (ring.index + 1) % total;
+
+            if ring.index == 0 {
+                // Back to LANA
+                let path = ring.lana_path.clone();
+                open_ancestors(&mut self.lana_tree_state, &path);
+                self.lana_tree_state.select(path);
+                self.active_view = ActiveView::Lana;
+            } else {
+                // CALA position (1-based → 0-based into cala_paths)
+                let path = ring.cala_paths[ring.index - 1].clone();
                 open_ancestors(&mut self.cala_tree_state, &path);
                 self.cala_tree_state.select(path);
-                return;
+                self.active_view = ActiveView::Cala;
             }
+            return;
         }
 
+        // No ring yet — start one
         let Some(set_id) = self.selected_set_id() else {
             return;
         };
@@ -192,24 +222,29 @@ impl<'a> App<'a> {
 
         match self.active_view {
             ActiveView::Lana => {
-                let paths = find_all_paths_in_tree(&self.cala_items, &target);
-                if paths.is_empty() {
+                let cala_paths = find_all_paths_in_tree(&self.cala_items, &target);
+                if cala_paths.is_empty() {
                     return;
                 }
-                let path = paths[0].clone();
+                let lana_path = self.lana_tree_state.selected().to_vec();
+                let path = cala_paths[0].clone();
                 open_ancestors(&mut self.cala_tree_state, &path);
                 self.cala_tree_state.select(path);
-                self.jump_ring = Some(JumpRing { paths, index: 0 });
+                self.jump_ring = Some(JumpRing {
+                    lana_path,
+                    cala_paths,
+                    index: 1, // we just moved to CALA#1
+                });
                 self.active_view = ActiveView::Cala;
             }
             ActiveView::Cala => {
+                // No ring, manual CALA→LANA jump
                 if !self.node_by_set_id.contains_key(&set_id) {
                     return;
                 }
                 if let Some(path) = find_path_in_tree(&self.lana_items, &target) {
                     open_ancestors(&mut self.lana_tree_state, &path);
                     self.lana_tree_state.select(path);
-                    self.jump_ring = None;
                     self.active_view = ActiveView::Lana;
                 }
             }
@@ -361,16 +396,18 @@ impl<'a> App<'a> {
                     lines.push(format!("  Node ID: {}", node.id));
                     lines.push(format!("  Normal Balance: {}", node.normal_balance_type));
                     lines.push(String::new());
-                    lines.push("[g] Jump to LANA view ←".into());
-                    // Show ring info if cycling
                     if let Some(ref ring) = self.jump_ring {
-                        if ring.paths.len() > 1 {
+                        if ring.cala_paths.len() > 1 {
                             lines.push(format!(
-                                "    (CALA location {}/{})",
-                                ring.index + 1,
-                                ring.paths.len()
+                                "[g] Next → (CALA location {}/{})",
+                                ring.index,
+                                ring.cala_paths.len()
                             ));
+                        } else {
+                            lines.push("[g] Jump to LANA view ←".into());
                         }
+                    } else {
+                        lines.push("[g] Jump to LANA view ←".into());
                     }
                 } else {
                     lines.push(String::new());
