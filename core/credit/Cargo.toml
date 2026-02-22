@@ -29,7 +29,7 @@ core-credit-collection = { path = "collection" }
 core-credit-terms = { path = "terms" }
 core-custody = { workspace = true }
 governance = { workspace = true }
-core-accounting = { workspace = true }
+core-accounting-primitives = { workspace = true }
 domain-config = { workspace = true }
 
 audit = { workspace = true }
@@ -63,6 +63,7 @@ schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
 obix = { workspace = true, features = ["test-utils"] }
+core-accounting = { workspace = true }
 document-storage = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 domain-config = { workspace = true, features = ["test-utils"] }

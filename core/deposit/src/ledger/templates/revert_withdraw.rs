@@ -104,8 +104,10 @@ impl<S: std::fmt::Display> From<RevertWithdrawParams<S>> for Params {
         params.insert("correlation_id", correlation_id);
         params.insert("external_id", external_id);
         params.insert("effective", effective_date);
-        let entity_ref =
-            core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        let entity_ref = core_accounting_primitives::EntityRef::new(
+            WITHDRAWAL_TRANSACTION_ENTITY_TYPE,
+            entity_id,
+        );
         params.insert(
             "meta",
             serde_json::json!({
