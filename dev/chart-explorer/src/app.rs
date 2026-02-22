@@ -93,6 +93,72 @@ impl<'a> App<'a> {
         };
     }
 
+    /// Returns the account_set_id UUID of the currently selected node, if any.
+    fn selected_set_id(&self) -> Option<Uuid> {
+        let selected = match self.active_view {
+            ActiveView::Lana => self.lana_tree_state.selected(),
+            ActiveView::Cala => self.cala_tree_state.selected(),
+        };
+        if selected.is_empty() {
+            return None;
+        }
+        let last = &selected[selected.len() - 1];
+        // Skip member accounts (acct: prefix) and chart-level IDs
+        if last.starts_with("acct:") {
+            return None;
+        }
+        let uuid = last.parse::<Uuid>().ok()?;
+        // For LANA view, skip chart root IDs (they're not account sets)
+        if self.active_view == ActiveView::Lana && self.charts.iter().any(|c| c.id == uuid) {
+            return None;
+        }
+        Some(uuid)
+    }
+
+    /// Whether the current selection can jump to the other view.
+    pub fn can_jump(&self) -> bool {
+        let Some(set_id) = self.selected_set_id() else {
+            return false;
+        };
+        match self.active_view {
+            // LANA → CALA: always possible (every node has a CALA set)
+            ActiveView::Lana => find_path_in_tree(&self.cala_items, &set_id.to_string()).is_some(),
+            // CALA → LANA: only if this set has a LANA node
+            ActiveView::Cala => {
+                self.node_by_set_id.contains_key(&set_id)
+                    && find_path_in_tree(&self.lana_items, &set_id.to_string()).is_some()
+            }
+        }
+    }
+
+    /// Jump to the same account set in the other view.
+    pub fn jump_to_other_view(&mut self) {
+        let Some(set_id) = self.selected_set_id() else {
+            return;
+        };
+        let target = set_id.to_string();
+
+        match self.active_view {
+            ActiveView::Lana => {
+                if let Some(path) = find_path_in_tree(&self.cala_items, &target) {
+                    open_ancestors(&mut self.cala_tree_state, &path);
+                    self.cala_tree_state.select(path);
+                    self.active_view = ActiveView::Cala;
+                }
+            }
+            ActiveView::Cala => {
+                if !self.node_by_set_id.contains_key(&set_id) {
+                    return;
+                }
+                if let Some(path) = find_path_in_tree(&self.lana_items, &target) {
+                    open_ancestors(&mut self.lana_tree_state, &path);
+                    self.lana_tree_state.select(path);
+                    self.active_view = ActiveView::Lana;
+                }
+            }
+        }
+    }
+
     pub fn selected_details(&self) -> Vec<String> {
         match self.active_view {
             ActiveView::Lana => self.lana_selected_details(),
@@ -162,6 +228,9 @@ impl<'a> App<'a> {
             lines.push(format!("  {direct} direct accounts"));
             lines.push(format!("  {transitive} transitive accounts"));
 
+            lines.push(String::new());
+            lines.push("[g] Jump to CALA view →".into());
+
             return lines;
         }
 
@@ -227,6 +296,8 @@ impl<'a> App<'a> {
                     lines.push(format!("  Name: {}", node.name));
                     lines.push(format!("  Node ID: {}", node.id));
                     lines.push(format!("  Normal Balance: {}", node.normal_balance_type));
+                    lines.push(String::new());
+                    lines.push("[g] Jump to LANA view ←".into());
                 } else {
                     lines.push(String::new());
                     lines.push("No LANA chart node".into());
@@ -260,6 +331,27 @@ impl<'a> App<'a> {
         }
 
         vec!["Unknown selection".into()]
+    }
+}
+
+/// Find the full path (sequence of identifiers) to a node in the tree.
+fn find_path_in_tree(items: &[TreeItem<'_, String>], target: &str) -> Option<Vec<String>> {
+    for item in items {
+        if item.identifier() == target {
+            return Some(vec![target.to_string()]);
+        }
+        if let Some(mut path) = find_path_in_tree(item.children(), target) {
+            path.insert(0, item.identifier().clone());
+            return Some(path);
+        }
+    }
+    None
+}
+
+/// Open all ancestor nodes so the target is visible.
+fn open_ancestors(state: &mut TreeState<String>, path: &[String]) {
+    for i in 0..path.len().saturating_sub(1) {
+        state.open(path[..=i].to_vec());
     }
 }
 

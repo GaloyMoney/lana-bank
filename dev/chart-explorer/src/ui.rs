@@ -107,11 +107,21 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(Color::Cyan)
     };
 
+    let jump_hint = if app.can_jump() {
+        Span::styled(
+            "  g: jump to counterpart",
+            Style::default().fg(Color::Yellow),
+        )
+    } else {
+        Span::raw("")
+    };
+
     let line = Line::from(vec![
         Span::styled(" [LANA Tree] ", lana_style),
         Span::raw(" "),
         Span::styled(" [CALA Sets] ", cala_style),
-        Span::raw("  Tab: switch view  ↑↓: navigate  ←→: collapse/expand  q: quit"),
+        Span::raw("  Tab: switch  ↑↓: navigate  ←→: collapse/expand  q: quit"),
+        jump_hint,
     ]);
 
     f.render_widget(Paragraph::new(line), area);

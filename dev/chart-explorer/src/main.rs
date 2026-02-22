@@ -91,6 +91,7 @@ fn run_tui(mut app: app::App) -> io::Result<()> {
             }
             match key.code {
                 KeyCode::Char('q') => break,
+                KeyCode::Char('g') => app.jump_to_other_view(),
                 KeyCode::Tab => app.toggle_view(),
                 KeyCode::Up => match app.active_view {
                     app::ActiveView::Lana => {
