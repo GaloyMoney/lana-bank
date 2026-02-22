@@ -8,17 +8,14 @@ const DA_CLOSE = "DepositAccounts.DepositAccountDetails.closeDepositAccount"
 const DA_STATUS = "DepositAccounts.status"
 
 describe("Deposit Accounts", () => {
-  let testEmail: string
-  let testCustomerPublicId: string
   let testDepositAccountId: string
   let testDepositAccountPublicId: string
 
   before(() => {
-    testEmail = `deposit${Date.now().toString().slice(-6)}@example.com`
+    const testEmail = `deposit${Date.now().toString().slice(-6)}@example.com`
     const testTelegramId = `deposit${Date.now().toString().slice(-6)}`
 
     cy.createCustomer(testEmail, testTelegramId).then((customer) => {
-      testCustomerPublicId = customer.publicId
       testDepositAccountId = customer.depositAccount.depositAccountId
       testDepositAccountPublicId = customer.depositAccount.publicId
       cy.log(`Created deposit account with public ID: ${testDepositAccountPublicId}`)
@@ -27,7 +24,7 @@ describe("Deposit Accounts", () => {
 
   it("should display deposit account details correctly", () => {
     cy.visit(`/deposit-accounts/${testDepositAccountPublicId}`)
-    cy.contains(testEmail).should("be.visible")
+    cy.contains(t(DA_CARD + ".fields.customerId")).should("be.visible")
     cy.contains(t(DA_CARD + ".fields.settledBalance")).should("be.visible")
     cy.contains(t(DA_CARD + ".fields.pendingBalance")).should("be.visible")
     cy.get('[data-testid="deposit-account-status-badge"]').should("be.visible")
@@ -35,16 +32,9 @@ describe("Deposit Accounts", () => {
     cy.contains(t(DA_CARD + ".buttons.freezeDepositAccount")).should("be.visible")
   })
 
-  it("should navigate to customer details when clicking customer email", () => {
-    cy.visit(`/deposit-accounts/${testDepositAccountPublicId}`)
-    cy.contains(testEmail).click()
-    cy.url().should("include", `/customers/${testCustomerPublicId}`)
-  })
-
   it("should show deposit account in list page", () => {
     cy.visit("/deposit-accounts")
     cy.contains(testDepositAccountPublicId).should("be.visible")
-    cy.contains(testEmail).should("be.visible")
     cy.contains(testDepositAccountPublicId)
       .parents("tr")
       .within(() => {

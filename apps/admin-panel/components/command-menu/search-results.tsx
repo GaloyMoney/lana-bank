@@ -32,8 +32,8 @@ const getResultInfo = (
   switch (result.__typename) {
     case "DepositAccount":
       return {
-        url: `/customers/${result.customer.publicId}`,
-        primary: result.customer.email,
+        url: `/deposit-accounts/${result.publicId}`,
+        primary: result.publicId,
         secondary: t("searchResultTypes.depositAccount"),
         id: result.id,
       }

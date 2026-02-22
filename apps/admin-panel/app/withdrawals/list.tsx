@@ -24,12 +24,6 @@ gql`
     publicId
     createdAt
     amount
-    account {
-      customer {
-        customerId
-        email
-      }
-    }
   }
 
   query Withdrawals($first: Int!, $after: String) {
@@ -80,11 +74,6 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] =>
     key: "publicId",
     label: t("headers.withdrawalId"),
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
-  },
-  {
-    key: "account",
-    label: t("headers.customer"),
-    render: (account) => account.customer.email,
   },
   {
     key: "reference",

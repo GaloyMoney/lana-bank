@@ -35,10 +35,6 @@ gql`
           collateral {
             btcBalance
           }
-          customer {
-            customerId
-            email
-          }
         }
       }
       pageInfo {
@@ -83,12 +79,6 @@ const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] =>
     label: t("table.headers.status"),
     labelClassName: "w-[17%]",
     render: (status) => <PendingCreditFacilityStatusBadge status={status} />,
-  },
-  {
-    key: "customer",
-    label: t("table.headers.customer"),
-    labelClassName: "w-[25%]",
-    render: (customer) => <div className="truncate">{customer.email}</div>,
   },
   {
     key: "facilityAmount",

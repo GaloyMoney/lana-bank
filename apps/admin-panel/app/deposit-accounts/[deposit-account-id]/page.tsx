@@ -18,6 +18,7 @@ gql`
     id
     publicId
     depositAccountId
+    customerId
     createdAt
     status
     balance {
@@ -27,13 +28,6 @@ gql`
     ledgerAccounts {
       depositAccountId
       frozenDepositAccountId
-    }
-    customer {
-      id
-      customerId
-      publicId
-      applicantId
-      email
     }
   }
 
