@@ -9,6 +9,7 @@ members = [
   "dev/entity-rollups",
   "dev/custom-lints",
   "dev/public-events-schema",
+  "dev/chart-explorer",
 ]
 exclude = [
   "core/credit/src",
@@ -184,6 +185,9 @@ pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 bytes = "1.11"
 keycloak = "26.4.0"
+ratatui = "0.30"
+crossterm = "0.29"
+tui-tree-widget = "0.24"
 
 [profile.dev]
 debug = "line-tables-only"
