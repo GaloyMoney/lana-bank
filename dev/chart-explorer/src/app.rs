@@ -423,83 +423,82 @@ impl<'a> App<'a> {
         }
 
         // It's an account set
-        if let Ok(set_id) = last_id.parse::<Uuid>() {
-            if let Some(set) = self.set_by_id.get(&set_id) {
-                let mut lines = vec![
-                    format!("Account Set: {}", set.name),
-                    format!(
-                        "External ID: {}",
-                        set.external_id.as_deref().unwrap_or("(none)")
-                    ),
-                    format!("CALA Set ID: {set_id}"),
-                ];
+        if let Some(set) = last_id
+            .parse::<Uuid>()
+            .ok()
+            .and_then(|id| self.set_by_id.get(&id).map(|s| (id, s)))
+        {
+            let (set_id, set) = set;
+            let mut lines = vec![
+                format!("Account Set: {}", set.name),
+                format!(
+                    "External ID: {}",
+                    set.external_id.as_deref().unwrap_or("(none)")
+                ),
+                format!("CALA Set ID: {set_id}"),
+            ];
 
-                // Check if this has a LANA equivalent
-                if let Some(node) = self.node_by_set_id.get(&set_id) {
-                    lines.push(String::new());
-                    lines.push("LANA Node:".into());
-                    lines.push(format!("  Code: {}", node.code));
-                    lines.push(format!("  Name: {}", node.name));
-                    lines.push(format!("  Node ID: {}", node.id));
-                    lines.push(format!("  Normal Balance: {}", node.normal_balance_type));
-                    lines.push(String::new());
-                    if let Some(ref ring) = self.jump_ring {
-                        if ring.cala_paths.len() > 1 {
-                            lines.push(format!(
-                                "[g] Next → (CALA location {}/{})",
-                                ring.index,
-                                ring.cala_paths.len()
-                            ));
-                        } else {
-                            lines.push("[g] Jump to LANA view ←".into());
-                        }
+            // Check if this has a LANA equivalent
+            if let Some(node) = self.node_by_set_id.get(&set_id) {
+                lines.push(String::new());
+                lines.push("LANA Node:".into());
+                lines.push(format!("  Code: {}", node.code));
+                lines.push(format!("  Name: {}", node.name));
+                lines.push(format!("  Node ID: {}", node.id));
+                lines.push(format!("  Normal Balance: {}", node.normal_balance_type));
+                lines.push(String::new());
+                if let Some(ref ring) = self.jump_ring {
+                    if ring.cala_paths.len() > 1 {
+                        lines.push(format!(
+                            "[g] Next → (CALA location {}/{})",
+                            ring.index,
+                            ring.cala_paths.len()
+                        ));
                     } else {
                         lines.push("[g] Jump to LANA view ←".into());
                     }
                 } else {
-                    lines.push(String::new());
-                    lines.push("No LANA chart node".into());
+                    lines.push("[g] Jump to LANA view ←".into());
                 }
-
-                let child_sets = self
-                    .set_children_by_parent
-                    .get(&set_id)
-                    .map(|v| v.len())
-                    .unwrap_or(0);
-                let member_accounts = self
-                    .account_members_by_set
-                    .get(&set_id)
-                    .map(|v| v.len())
-                    .unwrap_or(0);
-                let direct = self
-                    .account_members_by_set
-                    .get(&set_id)
-                    .map(|v| v.iter().filter(|a| !a.transitive).count())
-                    .unwrap_or(0);
-                let transitive = member_accounts - direct;
-
+            } else {
                 lines.push(String::new());
-                lines.push("Members:".into());
-                lines.push(format!("  {child_sets} child sets"));
-                lines.push(format!("  {direct} direct accounts"));
-                lines.push(format!("  {transitive} transitive accounts"));
-
-                // Aggregate balances across all direct member accounts
-                if let Some(members) = self.account_members_by_set.get(&set_id) {
-                    let direct_members: Vec<Uuid> = members
-                        .iter()
-                        .filter(|m| !m.transitive)
-                        .map(|m| m.account_id)
-                        .collect();
-                    format_aggregate_balances(
-                        &self.balances_by_account,
-                        &direct_members,
-                        &mut lines,
-                    );
-                }
-
-                return lines;
+                lines.push("No LANA chart node".into());
             }
+
+            let child_sets = self
+                .set_children_by_parent
+                .get(&set_id)
+                .map(|v| v.len())
+                .unwrap_or(0);
+            let member_accounts = self
+                .account_members_by_set
+                .get(&set_id)
+                .map(|v| v.len())
+                .unwrap_or(0);
+            let direct = self
+                .account_members_by_set
+                .get(&set_id)
+                .map(|v| v.iter().filter(|a| !a.transitive).count())
+                .unwrap_or(0);
+            let transitive = member_accounts - direct;
+
+            lines.push(String::new());
+            lines.push("Members:".into());
+            lines.push(format!("  {child_sets} child sets"));
+            lines.push(format!("  {direct} direct accounts"));
+            lines.push(format!("  {transitive} transitive accounts"));
+
+            // Aggregate balances across all direct member accounts
+            if let Some(members) = self.account_members_by_set.get(&set_id) {
+                let direct_members: Vec<Uuid> = members
+                    .iter()
+                    .filter(|m| !m.transitive)
+                    .map(|m| m.account_id)
+                    .collect();
+                format_aggregate_balances(&self.balances_by_account, &direct_members, &mut lines);
+            }
+
+            return lines;
         }
 
         vec!["Unknown selection".into()]
