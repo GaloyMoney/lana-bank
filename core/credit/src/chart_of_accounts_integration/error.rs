@@ -10,8 +10,8 @@ pub enum ChartOfAccountsIntegrationError {
     ChartIdMismatch,
     #[error("ChartOfAccountIntegrationError - CreditLedgerError: {0}")]
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
-    #[error("ChartOfAccountIntegrationError - ChartOfAccountsError: {0}")]
-    ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("ChartOfAccountIntegrationError - ChartLookupError: {0}")]
+    ChartLookupError(#[from] core_accounting_primitives::ChartLookupError),
     #[error("ChartOfAccountIntegrationError - AccountingBaseConfigNotFound")]
     AccountingBaseConfigNotFound,
     #[error("ChartOfAccountIntegrationError - DomainConfigError: {0}")]
@@ -28,7 +28,7 @@ impl ErrorSeverity for ChartOfAccountsIntegrationError {
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartIdMismatch => Level::ERROR,
             Self::CreditLedgerError(e) => e.severity(),
-            Self::ChartOfAccountsError(e) => e.severity(),
+            Self::ChartLookupError(e) => e.severity(),
             Self::AccountingBaseConfigNotFound => Level::ERROR,
             Self::DomainConfigError(e) => e.severity(),
             Self::EsEntityError(e) => e.severity(),
