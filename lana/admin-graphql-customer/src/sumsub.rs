@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use admin_graphql_shared::primitives::*;
 
 #[derive(InputObject)]
 pub struct SumsubPermalinkCreateInput {

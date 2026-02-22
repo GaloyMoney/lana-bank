@@ -24,12 +24,12 @@ use lana_app::{
 
 use crate::primitives::*;
 
+use admin_graphql_credit::TermsTemplate;
 use admin_graphql_customer::CustomerDocument;
 
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
-    customer::*, deposit::*, domain_config::*, policy::*, prospect::*, reports::*,
-    terms_template::*, withdrawal::*,
+    customer::*, deposit::*, domain_config::*, policy::*, prospect::*, reports::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

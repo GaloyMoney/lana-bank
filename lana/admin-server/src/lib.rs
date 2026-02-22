@@ -2,6 +2,9 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+#[macro_use]
+extern crate admin_graphql_shared;
+
 mod config;
 pub mod graphql;
 mod local_storage;

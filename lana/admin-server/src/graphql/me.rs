@@ -17,13 +17,13 @@ impl MeUser {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<VisibleNavigationItems> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let permissions = app.get_visible_nav_items(sub).await?;
         Ok(permissions)
     }
 
     async fn user_can_create_prospect(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         Ok(app
             .customers()
             .subject_can_create_prospect(sub, false)
@@ -32,7 +32,7 @@ impl MeUser {
     }
 
     async fn user_can_create_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         Ok(app
             .access()
             .users()
@@ -45,7 +45,7 @@ impl MeUser {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         Ok(app
             .terms_templates()
             .subject_can_create_terms_template(sub, false)

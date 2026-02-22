@@ -1849,6 +1849,11 @@ type Mutation {
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
 	collateralRecordProceedsFromLiquidation(input: CollateralRecordProceedsFromLiquidationInput!): CollateralRecordProceedsFromLiquidationPayload!
+	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
+	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
+	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
+	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
@@ -1858,6 +1863,7 @@ type Mutation {
 	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
+	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
@@ -1877,13 +1883,7 @@ type Mutation {
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
 	approvalProcessDeny(input: ApprovalProcessDenyInput!, reason: String!): ApprovalProcessDenyPayload!
-	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
-	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
-	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
-	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
-	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
-	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	triggerReportRun: ReportRunCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
 }
@@ -2232,6 +2232,10 @@ type Query {
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
 	liquidation(id: UUID!): Liquidation
 	liquidations(first: Int!, after: String): LiquidationConnection!
+	termsTemplate(id: UUID!): TermsTemplate
+	termsTemplates: [TermsTemplate!]!
+	creditConfig: CreditModuleConfig
+	loanAgreement(id: UUID!): LoanAgreement
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
 	customerByPublicId(id: PublicId!): Customer
@@ -2259,15 +2263,11 @@ type Query {
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	me: Me!
 	dashboard: Dashboard!
-	termsTemplate(id: UUID!): TermsTemplate
-	termsTemplates: [TermsTemplate!]!
 	realtimePrice: RealtimePrice!
 	audit(first: Int!, after: String, subject: AuditSubjectId, authorized: Boolean, object: String, action: String): AuditEntryConnection!
 	auditSubjects: [AuditSubjectId!]!
 	domainConfigs(first: Int!, after: String): DomainConfigConnection!
-	creditConfig: CreditModuleConfig
 	publicIdTarget(id: PublicId!): PublicIdTarget
-	loanAgreement(id: UUID!): LoanAgreement
 	reportRuns(first: Int!, after: String): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun
 }

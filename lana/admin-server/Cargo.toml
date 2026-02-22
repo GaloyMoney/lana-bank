@@ -7,7 +7,7 @@ edition = "2024"
 
 fail-on-warnings = []
 mock-custodian = ["lana-app/mock-custodian"]
-sumsub-testing = ["lana-app/sumsub-testing"]
+sumsub-testing = ["lana-app/sumsub-testing", "admin-graphql-customer/sumsub-testing"]
 
 [dependencies]
 lana-app = { workspace = true }

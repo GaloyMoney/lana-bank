@@ -5,7 +5,7 @@ use async_graphql::{Context, Object, types::connection::*};
 use admin_graphql_shared::primitives::UUID;
 use lana_app::customer::prospect_cursor::ProspectsByCreatedAtCursor;
 
-use crate::{customer::*, document::*, prospect::*};
+use crate::{customer::*, document::*, prospect::*, sumsub::*};
 
 mutation_payload! { CustomerTelegramHandleUpdatePayload, customer: CustomerBase }
 mutation_payload! { CustomerEmailUpdatePayload, customer: CustomerBase }
@@ -280,5 +280,39 @@ impl CustomerMutation {
             CustomerDocument,
             app.customers().archive_document(sub, input.document_id)
         )
+    }
+
+    pub async fn sumsub_permalink_create(
+        &self,
+        ctx: &Context<'_>,
+        input: SumsubPermalinkCreateInput,
+    ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let permalink = app
+            .customer_kyc()
+            .create_verification_link(
+                sub,
+                lana_app::primitives::ProspectId::from(input.prospect_id),
+            )
+            .await?;
+        Ok(SumsubPermalinkCreatePayload { url: permalink.url })
+    }
+
+    /// ⚠️ TEST ONLY: Creates a complete test applicant for Sumsub integration testing.
+    /// This method is behind a compilation flag and should only be used in test environments.
+    #[cfg(feature = "sumsub-testing")]
+    pub async fn sumsub_test_applicant_create(
+        &self,
+        ctx: &Context<'_>,
+        input: SumsubTestApplicantCreateInput,
+    ) -> async_graphql::Result<SumsubTestApplicantCreatePayload> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let applicant_id = app
+            .customer_kyc()
+            .create_complete_test_applicant(lana_app::primitives::ProspectId::from(
+                input.prospect_id,
+            ))
+            .await?;
+        Ok(SumsubTestApplicantCreatePayload { applicant_id })
     }
 }
