@@ -51,6 +51,7 @@ async fn main() -> anyhow::Result<()> {
     let cala_sets = db::load_account_sets(&pool).await?;
     let cala_set_members = db::load_set_member_sets(&pool).await?;
     let cala_account_members = db::load_set_member_accounts(&pool).await?;
+    let balances = db::load_balances(&pool).await?;
 
     let app = app::App::new(
         charts,
@@ -58,6 +59,7 @@ async fn main() -> anyhow::Result<()> {
         cala_sets,
         cala_set_members,
         cala_account_members,
+        balances,
     );
 
     if cli.dump {

@@ -244,3 +244,58 @@ pub async fn load_set_member_accounts(
         })
         .collect())
 }
+
+// ── Balances ──────────────────────────────────────────────────────
+
+#[derive(Debug, Clone)]
+pub struct AccountBalanceRow {
+    pub account_id: Uuid,
+    pub journal_id: Uuid,
+    pub currency: String,
+    pub settled_dr: String,
+    pub settled_cr: String,
+    pub pending_dr: String,
+    pub pending_cr: String,
+    pub encumbrance_dr: String,
+    pub encumbrance_cr: String,
+}
+
+pub async fn load_balances(pool: &PgPool) -> anyhow::Result<Vec<AccountBalanceRow>> {
+    let rows = sqlx::query(
+        r#"
+        SELECT
+            account_id,
+            journal_id,
+            currency,
+            latest_values
+        FROM cala_current_balances
+        "#,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|r| {
+            let vals: serde_json::Value = r.get("latest_values");
+            let extract = |layer: &str, side: &str| -> String {
+                vals.get(layer)
+                    .and_then(|l| l.get(side))
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("0")
+                    .to_string()
+            };
+            AccountBalanceRow {
+                account_id: r.get("account_id"),
+                journal_id: r.get("journal_id"),
+                currency: r.get("currency"),
+                settled_dr: extract("settled", "dr_balance"),
+                settled_cr: extract("settled", "cr_balance"),
+                pending_dr: extract("pending", "dr_balance"),
+                pending_cr: extract("pending", "cr_balance"),
+                encumbrance_dr: extract("encumbrance", "dr_balance"),
+                encumbrance_cr: extract("encumbrance", "cr_balance"),
+            }
+        })
+        .collect())
+}

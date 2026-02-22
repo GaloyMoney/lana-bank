@@ -51,6 +51,7 @@ pub struct App<'a> {
     pub set_by_id: HashMap<Uuid, db::CalaAccountSetRow>,
     pub account_members_by_set: HashMap<Uuid, Vec<db::CalaSetMemberAccountRow>>,
     pub set_children_by_parent: HashMap<Uuid, Vec<Uuid>>,
+    pub balances_by_account: HashMap<Uuid, Vec<db::AccountBalanceRow>>,
     // Jump ring for cycling through CALA matches
     jump_ring: Option<JumpRing>,
     /// Whether transitive accounts are shown in the CALA tree.
@@ -64,6 +65,7 @@ impl<'a> App<'a> {
         cala_sets: Vec<db::CalaAccountSetRow>,
         cala_set_members: Vec<db::CalaSetMemberSetRow>,
         cala_account_members: Vec<db::CalaSetMemberAccountRow>,
+        balances: Vec<db::AccountBalanceRow>,
     ) -> Self {
         let node_by_set_id: HashMap<Uuid, db::ChartNodeRow> = chart_nodes
             .values()
@@ -89,6 +91,11 @@ impl<'a> App<'a> {
                 .entry(m.account_set_id)
                 .or_default()
                 .push(m.member_account_set_id);
+        }
+
+        let mut balances_by_account: HashMap<Uuid, Vec<db::AccountBalanceRow>> = HashMap::new();
+        for b in balances {
+            balances_by_account.entry(b.account_id).or_default().push(b);
         }
 
         let show_transitive = false;
@@ -118,6 +125,7 @@ impl<'a> App<'a> {
             set_by_id,
             account_members_by_set,
             set_children_by_parent,
+            balances_by_account,
             jump_ring: None,
             show_transitive,
         }
@@ -378,7 +386,7 @@ impl<'a> App<'a> {
                 for members in self.account_members_by_set.values() {
                     for m in members {
                         if m.account_id == acct_id {
-                            return vec![
+                            let mut lines = vec![
                                 "[Account - no LANA node]".into(),
                                 String::new(),
                                 format!("ID: {}", m.account_id),
@@ -395,6 +403,8 @@ impl<'a> App<'a> {
                                     if m.transitive { "transitive" } else { "direct" }
                                 ),
                             ];
+                            format_balances(&self.balances_by_account, acct_id, &mut lines);
+                            return lines;
                         }
                     }
                 }
@@ -470,6 +480,41 @@ impl<'a> App<'a> {
 
         vec!["Unknown selection".into()]
     }
+}
+
+fn format_balances(
+    balances_by_account: &HashMap<Uuid, Vec<db::AccountBalanceRow>>,
+    account_id: Uuid,
+    lines: &mut Vec<String>,
+) {
+    if let Some(bals) = balances_by_account.get(&account_id) {
+        lines.push(String::new());
+        lines.push("Balances:".into());
+        for b in bals {
+            lines.push(format!("  {} ({}):", b.currency, short_uuid(b.journal_id)));
+            let settled_dr: f64 = b.settled_dr.parse().unwrap_or(0.0);
+            let settled_cr: f64 = b.settled_cr.parse().unwrap_or(0.0);
+            let pending_dr: f64 = b.pending_dr.parse().unwrap_or(0.0);
+            let pending_cr: f64 = b.pending_cr.parse().unwrap_or(0.0);
+            let encumbrance_dr: f64 = b.encumbrance_dr.parse().unwrap_or(0.0);
+            let encumbrance_cr: f64 = b.encumbrance_cr.parse().unwrap_or(0.0);
+
+            lines.push(format!("    settled     DR {settled_dr}  CR {settled_cr}"));
+            if pending_dr != 0.0 || pending_cr != 0.0 {
+                lines.push(format!("    pending     DR {pending_dr}  CR {pending_cr}"));
+            }
+            if encumbrance_dr != 0.0 || encumbrance_cr != 0.0 {
+                lines.push(format!(
+                    "    encumbrance DR {encumbrance_dr}  CR {encumbrance_cr}"
+                ));
+            }
+        }
+    }
+}
+
+fn short_uuid(id: Uuid) -> String {
+    let s = id.to_string();
+    s[..8].to_string()
 }
 
 /// Find the full path (sequence of identifiers) to the first occurrence of a node in the tree.
