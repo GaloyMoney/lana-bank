@@ -529,7 +529,14 @@ where
             .await?;
 
         self.repo
-            .list_for_customer_id_by_created_at(customer_id, query, direction)
+            .list_for_filters_by_created_at(
+                CreditFacilitiesFilters {
+                    customer_id: Some(customer_id),
+                    ..Default::default()
+                },
+                query,
+                direction,
+            )
             .await
     }
 

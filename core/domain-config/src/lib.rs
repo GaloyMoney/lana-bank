@@ -176,7 +176,7 @@ pub use primitives::{
     DomainConfigObject, ExposedConfigAllOrOne, PERMISSION_SET_EXPOSED_CONFIG_VIEWER,
     PERMISSION_SET_EXPOSED_CONFIG_WRITER, Visibility,
 };
-pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
+pub use repo::{DomainConfigsFilters, domain_config_cursor::DomainConfigsByKeyCursor};
 pub use shared_config::RequireVerifiedCustomerForAccount;
 pub use spec::{
     Complex, ConfigFlavor, ConfigSpec, DefaultedConfig, DomainConfigFlavorEncrypted,
@@ -369,8 +369,11 @@ where
     > {
         self.ensure_read_permission(sub).await?;
         self.repo
-            .list_for_visibility_by_key(
-                Visibility::Exposed,
+            .list_for_filters_by_key(
+                DomainConfigsFilters {
+                    visibility: Some(Visibility::Exposed),
+                    ..Default::default()
+                },
                 query,
                 es_entity::ListDirection::Ascending,
             )

@@ -76,8 +76,11 @@ where
         LiquidationError,
     > {
         self.liquidations
-            .list_for_collateral_id_by_created_at(
-                collateral_id,
+            .list_for_filters_by_created_at(
+                LiquidationsFilters {
+                    collateral_id: Some(collateral_id),
+                    ..Default::default()
+                },
                 query,
                 es_entity::ListDirection::Descending,
             )
@@ -137,7 +140,8 @@ where
             update(accessor = "is_completed()")
         )
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    list_for_by = false
 )]
 struct LiquidationRepo {
     pool: PgPool,

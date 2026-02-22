@@ -229,7 +229,14 @@ where
             .await?;
 
         self.repo
-            .list_for_chart_id_by_created_at(chart_id, query, es_entity::ListDirection::Descending)
+            .list_for_filters_by_created_at(
+                FiscalYearsFilters {
+                    chart_id: Some(chart_id),
+                    ..Default::default()
+                },
+                query,
+                es_entity::ListDirection::Descending,
+            )
             .await
     }
 
@@ -295,7 +302,14 @@ where
         };
         let result = self
             .repo
-            .list_for_chart_id_by_created_at(chart_id, query, es_entity::ListDirection::Descending)
+            .list_for_filters_by_created_at(
+                FiscalYearsFilters {
+                    chart_id: Some(chart_id),
+                    ..Default::default()
+                },
+                query,
+                es_entity::ListDirection::Descending,
+            )
             .await?;
 
         Ok(result.entities.into_iter().next())

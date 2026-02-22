@@ -13,6 +13,7 @@ use super::{entity::*, error::*};
     err = "DocumentStorageError",
     columns(reference_id(ty = "ReferenceId", list_for, update(persist = false))),
     tbl_prefix = "core",
+    list_for_by = false,
     delete = "soft"
 )]
 pub struct DocumentRepo {

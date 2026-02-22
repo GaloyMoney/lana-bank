@@ -16,7 +16,8 @@ use crate::primitives::{ChartId, FiscalYearId};
         chart_id(ty = "ChartId", update(persist = false), list_for),
         reference(ty = "String", create(accessor = "reference()")),
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    list_for_by = false
 )]
 pub struct FiscalYearRepo {
     pool: PgPool,

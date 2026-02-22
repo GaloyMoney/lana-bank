@@ -340,7 +340,14 @@ where
 
         let accounts = self
             .deposit_accounts
-            .list_for_account_holder_id_by_id(holder_id, Default::default(), Default::default())
+            .list_for_filters_by_id(
+                DepositAccountsFilters {
+                    account_holder_id: Some(holder_id),
+                    ..Default::default()
+                },
+                Default::default(),
+                Default::default(),
+            )
             .await?;
         let mut op = self.deposit_accounts.begin_op().await?;
 
@@ -1054,7 +1061,14 @@ where
 
         Ok(self
             .deposit_accounts
-            .list_for_account_holder_id_by_created_at(account_holder_id, query, direction.into())
+            .list_for_filters_by_created_at(
+                DepositAccountsFilters {
+                    account_holder_id: Some(account_holder_id),
+                    ..Default::default()
+                },
+                query,
+                direction.into(),
+            )
             .await?)
     }
 

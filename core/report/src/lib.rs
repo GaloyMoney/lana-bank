@@ -181,8 +181,11 @@ where
 
         Ok(self
             .reports
-            .list_for_run_id_by_created_at(
-                run_id,
+            .list_for_filters_by_created_at(
+                ReportsFilters {
+                    run_id: Some(run_id),
+                    ..Default::default()
+                },
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )

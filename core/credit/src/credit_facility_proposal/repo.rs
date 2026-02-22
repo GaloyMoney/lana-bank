@@ -18,6 +18,7 @@ use super::{entity::*, error::CreditFacilityProposalError};
         approval_process_id(ty = "Option<ApprovalProcessId>", list_by, create(persist = "false")),
     ),
     tbl_prefix = "core",
+    list_for_by = false,
     post_persist_hook = "publish_in_op"
 )]
 pub struct CreditFacilityProposalRepo<E>

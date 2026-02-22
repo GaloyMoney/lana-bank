@@ -22,7 +22,8 @@ use crate::{
             update(persist = false)
         )
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    list_for_by = false
 )]
 pub struct DomainConfigRepo {
     pool: PgPool,

@@ -15,7 +15,7 @@ use tracing_macros::record_error_severity;
 pub use entity::{Document, DocumentStatus, GeneratedDocumentDownloadLink, NewDocument};
 use error::*;
 pub use primitives::*;
-pub use repo::{DocumentRepo, document_cursor::DocumentsByCreatedAtCursor};
+pub use repo::{DocumentRepo, DocumentsFilters, document_cursor::DocumentsByCreatedAtCursor};
 
 /// Returns the file extension (including the dot) for a given content type
 fn extension_for_content_type(content_type: &str) -> &'static str {
@@ -181,8 +181,11 @@ impl DocumentStorage {
     ) -> Result<Vec<Document>, DocumentStorageError> {
         Ok(self
             .repo
-            .list_for_reference_id_by_created_at(
-                reference_id.into(),
+            .list_for_filters_by_created_at(
+                DocumentsFilters {
+                    reference_id: Some(reference_id.into()),
+                    ..Default::default()
+                },
                 Default::default(),
                 ListDirection::Descending,
             )
@@ -201,8 +204,11 @@ impl DocumentStorage {
         DocumentStorageError,
     > {
         self.repo
-            .list_for_reference_id_by_created_at(
-                reference_id.into(),
+            .list_for_filters_by_created_at(
+                DocumentsFilters {
+                    reference_id: Some(reference_id.into()),
+                    ..Default::default()
+                },
                 query,
                 ListDirection::Descending,
             )

@@ -32,8 +32,8 @@ pub use entity::{
     PendingFacilityCollateralization,
 };
 use error::*;
-use repo::PendingCreditFacilityRepo;
 pub use repo::pending_credit_facility_cursor::*;
+use repo::{PendingCreditFacilitiesFilters, PendingCreditFacilityRepo};
 
 pub enum PendingCreditFacilityCompletionOutcome {
     Ignored,
@@ -340,8 +340,11 @@ where
 
         Ok(self
             .repo
-            .list_for_customer_id_by_created_at(
-                customer_id.into(),
+            .list_for_filters_by_created_at(
+                PendingCreditFacilitiesFilters {
+                    customer_id: Some(customer_id.into()),
+                    ..Default::default()
+                },
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )

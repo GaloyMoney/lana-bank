@@ -31,7 +31,7 @@ pub(crate) use entity::ObligationDueReallocationData;
 pub use entity::ObligationEvent;
 pub(crate) use entity::ObligationOverdueReallocationData;
 use error::ObligationError;
-pub(crate) use repo::ObligationRepo;
+pub(crate) use repo::{ObligationRepo, ObligationsFilters};
 
 pub struct Obligations<Perms, E>
 where
@@ -264,8 +264,11 @@ where
         loop {
             let mut res = self
                 .repo
-                .list_for_beneficiary_id_by_created_at(
-                    beneficiary_id,
+                .list_for_filters_by_created_at(
+                    ObligationsFilters {
+                        beneficiary_id: Some(beneficiary_id),
+                        ..Default::default()
+                    },
                     query,
                     es_entity::ListDirection::Ascending,
                 )

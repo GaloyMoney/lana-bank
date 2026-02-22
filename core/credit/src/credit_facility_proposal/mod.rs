@@ -16,8 +16,8 @@ use crate::{CoreCreditEvent, pending_credit_facility::NewPendingCreditFacility, 
 
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
-use repo::CreditFacilityProposalRepo;
 pub use repo::credit_facility_proposal_cursor::*;
+use repo::{CreditFacilityProposalRepo, CreditFacilityProposalsFilters};
 
 pub enum ProposalApprovalOutcome {
     Rejected(CreditFacilityProposal),
@@ -258,8 +258,11 @@ where
 
         Ok(self
             .repo
-            .list_for_customer_id_by_created_at(
-                customer_id.into(),
+            .list_for_filters_by_created_at(
+                CreditFacilityProposalsFilters {
+                    customer_id: Some(customer_id.into()),
+                    ..Default::default()
+                },
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )

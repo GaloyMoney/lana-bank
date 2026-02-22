@@ -79,8 +79,11 @@ where
             .await?;
         Ok(self
             .accounts
-            .list_for_account_holder_id_by_created_at(
-                self.account_holder_id,
+            .list_for_filters_by_created_at(
+                DepositAccountsFilters {
+                    account_holder_id: Some(self.account_holder_id),
+                    ..Default::default()
+                },
                 query,
                 direction.into(),
             )
