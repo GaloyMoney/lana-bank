@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use admin_graphql_shared::primitives::*;
 
 pub use lana_app::credit::ChartOfAccountsIntegrationConfig as DomainChartOfAccountsIntegrationConfig;
 
@@ -78,7 +78,7 @@ pub struct CreditModuleConfig {
     chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code: Option<String>,
 
     #[graphql(skip)]
-    pub(super) _entity: Arc<DomainChartOfAccountsIntegrationConfig>,
+    pub(crate) _entity: Arc<DomainChartOfAccountsIntegrationConfig>,
 }
 
 impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
@@ -226,7 +226,7 @@ impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
                     .to_string(),
             ),
 
-                        chart_of_account_short_term_individual_interest_receivable_parent_code: Some(
+            chart_of_account_short_term_individual_interest_receivable_parent_code: Some(
                 values
                     .chart_of_account_short_term_individual_interest_receivable_parent_code
                     .to_string(),
@@ -403,4 +403,4 @@ pub struct CreditModuleConfigureInput {
         String,
     pub chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code: String,
 }
-crate::mutation_payload! { CreditModuleConfigurePayload, credit_config: CreditModuleConfig }
+mutation_payload! { CreditModuleConfigurePayload, credit_config: CreditModuleConfig }

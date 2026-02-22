@@ -5,6 +5,8 @@ pub mod primitives;
 
 pub mod balance;
 pub mod collateral;
+pub mod contract_creation;
+pub mod credit_config;
 pub mod credit_facility;
 pub mod disbursal;
 pub mod history;
@@ -16,9 +18,12 @@ pub mod proposal;
 pub mod repayment;
 pub mod schema;
 pub mod terms;
+pub mod terms_template;
 
 pub use balance::*;
 pub use collateral::*;
+pub use contract_creation::*;
+pub use credit_config::*;
 pub use credit_facility::*;
 pub use disbursal::*;
 pub use history::*;
@@ -30,3 +35,4 @@ pub use proposal::*;
 pub use repayment::*;
 pub use schema::*;
 pub use terms::*;
+pub use terms_template::*;

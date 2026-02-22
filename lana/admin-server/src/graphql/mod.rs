@@ -1,9 +1,8 @@
+mod access;
 mod accounting;
 mod approval_process;
 mod audit;
 mod committee;
-mod contract_creation;
-mod credit_config;
 mod credit_facility;
 mod customer;
 mod dashboard;
@@ -12,20 +11,14 @@ mod deposit_account;
 mod domain_config;
 mod loader;
 mod me;
+mod policy;
 mod price;
 mod primitives;
 mod prospect;
 mod public_id;
 mod reports;
-mod sumsub;
-mod terms;
-mod terms_template;
-mod withdrawal;
-#[macro_use]
-pub(crate) mod macros;
-mod access;
-mod policy;
 mod schema;
+mod withdrawal;
 
 mod custody;
 

@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use admin_graphql_shared::primitives::*;
 
 #[derive(async_graphql::Enum, Clone, Debug, PartialEq, Eq, Copy)]
 pub enum LoanAgreementStatus {
@@ -27,27 +27,13 @@ pub struct LoanAgreement {
     created_at: Timestamp,
 }
 
-impl LoanAgreement {
-    pub fn new(
-        id: uuid::Uuid,
-        status: LoanAgreementStatus,
-        created_at: chrono::DateTime<chrono::Utc>,
-    ) -> Self {
-        Self {
-            id: id.to_string().into(),
-            status,
-            created_at: created_at.into(),
-        }
-    }
-}
-
 impl From<lana_app::contract_creation::LoanAgreement> for LoanAgreement {
     fn from(domain_loan_agreement: lana_app::contract_creation::LoanAgreement) -> Self {
-        Self::new(
-            domain_loan_agreement.id,
-            domain_loan_agreement.status.into(),
-            domain_loan_agreement.created_at,
-        )
+        Self {
+            id: domain_loan_agreement.id.to_string().into(),
+            status: domain_loan_agreement.status.into(),
+            created_at: domain_loan_agreement.created_at.into(),
+        }
     }
 }
 
@@ -56,7 +42,7 @@ pub struct LoanAgreementGenerateInput {
     pub customer_id: UUID,
 }
 
-crate::mutation_payload! { LoanAgreementGeneratePayload, loan_agreement: LoanAgreement }
+mutation_payload! { LoanAgreementGeneratePayload, loan_agreement: LoanAgreement }
 
 #[derive(InputObject)]
 pub struct LoanAgreementDownloadLinksGenerateInput {

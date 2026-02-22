@@ -1,8 +1,8 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use admin_graphql_shared::primitives::*;
 
-use super::terms::*;
+use crate::terms::*;
 
 use lana_app::terms_template::TermsTemplate as DomainTermsTemplate;
 
@@ -15,7 +15,7 @@ pub struct TermsTemplate {
     created_at: Timestamp,
 
     #[graphql(skip)]
-    pub(super) entity: Arc<DomainTermsTemplate>,
+    pub entity: Arc<DomainTermsTemplate>,
 }
 
 impl From<DomainTermsTemplate> for TermsTemplate {
@@ -40,7 +40,7 @@ impl TermsTemplate {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         Ok(app
             .terms_templates()
             .subject_can_update_terms_template(sub, false)
@@ -50,7 +50,7 @@ impl TermsTemplate {
 }
 
 #[derive(InputObject)]
-pub(super) struct TermsTemplateCreateInput {
+pub struct TermsTemplateCreateInput {
     pub name: String,
     pub annual_rate: AnnualRatePct,
     pub accrual_interval: InterestInterval,
@@ -65,10 +65,10 @@ pub(super) struct TermsTemplateCreateInput {
     pub margin_call_cvl: CVLPctValue,
     pub initial_cvl: CVLPctValue,
 }
-crate::mutation_payload! { TermsTemplateCreatePayload, terms_template: TermsTemplate }
+mutation_payload! { TermsTemplateCreatePayload, terms_template: TermsTemplate }
 
 #[derive(InputObject)]
-pub(super) struct TermsTemplateUpdateInput {
+pub struct TermsTemplateUpdateInput {
     pub id: UUID,
     pub annual_rate: AnnualRatePct,
     pub accrual_interval: InterestInterval,
@@ -83,4 +83,4 @@ pub(super) struct TermsTemplateUpdateInput {
     pub margin_call_cvl: CVLPctValue,
     pub initial_cvl: CVLPctValue,
 }
-crate::mutation_payload! { TermsTemplateUpdatePayload, terms_template: TermsTemplate }
+mutation_payload! { TermsTemplateUpdatePayload, terms_template: TermsTemplate }

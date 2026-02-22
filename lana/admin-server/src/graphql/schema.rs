@@ -21,10 +21,9 @@ use lana_app::report::CoreReportEvent;
 use crate::primitives::*;
 
 use super::{
-    access::User, accounting::*, audit::*, contract_creation::*, credit_config::*,
-    credit_facility::*, customer::*, dashboard::*, deposit::*, domain_config::*, loader::CHART_REF,
-    loader::*, me::*, price::*, prospect::*, public_id::*, reports::*, sumsub::*,
-    terms_template::*, withdrawal::*,
+    access::User, accounting::*, audit::*, credit_facility::*, customer::*, dashboard::*,
+    deposit::*, domain_config::*, loader::CHART_REF, loader::*, me::*, price::*, prospect::*,
+    public_id::*, reports::*, withdrawal::*,
 };
 
 #[derive(MergedObject, Default)]
@@ -56,31 +55,6 @@ impl BaseQuery {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let dashboard = app.dashboard().load(sub).await?;
         Ok(Dashboard::from(dashboard))
-    }
-
-    async fn terms_template(
-        &self,
-        ctx: &Context<'_>,
-        id: UUID,
-    ) -> async_graphql::Result<Option<TermsTemplate>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(
-            TermsTemplate,
-            ctx,
-            app.terms_templates().find_by_id(sub, id)
-        )
-    }
-
-    async fn terms_templates(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<TermsTemplate>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let terms_templates = app.terms_templates().list(sub).await?;
-        Ok(terms_templates
-            .into_iter()
-            .map(TermsTemplate::from)
-            .collect())
     }
 
     async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
@@ -171,19 +145,6 @@ impl BaseQuery {
         )
     }
 
-    async fn credit_config(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<CreditModuleConfig>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let config = app
-            .credit()
-            .chart_of_accounts_integrations()
-            .get_config(sub)
-            .await?;
-        Ok(config.map(CreditModuleConfig::from))
-    }
-
     async fn public_id_target(
         &self,
         ctx: &Context<'_>,
@@ -265,16 +226,6 @@ impl BaseQuery {
         Ok(res)
     }
 
-    async fn loan_agreement(
-        &self,
-        ctx: &Context<'_>,
-        id: UUID,
-    ) -> async_graphql::Result<Option<LoanAgreement>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let agreement = app.contract_creation().find_by_id(sub, id).await?;
-        Ok(agreement.map(LoanAgreement::from))
-    }
-
     async fn report_runs(
         &self,
         ctx: &Context<'_>,
@@ -321,40 +272,6 @@ pub struct BaseMutation;
 
 #[Object]
 impl BaseMutation {
-    pub async fn sumsub_permalink_create(
-        &self,
-        ctx: &Context<'_>,
-        input: SumsubPermalinkCreateInput,
-    ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let permalink = app
-            .customer_kyc()
-            .create_verification_link(
-                sub,
-                lana_app::primitives::ProspectId::from(input.prospect_id),
-            )
-            .await?;
-        Ok(SumsubPermalinkCreatePayload { url: permalink.url })
-    }
-
-    /// ⚠️ TEST ONLY: Creates a complete test applicant for Sumsub integration testing.
-    /// This method is behind a compilation flag and should only be used in test environments.
-    #[cfg(feature = "sumsub-testing")]
-    pub async fn sumsub_test_applicant_create(
-        &self,
-        ctx: &Context<'_>,
-        input: SumsubTestApplicantCreateInput,
-    ) -> async_graphql::Result<SumsubTestApplicantCreatePayload> {
-        let (app, _sub) = app_and_sub_from_ctx!(ctx);
-        let applicant_id = app
-            .customer_kyc()
-            .create_complete_test_applicant(lana_app::primitives::ProspectId::from(
-                input.prospect_id,
-            ))
-            .await?;
-        Ok(SumsubTestApplicantCreatePayload { applicant_id })
-    }
-
     async fn domain_config_update(
         &self,
         ctx: &Context<'_>,
@@ -371,323 +288,6 @@ impl BaseMutation {
                 input.value.into_inner(),
             )
         )
-    }
-
-    async fn terms_template_create(
-        &self,
-        ctx: &Context<'_>,
-        input: TermsTemplateCreateInput,
-    ) -> async_graphql::Result<TermsTemplateCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let term_values = lana_app::terms::TermValues::builder()
-            .annual_rate(input.annual_rate)
-            .accrual_interval(input.accrual_interval)
-            .accrual_cycle_interval(input.accrual_cycle_interval)
-            .one_time_fee_rate(input.one_time_fee_rate)
-            .disbursal_policy(input.disbursal_policy)
-            .duration(input.duration)
-            .interest_due_duration_from_accrual(input.interest_due_duration_from_accrual)
-            .obligation_overdue_duration_from_due(input.obligation_overdue_duration_from_due)
-            .obligation_liquidation_duration_from_due(
-                input.obligation_liquidation_duration_from_due,
-            )
-            .liquidation_cvl(input.liquidation_cvl)
-            .margin_call_cvl(input.margin_call_cvl)
-            .initial_cvl(input.initial_cvl)
-            .build()?;
-
-        exec_mutation!(
-            TermsTemplateCreatePayload,
-            TermsTemplate,
-            ctx,
-            app.terms_templates()
-                .create_terms_template(sub, input.name, term_values)
-        )
-    }
-
-    async fn terms_template_update(
-        &self,
-        ctx: &Context<'_>,
-        input: TermsTemplateUpdateInput,
-    ) -> async_graphql::Result<TermsTemplateUpdatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        let term_values = lana_app::terms::TermValues::builder()
-            .annual_rate(input.annual_rate)
-            .accrual_interval(input.accrual_interval)
-            .accrual_cycle_interval(input.accrual_cycle_interval)
-            .one_time_fee_rate(input.one_time_fee_rate)
-            .disbursal_policy(input.disbursal_policy)
-            .duration(input.duration)
-            .interest_due_duration_from_accrual(input.interest_due_duration_from_accrual)
-            .obligation_overdue_duration_from_due(input.obligation_overdue_duration_from_due)
-            .obligation_liquidation_duration_from_due(
-                input.obligation_liquidation_duration_from_due,
-            )
-            .liquidation_cvl(input.liquidation_cvl)
-            .margin_call_cvl(input.margin_call_cvl)
-            .initial_cvl(input.initial_cvl)
-            .build()?;
-        exec_mutation!(
-            TermsTemplateUpdatePayload,
-            TermsTemplate,
-            ctx,
-            app.terms_templates().update_term_values(
-                sub,
-                TermsTemplateId::from(input.id),
-                term_values
-            )
-        )
-    }
-
-    async fn credit_module_configure(
-        &self,
-        ctx: &Context<'_>,
-        input: CreditModuleConfigureInput,
-    ) -> async_graphql::Result<CreditModuleConfigurePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let chart = loader
-            .load_one(CHART_REF)
-            .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
-
-        let CreditModuleConfigureInput {
-            chart_of_account_facility_omnibus_parent_code,
-            chart_of_account_collateral_omnibus_parent_code,
-            chart_of_account_liquidation_proceeds_omnibus_parent_code,
-            chart_of_account_payments_made_omnibus_parent_code,
-            chart_of_account_interest_added_to_obligations_omnibus_parent_code,
-            chart_of_account_facility_parent_code,
-            chart_of_account_collateral_parent_code,
-            chart_of_account_collateral_in_liquidation_parent_code,
-            chart_of_account_liquidated_collateral_parent_code,
-            chart_of_account_proceeds_from_liquidation_parent_code,
-            chart_of_account_interest_income_parent_code,
-            chart_of_account_fee_income_parent_code,
-            chart_of_account_payment_holding_parent_code,
-            chart_of_account_uncovered_outstanding_parent_code,
-            chart_of_account_disbursed_defaulted_parent_code,
-            chart_of_account_interest_defaulted_parent_code,
-
-            chart_of_account_short_term_individual_disbursed_receivable_parent_code,
-            chart_of_account_short_term_government_entity_disbursed_receivable_parent_code,
-            chart_of_account_short_term_private_company_disbursed_receivable_parent_code,
-            chart_of_account_short_term_bank_disbursed_receivable_parent_code,
-            chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code,
-            chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
-            chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code,
-
-            chart_of_account_long_term_individual_disbursed_receivable_parent_code,
-            chart_of_account_long_term_government_entity_disbursed_receivable_parent_code,
-            chart_of_account_long_term_private_company_disbursed_receivable_parent_code,
-            chart_of_account_long_term_bank_disbursed_receivable_parent_code,
-            chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code,
-            chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
-            chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code,
-
-            chart_of_account_short_term_individual_interest_receivable_parent_code,
-            chart_of_account_short_term_government_entity_interest_receivable_parent_code,
-            chart_of_account_short_term_private_company_interest_receivable_parent_code,
-            chart_of_account_short_term_bank_interest_receivable_parent_code,
-            chart_of_account_short_term_financial_institution_interest_receivable_parent_code,
-            chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
-            chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code,
-
-            chart_of_account_long_term_individual_interest_receivable_parent_code,
-            chart_of_account_long_term_government_entity_interest_receivable_parent_code,
-            chart_of_account_long_term_private_company_interest_receivable_parent_code,
-            chart_of_account_long_term_bank_interest_receivable_parent_code,
-            chart_of_account_long_term_financial_institution_interest_receivable_parent_code,
-            chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
-            chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code,
-
-            chart_of_account_overdue_individual_disbursed_receivable_parent_code,
-            chart_of_account_overdue_government_entity_disbursed_receivable_parent_code,
-            chart_of_account_overdue_private_company_disbursed_receivable_parent_code,
-            chart_of_account_overdue_bank_disbursed_receivable_parent_code,
-            chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code,
-            chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
-            chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
-        } = input;
-
-        let config_values = lana_app::credit::ChartOfAccountsIntegrationConfig {
-            chart_of_accounts_id: chart.id,
-            chart_of_account_facility_omnibus_parent_code:
-                chart_of_account_facility_omnibus_parent_code.parse()?,
-            chart_of_account_collateral_omnibus_parent_code:
-                chart_of_account_collateral_omnibus_parent_code.parse()?,
-            chart_of_account_payments_made_omnibus_parent_code:
-                chart_of_account_payments_made_omnibus_parent_code.parse()?,
-            chart_of_account_interest_added_to_obligations_omnibus_parent_code:
-                chart_of_account_interest_added_to_obligations_omnibus_parent_code.parse()?,
-            chart_of_account_liquidation_proceeds_omnibus_parent_code:
-                chart_of_account_liquidation_proceeds_omnibus_parent_code.parse()?,
-            chart_of_account_facility_parent_code: chart_of_account_facility_parent_code.parse()?,
-            chart_of_account_collateral_parent_code: chart_of_account_collateral_parent_code
-                .parse()?,
-            chart_of_account_collateral_in_liquidation_parent_code:
-                chart_of_account_collateral_in_liquidation_parent_code.parse()?,
-            chart_of_account_liquidated_collateral_parent_code:
-                chart_of_account_liquidated_collateral_parent_code.parse()?,
-            chart_of_account_proceeds_from_liquidation_parent_code:
-                chart_of_account_proceeds_from_liquidation_parent_code.parse()?,
-            chart_of_account_interest_income_parent_code:
-                chart_of_account_interest_income_parent_code.parse()?,
-            chart_of_account_fee_income_parent_code: chart_of_account_fee_income_parent_code
-                .parse()?,
-            chart_of_account_payment_holding_parent_code: chart_of_account_payment_holding_parent_code
-                .parse()?,
-            chart_of_account_uncovered_outstanding_parent_code: chart_of_account_uncovered_outstanding_parent_code
-                .parse()?,
-            chart_of_account_disbursed_defaulted_parent_code:
-                chart_of_account_disbursed_defaulted_parent_code.parse()?,
-            chart_of_account_interest_defaulted_parent_code:
-                chart_of_account_interest_defaulted_parent_code.parse()?,
-            chart_of_account_short_term_individual_disbursed_receivable_parent_code:
-                chart_of_account_short_term_individual_disbursed_receivable_parent_code.parse()?,
-            chart_of_account_short_term_government_entity_disbursed_receivable_parent_code:
-                chart_of_account_short_term_government_entity_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_private_company_disbursed_receivable_parent_code:
-                chart_of_account_short_term_private_company_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_bank_disbursed_receivable_parent_code:
-                chart_of_account_short_term_bank_disbursed_receivable_parent_code.parse()?,
-            chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code:
-                chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
-                chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code:
-                chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_individual_disbursed_receivable_parent_code:
-                chart_of_account_long_term_individual_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_government_entity_disbursed_receivable_parent_code:
-                chart_of_account_long_term_government_entity_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_private_company_disbursed_receivable_parent_code:
-                chart_of_account_long_term_private_company_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_bank_disbursed_receivable_parent_code:
-                chart_of_account_long_term_bank_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code:
-                chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
-                chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code:
-                chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_individual_interest_receivable_parent_code:
-                chart_of_account_short_term_individual_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_government_entity_interest_receivable_parent_code:
-                chart_of_account_short_term_government_entity_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_private_company_interest_receivable_parent_code:
-                chart_of_account_short_term_private_company_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_bank_interest_receivable_parent_code:
-                chart_of_account_short_term_bank_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_financial_institution_interest_receivable_parent_code:
-                chart_of_account_short_term_financial_institution_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
-                chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code:
-                chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_individual_interest_receivable_parent_code:
-                chart_of_account_long_term_individual_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_government_entity_interest_receivable_parent_code:
-                chart_of_account_long_term_government_entity_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_private_company_interest_receivable_parent_code:
-                chart_of_account_long_term_private_company_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_bank_interest_receivable_parent_code:
-                chart_of_account_long_term_bank_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_financial_institution_interest_receivable_parent_code:
-                chart_of_account_long_term_financial_institution_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
-                chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code:
-                chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code
-                    .parse()?,
-            chart_of_account_overdue_individual_disbursed_receivable_parent_code:
-                chart_of_account_overdue_individual_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_overdue_government_entity_disbursed_receivable_parent_code:
-                chart_of_account_overdue_government_entity_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_overdue_private_company_disbursed_receivable_parent_code:
-                chart_of_account_overdue_private_company_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_overdue_bank_disbursed_receivable_parent_code:
-                chart_of_account_overdue_bank_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code:
-                chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
-                chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
-                    .parse()?,
-            chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code:
-                chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code
-                    .parse()?
-        };
-
-        let config = app
-            .credit()
-            .chart_of_accounts_integrations()
-            .set_config(sub, chart.as_ref(), config_values)
-            .await?;
-        Ok(CreditModuleConfigurePayload::from(
-            CreditModuleConfig::from(config),
-        ))
-    }
-
-    pub async fn loan_agreement_generate(
-        &self,
-        ctx: &Context<'_>,
-        input: LoanAgreementGenerateInput,
-    ) -> async_graphql::Result<LoanAgreementGeneratePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        // Create async job for loan agreement generation
-        let loan_agreement = app
-            .contract_creation()
-            .initiate_loan_agreement_generation(sub, input.customer_id)
-            .await?;
-
-        let loan_agreement = LoanAgreement::from(loan_agreement);
-        Ok(LoanAgreementGeneratePayload::from(loan_agreement))
-    }
-
-    async fn loan_agreement_download_link_generate(
-        &self,
-        ctx: &Context<'_>,
-        input: LoanAgreementDownloadLinksGenerateInput,
-    ) -> async_graphql::Result<LoanAgreementDownloadLinksGeneratePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let doc = app
-            .contract_creation()
-            .generate_document_download_link(sub, input.loan_agreement_id)
-            .await?;
-        Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
     }
 
     async fn trigger_report_run(
