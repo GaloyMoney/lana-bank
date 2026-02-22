@@ -82,7 +82,6 @@ where
             .list_for_filters_by_created_at(
                 DepositAccountsFilters {
                     account_holder_id: Some(self.account_holder_id),
-                    ..Default::default()
                 },
                 query,
                 direction.into(),
@@ -155,7 +154,6 @@ where
             .list_for_filters_by_created_at(
                 DepositsFilters {
                     deposit_account_id: Some(account_id),
-                    ..Default::default()
                 },
                 Default::default(),
                 es_entity::ListDirection::Descending,
@@ -199,7 +197,6 @@ where
             .list_for_filters_by_created_at(
                 WithdrawalsFilters {
                     deposit_account_id: Some(account_id),
-                    ..Default::default()
                 },
                 Default::default(),
                 es_entity::ListDirection::Descending,

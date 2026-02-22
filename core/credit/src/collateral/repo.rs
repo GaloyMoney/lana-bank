@@ -79,7 +79,6 @@ where
             .list_for_filters_by_created_at(
                 LiquidationsFilters {
                     collateral_id: Some(collateral_id),
-                    ..Default::default()
                 },
                 query,
                 es_entity::ListDirection::Descending,

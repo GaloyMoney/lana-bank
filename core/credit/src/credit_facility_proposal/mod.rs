@@ -261,7 +261,6 @@ where
             .list_for_filters_by_created_at(
                 CreditFacilityProposalsFilters {
                     customer_id: Some(customer_id.into()),
-                    ..Default::default()
                 },
                 Default::default(),
                 es_entity::ListDirection::Descending,
