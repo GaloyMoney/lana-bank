@@ -7,7 +7,7 @@ use ratatui::{
 };
 use tui_tree_widget::Tree;
 
-use crate::app::{ActiveView, App};
+use crate::app::{ActiveView, App, JumpInfo};
 
 pub fn draw(f: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
@@ -107,13 +107,20 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(Color::Cyan)
     };
 
-    let jump_hint = if app.can_jump() {
-        Span::styled(
-            "  g: jump to counterpart",
+    let jump_hint = match app.jump_info() {
+        JumpInfo::LanaToCala { total } => Span::styled(
+            format!("  g: jump to CALA ({total} locations)"),
             Style::default().fg(Color::Yellow),
-        )
-    } else {
-        Span::raw("")
+        ),
+        JumpInfo::CalaToLana => Span::styled(
+            "  g: jump to LANA".to_string(),
+            Style::default().fg(Color::Yellow),
+        ),
+        JumpInfo::CalaRing { current, total } => Span::styled(
+            format!("  g: next CALA match ({current}/{total})"),
+            Style::default().fg(Color::Yellow),
+        ),
+        JumpInfo::NotAvailable => Span::raw(""),
     };
 
     let line = Line::from(vec![

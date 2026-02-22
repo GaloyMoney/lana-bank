@@ -91,40 +91,36 @@ fn run_tui(mut app: app::App) -> io::Result<()> {
             }
             match key.code {
                 KeyCode::Char('q') => break,
-                KeyCode::Char('g') => app.jump_to_other_view(),
+                KeyCode::Char('g') => app.jump(),
                 KeyCode::Tab => app.toggle_view(),
-                KeyCode::Up => match app.active_view {
-                    app::ActiveView::Lana => {
-                        app.lana_tree_state.key_up();
-                    }
-                    app::ActiveView::Cala => {
-                        app.cala_tree_state.key_up();
-                    }
-                },
-                KeyCode::Down => match app.active_view {
-                    app::ActiveView::Lana => {
-                        app.lana_tree_state.key_down();
-                    }
-                    app::ActiveView::Cala => {
-                        app.cala_tree_state.key_down();
-                    }
-                },
-                KeyCode::Left => match app.active_view {
-                    app::ActiveView::Lana => {
-                        app.lana_tree_state.key_left();
-                    }
-                    app::ActiveView::Cala => {
-                        app.cala_tree_state.key_left();
-                    }
-                },
-                KeyCode::Right => match app.active_view {
-                    app::ActiveView::Lana => {
-                        app.lana_tree_state.key_right();
-                    }
-                    app::ActiveView::Cala => {
-                        app.cala_tree_state.key_right();
-                    }
-                },
+                KeyCode::Up => {
+                    app.clear_jump_ring();
+                    match app.active_view {
+                        app::ActiveView::Lana => app.lana_tree_state.key_up(),
+                        app::ActiveView::Cala => app.cala_tree_state.key_up(),
+                    };
+                }
+                KeyCode::Down => {
+                    app.clear_jump_ring();
+                    match app.active_view {
+                        app::ActiveView::Lana => app.lana_tree_state.key_down(),
+                        app::ActiveView::Cala => app.cala_tree_state.key_down(),
+                    };
+                }
+                KeyCode::Left => {
+                    app.clear_jump_ring();
+                    match app.active_view {
+                        app::ActiveView::Lana => app.lana_tree_state.key_left(),
+                        app::ActiveView::Cala => app.cala_tree_state.key_left(),
+                    };
+                }
+                KeyCode::Right => {
+                    app.clear_jump_ring();
+                    match app.active_view {
+                        app::ActiveView::Lana => app.lana_tree_state.key_right(),
+                        app::ActiveView::Cala => app.cala_tree_state.key_right(),
+                    };
+                }
                 KeyCode::Enter => match app.active_view {
                     app::ActiveView::Lana => {
                         app.lana_tree_state.toggle_selected();

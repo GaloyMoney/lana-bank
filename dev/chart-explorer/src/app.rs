@@ -11,6 +11,20 @@ pub enum ActiveView {
     Cala,
 }
 
+/// Info about available jump actions for the UI.
+pub enum JumpInfo {
+    NotAvailable,
+    LanaToCala { total: usize },
+    CalaToLana,
+    CalaRing { current: usize, total: usize },
+}
+
+/// Tracks a multi-match jump ring for LANA→CALA cycling.
+struct JumpRing {
+    paths: Vec<Vec<String>>,
+    index: usize,
+}
+
 pub struct App<'a> {
     pub active_view: ActiveView,
     pub lana_tree_state: TreeState<String>,
@@ -25,6 +39,8 @@ pub struct App<'a> {
     pub set_by_id: HashMap<Uuid, db::CalaAccountSetRow>,
     pub account_members_by_set: HashMap<Uuid, Vec<db::CalaSetMemberAccountRow>>,
     pub set_children_by_parent: HashMap<Uuid, Vec<Uuid>>,
+    // Jump ring for cycling through CALA matches
+    jump_ring: Option<JumpRing>,
 }
 
 impl<'a> App<'a> {
@@ -83,14 +99,21 @@ impl<'a> App<'a> {
             set_by_id,
             account_members_by_set,
             set_children_by_parent,
+            jump_ring: None,
         }
     }
 
     pub fn toggle_view(&mut self) {
+        self.jump_ring = None;
         self.active_view = match self.active_view {
             ActiveView::Lana => ActiveView::Cala,
             ActiveView::Cala => ActiveView::Lana,
         };
+    }
+
+    /// Clear the jump ring (call when user navigates normally).
+    pub fn clear_jump_ring(&mut self) {
+        self.jump_ring = None;
     }
 
     /// Returns the account_set_id UUID of the currently selected node, if any.
@@ -103,7 +126,7 @@ impl<'a> App<'a> {
             return None;
         }
         let last = &selected[selected.len() - 1];
-        // Skip member accounts (acct: prefix) and chart-level IDs
+        // Skip member accounts (acct: prefix)
         if last.starts_with("acct:") {
             return None;
         }
@@ -115,24 +138,53 @@ impl<'a> App<'a> {
         Some(uuid)
     }
 
-    /// Whether the current selection can jump to the other view.
-    pub fn can_jump(&self) -> bool {
+    /// Info about the jump ring for the status bar / details panel.
+    pub fn jump_info(&self) -> JumpInfo {
+        // If we're in a CALA jump ring, report it
+        if let Some(ref ring) = self.jump_ring {
+            if self.active_view == ActiveView::Cala && ring.paths.len() > 1 {
+                return JumpInfo::CalaRing {
+                    current: ring.index + 1,
+                    total: ring.paths.len(),
+                };
+            }
+        }
+
         let Some(set_id) = self.selected_set_id() else {
-            return false;
+            return JumpInfo::NotAvailable;
         };
         match self.active_view {
-            // LANA → CALA: always possible (every node has a CALA set)
-            ActiveView::Lana => find_path_in_tree(&self.cala_items, &set_id.to_string()).is_some(),
-            // CALA → LANA: only if this set has a LANA node
+            ActiveView::Lana => {
+                let paths = find_all_paths_in_tree(&self.cala_items, &set_id.to_string());
+                if paths.is_empty() {
+                    JumpInfo::NotAvailable
+                } else {
+                    JumpInfo::LanaToCala { total: paths.len() }
+                }
+            }
             ActiveView::Cala => {
-                self.node_by_set_id.contains_key(&set_id)
-                    && find_path_in_tree(&self.lana_items, &set_id.to_string()).is_some()
+                if self.node_by_set_id.contains_key(&set_id) {
+                    JumpInfo::CalaToLana
+                } else {
+                    JumpInfo::NotAvailable
+                }
             }
         }
     }
 
-    /// Jump to the same account set in the other view.
-    pub fn jump_to_other_view(&mut self) {
+    /// Handle the `g` key press.
+    pub fn jump(&mut self) {
+        // If we're in a CALA jump ring, cycle to next match
+        if let Some(ref mut ring) = self.jump_ring {
+            if self.active_view == ActiveView::Cala && ring.paths.len() > 1 {
+                ring.index = (ring.index + 1) % ring.paths.len();
+                let path = ring.paths[ring.index].clone();
+                open_ancestors(&mut self.cala_tree_state, &path);
+                self.cala_tree_state.select(path);
+                return;
+            }
+        }
+
         let Some(set_id) = self.selected_set_id() else {
             return;
         };
@@ -140,11 +192,15 @@ impl<'a> App<'a> {
 
         match self.active_view {
             ActiveView::Lana => {
-                if let Some(path) = find_path_in_tree(&self.cala_items, &target) {
-                    open_ancestors(&mut self.cala_tree_state, &path);
-                    self.cala_tree_state.select(path);
-                    self.active_view = ActiveView::Cala;
+                let paths = find_all_paths_in_tree(&self.cala_items, &target);
+                if paths.is_empty() {
+                    return;
                 }
+                let path = paths[0].clone();
+                open_ancestors(&mut self.cala_tree_state, &path);
+                self.cala_tree_state.select(path);
+                self.jump_ring = Some(JumpRing { paths, index: 0 });
+                self.active_view = ActiveView::Cala;
             }
             ActiveView::Cala => {
                 if !self.node_by_set_id.contains_key(&set_id) {
@@ -153,6 +209,7 @@ impl<'a> App<'a> {
                 if let Some(path) = find_path_in_tree(&self.lana_items, &target) {
                     open_ancestors(&mut self.lana_tree_state, &path);
                     self.lana_tree_state.select(path);
+                    self.jump_ring = None;
                     self.active_view = ActiveView::Lana;
                 }
             }
@@ -229,7 +286,14 @@ impl<'a> App<'a> {
             lines.push(format!("  {transitive} transitive accounts"));
 
             lines.push(String::new());
-            lines.push("[g] Jump to CALA view →".into());
+            let cala_paths =
+                find_all_paths_in_tree(&self.cala_items, &node.account_set_id.to_string());
+            if !cala_paths.is_empty() {
+                lines.push(format!(
+                    "[g] Jump to CALA view ({} locations) →",
+                    cala_paths.len()
+                ));
+            }
 
             return lines;
         }
@@ -298,6 +362,16 @@ impl<'a> App<'a> {
                     lines.push(format!("  Normal Balance: {}", node.normal_balance_type));
                     lines.push(String::new());
                     lines.push("[g] Jump to LANA view ←".into());
+                    // Show ring info if cycling
+                    if let Some(ref ring) = self.jump_ring {
+                        if ring.paths.len() > 1 {
+                            lines.push(format!(
+                                "    (CALA location {}/{})",
+                                ring.index + 1,
+                                ring.paths.len()
+                            ));
+                        }
+                    }
                 } else {
                     lines.push(String::new());
                     lines.push("No LANA chart node".into());
@@ -334,7 +408,7 @@ impl<'a> App<'a> {
     }
 }
 
-/// Find the full path (sequence of identifiers) to a node in the tree.
+/// Find the full path (sequence of identifiers) to the first occurrence of a node in the tree.
 fn find_path_in_tree(items: &[TreeItem<'_, String>], target: &str) -> Option<Vec<String>> {
     for item in items {
         if item.identifier() == target {
@@ -346,6 +420,33 @@ fn find_path_in_tree(items: &[TreeItem<'_, String>], target: &str) -> Option<Vec
         }
     }
     None
+}
+
+/// Find ALL paths to a given identifier in the tree (it can appear in multiple branches).
+fn find_all_paths_in_tree(items: &[TreeItem<'_, String>], target: &str) -> Vec<Vec<String>> {
+    let mut results = Vec::new();
+    collect_paths(items, target, &[], &mut results);
+    results
+}
+
+fn collect_paths(
+    items: &[TreeItem<'_, String>],
+    target: &str,
+    prefix: &[String],
+    results: &mut Vec<Vec<String>>,
+) {
+    for item in items {
+        let mut current_path: Vec<String> = prefix.to_vec();
+        current_path.push(item.identifier().clone());
+
+        if item.identifier() == target {
+            results.push(current_path.clone());
+        }
+        // Continue searching children even after a match (the same ID
+        // won't appear as a descendant of itself, but other matches
+        // might be in sibling subtrees).
+        collect_paths(item.children(), target, &current_path, results);
+    }
 }
 
 /// Open all ancestor nodes so the target is visible.
