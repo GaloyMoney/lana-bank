@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use super::chart_node::*;
+use core_accounting_primitives::ChartLookup;
+
 use crate::{
     chart_of_accounts::ledger::ClosingTxParentIdsAndDetails,
     primitives::{AccountCategory, AccountInfo, AccountingBaseConfig, *},
@@ -557,6 +559,24 @@ impl TryFromEvents<ChartEvent> for Chart {
         }
 
         builder.events(events).build()
+    }
+}
+
+impl ChartLookup for Chart {
+    fn id(&self) -> ChartId {
+        self.id
+    }
+
+    fn has_accounting_base_config(&self) -> bool {
+        self.base_config.is_some()
+    }
+
+    fn find_account_set_id_in_category(
+        &self,
+        code: &AccountCode,
+        category: AccountCategory,
+    ) -> Option<CalaAccountSetId> {
+        self.find_account_set_id_in_category(code, category)
     }
 }
 

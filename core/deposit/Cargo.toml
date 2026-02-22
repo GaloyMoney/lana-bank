@@ -21,7 +21,7 @@ money = { workspace = true }
 permission-sets-macro = { workspace = true }
 governance = { workspace = true }
 core-customer = { workspace = true }
-core-accounting = { workspace = true }
+core-accounting-primitives = { workspace = true }
 domain-config = { workspace = true }
 public-id = { workspace = true }
 
@@ -52,6 +52,7 @@ base64 = { workspace = true }
 schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
+core-accounting = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 domain-config = { workspace = true, features = ["test-utils"] }
 document-storage = { workspace = true }
