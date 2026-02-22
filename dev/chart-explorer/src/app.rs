@@ -139,12 +139,19 @@ impl<'a> App<'a> {
     /// Toggle showing/hiding transitive accounts in the CALA tree.
     pub fn toggle_transitive(&mut self) {
         self.show_transitive = !self.show_transitive;
+        // Preserve selection and opened state across rebuild
+        let selected = self.cala_tree_state.selected().to_vec();
+        let opened: Vec<Vec<String>> = self.cala_tree_state.opened().iter().cloned().collect();
         self.cala_items = build_cala_tree(
             &self.cala_sets,
             &self.set_children_by_parent,
             &self.account_members_by_set,
             self.show_transitive,
         );
+        for path in opened {
+            self.cala_tree_state.open(path);
+        }
+        self.cala_tree_state.select(selected);
         self.jump_ring = None;
     }
 
