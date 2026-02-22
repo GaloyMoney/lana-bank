@@ -79,7 +79,6 @@ type ApprovalProcess {
 	policy: Policy!
 	userCanSubmitDecision: Boolean!
 	voters: [ApprovalProcessVoter!]!
-	target: ApprovalProcessTarget!
 }
 
 input ApprovalProcessApproveInput {
@@ -132,8 +131,6 @@ enum ApprovalProcessStatus {
 	DENIED
 	IN_PROGRESS
 }
-
-union ApprovalProcessTarget = Withdrawal | CreditFacilityProposal | CreditFacilityDisbursal
 
 enum ApprovalProcessType {
 	WITHDRAWAL_APPROVAL
@@ -444,6 +441,7 @@ enum CreditFacilitiesSortBy {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
+	customerId: UUID!
 	collateralId: UUID!
 	maturesAt: Timestamp!
 	activatedAt: Timestamp!
@@ -456,16 +454,15 @@ type CreditFacility {
 	currentCvl: CvlPct!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
-	disbursals: [CreditFacilityDisbursal!]!
-	liquidations: [Liquidation!]!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursal: Boolean!
 	userCanRecordPayment: Boolean!
 	userCanRecordPaymentWithDate: Boolean!
 	userCanComplete: Boolean!
-	customer: Customer!
 	balance: CreditFacilityBalance!
 	wallet: Wallet
+	disbursals: [CreditFacilityDisbursal!]!
+	liquidations: [Liquidation!]!
 	ledgerAccounts: CreditFacilityLedgerAccounts!
 }
 
@@ -697,14 +694,14 @@ type CreditFacilityPaymentAllocation {
 type CreditFacilityProposal {
 	id: ID!
 	creditFacilityProposalId: UUID!
+	customerId: UUID!
 	approvalProcessId: UUID
 	status: CreditFacilityProposalStatus!
 	createdAt: Timestamp!
 	facilityAmount: UsdCents!
 	creditFacilityTerms: TermValues!
-	custodian: Custodian
-	customer: Customer!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	custodian: Custodian
 	approvalProcess: ApprovalProcess
 }
 
@@ -985,10 +982,10 @@ type Customer {
 	activity: Activity!
 	level: KycLevel!
 	createdAt: Timestamp!
-	email: String!
-	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String!
+	email: String!
+	telegramHandle: String!
 	customerType: CustomerType!
 	personalInfo: PersonalInfo
 	depositAccount: DepositAccount
@@ -1138,7 +1135,6 @@ type Deposit {
 	publicId: PublicId!
 	reference: String!
 	status: DepositStatus!
-	account: DepositAccount!
 	ledgerTransactions: [LedgerTransaction!]!
 }
 
@@ -1149,11 +1145,10 @@ type DepositAccount {
 	createdAt: Timestamp!
 	status: DepositAccountStatus!
 	publicId: PublicId!
+	balance: DepositAccountBalance!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
 	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
-	balance: DepositAccountBalance!
-	customer: Customer!
 	ledgerAccounts: DepositAccountLedgerAccounts!
 }
 
@@ -1652,7 +1647,6 @@ type LedgerAccount {
 	id: ID!
 	ledgerAccountId: UUID!
 	code: AccountCode
-	entity: LedgerAccountEntity
 	name: String!
 	normalBalanceType: DebitOrCredit!
 	balanceRange: LedgerAccountBalanceRange!
@@ -1682,16 +1676,12 @@ type LedgerAccountCsvExportUploadedPayload {
 	documentId: UUID!
 }
 
-union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
-
 type LedgerTransaction {
 	id: ID!
 	ledgerTransactionId: UUID!
 	createdAt: Timestamp!
 	effective: Date!
 	description: String
-	entity: LedgerTransactionEntity
-	initiatedBy: LedgerTransactionInitiator!
 	entries: [JournalEntry!]!
 }
 
@@ -1723,10 +1713,6 @@ type LedgerTransactionEdge {
 	"""
 	cursor: String!
 }
-
-union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
-
-union LedgerTransactionInitiator = User | System
 
 type Liquidation {
 	id: ID!
@@ -1838,21 +1824,42 @@ type Me {
 }
 
 type Mutation {
-	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
-	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
 	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
+	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
+	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
+	chartOfAccountsCsvImportWithBaseConfig(input: ChartOfAccountsCsvImportWithBaseConfigInput!): ChartOfAccountsCsvImportWithBaseConfigPayload!
+	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
+	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
+	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
+	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
+	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
+	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
+	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
+	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
+	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
+	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload!
+	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
+	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
+	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
+	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
+	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
+	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
+	collateralRecordProceedsFromLiquidation(input: CollateralRecordProceedsFromLiquidationInput!): CollateralRecordProceedsFromLiquidationPayload!
+	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
 	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
-	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
-	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
-	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
+	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
+	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
+	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
+	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
+	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
@@ -1863,39 +1870,18 @@ type Mutation {
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
 	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
 	depositAccountClose(input: DepositAccountCloseInput!): DepositAccountClosePayload!
-	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
-	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
-	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
-	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
-	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload!
-	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
-	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
-	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
-	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
-	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
-	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
-	collateralRecordProceedsFromLiquidation(input: CollateralRecordProceedsFromLiquidationInput!): CollateralRecordProceedsFromLiquidationPayload!
-	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
-	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
+	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
 	approvalProcessDeny(input: ApprovalProcessDenyInput!, reason: String!): ApprovalProcessDenyPayload!
-	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
-	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
-	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
-	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
-	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
-	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
-	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
-	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
-	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
-	chartOfAccountsCsvImportWithBaseConfig(input: ChartOfAccountsCsvImportWithBaseConfigInput!): ChartOfAccountsCsvImportWithBaseConfigPayload!
-	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
-	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
+	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
+	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
+	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
+	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	triggerReportRun: ReportRunCreatePayload!
@@ -1942,17 +1928,17 @@ type PaymentsUnapplied {
 type PendingCreditFacility {
 	id: ID!
 	pendingCreditFacilityId: UUID!
+	customerId: UUID!
 	collateralId: UUID!
 	status: PendingCreditFacilityStatus!
 	approvalProcessId: UUID!
 	createdAt: Timestamp!
 	collateralizationState: PendingCreditFacilityCollateralizationState!
 	facilityAmount: UsdCents!
-	wallet: Wallet
 	collateral: CollateralBalance!
-	customer: Customer!
 	creditFacilityTerms: TermValues!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	wallet: Wallet
 	approvalProcess: ApprovalProcess!
 }
 
@@ -2128,13 +2114,13 @@ type Prospect {
 	level: KycLevel!
 	createdAt: Timestamp!
 	stage: ProspectStage!
-	email: String!
-	telegramHandle: String!
-	customerType: CustomerType!
 	publicId: PublicId!
 	applicantId: String
 	verificationLink: String
 	verificationLinkCreatedAt: Timestamp
+	email: String!
+	telegramHandle: String!
+	customerType: CustomerType!
 	personalInfo: PersonalInfo
 	customer: Customer
 }
@@ -2214,51 +2200,11 @@ scalar PublicId
 union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
-	me: Me!
-	dashboard: Dashboard!
 	user(id: UUID!): User
 	users: [User!]!
 	role(id: UUID!): Role
 	roles(first: Int!, after: String): RoleConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
-	customer(id: UUID!): Customer
-	customerByEmail(email: String!): Customer
-	customerByPublicId(id: PublicId!): Customer
-	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: ASC}, filter: CustomersFilter): CustomerConnection!
-	prospect(id: UUID!): Prospect
-	prospectByPublicId(id: PublicId!): Prospect
-	prospects(first: Int!, after: String, stage: ProspectStage): ProspectConnection!
-	withdrawal(id: UUID!): Withdrawal
-	withdrawalByPublicId(id: PublicId!): Withdrawal
-	withdrawals(first: Int!, after: String): WithdrawalConnection!
-	deposit(id: UUID!): Deposit
-	depositByPublicId(id: PublicId!): Deposit
-	depositAccount(id: UUID!): DepositAccount
-	depositAccountByPublicId(id: PublicId!): DepositAccount
-	depositAccounts(first: Int!, after: String): DepositAccountConnection!
-	deposits(first: Int!, after: String): DepositConnection!
-	termsTemplate(id: UUID!): TermsTemplate
-	termsTemplates: [TermsTemplate!]!
-	creditFacility(id: UUID!): CreditFacility
-	creditFacilityProposal(id: UUID!): CreditFacilityProposal
-	creditFacilityProposals(first: Int!, after: String): CreditFacilityProposalConnection!
-	pendingCreditFacility(id: UUID!): PendingCreditFacility
-	pendingCreditFacilities(first: Int!, after: String): PendingCreditFacilityConnection!
-	creditFacilityByPublicId(id: PublicId!): CreditFacility
-	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
-	disbursal(id: UUID!): CreditFacilityDisbursal
-	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
-	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
-	liquidation(id: UUID!): Liquidation
-	liquidations(first: Int!, after: String): LiquidationConnection!
-	custodians(first: Int!, after: String): CustodianConnection!
-	committee(id: UUID!): Committee
-	committees(first: Int!, after: String): CommitteeConnection!
-	policy(id: UUID!): Policy
-	policies(first: Int!, after: String): PolicyConnection!
-	approvalProcess(id: UUID!): ApprovalProcess
-	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
-	customerDocument(id: UUID!): CustomerDocument
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
 	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
@@ -2273,15 +2219,55 @@ type Query {
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
+	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
+	creditFacility(id: UUID!): CreditFacility
+	creditFacilityByPublicId(id: PublicId!): CreditFacility
+	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
+	creditFacilityProposal(id: UUID!): CreditFacilityProposal
+	creditFacilityProposals(first: Int!, after: String): CreditFacilityProposalConnection!
+	pendingCreditFacility(id: UUID!): PendingCreditFacility
+	pendingCreditFacilities(first: Int!, after: String): PendingCreditFacilityConnection!
+	disbursal(id: UUID!): CreditFacilityDisbursal
+	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
+	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
+	liquidation(id: UUID!): Liquidation
+	liquidations(first: Int!, after: String): LiquidationConnection!
+	customer(id: UUID!): Customer
+	customerByEmail(email: String!): Customer
+	customerByPublicId(id: PublicId!): Customer
+	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: ASC}, filter: CustomersFilter): CustomerConnection!
+	prospect(id: UUID!): Prospect
+	prospectByPublicId(id: PublicId!): Prospect
+	prospects(first: Int!, after: String, stage: ProspectStage): ProspectConnection!
+	customerDocument(id: UUID!): CustomerDocument
+	custodians(first: Int!, after: String): CustodianConnection!
+	withdrawal(id: UUID!): Withdrawal
+	withdrawalByPublicId(id: PublicId!): Withdrawal
+	withdrawals(first: Int!, after: String): WithdrawalConnection!
+	deposit(id: UUID!): Deposit
+	depositByPublicId(id: PublicId!): Deposit
+	depositAccount(id: UUID!): DepositAccount
+	depositAccountByPublicId(id: PublicId!): DepositAccount
+	depositAccounts(first: Int!, after: String): DepositAccountConnection!
+	deposits(first: Int!, after: String): DepositConnection!
+	depositConfig: DepositModuleConfig
+	committee(id: UUID!): Committee
+	committees(first: Int!, after: String): CommitteeConnection!
+	policy(id: UUID!): Policy
+	policies(first: Int!, after: String): PolicyConnection!
+	approvalProcess(id: UUID!): ApprovalProcess
+	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
+	me: Me!
+	dashboard: Dashboard!
+	termsTemplate(id: UUID!): TermsTemplate
+	termsTemplates: [TermsTemplate!]!
 	realtimePrice: RealtimePrice!
 	audit(first: Int!, after: String, subject: AuditSubjectId, authorized: Boolean, object: String, action: String): AuditEntryConnection!
 	auditSubjects: [AuditSubjectId!]!
-	depositConfig: DepositModuleConfig
 	domainConfigs(first: Int!, after: String): DomainConfigConnection!
 	creditConfig: CreditModuleConfig
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
-	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 	reportRuns(first: Int!, after: String): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun
 }
@@ -2702,7 +2688,6 @@ type Withdrawal {
 	publicId: PublicId!
 	reference: String!
 	approvalProcess: ApprovalProcess!
-	account: DepositAccount!
 	ledgerTransactions: [LedgerTransaction!]!
 }
 

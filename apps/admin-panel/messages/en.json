@@ -1617,7 +1617,7 @@
       "DepositAccountDetailsCard": {
         "title": "Deposit Account",
         "fields": {
-          "customerEmail": "Customer Email",
+          "customerId": "Customer ID",
           "settledBalance": "Settled Balance",
           "pendingBalance": "Pending Balance",
           "createdAt": "Created At",

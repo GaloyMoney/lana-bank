@@ -22,10 +22,6 @@ gql`
         collateral {
           btcBalance
         }
-        customer {
-          customerId
-          email
-        }
       }
     }
   }

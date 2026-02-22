@@ -1,0 +1,16 @@
+[package]
+name = "admin-graphql-deposit"
+license = "BUSL-1.1"
+edition = "2024"
+
+[dependencies]
+lana-app = { workspace = true }
+admin-graphql-shared = { path = "../admin-graphql-shared" }
+
+async-graphql = { workspace = true }
+es-entity = { workspace = true }
+
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+
+[package.metadata.cargo-machete]
+ignored = ["es-entity"]

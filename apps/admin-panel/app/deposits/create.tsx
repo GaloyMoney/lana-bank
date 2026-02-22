@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { gql, useApolloClient } from "@apollo/client"
+import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -18,10 +18,7 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import {
-  GetCustomerBasicDetailsDocument,
-  useCreateDepositMutation,
-} from "@/lib/graphql/generated"
+import { useCreateDepositMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
@@ -29,25 +26,6 @@ gql`
     depositRecord(input: $input) {
       deposit {
         ...DepositFields
-        account {
-          customer {
-            id
-            customerId
-            depositAccount {
-              id
-              deposits {
-                ...DepositFields
-              }
-            }
-            depositAccount {
-              id
-              balance {
-                settled
-                pending
-              }
-            }
-          }
-        }
       }
     }
   }
@@ -78,7 +56,6 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
-  const client = useApolloClient()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,13 +72,6 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
         },
       })
       if (result.data) {
-        await client.query({
-          query: GetCustomerBasicDetailsDocument,
-          variables: {
-            id: result.data.depositRecord.deposit.account.customer.customerId,
-          },
-          fetchPolicy: "network-only",
-        })
         toast.success(t("success"))
         handleCloseDialog()
         router.push(`/deposits/${result.data.depositRecord.deposit.publicId}`)

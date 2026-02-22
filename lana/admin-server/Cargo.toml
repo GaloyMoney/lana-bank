@@ -11,8 +11,15 @@ sumsub-testing = ["lana-app/sumsub-testing"]
 
 [dependencies]
 lana-app = { workspace = true }
+admin-graphql-access = { path = "../admin-graphql-access" }
+admin-graphql-accounting = { path = "../admin-graphql-accounting" }
+admin-graphql-credit = { path = "../admin-graphql-credit" }
+admin-graphql-custody = { path = "../admin-graphql-custody" }
+admin-graphql-customer = { path = "../admin-graphql-customer" }
+admin-graphql-deposit = { path = "../admin-graphql-deposit" }
+admin-graphql-governance = { path = "../admin-graphql-governance" }
+admin-graphql-shared = { path = "../admin-graphql-shared" }
 domain-config = { workspace = true, features = ["graphql"] }
-permission-sets-macro = { workspace = true }
 obix = { workspace = true }
 audit = { workspace = true }
 tracing-utils = { workspace = true, features = ["http"] }
@@ -32,7 +39,6 @@ serde_json = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
-rust_decimal = { workspace = true }
 anyhow = { workspace = true }
 
 futures = { workspace = true }
