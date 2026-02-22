@@ -1195,6 +1195,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
+ "core-accounting-primitives",
  "csv",
  "derive_builder",
  "document-storage",
@@ -1220,6 +1221,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-accounting-primitives"
+version = "0.0.0"
+dependencies = [
+ "cala-ledger",
+ "es-entity",
+ "schemars 1.2.1",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-utils",
+ "uuid",
+]
+
+[[package]]
 name = "core-credit"
 version = "0.0.0"
 dependencies = [
@@ -1233,6 +1250,7 @@ dependencies = [
  "cloud-storage",
  "core-access",
  "core-accounting",
+ "core-accounting-primitives",
  "core-credit-collection",
  "core-credit-terms",
  "core-custody",
@@ -1408,6 +1426,7 @@ dependencies = [
  "chrono",
  "cloud-storage",
  "core-accounting",
+ "core-accounting-primitives",
  "core-customer",
  "derive_builder",
  "document-storage",

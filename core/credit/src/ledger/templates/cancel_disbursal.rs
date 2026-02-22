@@ -82,8 +82,10 @@ impl<S: std::fmt::Display> From<CancelDisbursalParams<S>> for Params {
         params.insert("credit_facility_account", credit_facility_account);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("effective", effective);
-        let entity_ref =
-            core_accounting::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        let entity_ref = core_accounting_primitives::EntityRef::new(
+            DISBURSAL_TRANSACTION_ENTITY_TYPE,
+            entity_id,
+        );
         params.insert(
             "meta",
             serde_json::json!({

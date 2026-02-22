@@ -20,8 +20,8 @@ pub enum CreditLedgerError {
     ConversionError(#[from] money::ConversionError),
     #[error("CreditLedgerError - CalaVelocityError: {0}")]
     CalaVelocity(#[from] cala_ledger::velocity::error::VelocityError),
-    #[error("CreditLedgerError - ChartOfAccountsError: {0}")]
-    ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("CreditLedgerError - ChartLookupError: {0}")]
+    ChartLookupError(#[from] core_accounting_primitives::ChartLookupError),
     #[error(
         "CreditLedgerError - NonAccountMemberFoundInAccountSet: Found non-Account typed member in account set {0}"
     )]
@@ -43,7 +43,7 @@ impl ErrorSeverity for CreditLedgerError {
             Self::CalaBalance(_) => Level::ERROR,
             Self::ConversionError(e) => e.severity(),
             Self::CalaVelocity(_) => Level::ERROR,
-            Self::ChartOfAccountsError(e) => e.severity(),
+            Self::ChartLookupError(e) => e.severity(),
             Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,
             Self::JournalIdMismatch => Level::ERROR,
             Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,

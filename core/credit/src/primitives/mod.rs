@@ -105,14 +105,14 @@ pub struct LedgerOmnibusAccountIds {
     pub account_id: CalaAccountId,
 }
 
-pub const CREDIT_FACILITY_ENTITY_TYPE: core_accounting::EntityType =
-    core_accounting::EntityType::new("CreditFacility");
-pub const CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE: core_accounting::EntityType =
-    core_accounting::EntityType::new("CreditFacilityProposal");
-pub const COLLATERAL_ENTITY_TYPE: core_accounting::EntityType =
-    core_accounting::EntityType::new("Collateral");
-pub const DISBURSAL_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
-    core_accounting::EntityType::new("Disbursal");
+pub const CREDIT_FACILITY_ENTITY_TYPE: core_accounting_primitives::EntityType =
+    core_accounting_primitives::EntityType::new("CreditFacility");
+pub const CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE: core_accounting_primitives::EntityType =
+    core_accounting_primitives::EntityType::new("CreditFacilityProposal");
+pub const COLLATERAL_ENTITY_TYPE: core_accounting_primitives::EntityType =
+    core_accounting_primitives::EntityType::new("Collateral");
+pub const DISBURSAL_TRANSACTION_ENTITY_TYPE: core_accounting_primitives::EntityType =
+    core_accounting_primitives::EntityType::new("Disbursal");
 
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
