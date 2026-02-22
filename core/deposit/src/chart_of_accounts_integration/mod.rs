@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_accounting::Chart;
+use core_accounting_primitives::{AccountCategory, AccountCode, CalaAccountSetId, ChartId};
 use domain_config::InternalDomainConfigs;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -79,12 +79,14 @@ where
     #[record_error_severity]
     #[instrument(
         name = "deposit.chart_of_accounts_integrations.set_config",
-        skip(self, chart)
+        skip(self, account_set_lookup)
     )]
     pub async fn set_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart: &Chart,
+        chart_id: ChartId,
+        has_accounting_base_config: bool,
+        account_set_lookup: &impl Fn(&AccountCode, AccountCategory) -> Option<CalaAccountSetId>,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationError> {
         self.authz
@@ -95,7 +97,7 @@ where
             )
             .await?;
 
-        if chart.id != config.chart_of_accounts_id {
+        if chart_id != config.chart_of_accounts_id {
             return Err(ChartOfAccountsIntegrationError::ChartIdMismatch);
         }
 
@@ -111,12 +113,12 @@ where
             return Ok(existing.config);
         }
 
-        if chart.accounting_base_config().is_none() {
+        if !has_accounting_base_config {
             return Err(ChartOfAccountsIntegrationError::AccountingBaseConfigNotFound);
         }
 
         let resolved_integration_config =
-            ResolvedChartOfAccountsIntegrationConfig::try_new(config, chart)?;
+            ResolvedChartOfAccountsIntegrationConfig::try_new(config, account_set_lookup)?;
 
         let mut op = self.domain_configs.begin_op().await?;
         self.domain_configs
