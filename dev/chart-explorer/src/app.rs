@@ -53,6 +53,8 @@ pub struct App<'a> {
     pub set_children_by_parent: HashMap<Uuid, Vec<Uuid>>,
     // Jump ring for cycling through CALA matches
     jump_ring: Option<JumpRing>,
+    /// Whether transitive accounts are shown in the CALA tree.
+    pub show_transitive: bool,
 }
 
 impl<'a> App<'a> {
@@ -89,9 +91,14 @@ impl<'a> App<'a> {
                 .push(m.member_account_set_id);
         }
 
+        let show_transitive = false;
         let lana_items = build_lana_tree(&charts, &chart_nodes);
-        let cala_items =
-            build_cala_tree(&cala_sets, &set_children_by_parent, &account_members_by_set);
+        let cala_items = build_cala_tree(
+            &cala_sets,
+            &set_children_by_parent,
+            &account_members_by_set,
+            show_transitive,
+        );
 
         let mut lana_tree_state = TreeState::default();
         lana_tree_state.select_first();
@@ -112,6 +119,7 @@ impl<'a> App<'a> {
             account_members_by_set,
             set_children_by_parent,
             jump_ring: None,
+            show_transitive,
         }
     }
 
@@ -125,6 +133,18 @@ impl<'a> App<'a> {
 
     /// Clear the jump ring (call when user navigates normally).
     pub fn clear_jump_ring(&mut self) {
+        self.jump_ring = None;
+    }
+
+    /// Toggle showing/hiding transitive accounts in the CALA tree.
+    pub fn toggle_transitive(&mut self) {
+        self.show_transitive = !self.show_transitive;
+        self.cala_items = build_cala_tree(
+            &self.cala_sets,
+            &self.set_children_by_parent,
+            &self.account_members_by_set,
+            self.show_transitive,
+        );
         self.jump_ring = None;
     }
 
@@ -574,6 +594,7 @@ fn build_cala_tree<'a>(
     sets: &[db::CalaAccountSetRow],
     children_by_parent: &HashMap<Uuid, Vec<Uuid>>,
     account_members_by_set: &HashMap<Uuid, Vec<db::CalaSetMemberAccountRow>>,
+    show_transitive: bool,
 ) -> Vec<TreeItem<'a, String>> {
     let set_by_id: HashMap<Uuid, &db::CalaAccountSetRow> = sets.iter().map(|s| (s.id, s)).collect();
 
@@ -596,6 +617,7 @@ fn build_cala_tree<'a>(
         set_by_id: &HashMap<Uuid, &db::CalaAccountSetRow>,
         children_by_parent: &HashMap<Uuid, Vec<Uuid>>,
         account_members: &HashMap<Uuid, Vec<db::CalaSetMemberAccountRow>>,
+        show_transitive: bool,
     ) -> TreeItem<'a, String> {
         let set = set_by_id.get(&set_id);
         let label = set
@@ -618,6 +640,7 @@ fn build_cala_tree<'a>(
                     set_by_id,
                     children_by_parent,
                     account_members,
+                    show_transitive,
                 ));
             }
         }
@@ -625,6 +648,9 @@ fn build_cala_tree<'a>(
         // Add member accounts as leaves
         if let Some(accounts) = account_members.get(&set_id) {
             for acct in accounts {
+                if !show_transitive && acct.transitive {
+                    continue;
+                }
                 let acct_label = format!(
                     "[acct] {} - {} ({})",
                     acct.account_code,
@@ -657,6 +683,7 @@ fn build_cala_tree<'a>(
                 &set_by_id,
                 children_by_parent,
                 account_members_by_set,
+                show_transitive,
             )
         })
         .collect()

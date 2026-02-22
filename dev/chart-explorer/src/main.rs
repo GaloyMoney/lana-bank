@@ -92,6 +92,7 @@ fn run_tui(mut app: app::App) -> io::Result<()> {
             match key.code {
                 KeyCode::Char('q') => break,
                 KeyCode::Char('g') => app.jump(),
+                KeyCode::Char('t') => app.toggle_transitive(),
                 KeyCode::Tab => app.toggle_view(),
                 KeyCode::Up => {
                     app.clear_jump_ring();

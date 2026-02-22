@@ -127,11 +127,18 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         JumpInfo::NotAvailable => Span::raw(""),
     };
 
+    let transitive_hint = if app.show_transitive {
+        Span::styled("  t: hide transitive", Style::default().fg(Color::Magenta))
+    } else {
+        Span::styled("  t: show transitive", Style::default().fg(Color::DarkGray))
+    };
+
     let line = Line::from(vec![
         Span::styled(" [LANA Tree] ", lana_style),
         Span::raw(" "),
         Span::styled(" [CALA Sets] ", cala_style),
-        Span::raw("  Tab: switch  ↑↓: navigate  ←→: collapse/expand  q: quit"),
+        Span::raw("  Tab ↑↓←→ q"),
+        transitive_hint,
         jump_hint,
     ]);
 
