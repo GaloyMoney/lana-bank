@@ -227,7 +227,9 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
         .chart_of_accounts_integrations()
         .set_config(
             &Subject::System(audit::SystemActor::BOOTSTRAP),
-            chart,
+            chart.id,
+            chart.accounting_base_config().is_some(),
+            &|code, cat| chart.find_account_set_id_in_category(code, cat),
             config_values,
         )
         .await

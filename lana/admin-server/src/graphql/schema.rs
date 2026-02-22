@@ -1478,10 +1478,17 @@ impl Mutation {
             chart_of_accounts_omnibus_parent_code: chart_of_accounts_omnibus_parent_code.parse()?,
         };
 
+        let chart_ref = chart.as_ref();
         let config = app
             .deposits()
             .chart_of_accounts_integrations()
-            .set_config(sub, chart.as_ref(), config_values)
+            .set_config(
+                sub,
+                chart_ref.id,
+                chart_ref.accounting_base_config().is_some(),
+                &|code, cat| chart_ref.find_account_set_id_in_category(code, cat),
+                config_values,
+            )
             .await?;
         Ok(DepositModuleConfigurePayload::from(
             DepositModuleConfig::from(config),
@@ -1946,10 +1953,17 @@ impl Mutation {
                     .parse()?
         };
 
+        let chart_ref = chart.as_ref();
         let config = app
             .credit()
             .chart_of_accounts_integrations()
-            .set_config(sub, chart.as_ref(), config_values)
+            .set_config(
+                sub,
+                chart_ref.id,
+                chart_ref.accounting_base_config().is_some(),
+                &|code, cat| chart_ref.find_account_set_id_in_category(code, cat),
+                config_values,
+            )
             .await?;
         Ok(CreditModuleConfigurePayload::from(
             CreditModuleConfig::from(config),

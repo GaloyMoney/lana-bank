@@ -1,0 +1,21 @@
+[package]
+name = "core-accounting-primitives"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+json-schema = ["dep:schemars"]
+
+[dependencies]
+cala-ledger = { workspace = true }
+es-entity = { workspace = true }
+sqlx = { workspace = true }
+
+serde = { workspace = true }
+thiserror = { workspace = true }
+strum = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+tracing-utils = { workspace = true }
+
+schemars = { workspace = true, optional = true }

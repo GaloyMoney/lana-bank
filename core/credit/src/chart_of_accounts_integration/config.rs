@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use core_accounting::{AccountCode, CalaAccountSetId, Chart, ChartId};
+use core_accounting_primitives::{
+    AccountCategory, AccountCode, CalaAccountSetId, ChartId, ChartLookupError,
+};
 use domain_config::define_internal_config;
 
 use super::error::ChartOfAccountsIntegrationError;
@@ -127,7 +129,7 @@ define_internal_config! {
 impl ResolvedChartOfAccountsIntegrationConfig {
     pub(super) fn try_new(
         config: ChartOfAccountsIntegrationConfig,
-        chart: &Chart,
+        account_set_lookup: &impl Fn(&AccountCode, AccountCategory) -> Option<CalaAccountSetId>,
     ) -> Result<Self, ChartOfAccountsIntegrationError> {
         let ChartOfAccountsIntegrationConfig {
             chart_of_accounts_id: _,
@@ -183,22 +185,18 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
             chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
         } = &config;
-        let category_account_set_member_parent_id = |code: &AccountCode,
-                                                     category: CreditAccountCategory|
-         -> Result<
-            CalaAccountSetId,
-            ChartOfAccountsIntegrationError,
-        > {
-            chart
-                    .find_account_set_id_in_category(code, category.into())
-                    .ok_or_else(|| {
-                        core_accounting::chart_of_accounts::error::ChartOfAccountsError::InvalidAccountCategory {
-                            code: code.clone(),
-                            category: category.into(),
-                        }
-                        .into()
-                    })
-        };
+        let category_account_set_member_parent_id =
+            |code: &AccountCode,
+             category: CreditAccountCategory|
+             -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
+                account_set_lookup(code, category.into()).ok_or_else(|| {
+                    ChartLookupError::InvalidAccountCategory {
+                        code: code.clone(),
+                        category: category.into(),
+                    }
+                    .into()
+                })
+            };
 
         let catalog = CREDIT_ACCOUNT_SET_CATALOG;
         let summary = catalog.summary();
