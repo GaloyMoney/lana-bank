@@ -372,7 +372,6 @@ where
             .list_for_filters_by_key(
                 DomainConfigsFilters {
                     visibility: Some(Visibility::Exposed),
-                    ..Default::default()
                 },
                 query,
                 es_entity::ListDirection::Ascending,

@@ -232,7 +232,6 @@ where
             .list_for_filters_by_created_at(
                 FiscalYearsFilters {
                     chart_id: Some(chart_id),
-                    ..Default::default()
                 },
                 query,
                 es_entity::ListDirection::Descending,
@@ -305,7 +304,6 @@ where
             .list_for_filters_by_created_at(
                 FiscalYearsFilters {
                     chart_id: Some(chart_id),
-                    ..Default::default()
                 },
                 query,
                 es_entity::ListDirection::Descending,

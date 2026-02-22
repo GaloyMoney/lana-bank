@@ -267,7 +267,6 @@ where
                 .list_for_filters_by_created_at(
                     ObligationsFilters {
                         beneficiary_id: Some(beneficiary_id),
-                        ..Default::default()
                     },
                     query,
                     es_entity::ListDirection::Ascending,

@@ -702,7 +702,7 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 [[package]]
 name = "cala-cel-interpreter"
 version = "0.13.17"
-source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#bc07bbca124c13c26637f824a519bdba4865ea8c"
+source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#e4c7bff5e1df0eda6d02105c6abb466cb0a13146"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -719,7 +719,7 @@ dependencies = [
 [[package]]
 name = "cala-cel-parser"
 version = "0.13.17"
-source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#bc07bbca124c13c26637f824a519bdba4865ea8c"
+source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#e4c7bff5e1df0eda6d02105c6abb466cb0a13146"
 dependencies = [
  "cached",
  "lalrpop-util",
@@ -729,7 +729,7 @@ dependencies = [
 [[package]]
 name = "cala-ledger"
 version = "0.13.17"
-source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#bc07bbca124c13c26637f824a519bdba4865ea8c"
+source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#e4c7bff5e1df0eda6d02105c6abb466cb0a13146"
 dependencies = [
  "async-graphql",
  "base64",
@@ -761,7 +761,7 @@ dependencies = [
 [[package]]
 name = "cala-ledger-core-types"
 version = "0.13.17"
-source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#bc07bbca124c13c26637f824a519bdba4865ea8c"
+source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#e4c7bff5e1df0eda6d02105c6abb466cb0a13146"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -782,7 +782,7 @@ dependencies = [
 [[package]]
 name = "cala-tracing"
 version = "0.13.17"
-source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#bc07bbca124c13c26637f824a519bdba4865ea8c"
+source = "git+https://github.com/GaloyMoney/cala?branch=build%2Fpregenerate-lalrpop-parser#e4c7bff5e1df0eda6d02105c6abb466cb0a13146"
 dependencies = [
  "anyhow",
  "axum-extra",

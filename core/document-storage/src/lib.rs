@@ -184,7 +184,6 @@ impl DocumentStorage {
             .list_for_filters_by_created_at(
                 DocumentsFilters {
                     reference_id: Some(reference_id.into()),
-                    ..Default::default()
                 },
                 Default::default(),
                 ListDirection::Descending,
@@ -207,7 +206,6 @@ impl DocumentStorage {
             .list_for_filters_by_created_at(
                 DocumentsFilters {
                     reference_id: Some(reference_id.into()),
-                    ..Default::default()
                 },
                 query,
                 ListDirection::Descending,

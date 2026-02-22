@@ -184,7 +184,6 @@ where
             .list_for_filters_by_created_at(
                 ReportsFilters {
                     run_id: Some(run_id),
-                    ..Default::default()
                 },
                 Default::default(),
                 es_entity::ListDirection::Descending,
