@@ -355,6 +355,16 @@ impl<'a> App<'a> {
             lines.push(format!("  {direct} direct accounts"));
             lines.push(format!("  {transitive} transitive accounts"));
 
+            // Aggregate balances across direct member accounts
+            if let Some(members) = self.account_members_by_set.get(&node.account_set_id) {
+                let direct_members: Vec<Uuid> = members
+                    .iter()
+                    .filter(|m| !m.transitive)
+                    .map(|m| m.account_id)
+                    .collect();
+                format_aggregate_balances(&self.balances_by_account, &direct_members, &mut lines);
+            }
+
             lines.push(String::new());
             let cala_paths =
                 find_all_paths_in_tree(&self.cala_items, &node.account_set_id.to_string());
@@ -474,6 +484,20 @@ impl<'a> App<'a> {
                 lines.push(format!("  {direct} direct accounts"));
                 lines.push(format!("  {transitive} transitive accounts"));
 
+                // Aggregate balances across all direct member accounts
+                if let Some(members) = self.account_members_by_set.get(&set_id) {
+                    let direct_members: Vec<Uuid> = members
+                        .iter()
+                        .filter(|m| !m.transitive)
+                        .map(|m| m.account_id)
+                        .collect();
+                    format_aggregate_balances(
+                        &self.balances_by_account,
+                        &direct_members,
+                        &mut lines,
+                    );
+                }
+
                 return lines;
             }
         }
@@ -508,6 +532,50 @@ fn format_balances(
                     "    encumbrance DR {encumbrance_dr}  CR {encumbrance_cr}"
                 ));
             }
+        }
+    }
+}
+
+fn format_aggregate_balances(
+    balances_by_account: &HashMap<Uuid, Vec<db::AccountBalanceRow>>,
+    account_ids: &[Uuid],
+    lines: &mut Vec<String>,
+) {
+    // Sum balances by (currency, journal_id)
+    let mut totals: HashMap<(String, Uuid), [f64; 6]> = HashMap::new();
+    for &acct_id in account_ids {
+        if let Some(bals) = balances_by_account.get(&acct_id) {
+            for b in bals {
+                let entry = totals
+                    .entry((b.currency.clone(), b.journal_id))
+                    .or_insert([0.0; 6]);
+                entry[0] += b.settled_dr.parse::<f64>().unwrap_or(0.0);
+                entry[1] += b.settled_cr.parse::<f64>().unwrap_or(0.0);
+                entry[2] += b.pending_dr.parse::<f64>().unwrap_or(0.0);
+                entry[3] += b.pending_cr.parse::<f64>().unwrap_or(0.0);
+                entry[4] += b.encumbrance_dr.parse::<f64>().unwrap_or(0.0);
+                entry[5] += b.encumbrance_cr.parse::<f64>().unwrap_or(0.0);
+            }
+        }
+    }
+
+    if totals.is_empty() {
+        return;
+    }
+
+    let mut keys: Vec<_> = totals.keys().cloned().collect();
+    keys.sort();
+    lines.push(String::new());
+    lines.push("Aggregate Balances:".into());
+    for (currency, journal_id) in keys {
+        let t = &totals[&(currency.clone(), journal_id)];
+        lines.push(format!("  {} ({}):", currency, short_uuid(journal_id)));
+        lines.push(format!("    settled     DR {}  CR {}", t[0], t[1]));
+        if t[2] != 0.0 || t[3] != 0.0 {
+            lines.push(format!("    pending     DR {}  CR {}", t[2], t[3]));
+        }
+        if t[4] != 0.0 || t[5] != 0.0 {
+            lines.push(format!("    encumbrance DR {}  CR {}", t[4], t[5]));
         }
     }
 }
