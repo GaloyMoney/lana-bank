@@ -10,12 +10,14 @@ use super::sync_email_job::SyncEmailConfig;
 pub const SYNC_EMAIL_JOB: JobType = JobType::new("outbox.sync-email-job");
 
 pub struct SyncEmailHandler {
-    spawner: JobSpawner<SyncEmailConfig>,
+    sync_email_job_spawner: JobSpawner<SyncEmailConfig>,
 }
 
 impl SyncEmailHandler {
-    pub fn new(spawner: JobSpawner<SyncEmailConfig>) -> Self {
-        Self { spawner }
+    pub fn new(sync_email_job_spawner: JobSpawner<SyncEmailConfig>) -> Self {
+        Self {
+            sync_email_job_spawner,
+        }
     }
 }
 
@@ -34,7 +36,7 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
-            self.spawner
+            self.sync_email_job_spawner
                 .spawn_in_op(
                     op,
                     JobId::new(),

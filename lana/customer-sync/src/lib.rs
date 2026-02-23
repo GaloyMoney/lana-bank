@@ -87,13 +87,13 @@ where
             )
             .await?;
 
-        let sync_email_spawner =
+        let sync_email_job_spawner =
             jobs.add_initializer(SyncEmailJobInitializer::new(keycloak_client.clone()));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(SYNC_EMAIL_JOB),
-                SyncEmailHandler::new(sync_email_spawner),
+                SyncEmailHandler::new(sync_email_job_spawner),
             )
             .await?;
 
@@ -113,13 +113,13 @@ where
             )
             .await?;
 
-        let active_sync_spawner =
+        let customer_active_sync_job_spawner =
             jobs.add_initializer(CustomerActiveSyncJobInitializer::new(deposit.clone()));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_ACTIVE_SYNC),
-                CustomerActiveSyncHandler::new(active_sync_spawner),
+                CustomerActiveSyncHandler::new(customer_active_sync_job_spawner),
             )
             .await?;
 

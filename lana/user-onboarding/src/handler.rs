@@ -10,12 +10,14 @@ use crate::job::CreateKeycloakUserConfig;
 pub const USER_ONBOARDING_JOB: JobType = JobType::new("outbox.user-onboarding");
 
 pub struct UserOnboardingHandler {
-    spawner: JobSpawner<CreateKeycloakUserConfig>,
+    create_keycloak_user_job_spawner: JobSpawner<CreateKeycloakUserConfig>,
 }
 
 impl UserOnboardingHandler {
-    pub fn new(spawner: JobSpawner<CreateKeycloakUserConfig>) -> Self {
-        Self { spawner }
+    pub fn new(create_keycloak_user_job_spawner: JobSpawner<CreateKeycloakUserConfig>) -> Self {
+        Self {
+            create_keycloak_user_job_spawner,
+        }
     }
 }
 
@@ -34,7 +36,7 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", access_event.as_ref());
 
-            self.spawner
+            self.create_keycloak_user_job_spawner
                 .spawn_in_op(
                     op,
                     JobId::new(),
