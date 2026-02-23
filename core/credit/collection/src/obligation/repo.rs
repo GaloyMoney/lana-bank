@@ -23,7 +23,11 @@ use super::{entity::*, error::*};
             list_for(by(created_at)),
             update(persist = false)
         ),
-        reference(ty = "String", create(accessor = "reference()")),
+        reference(
+            ty = "String",
+            create(accessor = "reference()"),
+            update(persist = false)
+        ),
         next_transition_date(
             ty = "Option<chrono::NaiveDate>",
             create(accessor = "next_transition_date()"),
