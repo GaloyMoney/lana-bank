@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::{
-    access::config::AccessConfig, credit::CreditConfig, custody::CustodyConfig,
-    customer_sync::CustomerSyncConfig, encryption::EncryptionConfig, gotenberg::GotenbergConfig,
-    job::JobPollerConfig, notification::NotificationConfig, report::ReportConfig,
+    access::config::AccessConfig, custody::CustodyConfig, customer_sync::CustomerSyncConfig,
+    encryption::EncryptionConfig, gotenberg::GotenbergConfig, job::JobPollerConfig,
+    notification::NotificationConfig, price::PriceConfig, report::ReportConfig,
     storage::config::StorageConfig, user_onboarding::UserOnboardingConfig,
 };
 
@@ -17,7 +17,7 @@ pub struct AppConfig {
     #[serde(default)]
     pub access: AccessConfig,
     #[serde(default)]
-    pub credit: CreditConfig,
+    pub price: PriceConfig,
     #[serde(default)]
     pub storage: StorageConfig,
     #[serde(default)]

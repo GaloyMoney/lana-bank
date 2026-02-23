@@ -110,7 +110,12 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(&mut jobs, &outbox).await?;
+    let price = core_price::Price::init(
+        core_price::PriceConfig { providers: vec![] },
+        &mut jobs,
+        &outbox,
+    )
+    .await?;
     let exposed_domain_configs =
         helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
     // Required to prevent the case there is an attempt to remove an account set member from
@@ -123,7 +128,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
     let credit = CoreCredit::init(
         &pool,
-        Default::default(),
         &governance,
         &mut jobs,
         &authz,

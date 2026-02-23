@@ -3,7 +3,6 @@
 
 mod chart_of_accounts_integration;
 mod collateral;
-mod config;
 mod credit_facility;
 mod credit_facility_proposal;
 mod disbursal;
@@ -47,7 +46,6 @@ pub use collateral::{
     Collateral, Collaterals, Liquidation, RecordProceedsFromLiquidationData, liquidation_cursor,
     liquidation_cursor::*,
 };
-pub use config::*;
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
 pub use credit_facility_proposal::*;
@@ -104,7 +102,6 @@ where
     ledger: Arc<CreditLedger>,
     collateral_ledger: Arc<collateral::ledger::CollateralLedger>,
     price: Arc<Price>,
-    config: Arc<CreditConfig>,
     domain_configs: ExposedDomainConfigsReadOnly,
     approve_disbursal: Arc<ApproveDisbursal<Perms, E>>,
     approve_proposal: Arc<ApproveCreditFacilityProposal<Perms, E>>,
@@ -146,7 +143,6 @@ where
             ledger: self.ledger.clone(),
             collateral_ledger: self.collateral_ledger.clone(),
             price: self.price.clone(),
-            config: self.config.clone(),
             domain_configs: self.domain_configs.clone(),
             cala: self.cala.clone(),
             approve_disbursal: self.approve_disbursal.clone(),
@@ -182,7 +178,6 @@ where
     #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id))]
     pub async fn init(
         pool: &sqlx::PgPool,
-        config: CreditConfig,
         governance: &Governance<Perms, E>,
         jobs: &mut Jobs,
         authz: &Perms,
@@ -207,7 +202,6 @@ where
         let customer_arc = Arc::new(customer.clone());
         let custody_arc = Arc::new(custody.clone());
         let cala_arc = Arc::new(cala.clone());
-        let config_arc = Arc::new(config);
         let internal_domain_configs_arc = Arc::new(internal_domain_configs.clone());
 
         let publisher = CreditFacilityPublisher::new(outbox);
@@ -406,7 +400,6 @@ where
             ledger: ledger_arc,
             collateral_ledger: collateral_ledger_arc,
             price: price_arc,
-            config: config_arc,
             domain_configs: domain_configs.clone(),
             cala: cala_arc,
             approve_disbursal: approve_disbursal_arc,

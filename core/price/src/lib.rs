@@ -1,5 +1,6 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+mod config;
 pub mod error;
 mod event;
 pub mod jobs;
@@ -12,6 +13,7 @@ use std::sync::Arc;
 use tokio::{sync::watch, task::JoinHandle};
 use tracing::Span;
 
+pub use config::*;
 use error::PriceError;
 
 pub use event::*;
@@ -26,21 +28,32 @@ pub struct Price {
 
 impl Price {
     #[tracing::instrument(name = "core.price.init", skip(jobs, outbox), err)]
-    pub async fn init<E>(jobs: &mut Jobs, outbox: &Outbox<E>) -> Result<Self, PriceError>
+    pub async fn init<E>(
+        config: PriceConfig,
+        jobs: &mut Jobs,
+        outbox: &Outbox<E>,
+    ) -> Result<Self, PriceError>
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
-        let get_price_from_client_job_spawner =
-            jobs.add_initializer(get_price_from_bfx::GetPriceFromClientJobInit::new(outbox));
-        get_price_from_client_job_spawner
-            .spawn_unique(
-                job::JobId::new(),
-                get_price_from_bfx::GetPriceFromClientJobConfig::<E> {
-                    _phantom: std::marker::PhantomData,
-                },
-            )
-            .await
-            .map_err(PriceError::JobError)?;
+        for provider in &config.providers {
+            match provider {
+                PriceProvider::Bitfinex => {
+                    let spawner = jobs.add_initializer(
+                        get_price_from_bfx::GetPriceFromClientJobInit::new(outbox),
+                    );
+                    spawner
+                        .spawn_unique(
+                            job::JobId::new(),
+                            get_price_from_bfx::GetPriceFromClientJobConfig::<E> {
+                                _phantom: std::marker::PhantomData,
+                            },
+                        )
+                        .await
+                        .map_err(PriceError::JobError)?;
+                }
+            }
+        }
 
         let (tx, rx) = watch::channel(None);
 

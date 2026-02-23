@@ -133,7 +133,7 @@ impl LanaApp {
         let storage = Storage::new(&config.storage);
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
-        let price = Price::init(&mut jobs, &outbox).await?;
+        let price = Price::init(config.price, &mut jobs, &outbox).await?;
         let _time_events =
             TimeEvents::init(&exposed_domain_configs_readonly, &mut jobs, &outbox).await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
@@ -223,7 +223,6 @@ impl LanaApp {
 
         let credit = Credit::init(
             &pool,
-            config.credit,
             &governance,
             &mut jobs,
             &authz,

@@ -534,7 +534,12 @@ pub async fn setup() -> anyhow::Result<TestContext> {
 
     let journal_id = init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(&mut jobs, &outbox).await?;
+    let price = core_price::Price::init(
+        core_price::PriceConfig { providers: vec![] },
+        &mut jobs,
+        &outbox,
+    )
+    .await?;
     let domain_configs = init_read_only_exposed_domain_configs(&pool, &authz).await?;
     domain_config::DomainConfigTestUtils::clear_config_by_key(
         &pool,
@@ -545,7 +550,6 @@ pub async fn setup() -> anyhow::Result<TestContext> {
 
     let credit = CoreCredit::init(
         &pool,
-        Default::default(),
         &governance,
         &mut jobs,
         &authz,

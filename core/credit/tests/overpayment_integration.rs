@@ -207,7 +207,12 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     .await?;
     let journal_id = helpers::init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(&mut jobs, &outbox).await?;
+    let price = core_price::Price::init(
+        core_price::PriceConfig { providers: vec![] },
+        &mut jobs,
+        &outbox,
+    )
+    .await?;
     let domain_configs = helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
     // Required to prevent the case there is an attempt to remove an account set member from
     // an account set that no longer exists.
@@ -220,7 +225,6 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
 
     let credit = CoreCredit::init(
         &pool,
-        CreditConfig::default(),
         &governance,
         &mut jobs,
         &authz,
