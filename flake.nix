@@ -111,7 +111,7 @@
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
         // {
-          cargoExtraArgs = "--features mock-custodian,sumsub-testing";
+          cargoExtraArgs = "--all-features";
         });
 
       # Get the default version from Cargo.toml
@@ -153,34 +153,34 @@
       lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
         muslCC = pkgs.pkgsCross.musl64.stdenv.cc;
-      in
-        craneLibMusl.buildPackage {
-          version = cliVersion; # Use the conditional version
+        muslCommonArgs = {
           src = rustSource;
           strictDeps = true;
-          cargoToml = ./lana/cli/Cargo.toml;
-          doCheck = false;
-          pname = "lana-cli-release";
-          CARGO_PROFILE = "release";
           SQLX_OFFLINE = true;
           CARGO_BUILD_TARGET = rustTarget;
-          cargoExtraArgs = "-p lana-cli --features sim-bootstrap --target ${rustTarget}";
-
-          RELEASE_BUILD_VERSION = cliVersion;
-
-          # clang + lld for linking (handles response files, avoiding ARG_MAX)
           nativeBuildInputs = [pkgs.clang pkgs.lld];
-
-          # Add musl target for static linking
           depsBuildBuild = [muslCC];
-
-          # Use clang as linker driver with lld backend
-          # clang handles response files properly, avoiding ARG_MAX issues
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "clang";
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS = "-C link-arg=--target=x86_64-unknown-linux-musl -C link-arg=-fuse-ld=lld -C link-arg=--sysroot=${muslCC.libc}";
           CC_x86_64_unknown_linux_musl = "${muslCC}/bin/x86_64-unknown-linux-musl-gcc";
           TARGET_CC = "${muslCC}/bin/x86_64-unknown-linux-musl-gcc";
         };
+        cargoArtifactsMusl = craneLibMusl.buildDepsOnly (muslCommonArgs
+          // {
+            cargoExtraArgs = "--features sim-bootstrap --target ${rustTarget}";
+          });
+      in
+        craneLibMusl.buildPackage (muslCommonArgs
+          // {
+            cargoArtifacts = cargoArtifactsMusl;
+            version = cliVersion;
+            cargoToml = ./lana/cli/Cargo.toml;
+            doCheck = false;
+            pname = "lana-cli-release";
+            CARGO_PROFILE = "release";
+            cargoExtraArgs = "-p lana-cli --features sim-bootstrap --target ${rustTarget}";
+            RELEASE_BUILD_VERSION = cliVersion;
+          });
 
       # Pre-built test binaries with nextest archive
       lana-test-archive = craneLib.mkCargoDerivation (
@@ -190,10 +190,7 @@
           pname = "lana-test-archive";
 
           buildPhaseCargoCommand = ''
-            # Build all test binaries
-            cargo test --workspace --all-features --no-run
-
-            # Create nextest archive
+            # Create nextest archive (builds all test binaries and packages them)
             cargo nextest archive \
               --workspace \
               --all-features \
@@ -676,7 +673,7 @@
             commonArgs
             // {
               inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+              cargoClippyExtraArgs = "--all-features --all-targets -- --deny warnings";
             }
           );
           workspace-fmt = craneLib.cargoFmt {
