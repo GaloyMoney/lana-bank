@@ -182,6 +182,11 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
+crate = "core-accounting-primitives"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
 crate = "core-applicant"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
