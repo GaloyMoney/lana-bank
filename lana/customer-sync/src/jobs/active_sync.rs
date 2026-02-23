@@ -37,12 +37,13 @@ where
             Span::current().record("event_type", e.as_ref());
 
             self.customer_active_sync_job_spawner
-                .spawn_in_op(
+                .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
                     CustomerActiveSyncConfig {
                         customer_id: entity.id,
                     },
+                    entity.id.to_string(),
                 )
                 .await?;
         }

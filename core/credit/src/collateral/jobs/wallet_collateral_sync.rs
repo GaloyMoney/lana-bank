@@ -44,7 +44,7 @@ where
                     .expect("WalletBalanceUpdated must have balance");
 
                 self.wallet_collateral_sync_job_spawner
-                    .spawn_in_op(
+                    .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
                         WalletCollateralSyncConfig {
@@ -52,6 +52,7 @@ where
                             updated_collateral: balance.amount,
                             effective: balance.updated_at.date_naive(),
                         },
+                        entity.id.to_string(),
                     )
                     .await?;
             }
