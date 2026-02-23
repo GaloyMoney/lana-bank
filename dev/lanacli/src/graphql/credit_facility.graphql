@@ -1,0 +1,84 @@
+mutation CreditFacilityProposalCreate($input: CreditFacilityProposalCreateInput!) {
+  creditFacilityProposalCreate(input: $input) {
+    creditFacilityProposal {
+      creditFacilityProposalId
+      status
+      facilityAmount
+      createdAt
+      creditFacilityTerms {
+        annualRate
+        oneTimeFeeRate
+        disbursalPolicy
+        duration {
+          period
+          units
+        }
+      }
+    }
+  }
+}
+
+query CreditFacilityProposalsList($first: Int!, $after: String) {
+  creditFacilityProposals(first: $first, after: $after) {
+    nodes {
+      creditFacilityProposalId
+      status
+      facilityAmount
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query CreditFacilitiesList($first: Int!, $after: String) {
+  creditFacilities(first: $first, after: $after) {
+    nodes {
+      creditFacilityId
+      publicId
+      status
+      facilityAmount
+      collateralizationState
+      activatedAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query CreditFacilityGet($id: UUID!) {
+  creditFacility(id: $id) {
+    creditFacilityId
+    publicId
+    status
+    facilityAmount
+    collateralizationState
+    maturesAt
+    activatedAt
+    creditFacilityTerms {
+      annualRate
+      oneTimeFeeRate
+      disbursalPolicy
+      duration {
+        period
+        units
+      }
+    }
+  }
+}
+
+mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiateInput!) {
+  creditFacilityDisbursalInitiate(input: $input) {
+    disbursal {
+      disbursalId
+      amount
+      status
+      createdAt
+      publicId
+    }
+  }
+}
