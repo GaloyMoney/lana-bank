@@ -73,3 +73,4 @@ serde_yaml = { workspace = true }
 core-access = { workspace = true }
 core-deposit = { workspace = true }
 serial_test = { workspace = true }
+obix = { workspace = true, features = ["test-utils"] }
