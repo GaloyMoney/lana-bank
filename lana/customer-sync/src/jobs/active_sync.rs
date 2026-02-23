@@ -1,95 +1,49 @@
 use tracing::{Span, instrument};
 
-use audit::{AuditSvc, SystemSubject};
-use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
-use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject,
-    DepositAccountHolderStatus, GovernanceAction, GovernanceObject,
-};
-use governance::GovernanceEvent;
+use core_customer::CoreCustomerEvent;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
+
+use super::active_sync_job::CustomerActiveSyncConfig;
 
 pub const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("outbox.customer-active-sync");
 
-pub struct CustomerActiveSyncHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    deposit: CoreDeposit<Perms, E>,
+pub struct CustomerActiveSyncHandler {
+    spawner: JobSpawner<CustomerActiveSyncConfig>,
 }
 
-impl<Perms, E> CustomerActiveSyncHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    pub fn new(deposit: &CoreDeposit<Perms, E>) -> Self {
-        Self {
-            deposit: deposit.clone(),
-        }
+impl CustomerActiveSyncHandler {
+    pub fn new(spawner: JobSpawner<CustomerActiveSyncConfig>) -> Self {
+        Self { spawner }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for CustomerActiveSyncHandler<Perms, E>
+impl<E> OutboxEventHandler<E> for CustomerActiveSyncHandler
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    #[instrument(name = "customer_sync.active_sync_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "customer_sync.active_sync_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        _op: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(e @ CoreCustomerEvent::CustomerCreated { entity }) = event.as_event() {
             event.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
-            self.handle_customer_created(entity.id).await?;
-        }
-        Ok(())
-    }
-}
 
-impl<Perms, E> CustomerActiveSyncHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    #[instrument(name = "customer_sync.active_sync_job.handle", skip(self), fields(id = ?id))]
-    async fn handle_customer_created(
-        &self,
-        id: core_customer::CustomerId,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        self.deposit
-            .update_account_status_for_holder(
-                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                    core_customer::CUSTOMER_SYNC,
-                ),
-                id,
-                DepositAccountHolderStatus::Active,
-            )
-            .await?;
+            self.spawner
+                .spawn_in_op(
+                    op,
+                    JobId::new(),
+                    CustomerActiveSyncConfig {
+                        customer_id: entity.id,
+                    },
+                )
+                .await?;
+        }
         Ok(())
     }
 }

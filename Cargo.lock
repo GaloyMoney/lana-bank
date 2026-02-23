@@ -1734,6 +1734,7 @@ dependencies = [
 name = "customer-sync"
 version = "0.0.0"
 dependencies = [
+ "async-trait",
  "audit",
  "authz",
  "core-customer",
@@ -6639,6 +6640,7 @@ dependencies = [
 name = "user-onboarding"
 version = "0.0.0"
 dependencies = [
+ "async-trait",
  "core-access",
  "es-entity",
  "job",
