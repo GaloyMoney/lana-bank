@@ -3,6 +3,7 @@ mod client;
 mod commands;
 mod graphql;
 mod output;
+mod tui;
 
 use clap::Parser;
 
@@ -48,10 +49,7 @@ async fn main() -> anyhow::Result<()> {
                 Command::ApprovalProcess { action } => {
                     commands::approval_process::execute(&mut client, action, cli.json).await
                 }
-                Command::Tui => {
-                    println!("TUI mode is not yet implemented. Coming soon!");
-                    Ok(())
-                }
+                Command::Tui => tui::run(client).await,
                 Command::Login | Command::Logout => unreachable!(),
             }
         }
