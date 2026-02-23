@@ -55,7 +55,7 @@ impl CollateralBase {
         let facilities: std::collections::HashMap<_, super::credit_facility::CreditFacilityBase> =
             app.credit()
                 .facilities()
-                .find_all(&[self.entity.credit_facility_id])
+                .find_all(&[CreditFacilityId::from(self.entity.secured_loan_id)])
                 .await?;
         Ok(facilities.into_values().next())
     }
