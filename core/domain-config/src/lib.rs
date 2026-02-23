@@ -518,7 +518,7 @@ pub async fn rotate_encryption_key(
 
     for mut entity in configs.into_iter() {
         if entity
-            .rotate_encryption_key(&new_key, &deprecated_key)?
+            .rotate_encryption_key(new_key, deprecated_key)?
             .did_execute()
         {
             updated_configs.push(entity);

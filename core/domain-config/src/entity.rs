@@ -724,4 +724,44 @@ mod tests {
             Err(DomainConfigError::InvalidType(message)) if message.contains("encrypted flag")
         ));
     }
+
+    #[test]
+    fn key_rotation_is_idempotent() {
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let key = EncryptionKey::default();
+
+        let value = SampleEncryptedConfig {
+            secret: "my-secret".to_string(),
+        };
+
+        assert!(
+            config
+                .update_value_encrypted::<SampleEncryptedConfig>(&key, value.clone())
+                .unwrap()
+                .did_execute()
+        );
+
+        let new_key: EncryptionKey = [1; 32].into();
+
+        assert!(
+            config
+                .rotate_encryption_key(&new_key, &key)
+                .unwrap()
+                .did_execute()
+        );
+
+        assert!(
+            config
+                .rotate_encryption_key(&new_key, &key)
+                .unwrap()
+                .was_already_applied()
+        );
+
+        assert_eq!(
+            config
+                .current_value_encrypted::<SampleEncryptedConfig>(&new_key)
+                .unwrap(),
+            value
+        );
+    }
 }
