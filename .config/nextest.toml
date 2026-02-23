@@ -1,0 +1,10 @@
+[test-groups]
+# core-price and core-credit tests share a PostgreSQL database and the
+# ephemeral_outbox_events NOTIFY channel.  When they run in parallel the
+# credit test's seed_price (hardcoded 7_000_000) leaks into the price
+# test's listener and overwrites its watch channel, causing flaky failures.
+ephemeral-price-events = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'package(core-price) | package(core-credit)'
+test-group = 'ephemeral-price-events'
