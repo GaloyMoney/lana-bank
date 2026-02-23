@@ -1,0 +1,39 @@
+mutation TermsTemplateCreate($input: TermsTemplateCreateInput!) {
+  termsTemplateCreate(input: $input) {
+    termsTemplate {
+      termsId
+      name
+      createdAt
+      values {
+        annualRate
+        accrualInterval
+        accrualCycleInterval
+        oneTimeFeeRate
+        disbursalPolicy
+        duration {
+          period
+          units
+        }
+      }
+    }
+  }
+}
+
+query TermsTemplatesList {
+  termsTemplates {
+    termsId
+    name
+    createdAt
+    values {
+      annualRate
+      accrualInterval
+      accrualCycleInterval
+      oneTimeFeeRate
+      disbursalPolicy
+      duration {
+        period
+        units
+      }
+    }
+  }
+}
