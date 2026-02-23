@@ -122,12 +122,18 @@
           "type": "string"
         },
         "value": {
-          "$ref": "#/$defs/DomainConfigValue"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DomainConfigValue"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
-        "type",
-        "value"
+        "type"
       ],
       "type": "object"
     }
