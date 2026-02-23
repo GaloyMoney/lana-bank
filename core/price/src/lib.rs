@@ -49,8 +49,7 @@ impl Price {
                                 _phantom: std::marker::PhantomData,
                             },
                         )
-                        .await
-                        .map_err(PriceError::JobError)?;
+                        .await?;
                 }
             }
         }
