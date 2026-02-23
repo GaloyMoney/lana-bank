@@ -1,11 +1,11 @@
 mod entity;
 pub mod error;
-mod jobs;
 pub mod ledger;
 pub mod liquidation;
 pub mod primitives;
 pub mod public;
 pub(crate) mod repo;
+mod wallet_collateral_sync;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -36,8 +36,7 @@ use ledger::{
 };
 
 pub(super) use entity::*;
-use jobs::wallet_collateral_sync;
-use jobs::wallet_collateral_sync_command::WalletCollateralSyncJobInitializer;
+use wallet_collateral_sync::command_job::WalletCollateralSyncJobInitializer;
 pub use {
     entity::{Collateral, CollateralAdjustment},
     liquidation::Liquidation,

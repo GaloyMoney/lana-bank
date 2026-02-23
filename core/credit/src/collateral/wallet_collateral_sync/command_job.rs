@@ -23,7 +23,7 @@ pub struct WalletCollateralSyncConfig {
     pub effective: chrono::NaiveDate,
 }
 
-pub const WALLET_COLLATERAL_SYNC_JOB: JobType =
+pub const WALLET_COLLATERAL_SYNC_COMMAND: JobType =
     JobType::new("command.core-credit.wallet-collateral-sync");
 
 pub struct WalletCollateralSyncJobInitializer<S, E>
@@ -58,7 +58,7 @@ where
     type Config = WalletCollateralSyncConfig;
 
     fn job_type(&self) -> JobType {
-        WALLET_COLLATERAL_SYNC_JOB
+        WALLET_COLLATERAL_SYNC_COMMAND
     }
 
     fn init(
