@@ -111,7 +111,7 @@
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
         // {
-          cargoExtraArgs = "--features mock-custodian,sumsub-testing";
+          cargoExtraArgs = "--all-features";
         });
 
       # Get the default version from Cargo.toml
