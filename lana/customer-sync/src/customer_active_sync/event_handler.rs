@@ -5,7 +5,7 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_customer::CoreCustomerEvent;
 
-use super::active_sync_command::CustomerActiveSyncConfig;
+use super::command_job::CustomerActiveSyncConfig;
 
 pub const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("outbox.customer-active-sync");
 

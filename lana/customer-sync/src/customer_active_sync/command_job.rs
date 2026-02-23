@@ -21,7 +21,7 @@ pub struct CustomerActiveSyncConfig {
     pub customer_id: CustomerId,
 }
 
-pub const CUSTOMER_ACTIVE_SYNC_JOB: JobType =
+pub const CUSTOMER_ACTIVE_SYNC_COMMAND: JobType =
     JobType::new("command.customer-sync.customer-active-sync");
 
 pub struct CustomerActiveSyncJobInitializer<Perms, E>
@@ -60,7 +60,7 @@ where
     type Config = CustomerActiveSyncConfig;
 
     fn job_type(&self) -> JobType {
-        CUSTOMER_ACTIVE_SYNC_JOB
+        CUSTOMER_ACTIVE_SYNC_COMMAND
     }
 
     fn init(
