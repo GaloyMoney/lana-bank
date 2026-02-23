@@ -525,7 +525,8 @@ pub async fn rotate_encryption_key(
         }
     }
 
-    repo.update_all_in_op(&mut op, &mut updated_configs).await?;
+    repo.update_all_encrypted_in_op(&mut op, &mut updated_configs)
+        .await?;
     op.commit().await?;
     Ok(())
 }

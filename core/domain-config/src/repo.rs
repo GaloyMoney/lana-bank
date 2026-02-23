@@ -66,4 +66,28 @@ impl DomainConfigRepo {
         }
         Ok(domain_configs)
     }
+
+    #[tracing::instrument(name = "domain_config.update_all_encrypted_in_op", skip_all)]
+    pub async fn update_all_encrypted_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        entities: &mut Vec<DomainConfig>,
+    ) -> Result<(), DomainConfigError> {
+        let ids: Vec<DomainConfigId> = entities.iter().map(|e| e.id).collect();
+        sqlx::query!(
+            r#"
+            UPDATE core_domain_config_events
+            SET event = jsonb_set(event, '{value}', 'null'::jsonb, false)
+            WHERE id = ANY($1)
+                AND event_type = 'updated'
+                AND event->'value'->>'type' = 'encrypted'
+            "#,
+            &ids as &[DomainConfigId],
+        )
+        .execute(op.as_executor())
+        .await?;
+        self.update_all_in_op(op, entities).await?;
+
+        Ok(())
+    }
 }
