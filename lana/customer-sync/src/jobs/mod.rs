@@ -2,7 +2,6 @@ mod active_sync;
 pub(crate) mod active_sync_job;
 mod create_keycloak_user;
 mod sync_email;
-pub(crate) mod sync_email_job;
 mod update_customer_activity_status;
 mod update_last_activity_date;
 

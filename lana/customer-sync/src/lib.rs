@@ -10,7 +10,6 @@ use error::*;
 use jobs::*;
 
 use jobs::active_sync_job::CustomerActiveSyncJobInitializer;
-use jobs::sync_email_job::SyncEmailJobInitializer;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -87,13 +86,11 @@ where
             )
             .await?;
 
-        let sync_email_job_spawner =
-            jobs.add_initializer(SyncEmailJobInitializer::new(keycloak_client.clone()));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(SYNC_EMAIL_JOB),
-                SyncEmailHandler::new(sync_email_job_spawner),
+                SyncEmailHandler::new(keycloak_client.clone()),
             )
             .await?;
 

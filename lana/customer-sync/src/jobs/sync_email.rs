@@ -1,23 +1,20 @@
+use keycloak_client::KeycloakClient;
 use tracing::{Span, instrument};
 
 use core_customer::CoreCustomerEvent;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::{JobId, JobSpawner, JobType};
-
-use super::sync_email_job::SyncEmailConfig;
+use job::JobType;
 
 pub const SYNC_EMAIL_JOB: JobType = JobType::new("outbox.sync-email-job");
 
 pub struct SyncEmailHandler {
-    sync_email_job_spawner: JobSpawner<SyncEmailConfig>,
+    keycloak_client: KeycloakClient,
 }
 
 impl SyncEmailHandler {
-    pub fn new(sync_email_job_spawner: JobSpawner<SyncEmailConfig>) -> Self {
-        Self {
-            sync_email_job_spawner,
-        }
+    pub fn new(keycloak_client: KeycloakClient) -> Self {
+        Self { keycloak_client }
     }
 }
 
@@ -25,10 +22,10 @@ impl<E> OutboxEventHandler<E> for SyncEmailHandler
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    #[instrument(name = "customer_sync.sync_email_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "customer_sync.sync_email_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        op: &mut es_entity::DbOp<'_>,
+        _op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(e @ CoreCustomerEvent::PartyEmailUpdated { entity }) = event.as_event() {
@@ -36,15 +33,8 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
-            self.sync_email_job_spawner
-                .spawn_in_op(
-                    op,
-                    JobId::new(),
-                    SyncEmailConfig {
-                        customer_id: entity.id,
-                        email: entity.email.clone(),
-                    },
-                )
+            self.keycloak_client
+                .update_user_email(entity.id.into(), entity.email.clone())
                 .await?;
         }
         Ok(())
