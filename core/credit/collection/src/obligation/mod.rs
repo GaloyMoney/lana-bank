@@ -119,9 +119,9 @@ where
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(), ObligationError> {
+        let mut obligation = self.repo.find_by_id(id).await?;
         loop {
             let mut op = self.repo.begin_op().await?;
-            let mut obligation = self.repo.find_by_id_in_op(&mut op, id).await?;
 
             self.authz
                 .audit()
