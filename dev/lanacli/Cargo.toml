@@ -18,7 +18,6 @@ tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 graphql_client = { workspace = true }
-thiserror = { workspace = true }
 anyhow = { workspace = true }
 comfy-table = { workspace = true }
 url = { workspace = true }
