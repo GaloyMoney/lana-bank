@@ -1,3 +1,13 @@
+## [0.42.1] - 2026-02-23
+
+### 🐛 Bug Fixes
+
+- Use _in_op variants to avoid connection pool amplification (#3901)
+- Install rustls crypto provider to prevent panic in google-cloud crates (#3924)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.42.0 [ci skip] (#3925)
 ## [0.42.0] - 2026-02-23
 
 ### 🚀 Features
