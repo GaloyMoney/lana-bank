@@ -240,9 +240,8 @@ pub mod time_events {
 
 pub mod domain_config {
     pub use domain_config::{
-        DOMAIN_CONFIG_KEY_ROTATION, DomainConfigAction, DomainConfigObject, ExposedDomainConfigs,
-        ExposedDomainConfigsReadOnly, InternalDomainConfigs, apply_startup_configs,
-        rotate_encryption_key,
+        ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
+        apply_startup_configs, rotate_encryption_key,
     };
 }
 

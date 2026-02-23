@@ -507,13 +507,29 @@ async fn seed_registered_for_visibility(
 }
 
 #[instrument(name = "domain_config.rotate_encryption_key", skip_all)]
-pub async fn rotate_encryption_key(
+pub async fn rotate_encryption_key<Perms>(
     pool: &sqlx::PgPool,
+    authz: &Perms,
     new_key: &EncryptionKey,
     deprecated_key: &EncryptionKey,
-) -> Result<(), DomainConfigError> {
+) -> Result<(), DomainConfigError>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
+{
     let repo = DomainConfigRepo::new(pool);
     let mut op = repo.begin_op().await?;
+
+    authz
+        .audit()
+        .record_system_entry_in_op(
+            &mut op,
+            DOMAIN_CONFIG_KEY_ROTATION,
+            DomainConfigObject::all_configs(),
+            DomainConfigAction::ALL_CONFIG_WRITE,
+        )
+        .await?;
     let configs = repo.list_all_in_op(&mut op).await?;
     let mut updated_configs = Vec::new();
 

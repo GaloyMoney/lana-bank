@@ -421,16 +421,18 @@ where
         &self,
         deprecated_key: &EncryptionKey,
     ) -> Result<(), CoreCustodyError> {
+        let mut op = self.custodians.begin_op().await?;
+
         self.authz
             .audit()
-            .record_system_entry(
+            .record_system_entry_in_op(
+                &mut op,
                 crate::primitives::CUSTODY_KEY_ROTATION,
                 CoreCustodyObject::all_custodians(),
                 CoreCustodyAction::CUSTODIAN_UPDATE,
             )
             .await?;
 
-        let mut op = self.custodians.begin_op().await?;
         let mut custodians = self.custodians.list_all_in_op(&mut op).await?;
 
         for custodian in custodians.iter_mut() {

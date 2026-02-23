@@ -32,6 +32,8 @@ pub enum DomainConfigError {
     BuildError(#[from] NewDomainConfigBuilderError),
     #[error("DomainConfigError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("DomainConfigError - AuditError: {0}")]
+    AuditError(#[from] audit::error::AuditError),
 }
 
 es_entity::from_es_entity_error!(DomainConfigError);
@@ -64,6 +66,7 @@ impl ErrorSeverity for DomainConfigError {
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::BuildError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
         }
     }
 }

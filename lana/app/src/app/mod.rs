@@ -6,7 +6,6 @@ use sqlx::PgPool;
 use tracing::{Instrument, instrument};
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
 use authz::PermissionCheck;
 
 use rbac_types::{AuditAction, AuditEntryAction, AuditObject};
@@ -108,16 +107,13 @@ impl LanaApp {
         domain_config::apply_startup_configs(&pool, &config.encryption, startup_domain_configs)
             .await?;
         if let Some(deprecated_key) = config.encryption.deprecated_encryption_key {
-            authz
-                .audit()
-                .record_system_entry(
-                    domain_config::DOMAIN_CONFIG_KEY_ROTATION,
-                    domain_config::DomainConfigObject::all_configs(),
-                    domain_config::DomainConfigAction::ALL_CONFIG_WRITE,
-                )
-                .await?;
-            domain_config::rotate_encryption_key(&pool, &config.encryption.key, &deprecated_key)
-                .await?;
+            domain_config::rotate_encryption_key(
+                &pool,
+                &authz,
+                &config.encryption.key,
+                &deprecated_key,
+            )
+            .await?;
         }
 
         let access = Access::init(
