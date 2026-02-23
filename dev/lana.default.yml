@@ -18,7 +18,7 @@ app:
     superuser_email: null
   price:
     providers:
-      - bitfinex
+    - bitfinex
   storage:
     provider: local
     root_folder: ''
