@@ -23,40 +23,58 @@ Builds are done **serially** (one after the other, never in parallel) to get acc
 2. Determine base branch: use `$ARGUMENTS` if provided, otherwise `main`
 3. Display both branch names to the user
 
-### Step 2: Build the base branch (in a worktree)
+### Step 2: Build the base branch (in a worktree) — 2 runs, keep fastest
 
 1. Fetch the base branch: `git fetch origin <base-branch>`
 2. Create a temporary git worktree:
    ```
    git worktree add /tmp/lana-build-compare-base origin/<base-branch>
    ```
-3. In the worktree directory, run a clean build:
+3. **Run 1**: In the worktree directory, run a clean build:
    ```
    cd /tmp/lana-build-compare-base && cargo clean && rm -rf target/ && SQLX_OFFLINE=true cargo build --timings
    ```
-4. Copy the timing report:
+4. Save the Run 1 timing report:
    ```
    cp /tmp/lana-build-compare-base/target/cargo-timings/cargo-timing.html /tmp/cargo-timing-base.html
    ```
-5. Clean up the worktree:
+5. **Run 2**: Run another clean build:
+   ```
+   cd /tmp/lana-build-compare-base && cargo clean && rm -rf target/ && SQLX_OFFLINE=true cargo build --timings
+   ```
+6. Compare wall clock times from both runs. If Run 2 was faster, overwrite the saved report:
+   ```
+   cp /tmp/lana-build-compare-base/target/cargo-timings/cargo-timing.html /tmp/cargo-timing-base.html
+   ```
+   Log both run times so the user can see the variance.
+7. Clean up the worktree:
    ```
    git worktree remove /tmp/lana-build-compare-base --force
    ```
 
-If the build fails, report the error and stop.
+If either build fails, report the error and stop.
 
-### Step 3: Build the current branch
+### Step 3: Build the current branch — 2 runs, keep fastest
 
-1. In the current working directory, run a clean build:
+1. **Run 1**: In the current working directory, run a clean build:
    ```
    cargo clean && rm -rf target/ && SQLX_OFFLINE=true cargo build --timings
    ```
-2. Copy the timing report:
+2. Save the Run 1 timing report:
    ```
    cp target/cargo-timings/cargo-timing.html /tmp/cargo-timing-current.html
    ```
+3. **Run 2**: Run another clean build:
+   ```
+   cargo clean && rm -rf target/ && SQLX_OFFLINE=true cargo build --timings
+   ```
+4. Compare wall clock times from both runs. If Run 2 was faster, overwrite the saved report:
+   ```
+   cp target/cargo-timings/cargo-timing.html /tmp/cargo-timing-current.html
+   ```
+   Log both run times so the user can see the variance.
 
-If the build fails, report the error and stop.
+If either build fails, report the error and stop.
 
 ### Step 4: Extract metrics from HTML reports
 
@@ -110,8 +128,10 @@ Tell the user they can open these in a browser for the full interactive view.
 ## Guidelines
 
 - Always do clean builds (`cargo clean` + `rm -rf target/`) to ensure 0 fresh units
+- Each branch is built **twice**; only the **fastest** run is used for comparison — this reduces noise from transient system load
+- Report both run times per branch so the user can gauge variance
 - Use git worktree to avoid disturbing the current working tree
-- Clean up the worktree after the base branch build completes (success or failure)
+- Clean up the worktree after the base branch builds complete (success or failure)
 - Use `SQLX_OFFLINE=true` for all cargo commands
-- If a build fails, report the error and stop — do not continue to comparison
-- Builds MUST be serial to avoid CPU/memory contention skewing results
+- If any build fails, report the error and stop — do not continue to comparison
+- All 4 builds MUST be serial to avoid CPU/memory contention skewing results
