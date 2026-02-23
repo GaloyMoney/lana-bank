@@ -392,7 +392,6 @@ CREATE TABLE core_obligations (
   beneficiary_id UUID NOT NULL,
   reference VARCHAR NOT NULL UNIQUE,
   next_transition_date DATE,
-  status VARCHAR NOT NULL DEFAULT 'not_yet_due',
   created_at TIMESTAMPTZ NOT NULL
 );
 

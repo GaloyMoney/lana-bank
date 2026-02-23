@@ -484,10 +484,6 @@ impl NewObligation {
     pub fn next_transition_date(&self) -> Option<chrono::NaiveDate> {
         Some(self.due_date_naive())
     }
-
-    pub fn initial_status(&self) -> ObligationStatus {
-        ObligationStatus::NotYetDue
-    }
 }
 
 impl IntoEvents<ObligationEvent> for NewObligation {
