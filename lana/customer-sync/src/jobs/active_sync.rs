@@ -10,13 +10,13 @@ use super::active_sync_command::CustomerActiveSyncConfig;
 pub const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("outbox.customer-active-sync");
 
 pub struct CustomerActiveSyncHandler {
-    customer_active_sync_command_spawner: JobSpawner<CustomerActiveSyncConfig>,
+    customer_active_sync_job_spawner: JobSpawner<CustomerActiveSyncConfig>,
 }
 
 impl CustomerActiveSyncHandler {
-    pub fn new(customer_active_sync_command_spawner: JobSpawner<CustomerActiveSyncConfig>) -> Self {
+    pub fn new(customer_active_sync_job_spawner: JobSpawner<CustomerActiveSyncConfig>) -> Self {
         Self {
-            customer_active_sync_command_spawner,
+            customer_active_sync_job_spawner,
         }
     }
 }
@@ -36,7 +36,7 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
-            self.customer_active_sync_command_spawner
+            self.customer_active_sync_job_spawner
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),

@@ -23,10 +23,10 @@ pub struct WalletCollateralSyncConfig {
     pub effective: chrono::NaiveDate,
 }
 
-pub const WALLET_COLLATERAL_SYNC_COMMAND: JobType =
+pub const WALLET_COLLATERAL_SYNC_JOB: JobType =
     JobType::new("command.core-credit.wallet-collateral-sync");
 
-pub struct WalletCollateralSyncCommandInitializer<S, E>
+pub struct WalletCollateralSyncJobInitializer<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -36,7 +36,7 @@ where
     _phantom: std::marker::PhantomData<S>,
 }
 
-impl<S, E> WalletCollateralSyncCommandInitializer<S, E>
+impl<S, E> WalletCollateralSyncJobInitializer<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -50,7 +50,7 @@ where
     }
 }
 
-impl<S, E> JobInitializer for WalletCollateralSyncCommandInitializer<S, E>
+impl<S, E> JobInitializer for WalletCollateralSyncJobInitializer<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -58,7 +58,7 @@ where
     type Config = WalletCollateralSyncConfig;
 
     fn job_type(&self) -> JobType {
-        WALLET_COLLATERAL_SYNC_COMMAND
+        WALLET_COLLATERAL_SYNC_JOB
     }
 
     fn init(
@@ -66,7 +66,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(WalletCollateralSyncCommandRunner::<S, E> {
+        Ok(Box::new(WalletCollateralSyncJobRunner::<S, E> {
             config: job.config()?,
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
@@ -75,7 +75,7 @@ where
     }
 }
 
-pub struct WalletCollateralSyncCommandRunner<S, E>
+pub struct WalletCollateralSyncJobRunner<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -87,14 +87,14 @@ where
 }
 
 #[async_trait]
-impl<S, E> JobRunner for WalletCollateralSyncCommandRunner<S, E>
+impl<S, E> JobRunner for WalletCollateralSyncJobRunner<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "core_credit.wallet_collateral_sync_command.run",
+        name = "core_credit.wallet_collateral_sync_job.run",
         skip(self, _current_job),
         fields(
             custody_wallet_id = %self.config.custody_wallet_id,

@@ -21,10 +21,10 @@ pub struct CustomerActiveSyncConfig {
     pub customer_id: CustomerId,
 }
 
-pub const CUSTOMER_ACTIVE_SYNC_COMMAND: JobType =
+pub const CUSTOMER_ACTIVE_SYNC_JOB: JobType =
     JobType::new("command.customer-sync.customer-active-sync");
 
-pub struct CustomerActiveSyncCommandInitializer<Perms, E>
+pub struct CustomerActiveSyncJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -34,7 +34,7 @@ where
     deposit: CoreDeposit<Perms, E>,
 }
 
-impl<Perms, E> CustomerActiveSyncCommandInitializer<Perms, E>
+impl<Perms, E> CustomerActiveSyncJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for CustomerActiveSyncCommandInitializer<Perms, E>
+impl<Perms, E> JobInitializer for CustomerActiveSyncJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -60,7 +60,7 @@ where
     type Config = CustomerActiveSyncConfig;
 
     fn job_type(&self) -> JobType {
-        CUSTOMER_ACTIVE_SYNC_COMMAND
+        CUSTOMER_ACTIVE_SYNC_JOB
     }
 
     fn init(
@@ -68,14 +68,14 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CustomerActiveSyncCommandRunner {
+        Ok(Box::new(CustomerActiveSyncJobRunner {
             config: job.config()?,
             deposit: self.deposit.clone(),
         }))
     }
 }
 
-pub struct CustomerActiveSyncCommandRunner<Perms, E>
+pub struct CustomerActiveSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -87,7 +87,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CustomerActiveSyncCommandRunner<Perms, E>
+impl<Perms, E> JobRunner for CustomerActiveSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -100,7 +100,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "customer_sync.customer_active_sync_command.run",
+        name = "customer_sync.customer_active_sync_job.run",
         skip(self, _current_job),
         fields(customer_id = %self.config.customer_id),
     )]
