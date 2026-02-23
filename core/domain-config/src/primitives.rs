@@ -1,4 +1,7 @@
 pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
+
+pub const DOMAIN_CONFIG_KEY_ROTATION: audit::SystemActor =
+    audit::SystemActor::new("domain-config-key-rotation");
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -123,20 +126,27 @@ impl FromStr for DomainConfigKey {
 permission_sets_macro::permission_sets! {
     ExposedConfigViewer("Can view exposed configuration values"),
     ExposedConfigWriter("Can update exposed configuration values"),
+    AllConfigWriter("Can update all configuration values"),
 }
 
 pub type ExposedConfigAllOrOne = AllOrOne<DomainConfigId>;
+pub type AllConfigAllOrOne = AllOrOne<DomainConfigId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum DomainConfigObject {
     ExposedConfig(ExposedConfigAllOrOne),
+    AllConfig(AllConfigAllOrOne),
 }
 
 impl DomainConfigObject {
     pub const fn all_exposed_configs() -> Self {
         Self::ExposedConfig(AllOrOne::All)
+    }
+
+    pub const fn all_configs() -> Self {
+        Self::AllConfig(AllOrOne::All)
     }
 }
 
@@ -145,6 +155,7 @@ impl fmt::Display for DomainConfigObject {
         let discriminant = DomainConfigObjectDiscriminants::from(self);
         match self {
             Self::ExposedConfig(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Self::AllConfig(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -162,6 +173,12 @@ impl FromStr for DomainConfigObject {
                     .map_err(|_| "could not parse DomainConfigObject")?;
                 Self::ExposedConfig(obj_ref)
             }
+            AllConfig => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse DomainConfigObject")?;
+                Self::AllConfig(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -171,18 +188,24 @@ impl FromStr for DomainConfigObject {
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum DomainConfigAction {
-    ExposedConfig(DomainConfigEntityAction),
+    ExposedConfig(ExposedConfigEntityAction),
+    AllConfig(AllConfigEntityAction),
 }
 
 impl DomainConfigAction {
     pub const EXPOSED_CONFIG_READ: Self =
-        DomainConfigAction::ExposedConfig(DomainConfigEntityAction::Read);
+        DomainConfigAction::ExposedConfig(ExposedConfigEntityAction::Read);
     pub const EXPOSED_CONFIG_WRITE: Self =
-        DomainConfigAction::ExposedConfig(DomainConfigEntityAction::Write);
+        DomainConfigAction::ExposedConfig(ExposedConfigEntityAction::Write);
+    pub const ALL_CONFIG_WRITE: Self = DomainConfigAction::AllConfig(AllConfigEntityAction::Write);
 
     pub fn actions() -> Vec<ActionMapping> {
         use DomainConfigActionDiscriminants::*;
-        map_action!(domain_config, ExposedConfig, DomainConfigEntityAction)
+        [
+            map_action!(domain_config, ExposedConfig, ExposedConfigEntityAction),
+            map_action!(domain_config, AllConfig, AllConfigEntityAction),
+        ]
+        .concat()
     }
 }
 
@@ -191,6 +214,7 @@ impl fmt::Display for DomainConfigAction {
         write!(f, "{}:", DomainConfigActionDiscriminants::from(self))?;
         match self {
             DomainConfigAction::ExposedConfig(action) => action.fmt(f),
+            DomainConfigAction::AllConfig(action) => action.fmt(f),
         }
     }
 }
@@ -202,7 +226,8 @@ impl FromStr for DomainConfigAction {
         let (entity, action) = s.split_once(':').expect("missing colon");
         use DomainConfigActionDiscriminants::*;
         let res = match entity.parse()? {
-            ExposedConfig => DomainConfigAction::from(action.parse::<DomainConfigEntityAction>()?),
+            ExposedConfig => DomainConfigAction::from(action.parse::<ExposedConfigEntityAction>()?),
+            AllConfig => DomainConfigAction::from(action.parse::<AllConfigEntityAction>()?),
         };
         Ok(res)
     }
@@ -210,12 +235,12 @@ impl FromStr for DomainConfigAction {
 
 #[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
-pub enum DomainConfigEntityAction {
+pub enum ExposedConfigEntityAction {
     Read,
     Write,
 }
 
-impl ActionPermission for DomainConfigEntityAction {
+impl ActionPermission for ExposedConfigEntityAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::Read => PERMISSION_SET_EXPOSED_CONFIG_VIEWER,
@@ -224,8 +249,28 @@ impl ActionPermission for DomainConfigEntityAction {
     }
 }
 
-impl From<DomainConfigEntityAction> for DomainConfigAction {
-    fn from(action: DomainConfigEntityAction) -> Self {
+impl From<ExposedConfigEntityAction> for DomainConfigAction {
+    fn from(action: ExposedConfigEntityAction) -> Self {
         DomainConfigAction::ExposedConfig(action)
+    }
+}
+
+#[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum AllConfigEntityAction {
+    Write,
+}
+
+impl ActionPermission for AllConfigEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Write => PERMISSION_SET_ALL_CONFIG_WRITER,
+        }
+    }
+}
+
+impl From<AllConfigEntityAction> for DomainConfigAction {
+    fn from(action: AllConfigEntityAction) -> Self {
+        DomainConfigAction::AllConfig(action)
     }
 }

@@ -182,9 +182,10 @@ pub use error::DomainConfigError;
 #[doc(hidden)]
 pub use inventory;
 pub use primitives::{
-    ConfigType, DomainConfigAction, DomainConfigEntityAction, DomainConfigId, DomainConfigKey,
-    DomainConfigObject, ExposedConfigAllOrOne, PERMISSION_SET_EXPOSED_CONFIG_VIEWER,
-    PERMISSION_SET_EXPOSED_CONFIG_WRITER, Visibility,
+    AllConfigAllOrOne, AllConfigEntityAction, ConfigType, DOMAIN_CONFIG_KEY_ROTATION,
+    DomainConfigAction, DomainConfigId, DomainConfigKey, DomainConfigObject, ExposedConfigAllOrOne,
+    ExposedConfigEntityAction, PERMISSION_SET_ALL_CONFIG_WRITER,
+    PERMISSION_SET_EXPOSED_CONFIG_VIEWER, PERMISSION_SET_EXPOSED_CONFIG_WRITER, Visibility,
 };
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use shared_config::RequireVerifiedCustomerForAccount;

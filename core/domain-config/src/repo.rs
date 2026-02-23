@@ -71,7 +71,7 @@ impl DomainConfigRepo {
     pub async fn update_all_encrypted_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
-        entities: &mut Vec<DomainConfig>,
+        entities: &mut [DomainConfig],
     ) -> Result<(), DomainConfigError> {
         let ids: Vec<DomainConfigId> = entities.iter().map(|e| e.id).collect();
         sqlx::query!(
