@@ -2,10 +2,10 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use job::*;
-use keycloak_client::KeycloakClient;
-use tracing_macros::record_error_severity;
 
 use core_access::UserId;
+use keycloak_client::KeycloakClient;
+use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CreateKeycloakUserConfig {
@@ -14,7 +14,7 @@ pub struct CreateKeycloakUserConfig {
 }
 
 pub const CREATE_KEYCLOAK_USER_JOB: JobType =
-    JobType::new("task.user-onboarding.create-keycloak-user");
+    JobType::new("command.user-onboarding.create-keycloak-user");
 
 pub struct CreateKeycloakUserJobInitializer {
     keycloak_client: KeycloakClient,

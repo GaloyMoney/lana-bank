@@ -1,9 +1,8 @@
-use core_access::CoreAccessEvent;
-use tracing::{Span, instrument};
-
+use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::{JobId, JobSpawner, JobType};
+use core_access::CoreAccessEvent;
+use tracing::{Span, instrument};
 
 use crate::job::CreateKeycloakUserConfig;
 

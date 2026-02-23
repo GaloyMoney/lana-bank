@@ -3,12 +3,12 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
+use job::*;
+use obix::out::OutboxEventMarker;
+
 use audit::SystemSubject;
 use core_custody::CoreCustodyEvent;
-use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
-
-use job::*;
 
 use crate::{
     CoreCreditEvent,
@@ -23,8 +23,8 @@ pub struct WalletCollateralSyncConfig {
     pub effective: chrono::NaiveDate,
 }
 
-pub const WALLET_COLLATERAL_SYNC_TASK: JobType =
-    JobType::new("task.core-credit.wallet-collateral-sync");
+pub const WALLET_COLLATERAL_SYNC_COMMAND: JobType =
+    JobType::new("command.core-credit.wallet-collateral-sync");
 
 pub struct WalletCollateralSyncJobInitializer<S, E>
 where
@@ -58,7 +58,7 @@ where
     type Config = WalletCollateralSyncConfig;
 
     fn job_type(&self) -> JobType {
-        WALLET_COLLATERAL_SYNC_TASK
+        WALLET_COLLATERAL_SYNC_COMMAND
     }
 
     fn init(

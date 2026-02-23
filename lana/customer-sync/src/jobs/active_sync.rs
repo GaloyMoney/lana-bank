@@ -1,9 +1,9 @@
 use tracing::{Span, instrument};
 
-use core_customer::CoreCustomerEvent;
+use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::{JobId, JobSpawner, JobType};
+use core_customer::CoreCustomerEvent;
 
 use super::active_sync_job::CustomerActiveSyncConfig;
 

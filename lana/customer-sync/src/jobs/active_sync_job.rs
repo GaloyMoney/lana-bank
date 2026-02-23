@@ -1,27 +1,28 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
+use job::*;
+use obix::out::OutboxEventMarker;
+
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use core_customer::{CUSTOMER_SYNC, CoreCustomerAction, CustomerId, CustomerObject};
+use core_customer::{
+    CUSTOMER_SYNC, CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject,
+};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject,
     DepositAccountHolderStatus, GovernanceAction, GovernanceObject,
 };
 use governance::GovernanceEvent;
-use job::*;
-use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
-
-use core_customer::CoreCustomerEvent;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CustomerActiveSyncConfig {
     pub customer_id: CustomerId,
 }
 
-pub const CUSTOMER_ACTIVE_SYNC_TASK: JobType =
-    JobType::new("task.customer-sync.customer-active-sync");
+pub const CUSTOMER_ACTIVE_SYNC_COMMAND: JobType =
+    JobType::new("command.customer-sync.customer-active-sync");
 
 pub struct CustomerActiveSyncJobInitializer<Perms, E>
 where
@@ -59,7 +60,7 @@ where
     type Config = CustomerActiveSyncConfig;
 
     fn job_type(&self) -> JobType {
-        CUSTOMER_ACTIVE_SYNC_TASK
+        CUSTOMER_ACTIVE_SYNC_COMMAND
     }
 
     fn init(

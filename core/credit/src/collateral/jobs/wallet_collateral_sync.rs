@@ -1,8 +1,8 @@
 use tracing::{Span, instrument};
 
-use core_custody::CoreCustodyEvent;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
+use core_custody::CoreCustodyEvent;
 use job::{JobId, JobSpawner, JobType};
 
 use super::wallet_collateral_sync_job::WalletCollateralSyncConfig;
