@@ -9,8 +9,6 @@ use es_entity::*;
 
 use crate::{payment_allocation::NewPaymentAllocation, primitives::*};
 
-use super::error::ObligationError;
-
 pub(crate) struct ObligationDueReallocationData {
     pub tx_id: LedgerTxId,
     pub amount: UsdCents,
@@ -33,6 +31,12 @@ pub(crate) struct ObligationDefaultedReallocationData {
     pub receivable_account_id: CalaAccountId,
     pub defaulted_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
+}
+
+pub(crate) enum ObligationTransition {
+    Due(ObligationDueReallocationData),
+    Overdue(ObligationOverdueReallocationData),
+    Defaulted(ObligationDefaultedReallocationData),
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -241,100 +245,78 @@ impl Obligation {
         !self.outstanding().is_zero()
     }
 
-    pub(crate) fn record_due(
-        &mut self,
-        effective: chrono::NaiveDate,
-    ) -> Idempotent<ObligationDueReallocationData> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ObligationEvent::DueRecorded { .. }
-        );
-
+    pub fn next_transition_date(&self) -> Option<chrono::NaiveDate> {
         match self.status() {
-            ObligationStatus::NotYetDue => (),
-            _ => return Idempotent::AlreadyApplied,
+            ObligationStatus::NotYetDue => Some(self.due_date),
+            ObligationStatus::Due => self.overdue_date.or(self.defaulted_date),
+            ObligationStatus::Overdue => self.defaulted_date,
+            ObligationStatus::Defaulted | ObligationStatus::Paid => None,
         }
+    }
 
+    pub(crate) fn transition(
+        &mut self,
+        day: chrono::NaiveDate,
+    ) -> Idempotent<ObligationTransition> {
+        match self.status() {
+            ObligationStatus::NotYetDue if self.due_date <= day => {
+                Idempotent::Executed(ObligationTransition::Due(self.record_due()))
+            }
+            ObligationStatus::Due if self.overdue_date.is_some_and(|d| d <= day) => {
+                Idempotent::Executed(ObligationTransition::Overdue(self.record_overdue()))
+            }
+            ObligationStatus::Due | ObligationStatus::Overdue
+                if self.defaulted_date.is_some_and(|d| d <= day) =>
+            {
+                Idempotent::Executed(ObligationTransition::Defaulted(self.record_defaulted()))
+            }
+            _ => Idempotent::AlreadyApplied,
+        }
+    }
+
+    fn record_due(&mut self) -> ObligationDueReallocationData {
         let res = ObligationDueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
             not_yet_due_account_id: self.receivable_accounts().not_yet_due,
             due_account_id: self.receivable_accounts().due,
-            effective,
+            effective: self.due_date,
         };
-
         self.events.push(ObligationEvent::DueRecorded {
             ledger_tx_id: res.tx_id,
             due_amount: res.amount,
         });
-
-        Idempotent::Executed(res)
+        res
     }
 
-    pub(crate) fn record_overdue(
-        &mut self,
-        effective: chrono::NaiveDate,
-    ) -> Result<Idempotent<ObligationOverdueReallocationData>, ObligationError> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ObligationEvent::OverdueRecorded { .. }
-        );
-
-        match self.status() {
-            ObligationStatus::NotYetDue => {
-                return Err(ObligationError::InvalidStatusTransitionToOverdue);
-            }
-            ObligationStatus::Due => (),
-            _ => return Ok(Idempotent::AlreadyApplied),
-        }
-
+    fn record_overdue(&mut self) -> ObligationOverdueReallocationData {
         let res = ObligationOverdueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
             due_account_id: self.receivable_accounts().due,
             overdue_account_id: self.receivable_accounts().overdue,
-            effective,
+            effective: self.overdue_date.expect("overdue_date must be set"),
         };
-
         self.events.push(ObligationEvent::OverdueRecorded {
             ledger_tx_id: res.tx_id,
             overdue_amount: res.amount,
         });
-
-        Ok(Idempotent::Executed(res))
+        res
     }
 
-    pub(crate) fn record_defaulted(
-        &mut self,
-        effective: chrono::NaiveDate,
-    ) -> Result<Idempotent<ObligationDefaultedReallocationData>, ObligationError> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ObligationEvent::DefaultedRecorded { .. }
-        );
-
-        match self.status() {
-            ObligationStatus::NotYetDue => {
-                return Err(ObligationError::InvalidStatusTransitionToDefaulted);
-            }
-            ObligationStatus::Due | ObligationStatus::Overdue => (),
-            _ => return Ok(Idempotent::AlreadyApplied),
-        }
-
+    fn record_defaulted(&mut self) -> ObligationDefaultedReallocationData {
         let res = ObligationDefaultedReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
             receivable_account_id: self.receivable_account_id().expect("Obligation is Paid"),
             defaulted_account_id: self.defaulted_account(),
-            effective,
+            effective: self.defaulted_date.expect("defaulted_date must be set"),
         };
-
         self.events.push(ObligationEvent::DefaultedRecorded {
             ledger_tx_id: res.tx_id,
             defaulted_amount: res.amount,
         });
-
-        Ok(Idempotent::Executed(res))
+        res
     }
 
     pub(crate) fn allocate_payment(
@@ -499,6 +481,10 @@ impl NewObligation {
         self.defaulted_date.map(chrono::NaiveDate::from)
     }
 
+    pub fn next_transition_date(&self) -> Option<chrono::NaiveDate> {
+        Some(self.due_date_naive())
+    }
+
     pub fn initial_status(&self) -> ObligationStatus {
         ObligationStatus::NotYetDue
     }
@@ -578,13 +564,19 @@ impl From<ObligationLifecycleDates> for ObligationLifecycleTimestamps {
 
 #[cfg(test)]
 mod test {
+    use chrono::NaiveDate;
+
     use super::*;
 
     fn obligation_from(events: Vec<ObligationEvent>) -> Obligation {
         Obligation::try_from_events(EntityEvents::init(ObligationId::new(), events)).unwrap()
     }
 
-    fn initial_events() -> Vec<ObligationEvent> {
+    fn init_event(
+        due: NaiveDate,
+        overdue: Option<NaiveDate>,
+        defaulted: Option<NaiveDate>,
+    ) -> Vec<ObligationEvent> {
         vec![ObligationEvent::Initialized {
             id: ObligationId::new(),
             beneficiary_id: BeneficiaryId::new(),
@@ -594,12 +586,16 @@ mod test {
             ledger_tx_id: LedgerTxId::new(),
             receivable_account_ids: ObligationReceivableAccountIds::new(),
             defaulted_account_id: CalaAccountId::new(),
-            due_date: Utc::now().into(),
-            overdue_date: Some(Utc::now().into()),
-            defaulted_date: None,
+            due_date: due.into(),
+            overdue_date: overdue.map(EffectiveDate::from),
+            defaulted_date: defaulted.map(EffectiveDate::from),
             liquidation_date: None,
-            effective: Utc::now().date_naive(),
+            effective: due,
         }]
+    }
+
+    fn day(year: i32, month: u32, day: u32) -> NaiveDate {
+        NaiveDate::from_ymd_opt(year, month, day).unwrap()
     }
 
     fn dummy_payment_details() -> PaymentDetailsForAllocation {
@@ -621,16 +617,204 @@ mod test {
         ));
     }
 
+    // -- transition: NotYetDue -----------------------------------------------
+
     #[test]
-    fn can_record_due() {
-        let mut obligation = obligation_from(initial_events());
-        let res = obligation.record_due(Utc::now().date_naive()).unwrap();
-        assert_eq!(res.amount, obligation.initial_amount);
+    fn transition_not_yet_due_before_due_date_is_noop() {
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), Some(day(2025, 1, 20)), None));
+        assert!(matches!(
+            obligation.transition(day(2025, 1, 9)),
+            Idempotent::AlreadyApplied
+        ));
+        assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
     }
 
     #[test]
+    fn transition_not_yet_due_on_due_date_becomes_due() {
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), Some(day(2025, 1, 20)), None));
+        match obligation.transition(day(2025, 1, 10)).unwrap() {
+            ObligationTransition::Due(data) => {
+                assert_eq!(data.amount, obligation.initial_amount);
+                assert_eq!(data.effective, day(2025, 1, 10));
+            }
+            _ => panic!("expected Due transition"),
+        }
+        assert_eq!(obligation.status(), ObligationStatus::Due);
+    }
+
+    #[test]
+    fn transition_not_yet_due_after_due_date_becomes_due() {
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), Some(day(2025, 1, 20)), None));
+        match obligation.transition(day(2025, 2, 1)).unwrap() {
+            ObligationTransition::Due(data) => {
+                assert_eq!(data.amount, obligation.initial_amount);
+                assert_eq!(data.effective, day(2025, 1, 10));
+            }
+            _ => panic!("expected Due transition"),
+        }
+        assert_eq!(obligation.status(), ObligationStatus::Due);
+    }
+
+    // -- transition: Due → Overdue -------------------------------------------
+
+    #[test]
+    fn transition_due_before_overdue_date_is_noop() {
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), Some(day(2025, 1, 20)), None));
+        obligation.transition(day(2025, 1, 10)).unwrap(); // NotYetDue → Due
+        assert!(matches!(
+            obligation.transition(day(2025, 1, 19)),
+            Idempotent::AlreadyApplied
+        ));
+        assert_eq!(obligation.status(), ObligationStatus::Due);
+    }
+
+    #[test]
+    fn transition_due_on_overdue_date_becomes_overdue() {
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), Some(day(2025, 1, 20)), None));
+        obligation.transition(day(2025, 1, 10)).unwrap();
+        match obligation.transition(day(2025, 1, 20)).unwrap() {
+            ObligationTransition::Overdue(data) => {
+                assert_eq!(data.effective, day(2025, 1, 20));
+            }
+            _ => panic!("expected Overdue transition"),
+        }
+        assert_eq!(obligation.status(), ObligationStatus::Overdue);
+    }
+
+    #[test]
+    fn transition_due_without_overdue_date_is_noop() {
+        let mut obligation = obligation_from(init_event(day(2025, 1, 10), None, None));
+        obligation.transition(day(2025, 1, 10)).unwrap(); // NotYetDue → Due
+        assert!(matches!(
+            obligation.transition(day(2025, 12, 31)),
+            Idempotent::AlreadyApplied
+        ));
+        assert_eq!(obligation.status(), ObligationStatus::Due);
+    }
+
+    // -- transition: Due → Defaulted (skipping overdue) ----------------------
+
+    #[test]
+    fn transition_due_without_overdue_date_defaults_on_defaulted_date() {
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), None, Some(day(2025, 1, 30))));
+        obligation.transition(day(2025, 1, 10)).unwrap(); // NotYetDue → Due
+        match obligation.transition(day(2025, 1, 30)).unwrap() {
+            ObligationTransition::Defaulted(data) => {
+                assert_eq!(data.effective, day(2025, 1, 30));
+            }
+            _ => panic!("expected Defaulted transition"),
+        }
+        assert_eq!(obligation.status(), ObligationStatus::Defaulted);
+    }
+
+    // -- transition: Overdue → Defaulted -------------------------------------
+
+    #[test]
+    fn transition_overdue_before_defaulted_date_is_noop() {
+        let mut obligation = obligation_from(init_event(
+            day(2025, 1, 10),
+            Some(day(2025, 1, 20)),
+            Some(day(2025, 1, 30)),
+        ));
+        obligation.transition(day(2025, 1, 10)).unwrap(); // NotYetDue → Due
+        obligation.transition(day(2025, 1, 20)).unwrap(); // Due → Overdue
+        assert!(matches!(
+            obligation.transition(day(2025, 1, 29)),
+            Idempotent::AlreadyApplied
+        ));
+        assert_eq!(obligation.status(), ObligationStatus::Overdue);
+    }
+
+    #[test]
+    fn transition_overdue_on_defaulted_date_becomes_defaulted() {
+        let mut obligation = obligation_from(init_event(
+            day(2025, 1, 10),
+            Some(day(2025, 1, 20)),
+            Some(day(2025, 1, 30)),
+        ));
+        obligation.transition(day(2025, 1, 10)).unwrap();
+        obligation.transition(day(2025, 1, 20)).unwrap();
+        match obligation.transition(day(2025, 1, 30)).unwrap() {
+            ObligationTransition::Defaulted(data) => {
+                assert_eq!(data.effective, day(2025, 1, 30));
+            }
+            _ => panic!("expected Defaulted transition"),
+        }
+        assert_eq!(obligation.status(), ObligationStatus::Defaulted);
+    }
+
+    #[test]
+    fn transition_overdue_without_defaulted_date_is_noop() {
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), Some(day(2025, 1, 20)), None));
+        obligation.transition(day(2025, 1, 10)).unwrap();
+        obligation.transition(day(2025, 1, 20)).unwrap();
+        assert!(matches!(
+            obligation.transition(day(2025, 12, 31)),
+            Idempotent::AlreadyApplied
+        ));
+        assert_eq!(obligation.status(), ObligationStatus::Overdue);
+    }
+
+    // -- transition: terminal states -----------------------------------------
+
+    #[test]
+    fn transition_defaulted_is_always_noop() {
+        let mut obligation = obligation_from(init_event(
+            day(2025, 1, 10),
+            Some(day(2025, 1, 20)),
+            Some(day(2025, 1, 30)),
+        ));
+        obligation.transition(day(2025, 1, 10)).unwrap();
+        obligation.transition(day(2025, 1, 20)).unwrap();
+        obligation.transition(day(2025, 1, 30)).unwrap();
+        assert_eq!(obligation.status(), ObligationStatus::Defaulted);
+        assert!(matches!(
+            obligation.transition(day(2025, 12, 31)),
+            Idempotent::AlreadyApplied
+        ));
+    }
+
+    #[test]
+    fn transition_paid_is_always_noop() {
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), Some(day(2025, 1, 20)), None));
+        obligation
+            .allocate_payment(obligation.outstanding(), dummy_payment_details())
+            .unwrap();
+        assert_eq!(obligation.status(), ObligationStatus::Paid);
+        assert!(matches!(
+            obligation.transition(day(2025, 12, 31)),
+            Idempotent::AlreadyApplied
+        ));
+    }
+
+    // -- transition: idempotency ---------------------------------------------
+
+    #[test]
+    fn transition_is_idempotent() {
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), Some(day(2025, 1, 20)), None));
+        obligation.transition(day(2025, 1, 10)).unwrap();
+        assert!(matches!(
+            obligation.transition(day(2025, 1, 10)),
+            Idempotent::AlreadyApplied
+        ));
+        assert_eq!(obligation.status(), ObligationStatus::Due);
+    }
+
+    // -- completes_on_final_payment_allocation --------------------------------
+
+    #[test]
     fn completes_on_final_payment_allocation() {
-        let mut obligation = obligation_from(initial_events());
+        let mut obligation =
+            obligation_from(init_event(day(2025, 1, 10), Some(day(2025, 1, 20)), None));
         obligation
             .allocate_payment(UsdCents::ONE, dummy_payment_details())
             .unwrap();

@@ -24,20 +24,10 @@ use super::{entity::*, error::*};
             update(persist = false)
         ),
         reference(ty = "String", create(accessor = "reference()")),
-        due_date(
-            ty = "chrono::NaiveDate",
-            create(accessor = "due_date_naive()"),
-            update(persist = false)
-        ),
-        overdue_date(
+        next_transition_date(
             ty = "Option<chrono::NaiveDate>",
-            create(accessor = "overdue_date_naive()"),
-            update(persist = false)
-        ),
-        defaulted_date(
-            ty = "Option<chrono::NaiveDate>",
-            create(accessor = "defaulted_date_naive()"),
-            update(persist = false)
+            create(accessor = "next_transition_date()"),
+            update(accessor = "next_transition_date()")
         ),
         status(
             ty = "ObligationStatus",
@@ -95,41 +85,13 @@ where
             .await
     }
 
-    pub async fn list_not_yet_due_on_or_before(
+    pub async fn list_needing_transition(
         &self,
         day: chrono::NaiveDate,
     ) -> Result<Vec<Obligation>, ObligationError> {
         let (entities, _) = es_query!(
             tbl_prefix = "core",
-            "SELECT id FROM core_obligations WHERE status = 'not_yet_due' AND due_date <= $1",
-            day as chrono::NaiveDate,
-        )
-        .fetch_n(self.pool(), 1000)
-        .await?;
-        Ok(entities)
-    }
-
-    pub async fn list_due_with_overdue_on_or_before(
-        &self,
-        day: chrono::NaiveDate,
-    ) -> Result<Vec<Obligation>, ObligationError> {
-        let (entities, _) = es_query!(
-            tbl_prefix = "core",
-            "SELECT id FROM core_obligations WHERE status = 'due' AND overdue_date IS NOT NULL AND overdue_date <= $1",
-            day as chrono::NaiveDate,
-        )
-        .fetch_n(self.pool(), 1000)
-        .await?;
-        Ok(entities)
-    }
-
-    pub async fn list_due_or_overdue_with_defaulted_on_or_before(
-        &self,
-        day: chrono::NaiveDate,
-    ) -> Result<Vec<Obligation>, ObligationError> {
-        let (entities, _) = es_query!(
-            tbl_prefix = "core",
-            "SELECT id FROM core_obligations WHERE status IN ('due', 'overdue') AND defaulted_date IS NOT NULL AND defaulted_date <= $1",
+            "SELECT id FROM core_obligations WHERE next_transition_date IS NOT NULL AND next_transition_date <= $1",
             day as chrono::NaiveDate,
         )
         .fetch_n(self.pool(), 1000)

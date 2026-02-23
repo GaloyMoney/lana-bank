@@ -11,6 +11,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use es_entity::Idempotent;
 use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
@@ -29,6 +30,7 @@ pub(crate) use entity::ObligationDefaultedReallocationData;
 pub(crate) use entity::ObligationDueReallocationData;
 pub use entity::ObligationEvent;
 pub(crate) use entity::ObligationOverdueReallocationData;
+use entity::ObligationTransition;
 use error::ObligationError;
 pub(crate) use repo::ObligationRepo;
 
@@ -105,58 +107,32 @@ where
     #[instrument(
         name = "collections.obligation.process_obligations_for_day",
         skip(self),
-        fields(day = %day, n_due, n_overdue, n_defaulted)
+        fields(day = %day, n_transitions)
     )]
     pub async fn process_obligations_for_day(
         &self,
         day: chrono::NaiveDate,
     ) -> Result<(), ObligationError> {
-        // Phase 1: NotYetDue → Due
-        let obligations = self.repo.list_not_yet_due_on_or_before(day).await?;
-        Span::current().record("n_due", obligations.len());
-        for obligation in obligations {
-            match self.transition_to_due(obligation.id, day).await {
-                Ok(()) => {}
-                Err(ObligationError::EsEntityError(
-                    es_entity::EsEntityError::ConcurrentModification,
-                )) => continue,
-                Err(e) => return Err(e),
+        loop {
+            let obligations = self.repo.list_needing_transition(day).await?;
+            if obligations.is_empty() {
+                break;
+            }
+            Span::current().record("n_transitions", obligations.len());
+            for obligation in obligations {
+                match self.execute_transition(obligation.id, day).await {
+                    Ok(()) => {}
+                    Err(ObligationError::EsEntityError(
+                        es_entity::EsEntityError::ConcurrentModification,
+                    )) => continue,
+                    Err(e) => return Err(e),
+                }
             }
         }
-
-        // Phase 2: Due → Overdue
-        let obligations = self.repo.list_due_with_overdue_on_or_before(day).await?;
-        Span::current().record("n_overdue", obligations.len());
-        for obligation in obligations {
-            match self.transition_to_overdue(obligation.id, day).await {
-                Ok(()) => {}
-                Err(ObligationError::EsEntityError(
-                    es_entity::EsEntityError::ConcurrentModification,
-                )) => continue,
-                Err(e) => return Err(e),
-            }
-        }
-
-        // Phase 3: Due/Overdue → Defaulted
-        let obligations = self
-            .repo
-            .list_due_or_overdue_with_defaulted_on_or_before(day)
-            .await?;
-        Span::current().record("n_defaulted", obligations.len());
-        for obligation in obligations {
-            match self.transition_to_defaulted(obligation.id, day).await {
-                Ok(()) => {}
-                Err(ObligationError::EsEntityError(
-                    es_entity::EsEntityError::ConcurrentModification,
-                )) => continue,
-                Err(e) => return Err(e),
-            }
-        }
-
         Ok(())
     }
 
-    async fn transition_to_due(
+    async fn execute_transition(
         &self,
         id: ObligationId,
         effective: chrono::NaiveDate,
@@ -174,91 +150,28 @@ where
             )
             .await?;
 
-        if let es_entity::Idempotent::Executed(due_data) = obligation.record_due(effective) {
+        let subject =
+            <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(OBLIGATION_SYNC);
+
+        if let Idempotent::Executed(transition) = obligation.transition(effective) {
             self.repo.update_in_op(&mut op, &mut obligation).await?;
-
-            self.ledger
-                .record_obligation_due_in_op(
-                    &mut op,
-                    due_data,
-                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                        OBLIGATION_SYNC,
-                    ),
-                )
-                .await?;
-
-            op.commit().await?;
-        }
-        Ok(())
-    }
-
-    async fn transition_to_overdue(
-        &self,
-        id: ObligationId,
-        effective: chrono::NaiveDate,
-    ) -> Result<(), ObligationError> {
-        let mut op = self.repo.begin_op().await?;
-        let mut obligation = self.repo.find_by_id_in_op(&mut op, id).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_op(
-                &mut op,
-                OBLIGATION_SYNC,
-                CoreCreditCollectionObject::obligation(id),
-                CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
-            )
-            .await?;
-
-        if let es_entity::Idempotent::Executed(data) = obligation.record_overdue(effective)? {
-            self.repo.update_in_op(&mut op, &mut obligation).await?;
-
-            self.ledger
-                .record_obligation_overdue_in_op(
-                    &mut op,
-                    data,
-                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                        OBLIGATION_SYNC,
-                    ),
-                )
-                .await?;
-
-            op.commit().await?;
-        }
-        Ok(())
-    }
-
-    async fn transition_to_defaulted(
-        &self,
-        id: ObligationId,
-        effective: chrono::NaiveDate,
-    ) -> Result<(), ObligationError> {
-        let mut op = self.repo.begin_op().await?;
-        let mut obligation = self.repo.find_by_id_in_op(&mut op, id).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_op(
-                &mut op,
-                OBLIGATION_SYNC,
-                CoreCreditCollectionObject::obligation(id),
-                CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
-            )
-            .await?;
-
-        if let es_entity::Idempotent::Executed(data) = obligation.record_defaulted(effective)? {
-            self.repo.update_in_op(&mut op, &mut obligation).await?;
-
-            self.ledger
-                .record_obligation_defaulted_in_op(
-                    &mut op,
-                    data,
-                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                        OBLIGATION_SYNC,
-                    ),
-                )
-                .await?;
-
+            match transition {
+                ObligationTransition::Due(data) => {
+                    self.ledger
+                        .record_obligation_due_in_op(&mut op, data, &subject)
+                        .await?;
+                }
+                ObligationTransition::Overdue(data) => {
+                    self.ledger
+                        .record_obligation_overdue_in_op(&mut op, data, &subject)
+                        .await?;
+                }
+                ObligationTransition::Defaulted(data) => {
+                    self.ledger
+                        .record_obligation_defaulted_in_op(&mut op, data, &subject)
+                        .await?;
+                }
+            }
             op.commit().await?;
         }
         Ok(())
