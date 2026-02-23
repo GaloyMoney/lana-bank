@@ -24,7 +24,7 @@ pub struct CustomerActiveSyncConfig {
 pub const CUSTOMER_ACTIVE_SYNC_COMMAND: JobType =
     JobType::new("command.customer-sync.customer-active-sync");
 
-pub struct CustomerActiveSyncJobInitializer<Perms, E>
+pub struct CustomerActiveSyncCommandInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -34,7 +34,7 @@ where
     deposit: CoreDeposit<Perms, E>,
 }
 
-impl<Perms, E> CustomerActiveSyncJobInitializer<Perms, E>
+impl<Perms, E> CustomerActiveSyncCommandInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for CustomerActiveSyncJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for CustomerActiveSyncCommandInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -68,14 +68,14 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CustomerActiveSyncJobRunner {
+        Ok(Box::new(CustomerActiveSyncCommandRunner {
             config: job.config()?,
             deposit: self.deposit.clone(),
         }))
     }
 }
 
-pub struct CustomerActiveSyncJobRunner<Perms, E>
+pub struct CustomerActiveSyncCommandRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -87,7 +87,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CustomerActiveSyncJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CustomerActiveSyncCommandRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -100,7 +100,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "customer_sync.customer_active_sync_job.run",
+        name = "customer_sync.customer_active_sync_command.run",
         skip(self, _current_job),
         fields(customer_id = %self.config.customer_id),
     )]

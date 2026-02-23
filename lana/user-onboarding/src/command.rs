@@ -13,24 +13,24 @@ pub struct CreateKeycloakUserConfig {
     pub user_id: UserId,
 }
 
-pub const CREATE_KEYCLOAK_USER_JOB: JobType =
+pub const CREATE_KEYCLOAK_USER_COMMAND: JobType =
     JobType::new("command.user-onboarding.create-keycloak-user");
 
-pub struct CreateKeycloakUserJobInitializer {
+pub struct CreateKeycloakUserCommandInitializer {
     keycloak_client: KeycloakClient,
 }
 
-impl CreateKeycloakUserJobInitializer {
+impl CreateKeycloakUserCommandInitializer {
     pub fn new(keycloak_client: KeycloakClient) -> Self {
         Self { keycloak_client }
     }
 }
 
-impl JobInitializer for CreateKeycloakUserJobInitializer {
+impl JobInitializer for CreateKeycloakUserCommandInitializer {
     type Config = CreateKeycloakUserConfig;
 
     fn job_type(&self) -> JobType {
-        CREATE_KEYCLOAK_USER_JOB
+        CREATE_KEYCLOAK_USER_COMMAND
     }
 
     fn init(
@@ -38,23 +38,23 @@ impl JobInitializer for CreateKeycloakUserJobInitializer {
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreateKeycloakUserJobRunner {
+        Ok(Box::new(CreateKeycloakUserCommandRunner {
             config: job.config()?,
             keycloak_client: self.keycloak_client.clone(),
         }))
     }
 }
 
-pub struct CreateKeycloakUserJobRunner {
+pub struct CreateKeycloakUserCommandRunner {
     config: CreateKeycloakUserConfig,
     keycloak_client: KeycloakClient,
 }
 
 #[async_trait]
-impl JobRunner for CreateKeycloakUserJobRunner {
+impl JobRunner for CreateKeycloakUserCommandRunner {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "user_onboarding.create_keycloak_user_job.run",
+        name = "user_onboarding.create_keycloak_user_command.run",
         skip(self, _current_job),
         fields(user_id = %self.config.user_id),
     )]

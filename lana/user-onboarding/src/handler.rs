@@ -4,18 +4,18 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 use core_access::CoreAccessEvent;
 use tracing::{Span, instrument};
 
-use crate::job::CreateKeycloakUserConfig;
+use crate::command::CreateKeycloakUserConfig;
 
 pub const USER_ONBOARDING_JOB: JobType = JobType::new("outbox.user-onboarding");
 
 pub struct UserOnboardingHandler {
-    create_keycloak_user_job_spawner: JobSpawner<CreateKeycloakUserConfig>,
+    create_keycloak_user_command_spawner: JobSpawner<CreateKeycloakUserConfig>,
 }
 
 impl UserOnboardingHandler {
-    pub fn new(create_keycloak_user_job_spawner: JobSpawner<CreateKeycloakUserConfig>) -> Self {
+    pub fn new(create_keycloak_user_command_spawner: JobSpawner<CreateKeycloakUserConfig>) -> Self {
         Self {
-            create_keycloak_user_job_spawner,
+            create_keycloak_user_command_spawner,
         }
     }
 }
@@ -35,7 +35,7 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", access_event.as_ref());
 
-            self.create_keycloak_user_job_spawner
+            self.create_keycloak_user_command_spawner
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),

@@ -9,7 +9,7 @@ use config::*;
 use error::*;
 use jobs::*;
 
-use jobs::active_sync_job::CustomerActiveSyncJobInitializer;
+use jobs::active_sync_command::CustomerActiveSyncCommandInitializer;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -110,13 +110,13 @@ where
             )
             .await?;
 
-        let customer_active_sync_job_spawner =
-            jobs.add_initializer(CustomerActiveSyncJobInitializer::new(deposit.clone()));
+        let customer_active_sync_command_spawner =
+            jobs.add_initializer(CustomerActiveSyncCommandInitializer::new(deposit.clone()));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_ACTIVE_SYNC),
-                CustomerActiveSyncHandler::new(customer_active_sync_job_spawner),
+                CustomerActiveSyncHandler::new(customer_active_sync_command_spawner),
             )
             .await?;
 
