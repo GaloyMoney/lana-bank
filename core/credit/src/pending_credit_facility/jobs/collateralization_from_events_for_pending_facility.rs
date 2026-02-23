@@ -100,7 +100,7 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         match message.as_event() {
-            Some(event @ CoreCreditCollateralEvent::FacilityCollateralUpdated { entity }) => {
+            Some(event @ CoreCreditCollateralEvent::CollateralUpdated { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());

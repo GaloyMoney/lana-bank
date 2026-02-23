@@ -125,10 +125,8 @@ impl CreditFacilityHistory {
         event: &CoreCreditCollateralEvent,
         message_recorded_at: DateTime<Utc>,
     ) {
-        use CoreCreditCollateralEvent::*;
-
         match event {
-            FacilityCollateralUpdated { entity } => {
+            CoreCreditCollateralEvent::CollateralUpdated { entity } => {
                 let adjustment = entity
                     .adjustment
                     .as_ref()
@@ -142,7 +140,7 @@ impl CreditFacilityHistory {
                         tx_id: adjustment.tx_id,
                     }));
             }
-            PartialLiquidationCollateralSentOut {
+            CoreCreditCollateralEvent::LiquidationCollateralSentOut {
                 amount,
                 recorded_at,
                 effective,
@@ -156,7 +154,7 @@ impl CreditFacilityHistory {
                     effective: *effective,
                     tx_id: *ledger_tx_id,
                 })),
-            PartialLiquidationProceedsReceived {
+            CoreCreditCollateralEvent::LiquidationProceedsReceived {
                 amount,
                 recorded_at,
                 effective,
@@ -170,7 +168,7 @@ impl CreditFacilityHistory {
                     tx_id: *ledger_tx_id,
                 },
             )),
-            PartialLiquidationCompleted { .. } => {}
+            CoreCreditCollateralEvent::LiquidationCompleted { .. } => {}
         }
     }
 

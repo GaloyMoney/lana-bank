@@ -42,9 +42,7 @@ async fn facility_collateral_updated_event_on_manual_update() -> anyhow::Result<
             )
         },
         |result, e| match e {
-            CoreCreditCollateralEvent::FacilityCollateralUpdated { entity }
-                if entity.id == result.id =>
-            {
+            CoreCreditCollateralEvent::CollateralUpdated { entity } if entity.id == result.id => {
                 Some(entity.clone())
             }
             _ => None,

@@ -53,7 +53,7 @@ where
         let events = new_events
             .flat_map(|event| match &event.event {
                 UpdatedViaManualInput { .. } | UpdatedViaCustodianSync { .. } => {
-                    vec![CoreCreditCollateralEvent::FacilityCollateralUpdated {
+                    vec![CoreCreditCollateralEvent::CollateralUpdated {
                         entity: PublicCollateral::from(entity),
                     }]
                 }
@@ -63,10 +63,10 @@ where
                     liquidation_id,
                     ..
                 } => vec![
-                    CoreCreditCollateralEvent::FacilityCollateralUpdated {
+                    CoreCreditCollateralEvent::CollateralUpdated {
                         entity: PublicCollateral::from(entity),
                     },
-                    CoreCreditCollateralEvent::PartialLiquidationCollateralSentOut {
+                    CoreCreditCollateralEvent::LiquidationCollateralSentOut {
                         liquidation_id: *liquidation_id,
                         secured_loan_id: entity.secured_loan_id,
                         amount: *abs_diff,
@@ -81,20 +81,18 @@ where
                     ledger_tx_id,
                     payment_id,
                 } => {
-                    vec![
-                        CoreCreditCollateralEvent::PartialLiquidationProceedsReceived {
-                            liquidation_id: *liquidation_id,
-                            secured_loan_id: entity.secured_loan_id,
-                            amount: *amount,
-                            payment_id: *payment_id,
-                            ledger_tx_id: *ledger_tx_id,
-                            recorded_at: event.recorded_at,
-                            effective: event.recorded_at.date_naive(),
-                        },
-                    ]
+                    vec![CoreCreditCollateralEvent::LiquidationProceedsReceived {
+                        liquidation_id: *liquidation_id,
+                        secured_loan_id: entity.secured_loan_id,
+                        amount: *amount,
+                        payment_id: *payment_id,
+                        ledger_tx_id: *ledger_tx_id,
+                        recorded_at: event.recorded_at,
+                        effective: event.recorded_at.date_naive(),
+                    }]
                 }
                 LiquidationCompleted { liquidation_id } => {
-                    vec![CoreCreditCollateralEvent::PartialLiquidationCompleted {
+                    vec![CoreCreditCollateralEvent::LiquidationCompleted {
                         liquidation_id: *liquidation_id,
                         secured_loan_id: entity.secured_loan_id,
                     }]

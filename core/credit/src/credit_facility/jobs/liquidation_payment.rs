@@ -189,7 +189,7 @@ where
 
         match message.as_event() {
             Some(
-                event @ PartialLiquidationProceedsReceived {
+                event @ LiquidationProceedsReceived {
                     amount,
                     secured_loan_id,
                     liquidation_id,
@@ -238,7 +238,7 @@ where
 
                 Ok(ControlFlow::Break(()))
             }
-            Some(event @ PartialLiquidationCompleted { liquidation_id, .. })
+            Some(event @ LiquidationCompleted { liquidation_id, .. })
                 if *liquidation_id == self.config.liquidation_id =>
             {
                 message.inject_trace_parent();

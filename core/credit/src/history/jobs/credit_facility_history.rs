@@ -92,24 +92,24 @@ where
 
         use CoreCreditCollateralEvent::*;
         match event.as_event() {
-            Some(e @ FacilityCollateralUpdated { entity }) => {
+            Some(e @ CollateralUpdated { entity }) => {
                 self.handle_collateral_event(db, event, e, entity.secured_loan_id)
                     .await?;
             }
             Some(
-                e @ PartialLiquidationCompleted {
+                e @ LiquidationCompleted {
                     secured_loan_id: id,
                     ..
                 },
             )
             | Some(
-                e @ PartialLiquidationProceedsReceived {
+                e @ LiquidationProceedsReceived {
                     secured_loan_id: id,
                     ..
                 },
             )
             | Some(
-                e @ PartialLiquidationCollateralSentOut {
+                e @ LiquidationCollateralSentOut {
                     secured_loan_id: id,
                     ..
                 },

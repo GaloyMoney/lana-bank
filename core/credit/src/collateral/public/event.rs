@@ -17,10 +17,10 @@ use crate::collateral::primitives::SecuredLoanId;
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type")]
 pub enum CoreCreditCollateralEvent {
-    FacilityCollateralUpdated {
+    CollateralUpdated {
         entity: PublicCollateral,
     },
-    PartialLiquidationCollateralSentOut {
+    LiquidationCollateralSentOut {
         liquidation_id: LiquidationId,
         secured_loan_id: SecuredLoanId,
         amount: Satoshis,
@@ -28,7 +28,7 @@ pub enum CoreCreditCollateralEvent {
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
-    PartialLiquidationProceedsReceived {
+    LiquidationProceedsReceived {
         liquidation_id: LiquidationId,
         secured_loan_id: SecuredLoanId,
         amount: UsdCents,
@@ -37,7 +37,7 @@ pub enum CoreCreditCollateralEvent {
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
-    PartialLiquidationCompleted {
+    LiquidationCompleted {
         liquidation_id: LiquidationId,
         secured_loan_id: SecuredLoanId,
     },

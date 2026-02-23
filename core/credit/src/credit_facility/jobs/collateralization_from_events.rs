@@ -93,7 +93,7 @@ where
         _op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        if let Some(event @ CoreCreditCollateralEvent::FacilityCollateralUpdated { entity }) =
+        if let Some(event @ CoreCreditCollateralEvent::CollateralUpdated { entity }) =
             message.as_event()
         {
             message.inject_trace_parent();
