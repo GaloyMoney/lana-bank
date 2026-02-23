@@ -65,7 +65,7 @@ Account Creation: Shared (1 account: credit-payments-made-omnibus-account)
 
 ## Summary Account Sets
 
-All summary account sets create accounts per credit facility.
+All summary account sets aggregate balances/transactions from accounts that are created per credit facility.
 
 ### Facility
 
@@ -79,7 +79,7 @@ Account Creation: Per-facility
 ────────────────────────────────────────
 Ref: credit-uncovered-outstanding-account-set
 Name: Credit Uncovered Outstanding Account Set
-Purpose: Tracks outstanding amount not covered by collateral
+Purpose: Tracks outstanding amount not yet covered by an unapplied payment
 Category: Off-Balance Sheet
 Normal Balance: Credit
 Account Creation: Per-facility
@@ -208,7 +208,7 @@ Account Creation: Per-facility
 ```
 Ref: credit-payment-holding-account-set
 Name: Credit Payment Holding Account Set
-Purpose: Temporarily holds payments being applied to obligations
+Purpose: Temporarily holds payments that are waiting to be applied to obligations
 Category: Asset
 Normal Balance: Credit
 Account Creation: Per-facility
