@@ -532,7 +532,7 @@ where
         if let Some(new_obligation) = new_obligation {
             self.collections
                 .obligations()
-                .create_with_jobs_in_op(db, new_obligation)
+                .create_in_op(db, new_obligation)
                 .await?;
         };
 

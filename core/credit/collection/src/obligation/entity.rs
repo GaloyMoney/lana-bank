@@ -88,6 +88,9 @@ pub struct Obligation {
     pub initial_amount: UsdCents,
     pub obligation_type: ObligationType,
     pub effective: chrono::NaiveDate,
+    pub due_date: chrono::NaiveDate,
+    pub overdue_date: Option<chrono::NaiveDate>,
+    pub defaulted_date: Option<chrono::NaiveDate>,
     events: EntityEvents<ObligationEvent>,
 }
 
@@ -405,6 +408,9 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                     amount,
                     obligation_type,
                     effective,
+                    due_date,
+                    overdue_date,
+                    defaulted_date,
                     ..
                 } => {
                     builder = builder
@@ -415,6 +421,9 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .initial_amount(*amount)
                         .obligation_type(*obligation_type)
                         .effective(*effective)
+                        .due_date(chrono::NaiveDate::from(*due_date))
+                        .overdue_date(overdue_date.map(chrono::NaiveDate::from))
+                        .defaulted_date(defaulted_date.map(chrono::NaiveDate::from))
                 }
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
@@ -476,6 +485,22 @@ impl NewObligation {
             Some("") => self.id.to_string(),
             Some(reference) => reference.to_string(),
         }
+    }
+
+    pub fn due_date_naive(&self) -> chrono::NaiveDate {
+        chrono::NaiveDate::from(self.due_date)
+    }
+
+    pub fn overdue_date_naive(&self) -> Option<chrono::NaiveDate> {
+        self.overdue_date.map(chrono::NaiveDate::from)
+    }
+
+    pub fn defaulted_date_naive(&self) -> Option<chrono::NaiveDate> {
+        self.defaulted_date.map(chrono::NaiveDate::from)
+    }
+
+    pub fn initial_status(&self) -> ObligationStatus {
+        ObligationStatus::NotYetDue
     }
 }
 

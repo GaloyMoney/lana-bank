@@ -14,8 +14,9 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_time_events::CoreTimeEvent;
 use es_entity::clock::ClockHandle;
-use obix::out::OutboxEventMarker;
+use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 pub use error::CoreCreditCollectionError;
 pub use obligation::{
@@ -38,6 +39,8 @@ pub use publisher::CollectionPublisher;
 
 use ledger::CollectionLedger;
 pub use ledger::error::CollectionLedgerError;
+
+use obligation::jobs::end_of_day::{OBLIGATION_END_OF_DAY, ObligationEndOfDayHandler};
 
 pub struct CoreCreditCollection<Perms, E>
 where
@@ -68,6 +71,22 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
+    pub fn obligations(&self) -> &Obligations<Perms, E> {
+        self.obligations.as_ref()
+    }
+
+    pub fn payments(&self) -> &Payments<Perms, E> {
+        self.payments.as_ref()
+    }
+}
+
+impl<Perms, E> CoreCreditCollection<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
+{
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
@@ -76,6 +95,7 @@ where
         payments_made_omnibus_account_id: CalaAccountId,
         jobs: &mut job::Jobs,
         publisher: &CollectionPublisher<E>,
+        outbox: &Outbox<E>,
         clock: ClockHandle,
     ) -> Result<Self, CoreCreditCollectionError> {
         let ledger =
@@ -86,11 +106,18 @@ where
             pool,
             authz.clone(),
             ledger_arc.clone(),
-            jobs,
             publisher,
             clock.clone(),
         );
         let obligations_arc = Arc::new(obligations);
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(OBLIGATION_END_OF_DAY),
+                ObligationEndOfDayHandler::new(obligations_arc.as_ref()),
+            )
+            .await?;
 
         let payments = Payments::new(pool, authz, ledger_arc, clock, publisher);
         let payments_arc = Arc::new(payments);
@@ -99,13 +126,5 @@ where
             obligations: obligations_arc,
             payments: payments_arc,
         })
-    }
-
-    pub fn obligations(&self) -> &Obligations<Perms, E> {
-        self.obligations.as_ref()
-    }
-
-    pub fn payments(&self) -> &Payments<Perms, E> {
-        self.payments.as_ref()
     }
 }

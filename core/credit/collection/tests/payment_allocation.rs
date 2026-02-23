@@ -40,7 +40,7 @@ async fn create_obligation(ctx: &TestContext, beneficiary_id: BeneficiaryId, amo
     let mut op = DbOp::init_with_clock(&ctx.pool, &ctx.clock).await.unwrap();
     ctx.collections
         .obligations()
-        .create_with_jobs_in_op(&mut op, new_obligation)
+        .create_in_op(&mut op, new_obligation)
         .await
         .expect("could not create obligation");
     op.commit().await.unwrap();

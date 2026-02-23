@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_obligations (id, beneficiary_id, reference, due_date, overdue_date, defaulted_date, status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar",
+        "Date",
+        "Date",
+        "Date",
+        "Varchar",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b19ebcb59da1f5ef91fc8e56bc17919b40ccc6f9098d1314f81b9ec2bc896677"
+}

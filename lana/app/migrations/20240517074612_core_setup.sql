@@ -391,8 +391,16 @@ CREATE TABLE core_obligations (
   id UUID PRIMARY KEY,
   beneficiary_id UUID NOT NULL,
   reference VARCHAR NOT NULL UNIQUE,
+  due_date DATE NOT NULL,
+  overdue_date DATE,
+  defaulted_date DATE,
+  status VARCHAR NOT NULL DEFAULT 'not_yet_due',
   created_at TIMESTAMPTZ NOT NULL
 );
+
+CREATE INDEX idx_obligations_status_due ON core_obligations(status, due_date);
+CREATE INDEX idx_obligations_status_overdue ON core_obligations(status, overdue_date) WHERE overdue_date IS NOT NULL;
+CREATE INDEX idx_obligations_status_defaulted ON core_obligations(status, defaulted_date) WHERE defaulted_date IS NOT NULL;
 
 CREATE TABLE core_obligation_events (
   id UUID NOT NULL REFERENCES core_obligations(id),
