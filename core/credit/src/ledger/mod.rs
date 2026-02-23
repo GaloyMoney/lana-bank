@@ -603,54 +603,61 @@ impl CreditLedger {
         account_ids: &CreditFacilityLedgerAccountIds,
         collateral_account_id: CalaAccountId,
     ) -> FacilityBalanceIds {
+        let CreditFacilityLedgerAccountIds {
+            facility_account_id,
+
+            disbursed_receivable_not_yet_due_account_id,
+            disbursed_receivable_due_account_id,
+            disbursed_receivable_overdue_account_id,
+            disbursed_defaulted_account_id,
+            interest_receivable_not_yet_due_account_id,
+            interest_receivable_due_account_id,
+            interest_receivable_overdue_account_id,
+            interest_defaulted_account_id,
+            payment_holding_account_id,
+
+            fee_income_account_id: _,
+            interest_income_account_id: _,
+            uncovered_outstanding_account_id: _,
+            proceeds_from_liquidation_account_id: _,
+        } = *account_ids;
+
         FacilityBalanceIds {
-            facility: (self.journal_id, account_ids.facility_account_id, self.usd),
+            facility: (self.journal_id, facility_account_id, self.usd),
             collateral: (self.journal_id, collateral_account_id, self.btc),
-            payment_holding: (
-                self.journal_id,
-                account_ids.payment_holding_account_id,
-                self.usd,
-            ),
+            payment_holding: (self.journal_id, payment_holding_account_id, self.usd),
             disbursed_receivable_not_yet_due: (
                 self.journal_id,
-                account_ids.disbursed_receivable_not_yet_due_account_id,
+                disbursed_receivable_not_yet_due_account_id,
                 self.usd,
             ),
             disbursed_receivable_due: (
                 self.journal_id,
-                account_ids.disbursed_receivable_due_account_id,
+                disbursed_receivable_due_account_id,
                 self.usd,
             ),
             disbursed_receivable_overdue: (
                 self.journal_id,
-                account_ids.disbursed_receivable_overdue_account_id,
+                disbursed_receivable_overdue_account_id,
                 self.usd,
             ),
-            disbursed_defaulted: (
-                self.journal_id,
-                account_ids.disbursed_defaulted_account_id,
-                self.usd,
-            ),
+            disbursed_defaulted: (self.journal_id, disbursed_defaulted_account_id, self.usd),
             interest_receivable_not_yet_due: (
                 self.journal_id,
-                account_ids.interest_receivable_not_yet_due_account_id,
+                interest_receivable_not_yet_due_account_id,
                 self.usd,
             ),
             interest_receivable_due: (
                 self.journal_id,
-                account_ids.interest_receivable_due_account_id,
+                interest_receivable_due_account_id,
                 self.usd,
             ),
             interest_receivable_overdue: (
                 self.journal_id,
-                account_ids.interest_receivable_overdue_account_id,
+                interest_receivable_overdue_account_id,
                 self.usd,
             ),
-            interest_defaulted: (
-                self.journal_id,
-                account_ids.interest_defaulted_account_id,
-                self.usd,
-            ),
+            interest_defaulted: (self.journal_id, interest_defaulted_account_id, self.usd),
         }
     }
 
