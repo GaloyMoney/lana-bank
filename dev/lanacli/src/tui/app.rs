@@ -114,21 +114,13 @@ impl DetailData {
     }
 }
 
-pub struct ListResult {
-    pub headers: Vec<String>,
-    pub rows: Vec<Vec<String>>,
-    pub ids: Vec<String>,
-    pub has_next_page: bool,
-    pub end_cursor: Option<String>,
-}
-
 pub struct DetailResult {
     pub pairs: Vec<(String, String)>,
     pub actions: Vec<Action>,
 }
 
 pub enum AsyncResult {
-    ListLoaded(Domain, anyhow::Result<ListResult>),
+    ListLoaded(Domain, anyhow::Result<ListData>),
     DetailLoaded(anyhow::Result<DetailResult>),
     ActionDone(anyhow::Result<String>),
 }
@@ -183,15 +175,9 @@ impl App {
         ALL_DOMAINS[idx]
     }
 
-    pub fn enter_list(&mut self, domain: Domain, result: ListResult) {
+    pub fn enter_list(&mut self, domain: Domain, result: ListData) {
         self.current_domain = Some(domain);
-        self.list = ListData {
-            headers: result.headers,
-            rows: result.rows,
-            ids: result.ids,
-            has_next_page: result.has_next_page,
-            end_cursor: result.end_cursor,
-        };
+        self.list = result;
         self.table_state = TableState::default();
         if !self.list.rows.is_empty() {
             self.table_state.select(Some(0));

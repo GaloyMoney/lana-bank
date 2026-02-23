@@ -6,14 +6,14 @@ use crate::client::GraphQLClient;
 use crate::graphql::*;
 use crate::output::scalar;
 
-use super::app::{Action, DetailResult, Domain, ListResult};
+use super::app::{Action, DetailResult, Domain, ListData};
 
 pub async fn fetch_list(
     client: &Arc<Mutex<GraphQLClient>>,
     domain: Domain,
     first: i64,
     after: Option<String>,
-) -> anyhow::Result<ListResult> {
+) -> anyhow::Result<ListData> {
     let mut client = client.lock().await;
     match domain {
         Domain::Prospects => {
@@ -21,7 +21,7 @@ pub async fn fetch_list(
             let data = client.execute::<ProspectsList>(vars).await?;
             let pi = data.prospects.page_info;
             let nodes = data.prospects.nodes;
-            Ok(ListResult {
+            Ok(ListData {
                 headers: vec![
                     "ID",
                     "Public ID",
@@ -58,7 +58,7 @@ pub async fn fetch_list(
             let data = client.execute::<CustomersList>(vars).await?;
             let pi = data.customers.page_info;
             let nodes = data.customers.nodes;
-            Ok(ListResult {
+            Ok(ListData {
                 headers: vec![
                     "ID",
                     "Public ID",
@@ -95,7 +95,7 @@ pub async fn fetch_list(
             let data = client.execute::<DepositAccountsList>(vars).await?;
             let pi = data.deposit_accounts.page_info;
             let nodes = data.deposit_accounts.nodes;
-            Ok(ListResult {
+            Ok(ListData {
                 headers: vec![
                     "Account ID",
                     "Customer ID",
@@ -127,7 +127,7 @@ pub async fn fetch_list(
             let vars = terms_templates_list::Variables;
             let data = client.execute::<TermsTemplatesList>(vars).await?;
             let templates = data.terms_templates;
-            Ok(ListResult {
+            Ok(ListData {
                 headers: vec![
                     "ID",
                     "Name",
@@ -162,7 +162,7 @@ pub async fn fetch_list(
             let data = client.execute::<CreditFacilitiesList>(vars).await?;
             let pi = data.credit_facilities.page_info;
             let nodes = data.credit_facilities.nodes;
-            Ok(ListResult {
+            Ok(ListData {
                 headers: vec![
                     "ID",
                     "Public ID",
@@ -197,7 +197,7 @@ pub async fn fetch_list(
             let data = client.execute::<CreditFacilityProposalsList>(vars).await?;
             let pi = data.credit_facility_proposals.page_info;
             let nodes = data.credit_facility_proposals.nodes;
-            Ok(ListResult {
+            Ok(ListData {
                 headers: vec!["Proposal ID", "Status", "Amount", "Created"]
                     .into_iter()
                     .map(String::from)
@@ -226,7 +226,7 @@ pub async fn fetch_list(
             let data = client.execute::<ApprovalProcessesList>(vars).await?;
             let pi = data.approval_processes.page_info;
             let nodes = data.approval_processes.nodes;
-            Ok(ListResult {
+            Ok(ListData {
                 headers: vec!["Process ID", "Type", "Status", "Created"]
                     .into_iter()
                     .map(String::from)

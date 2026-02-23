@@ -83,7 +83,7 @@ impl GraphQLClient {
 fn rewrite_url(url: &str) -> (String, String) {
     if let Ok(parsed) = url::Url::parse(url) {
         let host = parsed.host_str().unwrap_or("localhost");
-        let port = parsed.port().unwrap_or(80);
+        let port = parsed.port_or_known_default().unwrap_or(80);
         let host_header = format!("{host}:{port}");
 
         // Only rewrite if host is not already 127.0.0.1 or localhost

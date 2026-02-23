@@ -61,14 +61,22 @@ fn save_session(token: &str, expires_in: u64, keycloak_url: &str, username: &str
         username: username.to_string(),
     };
     if let Ok(json) = serde_json::to_string_pretty(&session) {
-        let _ = fs::write(&path, json);
+        let _ = fs::write(&path, &json);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = fs::set_permissions(&path, fs::Permissions::from_mode(0o600));
+        }
     }
 }
 
-fn load_session() -> Option<SessionFile> {
+fn load_session(keycloak_url: &str, username: &str) -> Option<SessionFile> {
     let path = session_path()?;
     let data = fs::read_to_string(path).ok()?;
     let session: SessionFile = serde_json::from_str(&data).ok()?;
+    if session.keycloak_url != keycloak_url || session.username != username {
+        return None;
+    }
     if now_epoch() < session.expires_at {
         Some(session)
     } else {
@@ -100,7 +108,7 @@ impl AuthClient {
             }
         }
 
-        if let Some(session) = load_session() {
+        if let Some(session) = load_session(&self.keycloak_url, &self.username) {
             let remaining = session.expires_at.saturating_sub(now_epoch());
             self.cached = Some(CachedToken {
                 access_token: session.access_token.clone(),
