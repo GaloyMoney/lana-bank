@@ -174,7 +174,7 @@ where
             jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
                 collections.clone(),
-                collateral_repo.clone(),
+                collaterals.clone(),
                 repo.clone(),
             ));
 

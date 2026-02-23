@@ -15,9 +15,11 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use core_credit_collection::{
     CoreCreditCollection, CoreCreditCollectionEvent, PaymentLedgerAccountIds,
 };
+use core_custody::CoreCustodyEvent;
+use governance::GovernanceEvent;
 
 use crate::{
-    collateral::CollateralRepo,
+    collateral::Collaterals,
     credit_facility::CreditFacilityRepo,
     primitives::{CollateralId, CreditFacilityId, LiquidationId},
     public::CoreCreditEvent,
@@ -50,29 +52,35 @@ impl<E> Clone for LiquidationPaymentJobConfig<E> {
 pub struct LiquidationPaymentInit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
 }
 
 impl<Perms, E> LiquidationPaymentInit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
         collections: Arc<CoreCreditCollection<Perms, E>>,
-        collateral_repo: Arc<CollateralRepo<E>>,
+        collaterals: Arc<Collaterals<Perms, E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             collections,
-            collateral_repo,
+            collaterals,
             credit_facility_repo,
         }
     }
@@ -83,11 +91,14 @@ const LIQUIDATION_PAYMENT_JOB: JobType = JobType::new("outbox.liquidation-paymen
 impl<Perms, E> JobInitializer for LiquidationPaymentInit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<core_credit_collection::CoreCreditCollectionAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<core_credit_collection::CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<crate::primitives::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<crate::primitives::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     type Config = LiquidationPaymentJobConfig<E>;
     fn job_type(&self) -> JobType {
@@ -103,7 +114,7 @@ where
             config: job.config()?,
             outbox: self.outbox.clone(),
             collections: self.collections.clone(),
-            collateral_repo: self.collateral_repo.clone(),
+            collaterals: self.collaterals.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
         }))
     }
@@ -112,23 +123,29 @@ where
 pub struct LiquidationPaymentJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     config: LiquidationPaymentJobConfig<E>,
     outbox: Outbox<E>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
 }
 
 impl<Perms, E> LiquidationPaymentJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<core_credit_collection::CoreCreditCollectionAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<core_credit_collection::CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<crate::primitives::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<crate::primitives::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[instrument(
         name = "outbox.core_credit.partial_liquidation.acknowledge_payment_in_credit_facility_in_op",
@@ -180,7 +197,7 @@ where
                 Span::current().record("payment_id", tracing::field::display(payment_id));
 
                 let collateral = self
-                    .collateral_repo
+                    .collaterals
                     .find_by_id_in_op(db, self.config.collateral_id)
                     .await?;
                 let facility_ids = &collateral.facility_ledger_account_ids_for_liquidation;
@@ -237,11 +254,14 @@ where
 impl<Perms, E> JobRunner for LiquidationPaymentJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<core_credit_collection::CoreCreditCollectionAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<core_credit_collection::CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<crate::primitives::CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<crate::primitives::CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     async fn run(
         &self,

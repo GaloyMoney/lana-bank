@@ -425,6 +425,16 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "collateral.find_by_by_id_in_op", skip(self, db))]
+    pub async fn find_by_id_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        id: CollateralId,
+    ) -> Result<Collateral, CollateralError> {
+        self.repo.find_by_id_in_op(db, id).await
+    }
+
+    #[record_error_severity]
     #[instrument(name = "collateral.list_liquidations", skip(self, sub))]
     pub async fn list_liquidations(
         &self,
