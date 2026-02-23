@@ -41,6 +41,7 @@ use ledger::CollectionLedger;
 pub use ledger::error::CollectionLedgerError;
 
 use obligation::jobs::end_of_day::{OBLIGATION_END_OF_DAY, ObligationEndOfDayHandler};
+use obligation::jobs::process_obligations::ProcessObligationsJobInit;
 
 pub struct CoreCreditCollection<Perms, E>
 where
@@ -111,11 +112,14 @@ where
         );
         let obligations_arc = Arc::new(obligations);
 
+        let process_obligations_spawner =
+            jobs.add_initializer(ProcessObligationsJobInit::new(obligations_arc.as_ref()));
+
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(OBLIGATION_END_OF_DAY),
-                ObligationEndOfDayHandler::new(obligations_arc.as_ref()),
+                ObligationEndOfDayHandler::new(process_obligations_spawner),
             )
             .await?;
 
