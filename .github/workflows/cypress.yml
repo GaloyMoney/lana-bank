@@ -194,6 +194,15 @@ jobs:
           mkdir -p "$RESULTS_DIR/screenshots/en" "$RESULTS_DIR/screenshots/es"
           cp -r apps/admin-panel/cypress/manuals/screenshots/* "$RESULTS_DIR/screenshots/en/"
           cp -r apps/admin-panel/cypress/manuals/screenshots-es/* "$RESULTS_DIR/screenshots/es/"
+
+          # Clean up Cypress retry files: rename "(attempt N).png" to ".png"
+          # When tests are flaky, Cypress creates files like "screenshot (attempt 2).png"
+          # These have spaces/parens that break URL fetching and don't match doc references
+          find "$RESULTS_DIR/screenshots" -name '*\(attempt *\)*.png' | while read -r f; do
+            clean=$(echo "$f" | sed 's/ (attempt [0-9]*)//g')
+            mv -f "$f" "$clean"
+          done
+
           cd "$RESULTS_DIR" && find screenshots -name '*.png' -printf '%P\n' | sort > screenshots/manifest.txt
 
       - name: Deploy to Netlify (Pull Request)
