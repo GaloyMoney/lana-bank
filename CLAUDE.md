@@ -107,7 +107,7 @@ For detailed patterns on `Idempotent<T>`, `idempotency_guard!`, and infallible q
 - Use OTEL for debugging, not println (except in tests)
 - Use `#[serde(rename_all = "camelCase")]` instead of manual field renames
 - Don't add `#[allow(dead_code)]`
-- Prefer `?` operator over `.map_err()` for error conversion when `From` is implemented
+- **NEVER use `.map_err()` when a `From` impl exists** — just use `?`. The `?` operator automatically converts errors via `From`. Writing `.map_err(MyError::Variant)` when `#[from]` is already derived is redundant and obscures the conversion. Only use `.map_err()` when there is no `From` impl and you don't want to add one.
 
 ## Git and Github
 - When checking github action (gh pr checks), use a timeout of 30m

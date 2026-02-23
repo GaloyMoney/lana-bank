@@ -16,8 +16,9 @@ app:
     shutdown_timeout: 5
   access:
     superuser_email: null
-  credit:
-    price_job_interval: 30
+  price:
+    providers:
+    - bitfinex
   storage:
     provider: local
     root_folder: ''

@@ -6,7 +6,7 @@ use rand::RngExt;
 use rust_decimal_macros::dec;
 
 use bfx_client::BfxClient;
-use core_price::{Price, PriceOfOneBTC, jobs::get_price_from_bfx::fetch_price};
+use core_price::{Price, PriceConfig, PriceOfOneBTC, jobs::get_price_from_bfx::fetch_price};
 use helpers::{DummyEvent, init_pool, publish_dummy_price_event, wait_for_price_to_be_updated};
 use money::{Satoshis, UsdCents};
 use obix::out::Outbox;
@@ -31,7 +31,7 @@ async fn update_price() -> anyhow::Result<()> {
     )
     .await?;
 
-    let price = Price::init(&mut jobs, &outbox).await?;
+    let price = Price::init(PriceConfig { providers: vec![] }, &mut jobs, &outbox).await?;
 
     let initial_price_cents = rand::rng().random_range(1_000_000..10_000_000);
     let initial_price = PriceOfOneBTC::new(UsdCents::from(initial_price_cents));
