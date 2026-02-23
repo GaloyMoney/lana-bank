@@ -49,7 +49,9 @@ impl CreditFacilityRepaymentPlan {
     }
 
     fn planned_disbursals(&self, now: DateTime<Utc>) -> Vec<CreditFacilityRepaymentPlanEntry> {
-        let terms = self.terms.expect("Missing FacilityCreated event");
+        let Some(terms) = self.terms else {
+            return vec![];
+        };
         let facility_amount = self.facility_amount;
         let structuring_fee = terms.one_time_fee_rate.apply(facility_amount);
 
@@ -96,7 +98,9 @@ impl CreditFacilityRepaymentPlan {
         updated_entries: &[CreditFacilityRepaymentPlanEntry],
         now: DateTime<Utc>,
     ) -> Vec<CreditFacilityRepaymentPlanEntry> {
-        let terms = self.terms.expect("Missing FacilityCreated event");
+        let Some(terms) = self.terms else {
+            return vec![];
+        };
         let activated_at = self.activated_at.unwrap_or(now);
 
         let maturity_date = terms.maturity_date(activated_at);
