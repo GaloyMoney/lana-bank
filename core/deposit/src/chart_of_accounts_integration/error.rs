@@ -8,6 +8,8 @@ pub enum ChartOfAccountsIntegrationError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ChartOfAccountsIntegrationError - ChartIdMismatch")]
     ChartIdMismatch,
+    #[error("ChartOfAccountsIntegrationError - ConfigAlreadySet")]
+    ConfigAlreadySet,
     #[error("ChartOfAccountsIntegrationError - DepositLedgerError: {0}")]
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("ChartOfAccountsIntegrationError - ChartLookupError: {0}")]
@@ -27,6 +29,7 @@ impl ErrorSeverity for ChartOfAccountsIntegrationError {
         match self {
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartIdMismatch => Level::ERROR,
+            Self::ConfigAlreadySet => Level::WARN,
             Self::DepositLedgerError(e) => e.severity(),
             Self::ChartLookupError(e) => e.severity(),
             Self::AccountingBaseConfigNotFound => Level::ERROR,
