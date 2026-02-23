@@ -21,6 +21,8 @@ use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
 };
+
+type BalanceId = (JournalId, cala_ledger::AccountId, Currency);
 use tracing_macros::record_error_severity;
 
 use crate::{
@@ -108,6 +110,38 @@ pub struct CreditFacilityInternalAccountSets {
     pub fee_income: InternalAccountSetDetails,
     pub uncovered_outstanding: InternalAccountSetDetails,
     pub payment_holding: InternalAccountSetDetails,
+}
+
+struct FacilityBalanceIds {
+    facility: BalanceId,
+    collateral: BalanceId,
+    payment_holding: BalanceId,
+    disbursed_receivable_not_yet_due: BalanceId,
+    disbursed_receivable_due: BalanceId,
+    disbursed_receivable_overdue: BalanceId,
+    disbursed_defaulted: BalanceId,
+    interest_receivable_not_yet_due: BalanceId,
+    interest_receivable_due: BalanceId,
+    interest_receivable_overdue: BalanceId,
+    interest_defaulted: BalanceId,
+}
+
+impl FacilityBalanceIds {
+    fn all(&self) -> [BalanceId; 11] {
+        [
+            self.facility,
+            self.collateral,
+            self.disbursed_receivable_not_yet_due,
+            self.disbursed_receivable_due,
+            self.disbursed_receivable_overdue,
+            self.disbursed_defaulted,
+            self.interest_receivable_not_yet_due,
+            self.interest_receivable_due,
+            self.interest_receivable_overdue,
+            self.interest_defaulted,
+            self.payment_holding,
+        ]
+    }
 }
 
 #[derive(Clone)]
@@ -465,21 +499,51 @@ impl CreditLedger {
 
     pub async fn get_pending_credit_facility_balance(
         &self,
-        PendingCreditFacilityAccountIds {
-            facility_account_id,
-            ..
-        }: PendingCreditFacilityAccountIds,
+        account_ids: PendingCreditFacilityAccountIds,
         collateral_account_id: CalaAccountId,
     ) -> Result<PendingCreditFacilityBalanceSummary, CreditLedgerError> {
-        let facility_id = (self.journal_id, facility_account_id, self.usd);
-        let collateral_id = (self.journal_id, collateral_account_id, self.btc);
-
+        let (facility_id, collateral_id) =
+            self.pending_balance_ids(&account_ids, collateral_account_id);
         let balances = self
             .cala
             .balances()
             .find_all(&[facility_id, collateral_id])
             .await?;
+        Self::build_pending_balance_summary(balances, facility_id, collateral_id)
+    }
 
+    pub async fn get_pending_credit_facility_balance_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        account_ids: PendingCreditFacilityAccountIds,
+        collateral_account_id: CalaAccountId,
+    ) -> Result<PendingCreditFacilityBalanceSummary, CreditLedgerError> {
+        let (facility_id, collateral_id) =
+            self.pending_balance_ids(&account_ids, collateral_account_id);
+        let balances = self
+            .cala
+            .balances()
+            .find_all_in_op(op, &[facility_id, collateral_id])
+            .await?;
+        Self::build_pending_balance_summary(balances, facility_id, collateral_id)
+    }
+
+    fn pending_balance_ids(
+        &self,
+        account_ids: &PendingCreditFacilityAccountIds,
+        collateral_account_id: CalaAccountId,
+    ) -> (BalanceId, BalanceId) {
+        (
+            (self.journal_id, account_ids.facility_account_id, self.usd),
+            (self.journal_id, collateral_account_id, self.btc),
+        )
+    }
+
+    fn build_pending_balance_summary(
+        balances: std::collections::HashMap<BalanceId, cala_ledger::balance::AccountBalance>,
+        facility_id: BalanceId,
+        collateral_id: BalanceId,
+    ) -> Result<PendingCreditFacilityBalanceSummary, CreditLedgerError> {
         let facility = if let Some(b) = balances.get(&facility_id) {
             UsdCents::try_from_usd(b.details.pending.cr_balance)?
         } else {
@@ -515,7 +579,31 @@ impl CreditLedger {
 
     pub async fn get_credit_facility_balance(
         &self,
-        CreditFacilityLedgerAccountIds {
+        account_ids: CreditFacilityLedgerAccountIds,
+        collateral_account_id: CalaAccountId,
+    ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
+        let ids = self.facility_balance_ids(&account_ids, collateral_account_id);
+        let balances = self.cala.balances().find_all(&ids.all()).await?;
+        Self::build_facility_balance_summary(balances, &ids)
+    }
+
+    pub async fn get_credit_facility_balance_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        account_ids: CreditFacilityLedgerAccountIds,
+        collateral_account_id: CalaAccountId,
+    ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
+        let ids = self.facility_balance_ids(&account_ids, collateral_account_id);
+        let balances = self.cala.balances().find_all_in_op(op, &ids.all()).await?;
+        Self::build_facility_balance_summary(balances, &ids)
+    }
+
+    fn facility_balance_ids(
+        &self,
+        account_ids: &CreditFacilityLedgerAccountIds,
+        collateral_account_id: CalaAccountId,
+    ) -> FacilityBalanceIds {
+        let CreditFacilityLedgerAccountIds {
             facility_account_id,
 
             disbursed_receivable_not_yet_due_account_id,
@@ -532,134 +620,124 @@ impl CreditLedger {
             interest_income_account_id: _,
             uncovered_outstanding_account_id: _,
             proceeds_from_liquidation_account_id: _,
-        }: CreditFacilityLedgerAccountIds,
-        collateral_account_id: CalaAccountId,
+        } = *account_ids;
+
+        FacilityBalanceIds {
+            facility: (self.journal_id, facility_account_id, self.usd),
+            collateral: (self.journal_id, collateral_account_id, self.btc),
+            payment_holding: (self.journal_id, payment_holding_account_id, self.usd),
+            disbursed_receivable_not_yet_due: (
+                self.journal_id,
+                disbursed_receivable_not_yet_due_account_id,
+                self.usd,
+            ),
+            disbursed_receivable_due: (
+                self.journal_id,
+                disbursed_receivable_due_account_id,
+                self.usd,
+            ),
+            disbursed_receivable_overdue: (
+                self.journal_id,
+                disbursed_receivable_overdue_account_id,
+                self.usd,
+            ),
+            disbursed_defaulted: (self.journal_id, disbursed_defaulted_account_id, self.usd),
+            interest_receivable_not_yet_due: (
+                self.journal_id,
+                interest_receivable_not_yet_due_account_id,
+                self.usd,
+            ),
+            interest_receivable_due: (
+                self.journal_id,
+                interest_receivable_due_account_id,
+                self.usd,
+            ),
+            interest_receivable_overdue: (
+                self.journal_id,
+                interest_receivable_overdue_account_id,
+                self.usd,
+            ),
+            interest_defaulted: (self.journal_id, interest_defaulted_account_id, self.usd),
+        }
+    }
+
+    fn build_facility_balance_summary(
+        balances: std::collections::HashMap<BalanceId, cala_ledger::balance::AccountBalance>,
+        ids: &FacilityBalanceIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
-        let facility_id = (self.journal_id, facility_account_id, self.usd);
-        let collateral_id = (self.journal_id, collateral_account_id, self.btc);
-        let payment_holding_id = (self.journal_id, payment_holding_account_id, self.usd);
-        let disbursed_receivable_not_yet_due_id = (
-            self.journal_id,
-            disbursed_receivable_not_yet_due_account_id,
-            self.usd,
-        );
-        let disbursed_receivable_due_id = (
-            self.journal_id,
-            disbursed_receivable_due_account_id,
-            self.usd,
-        );
-        let disbursed_receivable_overdue_id = (
-            self.journal_id,
-            disbursed_receivable_overdue_account_id,
-            self.usd,
-        );
-        let disbursed_defaulted_id = (self.journal_id, disbursed_defaulted_account_id, self.usd);
-        let interest_receivable_not_yet_due_id = (
-            self.journal_id,
-            interest_receivable_not_yet_due_account_id,
-            self.usd,
-        );
-        let interest_receivable_due_id = (
-            self.journal_id,
-            interest_receivable_due_account_id,
-            self.usd,
-        );
-        let interest_receivable_overdue_id = (
-            self.journal_id,
-            interest_receivable_overdue_account_id,
-            self.usd,
-        );
-        let interest_defaulted_id = (self.journal_id, interest_defaulted_account_id, self.usd);
-        let balances = self
-            .cala
-            .balances()
-            .find_all(&[
-                facility_id,
-                collateral_id,
-                disbursed_receivable_not_yet_due_id,
-                disbursed_receivable_due_id,
-                disbursed_receivable_overdue_id,
-                disbursed_defaulted_id,
-                interest_receivable_not_yet_due_id,
-                interest_receivable_due_id,
-                interest_receivable_overdue_id,
-                interest_defaulted_id,
-                payment_holding_id,
-            ])
-            .await?;
-        let facility = if let Some(b) = balances.get(&facility_id) {
+        let facility = if let Some(b) = balances.get(&ids.facility) {
             UsdCents::try_from_usd(b.details.pending.cr_balance)?
         } else {
             UsdCents::ZERO
         };
-        let facility_remaining = if let Some(b) = balances.get(&facility_id) {
+        let facility_remaining = if let Some(b) = balances.get(&ids.facility) {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
         };
-        let disbursed = if let Some(b) = balances.get(&disbursed_receivable_not_yet_due_id) {
+        let disbursed = if let Some(b) = balances.get(&ids.disbursed_receivable_not_yet_due) {
             UsdCents::try_from_usd(b.details.settled.dr_balance)?
         } else {
             UsdCents::ZERO
         };
         let not_yet_due_disbursed_outstanding =
-            if let Some(b) = balances.get(&disbursed_receivable_not_yet_due_id) {
+            if let Some(b) = balances.get(&ids.disbursed_receivable_not_yet_due) {
                 UsdCents::try_from_usd(b.settled())?
             } else {
                 UsdCents::ZERO
             };
-        let due_disbursed_outstanding = if let Some(b) = balances.get(&disbursed_receivable_due_id)
+        let due_disbursed_outstanding = if let Some(b) = balances.get(&ids.disbursed_receivable_due)
         {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
         };
         let overdue_disbursed_outstanding =
-            if let Some(b) = balances.get(&disbursed_receivable_overdue_id) {
+            if let Some(b) = balances.get(&ids.disbursed_receivable_overdue) {
                 UsdCents::try_from_usd(b.settled())?
             } else {
                 UsdCents::ZERO
             };
-        let disbursed_defaulted = if let Some(b) = balances.get(&disbursed_defaulted_id) {
+        let disbursed_defaulted = if let Some(b) = balances.get(&ids.disbursed_defaulted) {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
         };
 
-        let interest_posted = if let Some(b) = balances.get(&interest_receivable_not_yet_due_id) {
+        let interest_posted = if let Some(b) = balances.get(&ids.interest_receivable_not_yet_due) {
             UsdCents::try_from_usd(b.details.settled.dr_balance)?
         } else {
             UsdCents::ZERO
         };
         let not_yet_due_interest_outstanding =
-            if let Some(b) = balances.get(&interest_receivable_not_yet_due_id) {
+            if let Some(b) = balances.get(&ids.interest_receivable_not_yet_due) {
                 UsdCents::try_from_usd(b.settled())?
             } else {
                 UsdCents::ZERO
             };
-        let due_interest_outstanding = if let Some(b) = balances.get(&interest_receivable_due_id) {
+        let due_interest_outstanding = if let Some(b) = balances.get(&ids.interest_receivable_due) {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
         };
         let overdue_interest_outstanding =
-            if let Some(b) = balances.get(&interest_receivable_overdue_id) {
+            if let Some(b) = balances.get(&ids.interest_receivable_overdue) {
                 UsdCents::try_from_usd(b.settled())?
             } else {
                 UsdCents::ZERO
             };
-        let interest_defaulted = if let Some(b) = balances.get(&interest_defaulted_id) {
+        let interest_defaulted = if let Some(b) = balances.get(&ids.interest_defaulted) {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
         };
 
-        let collateral = if let Some(b) = balances.get(&collateral_id) {
+        let collateral = if let Some(b) = balances.get(&ids.collateral) {
             Satoshis::try_from_btc(b.settled())?
         } else {
             Satoshis::ZERO
         };
-        let payments_unapplied = if let Some(b) = balances.get(&payment_holding_id) {
+        let payments_unapplied = if let Some(b) = balances.get(&ids.payment_holding) {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO

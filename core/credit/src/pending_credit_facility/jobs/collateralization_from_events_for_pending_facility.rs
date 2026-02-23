@@ -148,7 +148,8 @@ where
 
         let balances = self
             .ledger
-            .get_pending_credit_facility_balance(
+            .get_pending_credit_facility_balance_in_op(
+                &mut op,
                 pending_facility.account_ids,
                 collateral_account_id,
             )
@@ -215,7 +216,8 @@ where
                     .await?;
                 let balances = self
                     .ledger
-                    .get_pending_credit_facility_balance(
+                    .get_pending_credit_facility_balance_in_op(
+                        &mut op,
                         pending_facility.account_ids,
                         collateral.account_id(),
                     )

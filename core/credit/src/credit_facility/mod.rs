@@ -349,7 +349,7 @@ where
     ) -> Result<CompletionOutcome, CreditFacilityError> {
         let price = self.price.usd_cents_per_btc().await;
 
-        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
+        let mut credit_facility = self.repo.find_by_id_in_op(db, credit_facility_id).await?;
 
         let collateral = self
             .collateral_repo
@@ -359,7 +359,11 @@ where
 
         let balances = self
             .ledger
-            .get_credit_facility_balance(credit_facility.account_ids, collateral_account_id)
+            .get_credit_facility_balance_in_op(
+                db,
+                credit_facility.account_ids,
+                collateral_account_id,
+            )
             .await?;
 
         let completion = if let es_entity::Idempotent::Executed(completion) =
