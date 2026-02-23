@@ -62,6 +62,7 @@ async-graphql = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
+obix = { workspace = true, features = ["test-utils"] }
 document-storage = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 domain-config = { workspace = true, features = ["test-utils"] }
