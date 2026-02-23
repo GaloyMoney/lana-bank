@@ -34,7 +34,6 @@ Builds are done **serially** (one after the other, never in parallel) to get acc
    ```
    cd /tmp/lana-build-compare-base && cargo clean && rm -rf target/ && SQLX_OFFLINE=true cargo build --timings
    ```
-   Use a 10-minute timeout for the build.
 4. Copy the timing report:
    ```
    cp /tmp/lana-build-compare-base/target/cargo-timings/cargo-timing.html /tmp/cargo-timing-base.html
@@ -52,7 +51,6 @@ If the build fails, report the error and stop.
    ```
    cargo clean && rm -rf target/ && SQLX_OFFLINE=true cargo build --timings
    ```
-   Use a 10-minute timeout for the build.
 2. Copy the timing report:
    ```
    cp target/cargo-timings/cargo-timing.html /tmp/cargo-timing-current.html
@@ -115,6 +113,5 @@ Tell the user they can open these in a browser for the full interactive view.
 - Use git worktree to avoid disturbing the current working tree
 - Clean up the worktree after the base branch build completes (success or failure)
 - Use `SQLX_OFFLINE=true` for all cargo commands
-- Set build timeout to 10 minutes per build
 - If a build fails, report the error and stop — do not continue to comparison
 - Builds MUST be serial to avoid CPU/memory contention skewing results
