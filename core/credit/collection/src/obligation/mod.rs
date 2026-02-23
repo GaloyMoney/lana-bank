@@ -119,42 +119,47 @@ where
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(), ObligationError> {
-        let mut op = self.repo.begin_op().await?;
-        let mut obligation = self.repo.find_by_id_in_op(&mut op, id).await?;
+        loop {
+            let mut op = self.repo.begin_op().await?;
+            let mut obligation = self.repo.find_by_id_in_op(&mut op, id).await?;
 
-        self.authz
-            .audit()
-            .record_system_entry_in_op(
-                &mut op,
-                OBLIGATION_SYNC,
-                CoreCreditCollectionObject::obligation(id),
-                CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
-            )
-            .await?;
+            self.authz
+                .audit()
+                .record_system_entry_in_op(
+                    &mut op,
+                    OBLIGATION_SYNC,
+                    CoreCreditCollectionObject::obligation(id),
+                    CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
+                )
+                .await?;
 
-        let subject =
-            <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(OBLIGATION_SYNC);
+            let subject =
+                <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(OBLIGATION_SYNC);
 
-        if let Idempotent::Executed(transition) = obligation.transition(effective) {
-            self.repo.update_in_op(&mut op, &mut obligation).await?;
-            match transition {
-                ObligationTransition::Due(data) => {
-                    self.ledger
-                        .record_obligation_due_in_op(&mut op, data, &subject)
-                        .await?;
+            match obligation.transition(effective) {
+                Idempotent::Executed(transition) => {
+                    self.repo.update_in_op(&mut op, &mut obligation).await?;
+                    match transition {
+                        ObligationTransition::Due(data) => {
+                            self.ledger
+                                .record_obligation_due_in_op(&mut op, data, &subject)
+                                .await?;
+                        }
+                        ObligationTransition::Overdue(data) => {
+                            self.ledger
+                                .record_obligation_overdue_in_op(&mut op, data, &subject)
+                                .await?;
+                        }
+                        ObligationTransition::Defaulted(data) => {
+                            self.ledger
+                                .record_obligation_defaulted_in_op(&mut op, data, &subject)
+                                .await?;
+                        }
+                    }
+                    op.commit().await?;
                 }
-                ObligationTransition::Overdue(data) => {
-                    self.ledger
-                        .record_obligation_overdue_in_op(&mut op, data, &subject)
-                        .await?;
-                }
-                ObligationTransition::Defaulted(data) => {
-                    self.ledger
-                        .record_obligation_defaulted_in_op(&mut op, data, &subject)
-                        .await?;
-                }
+                Idempotent::AlreadyApplied => break,
             }
-            op.commit().await?;
         }
         Ok(())
     }
