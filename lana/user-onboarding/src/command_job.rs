@@ -13,7 +13,7 @@ pub struct CreateKeycloakUserConfig {
     pub user_id: UserId,
 }
 
-pub const CREATE_KEYCLOAK_USER_JOB: JobType =
+pub const CREATE_KEYCLOAK_USER_COMMAND: JobType =
     JobType::new("command.user-onboarding.create-keycloak-user");
 
 pub struct CreateKeycloakUserJobInitializer {
@@ -30,7 +30,7 @@ impl JobInitializer for CreateKeycloakUserJobInitializer {
     type Config = CreateKeycloakUserConfig;
 
     fn job_type(&self) -> JobType {
-        CREATE_KEYCLOAK_USER_JOB
+        CREATE_KEYCLOAK_USER_COMMAND
     }
 
     fn init(

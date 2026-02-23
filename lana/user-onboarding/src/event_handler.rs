@@ -4,7 +4,7 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 use core_access::CoreAccessEvent;
 use tracing::{Span, instrument};
 
-use crate::command::CreateKeycloakUserConfig;
+use crate::command_job::CreateKeycloakUserConfig;
 
 pub const USER_ONBOARDING_JOB: JobType = JobType::new("outbox.user-onboarding");
 
