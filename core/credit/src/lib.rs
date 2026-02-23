@@ -306,7 +306,6 @@ where
             public_ids_arc.clone(),
             outbox,
             clock.clone(),
-            collateral_repo,
             collaterals_arc.clone(),
         )
         .await?;

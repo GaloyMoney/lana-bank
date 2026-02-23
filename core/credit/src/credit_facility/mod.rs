@@ -18,7 +18,7 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use crate::{
     CoreCreditEvent, PublicIds,
-    collateral::CollateralRepo,
+    collateral::Collaterals,
     disbursal::Disbursals,
     ledger::{
         CreditFacilityBalanceSummary, CreditFacilityCompletion, CreditFacilityInterestAccrual,
@@ -56,7 +56,7 @@ where
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     authz: Arc<Perms>,
@@ -81,7 +81,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
-            collateral_repo: self.collateral_repo.clone(),
+            collaterals: self.collaterals.clone(),
             collections: self.collections.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             disbursals: self.disbursals.clone(),
@@ -132,7 +132,6 @@ where
         public_ids: Arc<PublicIds>,
         outbox: &Outbox<E>,
         clock: ClockHandle,
-        collateral_repo: Arc<crate::collateral::repo::CollateralRepo<E>>,
         collaterals: Arc<crate::collateral::Collaterals<Perms, E>>,
     ) -> Result<Self, CreditFacilityError> {
         let repo = Arc::new(CreditFacilityRepo::new(pool, publisher, clock.clone()));
@@ -148,7 +147,7 @@ where
                     E,
                 >::new(
                     repo.clone(),
-                    collateral_repo.clone(),
+                    collaterals.clone(),
                     price.clone(),
                     ledger.clone(),
                     authz.clone(),
@@ -165,7 +164,7 @@ where
                 ledger.clone(),
                 collections.clone(),
                 repo.clone(),
-                collateral_repo.clone(),
+                collaterals.clone(),
                 authz.clone(),
             ),
         );
@@ -194,7 +193,7 @@ where
 
         Ok(Self {
             repo,
-            collateral_repo,
+            collaterals,
             collections,
             pending_credit_facilities,
             disbursals,
@@ -353,7 +352,7 @@ where
         let mut credit_facility = self.repo.find_by_id_in_op(db, credit_facility_id).await?;
 
         let collateral = self
-            .collateral_repo
+            .collaterals
             .find_by_id_in_op(db, credit_facility.collateral_id)
             .await?;
         let collateral_account_id = collateral.account_ids.collateral_account_id;
@@ -559,8 +558,8 @@ where
         let credit_facility = self.repo.find_by_id(id).await?;
 
         let collateral = self
-            .collateral_repo
-            .find_by_id(credit_facility.collateral_id)
+            .collaterals
+            .find_by_id_without_audit(credit_facility.collateral_id)
             .await?;
         let collateral_account_id = collateral.account_id();
 
@@ -597,8 +596,8 @@ where
         }
 
         let collateral = self
-            .collateral_repo
-            .find_by_id(credit_facility.collateral_id)
+            .collaterals
+            .find_by_id_without_audit(credit_facility.collateral_id)
             .await?;
         let collateral_account_id = collateral.account_id();
 

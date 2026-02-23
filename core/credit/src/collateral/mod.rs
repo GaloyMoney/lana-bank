@@ -428,7 +428,7 @@ where
     #[instrument(name = "collateral.find_by_by_id_in_op", skip(self, db))]
     pub async fn find_by_id_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        db: &mut impl es_entity::AtomicOperation,
         id: CollateralId,
     ) -> Result<Collateral, CollateralError> {
         self.repo.find_by_id_in_op(db, id).await

@@ -48,7 +48,7 @@ use crate::{
     CompletedAccrualCycle, ConfirmedAccrual, CoreCreditAction, CoreCreditCollectionAction,
     CoreCreditCollectionEvent, CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
     CreditFacilityId,
-    collateral::repo::CollateralRepo,
+    collateral::Collaterals,
     credit_facility::{
         CreditFacilityRepo, error::CreditFacilityError,
         interest_accrual_cycle::NewInterestAccrualCycleData,
@@ -114,7 +114,7 @@ where
     ledger: Arc<CreditLedger>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     authz: Arc<Perms>,
 }
 
@@ -139,14 +139,14 @@ where
         ledger: Arc<CreditLedger>,
         collections: Arc<CoreCreditCollection<Perms, E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-        collateral_repo: Arc<CollateralRepo<E>>,
+        collaterals: Arc<Collaterals<Perms, E>>,
         authz: Arc<Perms>,
     ) -> Self {
         Self {
             ledger,
             collections,
             credit_facility_repo,
-            collateral_repo,
+            collaterals,
             authz,
         }
     }
@@ -185,7 +185,7 @@ where
             config: job.config()?,
             collections: self.collections.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
-            collateral_repo: self.collateral_repo.clone(),
+            collaterals: self.collaterals.clone(),
             ledger: self.ledger.clone(),
             spawner,
             authz: self.authz.clone(),
@@ -205,7 +205,7 @@ where
     config: InterestAccrualJobConfig<Perms, E>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     ledger: Arc<CreditLedger>,
     spawner: InterestAccrualJobSpawner<Perms, E>,
     authz: Arc<Perms>,
@@ -358,7 +358,7 @@ where
         let confirmed_accrual = {
             let account_ids = credit_facility.account_ids;
             let collateral = self
-                .collateral_repo
+                .collaterals
                 .find_by_id_in_op(op, credit_facility.collateral_id)
                 .await?;
             let collateral_account_id = collateral.account_id();
