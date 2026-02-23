@@ -24,6 +24,7 @@ pub enum DomainConfigEvent {
         encrypted: bool,
     },
     Updated {
+        // Option to handle null events when rehydrating after key rotation
         value: Option<DomainConfigValue>,
     },
 }
