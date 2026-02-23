@@ -17,7 +17,11 @@ use super::{entity::*, error::*};
     entity = "Deposit",
     err = "DepositError",
     columns(
-        deposit_account_id(ty = "DepositAccountId", list_for, update(persist = false)),
+        deposit_account_id(
+            ty = "DepositAccountId",
+            list_for(by(created_at)),
+            update(persist = false)
+        ),
         reference(ty = "String", create(accessor = "reference()")),
         public_id(ty = "PublicId", list_by)
     ),

@@ -17,7 +17,7 @@ use crate::{
         key(ty = "DomainConfigKey", list_by),
         visibility(
             ty = "Visibility",
-            list_for,
+            list_for(by(key)),
             create(accessor = "visibility"),
             update(persist = false)
         )

@@ -128,7 +128,12 @@ where
     entity = "Liquidation",
     err = "LiquidationError",
     columns(
-        collateral_id(ty = "CollateralId", list_for, parent, update(persist = false)),
+        collateral_id(
+            ty = "CollateralId",
+            list_for(by(created_at)),
+            parent,
+            update(persist = false)
+        ),
         completed(
             ty = "bool",
             create(persist = false),

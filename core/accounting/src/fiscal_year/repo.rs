@@ -13,7 +13,7 @@ use crate::primitives::{ChartId, FiscalYearId};
     entity = "FiscalYear",
     err = "FiscalYearError",
     columns(
-        chart_id(ty = "ChartId", update(persist = false), list_for),
+        chart_id(ty = "ChartId", update(persist = false), list_for(by(created_at))),
         reference(ty = "String", create(accessor = "reference()")),
     ),
     tbl_prefix = "core"
