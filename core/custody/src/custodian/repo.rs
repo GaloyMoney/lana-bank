@@ -29,12 +29,12 @@ impl CustodianRepo {
         }
     }
 
-    pub async fn list_all(&self) -> Result<Vec<Custodian>, CustodianError> {
+    pub async fn list_all_in_op(&self, op: &mut impl es_entity::AtomicOperation) -> Result<Vec<Custodian>, CustodianError> {
         let mut custodians = Vec::new();
         let mut next = Some(PaginatedQueryArgs::default());
 
         while let Some(query) = next.take() {
-            let mut ret = self.list_by_id(query, Default::default()).await?;
+            let mut ret = self.list_by_id_in_op(&mut *op, query, Default::default()).await?;
 
             custodians.append(&mut ret.entities);
             next = ret.into_next_query();

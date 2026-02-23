@@ -430,9 +430,8 @@ where
             )
             .await?;
 
-        let mut custodians = self.custodians.list_all().await?;
-
         let mut op = self.custodians.begin_op().await?;
+        let mut custodians = self.custodians.list_all_in_op(&mut op).await?;
 
         for custodian in custodians.iter_mut() {
             if custodian
