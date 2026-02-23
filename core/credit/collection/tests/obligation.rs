@@ -5,38 +5,36 @@ use authz::dummy::DummySubject;
 use cala_ledger::primitives::TransactionId as LedgerTxId;
 use core_credit_collection::{
     BeneficiaryId, CoreCreditCollectionEvent, NewObligation, Obligation, ObligationId,
-    ObligationStatus, ObligationType, Obligations, PaymentDetailsForAllocation, PaymentId,
+    ObligationStatus, ObligationType, PaymentDetailsForAllocation, PaymentId,
     PaymentLedgerAccountIds, PaymentSourceAccountId,
 };
 use core_credit_terms::EffectiveDate;
+use core_time_events::CoreTimeEvent;
 use es_entity::DbOp;
-use helpers::TestPerms;
 use helpers::event::{DummyEvent, expect_event};
 use money::UsdCents;
+use obix::Outbox;
 
 use helpers::TestContext;
 
-async fn process_obligations_for_day(
-    obligations: &Obligations<TestPerms, DummyEvent>,
+async fn publish_end_of_day(
+    outbox: &Outbox<DummyEvent>,
+    pool: &sqlx::PgPool,
+    clock: &es_entity::clock::ClockHandle,
     day: chrono::NaiveDate,
-) -> Result<(), core_credit_collection::ObligationError> {
-    loop {
-        let ids = obligations
-            .list_ids_needing_transition(day, None, 100)
-            .await?;
-        if ids.is_empty() {
-            break;
-        }
-        for id in ids {
-            match obligations.execute_transition(id, day).await {
-                Ok(()) => {}
-                Err(core_credit_collection::ObligationError::EsEntityError(
-                    es_entity::EsEntityError::ConcurrentModification,
-                )) => continue,
-                Err(e) => return Err(e),
-            }
-        }
-    }
+) -> anyhow::Result<()> {
+    let mut op = DbOp::init_with_clock(pool, clock).await?;
+    outbox
+        .publish_persisted_in_op(
+            &mut op,
+            CoreTimeEvent::EndOfDay {
+                day,
+                closing_time: chrono::Utc::now(),
+                timezone: chrono_tz::UTC,
+            },
+        )
+        .await?;
+    op.commit().await?;
     Ok(())
 }
 
@@ -157,25 +155,29 @@ async fn obligation_created_event_on_create() -> anyhow::Result<()> {
 /// - `outstanding_amount`: Current amount owed
 /// - `due_at`: Effective due date
 #[tokio::test]
+#[serial_test::file_serial(core_credit_collection_shared_jobs)]
 async fn obligation_due_event_on_process_day() -> anyhow::Result<()> {
-    let ctx = helpers::setup().await?;
+    let mut ctx = helpers::setup().await?;
+    ctx.jobs.start_poll().await?;
 
     let beneficiary_id = BeneficiaryId::new();
     let amount = UsdCents::from(100_000);
-    // Due today so process_obligations_for_day transitions immediately.
+    // Due today so EndOfDay transitions immediately.
     let due_date: EffectiveDate = ctx.clock.today().into();
 
     let obligation =
         create_obligation_with_dates(&ctx, beneficiary_id, amount, due_date, None, None).await?;
 
-    let obligations = ctx.collections.obligations().clone();
+    let outbox = ctx.outbox.clone();
+    let pool = ctx.pool.clone();
+    let clock = ctx.clock.clone();
     let day = ctx.clock.today();
     let obligation_id = obligation.id;
 
     let (_, recorded) = expect_event(
         &ctx.outbox,
         move || async move {
-            process_obligations_for_day(&obligations, day).await?;
+            publish_end_of_day(&outbox, &pool, &clock, day).await?;
             Ok::<_, anyhow::Error>(())
         },
         move |_, e| match e {
@@ -195,6 +197,7 @@ async fn obligation_due_event_on_process_day() -> anyhow::Result<()> {
     assert!(recorded.defaulted_at.is_none());
     assert_eq!(recorded.id, obligation.id);
 
+    ctx.jobs.shutdown().await?;
     Ok(())
 }
 
@@ -214,8 +217,10 @@ async fn obligation_due_event_on_process_day() -> anyhow::Result<()> {
 /// - `outstanding_amount`: Current amount owed
 /// - `overdue_at`: Effective overdue date
 #[tokio::test]
+#[serial_test::file_serial(core_credit_collection_shared_jobs)]
 async fn obligation_overdue_event_on_process_day() -> anyhow::Result<()> {
-    let ctx = helpers::setup().await?;
+    let mut ctx = helpers::setup().await?;
+    ctx.jobs.start_poll().await?;
 
     let beneficiary_id = BeneficiaryId::new();
     let amount = UsdCents::from(100_000);
@@ -237,14 +242,16 @@ async fn obligation_overdue_event_on_process_day() -> anyhow::Result<()> {
     )
     .await?;
 
-    let obligations = ctx.collections.obligations().clone();
+    let outbox = ctx.outbox.clone();
+    let pool = ctx.pool.clone();
+    let clock = ctx.clock.clone();
     let day = ctx.clock.today();
     let obligation_id = obligation.id;
 
     let (_, recorded) = expect_event(
         &ctx.outbox,
         move || async move {
-            process_obligations_for_day(&obligations, day).await?;
+            publish_end_of_day(&outbox, &pool, &clock, day).await?;
             Ok::<_, anyhow::Error>(())
         },
         move |_, e| match e {
@@ -264,6 +271,7 @@ async fn obligation_overdue_event_on_process_day() -> anyhow::Result<()> {
     assert!(recorded.defaulted_at.is_none());
     assert_eq!(recorded.id, obligation.id);
 
+    ctx.jobs.shutdown().await?;
     Ok(())
 }
 
@@ -283,8 +291,10 @@ async fn obligation_overdue_event_on_process_day() -> anyhow::Result<()> {
 /// - `outstanding_amount`: Current amount owed
 /// - `defaulted_at`: Effective defaulted date
 #[tokio::test]
+#[serial_test::file_serial(core_credit_collection_shared_jobs)]
 async fn obligation_defaulted_event_on_process_day() -> anyhow::Result<()> {
-    let ctx = helpers::setup().await?;
+    let mut ctx = helpers::setup().await?;
+    ctx.jobs.start_poll().await?;
 
     let beneficiary_id = BeneficiaryId::new();
     let amount = UsdCents::from(100_000);
@@ -307,14 +317,16 @@ async fn obligation_defaulted_event_on_process_day() -> anyhow::Result<()> {
     )
     .await?;
 
-    let obligations = ctx.collections.obligations().clone();
+    let outbox = ctx.outbox.clone();
+    let pool = ctx.pool.clone();
+    let clock = ctx.clock.clone();
     let day = ctx.clock.today();
     let obligation_id = obligation.id;
 
     let (_, recorded) = expect_event(
         &ctx.outbox,
         move || async move {
-            process_obligations_for_day(&obligations, day).await?;
+            publish_end_of_day(&outbox, &pool, &clock, day).await?;
             Ok::<_, anyhow::Error>(())
         },
         move |_, e| match e {
@@ -334,6 +346,7 @@ async fn obligation_defaulted_event_on_process_day() -> anyhow::Result<()> {
     assert_eq!(recorded.defaulted_at, Some(defaulted_date));
     assert_eq!(recorded.id, obligation.id);
 
+    ctx.jobs.shutdown().await?;
     Ok(())
 }
 
@@ -416,29 +429,64 @@ async fn obligation_completed_event_on_full_payment() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Calling execute_transition twice for the same day is idempotent.
+/// Publishing EndOfDay twice for the same day is idempotent.
 #[tokio::test]
-async fn execute_transition_is_idempotent() -> anyhow::Result<()> {
-    let ctx = helpers::setup().await?;
+#[serial_test::file_serial(core_credit_collection_shared_jobs)]
+async fn end_of_day_is_idempotent() -> anyhow::Result<()> {
+    let mut ctx = helpers::setup().await?;
+    ctx.jobs.start_poll().await?;
+
     let beneficiary_id = BeneficiaryId::new();
     let amount = UsdCents::from(100_000);
     let due_date: EffectiveDate = ctx.clock.today().into();
 
-    create_obligation_with_dates(&ctx, beneficiary_id, amount, due_date, None, None).await?;
+    let obligation =
+        create_obligation_with_dates(&ctx, beneficiary_id, amount, due_date, None, None).await?;
 
+    let outbox = ctx.outbox.clone();
+    let pool = ctx.pool.clone();
+    let clock = ctx.clock.clone();
     let day = ctx.clock.today();
-    process_obligations_for_day(ctx.collections.obligations(), day).await?;
+    let obligation_id = obligation.id;
 
-    // Calling again should not error
-    process_obligations_for_day(ctx.collections.obligations(), day).await?;
+    // First EndOfDay triggers the transition.
+    let (_, _recorded) = expect_event(
+        &ctx.outbox,
+        move || async move {
+            publish_end_of_day(&outbox, &pool, &clock, day).await?;
+            Ok::<_, anyhow::Error>(())
+        },
+        move |_, e| match e {
+            DummyEvent::CoreCreditCollection(CoreCreditCollectionEvent::ObligationDue {
+                entity,
+            }) if entity.id == obligation_id => Some(entity.clone()),
+            _ => None,
+        },
+    )
+    .await?;
 
+    // Publishing another EndOfDay for the same day should not error.
+    publish_end_of_day(&ctx.outbox, &ctx.pool, &ctx.clock, day).await?;
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
+    let updated = ctx
+        .collections
+        .obligations()
+        .find_by_id_without_audit(obligation.id)
+        .await?;
+    assert_eq!(updated.status(), ObligationStatus::Due);
+
+    ctx.jobs.shutdown().await?;
     Ok(())
 }
 
 /// Obligations with past due dates are processed when a later day is given (catch-up).
 #[tokio::test]
-async fn process_obligations_catches_up_past_due_dates() -> anyhow::Result<()> {
-    let ctx = helpers::setup().await?;
+#[serial_test::file_serial(core_credit_collection_shared_jobs)]
+async fn end_of_day_catches_up_past_due_dates() -> anyhow::Result<()> {
+    let mut ctx = helpers::setup().await?;
+    ctx.jobs.start_poll().await?;
+
     let beneficiary_id = BeneficiaryId::new();
     let amount = UsdCents::from(100_000);
     let today = ctx.clock.today();
@@ -451,8 +499,26 @@ async fn process_obligations_catches_up_past_due_dates() -> anyhow::Result<()> {
     let obligation =
         create_obligation_with_dates(&ctx, beneficiary_id, amount, due_date, None, None).await?;
 
+    let outbox = ctx.outbox.clone();
+    let pool = ctx.pool.clone();
+    let clock = ctx.clock.clone();
+    let obligation_id = obligation.id;
+
     // Processing with today's date should catch up
-    process_obligations_for_day(ctx.collections.obligations(), today).await?;
+    let (_, _recorded) = expect_event(
+        &ctx.outbox,
+        move || async move {
+            publish_end_of_day(&outbox, &pool, &clock, today).await?;
+            Ok::<_, anyhow::Error>(())
+        },
+        move |_, e| match e {
+            DummyEvent::CoreCreditCollection(CoreCreditCollectionEvent::ObligationDue {
+                entity,
+            }) if entity.id == obligation_id => Some(entity.clone()),
+            _ => None,
+        },
+    )
+    .await?;
 
     let updated = ctx
         .collections
@@ -461,17 +527,20 @@ async fn process_obligations_catches_up_past_due_dates() -> anyhow::Result<()> {
         .await?;
     assert_eq!(updated.status(), ObligationStatus::Due);
 
+    ctx.jobs.shutdown().await?;
     Ok(())
 }
 
-/// Paid obligations are not transitioned by process_obligations_for_day.
+/// Paid obligations are not transitioned by EndOfDay processing.
 #[tokio::test]
+#[serial_test::file_serial(core_credit_collection_shared_jobs)]
 async fn paid_obligations_are_skipped() -> anyhow::Result<()> {
-    let ctx = helpers::setup().await?;
+    let mut ctx = helpers::setup().await?;
+
     let beneficiary_id = BeneficiaryId::new();
     let amount = UsdCents::from(100_000);
     // Use a future due_date so the obligation is NotYetDue and won't be picked up
-    // by other concurrent tests calling process_obligations_for_day(today).
+    // by other concurrent tests.
     let due_date: EffectiveDate = ctx
         .clock
         .today()
@@ -522,10 +591,11 @@ async fn paid_obligations_are_skipped() -> anyhow::Result<()> {
         .await?;
     assert_eq!(updated.status(), ObligationStatus::Paid);
 
-    // Process day with due_date — paid obligation should not transition even though
-    // the date matches.
+    // Start poll and publish EndOfDay for due_date — paid obligation should not transition.
+    ctx.jobs.start_poll().await?;
     let day = chrono::NaiveDate::from(due_date);
-    process_obligations_for_day(ctx.collections.obligations(), day).await?;
+    publish_end_of_day(&ctx.outbox, &ctx.pool, &ctx.clock, day).await?;
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
 
     let after = ctx
         .collections
@@ -534,5 +604,6 @@ async fn paid_obligations_are_skipped() -> anyhow::Result<()> {
         .await?;
     assert_eq!(after.status(), ObligationStatus::Paid);
 
+    ctx.jobs.shutdown().await?;
     Ok(())
 }

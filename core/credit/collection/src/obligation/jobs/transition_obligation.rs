@@ -108,9 +108,19 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        self.obligations
-            .execute_transition(self.config.obligation_id, self.config.day)
-            .await?;
+        loop {
+            self.obligations
+                .execute_transition(self.config.obligation_id, self.config.day)
+                .await?;
+            let ob = self
+                .obligations
+                .find_by_id_without_audit(self.config.obligation_id)
+                .await?;
+            match ob.next_transition_date() {
+                Some(d) if d <= self.config.day => continue,
+                _ => break,
+            }
+        }
         Ok(JobCompletion::Complete)
     }
 }

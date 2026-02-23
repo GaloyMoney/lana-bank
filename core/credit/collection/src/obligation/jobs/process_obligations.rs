@@ -138,7 +138,7 @@ where
                 .iter()
                 .map(|id| {
                     JobSpec::new(
-                        JobId::from(uuid::Uuid::from(*id)),
+                        JobId::new(),
                         TransitionObligationJobConfig {
                             obligation_id: *id,
                             day: self.config.day,

@@ -46,5 +46,7 @@ schemars = { workspace = true, optional = true }
 [dev-dependencies]
 anyhow = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
+chrono-tz = { workspace = true }
 obix = { workspace = true, features = ["test-utils"] }
+serial_test = { workspace = true }
 tokio = { workspace = true }
