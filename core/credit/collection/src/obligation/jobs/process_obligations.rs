@@ -8,9 +8,11 @@ use core_time_events::CoreTimeEvent;
 use job::*;
 use obix::out::OutboxEventMarker;
 
+use super::transition_obligation::{TransitionObligationJobConfig, TransitionObligationJobSpawner};
 use crate::{obligation::Obligations, primitives::*, public::CoreCreditCollectionEvent};
 
 const PROCESS_OBLIGATIONS_JOB: JobType = JobType::new("task.process-obligations");
+const PAGE_SIZE: i64 = 100;
 
 #[derive(Serialize, Deserialize)]
 pub struct ProcessObligationsJobConfig<Perms, E>
@@ -41,6 +43,7 @@ where
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
     obligations: Obligations<Perms, E>,
+    transition_spawner: TransitionObligationJobSpawner<Perms, E>,
 }
 
 impl<Perms, E> ProcessObligationsJobInit<Perms, E>
@@ -48,9 +51,13 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    pub fn new(obligations: &Obligations<Perms, E>) -> Self {
+    pub fn new(
+        obligations: &Obligations<Perms, E>,
+        transition_spawner: TransitionObligationJobSpawner<Perms, E>,
+    ) -> Self {
         Self {
             obligations: obligations.clone(),
+            transition_spawner,
         }
     }
 }
@@ -76,6 +83,7 @@ where
         Ok(Box::new(ProcessObligationsJobRunner {
             config: job.config()?,
             obligations: self.obligations.clone(),
+            transition_spawner: self.transition_spawner.clone(),
         }))
     }
 }
@@ -87,6 +95,12 @@ where
 {
     config: ProcessObligationsJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
+    transition_spawner: TransitionObligationJobSpawner<Perms, E>,
+}
+
+#[derive(Default, Clone, Serialize, Deserialize)]
+struct ProcessObligationsState {
+    last_obligation_id: Option<ObligationId>,
 }
 
 #[async_trait]
@@ -99,15 +113,54 @@ where
 {
     #[instrument(
         name = "collection.obligation.process_obligations_job",
-        skip(self, _current_job)
+        skip(self, current_job),
+        fields(day = %self.config.day)
     )]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        self.obligations
-            .process_obligations_for_day(self.config.day)
-            .await?;
+        let mut state = current_job
+            .execution_state::<ProcessObligationsState>()?
+            .unwrap_or_default();
+
+        loop {
+            let ids = self
+                .obligations
+                .list_ids_needing_transition(self.config.day, state.last_obligation_id, PAGE_SIZE)
+                .await?;
+
+            if ids.is_empty() {
+                break;
+            }
+
+            let specs: Vec<_> = ids
+                .iter()
+                .map(|id| {
+                    JobSpec::new(
+                        JobId::from(uuid::Uuid::from(*id)),
+                        TransitionObligationJobConfig {
+                            obligation_id: *id,
+                            day: self.config.day,
+                            _phantom: std::marker::PhantomData,
+                        },
+                    )
+                    .queue_id(id.to_string())
+                })
+                .collect();
+
+            let mut op = current_job.begin_op().await?;
+            self.transition_spawner
+                .spawn_all_in_op(&mut op, specs)
+                .await?;
+
+            state.last_obligation_id = ids.last().copied();
+            current_job
+                .update_execution_state_in_op(&mut op, &state)
+                .await?;
+            op.commit().await?;
+        }
+
         Ok(JobCompletion::Complete)
     }
 }

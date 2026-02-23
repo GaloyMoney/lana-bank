@@ -103,36 +103,18 @@ where
         self.repo.find_by_id(id).await
     }
 
-    #[record_error_severity]
-    #[instrument(
-        name = "collections.obligation.process_obligations_for_day",
-        skip(self),
-        fields(day = %day, n_transitions)
-    )]
-    pub async fn process_obligations_for_day(
+    pub async fn list_ids_needing_transition(
         &self,
         day: chrono::NaiveDate,
-    ) -> Result<(), ObligationError> {
-        loop {
-            let obligations = self.repo.list_needing_transition(day).await?;
-            if obligations.is_empty() {
-                break;
-            }
-            Span::current().record("n_transitions", obligations.len());
-            for obligation in obligations {
-                match self.execute_transition(obligation.id, day).await {
-                    Ok(()) => {}
-                    Err(ObligationError::EsEntityError(
-                        es_entity::EsEntityError::ConcurrentModification,
-                    )) => continue,
-                    Err(e) => return Err(e),
-                }
-            }
-        }
-        Ok(())
+        after_id: Option<ObligationId>,
+        limit: i64,
+    ) -> Result<Vec<ObligationId>, ObligationError> {
+        self.repo
+            .list_ids_needing_transition(day, after_id, limit)
+            .await
     }
 
-    async fn execute_transition(
+    pub async fn execute_transition(
         &self,
         id: ObligationId,
         effective: chrono::NaiveDate,

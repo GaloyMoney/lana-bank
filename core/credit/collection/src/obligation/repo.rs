@@ -85,18 +85,27 @@ where
             .await
     }
 
-    pub async fn list_needing_transition(
+    pub async fn list_ids_needing_transition(
         &self,
         day: chrono::NaiveDate,
-    ) -> Result<Vec<Obligation>, ObligationError> {
-        let (entities, _) = es_query!(
-            tbl_prefix = "core",
-            "SELECT id FROM core_obligations WHERE next_transition_date IS NOT NULL AND next_transition_date <= $1",
-            day as chrono::NaiveDate,
+        after_id: Option<ObligationId>,
+        limit: i64,
+    ) -> Result<Vec<ObligationId>, ObligationError> {
+        let rows = sqlx::query_scalar!(
+            r#"SELECT id AS "id: ObligationId"
+               FROM core_obligations
+               WHERE next_transition_date IS NOT NULL
+                 AND next_transition_date <= $1
+                 AND ($2::uuid IS NULL OR id > $2)
+               ORDER BY id
+               LIMIT $3"#,
+            day,
+            after_id as Option<ObligationId>,
+            limit,
         )
-        .fetch_n(self.pool(), 1000)
+        .fetch_all(self.pool())
         .await?;
-        Ok(entities)
+        Ok(rows)
     }
 }
 

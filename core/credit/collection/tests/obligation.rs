@@ -5,15 +5,40 @@ use authz::dummy::DummySubject;
 use cala_ledger::primitives::TransactionId as LedgerTxId;
 use core_credit_collection::{
     BeneficiaryId, CoreCreditCollectionEvent, NewObligation, Obligation, ObligationId,
-    ObligationStatus, ObligationType, PaymentDetailsForAllocation, PaymentId,
+    ObligationStatus, ObligationType, Obligations, PaymentDetailsForAllocation, PaymentId,
     PaymentLedgerAccountIds, PaymentSourceAccountId,
 };
 use core_credit_terms::EffectiveDate;
 use es_entity::DbOp;
+use helpers::TestPerms;
 use helpers::event::{DummyEvent, expect_event};
 use money::UsdCents;
 
 use helpers::TestContext;
+
+async fn process_obligations_for_day(
+    obligations: &Obligations<TestPerms, DummyEvent>,
+    day: chrono::NaiveDate,
+) -> Result<(), core_credit_collection::ObligationError> {
+    loop {
+        let ids = obligations
+            .list_ids_needing_transition(day, None, 100)
+            .await?;
+        if ids.is_empty() {
+            break;
+        }
+        for id in ids {
+            match obligations.execute_transition(id, day).await {
+                Ok(()) => {}
+                Err(core_credit_collection::ObligationError::EsEntityError(
+                    es_entity::EsEntityError::ConcurrentModification,
+                )) => continue,
+                Err(e) => return Err(e),
+            }
+        }
+    }
+    Ok(())
+}
 
 async fn create_obligation_with_dates(
     ctx: &TestContext,
@@ -118,7 +143,7 @@ async fn obligation_created_event_on_create() -> anyhow::Result<()> {
 /// `ObligationDue` is published when an obligation moves to the due state.
 ///
 /// # Trigger
-/// `Obligations::process_obligations_for_day` (triggered by EndOfDay event)
+/// `Obligations::execute_transition` (triggered by TransitionObligationJob)
 ///
 /// # Consumers
 /// - `RepaymentPlan::process_collection_event` - marks repayment entry as `Due`
@@ -150,7 +175,7 @@ async fn obligation_due_event_on_process_day() -> anyhow::Result<()> {
     let (_, recorded) = expect_event(
         &ctx.outbox,
         move || async move {
-            obligations.process_obligations_for_day(day).await?;
+            process_obligations_for_day(&obligations, day).await?;
             Ok::<_, anyhow::Error>(())
         },
         move |_, e| match e {
@@ -176,7 +201,7 @@ async fn obligation_due_event_on_process_day() -> anyhow::Result<()> {
 /// `ObligationOverdue` is published when an obligation moves to the overdue state.
 ///
 /// # Trigger
-/// `Obligations::process_obligations_for_day` (triggered by EndOfDay event)
+/// `Obligations::execute_transition` (triggered by TransitionObligationJob)
 ///
 /// # Consumers
 /// - `RepaymentPlan::process_collection_event` - marks repayment entry as `Overdue`
@@ -219,7 +244,7 @@ async fn obligation_overdue_event_on_process_day() -> anyhow::Result<()> {
     let (_, recorded) = expect_event(
         &ctx.outbox,
         move || async move {
-            obligations.process_obligations_for_day(day).await?;
+            process_obligations_for_day(&obligations, day).await?;
             Ok::<_, anyhow::Error>(())
         },
         move |_, e| match e {
@@ -245,7 +270,7 @@ async fn obligation_overdue_event_on_process_day() -> anyhow::Result<()> {
 /// `ObligationDefaulted` is published when an obligation moves to the defaulted state.
 ///
 /// # Trigger
-/// `Obligations::process_obligations_for_day` (triggered by EndOfDay event)
+/// `Obligations::execute_transition` (triggered by TransitionObligationJob)
 ///
 /// # Consumers
 /// - `RepaymentPlan::process_collection_event` - marks repayment entry as `Defaulted`
@@ -289,7 +314,7 @@ async fn obligation_defaulted_event_on_process_day() -> anyhow::Result<()> {
     let (_, recorded) = expect_event(
         &ctx.outbox,
         move || async move {
-            obligations.process_obligations_for_day(day).await?;
+            process_obligations_for_day(&obligations, day).await?;
             Ok::<_, anyhow::Error>(())
         },
         move |_, e| match e {
@@ -391,9 +416,9 @@ async fn obligation_completed_event_on_full_payment() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Calling process_obligations_for_day twice for the same day is idempotent.
+/// Calling execute_transition twice for the same day is idempotent.
 #[tokio::test]
-async fn process_obligations_for_day_is_idempotent() -> anyhow::Result<()> {
+async fn execute_transition_is_idempotent() -> anyhow::Result<()> {
     let ctx = helpers::setup().await?;
     let beneficiary_id = BeneficiaryId::new();
     let amount = UsdCents::from(100_000);
@@ -402,16 +427,10 @@ async fn process_obligations_for_day_is_idempotent() -> anyhow::Result<()> {
     create_obligation_with_dates(&ctx, beneficiary_id, amount, due_date, None, None).await?;
 
     let day = ctx.clock.today();
-    ctx.collections
-        .obligations()
-        .process_obligations_for_day(day)
-        .await?;
+    process_obligations_for_day(ctx.collections.obligations(), day).await?;
 
     // Calling again should not error
-    ctx.collections
-        .obligations()
-        .process_obligations_for_day(day)
-        .await?;
+    process_obligations_for_day(ctx.collections.obligations(), day).await?;
 
     Ok(())
 }
@@ -433,10 +452,7 @@ async fn process_obligations_catches_up_past_due_dates() -> anyhow::Result<()> {
         create_obligation_with_dates(&ctx, beneficiary_id, amount, due_date, None, None).await?;
 
     // Processing with today's date should catch up
-    ctx.collections
-        .obligations()
-        .process_obligations_for_day(today)
-        .await?;
+    process_obligations_for_day(ctx.collections.obligations(), today).await?;
 
     let updated = ctx
         .collections
@@ -509,10 +525,7 @@ async fn paid_obligations_are_skipped() -> anyhow::Result<()> {
     // Process day with due_date — paid obligation should not transition even though
     // the date matches.
     let day = chrono::NaiveDate::from(due_date);
-    ctx.collections
-        .obligations()
-        .process_obligations_for_day(day)
-        .await?;
+    process_obligations_for_day(ctx.collections.obligations(), day).await?;
 
     let after = ctx
         .collections
