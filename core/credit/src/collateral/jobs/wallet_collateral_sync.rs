@@ -1,55 +1,34 @@
 use tracing::{Span, instrument};
-use tracing_macros::record_error_severity;
-
-use std::sync::Arc;
-
-use audit::SystemSubject;
-use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
-
-use job::JobType;
 
 use core_custody::CoreCustodyEvent;
+use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{
-    collateral::public::CoreCreditCollateralEvent,
-    collateral::{CollateralError, CollateralRepo, ledger::CollateralLedger},
-};
+use job::{JobId, JobSpawner, JobType};
+
+use super::wallet_collateral_sync_job::WalletCollateralSyncConfig;
 
 pub const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-collateral-sync");
 
-pub struct WalletCollateralSyncHandler<S, E>
-where
-    S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
-{
-    repo: Arc<CollateralRepo<E>>,
-    ledger: Arc<CollateralLedger>,
-    _phantom: std::marker::PhantomData<S>,
+pub struct WalletCollateralSyncHandler {
+    wallet_collateral_sync_job_spawner: JobSpawner<WalletCollateralSyncConfig>,
 }
 
-impl<S, E> WalletCollateralSyncHandler<S, E>
-where
-    S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCustodyEvent> + OutboxEventMarker<CoreCreditCollateralEvent>,
-{
-    pub fn new(ledger: Arc<CollateralLedger>, repo: Arc<CollateralRepo<E>>) -> Self {
+impl WalletCollateralSyncHandler {
+    pub fn new(wallet_collateral_sync_job_spawner: JobSpawner<WalletCollateralSyncConfig>) -> Self {
         Self {
-            ledger,
-            repo,
-            _phantom: std::marker::PhantomData,
+            wallet_collateral_sync_job_spawner,
         }
     }
 }
 
-impl<S, E> OutboxEventHandler<E> for WalletCollateralSyncHandler<S, E>
+impl<E> OutboxEventHandler<E> for WalletCollateralSyncHandler
 where
-    S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(name = "core_credit.wallet_collateral_sync_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "core_credit.wallet_collateral_sync_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        _op: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         #[allow(clippy::single_match)]
@@ -64,58 +43,20 @@ where
                     .as_ref()
                     .expect("WalletBalanceUpdated must have balance");
 
-                self.record_collateral_update_via_custodian_sync(
-                    entity.id,
-                    balance.amount,
-                    balance.updated_at.date_naive(),
-                )
-                .await?;
+                self.wallet_collateral_sync_job_spawner
+                    .spawn_in_op(
+                        op,
+                        JobId::new(),
+                        WalletCollateralSyncConfig {
+                            custody_wallet_id: entity.id,
+                            updated_collateral: balance.amount,
+                            effective: balance.updated_at.date_naive(),
+                        },
+                    )
+                    .await?;
             }
             _ => {}
         }
-        Ok(())
-    }
-}
-
-impl<S, E> WalletCollateralSyncHandler<S, E>
-where
-    S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
-{
-    #[record_error_severity]
-    #[instrument(
-        name = "collateral.record_collateral_update_via_custodian_sync",
-        fields(updated_collateral = %updated_collateral, effective = %effective),
-        skip(self),
-    )]
-    async fn record_collateral_update_via_custodian_sync(
-        &self,
-        custody_wallet_id: crate::primitives::CustodyWalletId,
-        updated_collateral: money::Satoshis,
-        effective: chrono::NaiveDate,
-    ) -> Result<(), CollateralError> {
-        let mut collateral = self
-            .repo
-            .find_by_custody_wallet_id(Some(custody_wallet_id))
-            .await?;
-
-        let mut db = self.repo.begin_op().await?;
-
-        if let es_entity::Idempotent::Executed(data) =
-            collateral.record_collateral_update_via_custodian_sync(updated_collateral, effective)
-        {
-            self.repo.update_in_op(&mut db, &mut collateral).await?;
-
-            self.ledger
-                .update_collateral_amount_in_op(
-                    &mut db,
-                    data,
-                    &S::system(crate::primitives::COLLATERALIZATION_SYNC),
-                )
-                .await?;
-            db.commit().await?;
-        }
-
         Ok(())
     }
 }
