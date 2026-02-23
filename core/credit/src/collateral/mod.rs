@@ -4,6 +4,7 @@ mod jobs;
 pub mod ledger;
 pub mod liquidation;
 pub mod primitives;
+pub mod public;
 pub(crate) mod repo;
 
 use std::collections::HashMap;
@@ -27,7 +28,7 @@ use crate::{
 
 use es_entity::Idempotent;
 
-use crate::{CoreCreditEvent, primitives::*};
+use crate::{collateral::public::CoreCreditCollateralEvent, primitives::*};
 
 use ledger::{
     CollateralLedger, CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
@@ -52,7 +53,7 @@ pub use liquidation::LiquidationEvent;
 pub struct Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>
+    E: OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -66,7 +67,7 @@ where
 impl<Perms, E> Clone for Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>
+    E: OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -88,7 +89,7 @@ where
         From<CoreCreditAction> + From<core_credit_collection::CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<core_credit_collection::CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
+    E: OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<GovernanceEvent>,
@@ -506,3 +507,4 @@ impl RecordProceedsFromLiquidationData {
         }
     }
 }
+pub(crate) mod publisher;

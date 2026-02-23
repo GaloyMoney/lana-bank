@@ -18,7 +18,7 @@ use es_entity::clock::ClockHandle;
 
 use crate::{
     Collaterals, CoreCreditEvent, CreditFacilityProposals,
-    collateral::ledger::CollateralLedgerAccountIds,
+    collateral::{ledger::CollateralLedgerAccountIds, public::CoreCreditCollateralEvent},
     credit_facility::NewCreditFacilityBuilder,
     credit_facility_proposal::{CreditFacilityProposal, ProposalApprovalOutcome},
     disbursal::NewDisbursalBuilder,
@@ -47,6 +47,7 @@ pub struct PendingCreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -66,6 +67,7 @@ impl<Perms, E> Clone for PendingCreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -98,6 +100,7 @@ where
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>

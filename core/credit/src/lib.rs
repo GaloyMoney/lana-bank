@@ -44,7 +44,7 @@ pub use chart_of_accounts_integration::{
 };
 pub use collateral::{
     Collateral, Collaterals, Liquidation, RecordProceedsFromLiquidationData, liquidation_cursor,
-    liquidation_cursor::*,
+    liquidation_cursor::*, public::CoreCreditCollateralEvent, publisher::CollateralPublisher,
 };
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
@@ -84,6 +84,7 @@ pub struct CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -120,6 +121,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
@@ -169,6 +171,7 @@ where
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
@@ -244,7 +247,7 @@ where
 
         let collateral_repo = Arc::new(crate::collateral::repo::CollateralRepo::new(
             pool,
-            &publisher,
+            &CollateralPublisher::new(outbox),
             clock.clone(),
         ));
 

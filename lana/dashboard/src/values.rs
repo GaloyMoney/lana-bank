@@ -40,7 +40,9 @@ impl DashboardValues {
                 self.total_disbursed -= entity.amount;
                 true
             }
-            LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated { entity }) => {
+            LanaEvent::CreditCollateral(CoreCreditCollateralEvent::FacilityCollateralUpdated {
+                entity,
+            }) => {
                 let adjustment = entity
                     .adjustment
                     .as_ref()

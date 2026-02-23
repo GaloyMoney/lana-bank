@@ -15,7 +15,7 @@ use tracing_macros::record_error_severity;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
-    primitives::CreditFacilityId,
+    collateral::public::CoreCreditCollateralEvent, primitives::CreditFacilityId,
 };
 pub use entry::*;
 use error::CreditFacilityHistoryError;
@@ -56,20 +56,6 @@ impl CreditFacilityHistory {
                         tx_id: entity.activation_tx_id,
                     },
                 ));
-            }
-            FacilityCollateralUpdated { entity } => {
-                let adjustment = entity
-                    .adjustment
-                    .as_ref()
-                    .expect("adjustment must be set for FacilityCollateralUpdated");
-                self.entries
-                    .push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
-                        satoshis: adjustment.abs_diff,
-                        recorded_at: message_recorded_at,
-                        effective: message_recorded_at.date_naive(),
-                        direction: adjustment.direction,
-                        tx_id: adjustment.tx_id,
-                    }));
             }
             FacilityCollateralizationChanged { entity } => {
                 let collateralization = &entity.collateralization;
@@ -131,6 +117,31 @@ impl CreditFacilityHistory {
             PendingCreditFacilityCompleted { .. } => {}
             FacilityCompleted { .. } => {}
             PartialLiquidationInitiated { .. } => {}
+        }
+    }
+
+    pub fn process_collateral_event(
+        &mut self,
+        event: &CoreCreditCollateralEvent,
+        message_recorded_at: DateTime<Utc>,
+    ) {
+        use CoreCreditCollateralEvent::*;
+
+        match event {
+            FacilityCollateralUpdated { entity } => {
+                let adjustment = entity
+                    .adjustment
+                    .as_ref()
+                    .expect("adjustment must be set for FacilityCollateralUpdated");
+                self.entries
+                    .push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
+                        satoshis: adjustment.abs_diff,
+                        recorded_at: message_recorded_at,
+                        effective: message_recorded_at.date_naive(),
+                        direction: adjustment.direction,
+                        tx_id: adjustment.tx_id,
+                    }));
+            }
             PartialLiquidationCollateralSentOut {
                 amount,
                 recorded_at,
@@ -209,7 +220,9 @@ where
         authz: Arc<Perms>,
     ) -> Result<Self, error::CreditFacilityHistoryError>
     where
-        E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<crate::CoreCreditCollectionEvent>,
+        E: OutboxEventMarker<CoreCreditEvent>
+            + OutboxEventMarker<CoreCreditCollateralEvent>
+            + OutboxEventMarker<crate::CoreCreditCollectionEvent>,
     {
         let repo = Arc::new(HistoryRepo::new(pool));
 

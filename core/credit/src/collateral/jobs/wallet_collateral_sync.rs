@@ -11,7 +11,7 @@ use job::JobType;
 use core_custody::CoreCustodyEvent;
 
 use crate::{
-    CoreCreditEvent,
+    collateral::public::CoreCreditCollateralEvent,
     collateral::{CollateralError, CollateralRepo, ledger::CollateralLedger},
 };
 
@@ -20,7 +20,7 @@ pub const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-coll
 pub struct WalletCollateralSyncHandler<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
@@ -30,7 +30,7 @@ where
 impl<S, E> WalletCollateralSyncHandler<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCustodyEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCustodyEvent> + OutboxEventMarker<CoreCreditCollateralEvent>,
 {
     pub fn new(ledger: Arc<CollateralLedger>, repo: Arc<CollateralRepo<E>>) -> Self {
         Self {
@@ -44,7 +44,7 @@ where
 impl<S, E> OutboxEventHandler<E> for WalletCollateralSyncHandler<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[instrument(name = "core_credit.wallet_collateral_sync_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
@@ -80,7 +80,7 @@ where
 impl<S, E> WalletCollateralSyncHandler<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[record_error_severity]
     #[instrument(

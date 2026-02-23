@@ -14,7 +14,7 @@ use job::JobType;
 use super::liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner};
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
-    collateral::{Collaterals, SecuredLoanId},
+    collateral::{Collaterals, SecuredLoanId, public::CoreCreditCollateralEvent},
     primitives::{CoreCreditAction, CoreCreditObject},
 };
 
@@ -25,6 +25,7 @@ pub struct CreditFacilityLiquidationsHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -38,6 +39,7 @@ impl<Perms, E> CreditFacilityLiquidationsHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -63,6 +65,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,

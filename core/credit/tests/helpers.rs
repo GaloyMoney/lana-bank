@@ -429,6 +429,7 @@ pub mod event {
 
     use core_access::CoreAccessEvent;
     use core_accounting::CoreAccountingEvent;
+    use core_credit::CoreCreditCollateralEvent;
     use core_credit::CoreCreditCollectionEvent;
     use core_credit::CoreCreditEvent;
     use core_custody::CoreCustodyEvent;
@@ -443,6 +444,7 @@ pub mod event {
         CoreAccess(CoreAccessEvent),
         CoreAccounting(CoreAccountingEvent),
         CoreCredit(CoreCreditEvent),
+        CoreCreditCollateral(CoreCreditCollateralEvent),
         CoreCreditCollection(CoreCreditCollectionEvent),
         CoreCustody(CoreCustodyEvent),
         CoreCustomer(CoreCustomerEvent),

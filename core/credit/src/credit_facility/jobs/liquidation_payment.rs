@@ -13,11 +13,12 @@ use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_credit_collection::{
-    CoreCreditCollection, CoreCreditCollectionEvent, PaymentLedgerAccountIds,
+    BeneficiaryId, CoreCreditCollection, CoreCreditCollectionEvent, PaymentLedgerAccountIds,
 };
 use core_custody::CoreCustodyEvent;
 use governance::GovernanceEvent;
 
+use crate::collateral::public::CoreCreditCollateralEvent;
 use crate::{
     collateral::Collaterals,
     credit_facility::CreditFacilityRepo,
@@ -53,6 +54,7 @@ pub struct LiquidationPaymentInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -67,6 +69,7 @@ impl<Perms, E> LiquidationPaymentInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -96,6 +99,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<crate::primitives::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -124,6 +128,7 @@ pub struct LiquidationPaymentJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -143,6 +148,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<crate::primitives::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -179,13 +185,13 @@ where
         message: &PersistentOutboxEvent<E>,
         clock: &es_entity::clock::ClockHandle,
     ) -> Result<ControlFlow<()>, Box<dyn std::error::Error>> {
-        use CoreCreditEvent::*;
+        use CoreCreditCollateralEvent::*;
 
         match message.as_event() {
             Some(
                 event @ PartialLiquidationProceedsReceived {
                     amount,
-                    credit_facility_id,
+                    secured_loan_id,
                     liquidation_id,
                     payment_id,
                     ..
@@ -210,12 +216,14 @@ where
                         .into(),
                 };
 
+                let beneficiary_id: BeneficiaryId = CreditFacilityId::from(*secured_loan_id).into();
+
                 self.collections
                     .payments()
                     .record_in_op(
                         db,
                         *payment_id,
-                        (*credit_facility_id).into(),
+                        beneficiary_id,
                         payment_ledger_account_ids,
                         *amount,
                         clock.today(),
@@ -258,6 +266,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<crate::primitives::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
