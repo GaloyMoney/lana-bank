@@ -17,6 +17,7 @@ obix = { workspace = true }
 job = { workspace = true }
 keycloak-client = { workspace = true }
 
+async-trait = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
 serde = { workspace = true }
 thiserror = { workspace = true }

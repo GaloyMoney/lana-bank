@@ -3,11 +3,13 @@
 
 pub mod config;
 pub mod error;
-mod job;
+mod handler;
+pub mod job;
 
 use config::UserOnboardingConfig;
 use error::*;
-use job::*;
+use handler::*;
+use job::CreateKeycloakUserJobInitializer;
 
 use core_access::CoreAccessEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
@@ -46,11 +48,12 @@ where
     ) -> Result<Self, UserOnboardingError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak);
 
+        let spawner = jobs.add_initializer(CreateKeycloakUserJobInitializer::new(keycloak_client));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(USER_ONBOARDING_JOB),
-                UserOnboardingHandler::new(keycloak_client),
+                UserOnboardingHandler::new(spawner),
             )
             .await?;
 
