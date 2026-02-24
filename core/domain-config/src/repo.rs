@@ -18,9 +18,9 @@ use crate::{
         visibility(
             ty = "Visibility",
             list_for(by(key)),
-            create(accessor = "visibility"),
             update(persist = false)
-        )
+        ),
+        encrypted(ty = "bool", list_for(by(id)), update(persist = false))
     ),
     tbl_prefix = "core"
 )]
@@ -51,7 +51,7 @@ impl DomainConfigRepo {
             .collect())
     }
 
-    pub async fn list_all_in_op(
+    pub async fn list_all_encrypted_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
     ) -> Result<Vec<DomainConfig>, DomainConfigError> {
@@ -59,7 +59,7 @@ impl DomainConfigRepo {
         let mut domain_configs = Vec::new();
         while let Some(query) = next {
             let mut ret = self
-                .list_by_id_in_op(&mut *op, query, Default::default())
+                .list_for_encrypted_by_id_in_op(&mut *op, true, query, Default::default())
                 .await?;
             domain_configs.append(&mut ret.entities);
             next = ret.into_next_query();

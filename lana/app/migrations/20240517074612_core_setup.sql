@@ -554,6 +554,7 @@ CREATE TABLE core_domain_configs (
   id UUID PRIMARY KEY,
   key VARCHAR NOT NULL UNIQUE,
   visibility TEXT NOT NULL,
+  encrypted BOOLEAN NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

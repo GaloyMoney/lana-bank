@@ -256,7 +256,9 @@ impl DomainConfig {
             return Ok(Idempotent::AlreadyApplied);
         };
         if !current.is_encrypted() {
-            return Ok(Idempotent::AlreadyApplied);
+            return Err(DomainConfigError::NotEncrypted(format!(
+                "Cannot perform key rotation for a non-encrypted config"
+            )));
         }
         if current.decrypt(new_key).is_ok() {
             return Ok(Idempotent::AlreadyApplied);

@@ -10,16 +10,14 @@ pub enum DomainConfigError {
     InvalidKey(String),
     #[error("DomainConfigError - Invalid State: {0}")]
     InvalidState(String),
-    #[error("DomainConfigError - Not Configured")]
-    NotConfigured,
-    #[error("DomainConfigError - No default value defined for config key {0}")]
-    NoDefault(String),
     #[error("DomainConfigError - Invalid Type: {0}")]
     InvalidType(String),
     #[error("DomainConfigError - DuplicateKey")]
     DuplicateKey,
     #[error("DomainConfigError - Encryption")]
     Encryption(#[from] encryption::EncryptionError),
+    #[error("DomainConfigError - Not Encrypted")]
+    NotEncrypted(String),
     #[error("DomainConfigError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
     #[error("DomainConfigError - Sqlx: {0}")]
@@ -55,11 +53,10 @@ impl ErrorSeverity for DomainConfigError {
         match self {
             Self::InvalidKey(_) => Level::ERROR,
             Self::InvalidState(_) => Level::ERROR,
-            Self::NotConfigured => Level::WARN,
-            Self::NoDefault(_) => Level::WARN,
             Self::InvalidType(_) => Level::ERROR,
             Self::DuplicateKey => Level::DEBUG,
             Self::Encryption(e) => e.severity(),
+            Self::NotEncrypted(_) => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),

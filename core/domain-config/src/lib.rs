@@ -530,7 +530,7 @@ where
             DomainConfigAction::ALL_CONFIG_WRITE,
         )
         .await?;
-    let configs = repo.list_all_in_op(&mut op).await?;
+    let configs = repo.list_all_encrypted_in_op(&mut op).await?;
     let mut updated_configs = Vec::new();
 
     for mut entity in configs.into_iter() {
