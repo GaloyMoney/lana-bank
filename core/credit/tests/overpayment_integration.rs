@@ -198,13 +198,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
-    let mut jobs = job::Jobs::init(
-        job::JobSvcConfig::builder()
-            .pool(pool.clone())
-            .build()
-            .unwrap(),
-    )
-    .await?;
+
     let journal_id = helpers::init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(
@@ -254,6 +248,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         &internal_domain_configs,
     )
     .await?;
+    helpers::seed_price(&outbox, &price).await?;
     jobs.start_poll().await?;
 
     // Create active facility
