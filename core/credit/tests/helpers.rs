@@ -274,6 +274,7 @@ where
 pub mod action {
     use core_accounting::CoreAccountingAction;
     use core_credit::CoreCreditAction;
+    use core_credit::CoreCreditCollateralAction;
     use core_credit::CoreCreditCollectionAction;
     use core_custody::CoreCustodyAction;
     use core_customer::CoreCustomerAction;
@@ -332,6 +333,12 @@ pub mod action {
         }
     }
 
+    impl From<CoreCreditCollateralAction> for DummyAction {
+        fn from(_: CoreCreditCollateralAction) -> Self {
+            Self
+        }
+    }
+
     impl std::fmt::Display for DummyAction {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "dummy")?;
@@ -350,6 +357,7 @@ pub mod action {
 
 pub mod object {
     use core_accounting::CoreAccountingObject;
+    use core_credit::CoreCreditCollateralObject;
     use core_credit::CoreCreditCollectionObject;
     use core_credit::CoreCreditObject;
     use core_custody::CoreCustodyObject;
@@ -403,6 +411,12 @@ pub mod object {
 
     impl From<DomainConfigObject> for DummyObject {
         fn from(_: DomainConfigObject) -> Self {
+            Self
+        }
+    }
+
+    impl From<CoreCreditCollateralObject> for DummyObject {
+        fn from(_: CoreCreditCollateralObject) -> Self {
             Self
         }
     }

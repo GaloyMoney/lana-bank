@@ -21,10 +21,7 @@ use governance::GovernanceEvent;
 use money::UsdCents;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
-use crate::{
-    FacilityProceedsFromLiquidationAccountId,
-    primitives::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject},
-};
+use crate::{FacilityProceedsFromLiquidationAccountId, primitives::CoreCreditCollectionEvent};
 
 use es_entity::Idempotent;
 
@@ -86,9 +83,9 @@ impl<Perms, E> Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<core_credit_collection::CoreCreditCollectionAction>,
+        From<CoreCreditCollateralAction> + From<core_credit_collection::CoreCreditCollectionAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<core_credit_collection::CoreCreditCollectionObject>,
+        From<CoreCreditCollateralObject> + From<core_credit_collection::CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -217,8 +214,8 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreCreditObject::all_collaterals(),
-                CoreCreditAction::COLLATERAL_RECORD_MANUAL_UPDATE,
+                CoreCreditCollateralObject::all_collaterals(),
+                CoreCreditCollateralAction::COLLATERAL_RECORD_MANUAL_UPDATE,
                 enforce,
             )
             .await?)
@@ -297,8 +294,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::collateral(collateral_id),
-                CoreCreditAction::COLLATERAL_RECORD_LIQUIDATION_UPDATE,
+                CoreCreditCollateralObject::collateral(collateral_id),
+                CoreCreditCollateralAction::COLLATERAL_RECORD_LIQUIDATION_UPDATE,
             )
             .await?;
 
@@ -347,8 +344,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::collateral(collateral_id),
-                CoreCreditAction::COLLATERAL_RECORD_PAYMENT_RECEIVED_FROM_LIQUIDATION,
+                CoreCreditCollateralObject::collateral(collateral_id),
+                CoreCreditCollateralAction::COLLATERAL_RECORD_PAYMENT_RECEIVED_FROM_LIQUIDATION,
             )
             .await?;
 
@@ -388,8 +385,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::all_liquidations(),
-                CoreCreditAction::LIQUIDATION_LIST,
+                CoreCreditCollateralObject::all_liquidations(),
+                CoreCreditCollateralAction::LIQUIDATION_LIST,
             )
             .await?;
 
@@ -410,8 +407,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::liquidation(id),
-                CoreCreditAction::LIQUIDATION_READ,
+                CoreCreditCollateralObject::liquidation(id),
+                CoreCreditCollateralAction::LIQUIDATION_READ,
             )
             .await?;
 
@@ -466,8 +463,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::all_liquidations(),
-                CoreCreditAction::LIQUIDATION_LIST,
+                CoreCreditCollateralObject::all_liquidations(),
+                CoreCreditCollateralAction::LIQUIDATION_LIST,
             )
             .await?;
 

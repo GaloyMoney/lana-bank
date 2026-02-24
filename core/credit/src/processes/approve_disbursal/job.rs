@@ -12,7 +12,9 @@ use job::JobType;
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
     CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
-    collateral::public::CoreCreditCollateralEvent,
+    collateral::{
+        CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
+    },
 };
 
 use super::ApproveDisbursal;
@@ -62,10 +64,12 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
+        + From<CoreCreditCollateralAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
+        + From<CoreCreditCollateralObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>

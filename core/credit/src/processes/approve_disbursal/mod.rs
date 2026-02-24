@@ -17,8 +17,12 @@ use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, Disbursals,
-    collateral::public::CoreCreditCollateralEvent, credit_facility::CreditFacilities,
-    ledger::CreditLedger, primitives::DisbursalId,
+    collateral::{
+        CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
+    },
+    credit_facility::CreditFacilities,
+    ledger::CreditLedger,
+    primitives::DisbursalId,
 };
 
 pub use job::*;
@@ -65,10 +69,12 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<crate::CoreCreditCollectionAction>
+        + From<CoreCreditCollateralAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<crate::CoreCreditCollectionObject>
+        + From<CoreCreditCollateralObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
