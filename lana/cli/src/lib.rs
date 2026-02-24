@@ -176,6 +176,9 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     .context("Failed to initialize Lana app")?;
 
     #[cfg(feature = "sim-bootstrap")]
+    let seed_only = config.bootstrap.seed_only;
+
+    #[cfg(feature = "sim-bootstrap")]
     if let Some(ctrl) = _clock_ctrl {
         let _ = sim_bootstrap::run(
             superuser_email.to_string(),
@@ -185,6 +188,16 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
             ctrl,
         )
         .await;
+    }
+
+    #[cfg(feature = "sim-bootstrap")]
+    if seed_only {
+        info!("Seed-only mode: bootstrap complete, shutting down");
+        if let Err(e) = app.shutdown().await {
+            eprintln!("Error shutting down app: {}", e);
+        }
+        eprintln!("shutdown complete");
+        return Ok(());
     }
 
     let admin_error_send = error_send.clone();
