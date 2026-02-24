@@ -321,10 +321,33 @@ where
         Ok(self.deposit_accounts.find_by_id(id).await?)
     }
 
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CoreDepositError> {
+        Ok(self.deposit_accounts.begin_op().await?)
+    }
+
     #[record_error_severity]
     #[instrument(name = "deposit.update_account_status_for_holder", skip(self))]
     pub async fn update_account_status_for_holder(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        status: DepositAccountHolderStatus,
+    ) -> Result<(), CoreDepositError> {
+        let mut op = self.begin_op().await?;
+        self.update_account_status_for_holder_in_op(&mut op, sub, holder_id, status)
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "deposit.update_account_status_for_holder_in_op",
+        skip(self, op)
+    )]
+    pub async fn update_account_status_for_holder_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'static>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
         status: DepositAccountHolderStatus,
@@ -342,14 +365,11 @@ where
             .deposit_accounts
             .list_for_account_holder_id_by_id(holder_id, Default::default(), Default::default())
             .await?;
-        let mut op = self.deposit_accounts.begin_op().await?;
 
         for mut account in accounts.entities.into_iter() {
             match account.update_status_via_holder(status) {
                 Ok(result) if result.did_execute() => {
-                    self.deposit_accounts
-                        .update_in_op(&mut op, &mut account)
-                        .await?;
+                    self.deposit_accounts.update_in_op(op, &mut account).await?;
                 }
                 Err(DepositAccountError::CannotUpdateClosedAccount(_)) => {
                     tracing::warn!("Skipping update error if account already closed");
@@ -365,7 +385,6 @@ where
                 Ok(_) => continue,
             }
         }
-        op.commit().await?;
         Ok(())
     }
 

@@ -111,7 +111,7 @@ where
             .find_by_custody_wallet_id(Some(self.config.custody_wallet_id))
             .await?;
 
-        let mut db = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op().await?;
 
         if let es_entity::Idempotent::Executed(data) = collateral
             .record_collateral_update_via_custodian_sync(
@@ -119,18 +119,17 @@ where
                 self.config.effective,
             )
         {
-            self.repo.update_in_op(&mut db, &mut collateral).await?;
+            self.repo.update_in_op(&mut op, &mut collateral).await?;
 
             self.ledger
                 .update_collateral_amount_in_op(
-                    &mut db,
+                    &mut op,
                     data,
                     &S::system(crate::primitives::COLLATERALIZATION_SYNC),
                 )
                 .await?;
-            db.commit().await?;
         }
 
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(op))
     }
 }

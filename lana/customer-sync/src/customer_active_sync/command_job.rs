@@ -108,13 +108,15 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let mut op = self.deposit.begin_op().await?;
         self.deposit
-            .update_account_status_for_holder(
+            .update_account_status_for_holder_in_op(
+                &mut op,
                 &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(CUSTOMER_SYNC),
                 self.config.customer_id,
                 DepositAccountHolderStatus::Active,
             )
             .await?;
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(op))
     }
 }

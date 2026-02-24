@@ -55,16 +55,17 @@ impl JobRunner for CreateKeycloakUserJobRunner {
     #[record_error_severity]
     #[tracing::instrument(
         name = "user_onboarding.create_keycloak_user_job.run",
-        skip(self, _current_job),
+        skip(self, current_job),
         fields(user_id = %self.config.user_id),
     )]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let op = current_job.begin_op().await?;
         self.keycloak_client
             .create_user(self.config.email.clone(), self.config.user_id.into())
             .await?;
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(op))
     }
 }
