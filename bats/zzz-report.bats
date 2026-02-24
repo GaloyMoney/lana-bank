@@ -27,6 +27,10 @@ wait_for_report_run_success() {
   )
   exec_admin_graphql 'find-report' "$variables"
   state=$(graphql_output .data.reportRun.state)
+  if [[ "$state" == "FAILED" ]]; then
+    echo "Report run FAILED"
+    exit 1
+  fi
   [[ "$state" == "SUCCESS" ]] || return 1
 }
 
