@@ -1,7 +1,12 @@
-query Report($id: UUID!) {
-  report(id: $id) {
-    reportId
-    lastError
-    progress
+query ReportRun($id: UUID!) {
+  reportRun(id: $id) {
+    reportRunId
+    state
+    reports {
+      reportId
+      files {
+        extension
+      }
+    }
   }
 }

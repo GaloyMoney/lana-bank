@@ -1,7 +1,0 @@
-query Reports {
-  reports {
-    reportId
-    progress
-    lastError
-  }
-}

@@ -1,0 +1,14 @@
+query ReportRuns($first: Int!) {
+  reportRuns(first: $first) {
+    nodes {
+      reportRunId
+      state
+      reports {
+        reportId
+        files {
+          extension
+        }
+      }
+    }
+  }
+}
