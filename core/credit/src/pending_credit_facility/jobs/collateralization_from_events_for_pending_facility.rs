@@ -3,6 +3,8 @@ use tracing_macros::record_error_severity;
 
 use std::sync::Arc;
 
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use governance::GovernanceEvent;
 use obix::out::{
     EphemeralOutboxEvent, OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent,
@@ -10,12 +12,15 @@ use obix::out::{
 
 use job::JobType;
 
+use core_credit_collection::{
+    CoreCreditCollectionAction, CoreCreditCollectionEvent, CoreCreditCollectionObject,
+};
 use core_custody::CoreCustodyEvent;
 use core_price::{CorePriceEvent, Price};
 
 use crate::{
     CoreCreditEvent,
-    collateral::CollateralRepo,
+    collateral::Collaterals,
     ledger::*,
     pending_credit_facility::{
         PendingCreditFacilitiesByCollateralizationRatioCursor, PendingCreditFacility,
@@ -27,44 +32,59 @@ use crate::{
 pub const PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.pending-credit-facility-collateralization-from-events");
 
-pub struct PendingCreditFacilityCollateralizationFromEventsHandler<E>
+pub struct PendingCreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
+    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
     repo: Arc<PendingCreditFacilityRepo<E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     price: Arc<Price>,
     ledger: Arc<CreditLedger>,
 }
 
-impl<E> PendingCreditFacilityCollateralizationFromEventsHandler<E>
+impl<Perms, E> PendingCreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
         repo: Arc<PendingCreditFacilityRepo<E>>,
-        collateral_repo: Arc<CollateralRepo<E>>,
+        collaterals: Arc<Collaterals<Perms, E>>,
         price: Arc<Price>,
         ledger: Arc<CreditLedger>,
     ) -> Self {
         Self {
             repo,
-            collateral_repo,
+            collaterals,
             price,
             ledger,
         }
     }
 }
 
-impl<E> OutboxEventHandler<E> for PendingCreditFacilityCollateralizationFromEventsHandler<E>
+impl<Perms, E> OutboxEventHandler<E>
+    for PendingCreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -115,9 +135,15 @@ where
     }
 }
 
-impl<E> PendingCreditFacilityCollateralizationFromEventsHandler<E>
+impl<Perms, E> PendingCreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -140,11 +166,11 @@ where
             pending_facility.id.to_string(),
         );
 
-        let collateral = self
-            .collateral_repo
-            .find_by_id_in_op(&mut op, pending_facility.collateral_id)
-            .await?;
-        let collateral_account_id = collateral.account_id();
+        let collateral_account_id = self
+            .collaterals
+            .collateral_ledger_account_ids_in_op(&mut op, pending_facility.collateral_id)
+            .await?
+            .collateral_account_id;
 
         let balances = self
             .ledger
@@ -210,16 +236,18 @@ where
                 if pending_facility.status() == PendingCreditFacilityStatus::Completed {
                     continue;
                 }
-                let collateral = self
-                    .collateral_repo
-                    .find_by_id_in_op(&mut op, pending_facility.collateral_id)
-                    .await?;
+                let collateral_account_id = self
+                    .collaterals
+                    .collateral_ledger_account_ids_in_op(&mut op, pending_facility.collateral_id)
+                    .await?
+                    .collateral_account_id;
+
                 let balances = self
                     .ledger
                     .get_pending_credit_facility_balance_in_op(
                         &mut op,
                         pending_facility.account_ids,
-                        collateral.account_id(),
+                        collateral_account_id,
                     )
                     .await?;
                 if pending_facility

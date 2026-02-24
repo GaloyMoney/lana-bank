@@ -123,19 +123,13 @@ where
             clock.clone(),
         ));
 
-        let collateral_repo_arc = Arc::new(crate::collateral::repo::CollateralRepo::new(
-            pool,
-            publisher,
-            clock.clone(),
-        ));
-
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(jobs::collateralization_from_events_for_pending_facility::PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB),
                 jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsHandler::new(
                     repo_arc.clone(),
-                    collateral_repo_arc,
+                    collaterals.clone(),
                     price.clone(),
                     ledger.clone(),
                 ),

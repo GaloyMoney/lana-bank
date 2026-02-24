@@ -18,7 +18,7 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use crate::{
     CoreCreditEvent, PublicIds,
-    collateral::CollateralRepo,
+    collateral::Collaterals,
     disbursal::Disbursals,
     ledger::{
         CreditFacilityBalanceSummary, CreditFacilityCompletion, CreditFacilityInterestAccrual,
@@ -56,7 +56,7 @@ where
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     authz: Arc<Perms>,
@@ -81,7 +81,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
-            collateral_repo: self.collateral_repo.clone(),
+            collaterals: self.collaterals.clone(),
             collections: self.collections.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             disbursals: self.disbursals.clone(),
@@ -132,7 +132,7 @@ where
         public_ids: Arc<PublicIds>,
         outbox: &Outbox<E>,
         clock: ClockHandle,
-        collateral_repo: Arc<crate::collateral::repo::CollateralRepo<E>>,
+        collaterals: Arc<crate::collateral::Collaterals<Perms, E>>,
     ) -> Result<Self, CreditFacilityError> {
         let repo = Arc::new(CreditFacilityRepo::new(pool, publisher, clock.clone()));
 
@@ -147,7 +147,7 @@ where
                     E,
                 >::new(
                     repo.clone(),
-                    collateral_repo.clone(),
+                    collaterals.clone(),
                     price.clone(),
                     ledger.clone(),
                     authz.clone(),
@@ -164,7 +164,7 @@ where
                 ledger.clone(),
                 collections.clone(),
                 repo.clone(),
-                collateral_repo.clone(),
+                collaterals.clone(),
                 authz.clone(),
             ),
         );
@@ -173,7 +173,7 @@ where
             jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
                 collections.clone(),
-                collateral_repo.clone(),
+                collaterals.clone(),
                 repo.clone(),
             ));
 
@@ -183,8 +183,8 @@ where
                 OutboxEventJobConfig::new(
                     jobs::collateral_liquidations::CREDIT_FACILITY_LIQUIDATIONS_JOB,
                 ),
-                jobs::collateral_liquidations::CreditFacilityLiquidationsHandler::new(
-                    collateral_repo.clone(),
+                jobs::collateral_liquidations::CreditFacilityLiquidationsHandler::<Perms, E>::new(
+                    collaterals.clone(),
                     ledger.liquidation_proceeds_omnibus_account_ids().account_id,
                     liquidation_payment_job_spawner,
                 ),
@@ -193,7 +193,7 @@ where
 
         Ok(Self {
             repo,
-            collateral_repo,
+            collaterals,
             collections,
             pending_credit_facilities,
             disbursals,
@@ -351,11 +351,11 @@ where
 
         let mut credit_facility = self.repo.find_by_id_in_op(db, credit_facility_id).await?;
 
-        let collateral = self
-            .collateral_repo
-            .find_by_id_in_op(db, credit_facility.collateral_id)
-            .await?;
-        let collateral_account_id = collateral.account_ids.collateral_account_id;
+        let collateral_account_id = self
+            .collaterals
+            .collateral_ledger_account_ids_in_op(db, credit_facility.collateral_id)
+            .await?
+            .collateral_account_id;
 
         let balances = self
             .ledger
@@ -558,8 +558,8 @@ where
         let credit_facility = self.repo.find_by_id(id).await?;
 
         let collateral = self
-            .collateral_repo
-            .find_by_id(credit_facility.collateral_id)
+            .collaterals
+            .find_by_id_without_audit(credit_facility.collateral_id)
             .await?;
         let collateral_account_id = collateral.account_id();
 
@@ -596,8 +596,8 @@ where
         }
 
         let collateral = self
-            .collateral_repo
-            .find_by_id(credit_facility.collateral_id)
+            .collaterals
+            .find_by_id_without_audit(credit_facility.collateral_id)
             .await?;
         let collateral_account_id = collateral.account_id();
 

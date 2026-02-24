@@ -18,7 +18,7 @@ use core_price::{CorePriceEvent, Price};
 
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
-    collateral::repo::CollateralRepo,
+    collateral::Collaterals,
     credit_facility::{
         CreditFacilitiesByCollateralizationRatioCursor, CreditFacilityRepo, CreditFacilityStatus,
     },
@@ -39,7 +39,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     repo: Arc<CreditFacilityRepo<E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
     price: Arc<Price>,
     ledger: Arc<CreditLedger>,
     authz: Arc<Perms>,
@@ -56,14 +56,14 @@ where
 {
     pub fn new(
         repo: Arc<CreditFacilityRepo<E>>,
-        collateral_repo: Arc<CollateralRepo<E>>,
+        collaterals: Arc<Collaterals<Perms, E>>,
         price: Arc<Price>,
         ledger: Arc<CreditLedger>,
         authz: Arc<Perms>,
     ) -> Self {
         Self {
             repo,
-            collateral_repo,
+            collaterals,
             price,
             ledger,
             authz,
@@ -74,8 +74,10 @@ where
 impl<Perms, E> OutboxEventHandler<E> for CreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -151,8 +153,10 @@ where
 impl<Perms, E> CreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -193,11 +197,11 @@ where
 
         tracing::Span::current().record("credit_facility_id", credit_facility.id.to_string());
 
-        let collateral = self
-            .collateral_repo
-            .find_by_id_in_op(&mut op, credit_facility.collateral_id)
-            .await?;
-        let collateral_account_id = collateral.account_id();
+        let collateral_account_id = self
+            .collaterals
+            .collateral_ledger_account_ids_in_op(&mut op, credit_facility.collateral_id)
+            .await?
+            .collateral_account_id;
 
         let balances = self
             .ledger
@@ -268,11 +272,12 @@ where
                 if facility.status() == CreditFacilityStatus::Closed {
                     continue;
                 }
-                let collateral = self
-                    .collateral_repo
-                    .find_by_id_in_op(&mut op, facility.collateral_id)
-                    .await?;
-                let collateral_account_id = collateral.account_id();
+                let collateral_account_id = self
+                    .collaterals
+                    .collateral_ledger_account_ids_in_op(&mut op, facility.collateral_id)
+                    .await?
+                    .collateral_account_id;
+
                 let balances = self
                     .ledger
                     .get_credit_facility_balance_in_op(

@@ -140,6 +140,46 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
+    #[instrument(
+        name = "collateral.record_liquidation_started_in_op",
+        skip(self, db),
+        err
+    )]
+    pub(super) async fn record_liquidation_started_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        collateral_id: CollateralId,
+        liquidation_id: LiquidationId,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
+    ) -> Result<Option<SecuredLoanId>, CollateralError> {
+        let mut collateral = self.repo.find_by_id_in_op(db, collateral_id).await?;
+
+        let liquidation_proceeds_account_ids = LiquidationProceedsAccountIds::new(
+            &collateral.account_ids,
+            &collateral.facility_ledger_account_ids_for_liquidation,
+            liquidation_proceeds_omnibus_account_id,
+        );
+
+        if collateral
+            .record_liquidation_started(
+                liquidation_id,
+                trigger_price,
+                initially_expected_to_receive,
+                initially_estimated_to_liquidate,
+                liquidation_proceeds_account_ids,
+            )
+            .did_execute()
+        {
+            self.repo.update_in_op(db, &mut collateral).await?;
+            return Ok(Some(collateral.secured_loan_id));
+        }
+
+        Ok(None)
+    }
+
     pub async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -382,6 +422,34 @@ where
         ids: &[LiquidationId],
     ) -> Result<HashMap<LiquidationId, T>, CollateralError> {
         Ok(self.repo.find_all_liquidations(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "collateral.collateral_ledger_account_ids_in_op",
+        skip(self, db)
+    )]
+    pub async fn collateral_ledger_account_ids_in_op(
+        &self,
+        db: &mut impl es_entity::AtomicOperation,
+        id: CollateralId,
+    ) -> Result<CollateralLedgerAccountIds, CollateralError> {
+        let collateral = self.repo.find_by_id_in_op(db, id).await?;
+        Ok(collateral.account_ids)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "collateral.liquidation_ledger_account_ids_in_op",
+        skip(self, db)
+    )]
+    pub async fn liquidation_ledger_account_ids_in_op(
+        &self,
+        db: &mut impl es_entity::AtomicOperation,
+        id: CollateralId,
+    ) -> Result<FacilityLedgerAccountIdsForLiquidation, CollateralError> {
+        let collateral = self.repo.find_by_id_in_op(db, id).await?;
+        Ok(collateral.facility_ledger_account_ids_for_liquidation)
     }
 
     #[record_error_severity]
