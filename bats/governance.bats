@@ -14,32 +14,16 @@ teardown_file() {
 }
 
 trigger_withdraw_approval_process() {
-  variables=$(
-    jq -n \
-      --arg deposit_account_id "$1" \
-    '{
-      input: {
-        depositAccountId: $deposit_account_id,
-        amount: 1000000,
-      }
-    }'
-  )
-  exec_admin_graphql 'record-deposit' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account record-deposit \
+    --deposit-account-id "$1" \
+    --amount 1000000)
 
-  variables=$(
-    jq -n \
-      --arg deposit_account_id "$1" \
-    --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $deposit_account_id,
-        amount: 150000,
-        reference: ("withdrawal-ref-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'initiate-withdrawal' "$variables"
-  process_id=$(graphql_output .data.withdrawalInitiate.withdrawal.approvalProcessId)
+  cli_output=$("$LANACLI" --json deposit-account initiate-withdrawal \
+    --deposit-account-id "$1" \
+    --amount 150000 \
+    --reference "withdrawal-ref-$(date +%s%N)")
+  process_id=$(echo "$cli_output" | jq -r '.approvalProcessId')
   [[ "$process_id" != "null" ]] || exit 1
   echo $process_id
 }

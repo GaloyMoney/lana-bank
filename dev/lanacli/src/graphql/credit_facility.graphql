@@ -82,3 +82,32 @@ mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiate
     }
   }
 }
+
+query CreditFacilityProposalGet($id: UUID!) {
+  creditFacilityProposal(id: $id) {
+    creditFacilityProposalId
+    status
+  }
+}
+
+mutation CreditFacilityProposalCustomerApprovalConclude($input: CreditFacilityProposalCustomerApprovalConcludeInput!) {
+  creditFacilityProposalCustomerApprovalConclude(input: $input) {
+    creditFacilityProposal {
+      creditFacilityProposalId
+    }
+  }
+}
+
+query PendingCreditFacilityGet($id: UUID!) {
+  pendingCreditFacility(id: $id) {
+    pendingCreditFacilityId
+    collateralId
+    status
+    wallet {
+      address
+    }
+    collateral {
+      btcBalance
+    }
+  }
+}

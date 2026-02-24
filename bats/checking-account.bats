@@ -34,22 +34,15 @@ wait_for_approval() {
   deposit_account_id=$(create_deposit_account_for_customer "$customer_id")
   cache_value "deposit_account_id" $deposit_account_id
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId,
-        amount: 150000,
-      }
-    }'
-  )
-  exec_admin_graphql 'record-deposit' "$variables"
-  deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account record-deposit \
+    --deposit-account-id "$deposit_account_id" \
+    --amount 150000)
+  deposit_id=$(echo "$cli_output" | jq -r '.depositId')
   [[ "$deposit_id" != "null" ]] || exit 1
 
-  usd_balance_settled=$(graphql_output '.data.depositRecord.deposit.account.balance.settled')
-  usd_balance_pending=$(graphql_output '.data.depositRecord.deposit.account.balance.pending')
+  usd_balance_settled=$(echo "$cli_output" | jq -r '.account.balance.settled')
+  usd_balance_pending=$(echo "$cli_output" | jq -r '.account.balance.pending')
   [[ "$usd_balance_settled" == "150000" ]] || exit 1
   [[ "$usd_balance_pending" == "0" ]] || exit 1
 }
@@ -57,51 +50,35 @@ wait_for_approval() {
 @test "checking-account: withdraw can be cancelled" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId,
-        amount: 150000,
-        reference: ("withdrawal-ref-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'initiate-withdrawal' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account initiate-withdrawal \
+    --deposit-account-id "$deposit_account_id" \
+    --amount 150000 \
+    --reference "withdrawal-ref-$(date +%s%N)")
 
-  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
-  echo $(graphql_output)
+  withdrawal_id=$(echo "$cli_output" | jq -r '.withdrawalId')
+  echo "$cli_output"
   [[ "$withdrawal_id" != "null" ]] || exit 1
-  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.settled')
+  settled_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.settled')
   [[ "$settled_usd_balance" == "0" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.pending')
+  pending_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.pending')
   [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
   # assert_accounts_balanced
 
   retry 20 1 wait_for_approval $withdrawal_id
 
-  variables=$(
-    jq -n \
-      --arg withdrawalId "$withdrawal_id" \
-    '{
-      input: {
-        withdrawalId: $withdrawalId
-      }
-    }'
-  )
-  exec_admin_graphql 'withdrawal-cancel' "$variables"
-  echo $(graphql_output) | jq .
+  cli_output=$("$LANACLI" --json deposit-account cancel-withdrawal \
+    --withdrawal-id "$withdrawal_id")
+  echo "$cli_output" | jq .
 
-  withdrawal_id=$(graphql_output '.data.withdrawalCancel.withdrawal.withdrawalId')
+  withdrawal_id=$(echo "$cli_output" | jq -r '.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
-  status=$(graphql_output '.data.withdrawalCancel.withdrawal.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "CANCELLED" ]] || exit 1
-  settled_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.account.balance.settled')
+  settled_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.settled')
   [[ "$settled_usd_balance" == "150000" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.account.balance.pending')
+  pending_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.pending')
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 
   # assert_accounts_balanced
@@ -110,50 +87,34 @@ wait_for_approval() {
 @test "checking-account: can withdraw" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId,
-        amount: 120000,
-        reference: ("withdrawal-ref-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'initiate-withdrawal' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account initiate-withdrawal \
+    --deposit-account-id "$deposit_account_id" \
+    --amount 120000 \
+    --reference "withdrawal-ref-$(date +%s%N)")
 
-  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  withdrawal_id=$(echo "$cli_output" | jq -r '.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
-  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.settled')
+  settled_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.settled')
   [[ "$settled_usd_balance" == "30000" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.pending')
+  pending_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.pending')
   [[ "$pending_usd_balance" == "120000" ]] || exit 1
 
   # assert_accounts_balanced
 
   retry 20 1 wait_for_approval $withdrawal_id
 
-  variables=$(
-    jq -n \
-      --arg withdrawalId "$withdrawal_id" \
-    '{
-      input: {
-        withdrawalId: $withdrawalId
-      }
-    }'
-  )
-  exec_admin_graphql 'confirm-withdrawal' "$variables"
+  cli_output=$("$LANACLI" --json deposit-account confirm-withdrawal \
+    --withdrawal-id "$withdrawal_id")
 
-  echo $(graphql_output) | jq .
-  withdrawal_id=$(graphql_output '.data.withdrawalConfirm.withdrawal.withdrawalId')
+  echo "$cli_output" | jq .
+  withdrawal_id=$(echo "$cli_output" | jq -r '.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
-  status=$(graphql_output '.data.withdrawalConfirm.withdrawal.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
-  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.settled')
+  settled_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.settled')
   [[ "$settled_usd_balance" == "30000" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.pending')
+  pending_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.pending')
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 
   # assert_accounts_balanced
@@ -162,48 +123,24 @@ wait_for_approval() {
 @test "checking-account: confirmed withdrawal can be reverted" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId,
-        amount: 100,
-        reference: ("void-withdrawal-ref-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'initiate-withdrawal' "$variables"
-  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account initiate-withdrawal \
+    --deposit-account-id "$deposit_account_id" \
+    --amount 100 \
+    --reference "void-withdrawal-ref-$(date +%s%N)")
+  withdrawal_id=$(echo "$cli_output" | jq -r '.withdrawalId')
 
   retry 20 1 wait_for_approval $withdrawal_id
 
-  variables=$(
-    jq -n \
-      --arg withdrawalId "$withdrawal_id" \
-    '{
-      input: {
-        withdrawalId: $withdrawalId
-      }
-    }'
-  )
-  exec_admin_graphql 'confirm-withdrawal' "$variables"
+  cli_output=$("$LANACLI" --json deposit-account confirm-withdrawal \
+    --withdrawal-id "$withdrawal_id")
 
-  status=$(graphql_output '.data.withdrawalConfirm.withdrawal.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
 
-  variables=$(
-    jq -n \
-      --arg withdrawalId "$withdrawal_id" \
-    '{
-      input: {
-        withdrawalId: $withdrawalId
-      }
-    }'
-  )
-  exec_admin_graphql 'withdrawal-revert' "$variables"
-  status=$(graphql_output '.data.withdrawalRevert.withdrawal.status')
+  cli_output=$("$LANACLI" --json deposit-account revert-withdrawal \
+    --withdrawal-id "$withdrawal_id")
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "REVERTED" ]] || exit 1
 }
 
@@ -232,22 +169,12 @@ wait_for_approval() {
 @test "checking-account: cannot withdraw from frozen account" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId,
-        amount: 100,
-        reference: ("withdrawal-ref-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'initiate-withdrawal' "$variables"
+  cli_output=$("$LANACLI" --json deposit-account initiate-withdrawal \
+    --deposit-account-id "$deposit_account_id" \
+    --amount 100 \
+    --reference "withdrawal-ref-$(date +%s%N)" 2>&1 || true)
 
-  errors=$(graphql_output '.errors')
-  [[ "$errors" =~ "DepositAccountFrozen" ]] || exit 1
+  [[ "$cli_output" =~ "DepositAccountFrozen" ]] || exit 1
 }
 
 @test "checking-account: deposit account can be unfrozen" {
@@ -271,56 +198,30 @@ wait_for_approval() {
 @test "checking-account: can deposit and withdraw after unfreeze" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-      --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId,
-        amount: 40000,
-        reference: ("deposit-after-unfreeze-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'record-deposit' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account record-deposit \
+    --deposit-account-id "$deposit_account_id" \
+    --amount 40000)
 
-  deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
+  deposit_id=$(echo "$cli_output" | jq -r '.depositId')
   [[ "$deposit_id" != "null" ]] || exit 1
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-      --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId,
-        amount: 20000,
-        reference: ("withdraw-after-unfreeze-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'initiate-withdrawal' "$variables"
+  cli_output=$("$LANACLI" --json deposit-account initiate-withdrawal \
+    --deposit-account-id "$deposit_account_id" \
+    --amount 20000 \
+    --reference "withdraw-after-unfreeze-$(date +%s%N)")
 
-  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  withdrawal_id=$(echo "$cli_output" | jq -r '.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
 
   retry 20 1 wait_for_approval $withdrawal_id
 
-  variables=$(
-    jq -n \
-      --arg withdrawalId "$withdrawal_id" \
-    '{
-      input: {
-        withdrawalId: $withdrawalId
-      }
-    }'
-  )
-  exec_admin_graphql 'confirm-withdrawal' "$variables"
+  cli_output=$("$LANACLI" --json deposit-account confirm-withdrawal \
+    --withdrawal-id "$withdrawal_id")
 
-  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.settled')
+  settled_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.settled')
   [[ "$settled_usd_balance" == "50000" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.pending')
+  pending_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.pending')
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 }
 
@@ -346,39 +247,23 @@ wait_for_approval() {
   deposit_account_id=$(read_value 'deposit_account_id')
 
   # withdraw the total balance (of 50000)
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-      --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId,
-        amount: 50000,
-        reference: ("withdrawal-ref-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'initiate-withdrawal' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account initiate-withdrawal \
+    --deposit-account-id "$deposit_account_id" \
+    --amount 50000 \
+    --reference "withdrawal-ref-$(date +%s%N)")
 
-  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  withdrawal_id=$(echo "$cli_output" | jq -r '.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
 
   retry 20 1 wait_for_approval $withdrawal_id
 
-  variables=$(
-    jq -n \
-      --arg withdrawalId "$withdrawal_id" \
-    '{
-      input: {
-        withdrawalId: $withdrawalId
-      }
-    }'
-  )
-  exec_admin_graphql 'confirm-withdrawal' "$variables"
+  cli_output=$("$LANACLI" --json deposit-account confirm-withdrawal \
+    --withdrawal-id "$withdrawal_id")
 
-  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.settled')
+  settled_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.settled')
   [[ "$settled_usd_balance" == "0" ]] || exit 1
-  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.pending')
+  pending_usd_balance=$(echo "$cli_output" | jq -r '.account.balance.pending')
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 
   # freeze the empty account

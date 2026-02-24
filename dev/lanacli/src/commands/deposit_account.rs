@@ -3,7 +3,7 @@ use anyhow::Result;
 use crate::cli::DepositAccountAction;
 use crate::client::GraphQLClient;
 use crate::graphql::*;
-use crate::output::{self, scalar};
+use crate::output::{self, scalar, sval};
 
 pub async fn execute(
     client: &mut GraphQLClient,
@@ -90,6 +90,115 @@ pub async fn execute(
                     }
                 }
                 None => println!("Deposit account not found"),
+            }
+        }
+        DepositAccountAction::RecordDeposit {
+            deposit_account_id,
+            amount,
+        } => {
+            let vars = deposit_record::Variables {
+                input: deposit_record::DepositRecordInput {
+                    deposit_account_id,
+                    amount: sval(amount),
+                    reference: None,
+                },
+            };
+            let data = client.execute::<DepositRecord>(vars).await?;
+            let d = data.deposit_record.deposit;
+            if json {
+                output::print_json(&d)?;
+            } else {
+                let amount = scalar(&d.amount);
+                let settled = scalar(&d.account.balance.settled);
+                let pending = scalar(&d.account.balance.pending);
+                output::print_kv(&[
+                    ("Deposit ID", &d.deposit_id),
+                    ("Amount", &amount),
+                    ("Balance (settled)", &settled),
+                    ("Balance (pending)", &pending),
+                ]);
+            }
+        }
+        DepositAccountAction::InitiateWithdrawal {
+            deposit_account_id,
+            amount,
+            reference,
+        } => {
+            let vars = withdrawal_initiate::Variables {
+                input: withdrawal_initiate::WithdrawalInitiateInput {
+                    deposit_account_id,
+                    amount: sval(amount),
+                    reference: Some(reference),
+                },
+            };
+            let data = client.execute::<WithdrawalInitiate>(vars).await?;
+            let w = data.withdrawal_initiate.withdrawal;
+            if json {
+                output::print_json(&w)?;
+            } else {
+                let settled = scalar(&w.account.balance.settled);
+                let pending = scalar(&w.account.balance.pending);
+                output::print_kv(&[
+                    ("Withdrawal ID", &w.withdrawal_id),
+                    ("Approval Process ID", &w.approval_process_id),
+                    ("Status", &format!("{:?}", w.status)),
+                    ("Account Status", &format!("{:?}", w.account.status)),
+                    ("Balance (settled)", &settled),
+                    ("Balance (pending)", &pending),
+                ]);
+            }
+        }
+        DepositAccountAction::ConfirmWithdrawal { withdrawal_id } => {
+            let vars = withdrawal_confirm::Variables {
+                input: withdrawal_confirm::WithdrawalConfirmInput { withdrawal_id },
+            };
+            let data = client.execute::<WithdrawalConfirm>(vars).await?;
+            let w = data.withdrawal_confirm.withdrawal;
+            if json {
+                output::print_json(&w)?;
+            } else {
+                let settled = scalar(&w.account.balance.settled);
+                let pending = scalar(&w.account.balance.pending);
+                output::print_kv(&[
+                    ("Withdrawal ID", &w.withdrawal_id),
+                    ("Status", &format!("{:?}", w.status)),
+                    ("Balance (settled)", &settled),
+                    ("Balance (pending)", &pending),
+                ]);
+            }
+        }
+        DepositAccountAction::CancelWithdrawal { withdrawal_id } => {
+            let vars = withdrawal_cancel::Variables {
+                input: withdrawal_cancel::WithdrawalCancelInput { withdrawal_id },
+            };
+            let data = client.execute::<WithdrawalCancel>(vars).await?;
+            let w = data.withdrawal_cancel.withdrawal;
+            if json {
+                output::print_json(&w)?;
+            } else {
+                let settled = scalar(&w.account.balance.settled);
+                let pending = scalar(&w.account.balance.pending);
+                output::print_kv(&[
+                    ("Withdrawal ID", &w.withdrawal_id),
+                    ("Status", &format!("{:?}", w.status)),
+                    ("Balance (settled)", &settled),
+                    ("Balance (pending)", &pending),
+                ]);
+            }
+        }
+        DepositAccountAction::RevertWithdrawal { withdrawal_id } => {
+            let vars = withdrawal_revert::Variables {
+                input: withdrawal_revert::WithdrawalRevertInput { withdrawal_id },
+            };
+            let data = client.execute::<WithdrawalRevert>(vars).await?;
+            let w = data.withdrawal_revert.withdrawal;
+            if json {
+                output::print_json(&w)?;
+            } else {
+                output::print_kv(&[
+                    ("Withdrawal ID", &w.withdrawal_id),
+                    ("Status", &format!("{:?}", w.status)),
+                ]);
             }
         }
     }

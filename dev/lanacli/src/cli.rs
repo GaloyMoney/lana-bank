@@ -67,6 +67,11 @@ pub enum Command {
         #[command(subcommand)]
         action: ApprovalProcessAction,
     },
+    /// Manage collateral
+    Collateral {
+        #[command(subcommand)]
+        action: CollateralAction,
+    },
     /// Authenticate and cache session token
     Login,
     /// Clear cached session token
@@ -150,6 +155,37 @@ pub enum DepositAccountAction {
         #[arg(long)]
         id: String,
     },
+    /// Record a deposit
+    RecordDeposit {
+        #[arg(long)]
+        deposit_account_id: String,
+        #[arg(long)]
+        amount: String,
+    },
+    /// Initiate a withdrawal
+    InitiateWithdrawal {
+        #[arg(long)]
+        deposit_account_id: String,
+        #[arg(long)]
+        amount: String,
+        #[arg(long)]
+        reference: String,
+    },
+    /// Confirm a withdrawal
+    ConfirmWithdrawal {
+        #[arg(long)]
+        withdrawal_id: String,
+    },
+    /// Cancel a withdrawal
+    CancelWithdrawal {
+        #[arg(long)]
+        withdrawal_id: String,
+    },
+    /// Revert a withdrawal
+    RevertWithdrawal {
+        #[arg(long)]
+        withdrawal_id: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -196,6 +232,8 @@ pub enum CreditFacilityAction {
         #[arg(long)]
         facility_amount: String,
         #[arg(long)]
+        custodian_id: Option<String>,
+        #[arg(long)]
         annual_rate: String,
         #[arg(long, default_value = "END_OF_MONTH")]
         accrual_interval: String,
@@ -219,6 +257,23 @@ pub enum CreditFacilityAction {
         overdue_days: i64,
         #[arg(long, default_value = "90")]
         liquidation_days: i64,
+    },
+    /// Get a credit facility proposal by ID
+    ProposalGet {
+        #[arg(long)]
+        id: String,
+    },
+    /// Conclude customer approval for a proposal
+    ProposalConclude {
+        #[arg(long)]
+        id: String,
+        #[arg(long, default_value = "true")]
+        approved: bool,
+    },
+    /// Get a pending credit facility by ID
+    PendingGet {
+        #[arg(long)]
+        id: String,
     },
     /// List credit facility proposals
     ProposalList {
@@ -273,5 +328,18 @@ pub enum ApprovalProcessAction {
     Get {
         #[arg(long)]
         id: String,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum CollateralAction {
+    /// Update collateral
+    Update {
+        #[arg(long)]
+        collateral_id: String,
+        #[arg(long)]
+        collateral: String,
+        #[arg(long)]
+        effective: String,
     },
 }

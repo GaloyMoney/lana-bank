@@ -19,14 +19,10 @@ teardown_file() {
 }
 
 wait_for_approval() {
-  variables=$(
-    jq -n \
-      --arg creditFacilityProposalId "$1" \
-    '{ id: $creditFacilityProposalId }'
-  )
-  exec_admin_graphql 'find-credit-facility-proposal' "$variables"
-  echo "withdrawal | $i. $(graphql_output)" >> $RUN_LOG_FILE
-  status=$(graphql_output '.data.creditFacilityProposal.status')
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility proposal-get --id "$1")
+  echo "withdrawal | $i. $cli_output" >> $RUN_LOG_FILE
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "APPROVED" ]] || return 1
 }
 
@@ -166,18 +162,9 @@ ymd() {
 
   cache_value 'credit_facility_proposal_id' "$credit_facility_proposal_id"
 
-    variables=$(
-     jq -n \
-      --arg creditFacilityProposalId "$credit_facility_proposal_id" \
-    '{
-      input: {
-        creditFacilityProposalId: $creditFacilityProposalId,
-        approved: true
-      }
-    }'
-  )
-
-  exec_admin_graphql 'credit-facility-proposal-customer-approval-conclude' "$variables"
+  "$LANACLI" --json credit-facility proposal-conclude \
+    --id "$credit_facility_proposal_id" \
+    --approved true
 }
 
 @test "pending-credit-facility: can update collateral" {
@@ -186,25 +173,16 @@ ymd() {
   pending_credit_facility_id=$(read_value 'credit_facility_proposal_id')
 
   # Get collateral_id from pending credit facility
-  variables=$(jq -n --arg id "$pending_credit_facility_id" '{ id: $id }')
-  exec_admin_graphql 'find-pending-credit-facility' "$variables"
-  collateral_id=$(graphql_output '.data.pendingCreditFacility.collateralId')
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility pending-get --id "$pending_credit_facility_id")
+  collateral_id=$(echo "$cli_output" | jq -r '.collateralId')
   [[ "$collateral_id" != "null" ]] || exit 1
 
-  variables=$(
-    jq -n \
-      --arg collateral_id "$collateral_id" \
-      --arg effective "$(naive_now)" \
-    '{
-      input: {
-        collateralId: $collateral_id,
-        collateral: 50000000,
-        effective: $effective,
-      }
-    }'
-  )
-  exec_admin_graphql 'collateral-update' "$variables"
-  result_collateral_id=$(graphql_output '.data.collateralUpdate.collateral.collateralId')
+  cli_output=$("$LANACLI" --json collateral update \
+    --collateral-id "$collateral_id" \
+    --collateral 50000000 \
+    --effective "$(naive_now)")
+  result_collateral_id=$(echo "$cli_output" | jq -r '.collateralId')
   [[ "$result_collateral_id" != "null" ]] || exit 1
 
   credit_facility_id=$pending_credit_facility_id

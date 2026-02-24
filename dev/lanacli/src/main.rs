@@ -49,6 +49,9 @@ async fn main() -> anyhow::Result<()> {
                 Command::ApprovalProcess { action } => {
                     commands::approval_process::execute(&mut client, action, cli.json).await
                 }
+                Command::Collateral { action } => {
+                    commands::collateral::execute(&mut client, action, cli.json).await
+                }
                 Command::Tui => tui::run(client).await,
                 Command::Login | Command::Logout => unreachable!(),
             }

@@ -14,6 +14,7 @@ pub async fn execute(
         CreditFacilityAction::ProposalCreate {
             customer_id,
             facility_amount,
+            custodian_id,
             annual_rate,
             accrual_interval,
             accrual_cycle_interval,
@@ -31,7 +32,7 @@ pub async fn execute(
                 input: credit_facility_proposal_create::CreditFacilityProposalCreateInput {
                     customer_id: customer_id,
                     facility: sval(facility_amount),
-                    custodian_id: None,
+                    custodian_id,
                     terms: credit_facility_proposal_create::TermsInput {
                         annual_rate: sval(annual_rate),
                         accrual_interval: parse_interest_interval(&accrual_interval)?,
@@ -189,6 +190,68 @@ pub async fn execute(
                     }
                 }
                 None => println!("Credit facility not found"),
+            }
+        }
+        CreditFacilityAction::ProposalGet { id } => {
+            let vars = credit_facility_proposal_get::Variables { id };
+            let data = client.execute::<CreditFacilityProposalGet>(vars).await?;
+            match data.credit_facility_proposal {
+                Some(p) => {
+                    if json {
+                        output::print_json(&p)?;
+                    } else {
+                        output::print_kv(&[
+                            ("Proposal ID", &p.credit_facility_proposal_id),
+                            ("Status", &format!("{:?}", p.status)),
+                        ]);
+                    }
+                }
+                None => println!("Credit facility proposal not found"),
+            }
+        }
+        CreditFacilityAction::ProposalConclude { id, approved } => {
+            let vars = credit_facility_proposal_customer_approval_conclude::Variables {
+                input: credit_facility_proposal_customer_approval_conclude::CreditFacilityProposalCustomerApprovalConcludeInput {
+                    credit_facility_proposal_id: id,
+                    approved,
+                },
+            };
+            let data = client
+                .execute::<CreditFacilityProposalCustomerApprovalConclude>(vars)
+                .await?;
+            let p = data
+                .credit_facility_proposal_customer_approval_conclude
+                .credit_facility_proposal;
+            if json {
+                output::print_json(&p)?;
+            } else {
+                output::print_kv(&[("Proposal ID", &p.credit_facility_proposal_id)]);
+            }
+        }
+        CreditFacilityAction::PendingGet { id } => {
+            let vars = pending_credit_facility_get::Variables { id };
+            let data = client.execute::<PendingCreditFacilityGet>(vars).await?;
+            match data.pending_credit_facility {
+                Some(p) => {
+                    if json {
+                        output::print_json(&p)?;
+                    } else {
+                        let address = p
+                            .wallet
+                            .as_ref()
+                            .map(|w| w.address.as_str())
+                            .unwrap_or("N/A");
+                        let btc_balance = scalar(&p.collateral.btc_balance);
+                        output::print_kv(&[
+                            ("Pending CF ID", &p.pending_credit_facility_id),
+                            ("Collateral ID", &p.collateral_id),
+                            ("Status", &format!("{:?}", p.status)),
+                            ("Wallet Address", address),
+                            ("BTC Balance", &btc_balance),
+                        ]);
+                    }
+                }
+                None => println!("Pending credit facility not found"),
             }
         }
         CreditFacilityAction::DisbursalInitiate {

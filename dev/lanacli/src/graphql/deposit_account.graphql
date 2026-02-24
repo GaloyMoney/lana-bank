@@ -39,3 +39,74 @@ query DepositAccountGet($id: UUID!) {
     }
   }
 }
+
+mutation DepositRecord($input: DepositRecordInput!) {
+  depositRecord(input: $input) {
+    deposit {
+      depositId
+      amount
+      account {
+        balance {
+          settled
+          pending
+        }
+      }
+    }
+  }
+}
+
+mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
+  withdrawalInitiate(input: $input) {
+    withdrawal {
+      withdrawalId
+      approvalProcessId
+      status
+      account {
+        status
+        balance {
+          settled
+          pending
+        }
+      }
+    }
+  }
+}
+
+mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
+  withdrawalConfirm(input: $input) {
+    withdrawal {
+      withdrawalId
+      status
+      account {
+        balance {
+          settled
+          pending
+        }
+      }
+    }
+  }
+}
+
+mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
+  withdrawalCancel(input: $input) {
+    withdrawal {
+      withdrawalId
+      status
+      account {
+        balance {
+          settled
+          pending
+        }
+      }
+    }
+  }
+}
+
+mutation WithdrawalRevert($input: WithdrawalRevertInput!) {
+  withdrawalRevert(input: $input) {
+    withdrawal {
+      withdrawalId
+      status
+    }
+  }
+}

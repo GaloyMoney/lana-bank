@@ -19,14 +19,10 @@ teardown_file() {
 }
 
 wait_for_approval() {
-  variables=$(
-    jq -n \
-      --arg creditFacilityProposalId "$1" \
-    '{ id: $creditFacilityProposalId }'
-  )
-  exec_admin_graphql 'find-credit-facility-proposal' "$variables"
-  echo "approval | $i. $(graphql_output)" >> $RUN_LOG_FILE
-  status=$(graphql_output '.data.creditFacilityProposal.status')
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility proposal-get --id "$1")
+  echo "approval | $i. $cli_output" >> $RUN_LOG_FILE
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "APPROVED" ]] || return 1
 }
 
@@ -68,71 +64,42 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   deposit_account_id=$(create_deposit_account_for_customer "$customer_id")
 
   facility=10000000
-  variables=$(
-    jq -n \
-    --arg customerId "$customer_id" \
-    --argjson facility "$facility" \
-    '{
-      input: {
-        customerId: $customerId,
-        facility: $facility,
-        terms: {
-          annualRate: "12",
-          accrualCycleInterval: "END_OF_MONTH",
-          accrualInterval: "END_OF_DAY",
-          disbursalPolicy: "SINGLE_DISBURSAL",
-          oneTimeFeeRate: "5",
-          duration: { period: "MONTHS", units: 3 },
-          interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
-          obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
-          obligationLiquidationDurationFromDue: { period: "DAYS", units: 60 },
-          liquidationCvl: "105",
-          marginCallCvl: "125",
-          initialCvl: "140"
-        }
-      }
-    }'
-  )
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility proposal-create \
+    --customer-id "$customer_id" \
+    --facility-amount "$facility" \
+    --annual-rate 12 \
+    --accrual-interval END_OF_DAY \
+    --accrual-cycle-interval END_OF_MONTH \
+    --one-time-fee-rate 5 \
+    --disbursal-policy SINGLE_DISBURSAL \
+    --duration-months 3 \
+    --initial-cvl 140 \
+    --margin-call-cvl 125 \
+    --liquidation-cvl 105 \
+    --interest-due-days 0 \
+    --overdue-days 50 \
+    --liquidation-days 60)
 
-  exec_admin_graphql 'credit-facility-proposal-create' "$variables"
-
-  credit_facility_proposal_id=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId')
+  credit_facility_proposal_id=$(echo "$cli_output" | jq -r '.creditFacilityProposalId')
   [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
 
-  variables=$(
-     jq -n \
-      --arg creditFacilityProposalId "$credit_facility_proposal_id" \
-    '{
-      input: {
-        creditFacilityProposalId: $creditFacilityProposalId,
-        approved: true
-      }
-    }'
-  )
-  exec_admin_graphql 'credit-facility-proposal-customer-approval-conclude' "$variables"
+  "$LANACLI" --json credit-facility proposal-conclude \
+    --id "$credit_facility_proposal_id" \
+    --approved true
 
   retry 60 2 wait_for_approval "$credit_facility_proposal_id"
 
   # Get collateral_id from pending credit facility
-  variables=$(jq -n --arg id "$credit_facility_proposal_id" '{ id: $id }')
-  exec_admin_graphql 'find-pending-credit-facility' "$variables"
-  collateral_id=$(graphql_output '.data.pendingCreditFacility.collateralId')
+  cli_output=$("$LANACLI" --json credit-facility pending-get --id "$credit_facility_proposal_id")
+  collateral_id=$(echo "$cli_output" | jq -r '.collateralId')
   [[ "$collateral_id" != "null" ]] || exit 1
 
   # Add enough collateral to activate the facility
-  variables=$(
-    jq -n \
-      --arg collateral_id "$collateral_id" \
-      --arg effective "$(naive_now)" \
-    '{
-      input: {
-        collateralId: $collateral_id,
-        collateral: 200000000,
-        effective: $effective,
-      }
-    }'
-  )
-  exec_admin_graphql 'collateral-update' "$variables"
+  "$LANACLI" --json collateral update \
+    --collateral-id "$collateral_id" \
+    --collateral 200000000 \
+    --effective "$(naive_now)"
 
   credit_facility_id=$credit_facility_proposal_id
 
@@ -140,19 +107,10 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   cache_value 'credit_facility_id' "$credit_facility_id"
 
   # Drop collateral so CVL falls below the liquidation threshold.
-  variables=$(
-    jq -n \
-      --arg collateral_id "$collateral_id" \
-      --arg effective "$(naive_now)" \
-    '{
-      input: {
-        collateralId: $collateral_id,
-        collateral: 100000000,
-        effective: $effective,
-      }
-    }'
-  )
-  exec_admin_graphql 'collateral-update' "$variables"
+  "$LANACLI" --json collateral update \
+    --collateral-id "$collateral_id" \
+    --collateral 100000000 \
+    --effective "$(naive_now)"
 
   retry 60 2 wait_for_facility_to_be_under_liquidation_threshold "$credit_facility_id"
 

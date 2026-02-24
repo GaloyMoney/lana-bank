@@ -80,20 +80,10 @@ wait_for_total_disbursed() {
   [[ "$active_facilities" != "null" ]] || exit 1
   cache_value 'active_facilities' "$active_facilities"
 
-  variables=$(
-    jq -n \
-      --arg collateral_id "$collateral_id" \
-      --arg effective "$(naive_now)" \
-    '{
-      input: {
-        collateralId: $collateral_id,
-        collateral: 50000000,
-        effective: $effective,
-      }
-    }'
-
-  )
-  exec_admin_graphql 'collateral-update' "$variables"
+  "$LANACLI" --json collateral update \
+    --collateral-id "$collateral_id" \
+    --collateral 50000000 \
+    --effective "$(naive_now)"
 
   retry 60 wait_for_active_facilities
 

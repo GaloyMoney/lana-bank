@@ -175,6 +175,82 @@ pub struct CreditFacilityGet;
 )]
 pub struct CreditFacilityDisbursalInitiate;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/credit_facility.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct CreditFacilityProposalGet;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/credit_facility.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct CreditFacilityProposalCustomerApprovalConclude;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/credit_facility.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct PendingCreditFacilityGet;
+
+// -- Deposit Account additional operations --
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/deposit_account.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct DepositRecord;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/deposit_account.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct WithdrawalInitiate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/deposit_account.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct WithdrawalConfirm;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/deposit_account.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct WithdrawalCancel;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/deposit_account.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct WithdrawalRevert;
+
+// -- Collateral operations --
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/collateral.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct CollateralUpdate;
+
 // -- Approval Process operations --
 
 #[derive(GraphQLQuery)]
