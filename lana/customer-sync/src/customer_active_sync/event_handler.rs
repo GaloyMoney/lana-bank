@@ -5,18 +5,20 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_customer::CoreCustomerEvent;
 
-use super::command_job::UpdateHolderStatusConfig;
+use super::command_job::ActivateHolderAccountConfig;
 
 pub const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("outbox.customer-active-sync");
 
 pub struct CustomerActiveSyncHandler {
-    update_holder_status_job_spawner: JobSpawner<UpdateHolderStatusConfig>,
+    activate_holder_account_job_spawner: JobSpawner<ActivateHolderAccountConfig>,
 }
 
 impl CustomerActiveSyncHandler {
-    pub fn new(update_holder_status_job_spawner: JobSpawner<UpdateHolderStatusConfig>) -> Self {
+    pub fn new(
+        activate_holder_account_job_spawner: JobSpawner<ActivateHolderAccountConfig>,
+    ) -> Self {
         Self {
-            update_holder_status_job_spawner,
+            activate_holder_account_job_spawner,
         }
     }
 }
@@ -36,11 +38,11 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
-            self.update_holder_status_job_spawner
+            self.activate_holder_account_job_spawner
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    UpdateHolderStatusConfig {
+                    ActivateHolderAccountConfig {
                         customer_id: entity.id,
                     },
                     entity.id.to_string(),
