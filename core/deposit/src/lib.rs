@@ -321,10 +321,6 @@ where
         Ok(self.deposit_accounts.find_by_id(id).await?)
     }
 
-    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CoreDepositError> {
-        Ok(self.deposit_accounts.begin_op().await?)
-    }
-
     #[record_error_severity]
     #[instrument(name = "deposit.update_account_status_for_holder", skip(self))]
     pub async fn update_account_status_for_holder(
@@ -333,7 +329,7 @@ where
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
         status: DepositAccountHolderStatus,
     ) -> Result<(), CoreDepositError> {
-        let mut op = self.begin_op().await?;
+        let mut op = self.deposit_accounts.begin_op().await?;
         self.update_account_status_for_holder_in_op(&mut op, sub, holder_id, status)
             .await?;
         op.commit().await?;
