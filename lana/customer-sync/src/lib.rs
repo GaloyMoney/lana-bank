@@ -2,20 +2,14 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod config;
-mod create_keycloak_user;
 mod customer_active_sync;
 pub mod error;
-mod sync_email;
-mod update_customer_activity_status;
-mod update_last_activity_date;
+mod jobs;
 
 use config::*;
-use create_keycloak_user::*;
 use customer_active_sync::*;
 use error::*;
-use sync_email::*;
-use update_customer_activity_status::*;
-use update_last_activity_date::*;
+use jobs::*;
 
 use customer_active_sync::command_job::CustomerActiveSyncJobInitializer;
 
