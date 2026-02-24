@@ -46,4 +46,5 @@ schemars = { workspace = true, optional = true }
 anyhow = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 obix = { workspace = true, features = ["test-utils"] }
+serial_test = { workspace = true }
 tokio = { workspace = true }

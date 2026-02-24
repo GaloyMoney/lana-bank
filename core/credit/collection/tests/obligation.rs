@@ -132,6 +132,7 @@ async fn obligation_created_event_on_create() -> anyhow::Result<()> {
 /// - `outstanding_amount`: Current amount owed
 /// - `due_at`: Effective due date
 #[tokio::test]
+#[serial_test::file_serial(job_poller)]
 async fn obligation_due_event_on_due_job() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     // The due/overdue/defaulted jobs run via the poller.
@@ -182,6 +183,7 @@ async fn obligation_due_event_on_due_job() -> anyhow::Result<()> {
 /// - `outstanding_amount`: Current amount owed
 /// - `overdue_at`: Effective overdue date
 #[tokio::test]
+#[serial_test::file_serial(job_poller)]
 async fn obligation_overdue_event_on_overdue_job() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     // The due/overdue/defaulted jobs run via the poller.
@@ -246,6 +248,7 @@ async fn obligation_overdue_event_on_overdue_job() -> anyhow::Result<()> {
 /// - `outstanding_amount`: Current amount owed
 /// - `defaulted_at`: Effective defaulted date
 #[tokio::test]
+#[serial_test::file_serial(job_poller)]
 async fn obligation_defaulted_event_on_defaulted_job() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     // The due/overdue/defaulted jobs run via the poller.

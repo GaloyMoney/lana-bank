@@ -252,6 +252,7 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
 /// This test requires the job poller because withdrawal approval is processed asynchronously
 /// via the governance → outbox → jobs pipeline.
 #[tokio::test]
+#[serial_test::file_serial(job_poller)]
 async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, mut jobs) = setup().await?;
     jobs.start_poll().await?;

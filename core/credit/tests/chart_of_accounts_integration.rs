@@ -64,6 +64,7 @@ async fn assert_omnibus_pairs(
 }
 
 #[tokio::test]
+#[serial_test::file_serial(job_poller)]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());

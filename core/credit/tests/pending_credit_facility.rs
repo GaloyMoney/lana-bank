@@ -25,7 +25,7 @@ use money::Satoshis;
 /// - `status`: Pending facility status (`Completed`)
 /// - `completed_at`: Completion timestamp
 #[tokio::test]
-#[serial_test::file_serial(core_credit_shared_jobs)]
+#[serial_test::file_serial(job_poller)]
 async fn pending_credit_facility_completed_event_on_activation() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     ctx.jobs.start_poll().await?;
@@ -93,7 +93,7 @@ async fn pending_credit_facility_completed_event_on_activation() -> anyhow::Resu
 /// - `amount`: Facility amount
 /// - `collateralization`: Updated collateralization state, collateral, and price
 #[tokio::test]
-#[serial_test::file_serial(core_credit_shared_jobs)]
+#[serial_test::file_serial(job_poller)]
 async fn pending_credit_facility_collateralization_changed_event_on_collateral_update()
 -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;

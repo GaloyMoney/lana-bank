@@ -96,7 +96,7 @@ async fn facility_proposal_created_event_on_create() -> anyhow::Result<()> {
 /// - `customer_id`: Customer who requested the facility
 /// - `created_at`: Timestamp of proposal creation
 #[tokio::test]
-#[serial_test::file_serial(core_credit_shared_jobs)]
+#[serial_test::file_serial(job_poller)]
 async fn facility_proposal_concluded_event_on_approval() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     ctx.jobs.start_poll().await?;
