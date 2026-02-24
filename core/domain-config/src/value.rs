@@ -9,6 +9,7 @@ use crate::{DomainConfigError, Encrypted, EncryptionKey};
 pub enum DomainConfigValue {
     Plain { value: serde_json::Value },
     Encrypted(Encrypted),
+    Rotated,
 }
 
 impl DomainConfigValue {
@@ -17,6 +18,7 @@ impl DomainConfigValue {
         match self {
             Self::Plain { value } => value.clone(),
             Self::Encrypted(_) => serde_json::Value::Null,
+            Self::Rotated => serde_json::Value::Null,
         }
     }
 
@@ -35,7 +37,7 @@ impl DomainConfigValue {
     pub(crate) fn as_plain(&self) -> Option<&serde_json::Value> {
         match self {
             Self::Plain { value } => Some(value),
-            Self::Encrypted(_) => None,
+            Self::Encrypted(_) | Self::Rotated => None,
         }
     }
 
@@ -53,6 +55,9 @@ impl DomainConfigValue {
         match self {
             Self::Plain { .. } => Err(DomainConfigError::InvalidState(
                 "Cannot decrypt a plaintext value".to_string(),
+            )),
+            Self::Rotated => Err(DomainConfigError::InvalidState(
+                "Cannot decrypt a rotated value".to_string(),
             )),
             Self::Encrypted(encrypted) => {
                 let bytes = encrypted.decrypt(key)?;

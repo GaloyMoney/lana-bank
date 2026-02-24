@@ -24,9 +24,17 @@ pub enum DomainConfigEvent {
         encrypted: bool,
     },
     Updated {
-        // Option to handle null events when rehydrating after key rotation
-        value: Option<DomainConfigValue>,
+        #[serde(deserialize_with = "deserialize_value_or_rotated")]
+        value: DomainConfigValue,
     },
+}
+
+fn deserialize_value_or_rotated<'de, D>(deserializer: D) -> Result<DomainConfigValue, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::<DomainConfigValue>::deserialize(deserializer)?
+        .unwrap_or(DomainConfigValue::Rotated))
 }
 
 #[derive(EsEntity, Builder)]
@@ -149,7 +157,7 @@ impl DomainConfig {
         }
 
         self.events.push(DomainConfigEvent::Updated {
-            value: Some(DomainConfigValue::plain(plaintext)),
+            value: DomainConfigValue::plain(plaintext),
         });
 
         Ok(Idempotent::Executed(()))
@@ -169,7 +177,7 @@ impl DomainConfig {
         }
 
         self.events.push(DomainConfigEvent::Updated {
-            value: Some(DomainConfigValue::encrypted(key, &plaintext)),
+            value: DomainConfigValue::encrypted(key, &plaintext),
         });
 
         Ok(Idempotent::Executed(()))
@@ -210,7 +218,10 @@ impl DomainConfig {
     /// Returns the current stored value from the event stream.
     pub fn current_stored_value(&self) -> Option<&DomainConfigValue> {
         self.events.iter_all().rev().find_map(|event| match event {
-            DomainConfigEvent::Updated { value } => value.as_ref(),
+            DomainConfigEvent::Updated {
+                value: DomainConfigValue::Rotated,
+            } => None,
+            DomainConfigEvent::Updated { value } => Some(value),
             _ => None,
         })
     }
@@ -256,17 +267,16 @@ impl DomainConfig {
             return Ok(Idempotent::AlreadyApplied);
         };
         if !current.is_encrypted() {
-            return Err(DomainConfigError::NotEncrypted(format!(
-                "Cannot perform key rotation for a non-encrypted config"
-            )));
+            return Err(DomainConfigError::NotEncrypted(
+                "Cannot perform key rotation for a non-encrypted config".to_string(),
+            ));
         }
         if current.decrypt(new_key).is_ok() {
             return Ok(Idempotent::AlreadyApplied);
         }
         let new_value = current.rotate(new_key, deprecated_key)?;
-        self.events.push(DomainConfigEvent::Updated {
-            value: Some(new_value),
-        });
+        self.events
+            .push(DomainConfigEvent::Updated { value: new_value });
         Ok(Idempotent::Executed(()))
     }
 }
@@ -572,7 +582,7 @@ mod tests {
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(
             last_event,
-            DomainConfigEvent::Updated { value: Some(DomainConfigValue::Plain { value }) } if value == &updated_json
+            DomainConfigEvent::Updated { value: DomainConfigValue::Plain { value } } if value == &updated_json
         ));
         assert_eq!(
             config.current_value_plain::<SampleComplexConfig>().unwrap(),
@@ -608,7 +618,7 @@ mod tests {
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(
             last_event,
-            DomainConfigEvent::Updated { value: Some(DomainConfigValue::Plain { value }) } if value == &updated_json
+            DomainConfigEvent::Updated { value: DomainConfigValue::Plain { value } } if value == &updated_json
         ));
         assert!(config.current_value_plain::<SampleSimpleBool>().unwrap());
     }

@@ -42,6 +42,18 @@
             "type"
           ],
           "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "rotated",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
         }
       ]
     },
@@ -122,18 +134,12 @@
           "type": "string"
         },
         "value": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/DomainConfigValue"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/DomainConfigValue"
         }
       },
       "required": [
-        "type"
+        "type",
+        "value"
       ],
       "type": "object"
     }
