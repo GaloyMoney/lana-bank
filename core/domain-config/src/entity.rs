@@ -255,11 +255,13 @@ impl DomainConfig {
         let Some(current) = self.current_stored_value() else {
             return Ok(Idempotent::AlreadyApplied);
         };
-
-        let Some(new_value) = current.try_rotate(new_key, deprecated_key)? else {
+        if !current.is_encrypted() {
             return Ok(Idempotent::AlreadyApplied);
-        };
-
+        }
+        if current.decrypt(new_key).is_ok() {
+            return Ok(Idempotent::AlreadyApplied);
+        }
+        let new_value = current.rotate(new_key, deprecated_key)?;
         self.events.push(DomainConfigEvent::Updated {
             value: Some(new_value),
         });

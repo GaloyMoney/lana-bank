@@ -61,20 +61,12 @@ impl DomainConfigValue {
         }
     }
 
-    pub(crate) fn try_rotate(
+    pub(crate) fn rotate(
         &self,
         new_key: &EncryptionKey,
         deprecated_key: &EncryptionKey,
-    ) -> Result<Option<Self>, DomainConfigError> {
-        match self {
-            Self::Plain { .. } => Ok(None),
-            Self::Encrypted(_) => {
-                if self.decrypt(new_key).is_ok() {
-                    return Ok(None);
-                }
-                let plaintext = self.decrypt(deprecated_key)?;
-                Ok(Some(Self::encrypted(new_key, &plaintext)))
-            }
-        }
+    ) -> Result<Self, DomainConfigError> {
+        let plaintext = self.decrypt(deprecated_key)?;
+        Ok(Self::encrypted(new_key, &plaintext))
     }
 }
