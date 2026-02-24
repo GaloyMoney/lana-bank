@@ -1,0 +1,5 @@
+mutation TriggerReportRun {
+  triggerReportRun {
+    runId
+  }
+}

@@ -1,9 +1,0 @@
-mutation ReportDownloadLinks($input: ReportDownloadLinksGenerateInput!) {
-  reportDownloadLinksGenerate(input: $input) {
-    reportId
-    links {
-      reportName
-      url
-    }
-  }
-}

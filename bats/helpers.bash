@@ -16,7 +16,19 @@ LOG_FILE=".e2e-logs"
 
 server_cmd() {
   if [[ -n "${LANA_BIN:-}" ]]; then
-    export LANA_CONFIG="${REPO_ROOT}/bats/lana.yml"
+    if [[ -n "${DOCS_BUCKET_NAME:-}" ]]; then
+      # Data-pipeline CI: use GCS storage to exercise signed URL code path
+      local gcs_config="${REPO_ROOT}/.lana-gcs-config.yml"
+      sed -e 's/provider: local/provider: gcp/' \
+          -e '/root_folder:/d' \
+          -e '/server_url:/d' \
+          -e '/signing_secret:/d' \
+          -e "/provider: gcp/a\\    bucket_name: ${DOCS_BUCKET_NAME}" \
+          "${REPO_ROOT}/bats/lana.yml" > "$gcs_config"
+      export LANA_CONFIG="$gcs_config"
+    else
+      export LANA_CONFIG="${REPO_ROOT}/bats/lana.yml"
+    fi
     "${LANA_BIN}"
   else
     SQLX_OFFLINE=true make run-server
