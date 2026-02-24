@@ -67,10 +67,12 @@ Any root-level node in the chart that is not represented by a key/value pair in 
 
 ### Setup
 
-The accounting module must be seeded on initial `lana-bank` startup, which requires two on-disk configuration files:
+The accounting module requires two configuration files to operate:
 
 1. Chart of Accounts (CSV)
 2. Accounting Base Configuration (JSON)
+
+These should be set prior to inital startup via on-disk configuration files, however the GraphQL mutation `chartOfAccountsCsvImport` exposes the ability to do this step manually.
 
 ### Integration Configuration
 
