@@ -1,0 +1,53 @@
+name: Docs Translation
+
+on:
+  pull_request:
+    paths:
+      - "docs-site/docs/**/*.md"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  translate-docs:
+    name: Update Docs Translations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create symlinks
+        run: |
+          mkdir -p docs-site/i18n/es/docusaurus-plugin-content-docs/current
+          cd docs-site/.lingo-docs
+          ln -sf ../docs en
+          ln -sf ../i18n/es/docusaurus-plugin-content-docs/current es
+
+      - name: Run Lingo.dev translation
+        env:
+          LINGO_API_KEY: ${{ secrets.LINGODOTDEV_API_KEY }}
+        run: |
+          cd docs-site/.lingo-docs
+          npx lingo.dev@latest i18n
+
+      - name: Cleanup symlinks
+        run: |
+          rm -f docs-site/.lingo-docs/en docs-site/.lingo-docs/es
+
+      - name: Commit translations
+        run: |
+          git add docs-site/i18n/es/
+          if [ -f docs-site/.lingo-docs/i18n.lock ]; then
+            git add docs-site/.lingo-docs/i18n.lock
+          fi
+          if git diff --cached --quiet; then
+            echo "No translation changes"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: update docs translations via Lingo.dev"
+            git push
+          fi
