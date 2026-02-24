@@ -7,7 +7,7 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 
 use super::*;
-use crate::history::CreditFacilityHistoryEntry;
+use crate::{collateral::public::CoreCreditCollateralEvent, history::CreditFacilityHistoryEntry};
 
 use core_credit_collection::{CoreCreditCollection, PaymentAllocation};
 
@@ -15,6 +15,7 @@ pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -44,6 +45,7 @@ where
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>

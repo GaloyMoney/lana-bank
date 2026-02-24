@@ -18,7 +18,7 @@ use core_price::{CorePriceEvent, Price};
 
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
-    collateral::Collaterals,
+    collateral::{Collaterals, public::CoreCreditCollateralEvent},
     credit_facility::{
         CreditFacilitiesByCollateralizationRatioCursor, CreditFacilityRepo, CreditFacilityStatus,
     },
@@ -33,6 +33,7 @@ pub struct CreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -49,6 +50,7 @@ impl<Perms, E> CreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -79,6 +81,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -90,7 +93,7 @@ where
         _op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        if let Some(event @ CoreCreditEvent::FacilityCollateralUpdated { entity }) =
+        if let Some(event @ CoreCreditCollateralEvent::CollateralUpdated { entity }) =
             message.as_event()
         {
             message.inject_trace_parent();
@@ -158,6 +161,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>

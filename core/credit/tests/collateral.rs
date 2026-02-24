@@ -1,7 +1,7 @@
 mod helpers;
 
 use authz::dummy::DummySubject;
-use core_credit::*;
+use core_credit::CoreCreditCollateralEvent;
 use helpers::event::expect_event;
 use money::Satoshis;
 
@@ -42,7 +42,7 @@ async fn facility_collateral_updated_event_on_manual_update() -> anyhow::Result<
             )
         },
         |result, e| match e {
-            CoreCreditEvent::FacilityCollateralUpdated { entity } if entity.id == result.id => {
+            CoreCreditCollateralEvent::CollateralUpdated { entity } if entity.id == result.id => {
                 Some(entity.clone())
             }
             _ => None,

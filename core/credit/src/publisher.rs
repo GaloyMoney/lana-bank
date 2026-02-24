@@ -3,7 +3,6 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    collateral::{Collateral, CollateralEvent, error::CollateralError},
     credit_facility::{
         CreditFacility, CreditFacilityEvent,
         error::CreditFacilityError,
@@ -144,71 +143,6 @@ where
         self.outbox
             .publish_all_persisted(op, publish_events)
             .await?;
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_collateral_in_op", skip_all)]
-    pub async fn publish_collateral_in_op(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        entity: &Collateral,
-        new_events: es_entity::LastPersisted<'_, CollateralEvent>,
-    ) -> Result<(), CollateralError> {
-        use CollateralEvent::*;
-        let events = new_events
-            .flat_map(|event| match &event.event {
-                UpdatedViaManualInput { .. } | UpdatedViaCustodianSync { .. } => {
-                    vec![CoreCreditEvent::FacilityCollateralUpdated {
-                        entity: PublicCollateral::from(entity),
-                    }]
-                }
-                UpdatedViaLiquidation {
-                    abs_diff,
-                    ledger_tx_id,
-                    liquidation_id,
-                    ..
-                } => vec![
-                    CoreCreditEvent::FacilityCollateralUpdated {
-                        entity: PublicCollateral::from(entity),
-                    },
-                    CoreCreditEvent::PartialLiquidationCollateralSentOut {
-                        liquidation_id: *liquidation_id,
-                        credit_facility_id: entity.secured_loan_id.into(),
-                        amount: *abs_diff,
-                        ledger_tx_id: *ledger_tx_id,
-                        recorded_at: event.recorded_at,
-                        effective: event.recorded_at.date_naive(),
-                    },
-                ],
-                LiquidationProceedsReceived {
-                    liquidation_id,
-                    amount,
-                    ledger_tx_id,
-                    payment_id,
-                } => {
-                    vec![CoreCreditEvent::PartialLiquidationProceedsReceived {
-                        liquidation_id: *liquidation_id,
-                        credit_facility_id: entity.secured_loan_id.into(),
-                        amount: *amount,
-                        payment_id: *payment_id,
-                        ledger_tx_id: *ledger_tx_id,
-                        recorded_at: event.recorded_at,
-                        effective: event.recorded_at.date_naive(),
-                    }]
-                }
-                LiquidationCompleted { liquidation_id } => {
-                    vec![CoreCreditEvent::PartialLiquidationCompleted {
-                        liquidation_id: *liquidation_id,
-                        credit_facility_id: entity.secured_loan_id.into(),
-                    }]
-                }
-                _ => vec![],
-            })
-            .collect::<Vec<_>>();
-
-        self.outbox.publish_all_persisted(op, events).await?;
-
         Ok(())
     }
 

@@ -17,6 +17,7 @@ pub use job::*;
 
 use crate::{
     CoreCreditEvent,
+    collateral::public::CoreCreditCollateralEvent,
     credit_facility::CreditFacilities,
     disbursal::Disbursals,
     error::CoreCreditError,
@@ -28,6 +29,7 @@ pub struct ActivateCreditFacility<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -45,6 +47,7 @@ impl<Perms, E> Clone for ActivateCreditFacility<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -73,6 +76,7 @@ where
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>

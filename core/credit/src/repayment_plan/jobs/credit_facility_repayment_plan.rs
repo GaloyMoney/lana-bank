@@ -75,21 +75,8 @@ where
                 self.handle_credit_event(db, event, e, entity.credit_facility_id, sequence, &clock)
                     .await?;
             }
-            Some(e @ FacilityCollateralUpdated { entity }) => {
-                self.handle_credit_event(db, event, e, entity.secured_loan_id, sequence, &clock)
-                    .await?;
-            }
             Some(e @ FacilityCollateralizationChanged { entity }) => {
                 self.handle_credit_event(db, event, e, entity.id, sequence, &clock)
-                    .await?;
-            }
-            Some(
-                e @ PartialLiquidationCompleted {
-                    credit_facility_id: id,
-                    ..
-                },
-            ) => {
-                self.handle_credit_event(db, event, e, *id, sequence, &clock)
                     .await?;
             }
             _ => {}

@@ -15,7 +15,7 @@ use obix::out::OutboxEventMarker;
 use crate::{
     CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
     CreditFacilityProposal, CreditFacilityProposalId, CreditFacilityProposals,
-    PendingCreditFacilities, error::CoreCreditError,
+    PendingCreditFacilities, collateral::public::CoreCreditCollateralEvent, error::CoreCreditError,
 };
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
@@ -30,6 +30,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -45,6 +46,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
@@ -72,6 +74,7 @@ where
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,

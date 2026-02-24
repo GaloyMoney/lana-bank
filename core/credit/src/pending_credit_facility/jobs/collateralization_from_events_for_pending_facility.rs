@@ -20,7 +20,7 @@ use core_price::{CorePriceEvent, Price};
 
 use crate::{
     CoreCreditEvent,
-    collateral::Collaterals,
+    collateral::{Collaterals, public::CoreCreditCollateralEvent},
     ledger::*,
     pending_credit_facility::{
         PendingCreditFacilitiesByCollateralizationRatioCursor, PendingCreditFacility,
@@ -36,6 +36,7 @@ pub struct PendingCreditFacilityCollateralizationFromEventsHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -55,6 +56,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -84,6 +86,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -97,7 +100,7 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         match message.as_event() {
-            Some(event @ CoreCreditEvent::FacilityCollateralUpdated { entity }) => {
+            Some(event @ CoreCreditCollateralEvent::CollateralUpdated { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
@@ -143,6 +146,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>

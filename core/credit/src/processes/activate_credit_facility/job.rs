@@ -11,7 +11,7 @@ use job::JobType;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
-    PendingCreditFacilityCollateralizationState,
+    PendingCreditFacilityCollateralizationState, collateral::public::CoreCreditCollateralEvent,
 };
 
 use super::ActivateCreditFacility;
@@ -22,6 +22,7 @@ pub(crate) struct CreditFacilityActivationHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -42,6 +43,7 @@ where
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -66,6 +68,7 @@ where
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>

@@ -9,7 +9,10 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::JobType;
 
-use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
+use crate::{
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject,
+    collateral::public::CoreCreditCollateralEvent,
+};
 use core_credit_collection::CoreCreditCollectionEvent;
 
 use super::ApproveCreditFacilityProposal;
@@ -21,6 +24,7 @@ pub(crate) struct CreditFacilityProposalApprovalHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -41,6 +45,7 @@ where
         + From<GovernanceObject>
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -66,6 +71,7 @@ where
         + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,

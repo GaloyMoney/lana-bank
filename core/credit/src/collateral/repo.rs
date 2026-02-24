@@ -5,11 +5,9 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use crate::{
-    CoreCreditEvent,
-    primitives::{CollateralId, CustodyWalletId, LiquidationId},
-    publisher::CreditFacilityPublisher,
-};
+use super::publisher::CollateralPublisher;
+use crate::collateral::public::CoreCreditCollateralEvent;
+use crate::primitives::{CollateralId, CustodyWalletId, LiquidationId};
 
 use super::{
     entity::*,
@@ -27,10 +25,10 @@ use super::{
 )]
 pub struct CollateralRepo<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent>,
 {
     pool: PgPool,
-    publisher: CreditFacilityPublisher<E>,
+    publisher: CollateralPublisher<E>,
     clock: ClockHandle,
 
     #[es_repo(nested)]
@@ -39,9 +37,9 @@ where
 
 impl<E> CollateralRepo<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
+    pub fn new(pool: &PgPool, publisher: &CollateralPublisher<E>, clock: ClockHandle) -> Self {
         let liquidations = LiquidationRepo::new(pool, clock.clone());
         Self {
             pool: pool.clone(),
@@ -113,7 +111,7 @@ where
 
 impl<E> Clone for CollateralRepo<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent>,
 {
     fn clone(&self) -> Self {
         Self {
