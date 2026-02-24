@@ -233,22 +233,12 @@ Las columnas a la derecha de `Código de plantilla` representan los conjuntos de
 
 ### Desembolsos
 
-```
-┌──────────────────────────┬─────────────┬─────────────┬─────────────┬──────────────────┐
-│ Código de plantilla      │ Remanente   │ Pendiente   │ Cartera     │ Ómnibus de       │
-│                          │ facilidad   │ sin cobertura│ desembolsada│ depósitos (externo)│
-├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
-│ INITIAL_DISBURSAL        │ Débito (Liquidado)│ Crédito (Liquidado)│ Débito (Liquidado)│ Crédito (Liquidado) │
-├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
-│ INITIATE_CREDIT_FACILITY │ Débito (Liquidado)│ Crédito (Liquidado)│             │                  │
-│ _DISBURSAL               │ Crédito (Pendiente)│ Débito (Pendiente)│             │                  │
-├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
-│ CONFIRM_DISBURSAL        │ Débito (Pendiente)│ Crédito (Pendiente)│ Débito (Liquidado)│ Crédito (Liquidado) │
-├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
-│ CANCEL_DISBURSAL         │ Débito (Pendiente)│ Crédito (Pendiente)│             │                  │
-│                          │ Crédito (Liquidado)│ Débito (Liquidado)│             │                  │
-└──────────────────────────┴─────────────┴─────────────┴─────────────┴──────────────────┘
-```
+| Código de plantilla                     | Remanente facilidad                            | Pendiente sin cobertura                         | Cartera desembolsada                            | Ómnibus de depósitos (externo)                  |
+| --------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- |
+| INITIAL_DISBURSAL                       | Débito (Liquidado)                              | Crédito (Liquidado)                             | Débito (Liquidado)                              | Crédito (Liquidado)                             |
+| INITIATE_CREDIT_FACILITY_DISBURSAL      | Débito (Liquidado)<br>Crédito (Pendiente)       | Crédito (Liquidado)<br>Débito (Pendiente)       | –                                               | –                                               |
+| CONFIRM_DISBURSAL                       | Débito (Pendiente)                              | Crédito (Pendiente)                             | Débito (Liquidado)                              | Crédito (Liquidado)                             |
+| CANCEL_DISBURSAL                        | Débito (Pendiente)<br>Crédito (Liquidado)       | Crédito (Pendiente)<br>Débito (Liquidado)       | –                                               | –                                               |
 
 ### Interés
 
