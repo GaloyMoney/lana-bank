@@ -204,6 +204,148 @@ resource "honeycombio_query_annotation" "handled" {
   name     = "handled job queries"
 }
 
+data "honeycombio_query_specification" "handler_duration" {
+  calculation {
+    op     = "P50"
+    column = "duration_ms"
+  }
+  calculation {
+    op     = "P95"
+    column = "duration_ms"
+  }
+
+  filter {
+    column = "name"
+    op     = "contains"
+    value  = "job.process_message"
+  }
+
+  breakdowns = ["name"]
+
+  order {
+    op     = "P95"
+    column = "duration_ms"
+    order  = "descending"
+  }
+
+  time_range = 604800
+}
+
+resource "honeycombio_query" "handler_duration" {
+  dataset    = var.honeycomb_dataset
+  query_json = data.honeycombio_query_specification.handler_duration.json
+}
+
+resource "honeycombio_query_annotation" "handler_duration" {
+  dataset  = var.honeycomb_dataset
+  query_id = honeycombio_query.handler_duration.id
+  name     = "Event handler duration"
+}
+
+data "honeycombio_query_specification" "command_job_duration" {
+  calculation {
+    op     = "P50"
+    column = "duration_ms"
+  }
+  calculation {
+    op     = "P95"
+    column = "duration_ms"
+  }
+
+  filter {
+    column = "name"
+    op     = "contains"
+    value  = "job.process_command"
+  }
+
+  breakdowns = ["name"]
+
+  order {
+    op     = "P95"
+    column = "duration_ms"
+    order  = "descending"
+  }
+
+  time_range = 604800
+}
+
+resource "honeycombio_query" "command_job_duration" {
+  dataset    = var.honeycomb_dataset
+  query_json = data.honeycombio_query_specification.command_job_duration.json
+}
+
+resource "honeycombio_query_annotation" "command_job_duration" {
+  dataset  = var.honeycomb_dataset
+  query_id = honeycombio_query.command_job_duration.id
+  name     = "Command job duration"
+}
+
+data "honeycombio_query_specification" "command_job_conclusions" {
+  calculation {
+    op = "COUNT"
+  }
+
+  filter {
+    column = "name"
+    op     = "="
+    value  = "job.execute_job"
+  }
+
+  filter {
+    column = "job_type"
+    op     = "contains"
+    value  = "command."
+  }
+
+  breakdowns = ["conclusion", "job_type"]
+
+  time_range = 604800
+}
+
+resource "honeycombio_query" "command_job_conclusions" {
+  dataset    = var.honeycomb_dataset
+  query_json = data.honeycombio_query_specification.command_job_conclusions.json
+}
+
+resource "honeycombio_query_annotation" "command_job_conclusions" {
+  dataset  = var.honeycomb_dataset
+  query_id = honeycombio_query.command_job_conclusions.id
+  name     = "Command job conclusions"
+}
+
+data "honeycombio_query_specification" "handler_trace_errors" {
+  calculation {
+    op = "COUNT"
+  }
+
+  filter {
+    column = "root.name"
+    op     = "contains"
+    value  = "job.process"
+  }
+
+  filter {
+    column = "error"
+    op     = "="
+    value  = "true"
+  }
+
+  breakdowns = ["root.name", "exception.message"]
+
+  time_range = 604800
+}
+
+resource "honeycombio_query" "handler_trace_errors" {
+  dataset    = var.honeycomb_dataset
+  query_json = data.honeycombio_query_specification.handler_trace_errors.json
+}
+
+resource "honeycombio_query_annotation" "handler_trace_errors" {
+  dataset  = var.honeycomb_dataset
+  query_id = honeycombio_query.handler_trace_errors.id
+  name     = "Errors in event handler traces"
+}
+
 # Jobs dashboard
 resource "honeycombio_flexible_board" "jobs" {
   name        = "${local.name_prefix}-jobs"
@@ -265,6 +407,46 @@ resource "honeycombio_flexible_board" "jobs" {
     query_panel {
       query_id            = honeycombio_query.handled.id
       query_annotation_id = honeycombio_query_annotation.handled.id
+      query_style         = "graph"
+    }
+  }
+
+  panel {
+    type = "query"
+
+    query_panel {
+      query_id            = honeycombio_query.handler_duration.id
+      query_annotation_id = honeycombio_query_annotation.handler_duration.id
+      query_style         = "graph"
+    }
+  }
+
+  panel {
+    type = "query"
+
+    query_panel {
+      query_id            = honeycombio_query.command_job_duration.id
+      query_annotation_id = honeycombio_query_annotation.command_job_duration.id
+      query_style         = "graph"
+    }
+  }
+
+  panel {
+    type = "query"
+
+    query_panel {
+      query_id            = honeycombio_query.command_job_conclusions.id
+      query_annotation_id = honeycombio_query_annotation.command_job_conclusions.id
+      query_style         = "graph"
+    }
+  }
+
+  panel {
+    type = "query"
+
+    query_panel {
+      query_id            = honeycombio_query.handler_trace_errors.id
+      query_annotation_id = honeycombio_query_annotation.handler_trace_errors.id
       query_style         = "graph"
     }
   }
