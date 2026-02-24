@@ -58,6 +58,10 @@ wait_for_report_run_complete() {
   exec_admin_graphql 'find-report' "$variables"
   echo "Completed run: $(graphql_output)"
 
+  # Assert the run succeeded
+  final_state=$(graphql_output '.data.reportRun.state')
+  [[ "$final_state" == "SUCCESS" ]] || { echo "Report run did not succeed, state=${final_state}"; exit 1; }
+
   # Extract reports and their files, then generate download links
   reports_json=$(graphql_output '.data.reportRun.reports')
   reports_length=$(echo "$reports_json" | jq 'length')
@@ -92,11 +96,27 @@ wait_for_report_run_complete() {
       if [[ "$url" == file://* ]]; then
         local_path="${url#file://}"
         [[ -f "$local_path" ]] || exit 1
-        echo "Local file verified: $local_path"
+        file_size=$(wc -c < "$local_path")
+        [[ "$file_size" -gt 0 ]] || { echo "Local report file is empty: $local_path"; exit 1; }
+        echo "Local file verified (${file_size} bytes): $local_path"
       else
-        response=$(curl -s -o /dev/null -w "%{http_code}" "$url")
-        [[ "$response" == "200" ]] || exit 1
-        echo "HTTP download verified: $url"
+        # When running with GCS, assert the URL is a real GCS signed URL
+        if [[ -n "${DOCS_BUCKET_NAME:-}" ]]; then
+          [[ "$url" == https://storage.googleapis.com/* ]] || {
+            echo "Expected GCS signed URL (storage.googleapis.com) but got: $url"
+            exit 1
+          }
+          echo "Confirmed GCS signed URL for report=${report_id} extension=${extension}"
+        fi
+
+        # Download the file and verify it is non-empty
+        tmp_file=$(mktemp)
+        http_code=$(curl -s -o "$tmp_file" -w "%{http_code}" "$url")
+        [[ "$http_code" == "200" ]] || { echo "HTTP ${http_code} downloading report from URL: $url"; rm -f "$tmp_file"; exit 1; }
+        file_size=$(wc -c < "$tmp_file")
+        [[ "$file_size" -gt 0 ]] || { echo "Downloaded report file is empty (report=${report_id} extension=${extension})"; rm -f "$tmp_file"; exit 1; }
+        echo "HTTP download verified (${file_size} bytes, HTTP ${http_code}): report=${report_id} extension=${extension}"
+        rm -f "$tmp_file"
       fi
     done
   done
