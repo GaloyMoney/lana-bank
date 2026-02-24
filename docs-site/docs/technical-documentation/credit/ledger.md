@@ -216,7 +216,7 @@ Account Creation: Per-facility
 
 ## Transaction Templates
 
-Columns to the right of Template Code represent account sets involved in the transaction. A cell value indicates that the template debits (DR) or credits (CR) an account from that account set, on the Settled (S) or Pending (P) layer. Empty cells mean the template does not involve that account set.
+Columns to the right of Template Code represent account sets involved in the transaction. A cell value indicates that the template debits (DR) or credits (CR) an account from that account set, on the Settled or Pending layer. Empty cells mean the template does not involve that account set.
 
 ### Facility
 
@@ -224,10 +224,10 @@ Columns to the right of Template Code represent account sets involved in the tra
 ┌─────────────────────────────────────┬──────────────────────┬──────────────────────┐
 │ Template Code                       │ Facility Omnibus     │ Facility Remaining   │
 ├─────────────────────────────────────┼──────────────────────┼──────────────────────┤
-│ CREATE_CREDIT_FACILITY_PROPOSAL     │ DR (P)               │ CR (P)               │
+│ CREATE_CREDIT_FACILITY_PROPOSAL     │ DR (Pending)         │ CR (Pending)         │
 ├─────────────────────────────────────┼──────────────────────┼──────────────────────┤
-│ ACTIVATE_CREDIT_FACILITY            │ CR (P)               │ DR (P)               │
-│                                     │ DR (S)               │ CR (S)               │
+│ ACTIVATE_CREDIT_FACILITY            │ CR (Pending)         │ DR (Pending)         │
+│                                     │ DR (Settled)         │ CR (Settled)         │
 └─────────────────────────────────────┴──────────────────────┴──────────────────────┘
 ```
 
@@ -238,15 +238,15 @@ Columns to the right of Template Code represent account sets involved in the tra
 │ Template Code            │ Facility    │ Uncovered   │ Disbursed   │ Deposit Omnibus  │
 │                          │ Remaining   │ Outstanding │ Receivable  │ (external)       │
 ├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
-│ INITIAL_DISBURSAL        │ DR (S)      │ CR (S)      │ DR (S)      │ CR (S)           │
+│ INITIAL_DISBURSAL        │ DR (Settled)│ CR (Settled)│ DR (Settled)│ CR (Settled)     │
 ├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
-│ INITIATE_CREDIT_FACILITY │ DR (S)      │ CR (S)      │             │                  │
-│ _DISBURSAL               │ CR (P)      │ DR (P)      │             │                  │
+│ INITIATE_CREDIT_FACILITY │ DR (Settled)│ CR (Settled)│             │                  │
+│ _DISBURSAL               │ CR (Pending)│ DR (Pending)│             │                  │
 ├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
-│ CONFIRM_DISBURSAL        │ DR (P)      │ CR (P)      │ DR (S)      │ CR (S)           │
+│ CONFIRM_DISBURSAL        │ DR (Pending)│ CR (Pending)│ DR (Settled)│ CR (Settled)     │
 ├──────────────────────────┼─────────────┼─────────────┼─────────────┼──────────────────┤
-│ CANCEL_DISBURSAL         │ DR (P)      │ CR (P)      │             │                  │
-│                          │ CR (S)      │ DR (S)      │             │                  │
+│ CANCEL_DISBURSAL         │ DR (Pending)│ CR (Pending)│             │                  │
+│                          │ CR (Settled)│ DR (Settled)│             │                  │
 └──────────────────────────┴─────────────┴─────────────┴─────────────┴──────────────────┘
 ```
 
@@ -258,10 +258,10 @@ Columns to the right of Template Code represent account sets involved in the tra
 │                                    │ Receivable  │ Income      │ to Oblig.   │ Outstanding │
 │                                    │             │             │ Omnibus     │             │
 ├────────────────────────────────────┼─────────────┼─────────────┼─────────────┼─────────────┤
-│ CREDIT_FACILITY_ACCRUE_INTEREST    │ DR (P)      │ CR (P)      │             │             │
+│ CREDIT_FACILITY_ACCRUE_INTEREST    │ DR (Pending)│ CR (Pending)│             │             │
 ├────────────────────────────────────┼─────────────┼─────────────┼─────────────┼─────────────┤
-│ CREDIT_FACILITY_POST_ACCRUED_      │ CR (P)      │ DR (P)      │             │             │
-│ INTEREST                           │ DR (S)      │ CR (S)      │ DR (S)      │ CR (S)      │
+│ CREDIT_FACILITY_POST_ACCRUED_      │ CR (Pending)│ DR (Pending)│             │             │
+│ INTEREST                           │ DR (Settled)│ CR (Settled)│ DR (Settled)│ CR (Settled)│
 └────────────────────────────────────┴─────────────┴─────────────┴─────────────┴─────────────┘
 ```
 
@@ -272,6 +272,6 @@ Columns to the right of Template Code represent account sets involved in the tra
 │ Template Code       │ Disbursed          │ Fee Income   │
 │                     │ Receivable         │              │
 ├─────────────────────┼────────────────────┼──────────────┤
-│ ADD_STRUCTURING_FEE │ DR (S)             │ CR (S)       │
+│ ADD_STRUCTURING_FEE │ DR (Settled)       │ CR (Settled) │
 └─────────────────────┴────────────────────┴──────────────┘
 ```
