@@ -1331,10 +1331,13 @@ fn build_cala_tree<'a>(
                 if !show_transitive && acct.transitive {
                     continue;
                 }
+                let acct_ref = acct
+                    .account_external_id
+                    .as_deref()
+                    .unwrap_or(&acct.account_code);
                 let mut acct_label = format!(
-                    "[acct] {} - {} ({})",
-                    acct.account_code,
-                    acct.account_name,
+                    "[acct] {} ({})",
+                    acct_ref,
                     if acct.transitive {
                         "transitive"
                     } else {
@@ -1439,8 +1442,11 @@ fn build_product_tree<'a>(
                             if !show_transitive && acct.transitive {
                                 continue;
                             }
-                            let mut acct_label =
-                                format!("[acct] {} - {}", acct.account_code, acct.account_name,);
+                            let acct_ref = acct
+                                .account_external_id
+                                .as_deref()
+                                .unwrap_or(&acct.account_code);
+                            let mut acct_label = format!("[acct] {acct_ref}");
                             // Append inline balance for account (depth 3)
                             if let Some(bals) = balance_by_acct.get(&acct.account_id) {
                                 acct_label
@@ -1626,10 +1632,14 @@ fn dump_cala_set(set_id: Uuid, app: &App, depth: usize) {
     // Member accounts
     if let Some(accounts) = app.account_members_by_set.get(&set_id) {
         for acct in accounts {
+            let acct_ref = acct
+                .account_external_id
+                .as_deref()
+                .unwrap_or(&acct.account_code);
             let acct_label = format!(
                 "{}  [acct] {} ({}) [id:{}]",
                 indent,
-                acct.account_code,
+                acct_ref,
                 if acct.transitive {
                     "transitive"
                 } else {
