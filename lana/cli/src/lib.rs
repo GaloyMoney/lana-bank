@@ -32,7 +32,7 @@ struct Cli {
     smtp_username: String,
     #[clap(env = "SMTP_PASSWORD", default_value = "")]
     smtp_password: String,
-    #[clap(long, env = "ENCRYPTION_KEY", default_value = "")]
+    #[clap(long, env = "ENCRYPTION_KEY")]
     encryption_key: String,
     #[clap(long, env = "DEPRECATED_ENCRYPTION_KEY")]
     deprecated_encryption_key: Option<String>,
