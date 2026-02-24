@@ -1,17 +1,17 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub(crate) mod command_job;
 pub mod config;
-mod customer_active_sync;
 pub mod error;
+mod event_handler;
 mod jobs;
 
+use command_job::ActivateHolderAccountJobInitializer;
 use config::*;
-use customer_active_sync::*;
 use error::*;
+use event_handler::*;
 use jobs::*;
-
-use customer_active_sync::command_job::ActivateHolderAccountJobInitializer;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
