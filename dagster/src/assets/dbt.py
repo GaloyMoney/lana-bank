@@ -36,6 +36,7 @@ TAG_VALUE_DBT_SEED = "dbt_seed"
 
 DBT_SELECT_MODELS = f"{DbtPropKey.RESOURCE_TYPE}:{DbtResourceType.MODEL}"
 DBT_SELECT_SEEDS = f"{DbtPropKey.RESOURCE_TYPE}:{DbtResourceType.SEED}"
+DBT_SELECT_ASOF_MODELS = "tag:asof"
 
 
 def _load_dbt_manifest() -> dict:
@@ -169,6 +170,7 @@ def create_dbt_model_assets():
     @dbt_assets(
         manifest=DBT_MANIFEST_PATH,
         select=DBT_SELECT_MODELS,
+        exclude=DBT_SELECT_ASOF_MODELS,
         dagster_dbt_translator=translator,
     )
     def lana_dbt_model_assets(context: dg.AssetExecutionContext, dbt: DbtCliResource):
@@ -205,3 +207,39 @@ def create_dbt_seed_assets():
             yield from dbt.cli(["seed"], context=context).stream()
 
     return lana_dbt_seed_assets
+
+
+class AsOfConfig(dg.Config):
+    as_of_date: str  # e.g. "2025-12-31"
+
+
+def create_dbt_asof_model_assets():
+    """
+    Create dbt as-of model assets that require an as_of_date var.
+
+    These models are excluded from the regular dbt_models_job and must be
+    triggered manually with an as_of_date config parameter.
+
+    Returns:
+        A dbt_assets-decorated function that creates all dbt as-of model assets
+    """
+    translator = LanaDbtTranslator(resource_type=DbtResourceType.MODEL)
+
+    @dbt_assets(
+        manifest=DBT_MANIFEST_PATH,
+        select=DBT_SELECT_ASOF_MODELS,
+        dagster_dbt_translator=translator,
+    )
+    def lana_dbt_asof_model_assets(
+        context: dg.AssetExecutionContext,
+        dbt: DbtCliResource,
+        config: AsOfConfig,
+    ):
+        """Execute dbt as-of models with OTEL tracing."""
+        selected_keys = [key.to_user_string() for key in context.selected_asset_keys]
+        vars_json = json.dumps({"as_of_date": config.as_of_date})
+
+        with trace_dbt_batch(context, "dbt_asof_models_build", selected_keys):
+            yield from dbt.cli(["run", "--vars", vars_json], context=context).stream()
+
+    return lana_dbt_asof_model_assets

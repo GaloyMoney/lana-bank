@@ -6,6 +6,7 @@ from typing import List, Tuple, Union
 import dagster as dg
 from src.assets import (
     bitfinex_protoassets,
+    create_dbt_asof_model_assets,
     create_dbt_model_assets,
     create_dbt_seed_assets,
     create_file_report_multi_asset,
@@ -197,6 +198,15 @@ dbt_models_job = dg.define_asset_job(
 )
 definition_builder.jobs.append(dbt_models_job)
 definition_builder.add_job_schedule(job=dbt_models_job, cron_expression="0 * * * *")
+
+lana_dbt_asof_models = create_dbt_asof_model_assets()
+definition_builder.assets.append(lana_dbt_asof_models)
+
+dbt_asof_models_job = dg.define_asset_job(
+    name="dbt_asof_models_job",
+    selection=dg.AssetSelection.assets(lana_dbt_asof_models),
+)
+definition_builder.jobs.append(dbt_asof_models_job)
 
 lana_dbt_seeds = create_dbt_seed_assets()
 definition_builder.assets.append(lana_dbt_seeds)

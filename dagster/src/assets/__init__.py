@@ -4,6 +4,7 @@ from src.assets.bitfinex import bitfinex_protoassets
 from src.assets.dbt import (
     TAG_KEY_ASSET_TYPE,
     TAG_VALUE_DBT_MODEL,
+    create_dbt_asof_model_assets,
     create_dbt_model_assets,
     create_dbt_seed_assets,
 )
