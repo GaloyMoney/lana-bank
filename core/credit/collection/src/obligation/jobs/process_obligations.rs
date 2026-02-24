@@ -100,7 +100,7 @@ where
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 struct ProcessObligationsState {
-    last_obligation_id: Option<ObligationId>,
+    last_cursor: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
 }
 
 #[async_trait]
@@ -125,18 +125,18 @@ where
             .unwrap_or_default();
 
         loop {
-            let ids = self
+            let rows = self
                 .obligations
-                .list_ids_needing_transition(self.config.day, state.last_obligation_id, PAGE_SIZE)
+                .list_ids_needing_transition(self.config.day, state.last_cursor, PAGE_SIZE)
                 .await?;
 
-            if ids.is_empty() {
+            if rows.is_empty() {
                 break;
             }
 
-            let specs: Vec<_> = ids
+            let specs: Vec<_> = rows
                 .iter()
-                .map(|id| {
+                .map(|(id, _)| {
                     JobSpec::new(
                         JobId::new(),
                         TransitionObligationJobConfig {
@@ -154,7 +154,7 @@ where
                 .spawn_all_in_op(&mut op, specs)
                 .await?;
 
-            state.last_obligation_id = ids.last().copied();
+            state.last_cursor = rows.last().map(|(id, ts)| (*ts, *id));
             current_job
                 .update_execution_state_in_op(&mut op, &state)
                 .await?;

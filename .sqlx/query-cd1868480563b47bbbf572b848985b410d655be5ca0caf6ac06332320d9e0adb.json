@@ -1,0 +1,31 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id AS \"id: ObligationId\", created_at\n               FROM core_obligations\n               WHERE next_transition_date IS NOT NULL\n                 AND next_transition_date <= $1\n                 AND (($2::timestamptz IS NULL) OR (created_at, id) > ($2, $3))\n               ORDER BY created_at, id\n               LIMIT $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: ObligationId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Timestamptz",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "cd1868480563b47bbbf572b848985b410d655be5ca0caf6ac06332320d9e0adb"
+}

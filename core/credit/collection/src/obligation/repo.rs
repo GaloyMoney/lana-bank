@@ -87,23 +87,28 @@ where
     pub async fn list_ids_needing_transition(
         &self,
         day: chrono::NaiveDate,
-        after_id: Option<ObligationId>,
+        after: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
         limit: i64,
-    ) -> Result<Vec<ObligationId>, ObligationError> {
-        let rows = sqlx::query_scalar!(
-            r#"SELECT id AS "id: ObligationId"
+    ) -> Result<Vec<(ObligationId, chrono::DateTime<chrono::Utc>)>, ObligationError> {
+        let (after_created_at, after_id) = match after {
+            Some((ts, id)) => (Some(ts), Some(id)),
+            None => (None, None),
+        };
+        let rows = sqlx::query!(
+            r#"SELECT id AS "id: ObligationId", created_at
                FROM core_obligations
                WHERE next_transition_date IS NOT NULL
                  AND next_transition_date <= $1
-                 AND ($2::uuid IS NULL OR id > $2)
-               ORDER BY id
-               LIMIT $3"#,
+                 AND (($2::timestamptz IS NULL) OR (created_at, id) > ($2, $3))
+               ORDER BY created_at, id
+               LIMIT $4"#,
             day,
+            after_created_at,
             after_id as Option<ObligationId>,
             limit,
         )
         .fetch_all(self.pool())
         .await?;
-        Ok(rows)
+        Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }
 }

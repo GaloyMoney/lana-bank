@@ -106,11 +106,11 @@ where
     pub async fn list_ids_needing_transition(
         &self,
         day: chrono::NaiveDate,
-        after_id: Option<ObligationId>,
+        after: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
         limit: i64,
-    ) -> Result<Vec<ObligationId>, ObligationError> {
+    ) -> Result<Vec<(ObligationId, chrono::DateTime<chrono::Utc>)>, ObligationError> {
         self.repo
-            .list_ids_needing_transition(day, after_id, limit)
+            .list_ids_needing_transition(day, after, limit)
             .await
     }
 
