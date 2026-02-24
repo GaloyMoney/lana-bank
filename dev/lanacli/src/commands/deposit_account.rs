@@ -13,9 +13,7 @@ pub async fn execute(
     match action {
         DepositAccountAction::Create { customer_id } => {
             let vars = deposit_account_create::Variables {
-                input: deposit_account_create::DepositAccountCreateInput {
-                    customer_id: customer_id,
-                },
+                input: deposit_account_create::DepositAccountCreateInput { customer_id },
             };
             let data = client.execute::<DepositAccountCreate>(vars).await?;
             let a = data.deposit_account_create.account;
@@ -61,10 +59,10 @@ pub async fn execute(
                     rows,
                 );
                 let pi = data.deposit_accounts.page_info;
-                if pi.has_next_page {
-                    if let Some(cursor) = pi.end_cursor {
-                        println!("\nMore results available. Use --after {cursor}");
-                    }
+                if pi.has_next_page
+                    && let Some(cursor) = pi.end_cursor
+                {
+                    println!("\nMore results available. Use --after {cursor}");
                 }
             }
         }

@@ -3,6 +3,7 @@ use graphql_client::GraphQLQuery;
 // Custom scalar type aliases for CLI presentation layer.
 // Using serde_json::Value to handle scalars that serialize as either
 // strings or numbers depending on the server implementation.
+#[allow(clippy::upper_case_acronyms)]
 type UUID = String;
 type UsdCents = serde_json::Value;
 type Satoshis = serde_json::Value;
@@ -12,14 +13,6 @@ type OneTimeFeeRatePct = serde_json::Value;
 type Timestamp = String;
 type Date = String;
 type PublicId = String;
-type AccountCode = String;
-type SignedSatoshis = serde_json::Value;
-type SignedUsdCents = serde_json::Value;
-type Decimal = serde_json::Value;
-type AuditEntryId = String;
-type AuditSubjectId = String;
-type Json = serde_json::Value;
-type Upload = String;
 
 // -- Prospect operations --
 

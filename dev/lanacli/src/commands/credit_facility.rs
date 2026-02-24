@@ -30,7 +30,7 @@ pub async fn execute(
         } => {
             let vars = credit_facility_proposal_create::Variables {
                 input: credit_facility_proposal_create::CreditFacilityProposalCreateInput {
-                    customer_id: customer_id,
+                    customer_id,
                     facility: sval(facility_amount),
                     custodian_id,
                     terms: credit_facility_proposal_create::TermsInput {
@@ -110,10 +110,10 @@ pub async fn execute(
                     .collect();
                 output::print_table(&["Proposal ID", "Status", "Amount", "Created"], rows);
                 let pi = data.credit_facility_proposals.page_info;
-                if pi.has_next_page {
-                    if let Some(cursor) = pi.end_cursor {
-                        println!("\nMore results available. Use --after {cursor}");
-                    }
+                if pi.has_next_page
+                    && let Some(cursor) = pi.end_cursor
+                {
+                    println!("\nMore results available. Use --after {cursor}");
                 }
             }
         }
@@ -149,10 +149,10 @@ pub async fn execute(
                     rows,
                 );
                 let pi = data.credit_facilities.page_info;
-                if pi.has_next_page {
-                    if let Some(cursor) = pi.end_cursor {
-                        println!("\nMore results available. Use --after {cursor}");
-                    }
+                if pi.has_next_page
+                    && let Some(cursor) = pi.end_cursor
+                {
+                    println!("\nMore results available. Use --after {cursor}");
                 }
             }
         }
@@ -260,7 +260,7 @@ pub async fn execute(
         } => {
             let vars = credit_facility_disbursal_initiate::Variables {
                 input: credit_facility_disbursal_initiate::CreditFacilityDisbursalInitiateInput {
-                    credit_facility_id: credit_facility_id,
+                    credit_facility_id,
                     amount: sval(amount),
                 },
             };

@@ -214,25 +214,25 @@ impl App {
     }
 
     pub fn enter_detail_from_list_row(&mut self) {
-        if let Some(selected) = self.table_state.selected() {
-            if selected < self.list.rows.len() {
-                let pairs = self
-                    .list
-                    .headers
-                    .iter()
-                    .zip(self.list.rows[selected].iter())
-                    .map(|(h, v)| (h.clone(), v.clone()))
-                    .collect();
-                let entity_id = self.list.ids[selected].clone();
-                self.detail = DetailData {
-                    pairs,
-                    actions: vec![],
-                    entity_id,
-                };
-                self.detail_scroll = 0;
-                self.screen = Screen::DetailView;
-                self.status = String::from("Esc=back");
-            }
+        if let Some(selected) = self.table_state.selected()
+            && selected < self.list.rows.len()
+        {
+            let pairs = self
+                .list
+                .headers
+                .iter()
+                .zip(self.list.rows[selected].iter())
+                .map(|(h, v)| (h.clone(), v.clone()))
+                .collect();
+            let entity_id = self.list.ids[selected].clone();
+            self.detail = DetailData {
+                pairs,
+                actions: vec![],
+                entity_id,
+            };
+            self.detail_scroll = 0;
+            self.screen = Screen::DetailView;
+            self.status = String::from("Esc=back");
         }
     }
 

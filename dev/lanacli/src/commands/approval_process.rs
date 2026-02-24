@@ -13,9 +13,7 @@ pub async fn execute(
     match action {
         ApprovalProcessAction::Approve { process_id } => {
             let vars = approval_process_approve::Variables {
-                input: approval_process_approve::ApprovalProcessApproveInput {
-                    process_id: process_id,
-                },
+                input: approval_process_approve::ApprovalProcessApproveInput { process_id },
             };
             let data = client.execute::<ApprovalProcessApprove>(vars).await?;
             let ap = data.approval_process_approve.approval_process;
@@ -33,9 +31,7 @@ pub async fn execute(
         }
         ApprovalProcessAction::Deny { process_id, reason } => {
             let vars = approval_process_deny::Variables {
-                input: approval_process_deny::ApprovalProcessDenyInput {
-                    process_id: process_id,
-                },
+                input: approval_process_deny::ApprovalProcessDenyInput { process_id },
                 reason,
             };
             let data = client.execute::<ApprovalProcessDeny>(vars).await?;
@@ -76,10 +72,10 @@ pub async fn execute(
                     .collect();
                 output::print_table(&["Process ID", "Type", "Status", "Created"], rows);
                 let pi = data.approval_processes.page_info;
-                if pi.has_next_page {
-                    if let Some(cursor) = pi.end_cursor {
-                        println!("\nMore results available. Use --after {cursor}");
-                    }
+                if pi.has_next_page
+                    && let Some(cursor) = pi.end_cursor
+                {
+                    println!("\nMore results available. Use --after {cursor}");
                 }
             }
         }

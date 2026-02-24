@@ -41,10 +41,10 @@ pub async fn execute(client: &mut GraphQLClient, action: CustomerAction, json: b
                     rows,
                 );
                 let pi = data.customers.page_info;
-                if pi.has_next_page {
-                    if let Some(cursor) = pi.end_cursor {
-                        println!("\nMore results available. Use --after {cursor}");
-                    }
+                if pi.has_next_page
+                    && let Some(cursor) = pi.end_cursor
+                {
+                    println!("\nMore results available. Use --after {cursor}");
                 }
             }
         }

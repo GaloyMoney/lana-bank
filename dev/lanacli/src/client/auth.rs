@@ -102,10 +102,10 @@ impl AuthClient {
     }
 
     pub async fn get_token(&mut self) -> anyhow::Result<String> {
-        if let Some(ref cached) = self.cached {
-            if Instant::now() < cached.expires_at {
-                return Ok(cached.access_token.clone());
-            }
+        if let Some(ref cached) = self.cached
+            && Instant::now() < cached.expires_at
+        {
+            return Ok(cached.access_token.clone());
         }
 
         if let Some(session) = load_session(&self.keycloak_url, &self.username) {

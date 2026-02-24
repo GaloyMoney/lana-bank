@@ -16,7 +16,7 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
             let vars = prospect_create::Variables {
                 input: prospect_create::ProspectCreateInput {
                     email,
-                    telegram_handle: telegram_handle,
+                    telegram_handle,
                     customer_type: ct,
                 },
             };
@@ -71,10 +71,10 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
                     rows,
                 );
                 let pi = data.prospects.page_info;
-                if pi.has_next_page {
-                    if let Some(cursor) = pi.end_cursor {
-                        println!("\nMore results available. Use --after {cursor}");
-                    }
+                if pi.has_next_page
+                    && let Some(cursor) = pi.end_cursor
+                {
+                    println!("\nMore results available. Use --after {cursor}");
                 }
             }
         }
@@ -106,9 +106,7 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
         }
         ProspectAction::Convert { prospect_id } => {
             let vars = prospect_convert::Variables {
-                input: prospect_convert::ProspectConvertInput {
-                    prospect_id: prospect_id,
-                },
+                input: prospect_convert::ProspectConvertInput { prospect_id },
             };
             let data = client.execute::<ProspectConvert>(vars).await?;
             let c = data.prospect_convert.customer;
@@ -127,9 +125,7 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
         }
         ProspectAction::Close { prospect_id } => {
             let vars = prospect_close::Variables {
-                input: prospect_close::ProspectCloseInput {
-                    prospect_id: prospect_id,
-                },
+                input: prospect_close::ProspectCloseInput { prospect_id },
             };
             let data = client.execute::<ProspectClose>(vars).await?;
             let p = data.prospect_close.prospect;
