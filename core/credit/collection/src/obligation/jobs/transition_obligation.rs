@@ -101,17 +101,18 @@ where
 {
     #[instrument(
         name = "collection.obligation.transition_obligation_job",
-        skip(self, _current_job),
+        skip(self, current_job),
         fields(obligation_id = %self.config.obligation_id, day = %self.config.day)
     )]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let mut op = current_job.begin_op().await?;
         self.obligations
-            .execute_transition(self.config.obligation_id, self.config.day)
+            .execute_transition_in_op(&mut op, self.config.obligation_id, self.config.day)
             .await?;
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(op))
     }
 }
 
