@@ -4,7 +4,7 @@ use audit::SystemSubject;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use core_accounting_primitives::EntityRef;
+use core_accounting_contracts::EntityRef;
 use es_entity::clock::ClockHandle;
 
 mod balance;
@@ -1179,7 +1179,7 @@ impl CreditLedger {
         reference: &str,
         name: &str,
         description: &str,
-        entity_ref: core_accounting_primitives::EntityRef,
+        entity_ref: core_accounting_contracts::EntityRef,
     ) -> Result<(), CreditLedgerError> {
         let id = id.into();
 

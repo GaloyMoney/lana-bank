@@ -14,7 +14,7 @@ use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub const DEPOSIT_APPROVAL: audit::SystemActor = audit::SystemActor::new("deposit-approval");
 
-pub use core_accounting_primitives::ChartId;
+pub use core_accounting_contracts::ChartId;
 pub use core_customer::CustomerType;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 pub use public_id::PublicId;
@@ -43,12 +43,12 @@ es_entity::entity_id! {
 
 pub use money::UsdCents;
 
-pub const DEPOSIT_ACCOUNT_ENTITY_TYPE: core_accounting_primitives::EntityType =
-    core_accounting_primitives::EntityType::new("DepositAccount");
-pub const DEPOSIT_TRANSACTION_ENTITY_TYPE: core_accounting_primitives::EntityType =
-    core_accounting_primitives::EntityType::new("Deposit");
-pub const WITHDRAWAL_TRANSACTION_ENTITY_TYPE: core_accounting_primitives::EntityType =
-    core_accounting_primitives::EntityType::new("Withdrawal");
+pub const DEPOSIT_ACCOUNT_ENTITY_TYPE: core_accounting_contracts::EntityType =
+    core_accounting_contracts::EntityType::new("DepositAccount");
+pub const DEPOSIT_TRANSACTION_ENTITY_TYPE: core_accounting_contracts::EntityType =
+    core_accounting_contracts::EntityType::new("Deposit");
+pub const WITHDRAWAL_TRANSACTION_ENTITY_TYPE: core_accounting_contracts::EntityType =
+    core_accounting_contracts::EntityType::new("Withdrawal");
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
 pub type DepositAccountByHolderAllOrOne = AllOrOne<DepositAccountHolderId>;

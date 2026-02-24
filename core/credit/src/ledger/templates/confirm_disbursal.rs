@@ -109,7 +109,7 @@ impl<S: std::fmt::Display> From<ConfirmDisbursalParams<S>> for Params {
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("external_id", external_id);
         params.insert("effective", effective);
-        let entity_ref = core_accounting_primitives::EntityRef::new(
+        let entity_ref = core_accounting_contracts::EntityRef::new(
             DISBURSAL_TRANSACTION_ENTITY_TYPE,
             entity_id,
         );

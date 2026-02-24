@@ -105,7 +105,7 @@ impl<S: std::fmt::Display> From<ConfirmWithdrawParams<S>> for Params {
         params.insert("correlation_id", correlation_id);
         params.insert("external_id", external_id);
         params.insert("effective", effective_date);
-        let entity_ref = core_accounting_primitives::EntityRef::new(
+        let entity_ref = core_accounting_contracts::EntityRef::new(
             WITHDRAWAL_TRANSACTION_ENTITY_TYPE,
             entity_id,
         );

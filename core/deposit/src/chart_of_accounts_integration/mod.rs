@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_accounting_primitives::ChartLookup;
+use core_accounting_contracts::ChartLookup;
 use domain_config::InternalDomainConfigs;
 use tracing::instrument;
 use tracing_macros::record_error_severity;

@@ -4,7 +4,7 @@ use audit::SystemSubject;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use core_accounting_primitives::EntityRef;
+use core_accounting_contracts::EntityRef;
 use es_entity::clock::ClockHandle;
 
 mod deposit_accounts;
@@ -833,7 +833,7 @@ impl DepositLedger {
         reference: &str,
         name: &str,
         description: &str,
-        entity_ref: core_accounting_primitives::EntityRef,
+        entity_ref: core_accounting_contracts::EntityRef,
     ) -> Result<(), DepositLedgerError> {
         let id = id.into();
         tracing::Span::current().record("account_id", tracing::field::debug(&id));

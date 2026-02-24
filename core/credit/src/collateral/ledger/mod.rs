@@ -9,7 +9,7 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{
     CalaLedger, Currency, JournalId, TransactionId as CalaTransactionId, account::NewAccount,
 };
-use core_accounting_primitives::EntityRef;
+use core_accounting_contracts::EntityRef;
 use es_entity::clock::ClockHandle;
 use money::Satoshis;
 
