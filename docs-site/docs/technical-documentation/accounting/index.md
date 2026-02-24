@@ -39,8 +39,40 @@ The chart of accounts uses a parent-child hierarchy where top-level codes repres
   - **21** — Customer Deposits
 - **3** — Equity
   - **31** — Retained Earnings
+    - **31.01** — Retained Earnings (Gain)
+    - **31.02** — Retained Earnings (Loss)
 
 Each account in the hierarchy is backed by an account set in the Cala ledger, which allows the system to aggregate balances across all child accounts when generating reports for a parent node.
+
+### Accounting Base Configuration
+
+Accounting base configuration maps account categories (as well as **retained earnings**, which is nested under the **Equity** category) to specific codes in the chart of accounts. It is required for accounting operations like monthly and fiscal year-end closing and enables the attachment of product modules to the chart of accounts.
+
+It takes the form of JSON, where each key is an account category (or a **retained earnings** target, one for positive net income and one for negative net income) and each value represents a code in the chart of accounts.
+
+```json
+{
+  "assets_code": "1",
+  "liabilities_code": "2",
+  "equity_code": "3",
+  "equity_retained_earnings_gain_code": "31.01",
+  "equity_retained_earnings_loss_code": "31.02",
+  "revenue_code": "4",
+  "cost_of_revenue_code": "5",
+  "expenses_code": "6"
+}
+```
+
+Any root-level node in the chart that is not represented by a key/value pair in accounting base configuration is considered off-balance sheet. Off-balance sheet account sets are typically used for tracking contingencies or representing transactions entering or leaving the system.
+
+### Setup
+
+The accounting module requires two configuration files to operate:
+
+1. Chart of Accounts (CSV)
+2. Accounting Base Configuration (JSON)
+
+These should be set prior to inital startup via on-disk configuration files, however the GraphQL mutation `chartOfAccountsCsvImport` exposes the ability to do this step manually.
 
 ### Integration Configuration
 
