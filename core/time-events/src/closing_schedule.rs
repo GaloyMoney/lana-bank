@@ -5,7 +5,6 @@ use es_entity::clock::ClockHandle;
 pub(crate) struct ClosingSchedule {
     timezone: Tz,
     next_closing: DateTime<Utc>,
-    clock: ClockHandle,
 }
 
 impl ClosingSchedule {
@@ -16,7 +15,6 @@ impl ClosingSchedule {
         Self {
             timezone,
             next_closing,
-            clock: clock.clone(),
         }
     }
 
@@ -28,12 +26,21 @@ impl ClosingSchedule {
         self.next_closing.with_timezone(&self.timezone).date_naive()
     }
 
-    pub fn timezone(&self) -> Tz {
-        self.timezone
-    }
-
-    pub fn duration_until_close(&self) -> Result<std::time::Duration, chrono::OutOfRangeError> {
-        (self.next_closing - self.clock.now()).to_std()
+    pub fn closing_for_day(
+        timezone: Tz,
+        closing_time_of_day: NaiveTime,
+        day: NaiveDate,
+    ) -> DateTime<Utc> {
+        let closing_naive_dt = day.and_time(closing_time_of_day);
+        let time = match timezone.from_local_datetime(&closing_naive_dt) {
+            chrono::LocalResult::Single(dt) => dt,
+            chrono::LocalResult::Ambiguous(dt1, _) => dt1,
+            chrono::LocalResult::None => timezone
+                .from_local_datetime(&(closing_naive_dt + chrono::Duration::hours(1)))
+                .earliest()
+                .expect("time should always exist"),
+        };
+        time.with_timezone(&Utc)
     }
 
     fn calculate_next_closing(
@@ -268,6 +275,47 @@ mod tests {
         // 2:30 AM doesn't exist, returns 3:30 AM EDT (after gap)
         // Current code adds 1 hour → 3:30 AM EDT = 7:30 AM UTC
         assert_eq!(next, "2021-03-14T07:30:00Z");
+    }
+
+    #[test]
+    fn closing_for_day_normal() {
+        let tz: Tz = "America/New_York".parse().unwrap();
+        let closing_time = NaiveTime::from_hms_opt(17, 0, 0).unwrap();
+        let day = NaiveDate::from_ymd_opt(2021, 7, 15).unwrap();
+        let result = ClosingSchedule::closing_for_day(tz, closing_time, day);
+        // 5 PM EDT = 9 PM UTC
+        assert_eq!(
+            result.to_rfc3339_opts(SecondsFormat::Secs, true),
+            "2021-07-15T21:00:00Z"
+        );
+    }
+
+    #[test]
+    fn closing_for_day_dst_gap() {
+        // Mar 14, 2021: Spring forward at 2:00 AM → 3:00 AM in America/New_York
+        let tz: Tz = "America/New_York".parse().unwrap();
+        let closing_time = NaiveTime::from_hms_opt(2, 30, 0).unwrap();
+        let day = NaiveDate::from_ymd_opt(2021, 3, 14).unwrap();
+        let result = ClosingSchedule::closing_for_day(tz, closing_time, day);
+        // 2:30 AM doesn't exist, shifted to 3:30 AM EDT = 7:30 AM UTC
+        assert_eq!(
+            result.to_rfc3339_opts(SecondsFormat::Secs, true),
+            "2021-03-14T07:30:00Z"
+        );
+    }
+
+    #[test]
+    fn closing_for_day_ambiguous_hour() {
+        // Nov 7, 2021: Fall back at 2:00 AM → 1:00 AM in America/New_York
+        let tz: Tz = "America/New_York".parse().unwrap();
+        let closing_time = NaiveTime::from_hms_opt(1, 30, 0).unwrap();
+        let day = NaiveDate::from_ymd_opt(2021, 11, 7).unwrap();
+        let result = ClosingSchedule::closing_for_day(tz, closing_time, day);
+        // Ambiguous hour: picks first occurrence (EDT), 1:30 AM EDT = 5:30 AM UTC
+        assert_eq!(
+            result.to_rfc3339_opts(SecondsFormat::Secs, true),
+            "2021-11-07T05:30:00Z"
+        );
     }
 
     #[test]
