@@ -197,7 +197,7 @@
           # Step 2: Run docs-autogenerate (generate API docs and events docs)
           echo "Generating API and events documentation..."
           cd docs-site
-          npm install
+          npm ci
           npm run generate-api-docs
           npm run generate-events-docs
 
