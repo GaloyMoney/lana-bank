@@ -359,7 +359,7 @@ where
             let account_ids = credit_facility.account_ids;
             let collateral_account_id = self
                 .collaterals
-                .find_collateral_ledger_account_ids_in_op(op, credit_facility.collateral_id)
+                .collateral_ledger_account_ids_in_op(op, credit_facility.collateral_id)
                 .await?
                 .collateral_account_id;
 

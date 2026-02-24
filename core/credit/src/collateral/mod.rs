@@ -426,10 +426,10 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "collateral.find_collateral_ledger_account_ids_in_op",
+        name = "collateral.collateral_ledger_account_ids_in_op",
         skip(self, db)
     )]
-    pub async fn find_collateral_ledger_account_ids_in_op(
+    pub async fn collateral_ledger_account_ids_in_op(
         &self,
         db: &mut impl es_entity::AtomicOperation,
         id: CollateralId,
@@ -440,10 +440,10 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "collateral.find_liquidation_ledger_account_ids_in_op",
+        name = "collateral.liquidation_ledger_account_ids_in_op",
         skip(self, db)
     )]
-    pub async fn find_liquidation_ledger_account_ids_in_op(
+    pub async fn liquidation_ledger_account_ids_in_op(
         &self,
         db: &mut impl es_entity::AtomicOperation,
         id: CollateralId,

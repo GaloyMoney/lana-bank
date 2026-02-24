@@ -198,7 +198,7 @@ where
 
                 let facility_ids = self
                     .collaterals
-                    .find_liquidation_ledger_account_ids_in_op(db, self.config.collateral_id)
+                    .liquidation_ledger_account_ids_in_op(db, self.config.collateral_id)
                     .await?;
 
                 let payment_ledger_account_ids = PaymentLedgerAccountIds {
