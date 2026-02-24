@@ -69,6 +69,23 @@ fn draw_tree_panel(f: &mut Frame, app: &mut App, area: Rect) {
 
             f.render_stateful_widget(tree, area, &mut app.cala_tree_state);
         }
+        ActiveView::Products => {
+            let block = Block::default()
+                .title(" Products ")
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Magenta));
+
+            let tree = Tree::new(&app.product_items)
+                .expect("valid tree")
+                .block(block)
+                .highlight_style(highlight_style)
+                .highlight_symbol("▸ ")
+                .node_closed_symbol("▶ ")
+                .node_open_symbol("▼ ")
+                .node_no_children_symbol("  ");
+
+            f.render_stateful_widget(tree, area, &mut app.product_tree_state);
+        }
     }
 }
 
@@ -107,6 +124,15 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(Color::Cyan)
     };
 
+    let products_style = if app.active_view == ActiveView::Products {
+        Style::default()
+            .fg(Color::Black)
+            .bg(Color::Magenta)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default().fg(Color::Magenta)
+    };
+
     let jump_hint = match app.jump_info() {
         JumpInfo::LanaToCala { total } if total > 1 => Span::styled(
             format!("  g: cycle LANA ↔ CALA ({total} locations)"),
@@ -137,6 +163,8 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Span::styled(" [LANA Tree] ", lana_style),
         Span::raw(" "),
         Span::styled(" [CALA Sets] ", cala_style),
+        Span::raw(" "),
+        Span::styled(" [Products] ", products_style),
         Span::raw("  Tab ↑↓←→ q"),
         transitive_hint,
         jump_hint,

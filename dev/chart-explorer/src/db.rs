@@ -245,6 +245,40 @@ pub async fn load_set_member_accounts(
         .collect())
 }
 
+// ── Product integration configs ───────────────────────────────────
+
+#[derive(Debug, Clone)]
+pub struct ProductConfigRow {
+    pub key: String,
+    pub value: serde_json::Value,
+}
+
+pub async fn load_product_configs(pool: &PgPool) -> anyhow::Result<Vec<ProductConfigRow>> {
+    let rows = sqlx::query(
+        r#"
+        SELECT DISTINCT ON (key) key, value
+        FROM core_domain_config_events_rollup
+        WHERE key IN (
+            'credit-chart-of-accounts-integration',
+            'deposit-chart-of-accounts-integration'
+        )
+        AND event_type = 'updated'
+        AND value IS NOT NULL
+        ORDER BY key, version DESC
+        "#,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|r| ProductConfigRow {
+            key: r.get("key"),
+            value: r.get("value"),
+        })
+        .collect())
+}
+
 // ── Balances ──────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]

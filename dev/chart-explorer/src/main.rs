@@ -52,6 +52,7 @@ async fn main() -> anyhow::Result<()> {
     let cala_set_members = db::load_set_member_sets(&pool).await?;
     let cala_account_members = db::load_set_member_accounts(&pool).await?;
     let balances = db::load_balances(&pool).await?;
+    let product_configs = db::load_product_configs(&pool).await?;
 
     let app = app::App::new(
         charts,
@@ -60,6 +61,7 @@ async fn main() -> anyhow::Result<()> {
         cala_set_members,
         cala_account_members,
         balances,
+        product_configs,
     );
 
     if cli.dump {
@@ -101,6 +103,7 @@ fn run_tui(mut app: app::App) -> io::Result<()> {
                     match app.active_view {
                         app::ActiveView::Lana => app.lana_tree_state.key_up(),
                         app::ActiveView::Cala => app.cala_tree_state.key_up(),
+                        app::ActiveView::Products => app.product_tree_state.key_up(),
                     };
                 }
                 KeyCode::Down => {
@@ -108,6 +111,7 @@ fn run_tui(mut app: app::App) -> io::Result<()> {
                     match app.active_view {
                         app::ActiveView::Lana => app.lana_tree_state.key_down(),
                         app::ActiveView::Cala => app.cala_tree_state.key_down(),
+                        app::ActiveView::Products => app.product_tree_state.key_down(),
                     };
                 }
                 KeyCode::Left => {
@@ -115,6 +119,7 @@ fn run_tui(mut app: app::App) -> io::Result<()> {
                     match app.active_view {
                         app::ActiveView::Lana => app.lana_tree_state.key_left(),
                         app::ActiveView::Cala => app.cala_tree_state.key_left(),
+                        app::ActiveView::Products => app.product_tree_state.key_left(),
                     };
                 }
                 KeyCode::Right => {
@@ -122,6 +127,7 @@ fn run_tui(mut app: app::App) -> io::Result<()> {
                     match app.active_view {
                         app::ActiveView::Lana => app.lana_tree_state.key_right(),
                         app::ActiveView::Cala => app.cala_tree_state.key_right(),
+                        app::ActiveView::Products => app.product_tree_state.key_right(),
                     };
                 }
                 KeyCode::Enter => match app.active_view {
@@ -130,6 +136,9 @@ fn run_tui(mut app: app::App) -> io::Result<()> {
                     }
                     app::ActiveView::Cala => {
                         app.cala_tree_state.toggle_selected();
+                    }
+                    app::ActiveView::Products => {
+                        app.product_tree_state.toggle_selected();
                     }
                 },
                 _ => {}

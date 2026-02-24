@@ -3644,13 +3644,13 @@ dependencies = [
 
 [[package]]
 name = "keycloak"
-version = "26.5.200"
+version = "26.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "620fc013ebc3b3cea16e8e600893809670cf65d499b91991388093365d3b0d01"
+checksum = "ed451521a2e0523fb954fa585815bd9d131d6d51095d23eced49381816e40944"
 dependencies = [
  "async-trait",
  "percent-encoding",
- "reqwest 0.13.2",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "serde_with",

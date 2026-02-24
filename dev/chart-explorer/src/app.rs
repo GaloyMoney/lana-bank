@@ -9,6 +9,16 @@ use crate::db;
 pub enum ActiveView {
     Lana,
     Cala,
+    Products,
+}
+
+#[derive(Debug, Clone)]
+pub struct ProductMapping {
+    pub product: String,
+    pub role: String,
+    pub chart_code: String,
+    pub chart_name: String,
+    pub chart_parent_set_id: Uuid,
 }
 
 /// Info about available jump actions for the UI.
@@ -41,8 +51,10 @@ pub struct App<'a> {
     pub active_view: ActiveView,
     pub lana_tree_state: TreeState<String>,
     pub cala_tree_state: TreeState<String>,
+    pub product_tree_state: TreeState<String>,
     pub lana_items: Vec<TreeItem<'a, String>>,
     pub cala_items: Vec<TreeItem<'a, String>>,
+    pub product_items: Vec<TreeItem<'a, String>>,
     pub charts: Vec<db::ChartRow>,
     pub chart_nodes: HashMap<Uuid, Vec<db::ChartNodeRow>>,
     pub cala_sets: Vec<db::CalaAccountSetRow>,
@@ -52,10 +64,18 @@ pub struct App<'a> {
     pub account_members_by_set: HashMap<Uuid, Vec<db::CalaSetMemberAccountRow>>,
     pub set_children_by_parent: HashMap<Uuid, Vec<Uuid>>,
     pub balances_by_account: HashMap<Uuid, Vec<db::AccountBalanceRow>>,
+    // Product integration
+    pub product_by_parent_set_id: HashMap<Uuid, Vec<ProductMapping>>,
+    pub product_by_child_set_id: HashMap<Uuid, ProductMapping>,
+    pub product_config_keys: Vec<(String, usize)>, // (product name, mapping count)
     // Jump ring for cycling through CALA matches
     jump_ring: Option<JumpRing>,
     /// Whether transitive accounts are shown in the CALA tree.
     pub show_transitive: bool,
+    /// (currency, pending_net, settled_net) per account set — rolled up from all member accounts
+    pub balance_by_set: HashMap<Uuid, Vec<(String, f64, f64)>>,
+    /// (currency, pending_net, settled_net) per individual account
+    pub balance_by_acct: HashMap<Uuid, Vec<(String, f64, f64)>>,
 }
 
 impl<'a> App<'a> {
@@ -66,6 +86,7 @@ impl<'a> App<'a> {
         cala_set_members: Vec<db::CalaSetMemberSetRow>,
         cala_account_members: Vec<db::CalaSetMemberAccountRow>,
         balances: Vec<db::AccountBalanceRow>,
+        product_configs: Vec<db::ProductConfigRow>,
     ) -> Self {
         let node_by_set_id: HashMap<Uuid, db::ChartNodeRow> = chart_nodes
             .values()
@@ -98,26 +119,57 @@ impl<'a> App<'a> {
             balances_by_account.entry(b.account_id).or_default().push(b);
         }
 
+        // Parse product configs into mappings
+        let (product_by_parent_set_id, product_by_child_set_id, product_config_keys) =
+            parse_product_configs(&product_configs, &set_children_by_parent, &node_by_set_id);
+
+        let balance_by_acct = compute_account_balances(&balances_by_account);
+        let balance_by_set =
+            compute_set_balances(&account_members_by_set, &balances_by_account);
+
         let show_transitive = false;
-        let lana_items = build_lana_tree(&charts, &chart_nodes);
+        let lana_items = build_lana_tree(
+            &charts,
+            &chart_nodes,
+            &product_by_parent_set_id,
+            &balance_by_set,
+        );
         let cala_items = build_cala_tree(
             &cala_sets,
             &set_children_by_parent,
             &account_members_by_set,
+            &product_by_child_set_id,
             show_transitive,
+            &balance_by_set,
+            &balance_by_acct,
+        );
+        let product_items = build_product_tree(
+            &product_by_parent_set_id,
+            &product_config_keys,
+            &node_by_set_id,
+            &set_children_by_parent,
+            &set_by_id,
+            &account_members_by_set,
+            show_transitive,
+            &balance_by_set,
+            &balance_by_acct,
         );
 
         let mut lana_tree_state = TreeState::default();
         lana_tree_state.select_first();
         let mut cala_tree_state = TreeState::default();
         cala_tree_state.select_first();
+        let mut product_tree_state = TreeState::default();
+        product_tree_state.select_first();
 
         Self {
             active_view: ActiveView::Lana,
             lana_tree_state,
             cala_tree_state,
+            product_tree_state,
             lana_items,
             cala_items,
+            product_items,
             charts,
             chart_nodes,
             cala_sets,
@@ -126,8 +178,13 @@ impl<'a> App<'a> {
             account_members_by_set,
             set_children_by_parent,
             balances_by_account,
+            product_by_parent_set_id,
+            product_by_child_set_id,
+            product_config_keys,
             jump_ring: None,
             show_transitive,
+            balance_by_set,
+            balance_by_acct,
         }
     }
 
@@ -135,7 +192,8 @@ impl<'a> App<'a> {
         self.jump_ring = None;
         self.active_view = match self.active_view {
             ActiveView::Lana => ActiveView::Cala,
-            ActiveView::Cala => ActiveView::Lana,
+            ActiveView::Cala => ActiveView::Products,
+            ActiveView::Products => ActiveView::Lana,
         };
     }
 
@@ -154,12 +212,36 @@ impl<'a> App<'a> {
             &self.cala_sets,
             &self.set_children_by_parent,
             &self.account_members_by_set,
+            &self.product_by_child_set_id,
             self.show_transitive,
+            &self.balance_by_set,
+            &self.balance_by_acct,
         );
         for path in opened {
             self.cala_tree_state.open(path);
         }
         self.cala_tree_state.select(selected);
+
+        // Also rebuild product tree
+        let prod_selected = self.product_tree_state.selected().to_vec();
+        let prod_opened: Vec<Vec<String>> =
+            self.product_tree_state.opened().iter().cloned().collect();
+        self.product_items = build_product_tree(
+            &self.product_by_parent_set_id,
+            &self.product_config_keys,
+            &self.node_by_set_id,
+            &self.set_children_by_parent,
+            &self.set_by_id,
+            &self.account_members_by_set,
+            self.show_transitive,
+            &self.balance_by_set,
+            &self.balance_by_acct,
+        );
+        for path in prod_opened {
+            self.product_tree_state.open(path);
+        }
+        self.product_tree_state.select(prod_selected);
+
         self.jump_ring = None;
     }
 
@@ -168,13 +250,14 @@ impl<'a> App<'a> {
         let selected = match self.active_view {
             ActiveView::Lana => self.lana_tree_state.selected(),
             ActiveView::Cala => self.cala_tree_state.selected(),
+            ActiveView::Products => self.product_tree_state.selected(),
         };
         if selected.is_empty() {
             return None;
         }
         let last = &selected[selected.len() - 1];
-        // Skip member accounts (acct: prefix)
-        if last.starts_with("acct:") {
+        // Skip member accounts (acct: prefix) and product tree synthetic IDs
+        if last.starts_with("acct:") || last.starts_with("prod:") || last.starts_with("role:") {
             return None;
         }
         let uuid = last.parse::<Uuid>().ok()?;
@@ -183,6 +266,31 @@ impl<'a> App<'a> {
             return None;
         }
         Some(uuid)
+    }
+
+    /// Like `selected_set_id()`, but also resolves `role:` nodes to their `chart_parent_set_id`.
+    fn selected_jump_set_id(&self) -> Option<Uuid> {
+        if let Some(id) = self.selected_set_id() {
+            return Some(id);
+        }
+        let selected = match self.active_view {
+            ActiveView::Products => self.product_tree_state.selected(),
+            _ => return None,
+        };
+        if selected.is_empty() {
+            return None;
+        }
+        let last = &selected[selected.len() - 1];
+        let rest = last.strip_prefix("role:")?;
+        let (product, role) = rest.split_once(':')?;
+        for mappings in self.product_by_parent_set_id.values() {
+            for m in mappings {
+                if m.product == product && m.role == role {
+                    return Some(m.chart_parent_set_id);
+                }
+            }
+        }
+        None
     }
 
     /// Info about the jump ring for the status bar / details panel.
@@ -203,7 +311,7 @@ impl<'a> App<'a> {
         }
 
         // No ring — check if a jump is possible from scratch
-        let Some(set_id) = self.selected_set_id() else {
+        let Some(set_id) = self.selected_jump_set_id() else {
             return JumpInfo::NotAvailable;
         };
         match self.active_view {
@@ -215,7 +323,7 @@ impl<'a> App<'a> {
                     JumpInfo::LanaToCala { total: paths.len() }
                 }
             }
-            ActiveView::Cala => {
+            ActiveView::Cala | ActiveView::Products => {
                 if self.node_by_set_id.contains_key(&set_id) {
                     JumpInfo::CalaToLana
                 } else {
@@ -250,7 +358,7 @@ impl<'a> App<'a> {
         }
 
         // No ring yet — start one
-        let Some(set_id) = self.selected_set_id() else {
+        let Some(set_id) = self.selected_jump_set_id() else {
             return;
         };
         let target = set_id.to_string();
@@ -272,8 +380,8 @@ impl<'a> App<'a> {
                 });
                 self.active_view = ActiveView::Cala;
             }
-            ActiveView::Cala => {
-                // No ring, manual CALA→LANA jump
+            ActiveView::Cala | ActiveView::Products => {
+                // No ring, manual CALA/Products→LANA jump
                 if !self.node_by_set_id.contains_key(&set_id) {
                     return;
                 }
@@ -290,6 +398,7 @@ impl<'a> App<'a> {
         match self.active_view {
             ActiveView::Lana => self.lana_selected_details(),
             ActiveView::Cala => self.cala_selected_details(),
+            ActiveView::Products => self.products_selected_details(),
         }
     }
 
@@ -365,6 +474,15 @@ impl<'a> App<'a> {
                 format_aggregate_balances(&self.balances_by_account, &direct_members, &mut lines);
             }
 
+            // Show product annotations for this chart node
+            if let Some(mappings) = self.product_by_parent_set_id.get(&node.account_set_id) {
+                lines.push(String::new());
+                lines.push("Product Integrations:".into());
+                for m in mappings {
+                    lines.push(format!("  [{}] {}", m.product, m.role));
+                }
+            }
+
             lines.push(String::new());
             let cala_paths =
                 find_all_paths_in_tree(&self.cala_items, &node.account_set_id.to_string());
@@ -438,6 +556,22 @@ impl<'a> App<'a> {
                 format!("CALA Set ID: {set_id}"),
             ];
 
+            // Show product annotation
+            if let Some(mapping) = self.product_by_child_set_id.get(&set_id) {
+                lines.push(String::new());
+                lines.push(format!("Product: [{}] {}", mapping.product, mapping.role));
+                lines.push(format!(
+                    "Chart Parent: {} ({})",
+                    mapping.chart_code, mapping.chart_name
+                ));
+            } else if let Some(mappings) = self.product_by_parent_set_id.get(&set_id) {
+                lines.push(String::new());
+                lines.push("Product Integrations:".into());
+                for m in mappings {
+                    lines.push(format!("  [{}] {}", m.product, m.role));
+                }
+            }
+
             // Check if this has a LANA equivalent
             if let Some(node) = self.node_by_set_id.get(&set_id) {
                 lines.push(String::new());
@@ -502,6 +636,166 @@ impl<'a> App<'a> {
         }
 
         vec!["Unknown selection".into()]
+    }
+
+    fn products_selected_details(&self) -> Vec<String> {
+        let selected = self.product_tree_state.selected();
+        if selected.is_empty() {
+            return vec!["No selection".into()];
+        }
+
+        let last_id = &selected[selected.len() - 1];
+
+        // Product root node: "prod:Credit" or "prod:Deposit"
+        if let Some(product_name) = last_id.strip_prefix("prod:") {
+            let mapping_count = self
+                .product_config_keys
+                .iter()
+                .find(|(name, _)| name == product_name)
+                .map(|(_, count)| *count)
+                .unwrap_or(0);
+            let key = if product_name == "Credit" {
+                "credit-chart-of-accounts-integration"
+            } else {
+                "deposit-chart-of-accounts-integration"
+            };
+            return vec![
+                format!("Product: {product_name}"),
+                "Status: Configured".into(),
+                format!("Integration Key: {key}"),
+                format!("Total Mappings: {mapping_count}"),
+            ];
+        }
+
+        // Role node: "role:Credit:facility_omnibus_parent"
+        if let Some(rest) = last_id.strip_prefix("role:") {
+            if let Some((product, role)) = rest.split_once(':') {
+                // Find the mapping for this role
+                for mappings in self.product_by_parent_set_id.values() {
+                    for m in mappings {
+                        if m.product == product && m.role == role {
+                            let mut lines = vec![
+                                format!("Product: {}", m.product),
+                                format!("Role: {}", m.role),
+                                format!("Chart Parent: {} ({})", m.chart_code, m.chart_name),
+                                format!("Chart Parent Set ID: {}", m.chart_parent_set_id),
+                            ];
+                            // Show child sets
+                            if let Some(children) =
+                                self.set_children_by_parent.get(&m.chart_parent_set_id)
+                            {
+                                let product_children: Vec<_> = children
+                                    .iter()
+                                    .filter(|c| !self.node_by_set_id.contains_key(c))
+                                    .collect();
+                                if !product_children.is_empty() {
+                                    lines.push(String::new());
+                                    lines.push(format!(
+                                        "Product Child Sets: {}",
+                                        product_children.len()
+                                    ));
+                                }
+                            }
+                            lines.push(String::new());
+                            lines.push("[g] Jump to LANA view ←".into());
+                            return lines;
+                        }
+                    }
+                }
+            }
+            return vec!["Unknown role".into()];
+        }
+
+        // Check if it's an account (prefixed with "acct:")
+        if let Some(acct_id_str) = last_id.strip_prefix("acct:") {
+            if let Ok(acct_id) = acct_id_str.parse::<Uuid>() {
+                for members in self.account_members_by_set.values() {
+                    for m in members {
+                        if m.account_id == acct_id {
+                            let mut lines = vec![
+                                format!("ID: {}", m.account_id),
+                                format!("Code: {}", m.account_code),
+                                format!("Name: {}", m.account_name),
+                                format!(
+                                    "External: {}",
+                                    m.account_external_id.as_deref().unwrap_or("(none)")
+                                ),
+                                format!("Normal Balance: {}", m.normal_balance_type),
+                            ];
+                            format_balances(&self.balances_by_account, acct_id, &mut lines);
+                            return lines;
+                        }
+                    }
+                }
+            }
+            return vec!["Account not found".into()];
+        }
+
+        // It's a CALA set ID — reuse CALA details logic
+        if let Some(set) = last_id
+            .parse::<Uuid>()
+            .ok()
+            .and_then(|id| self.set_by_id.get(&id).map(|s| (id, s)))
+        {
+            let (set_id, set) = set;
+            let mut lines = vec![
+                format!("Account Set: {}", set.name),
+                format!(
+                    "External ID: {}",
+                    set.external_id.as_deref().unwrap_or("(none)")
+                ),
+                format!("CALA Set ID: {set_id}"),
+            ];
+
+            if let Some(mapping) = self.product_by_child_set_id.get(&set_id) {
+                lines.push(String::new());
+                lines.push(format!("Product: [{}] {}", mapping.product, mapping.role));
+            }
+
+            if let Some(node) = self.node_by_set_id.get(&set_id) {
+                lines.push(String::new());
+                lines.push("LANA Node:".into());
+                lines.push(format!("  Code: {}", node.code));
+                lines.push(format!("  Name: {}", node.name));
+                lines.push(String::new());
+                lines.push("[g] Jump to LANA view ←".into());
+            }
+
+            let child_sets = self
+                .set_children_by_parent
+                .get(&set_id)
+                .map(|v| v.len())
+                .unwrap_or(0);
+            let direct = self
+                .account_members_by_set
+                .get(&set_id)
+                .map(|v| v.iter().filter(|a| !a.transitive).count())
+                .unwrap_or(0);
+            let transitive = self
+                .account_members_by_set
+                .get(&set_id)
+                .map(|v| v.iter().filter(|a| a.transitive).count())
+                .unwrap_or(0);
+
+            lines.push(String::new());
+            lines.push("Members:".into());
+            lines.push(format!("  {child_sets} child sets"));
+            lines.push(format!("  {direct} direct accounts"));
+            lines.push(format!("  {transitive} transitive accounts"));
+
+            if let Some(members) = self.account_members_by_set.get(&set_id) {
+                let direct_members: Vec<Uuid> = members
+                    .iter()
+                    .filter(|m| !m.transitive)
+                    .map(|m| m.account_id)
+                    .collect();
+                format_aggregate_balances(&self.balances_by_account, &direct_members, &mut lines);
+            }
+
+            return lines;
+        }
+
+        vec!["No details".into()]
     }
 }
 
@@ -632,9 +926,236 @@ fn open_ancestors(state: &mut TreeState<String>, path: &[String]) {
     }
 }
 
+/// Parse product integration configs from the DB.
+///
+/// The DB stores the *resolved* config as JSON:
+///   `{ "type": "...", "value": { "config": {...}, "<role>_parent_account_set_id": "uuid", ... } }`
+///
+/// Top-level fields ending in `_parent_account_set_id` contain CALA set UUIDs.
+/// Nested `*_integration_meta` objects also contain `_parent_account_set_id` fields.
+type ProductMaps = (
+    HashMap<Uuid, Vec<ProductMapping>>,
+    HashMap<Uuid, ProductMapping>,
+    Vec<(String, usize)>,
+);
+
+fn parse_product_configs(
+    configs: &[db::ProductConfigRow],
+    set_children_by_parent: &HashMap<Uuid, Vec<Uuid>>,
+    node_by_set_id: &HashMap<Uuid, db::ChartNodeRow>,
+) -> ProductMaps {
+    let mut by_parent: HashMap<Uuid, Vec<ProductMapping>> = HashMap::new();
+    let mut by_child: HashMap<Uuid, ProductMapping> = HashMap::new();
+    let mut config_keys = Vec::new();
+
+    for config in configs {
+        let product = if config.key.starts_with("credit-") {
+            "Credit"
+        } else {
+            "Deposit"
+        };
+
+        // Unwrap the event envelope: { "type": "...", "value": { ... } }
+        let inner = match config.value.get("value").and_then(|v| v.as_object()) {
+            Some(o) => o,
+            None => continue,
+        };
+
+        let mut mapping_count = 0;
+
+        // Collect all _parent_account_set_id fields (top-level and nested in *_integration_meta)
+        let mut set_id_fields: Vec<(String, String)> = Vec::new();
+        for (field, value) in inner {
+            if field == "config" {
+                continue;
+            }
+            if field.ends_with("_parent_account_set_id") {
+                if let Some(uuid_str) = value.as_str() {
+                    set_id_fields.push((field.clone(), uuid_str.to_string()));
+                }
+            } else if field.ends_with("_integration_meta") {
+                // Walk nested object for more _parent_account_set_id fields
+                if let Some(meta_obj) = value.as_object() {
+                    for (mf, mv) in meta_obj {
+                        if mf.ends_with("_parent_account_set_id")
+                            && let Some(uuid_str) = mv.as_str()
+                        {
+                            set_id_fields.push((mf.clone(), uuid_str.to_string()));
+                        }
+                    }
+                }
+            }
+        }
+
+        for (field, uuid_str) in &set_id_fields {
+            let Some(set_id) = uuid_str.parse::<Uuid>().ok() else {
+                continue;
+            };
+
+            // Role = field minus _parent_account_set_id suffix
+            let role = field
+                .strip_suffix("_parent_account_set_id")
+                .unwrap_or(field)
+                .to_string();
+
+            // Look up the chart node for this set ID
+            let (chart_code, chart_name) = node_by_set_id
+                .get(&set_id)
+                .map(|n| (n.code.clone(), n.name.clone()))
+                .unwrap_or_else(|| ("?".into(), "(no chart node)".into()));
+
+            let mapping = ProductMapping {
+                product: product.to_string(),
+                role,
+                chart_code,
+                chart_name,
+                chart_parent_set_id: set_id,
+            };
+            by_parent.entry(set_id).or_default().push(mapping.clone());
+            mapping_count += 1;
+
+            // Find product child sets (children that are NOT chart nodes themselves)
+            if let Some(children) = set_children_by_parent.get(&set_id) {
+                for &child_id in children {
+                    if !node_by_set_id.contains_key(&child_id) {
+                        by_child.insert(child_id, mapping.clone());
+                    }
+                }
+            }
+        }
+
+        config_keys.push((product.to_string(), mapping_count));
+    }
+
+    // Sort mappings by role for consistent display
+    for mappings in by_parent.values_mut() {
+        mappings.sort_by(|a, b| a.role.cmp(&b.role));
+    }
+
+    (by_parent, by_child, config_keys)
+}
+
+fn compute_account_balances(
+    balances_by_account: &HashMap<Uuid, Vec<db::AccountBalanceRow>>,
+) -> HashMap<Uuid, Vec<(String, f64, f64)>> {
+    let mut result = HashMap::new();
+    for (&acct_id, bals) in balances_by_account {
+        let mut by_currency: HashMap<String, (f64, f64)> = HashMap::new();
+        for b in bals {
+            let entry = by_currency.entry(b.currency.clone()).or_insert((0.0, 0.0));
+            let pending_dr: f64 = b.pending_dr.parse().unwrap_or(0.0);
+            let pending_cr: f64 = b.pending_cr.parse().unwrap_or(0.0);
+            let settled_dr: f64 = b.settled_dr.parse().unwrap_or(0.0);
+            let settled_cr: f64 = b.settled_cr.parse().unwrap_or(0.0);
+            entry.0 += pending_dr - pending_cr;
+            entry.1 += settled_dr - settled_cr;
+        }
+        let mut nets: Vec<(String, f64, f64)> = by_currency
+            .into_iter()
+            .filter(|(_, (p, s))| *p != 0.0 || *s != 0.0)
+            .map(|(c, (p, s))| (c, p, s))
+            .collect();
+        nets.sort_by(|a, b| a.0.cmp(&b.0));
+        if !nets.is_empty() {
+            result.insert(acct_id, nets);
+        }
+    }
+    result
+}
+
+fn compute_set_balances(
+    account_members_by_set: &HashMap<Uuid, Vec<db::CalaSetMemberAccountRow>>,
+    balances_by_account: &HashMap<Uuid, Vec<db::AccountBalanceRow>>,
+) -> HashMap<Uuid, Vec<(String, f64, f64)>> {
+    let mut result = HashMap::new();
+    for (&set_id, members) in account_members_by_set {
+        let mut by_currency: HashMap<String, (f64, f64)> = HashMap::new();
+        for m in members {
+            if let Some(bals) = balances_by_account.get(&m.account_id) {
+                for b in bals {
+                    let entry = by_currency.entry(b.currency.clone()).or_insert((0.0, 0.0));
+                    let pending_dr: f64 = b.pending_dr.parse().unwrap_or(0.0);
+                    let pending_cr: f64 = b.pending_cr.parse().unwrap_or(0.0);
+                    let settled_dr: f64 = b.settled_dr.parse().unwrap_or(0.0);
+                    let settled_cr: f64 = b.settled_cr.parse().unwrap_or(0.0);
+                    entry.0 += pending_dr - pending_cr;
+                    entry.1 += settled_dr - settled_cr;
+                }
+            }
+        }
+        let mut nets: Vec<(String, f64, f64)> = by_currency
+            .into_iter()
+            .filter(|(_, (p, s))| *p != 0.0 || *s != 0.0)
+            .map(|(c, (p, s))| (c, p, s))
+            .collect();
+        nets.sort_by(|a, b| a.0.cmp(&b.0));
+        if !nets.is_empty() {
+            result.insert(set_id, nets);
+        }
+    }
+    result
+}
+
+fn format_number(n: f64) -> String {
+    let abs = n.abs();
+    let sign = if n < 0.0 { "-" } else { "" };
+    let integer = abs.trunc() as u64;
+    let frac = ((abs - abs.trunc()) * 100.0).round() as u64;
+    let int_str = integer.to_string();
+    let mut with_commas = String::new();
+    for (i, c) in int_str.chars().rev().enumerate() {
+        if i > 0 && i % 3 == 0 {
+            with_commas.push(',');
+        }
+        with_commas.push(c);
+    }
+    let with_commas: String = with_commas.chars().rev().collect();
+    format!("{sign}{with_commas}.{frac:02}")
+}
+
+/// Format inline balance numbers for a tree row.
+///
+/// `tree_indent` is the number of characters the tree widget renders before the label text
+/// (highlight area + depth indentation + node symbol). For dump functions where the indent
+/// is already included in `label_len`, pass 0.
+fn format_balance_suffix(
+    label_len: usize,
+    balances: &[(String, f64, f64)],
+    tree_indent: usize,
+) -> String {
+    if balances.is_empty() {
+        return String::new();
+    }
+    // Target screen column where the balance numbers should start.
+    // Tree widget prefix: 2 (highlight area) + depth*2 + 2 (node symbol) = tree_indent.
+    const TARGET_SCREEN_COL: usize = 70;
+    let screen_pos = tree_indent + label_len;
+    let pad = if screen_pos < TARGET_SCREEN_COL {
+        TARGET_SCREEN_COL - screen_pos
+    } else {
+        2
+    };
+    let mut suffix = " ".repeat(pad);
+    for (i, (currency, pending, settled)) in balances.iter().enumerate() {
+        if i > 0 {
+            suffix.push_str("  ");
+        }
+        let p = format_number(*pending);
+        let s = format_number(*settled);
+        if currency.eq_ignore_ascii_case("usd") {
+            suffix.push_str(&format!("{p:>15}  {s:>15}"));
+        } else {
+            suffix.push_str(&format!("{currency} {p:>15}  {s:>15}"));
+        }
+    }
+    suffix
+}
+
 fn build_lana_tree<'a>(
     charts: &[db::ChartRow],
     chart_nodes: &HashMap<Uuid, Vec<db::ChartNodeRow>>,
+    product_by_parent_set_id: &HashMap<Uuid, Vec<ProductMapping>>,
+    balance_by_set: &HashMap<Uuid, Vec<(String, f64, f64)>>,
 ) -> Vec<TreeItem<'a, String>> {
     let mut items = Vec::new();
 
@@ -660,8 +1181,25 @@ fn build_lana_tree<'a>(
         fn build_node_item<'a>(
             node: &db::ChartNodeRow,
             children_map: &HashMap<&str, Vec<&db::ChartNodeRow>>,
+            product_map: &HashMap<Uuid, Vec<ProductMapping>>,
+            bal_map: &HashMap<Uuid, Vec<(String, f64, f64)>>,
+            depth: usize,
         ) -> TreeItem<'a, String> {
-            let label = format!("{} {} ({})", node.code, node.name, node.normal_balance_type);
+            let mut label = format!("{} {} ({})", node.code, node.name, node.normal_balance_type);
+
+            // Annotate with product tags
+            if let Some(mappings) = product_map.get(&node.account_set_id) {
+                let mut products: Vec<&str> = mappings.iter().map(|m| m.product.as_str()).collect();
+                products.dedup();
+                for p in products {
+                    label.push_str(&format!(" [{p}]"));
+                }
+            }
+
+            // Append inline balance — tree_indent = 4 + depth*2 (highlight + node symbol + indentation)
+            if let Some(bals) = bal_map.get(&node.account_set_id) {
+                label.push_str(&format_balance_suffix(label.len(), bals, depth * 2 + 4));
+            }
 
             let children: Vec<TreeItem<'a, String>> =
                 if let Some(child_nodes) = children_map.get(node.code.as_str()) {
@@ -669,7 +1207,7 @@ fn build_lana_tree<'a>(
                     sorted.sort_by(|a, b| a.code.cmp(&b.code));
                     sorted
                         .iter()
-                        .map(|c| build_node_item(c, children_map))
+                        .map(|c| build_node_item(c, children_map, product_map, bal_map, depth + 1))
                         .collect()
                 } else {
                     Vec::new()
@@ -688,7 +1226,7 @@ fn build_lana_tree<'a>(
             sorted_roots.sort_by(|a, b| a.code.cmp(&b.code));
             sorted_roots
                 .iter()
-                .map(|r| build_node_item(r, &children_by_parent))
+                .map(|r| build_node_item(r, &children_by_parent, product_by_parent_set_id, balance_by_set, 1))
                 .collect()
         };
 
@@ -713,7 +1251,10 @@ fn build_cala_tree<'a>(
     sets: &[db::CalaAccountSetRow],
     children_by_parent: &HashMap<Uuid, Vec<Uuid>>,
     account_members_by_set: &HashMap<Uuid, Vec<db::CalaSetMemberAccountRow>>,
+    product_by_child_set_id: &HashMap<Uuid, ProductMapping>,
     show_transitive: bool,
+    balance_by_set: &HashMap<Uuid, Vec<(String, f64, f64)>>,
+    balance_by_acct: &HashMap<Uuid, Vec<(String, f64, f64)>>,
 ) -> Vec<TreeItem<'a, String>> {
     let set_by_id: HashMap<Uuid, &db::CalaAccountSetRow> = sets.iter().map(|s| (s.id, s)).collect();
 
@@ -736,12 +1277,27 @@ fn build_cala_tree<'a>(
         set_by_id: &HashMap<Uuid, &db::CalaAccountSetRow>,
         children_by_parent: &HashMap<Uuid, Vec<Uuid>>,
         account_members: &HashMap<Uuid, Vec<db::CalaSetMemberAccountRow>>,
+        product_map: &HashMap<Uuid, ProductMapping>,
         show_transitive: bool,
+        bal_set: &HashMap<Uuid, Vec<(String, f64, f64)>>,
+        bal_acct: &HashMap<Uuid, Vec<(String, f64, f64)>>,
+        depth: usize,
     ) -> TreeItem<'a, String> {
         let set = set_by_id.get(&set_id);
-        let label = set
+        let mut label = set
             .map(|s| s.name.clone())
             .unwrap_or_else(|| set_id.to_string());
+
+        // Annotate with product tag
+        if let Some(mapping) = product_map.get(&set_id) {
+            label = format!("[{}] {}", mapping.product, label);
+        }
+
+        // Append inline balance
+        let tree_indent = depth * 2 + 4;
+        if let Some(bals) = bal_set.get(&set_id) {
+            label.push_str(&format_balance_suffix(label.len(), bals, tree_indent));
+        }
 
         let mut children: Vec<TreeItem<'a, String>> = Vec::new();
 
@@ -759,18 +1315,23 @@ fn build_cala_tree<'a>(
                     set_by_id,
                     children_by_parent,
                     account_members,
+                    product_map,
                     show_transitive,
+                    bal_set,
+                    bal_acct,
+                    depth + 1,
                 ));
             }
         }
 
         // Add member accounts as leaves
+        let acct_indent = (depth + 1) * 2 + 4;
         if let Some(accounts) = account_members.get(&set_id) {
             for acct in accounts {
                 if !show_transitive && acct.transitive {
                     continue;
                 }
-                let acct_label = format!(
+                let mut acct_label = format!(
                     "[acct] {} - {} ({})",
                     acct.account_code,
                     acct.account_name,
@@ -780,6 +1341,10 @@ fn build_cala_tree<'a>(
                         "direct"
                     },
                 );
+                // Append inline balance for account
+                if let Some(bals) = bal_acct.get(&acct.account_id) {
+                    acct_label.push_str(&format_balance_suffix(acct_label.len(), bals, acct_indent));
+                }
                 // Use "acct:" prefix to distinguish from set IDs
                 let id = format!("acct:{}", acct.account_id);
                 children.push(TreeItem::new_leaf(id, acct_label));
@@ -802,10 +1367,125 @@ fn build_cala_tree<'a>(
                 &set_by_id,
                 children_by_parent,
                 account_members_by_set,
+                product_by_child_set_id,
                 show_transitive,
+                balance_by_set,
+                balance_by_acct,
+                0,
             )
         })
         .collect()
+}
+
+fn build_product_tree<'a>(
+    product_by_parent_set_id: &HashMap<Uuid, Vec<ProductMapping>>,
+    product_config_keys: &[(String, usize)],
+    node_by_set_id: &HashMap<Uuid, db::ChartNodeRow>,
+    set_children_by_parent: &HashMap<Uuid, Vec<Uuid>>,
+    set_by_id: &HashMap<Uuid, db::CalaAccountSetRow>,
+    account_members_by_set: &HashMap<Uuid, Vec<db::CalaSetMemberAccountRow>>,
+    show_transitive: bool,
+    balance_by_set: &HashMap<Uuid, Vec<(String, f64, f64)>>,
+    balance_by_acct: &HashMap<Uuid, Vec<(String, f64, f64)>>,
+) -> Vec<TreeItem<'a, String>> {
+    let mut items = Vec::new();
+
+    for (product_name, _) in product_config_keys {
+        // Collect all mappings for this product, grouped by role
+        let mut role_mappings: Vec<&ProductMapping> = product_by_parent_set_id
+            .values()
+            .flatten()
+            .filter(|m| &m.product == product_name)
+            .collect();
+        role_mappings.sort_by(|a, b| a.role.cmp(&b.role));
+        // Dedup by role (same role can appear in multiple parent set entries)
+        role_mappings.dedup_by(|a, b| a.role == b.role);
+
+        let mut role_items: Vec<TreeItem<'a, String>> = Vec::new();
+
+        for mapping in &role_mappings {
+            let mut role_label = format!(
+                "{} -> {} {}",
+                mapping.role, mapping.chart_code, mapping.chart_name
+            );
+            // Append inline balance for the chart parent set (role nodes at depth 1)
+            if let Some(bals) = balance_by_set.get(&mapping.chart_parent_set_id) {
+                role_label.push_str(&format_balance_suffix(role_label.len(), bals, 6));
+            }
+            let role_id = format!("role:{}:{}", mapping.product, mapping.role);
+
+            // Find product child sets under this chart parent
+            let mut child_items: Vec<TreeItem<'a, String>> = Vec::new();
+            if let Some(children) = set_children_by_parent.get(&mapping.chart_parent_set_id) {
+                for &child_id in children {
+                    // Only show non-chart-node children (product sets)
+                    if node_by_set_id.contains_key(&child_id) {
+                        continue;
+                    }
+                    let child_name = set_by_id
+                        .get(&child_id)
+                        .map(|s| s.name.as_str())
+                        .unwrap_or("(unknown)");
+                    let mut child_label = child_name.to_string();
+                    // Append inline balance for child set (depth 2)
+                    if let Some(bals) = balance_by_set.get(&child_id) {
+                        child_label.push_str(&format_balance_suffix(child_label.len(), bals, 8));
+                    }
+
+                    // Show member accounts under this product set
+                    let mut acct_items: Vec<TreeItem<'a, String>> = Vec::new();
+                    if let Some(accounts) = account_members_by_set.get(&child_id) {
+                        for acct in accounts {
+                            if !show_transitive && acct.transitive {
+                                continue;
+                            }
+                            let mut acct_label =
+                                format!("[acct] {} - {}", acct.account_code, acct.account_name,);
+                            // Append inline balance for account (depth 3)
+                            if let Some(bals) = balance_by_acct.get(&acct.account_id) {
+                                acct_label
+                                    .push_str(&format_balance_suffix(acct_label.len(), bals, 10));
+                            }
+                            let acct_tree_id = format!("acct:{}", acct.account_id);
+                            acct_items.push(TreeItem::new_leaf(acct_tree_id, acct_label));
+                        }
+                    }
+
+                    if acct_items.is_empty() {
+                        child_items.push(TreeItem::new_leaf(child_id.to_string(), child_label));
+                    } else {
+                        child_items.push(
+                            TreeItem::new(child_id.to_string(), child_label, acct_items)
+                                .expect("duplicate in product tree"),
+                        );
+                    }
+                }
+            }
+
+            if child_items.is_empty() {
+                role_items.push(TreeItem::new_leaf(role_id, role_label));
+            } else {
+                role_items.push(
+                    TreeItem::new(role_id, role_label, child_items)
+                        .expect("duplicate in product tree"),
+                );
+            }
+        }
+
+        let product_label = format!("{product_name} ({} roles)", role_mappings.len());
+        let product_id = format!("prod:{product_name}");
+
+        if role_items.is_empty() {
+            items.push(TreeItem::new_leaf(product_id, product_label));
+        } else {
+            items.push(
+                TreeItem::new(product_id, product_label, role_items)
+                    .expect("duplicate in product tree"),
+            );
+        }
+    }
+
+    items
 }
 
 // ── Dump helpers ──────────────────────────────────────────────────
@@ -823,7 +1503,7 @@ pub fn dump_text(app: &App) {
             let mut sorted_roots = roots;
             sorted_roots.sort_by(|a, b| a.code.cmp(&b.code));
             for root in sorted_roots {
-                dump_lana_node(root, &children_map, 1);
+                dump_lana_node(root, &children_map, &app.product_by_parent_set_id, &app.balance_by_set, 1);
             }
         }
         println!();
@@ -845,6 +1525,29 @@ pub fn dump_text(app: &App) {
     for root in roots {
         dump_cala_set(root.id, app, 1);
     }
+
+    // Dump product integrations
+    if !app.product_config_keys.is_empty() {
+        println!();
+        println!("=== Product Integrations ===");
+        for (product_name, count) in &app.product_config_keys {
+            println!("  {product_name} ({count} roles)");
+            let mut mappings: Vec<&ProductMapping> = app
+                .product_by_parent_set_id
+                .values()
+                .flatten()
+                .filter(|m| &m.product == product_name)
+                .collect();
+            mappings.sort_by(|a, b| a.role.cmp(&b.role));
+            mappings.dedup_by(|a, b| a.role == b.role);
+            for m in mappings {
+                println!(
+                    "    {} -> {} {} [set:{}]",
+                    m.role, m.chart_code, m.chart_name, m.chart_parent_set_id
+                );
+            }
+        }
+    }
 }
 
 fn build_parent_map(nodes: &[db::ChartNodeRow]) -> HashMap<&str, Vec<&db::ChartNodeRow>> {
@@ -860,18 +1563,34 @@ fn build_parent_map(nodes: &[db::ChartNodeRow]) -> HashMap<&str, Vec<&db::ChartN
 fn dump_lana_node(
     node: &db::ChartNodeRow,
     children_map: &HashMap<&str, Vec<&db::ChartNodeRow>>,
+    product_map: &HashMap<Uuid, Vec<ProductMapping>>,
+    balance_by_set: &HashMap<Uuid, Vec<(String, f64, f64)>>,
     depth: usize,
 ) {
     let indent = "  ".repeat(depth);
-    println!(
-        "{}{} {} ({}) [set:{}]",
-        indent, node.code, node.name, node.normal_balance_type, node.account_set_id
+    let mut suffix = String::new();
+    if let Some(mappings) = product_map.get(&node.account_set_id) {
+        let mut products: Vec<&str> = mappings.iter().map(|m| m.product.as_str()).collect();
+        products.dedup();
+        for p in products {
+            suffix.push_str(&format!(" [{p}]"));
+        }
+    }
+    let label = format!(
+        "{}{} {} ({}) [set:{}]{}",
+        indent, node.code, node.name, node.normal_balance_type, node.account_set_id, suffix
     );
+    if let Some(bals) = balance_by_set.get(&node.account_set_id) {
+        let bal_suffix = format_balance_suffix(label.len(), bals, 0);
+        println!("{label}{bal_suffix}");
+    } else {
+        println!("{label}");
+    }
     if let Some(children) = children_map.get(node.code.as_str()) {
         let mut sorted = children.clone();
         sorted.sort_by(|a, b| a.code.cmp(&b.code));
         for child in sorted {
-            dump_lana_node(child, children_map, depth + 1);
+            dump_lana_node(child, children_map, product_map, balance_by_set, depth + 1);
         }
     }
 }
@@ -883,7 +1602,13 @@ fn dump_cala_set(set_id: Uuid, app: &App, depth: usize) {
         .get(&set_id)
         .map(|s| s.name.as_str())
         .unwrap_or("(unknown)");
-    println!("{}{} [set:{}]", indent, name, set_id);
+    let label = format!("{indent}{name} [set:{set_id}]");
+    if let Some(bals) = app.balance_by_set.get(&set_id) {
+        let bal_suffix = format_balance_suffix(label.len(), bals, 0);
+        println!("{label}{bal_suffix}");
+    } else {
+        println!("{label}");
+    }
 
     // Child sets
     if let Some(children) = app.set_children_by_parent.get(&set_id) {
@@ -901,7 +1626,7 @@ fn dump_cala_set(set_id: Uuid, app: &App, depth: usize) {
     // Member accounts
     if let Some(accounts) = app.account_members_by_set.get(&set_id) {
         for acct in accounts {
-            println!(
+            let acct_label = format!(
                 "{}  [acct] {} ({}) [id:{}]",
                 indent,
                 acct.account_code,
@@ -912,6 +1637,12 @@ fn dump_cala_set(set_id: Uuid, app: &App, depth: usize) {
                 },
                 acct.account_id,
             );
+            if let Some(bals) = app.balance_by_acct.get(&acct.account_id) {
+                let bal_suffix = format_balance_suffix(acct_label.len(), bals, 0);
+                println!("{acct_label}{bal_suffix}");
+            } else {
+                println!("{acct_label}");
+            }
         }
     }
 }
