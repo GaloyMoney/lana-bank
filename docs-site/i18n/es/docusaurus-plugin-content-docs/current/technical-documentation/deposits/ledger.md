@@ -62,7 +62,7 @@ Balance normal: Crédito
 Creación de cuenta: Por cliente
 ```
 
-## Conjuntos de Cuentas Resumen Congeladas
+## Conjuntos de Cuentas Resumen Congelados
 
 Se usan para agrupar cuentas de depósito congeladas por tipo de cliente.
 
