@@ -32,3 +32,8 @@ folder_registry_image: lana-bank
 folder_registry_image_static: lana-bank-static
 
 gcp_creds: ((lana-dev-gcp-creds.creds_json))
+
+concourse_url: https://ci.galoy.io
+concourse_username: galoybot
+concourse_password: ((galoybot-concourse-creds.password))
+concourse_team: dev

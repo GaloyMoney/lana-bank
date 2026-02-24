@@ -320,6 +320,10 @@ jobs:
           tag: version/version
           only_tag: true
           repository: repo
+      - put: clear-repo-cache
+        params:
+          pipeline: lana-bank
+          resource: repo
       - in_parallel:
         - do:
           - task: build-admin-panel-release
@@ -848,7 +852,24 @@ resources:
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
 
+  - name: clear-repo-cache
+    type: cache-clearer
+    source:
+      concourse_url: #@ data.values.concourse_url
+      team: #@ data.values.concourse_team
+      username: #@ data.values.concourse_username
+      password: #@ data.values.concourse_password
+    check_every: never
+
 resource_types:
+- name: cache-clearer
+  type: registry-image
+  source:
+    repository: #@ data.values.gar_registry + "/cache-clearer-resource"
+    tag: edge
+    username: #@ data.values.gar_registry_user
+    password: #@ data.values.gar_registry_password
+
 - name: pull-request
   type: docker-image
   source:
