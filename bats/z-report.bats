@@ -11,6 +11,13 @@ teardown_file() {
   stop_server
 }
 
+find_report_run() {
+  variables=$(jq -n '{ first: 1 }')
+  exec_admin_graphql 'report-runs' "$variables"
+  run_id=$(graphql_output '.data.reportRuns.nodes[0].reportRunId')
+  [[ "$run_id" != "null" && -n "$run_id" ]] || return 1
+}
+
 wait_for_report_run_success() {
   local run_id=$1
   variables=$(
@@ -35,10 +42,8 @@ wait_for_report_run_success() {
   exec_admin_graphql 'trigger-report-run'
   echo "triggerReportRun response: $(graphql_output)"
 
-  # Wait briefly for the run to be created
-  sleep 5
-
-  # Find the most recent report run
+  # Poll for the report run to appear (async creation, may take a while)
+  retry 60 5 find_report_run
   variables=$(jq -n '{ first: 1 }')
   exec_admin_graphql 'report-runs' "$variables"
   echo "reportRuns response: $(graphql_output)"
