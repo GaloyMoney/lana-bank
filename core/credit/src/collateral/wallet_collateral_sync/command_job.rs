@@ -94,7 +94,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "core_credit.sync_custodian_collateral_job.run",
+        name = "core_credit.sync_custodian_collateral_job.process_command",
         skip(self, current_job),
         fields(
             custody_wallet_id = %self.config.custody_wallet_id,

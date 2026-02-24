@@ -100,7 +100,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "customer_sync.update_holder_status_job.run",
+        name = "customer_sync.update_holder_status_job.process_command",
         skip(self, current_job),
         fields(customer_id = %self.config.customer_id),
     )]

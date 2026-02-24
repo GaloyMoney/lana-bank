@@ -54,7 +54,7 @@ pub struct CreateKeycloakUserJobRunner {
 impl JobRunner for CreateKeycloakUserJobRunner {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "user_onboarding.create_keycloak_user_job.run",
+        name = "user_onboarding.create_keycloak_user_job.process_command",
         skip(self, _current_job),
         fields(user_id = %self.config.user_id),
     )]
