@@ -1,3 +1,27 @@
+## [0.43.0] - 2026-02-24
+
+### 🚀 Features
+
+- Add configurable price providers to Price module (#3929)
+- Add lana-build-compare skill (#3940)
+
+### 🐛 Bug Fixes
+
+- Use _in_op variants to avoid connection pool amplification (#3901)
+- Install rustls crypto provider to prevent panic in google-cloud crates (#3924)
+- Override ajv@<6.14.0 to resolve Dependabot alert #193 (#3936)
+- *(ci)* Normalize Cypress retry screenshot filenames before manifest generation (#3931)
+- Serialize core-price and core-credit tests to prevent flaky NOTIFY race (#3948)
+
+### 🚜 Refactor
+
+- Use shared mod cfg update dialog component (#3848)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.42.0 [ci skip] (#3925)
+- *(nix)* Use --all-features for lana-deps derivation (#3935)
+- Run build-compare builds twice, keep fastest (#3947)
 ## [0.42.0] - 2026-02-23
 
 ### 🚀 Features
