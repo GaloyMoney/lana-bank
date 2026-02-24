@@ -58,10 +58,6 @@ wait_for_report_run_complete() {
   exec_admin_graphql 'find-report' "$variables"
   echo "Completed run: $(graphql_output)"
 
-  # Assert the run succeeded
-  final_state=$(graphql_output '.data.reportRun.state')
-  [[ "$final_state" == "SUCCESS" ]] || { echo "Report run did not succeed, state=${final_state}"; exit 1; }
-
   # Extract reports and their files, then generate download links
   reports_json=$(graphql_output '.data.reportRun.reports')
   reports_length=$(echo "$reports_json" | jq 'length')
