@@ -40,9 +40,11 @@ pub use publisher::CollectionPublisher;
 use ledger::CollectionLedger;
 pub use ledger::error::CollectionLedgerError;
 
-use obligation::jobs::end_of_day::{OBLIGATION_END_OF_DAY, ObligationEndOfDayHandler};
-use obligation::jobs::process_obligations::ProcessObligationsJobInit;
-use obligation::jobs::transition_obligation::TransitionObligationJobInit;
+use obligation::jobs::{
+    end_of_day::{OBLIGATION_END_OF_DAY, ObligationEndOfDayHandler},
+    process_obligations::ProcessObligationsJobInit,
+    transition_obligation::TransitionObligationJobInit,
+};
 
 pub struct CoreCreditCollection<Perms, E>
 where

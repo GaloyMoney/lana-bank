@@ -11,8 +11,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use es_entity::Idempotent;
-use es_entity::clock::ClockHandle;
+use es_entity::{Idempotent, clock::ClockHandle};
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -23,14 +22,12 @@ use crate::{
     publisher::CollectionPublisher,
 };
 
-pub use entity::Obligation;
-
-pub use entity::NewObligation;
-pub(crate) use entity::ObligationDefaultedReallocationData;
-pub(crate) use entity::ObligationDueReallocationData;
-pub use entity::ObligationEvent;
-pub(crate) use entity::ObligationOverdueReallocationData;
 use entity::ObligationTransition;
+pub use entity::{NewObligation, Obligation, ObligationEvent};
+pub(crate) use entity::{
+    ObligationDefaultedReallocationData, ObligationDueReallocationData,
+    ObligationOverdueReallocationData,
+};
 use error::ObligationError;
 pub(crate) use repo::ObligationRepo;
 
