@@ -17,5 +17,8 @@ tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true, features = ["http", "reqwest"] }
 
+[package.metadata.cargo-machete]
+ignored = ["reqwest"]
+
 [dev-dependencies]
 tokio = { workspace = true }
