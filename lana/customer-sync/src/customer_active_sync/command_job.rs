@@ -101,14 +101,14 @@ where
     #[record_error_severity]
     #[tracing::instrument(
         name = "customer_sync.customer_active_sync_job.run",
-        skip(self, _current_job),
+        skip(self, current_job),
         fields(customer_id = %self.config.customer_id),
     )]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut op = self.deposit.begin_op().await?;
+        let mut op = current_job.begin_op().await?;
         self.deposit
             .update_account_status_for_holder_in_op(
                 &mut op,

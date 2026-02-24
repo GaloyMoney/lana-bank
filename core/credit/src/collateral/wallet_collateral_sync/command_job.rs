@@ -95,7 +95,7 @@ where
     #[record_error_severity]
     #[tracing::instrument(
         name = "core_credit.wallet_collateral_sync_job.run",
-        skip(self, _current_job),
+        skip(self, current_job),
         fields(
             custody_wallet_id = %self.config.custody_wallet_id,
             updated_collateral = %self.config.updated_collateral,
@@ -104,14 +104,14 @@ where
     )]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut collateral = self
             .repo
             .find_by_custody_wallet_id(Some(self.config.custody_wallet_id))
             .await?;
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = current_job.begin_op().await?;
 
         if let es_entity::Idempotent::Executed(data) = collateral
             .record_collateral_update_via_custodian_sync(
