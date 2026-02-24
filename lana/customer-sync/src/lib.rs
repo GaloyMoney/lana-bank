@@ -11,7 +11,7 @@ use customer_active_sync::*;
 use error::*;
 use jobs::*;
 
-use customer_active_sync::command_job::CustomerActiveSyncJobInitializer;
+use customer_active_sync::command_job::UpdateAccountStatusForHolderJobInitializer;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -112,13 +112,14 @@ where
             )
             .await?;
 
-        let customer_active_sync_job_spawner =
-            jobs.add_initializer(CustomerActiveSyncJobInitializer::new(deposit.clone()));
+        let update_account_status_for_holder_job_spawner = jobs.add_initializer(
+            UpdateAccountStatusForHolderJobInitializer::new(deposit.clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_ACTIVE_SYNC),
-                CustomerActiveSyncHandler::new(customer_active_sync_job_spawner),
+                CustomerActiveSyncHandler::new(update_account_status_for_holder_job_spawner),
             )
             .await?;
 

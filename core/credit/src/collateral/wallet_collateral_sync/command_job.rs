@@ -17,16 +17,16 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct WalletCollateralSyncConfig {
+pub struct RecordCollateralUpdateViaCustodianSyncConfig {
     pub custody_wallet_id: CustodyWalletId,
     pub updated_collateral: money::Satoshis,
     pub effective: chrono::NaiveDate,
 }
 
-pub const WALLET_COLLATERAL_SYNC_COMMAND: JobType =
-    JobType::new("command.core-credit.wallet-collateral-sync");
+pub const RECORD_COLLATERAL_UPDATE_VIA_CUSTODIAN_SYNC_COMMAND: JobType =
+    JobType::new("command.core-credit.record-collateral-update-via-custodian-sync");
 
-pub struct WalletCollateralSyncJobInitializer<S, E>
+pub struct RecordCollateralUpdateViaCustodianSyncJobInitializer<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -36,7 +36,7 @@ where
     _phantom: std::marker::PhantomData<S>,
 }
 
-impl<S, E> WalletCollateralSyncJobInitializer<S, E>
+impl<S, E> RecordCollateralUpdateViaCustodianSyncJobInitializer<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -50,15 +50,15 @@ where
     }
 }
 
-impl<S, E> JobInitializer for WalletCollateralSyncJobInitializer<S, E>
+impl<S, E> JobInitializer for RecordCollateralUpdateViaCustodianSyncJobInitializer<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
-    type Config = WalletCollateralSyncConfig;
+    type Config = RecordCollateralUpdateViaCustodianSyncConfig;
 
     fn job_type(&self) -> JobType {
-        WALLET_COLLATERAL_SYNC_COMMAND
+        RECORD_COLLATERAL_UPDATE_VIA_CUSTODIAN_SYNC_COMMAND
     }
 
     fn init(
@@ -66,7 +66,10 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(WalletCollateralSyncJobRunner::<S, E> {
+        Ok(Box::new(RecordCollateralUpdateViaCustodianSyncJobRunner::<
+            S,
+            E,
+        > {
             config: job.config()?,
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
@@ -75,26 +78,26 @@ where
     }
 }
 
-pub struct WalletCollateralSyncJobRunner<S, E>
+pub struct RecordCollateralUpdateViaCustodianSyncJobRunner<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
-    config: WalletCollateralSyncConfig,
+    config: RecordCollateralUpdateViaCustodianSyncConfig,
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
     _phantom: std::marker::PhantomData<S>,
 }
 
 #[async_trait]
-impl<S, E> JobRunner for WalletCollateralSyncJobRunner<S, E>
+impl<S, E> JobRunner for RecordCollateralUpdateViaCustodianSyncJobRunner<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "core_credit.wallet_collateral_sync_job.run",
+        name = "core_credit.record_collateral_update_via_custodian_sync_job.run",
         skip(self, current_job),
         fields(
             custody_wallet_id = %self.config.custody_wallet_id,
