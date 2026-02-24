@@ -74,6 +74,7 @@ update-schemas:
 	SQLX_OFFLINE=true cargo run --package entity-rollups --all-features -- update-schemas --force-recreate
 
 e2e: clean-deps start-deps
+	SQLX_OFFLINE=true cargo build --bin lanacli
 	bats -t bats
 
 # Cargo alternative for faster compilation during development

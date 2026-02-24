@@ -8,6 +8,7 @@ RUN_LOG_FILE="accounting.run.e2e-logs"
 setup_file() {
   start_server
   login_superadmin
+  login_lanacli
 }
 
 teardown_file() {

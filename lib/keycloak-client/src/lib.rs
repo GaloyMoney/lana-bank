@@ -8,9 +8,9 @@ pub use config::KeycloakConnectionConfig;
 pub use error::KeycloakClientError;
 pub use url::Url;
 
+use keycloak::prelude::reqwest::Client;
 use keycloak::types::*;
 use keycloak::{KeycloakAdmin, KeycloakServiceAccountAdminTokenRetriever};
-use reqwest::Client;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 use uuid::Uuid;

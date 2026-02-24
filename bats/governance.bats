@@ -6,6 +6,7 @@ setup_file() {
   export LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
   start_server
   login_superadmin
+  login_lanacli
 }
 
 teardown_file() {
@@ -51,12 +52,8 @@ trigger_withdraw_approval_process() {
   cache_value "deposit_account_id" $deposit_account_id
 
   process_id=$(trigger_withdraw_approval_process $deposit_account_id)
-  variables=$(
-    jq -n \
-      --arg id "$process_id" \
-    '{ id: $id }'
-  )
-  exec_admin_graphql 'find-approval-process' "$variables"
-  status=$(graphql_output .data.approvalProcess.status)
+  local cli_output
+  cli_output=$("$LANACLI" --json approval-process get --id "$process_id")
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "APPROVED" ]] || exit 1
 }

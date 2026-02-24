@@ -5,6 +5,7 @@ load "helpers"
 setup_file() {
   start_server
   login_superadmin
+  login_lanacli
 }
 
 teardown_file() {
@@ -31,25 +32,15 @@ wait_for_loan_agreement_completion() {
   telegramHandle=$(generate_email)
   customer_type="INDIVIDUAL"
 
-  variables=$(
-    jq -n \
-    --arg email "$customer_email" \
-    --arg telegramHandle "$telegramHandle" \
-    --arg customerType "$customer_type" \
-    '{
-      input: {
-        email: $email,
-        telegramHandle: $telegramHandle,
-        customerType: $customerType
-      }
-    }'
-  )
-
-  exec_admin_graphql 'prospect-create' "$variables"
-  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
+  local cli_output
+  cli_output=$("$LANACLI" --json prospect create \
+    --email "$customer_email" \
+    --telegram-handle "$telegramHandle" \
+    --customer-type "$customer_type")
+  prospect_id=$(echo "$cli_output" | jq -r '.prospectId')
 
   echo "prospect_id: $prospect_id"
-  [[ "$prospect_id" != "null" ]] || exit 1
+  [[ "$prospect_id" != "null" && -n "$prospect_id" ]] || exit 1
 
   # Create permalink (for reference and fallback testing)
 
@@ -118,21 +109,18 @@ wait_for_loan_agreement_completion() {
   # Poll until the customer exists.
   customer_id="$prospect_id"
   for i in {1..30}; do
-    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-    exec_admin_graphql 'customer' "$variables"
-    fetched_id=$(graphql_output .data.customer.customerId)
-    [[ "$fetched_id" != "null" ]] && break
+    cli_output=$("$LANACLI" --json customer get --id "$customer_id" 2>/dev/null || echo '{}')
+    fetched_id=$(echo "$cli_output" | jq -r '.customerId // empty')
+    [[ -n "$fetched_id" ]] && break
     sleep 1
   done
-  [[ "$fetched_id" != "null" ]] || exit 1
+  [[ -n "$fetched_id" ]] || exit 1
 
   # Verify the customer kyc verification after the complete KYC flow
-  variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')
-
-  exec_admin_graphql 'customer' "$variables"
-  level=$(graphql_output '.data.customer.level')
-  kyc_verification=$(graphql_output '.data.customer.kycVerification')
-  final_applicant_id=$(graphql_output '.data.customer.applicantId')
+  cli_output=$("$LANACLI" --json customer get --id "$customer_id")
+  level=$(echo "$cli_output" | jq -r '.level')
+  kyc_verification=$(echo "$cli_output" | jq -r '.kycVerification')
+  final_applicant_id=$(echo "$cli_output" | jq -r '.applicantId')
 
   # After kyc verification check
   echo "After test applicant creation - level: $level, kycVerification: $kyc_verification, applicant_id: $final_applicant_id"
@@ -268,11 +256,9 @@ wait_for_loan_agreement_completion() {
         "createdAtMs": "2020-02-21 13:23:19.001"
     }'
 
-  variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')
-  exec_admin_graphql 'customer' "$variables"
-
-  level=$(graphql_output '.data.customer.level')
-  kyc_verification=$(graphql_output '.data.customer.kycVerification')
+  cli_output=$("$LANACLI" --json customer get --id "$customer_id")
+  level=$(echo "$cli_output" | jq -r '.level')
+  kyc_verification=$(echo "$cli_output" | jq -r '.kycVerification')
 
   echo "After rejection webhook - level: $level, kycVerification: $kyc_verification"
   # After rejection, level should remain BASIC but kyc verification should become REJECTED

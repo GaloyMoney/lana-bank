@@ -9,6 +9,7 @@ setup_file() {
   export LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
   start_server
   login_superadmin
+  login_lanacli
   reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"
 }
 

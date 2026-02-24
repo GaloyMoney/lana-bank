@@ -9,6 +9,7 @@ setup_file() {
   export LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
   start_server
   login_superadmin
+  login_lanacli
   reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"
 }
 
@@ -143,36 +144,25 @@ ymd() {
   deposit_account_id=$(create_deposit_account_for_customer "$customer_id")
 
   facility=100000
-  variables=$(
-    jq -n \
-    --arg customerId "$customer_id" \
-    --argjson facility "$facility" \
-    '{
-      input: {
-        customerId: $customerId,
-        facility: $facility,
-        terms: {
-          annualRate: "12",
-          accrualCycleInterval: "END_OF_MONTH",
-          accrualInterval: "END_OF_DAY",
-          disbursalPolicy: "MULTIPLE_DISBURSAL",
-          oneTimeFeeRate: "5",
-          duration: { period: "MONTHS", units: 3 },
-          interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
-          obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
-          obligationLiquidationDurationFromDue: { period: "DAYS", units: 360 },
-          liquidationCvl: "105",
-          marginCallCvl: "125",
-          initialCvl: "140"
-        }
-      }
-    }'
-  )
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility proposal-create \
+    --customer-id "$customer_id" \
+    --facility-amount "$facility" \
+    --annual-rate 12 \
+    --accrual-interval END_OF_DAY \
+    --accrual-cycle-interval END_OF_MONTH \
+    --one-time-fee-rate 5 \
+    --disbursal-policy MULTIPLE_DISBURSAL \
+    --duration-months 3 \
+    --initial-cvl 140 \
+    --margin-call-cvl 125 \
+    --liquidation-cvl 105 \
+    --interest-due-days 0 \
+    --overdue-days 50 \
+    --liquidation-days 360)
 
-  exec_admin_graphql 'credit-facility-proposal-create' "$variables"
-
-  credit_facility_proposal_id=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId')
-  [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
+  credit_facility_proposal_id=$(echo "$cli_output" | jq -r '.creditFacilityProposalId')
+  [[ "$credit_facility_proposal_id" != "null" && -n "$credit_facility_proposal_id" ]] || exit 1
 
   cache_value 'credit_facility_proposal_id' "$credit_facility_proposal_id"
 
@@ -231,20 +221,12 @@ ymd() {
   disbursed_before=$(graphql_output '.data.dashboard.totalDisbursed')
 
   amount=50000
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-      --argjson amount "$amount" \
-    '{
-      input: {
-        creditFacilityId: $creditFacilityId,
-        amount: $amount,
-      }
-    }'
-  )
-  exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
-  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.id')
-  [[ "$disbursal_id" != "null" ]] || exit 1
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility disbursal-initiate \
+    --credit-facility-id "$credit_facility_id" \
+    --amount "$amount")
+  disbursal_id=$(echo "$cli_output" | jq -r '.disbursalId')
+  [[ "$disbursal_id" != "null" && -n "$disbursal_id" ]] || exit 1
 
   retry 30 2 wait_for_disbursal "$credit_facility_id" "$disbursal_id"
   retry 30 2 wait_for_dashboard_disbursed "$disbursed_before" "$amount"

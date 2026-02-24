@@ -5,6 +5,7 @@ load "helpers"
 setup_file() {
   start_server
   login_superadmin
+  login_lanacli
 }
 
 teardown_file() {

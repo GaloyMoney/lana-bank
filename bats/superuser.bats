@@ -5,6 +5,7 @@ load "helpers"
 setup_file() {
   start_server
   login_superadmin
+  login_lanacli
 }
 
 teardown_file() {
@@ -46,23 +47,13 @@ teardown_file() {
   telegramHandle=$(generate_email)
   customer_type="INDIVIDUAL"
 
-  variables=$(
-    jq -n \
-    --arg email "$customer_email" \
-    --arg telegramHandle "$telegramHandle" \
-    --arg customerType "$customer_type" \
-    '{
-      input: {
-        email: $email,
-        telegramHandle: $telegramHandle,
-        customerType: $customerType
-      }
-    }'
-  )
-
-  exec_admin_graphql 'prospect-create' "$variables"
-  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
-  [[ "$prospect_id" != "null" ]] || exit 1
+  local cli_output
+  cli_output=$("$LANACLI" --json prospect create \
+    --email "$customer_email" \
+    --telegram-handle "$telegramHandle" \
+    --customer-type "$customer_type")
+  prospect_id=$(echo "$cli_output" | jq -r '.prospectId')
+  [[ "$prospect_id" != "null" && -n "$prospect_id" ]] || exit 1
 
   # Simulate KYC start via SumSub applicantCreated webhook
   webhook_id="req-$(date +%s%N)"
@@ -101,11 +92,10 @@ teardown_file() {
   # Poll until the customer exists.
   customer_id="$prospect_id"
   for i in {1..30}; do
-    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-    exec_admin_graphql 'customer' "$variables"
-    fetched_id=$(graphql_output .data.customer.customerId)
-    [[ "$fetched_id" != "null" ]] && break
+    cli_output=$("$LANACLI" --json customer get --id "$customer_id" 2>/dev/null || echo '{}')
+    fetched_id=$(echo "$cli_output" | jq -r '.customerId // empty')
+    [[ -n "$fetched_id" ]] && break
     sleep 1
   done
-  [[ "$fetched_id" != "null" ]] || exit 1
+  [[ -n "$fetched_id" ]] || exit 1
 }
