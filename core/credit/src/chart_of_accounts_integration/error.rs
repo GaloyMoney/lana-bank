@@ -4,23 +4,23 @@ use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ChartOfAccountsIntegrationError {
-    #[error("ChartOfAccountIntegrationError - AuthorizationError: {0}")]
+    #[error("ChartOfAccountsIntegrationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("ChartOfAccountIntegrationError ChartIdMismatch")]
+    #[error("ChartOfAccountsIntegrationError - ChartIdMismatch")]
     ChartIdMismatch,
-    #[error("ChartOfAccountIntegrationError - ConfigAlreadySet")]
+    #[error("ChartOfAccountsIntegrationError - ConfigAlreadySet")]
     ConfigAlreadySet,
-    #[error("ChartOfAccountIntegrationError - CreditLedgerError: {0}")]
+    #[error("ChartOfAccountsIntegrationError - CreditLedgerError: {0}")]
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("ChartOfAccountIntegrationError - ChartLookupError: {0}")]
     ChartLookupError(#[from] core_accounting_primitives::ChartLookupError),
     #[error("ChartOfAccountIntegrationError - AccountingBaseConfigNotFound")]
     AccountingBaseConfigNotFound,
-    #[error("ChartOfAccountIntegrationError - DomainConfigError: {0}")]
+    #[error("ChartOfAccountsIntegrationError - DomainConfigError: {0}")]
     DomainConfigError(#[from] domain_config::error::DomainConfigError),
-    #[error("ChartOfAccountIntegrationError - EsEntityError: {0}")]
+    #[error("ChartOfAccountsIntegrationError - EsEntityError: {0}")]
     EsEntityError(#[from] es_entity::EsEntityError),
-    #[error("ChartOfAccountIntegrationError - Sqlx: {0}")]
+    #[error("ChartOfAccountsIntegrationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
 }
 
