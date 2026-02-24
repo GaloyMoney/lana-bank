@@ -22,7 +22,6 @@ use money::Satoshis;
 use public_id::PublicIds;
 use rand::RngExt;
 use rust_decimal_macros::dec;
-use std::time::Duration;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
@@ -455,7 +454,6 @@ pub mod event {
         Unknown,
     }
 
-    #[allow(unused_imports)]
     pub use obix::test_utils::expect_event;
 }
 
@@ -635,34 +633,44 @@ pub async fn create_pending_facility(
         )
         .await?;
 
-    ctx.credit
-        .proposals()
-        .conclude_customer_approval(&DummySubject, proposal.id, true)
-        .await?;
-
+    let proposals = ctx.credit.proposals().clone();
+    let proposal_id = proposal.id;
     let pending_facility_id: PendingCreditFacilityId = proposal.id.into();
-    for attempt in 0..100 {
-        if let Some(pf) = ctx
-            .credit
-            .pending_credit_facilities()
-            .find_by_id(&DummySubject, pending_facility_id)
-            .await?
-        {
-            return Ok(PendingFacilityState {
-                customer_id: customer.id,
-                pending_facility_id,
-                collateral_id: pf.collateral_id,
-                deposit_account_id: deposit_account.id,
-                amount,
-                terms,
-            });
-        }
-        if attempt == 99 {
-            panic!("Timed out waiting for pending facility creation");
-        }
-        tokio::time::sleep(Duration::from_millis(100)).await;
-    }
-    unreachable!()
+
+    event::expect_event(
+        &ctx.outbox,
+        move || {
+            let proposals = proposals.clone();
+            async move {
+                proposals
+                    .conclude_customer_approval(&DummySubject, proposal_id, true)
+                    .await
+            }
+        },
+        |_result, e| match e {
+            CoreCreditEvent::FacilityProposalConcluded { entity } if entity.id == proposal_id => {
+                Some(())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    let pf = ctx
+        .credit
+        .pending_credit_facilities()
+        .find_by_id(&DummySubject, pending_facility_id)
+        .await?
+        .expect("pending facility must exist after FacilityProposalConcluded event");
+
+    Ok(PendingFacilityState {
+        customer_id: customer.id,
+        pending_facility_id,
+        collateral_id: pf.collateral_id,
+        deposit_account_id: deposit_account.id,
+        amount,
+        terms,
+    })
 }
 
 pub struct ActiveFacilityState {
