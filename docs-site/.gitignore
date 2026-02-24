@@ -25,6 +25,10 @@
 # Screenshots (fetched from Netlify at build time)
 /static/img/screenshots
 
+# Lingo.dev symlinks (created by translate-docs.sh, not committed)
+/.lingo-docs/en
+/.lingo-docs/es
+
 # Misc
 .DS_Store
 .env.local
