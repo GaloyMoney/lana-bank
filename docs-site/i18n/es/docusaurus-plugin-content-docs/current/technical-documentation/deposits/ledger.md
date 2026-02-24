@@ -132,12 +132,7 @@ Definen los flujos de fondos entre las cuentas del cliente (creadas bajo cuentas
 
 Definen los flujos de fondos para congelar y descongelar saldos de cuentas de depósito.
 
-```
-┌──────────────────┬───────────────────────┬────────────────────────┬────────────────────────┐
-│ Código de plantilla │ Operación          │ Cuenta de depósito activa │ Cuenta de depósito congelada │
-├──────────────────┼───────────────────────┼────────────────────────┼────────────────────────┤
-│ FREEZE_ACCOUNT   │ Bloquear fondos del cliente │ Débito          │ Crédito                │
-├──────────────────┼───────────────────────┼────────────────────────┼────────────────────────┤
-│ UNFREEZE_ACCOUNT │ Desbloquear fondos del cliente │ Crédito      │ Débito                 │
-└──────────────────┴───────────────────────┴────────────────────────┴────────────────────────┘
-```
+| Código de plantilla | Operación                      | Cuenta de depósito activa | Cuenta de depósito congelada |
+| ------------------- | ------------------------------ | ------------------------- | ---------------------------- |
+| FREEZE_ACCOUNT      | Bloquear fondos del cliente    | Débito                    | Crédito                      |
+| UNFREEZE_ACCOUNT    | Desbloquear fondos del cliente | Crédito                   | Débito                       |
