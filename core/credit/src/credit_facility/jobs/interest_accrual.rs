@@ -357,11 +357,12 @@ where
 
         let confirmed_accrual = {
             let account_ids = credit_facility.account_ids;
-            let collateral = self
+            let collateral_account_id = self
                 .collaterals
-                .find_by_id_in_op(op, credit_facility.collateral_id)
-                .await?;
-            let collateral_account_id = collateral.account_id();
+                .find_collateral_ledger_account_ids_in_op(op, credit_facility.collateral_id)
+                .await?
+                .collateral_account_id;
+
             let balances = self
                 .ledger
                 .get_credit_facility_balance_in_op(op, account_ids, collateral_account_id)

@@ -196,11 +196,10 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
 
-                let collateral = self
+                let facility_ids = self
                     .collaterals
-                    .find_by_id_in_op(db, self.config.collateral_id)
+                    .find_liquidation_ledger_account_ids_in_op(db, self.config.collateral_id)
                     .await?;
-                let facility_ids = &collateral.facility_ledger_account_ids_for_liquidation;
 
                 let payment_ledger_account_ids = PaymentLedgerAccountIds {
                     facility_payment_holding_account_id: facility_ids.payment_holding_account_id,

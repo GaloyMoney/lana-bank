@@ -425,13 +425,31 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "collateral.find_by_by_id_in_op", skip(self, db))]
-    pub async fn find_by_id_in_op(
+    #[instrument(
+        name = "collateral.find_collateral_ledger_account_ids_in_op",
+        skip(self, db)
+    )]
+    pub async fn find_collateral_ledger_account_ids_in_op(
         &self,
         db: &mut impl es_entity::AtomicOperation,
         id: CollateralId,
-    ) -> Result<Collateral, CollateralError> {
-        self.repo.find_by_id_in_op(db, id).await
+    ) -> Result<CollateralLedgerAccountIds, CollateralError> {
+        let collateral = self.repo.find_by_id_in_op(db, id).await?;
+        Ok(collateral.account_ids)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "collateral.find_liquidation_ledger_account_ids_in_op",
+        skip(self, db)
+    )]
+    pub async fn find_liquidation_ledger_account_ids_in_op(
+        &self,
+        db: &mut impl es_entity::AtomicOperation,
+        id: CollateralId,
+    ) -> Result<FacilityLedgerAccountIdsForLiquidation, CollateralError> {
+        let collateral = self.repo.find_by_id_in_op(db, id).await?;
+        Ok(collateral.facility_ledger_account_ids_for_liquidation)
     }
 
     #[record_error_severity]

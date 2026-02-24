@@ -166,11 +166,11 @@ where
             pending_facility.id.to_string(),
         );
 
-        let collateral = self
+        let collateral_account_id = self
             .collaterals
-            .find_by_id_in_op(&mut op, pending_facility.collateral_id)
-            .await?;
-        let collateral_account_id = collateral.account_id();
+            .find_collateral_ledger_account_ids_in_op(&mut op, pending_facility.collateral_id)
+            .await?
+            .collateral_account_id;
 
         let balances = self
             .ledger
@@ -236,16 +236,21 @@ where
                 if pending_facility.status() == PendingCreditFacilityStatus::Completed {
                     continue;
                 }
-                let collateral = self
+                let collateral_account_id = self
                     .collaterals
-                    .find_by_id_in_op(&mut op, pending_facility.collateral_id)
-                    .await?;
+                    .find_collateral_ledger_account_ids_in_op(
+                        &mut op,
+                        pending_facility.collateral_id,
+                    )
+                    .await?
+                    .collateral_account_id;
+
                 let balances = self
                     .ledger
                     .get_pending_credit_facility_balance_in_op(
                         &mut op,
                         pending_facility.account_ids,
-                        collateral.account_id(),
+                        collateral_account_id,
                     )
                     .await?;
                 if pending_facility

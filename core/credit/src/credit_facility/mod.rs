@@ -351,11 +351,11 @@ where
 
         let mut credit_facility = self.repo.find_by_id_in_op(db, credit_facility_id).await?;
 
-        let collateral = self
+        let collateral_account_id = self
             .collaterals
-            .find_by_id_in_op(db, credit_facility.collateral_id)
-            .await?;
-        let collateral_account_id = collateral.account_ids.collateral_account_id;
+            .find_collateral_ledger_account_ids_in_op(db, credit_facility.collateral_id)
+            .await?
+            .collateral_account_id;
 
         let balances = self
             .ledger
