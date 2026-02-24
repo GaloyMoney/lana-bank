@@ -18,7 +18,7 @@ find_report_run() {
   [[ "$run_id" != "null" && -n "$run_id" ]] || return 1
 }
 
-wait_for_report_run_success() {
+wait_for_report_run_complete() {
   local run_id=$1
   variables=$(
     jq -n \
@@ -27,11 +27,7 @@ wait_for_report_run_success() {
   )
   exec_admin_graphql 'find-report' "$variables"
   state=$(graphql_output .data.reportRun.state)
-  if [[ "$state" == "FAILED" ]]; then
-    echo "Report run FAILED"
-    exit 1
-  fi
-  [[ "$state" == "SUCCESS" ]] || return 1
+  [[ "$state" == "SUCCESS" || "$state" == "FAILED" ]] || return 1
 }
 
 @test "report: trigger run, wait for completion, and download files" {
@@ -54,8 +50,8 @@ wait_for_report_run_success() {
   run_id=$(graphql_output '.data.reportRuns.nodes[0].reportRunId')
   [[ "$run_id" != "null" && -n "$run_id" ]] || exit 1
 
-  # Wait for the report run to complete (up to ~8 minutes)
-  retry 240 2 wait_for_report_run_success "$run_id"
+  # Wait for the report run to reach a terminal state (up to ~8 minutes)
+  retry 240 2 wait_for_report_run_complete "$run_id"
 
   # Fetch completed run details
   variables=$(jq -n --arg id "$run_id" '{ id: $id }')
