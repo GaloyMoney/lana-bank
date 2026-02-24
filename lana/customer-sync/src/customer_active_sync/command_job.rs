@@ -17,14 +17,14 @@ use governance::GovernanceEvent;
 use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct UpdateAccountStatusForHolderConfig {
+pub struct UpdateHolderStatusConfig {
     pub customer_id: CustomerId,
 }
 
-pub const UPDATE_ACCOUNT_STATUS_FOR_HOLDER_COMMAND: JobType =
-    JobType::new("command.customer-sync.update-account-status-for-holder");
+pub const UPDATE_HOLDER_STATUS_COMMAND: JobType =
+    JobType::new("command.customer-sync.update-holder-status");
 
-pub struct UpdateAccountStatusForHolderJobInitializer<Perms, E>
+pub struct UpdateHolderStatusJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -34,7 +34,7 @@ where
     deposit: CoreDeposit<Perms, E>,
 }
 
-impl<Perms, E> UpdateAccountStatusForHolderJobInitializer<Perms, E>
+impl<Perms, E> UpdateHolderStatusJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for UpdateAccountStatusForHolderJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for UpdateHolderStatusJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -57,10 +57,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Config = UpdateAccountStatusForHolderConfig;
+    type Config = UpdateHolderStatusConfig;
 
     fn job_type(&self) -> JobType {
-        UPDATE_ACCOUNT_STATUS_FOR_HOLDER_COMMAND
+        UPDATE_HOLDER_STATUS_COMMAND
     }
 
     fn init(
@@ -68,26 +68,26 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UpdateAccountStatusForHolderJobRunner {
+        Ok(Box::new(UpdateHolderStatusJobRunner {
             config: job.config()?,
             deposit: self.deposit.clone(),
         }))
     }
 }
 
-pub struct UpdateAccountStatusForHolderJobRunner<Perms, E>
+pub struct UpdateHolderStatusJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    config: UpdateAccountStatusForHolderConfig,
+    config: UpdateHolderStatusConfig,
     deposit: CoreDeposit<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for UpdateAccountStatusForHolderJobRunner<Perms, E>
+impl<Perms, E> JobRunner for UpdateHolderStatusJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -100,7 +100,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "customer_sync.update_account_status_for_holder_job.run",
+        name = "customer_sync.update_holder_status_job.run",
         skip(self, current_job),
         fields(customer_id = %self.config.customer_id),
     )]
