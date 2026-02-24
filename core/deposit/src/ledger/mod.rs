@@ -268,7 +268,7 @@ impl DepositLedger {
             .external_id(reference.to_string())
             .name(name.clone())
             .description(name)
-            .code(id.to_string())
+            .code(id.to_string()[..8].to_string())
             .normal_balance_type(normal_balance_type)
             .build()
             .expect("Could not build new account");
@@ -751,7 +751,7 @@ impl DepositLedger {
         let deposit_account_type = deposit_account_type.into();
 
         let entity_ref = EntityRef::new(DEPOSIT_ACCOUNT_ENTITY_TYPE, account.id);
-        let deposit_account_name = format!("Deposit Account {holder_id}");
+        let deposit_account_name = format!("Deposit Account {}", &holder_id.to_string()[..8]);
         self.create_account_in_op(
             op,
             account.id,
@@ -766,7 +766,8 @@ impl DepositLedger {
         self.add_deposit_control_to_account_in_op(op, account.id)
             .await?;
 
-        let frozen_deposit_account_name = format!("Frozen Deposit Account {holder_id}");
+        let frozen_deposit_account_name =
+            format!("Frozen Deposit Account {}", &holder_id.to_string()[..8]);
         self.create_account_in_op(
             op,
             account.account_ids.frozen_deposit_account_id,
@@ -843,7 +844,7 @@ impl DepositLedger {
             .external_id(reference)
             .name(name)
             .description(description)
-            .code(id.to_string())
+            .code(id.to_string()[..8].to_string())
             .normal_balance_type(parent_account_set.normal_balance_type)
             .metadata(serde_json::json!({"entity_ref": entity_ref}))
             .expect("Could not add metadata")
