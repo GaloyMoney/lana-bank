@@ -69,6 +69,7 @@ time:
   type: realtime
 bootstrap:
   active: false
+  seed_only: false
   num_facilities: 0
   num_customers: 0
 
