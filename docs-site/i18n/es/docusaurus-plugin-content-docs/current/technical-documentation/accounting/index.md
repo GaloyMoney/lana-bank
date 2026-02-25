@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # Contabilidad
 
-El módulo de contabilidad proporciona contabilidad de partida doble para todas las operaciones financieras en Lana. Está construido sobre el motor de libro mayor Cala, que garantiza que cada transacción mantenga la ecuación contable fundamental: Activos = Pasivos + Patrimonio. Todas las operaciones de negocio del sistema (depósitos, retiros, desembolsos, devengo de intereses, pagos y reconocimiento de comisiones) generan asientos contables que fluyen por este marco.
+El módulo de contabilidad proporciona contabilidad de partida doble para todas las operaciones financieras en Lana. Está construido sobre el motor de libro mayor Cala, que garantiza que cada transacción mantenga la ecuación contable fundamental: Activos = Pasivos + Patrimonio. Todas las operaciones de negocio del sistema (por ejemplo, depósitos, retiros, desembolsos, devengo de intereses, pagos y reconocimiento de comisiones, etc) generan asientos contables que fluyen por este marco.
 
 ## Plan de Cuentas
 
@@ -20,7 +20,7 @@ Las cuentas se organizan en categorías financieras estándar:
 |----------|----------------|-------------|
 | **Activos** | Débito | Recursos propiedad del banco (efectivo, cuentas por cobrar, colateral) |
 | **Pasivos** | Crédito | Obligaciones frente a terceros (depósitos de clientes, cuentas por pagar) |
-| **Patrimonio** | Crédito | Participación de los dueños en el banco (utilidades retenidas, capital) |
+| **Patrimonio** | Crédito | Participación de los dueños en el banco (ganancias retenidas, capital) |
 | **Ingresos** | Crédito | Ingresos devengados (intereses, comisiones) |
 | **Costo de Ingresos** | Débito | Costos directos asociados a la generación de ingresos |
 | **Gastos** | Débito | Costos operativos (provisiones, gastos de operación) |
@@ -38,17 +38,17 @@ El plan de cuentas usa una jerarquía padre-hijo donde los códigos de nivel sup
 - **2** — Pasivos
   - **21** — Depósitos de clientes
 - **3** — Patrimonio
-  - **31** — Utilidades retenidas
-    - **31.01** — Utilidades retenidas (ganancia)
-    - **31.02** — Utilidades retenidas (pérdida)
+  - **31** — Ganancias retenidas
+    - **31.01** — Ganancias retenidas (ganancia)
+    - **31.02** — Ganancias retenidas (pérdida)
 
 Cada cuenta en la jerarquía está respaldada por un conjunto de cuentas en Cala, lo que permite agregar saldos de todas las cuentas hijas al generar reportes para un nodo padre.
 
 ### Configuración Base de Contabilidad
 
-La configuración base de contabilidad mapea categorías de cuentas (así como **utilidades retenidas**, que están anidadas bajo **Patrimonio**) a códigos específicos dentro del plan de cuentas. Es requerida para operaciones contables como el cierre mensual y el cierre de año fiscal, y habilita la conexión de módulos de producto con el plan de cuentas.
+La configuración base de contabilidad mapea categorías de cuentas (así como **ganancias retenidas**, que están anidadas bajo **Patrimonio**) a códigos específicos dentro del plan de cuentas. Es requerida para operaciones contables como el cierre mensual y el cierre de año fiscal, y habilita la conexión de módulos de producto con el plan de cuentas.
 
-Se expresa como JSON, donde cada clave es una categoría de cuenta (o un objetivo de **utilidades retenidas**, uno para ingreso neto positivo y otro para ingreso neto negativo) y cada valor representa un código del plan de cuentas.
+Se expresa como JSON, donde cada clave es una categoría de cuenta (o un objetivo de **ganancias retenidas**, uno para ingreso neto positivo y otro para ingreso neto negativo) y cada valor representa un código del plan de cuentas.
 
 ```json
 {
@@ -95,11 +95,11 @@ Esta creación automática de cuentas garantiza que cada operación de negocio t
 
 El sistema genera tres estados financieros principales a partir del plan de cuentas:
 
-### Balanza de Comprobación
+### Balance de Comprobación
 
-La balanza de comprobación lista todas las cuentas de primer nivel (hijas directas de la raíz del plan) con sus saldos débito y crédito en un momento específico. Su propósito principal es de verificación: el total de débitos debe ser igual al total de créditos. Si no lo es, existe un error contable en alguna parte del sistema.
+El balance de comprobación lista todas las cuentas de primer nivel (hijas directas de la raíz del plan) con sus saldos débito y crédito en un momento específico. Su propósito principal es de verificación: el total de débitos debe ser igual al total de créditos. Si no lo es, existe un error contable en alguna parte del sistema.
 
-La balanza de comprobación es lo primero que un operador debe revisar al investigar discrepancias contables. Proporciona una vista rápida para validar consistencia interna del libro mayor.
+El balance de comprobación es lo primero que un operador debe revisar al investigar discrepancias contables. Proporciona una vista rápida para validar la consistencia interna del libro mayor.
 
 ### Balance General
 
@@ -107,7 +107,7 @@ El balance general presenta la posición financiera del banco en una fecha espec
 
 - **Activos**: lo que el banco posee (cuentas por cobrar a clientes, efectivo, colateral retenido)
 - **Pasivos**: lo que el banco debe (depósitos de clientes, cuentas por pagar)
-- **Patrimonio**: interés residual (utilidades retenidas, capital aportado)
+- **Patrimonio**: interés residual (ganancias retenidas, capital aportado)
 
 La ecuación Activos = Pasivos + Patrimonio debe cumplirse siempre. El balance general se construye agregando todas las cuentas bajo los códigos padre configurados para activos, pasivos y patrimonio.
 
@@ -119,13 +119,13 @@ El estado de resultados (P&L) muestra el desempeño financiero del banco en un p
 - **Costo de Ingresos**: costos directos asociados con la generación de ingresos
 - **Gastos**: gastos operativos, provisiones por pérdidas crediticias y otros costos
 
-Ingreso Neto = Ingresos - Costo de Ingresos - Gastos. Esta cifra representa la ganancia o pérdida del banco en el período de reporte. Al final de cada año fiscal, el ingreso neto se transfiere a utilidades retenidas en el balance general mediante el proceso de cierre.
+Ingreso Neto = Ingresos - Costo de Ingresos - Gastos. Esta cifra representa la ganancia o pérdida del banco en el período de reporte. Al final de cada año fiscal, el ingreso neto se transfiere a ganancias retenidas en el balance general mediante el proceso de cierre.
 
 ## Modelo Operativo
 
 Las páginas de contabilidad en el panel de administración exponen vistas estructuradas del libro mayor sobre contabilidad de partida doble de Cala. Normalmente los operadores usan:
 - **Plan de Cuentas** para inspeccionar jerarquía y actividad por cuenta.
-- **Balanza de Comprobación** para validar consistencia de saldos.
+- **Balance de Comprobación** para validar consistencia de saldos.
 - **Balance General** para posición financiera (activos, pasivos y patrimonio).
 - **Estado de Resultados** para desempeño del período.
 

@@ -118,8 +118,8 @@ flowchart LR
 
 | Página | Descripción |
 |------|-------------|
-| [Facilidades de Crédito](./facility) | Creación de propuestas, flujo de aprobación, colateralización, activación y estados de la facilidad |
-| [Desembolsos](./disbursal) | Disposición de fondos desde facilidades activas, flujo de aprobación y liquidación |
+| [Líneas de Crédito](./facility) | Creación de propuestas, flujo de aprobación, colateralización, activación y estados de la línea |
+| [Desembolsos](./disbursal) | Disposición de fondos desde líneas activas, flujo de aprobación y liquidación |
 | [Obligaciones](./obligation) | Seguimiento de deuda, tipos de obligación, estados de ciclo de vida y parámetros de tiempo |
 | [Pagos](./payment) | Procesamiento de pagos, reglas de prioridad de asignación e impacto contable |
 | [Términos](./terms) | Tasas de interés, cronogramas de comisiones, intervalos de tiempo, umbrales CVL y plantillas de términos |
