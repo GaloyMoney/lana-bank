@@ -34,7 +34,12 @@ use super::{
             update(accessor = "last_collateralization_state()")
         ),
         status(ty = "CreditFacilityStatus", list_for, update(accessor = "status()")),
-        public_id(ty = "PublicId", list_by)
+        public_id(ty = "PublicId", list_by),
+        maturity_date(
+            ty = "chrono::NaiveDate",
+            create(accessor = "maturity_date()"),
+            update(persist = false)
+        )
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -90,6 +95,35 @@ where
         self.publisher
             .publish_facility_in_op(op, entity, new_events)
             .await
+    }
+
+    pub async fn list_ids_ready_for_maturity(
+        &self,
+        day: chrono::NaiveDate,
+        after: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
+        limit: i64,
+    ) -> Result<Vec<(CreditFacilityId, chrono::DateTime<chrono::Utc>)>, CreditFacilityError> {
+        let (after_created_at, after_id) = match after {
+            Some((ts, id)) => (Some(ts), Some(id)),
+            None => (None, None),
+        };
+        let rows = sqlx::query!(
+            r#"SELECT id AS "id: CreditFacilityId", created_at
+               FROM core_credit_facilities
+               WHERE maturity_date IS NOT NULL
+                 AND maturity_date <= $1
+                 AND status = 'Active'
+                 AND (($2::timestamptz IS NULL) OR (created_at, id) > ($2, $3))
+               ORDER BY created_at, id
+               LIMIT $4"#,
+            day,
+            after_created_at,
+            after_id as Option<CreditFacilityId>,
+            limit,
+        )
+        .fetch_all(self.pool())
+        .await?;
+        Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }
 
     #[record_error_severity]

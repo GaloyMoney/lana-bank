@@ -289,6 +289,10 @@ impl CreditFacility {
         })
     }
 
+    pub fn maturity_date(&self) -> chrono::NaiveDate {
+        self.maturity_date.into()
+    }
+
     pub fn matures_at(&self) -> DateTime<Utc> {
         self.maturity_date.start_of_day()
     }
@@ -844,6 +848,10 @@ pub struct NewCreditFacility {
 impl NewCreditFacility {
     pub fn builder() -> NewCreditFacilityBuilder {
         NewCreditFacilityBuilder::default()
+    }
+
+    pub fn maturity_date(&self) -> chrono::NaiveDate {
+        self.maturity_date.into()
     }
 }
 
