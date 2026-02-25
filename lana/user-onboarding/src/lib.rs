@@ -1,15 +1,13 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-pub mod command_job;
 pub mod config;
 pub mod error;
-mod event_handler;
+mod jobs;
 
-use command_job::CreateKeycloakUserJobInitializer;
 use config::UserOnboardingConfig;
 use error::*;
-use event_handler::*;
+use jobs::*;
 
 use core_access::CoreAccessEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};

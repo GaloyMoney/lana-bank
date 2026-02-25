@@ -1,11 +1,11 @@
 mod entity;
 pub mod error;
+mod jobs;
 pub mod ledger;
 pub mod liquidation;
 pub mod primitives;
 pub mod public;
 pub(crate) mod repo;
-mod wallet_collateral_sync;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -36,7 +36,7 @@ use ledger::{
 };
 
 pub(super) use entity::*;
-use wallet_collateral_sync::command_job::SyncCustodianCollateralJobInitializer;
+use jobs::{sync_custodian_collateral, wallet_collateral_sync};
 pub use {
     entity::{Collateral, CollateralAdjustment},
     liquidation::Liquidation,
@@ -104,11 +104,12 @@ where
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
 
-        let sync_custodian_collateral_job_spawner =
-            jobs.add_initializer(SyncCustodianCollateralJobInitializer::<
+        let sync_custodian_collateral_job_spawner = jobs.add_initializer(
+            sync_custodian_collateral::SyncCustodianCollateralJobInitializer::<
                 <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
                 E,
-            >::new(ledger.clone(), repo.clone()));
+            >::new(ledger.clone(), repo.clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,

@@ -5,7 +5,7 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 use core_custody::CoreCustodyEvent;
 use job::{JobId, JobSpawner, JobType};
 
-use super::command_job::SyncCustodianCollateralConfig;
+use super::sync_custodian_collateral::SyncCustodianCollateralConfig;
 
 pub const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-collateral-sync");
 
