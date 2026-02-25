@@ -141,7 +141,10 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
         collaterals: Arc<core_credit_collateral::Collaterals<Perms, E>>,
-    ) -> Result<Self, CreditFacilityError> {
+    ) -> Result<Self, CreditFacilityError>
+    where
+        E: OutboxEventMarker<core_time_events::CoreTimeEvent>,
+    {
         let repo = Arc::new(CreditFacilityRepo::new(pool, publisher, clock.clone()));
 
         outbox
@@ -167,7 +170,7 @@ where
             jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo.clone()),
         );
 
-        let _process_accrual_cycle_spawner =
+        let process_accrual_cycle_spawner =
             jobs.add_initializer(jobs::process_accrual_cycle::ProcessAccrualCycleJobInit::<
                 Perms,
                 E,
@@ -178,6 +181,23 @@ where
                 collaterals.clone(),
                 authz.clone(),
             ));
+
+        let collect_facilities_for_accrual_spawner = jobs.add_initializer(
+            jobs::collect_facilities_for_accrual::CollectFacilitiesForAccrualJobInit::new(
+                repo.as_ref(),
+                process_accrual_cycle_spawner,
+            ),
+        );
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(jobs::end_of_day::ACCRUAL_END_OF_DAY),
+                jobs::end_of_day::FacilityEndOfDayHandler::new(
+                    collect_facilities_for_accrual_spawner,
+                ),
+            )
+            .await?;
 
         let liquidation_payment_job_spawner =
             jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
@@ -264,7 +284,7 @@ where
 
         let mut credit_facility = self.repo.create_in_op(db, new_credit_facility).await?;
 
-        let periods = credit_facility
+        credit_facility
             .start_interest_accrual_cycle()?
             .expect("start_interest_accrual_cycle always returns Executed")
             .expect("first accrual");
