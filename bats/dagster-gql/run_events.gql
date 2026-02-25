@@ -1,0 +1,12 @@
+query RunEvents($runId: ID!) {
+  logsForRun(runId: $runId) {
+    ... on EventConnection {
+      events {
+        ... on MessageEvent {
+          message
+          eventType
+        }
+      }
+    }
+  }
+}

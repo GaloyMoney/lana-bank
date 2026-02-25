@@ -348,7 +348,15 @@ dagster_poll_run_status() {
       return 0
     fi
     if [ "$run_status" = "FAILURE" ] || [ "$run_status" = "CANCELED" ]; then
-      echo "Run failed: $output"
+      echo "Run $run_status. Fetching event logs..."
+      local event_vars=$(jq -n --arg runId "$run_id" '{ runId: $runId }')
+      exec_dagster_graphql "run_events" "$event_vars"
+      if echo "$output" | jq . >/dev/null 2>&1; then
+        echo "=== Error/failure events ==="
+        echo "$output" | jq -r '.data.logsForRun.events[]? | select(.message != null) | select(.eventType == "STEP_FAILURE" or (.message | test("error|Error|ERROR|FAILURE|fail"))) | "\(.eventType): \(.message)"' 2>/dev/null || true
+        echo "=== Last 20 events ==="
+        echo "$output" | jq -r '[.data.logsForRun.events[]? | select(.message != null)] | .[-20:][] | "\(.eventType): \(.message)"' 2>/dev/null || true
+      fi
       return 1
     fi
     
