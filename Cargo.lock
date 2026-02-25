@@ -3,9 +3,37 @@
 version = 4
 
 [[package]]
+name = "admin-graphql-access"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "permission-sets-macro",
+]
+
+[[package]]
+name = "admin-graphql-shared"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "audit",
+ "chrono",
+ "domain-config",
+ "es-entity",
+ "lana-app",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "admin-server"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-access",
+ "admin-graphql-shared",
  "anyhow",
  "async-graphql",
  "async-graphql-axum",

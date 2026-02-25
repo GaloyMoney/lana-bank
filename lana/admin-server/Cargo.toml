@@ -11,6 +11,8 @@ sumsub-testing = ["lana-app/sumsub-testing"]
 
 [dependencies]
 lana-app = { workspace = true }
+admin-graphql-access = { workspace = true }
+admin-graphql-shared = { workspace = true }
 domain-config = { workspace = true, features = ["graphql"] }
 permission-sets-macro = { workspace = true }
 obix = { workspace = true }
@@ -36,4 +38,3 @@ rust_decimal = { workspace = true }
 anyhow = { workspace = true }
 
 futures = { workspace = true }
-

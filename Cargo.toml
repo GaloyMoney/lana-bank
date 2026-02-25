@@ -63,6 +63,8 @@ public-id = { path = "core/public-id" }
 domain-config = { path = "core/domain-config" }
 
 # Lana dependencies
+admin-graphql-access = { path = "lana/admin-graphql-access" }
+admin-graphql-shared = { path = "lana/admin-graphql-shared" }
 admin-server = { path = "lana/admin-server" }
 contract-creation = { path = "lana/contract-creation" }
 customer-server = { path = "lana/customer-server" }

@@ -1,10 +1,11 @@
 use async_graphql::*;
 
-use crate::graphql::access::PermissionSet;
-use crate::graphql::loader::LanaDataLoader;
-use crate::primitives::*;
+use admin_graphql_shared::primitives::*;
 use lana_app::access::role::Role as DomainRole;
+
 pub use lana_app::access::role::RolesByNameCursor;
+
+use super::PermissionSet;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -14,7 +15,7 @@ pub struct Role {
     created_at: Timestamp,
 
     #[graphql(skip)]
-    pub(crate) entity: Arc<DomainRole>,
+    pub entity: Arc<DomainRole>,
 }
 
 #[ComplexObject]
@@ -27,10 +28,10 @@ impl Role {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<PermissionSet>> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let loaded = loader
-            .load_many(self.entity.permission_sets.iter().copied())
-            .await?;
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let ids: Vec<_> = self.entity.permission_sets.iter().copied().collect();
+        let loaded: std::collections::HashMap<PermissionSetId, PermissionSet> =
+            app.access().find_all_permission_sets(&ids).await?;
         Ok(loaded.into_values().collect())
     }
 }
@@ -41,7 +42,6 @@ impl From<DomainRole> for Role {
             id: role.id.to_global_id(),
             role_id: UUID::from(role.id),
             created_at: role.created_at().into(),
-
             entity: Arc::new(role),
         }
     }
@@ -52,18 +52,18 @@ pub struct RoleCreateInput {
     pub name: String,
     pub permission_set_ids: Vec<UUID>,
 }
-crate::mutation_payload! { RoleCreatePayload, role: Role }
+mutation_payload! { RoleCreatePayload, role: Role }
 
 #[derive(InputObject)]
 pub struct RoleAddPermissionSetsInput {
     pub role_id: UUID,
     pub permission_set_ids: Vec<UUID>,
 }
-crate::mutation_payload! { RoleAddPermissionSetsPayload, role: Role }
+mutation_payload! { RoleAddPermissionSetsPayload, role: Role }
 
 #[derive(InputObject)]
 pub struct RoleRemovePermissionSetsInput {
     pub role_id: UUID,
     pub permission_set_ids: Vec<UUID>,
 }
-crate::mutation_payload! { RoleRemovePermissionSetsPayload, role: Role }
+mutation_payload! { RoleRemovePermissionSetsPayload, role: Role }
