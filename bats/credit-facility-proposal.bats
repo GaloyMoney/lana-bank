@@ -56,7 +56,7 @@ wait_for_disbursal() {
       --arg disbursal_id "$disbursal_id" \
       '[
         .data.creditFacility.disbursals[]
-        | select(.id == $disbursal_id)
+        | select(.disbursalId == $disbursal_id)
         ] | length'
   )
   [[ "$num_disbursals" -eq "1" ]]
