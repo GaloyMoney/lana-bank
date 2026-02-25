@@ -64,6 +64,9 @@ run-server-nix:
 run-server-with-bootstrap:
 	cargo run --all-features --bin lana-cli -- --config ./bats/lana-bootstrap.yml | tee .e2e-logs
 
+seed-data:
+	cargo run --all-features --bin lana-cli -- --config ./bats/lana-seed.yml
+
 check-code: check-code-apps
 	nix flake check
 
