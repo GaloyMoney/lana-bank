@@ -83,6 +83,7 @@ LANA_ASSETS=(
   "cala_account_set_member_accounts"
   "cala_account_sets"
   "cala_accounts"
+  "cala_cumulative_effective_balances"
   "core_public_ids"
   "core_chart_events"
   "core_chart_node_events"
