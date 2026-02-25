@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::{graphql::loader::LanaDataLoader, primitives::*};
+use admin_graphql_shared::primitives::*;
 use lana_app::access::user::User as DomainUser;
 
 use super::Role;
@@ -13,7 +13,7 @@ pub struct User {
     created_at: Timestamp,
 
     #[graphql(skip)]
-    pub(crate) entity: Arc<DomainUser>,
+    pub entity: Arc<DomainUser>,
 }
 
 impl From<DomainUser> for User {
@@ -41,15 +41,19 @@ impl From<Arc<DomainUser>> for User {
 #[ComplexObject]
 impl User {
     async fn role(&self, ctx: &Context<'_>) -> async_graphql::Result<Role> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let role_id = self.entity.current_role();
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let role = loader.load_one(role_id).await?;
-        role.ok_or_else(|| {
-            Error::new(format!(
-                "Data integrity error: Role with ID {} not found for user {}. This should never happen.",
-                role_id, self.entity.id
-            ))
-        })
+        let role = app
+            .access()
+            .find_role_by_id(sub, role_id)
+            .await?
+            .ok_or_else(|| {
+                Error::new(format!(
+                    "Data integrity error: Role with ID {} not found for user {}. This should never happen.",
+                    role_id, self.entity.id
+                ))
+            })?;
+        Ok(Role::from(role))
     }
 
     async fn email(&self) -> &str {
@@ -57,7 +61,7 @@ impl User {
     }
 
     async fn user_can_update_role_of_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         Ok(app
             .access()
             .users()

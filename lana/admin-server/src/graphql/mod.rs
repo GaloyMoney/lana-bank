@@ -40,8 +40,8 @@ pub use schema::*;
 use lana_app::app::LanaApp;
 
 pub fn schema(app: Option<LanaApp>) -> Schema<Query, Mutation, Subscription> {
-    let mut schema_builder =
-        Schema::build(Query, Mutation, Subscription).extension(extensions::Tracing);
+    let mut schema_builder = Schema::build(Query::default(), Mutation::default(), Subscription)
+        .extension(extensions::Tracing);
 
     if let Some(app) = app {
         schema_builder = schema_builder.data(LanaLoader::new(&app)).data(app);
