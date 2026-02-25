@@ -70,7 +70,7 @@ where
     public_ids: Arc<PublicIds>,
     clock: es_entity::clock::ClockHandle,
     credit_facility_maturity_job_spawner:
-        jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
+        jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -189,12 +189,20 @@ where
             ),
         );
 
+        let process_facility_maturities_spawner = jobs.add_initializer(
+            jobs::process_facility_maturities::ProcessFacilityMaturitiesJobInit::new(
+                repo.clone(),
+                credit_facility_maturity_job_spawner.clone(),
+            ),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
-                OutboxEventJobConfig::new(jobs::end_of_day::ACCRUAL_END_OF_DAY),
+                OutboxEventJobConfig::new(jobs::end_of_day::FACILITY_END_OF_DAY),
                 jobs::end_of_day::FacilityEndOfDayHandler::new(
                     collect_facilities_for_accrual_spawner,
+                    process_facility_maturities_spawner,
                 ),
             )
             .await?;
@@ -297,9 +305,8 @@ where
                 JobId::new(),
                 // FIXME: I don't think this is updated if/when the facility is updated
                 // if the credit product is closed earlier than expected or if is liquidated
-                jobs::credit_facility_maturity::CreditFacilityMaturityJobConfig::<E> {
+                jobs::credit_facility_maturity::CreditFacilityMaturityJobConfig {
                     credit_facility_id: credit_facility.id,
-                    _phantom: std::marker::PhantomData,
                 },
                 credit_facility.matures_at(),
             )
