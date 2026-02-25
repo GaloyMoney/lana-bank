@@ -4,7 +4,9 @@ use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_credit::*;
+use core_time_events::CoreTimeEvent;
 use document_storage::DocumentStorage;
+use es_entity::DbOp;
 use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
 use futures::StreamExt;
 use money::{Satoshis, UsdCents};
@@ -15,8 +17,12 @@ use std::time::Duration;
 const ONE_DAY: Duration = Duration::from_secs(86400);
 const POLL_INTERVAL: Duration = Duration::from_millis(100);
 
-async fn setup_with_clock_control()
--> anyhow::Result<(helpers::TestContext, ClockController, sqlx::PgPool)> {
+async fn setup_with_clock_control() -> anyhow::Result<(
+    helpers::TestContext,
+    ClockController,
+    ClockHandle,
+    sqlx::PgPool,
+)> {
     let pool = helpers::init_pool().await?;
     cleanup_stale_task_jobs(&pool).await?;
     let (clock, clock_ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
@@ -133,6 +139,7 @@ async fn setup_with_clock_control()
             jobs,
         },
         clock_ctrl,
+        clock,
         pool,
     ))
 }
@@ -262,7 +269,7 @@ async fn create_active_facility_with_clock(
 /// `AccrualPosted` is published when an interest accrual cycle completes.
 ///
 /// # Trigger
-/// `InterestAccrualJobRunner::complete_cycle`
+/// `ProcessAccrualCycleJobRunner::complete_cycle`
 /// (the final state in the AccruePeriod → AwaitObligationsSync → CompleteCycle machine)
 ///
 /// # Consumers
@@ -278,7 +285,7 @@ async fn create_active_facility_with_clock(
 #[tokio::test]
 #[serial_test::file_serial(core_credit_shared_jobs)]
 async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
-    let (mut ctx, clock_ctrl, pool) = setup_with_clock_control().await?;
+    let (mut ctx, clock_ctrl, clock, pool) = setup_with_clock_control().await?;
     ctx.jobs.start_poll().await?;
 
     let state = create_active_facility_with_clock(&ctx, &clock_ctrl, daily_cycle_terms()).await?;
@@ -287,10 +294,10 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     let mut stream = ctx.outbox.listen_all(None);
     let facility_id = state.facility_id;
 
-    // Advance the clock day-by-day while watching for AccrualPosted.
-    // The disbursal balance appears quickly, then the interest accrual job
-    // runs: AccruePeriod → AwaitObligationsSync → CompleteCycle → AccrualPosted
+    // Advance the clock day-by-day, publishing EndOfDay events to trigger the
+    // accrual pipeline: EndOfDay → CollectFacilitiesForAccrual → ProcessAccrualCycle
     let recorded = tokio::time::timeout(Duration::from_secs(60), async {
+        let mut current_day = chrono::Utc::now().date_naive();
         loop {
             tokio::select! {
                 Some(event) = stream.next() => {
@@ -303,6 +310,20 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
                 }
                 _ = tokio::time::sleep(POLL_INTERVAL) => {
                     clock_ctrl.advance(ONE_DAY).await;
+                    current_day += chrono::Duration::days(1);
+                    let mut op = DbOp::init_with_clock(&pool, &clock).await.unwrap();
+                    ctx.outbox
+                        .publish_persisted_in_op(
+                            &mut op,
+                            CoreTimeEvent::EndOfDay {
+                                day: current_day,
+                                closing_time: chrono::Utc::now(),
+                                timezone: chrono_tz::UTC,
+                            },
+                        )
+                        .await
+                        .unwrap();
+                    op.commit().await.unwrap();
                 }
             }
         }
@@ -332,7 +353,7 @@ async fn cleanup_stale_task_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     sqlx::query(
         "DELETE FROM job_executions
          WHERE state = 'pending'
-           AND job_type IN ('task.interest-accrual', 'task.credit-facility-maturity')",
+           AND job_type IN ('task.process-accrual-cycle', 'task.collect-facilities-for-accrual', 'task.credit-facility-maturity')",
     )
     .execute(pool)
     .await?;
