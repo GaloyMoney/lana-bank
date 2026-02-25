@@ -210,7 +210,7 @@ def create_dbt_seed_assets():
 
 
 class AsOfConfig(dg.Config):
-    as_of_date: str  # e.g. "2025-12-31"
+    as_of_date: str = ""  # e.g. "2025-12-31", defaults to today
 
 
 def create_dbt_asof_model_assets():
@@ -218,7 +218,8 @@ def create_dbt_asof_model_assets():
     Create dbt as-of model assets that require an as_of_date var.
 
     These models are excluded from the regular dbt_models_job and must be
-    triggered manually with an as_of_date config parameter.
+    triggered manually with an as_of_date config parameter. If as_of_date
+    is not provided, it defaults to today's date.
 
     Returns:
         A dbt_assets-decorated function that creates all dbt as-of model assets
@@ -236,8 +237,11 @@ def create_dbt_asof_model_assets():
         config: AsOfConfig,
     ):
         """Execute dbt as-of models with OTEL tracing."""
+        from datetime import date
+
+        as_of_date = config.as_of_date or date.today().isoformat()
         selected_keys = [key.to_user_string() for key in context.selected_asset_keys]
-        vars_json = json.dumps({"as_of_date": config.as_of_date})
+        vars_json = json.dumps({"as_of_date": as_of_date})
 
         with trace_dbt_batch(context, "dbt_asof_models_build", selected_keys):
             yield from dbt.cli(["run", "--vars", vars_json], context=context).stream()
