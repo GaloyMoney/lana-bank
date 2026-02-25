@@ -4,6 +4,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
+use core_time_events::CoreTimeEvent;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
@@ -29,7 +30,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     process: ActivateCreditFacility<Perms, E>,
 }
@@ -50,7 +52,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     pub fn new(process: &ActivateCreditFacility<Perms, E>) -> Self {
         Self {
@@ -77,7 +80,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     #[instrument(name = "core_credit.credit_facility_activation_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, pending_credit_facility_id = tracing::field::Empty))]
     async fn handle_persistent(

@@ -5,6 +5,7 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
+use core_time_events::CoreTimeEvent;
 
 use super::*;
 use crate::{collateral::public::CoreCreditCollateralEvent, history::CreditFacilityHistoryEntry};
@@ -19,7 +20,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -51,7 +53,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
