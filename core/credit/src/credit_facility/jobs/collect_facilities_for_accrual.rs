@@ -8,7 +8,7 @@ use core_time_events::CoreTimeEvent;
 use job::*;
 use obix::out::OutboxEventMarker;
 
-use super::interest_accrual::{InterestAccrualJobConfig, InterestAccrualJobSpawner};
+use super::process_accrual_cycle::{ProcessAccrualCycleJobConfig, ProcessAccrualCycleJobSpawner};
 use crate::{
     CoreCreditEvent, CreditFacilityId, credit_facility::CreditFacilityRepo, primitives::*,
 };
@@ -38,7 +38,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     credit_facility_repo: CreditFacilityRepo<E>,
-    interest_accrual_spawner: InterestAccrualJobSpawner<Perms, E>,
+    process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner<Perms, E>,
 }
 
 impl<Perms, E> CollectFacilitiesForAccrualJobInit<Perms, E>
@@ -48,11 +48,11 @@ where
 {
     pub fn new(
         credit_facility_repo: &CreditFacilityRepo<E>,
-        interest_accrual_spawner: InterestAccrualJobSpawner<Perms, E>,
+        process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner<Perms, E>,
     ) -> Self {
         Self {
             credit_facility_repo: credit_facility_repo.clone(),
-            interest_accrual_spawner,
+            process_accrual_cycle_spawner,
         }
     }
 }
@@ -78,7 +78,7 @@ where
         Ok(Box::new(CollectFacilitiesForAccrualJobRunner {
             config: job.config()?,
             credit_facility_repo: self.credit_facility_repo.clone(),
-            interest_accrual_spawner: self.interest_accrual_spawner.clone(),
+            process_accrual_cycle_spawner: self.process_accrual_cycle_spawner.clone(),
         }))
     }
 }
@@ -90,7 +90,7 @@ where
 {
     config: CollectFacilitiesForAccrualJobConfig<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
-    interest_accrual_spawner: InterestAccrualJobSpawner<Perms, E>,
+    process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner<Perms, E>,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -138,8 +138,9 @@ where
                 .map(|(id, _)| {
                     JobSpec::new(
                         JobId::new(),
-                        InterestAccrualJobConfig::<Perms, E> {
+                        ProcessAccrualCycleJobConfig::<Perms, E> {
                             credit_facility_id: *id,
+                            day: self.config.day,
                             _phantom: std::marker::PhantomData,
                         },
                     )
@@ -148,7 +149,7 @@ where
                 .collect();
 
             let mut op = current_job.begin_op().await?;
-            self.interest_accrual_spawner
+            self.process_accrual_cycle_spawner
                 .spawn_all_in_op(&mut op, specs)
                 .await?;
 

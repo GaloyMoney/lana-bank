@@ -169,15 +169,17 @@ where
             jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo.clone()),
         );
 
-        let interest_accrual_job_spawner = jobs.add_initializer(
-            jobs::interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
+        let process_accrual_cycle_spawner =
+            jobs.add_initializer(jobs::process_accrual_cycle::ProcessAccrualCycleJobInit::<
+                Perms,
+                E,
+            >::new(
                 ledger.clone(),
                 collections.clone(),
                 repo.clone(),
                 collaterals.clone(),
                 authz.clone(),
-            ),
-        );
+            ));
 
         let liquidation_payment_job_spawner =
             jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
@@ -300,6 +302,7 @@ where
                 accrual_id,
                 jobs::interest_accrual::InterestAccrualJobConfig::<Perms, E> {
                     credit_facility_id,
+                    day: periods.accrual.end.date_naive(),
                     _phantom: std::marker::PhantomData,
                 },
                 periods.accrual.end,
