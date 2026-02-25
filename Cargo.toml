@@ -77,8 +77,8 @@ user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
 es-entity = { version = "0.10.19", features = ["event-context", "tracing-context", "instrument"] }
-cala-ledger = "0.13.19"
-cala-cel-interpreter = "0.13.19"
+cala-ledger = "0.13.20"
+cala-cel-interpreter = "0.13.20"
 job = { version = "0.6.5", features = ["es-entity"] }
 obix = { version = "0.2.14", features = ["tracing"] }
 
@@ -202,4 +202,3 @@ opt-level = 0
 
 [workspace.metadata.crane]
 name = "lana-bank"
-

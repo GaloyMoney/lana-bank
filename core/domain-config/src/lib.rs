@@ -77,7 +77,10 @@
 //! # }
 //! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
 //!     // Enforce your custom authorization here before accessing the config
-//!     let configs = domain_config::InternalDomainConfigs::new(pool);
+//!     let configs = domain_config::InternalDomainConfigs::new(
+//!         pool,
+//!         domain_config::EncryptionConfig::default(),
+//!     );
 //!     let value = configs.get::<MyInternalFlag>().await?.maybe_value();
 //!     configs.update::<MyInternalFlag>(true).await?;
 //! #     Ok(())
@@ -103,7 +106,11 @@
 //! #     <<P as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
 //! #         From<domain_config::DomainConfigObject>,
 //! # {
-//!     let configs = domain_config::ExposedDomainConfigs::new(pool, authz);
+//!     let configs = domain_config::ExposedDomainConfigs::new(
+//!         pool,
+//!         authz,
+//!         domain_config::EncryptionConfig::default(),
+//!     );
 //!     let value = configs.get::<MyExposedSetting>(subject).await?.maybe_value();
 //!     configs.update::<MyExposedSetting>(subject, "new-value".into()).await?;
 //! #     Ok(())
@@ -120,7 +127,10 @@
 //! #     }
 //! # }
 //! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
-//!     let configs = domain_config::ExposedDomainConfigsReadOnly::new(pool);
+//!     let configs = domain_config::ExposedDomainConfigsReadOnly::new(
+//!         pool,
+//!         domain_config::EncryptionConfig::default(),
+//!     );
 //!     let value = configs.get_without_audit::<MyExposedSetting>().await?.maybe_value();
 //! #     Ok(())
 //! # }
