@@ -36,7 +36,7 @@ use ledger::{
 };
 
 pub(super) use entity::*;
-use jobs::{sync_custodian_collateral, wallet_collateral_sync};
+use jobs::{record_collateral_update, wallet_collateral_sync};
 pub use {
     entity::{Collateral, CollateralAdjustment},
     liquidation::Liquidation,
@@ -104,8 +104,8 @@ where
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
 
-        let sync_custodian_collateral = jobs.add_initializer(
-            sync_custodian_collateral::SyncCustodianCollateralJobInitializer::<
+        let record_collateral_update = jobs.add_initializer(
+            record_collateral_update::RecordCollateralUpdateJobInitializer::<
                 <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
                 E,
             >::new(ledger.clone(), repo.clone()),
@@ -114,7 +114,7 @@ where
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(wallet_collateral_sync::WALLET_COLLATERAL_SYNC_JOB),
-                wallet_collateral_sync::WalletCollateralSyncHandler::new(sync_custodian_collateral),
+                wallet_collateral_sync::WalletCollateralSyncHandler::new(record_collateral_update),
             )
             .await?;
 

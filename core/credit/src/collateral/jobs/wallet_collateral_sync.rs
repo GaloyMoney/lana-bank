@@ -5,18 +5,18 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 use core_custody::CoreCustodyEvent;
 use job::{JobId, JobSpawner, JobType};
 
-use super::sync_custodian_collateral::SyncCustodianCollateralConfig;
+use super::record_collateral_update::RecordCollateralUpdateConfig;
 
 pub const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-collateral-sync");
 
 pub struct WalletCollateralSyncHandler {
-    sync_custodian_collateral: JobSpawner<SyncCustodianCollateralConfig>,
+    record_collateral_update: JobSpawner<RecordCollateralUpdateConfig>,
 }
 
 impl WalletCollateralSyncHandler {
-    pub fn new(sync_custodian_collateral: JobSpawner<SyncCustodianCollateralConfig>) -> Self {
+    pub fn new(record_collateral_update: JobSpawner<RecordCollateralUpdateConfig>) -> Self {
         Self {
-            sync_custodian_collateral,
+            record_collateral_update,
         }
     }
 }
@@ -43,11 +43,11 @@ where
                     .as_ref()
                     .expect("WalletBalanceUpdated must have balance");
 
-                self.sync_custodian_collateral
+                self.record_collateral_update
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        SyncCustodianCollateralConfig {
+                        RecordCollateralUpdateConfig {
                             custody_wallet_id: entity.id,
                             updated_collateral: balance.amount,
                             effective: balance.updated_at.date_naive(),
