@@ -11,8 +11,7 @@ use core_custody::CoreCustodyEvent;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    CoreCreditEvent,
-    collateral::{CollateralRepo, ledger::CollateralLedger},
+    collateral::{CollateralRepo, ledger::CollateralLedger, public::CoreCreditCollateralEvent},
     primitives::CustodyWalletId,
 };
 
@@ -29,7 +28,7 @@ pub const SYNC_CUSTODIAN_COLLATERAL_COMMAND: JobType =
 pub struct SyncCustodianCollateralJobInitializer<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
@@ -39,7 +38,7 @@ where
 impl<S, E> SyncCustodianCollateralJobInitializer<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(ledger: Arc<CollateralLedger>, repo: Arc<CollateralRepo<E>>) -> Self {
         Self {
@@ -53,7 +52,7 @@ where
 impl<S, E> JobInitializer for SyncCustodianCollateralJobInitializer<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     type Config = SyncCustodianCollateralConfig;
 
@@ -78,7 +77,7 @@ where
 pub struct SyncCustodianCollateralJobRunner<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     config: SyncCustodianCollateralConfig,
     repo: Arc<CollateralRepo<E>>,
@@ -90,7 +89,7 @@ where
 impl<S, E> JobRunner for SyncCustodianCollateralJobRunner<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(
