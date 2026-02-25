@@ -267,7 +267,7 @@ pub enum CreditFacilityAction {
     ProposalConclude {
         #[arg(long)]
         id: String,
-        #[arg(long, default_value = "true")]
+        #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         approved: bool,
     },
     /// Get a pending credit facility by ID

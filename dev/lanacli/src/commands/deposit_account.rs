@@ -87,7 +87,13 @@ pub async fn execute(
                         ]);
                     }
                 }
-                None => println!("Deposit account not found"),
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Deposit account not found");
+                    }
+                }
             }
         }
         DepositAccountAction::RecordDeposit {

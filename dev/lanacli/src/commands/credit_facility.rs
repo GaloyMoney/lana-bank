@@ -189,7 +189,13 @@ pub async fn execute(
                         ]);
                     }
                 }
-                None => println!("Credit facility not found"),
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Credit facility not found");
+                    }
+                }
             }
         }
         CreditFacilityAction::ProposalGet { id } => {
@@ -206,7 +212,13 @@ pub async fn execute(
                         ]);
                     }
                 }
-                None => println!("Credit facility proposal not found"),
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Credit facility proposal not found");
+                    }
+                }
             }
         }
         CreditFacilityAction::ProposalConclude { id, approved } => {
@@ -251,7 +263,13 @@ pub async fn execute(
                         ]);
                     }
                 }
-                None => println!("Pending credit facility not found"),
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Pending credit facility not found");
+                    }
+                }
             }
         }
         CreditFacilityAction::DisbursalInitiate {

@@ -101,7 +101,13 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
                         ]);
                     }
                 }
-                None => println!("Prospect not found"),
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Prospect not found");
+                    }
+                }
             }
         }
         ProspectAction::Convert { prospect_id } => {

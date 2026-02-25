@@ -103,7 +103,13 @@ pub async fn execute(
                         ]);
                     }
                 }
-                None => println!("Approval process not found"),
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Approval process not found");
+                    }
+                }
             }
         }
     }

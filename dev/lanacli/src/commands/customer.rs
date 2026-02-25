@@ -70,7 +70,13 @@ pub async fn execute(client: &mut GraphQLClient, action: CustomerAction, json: b
                         ]);
                     }
                 }
-                None => println!("Customer not found"),
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Customer not found");
+                    }
+                }
             }
         }
         CustomerAction::GetByEmail { email } => {
@@ -95,7 +101,13 @@ pub async fn execute(client: &mut GraphQLClient, action: CustomerAction, json: b
                         ]);
                     }
                 }
-                None => println!("Customer not found"),
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Customer not found");
+                    }
+                }
             }
         }
     }
