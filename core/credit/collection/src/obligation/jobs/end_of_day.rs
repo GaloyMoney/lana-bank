@@ -16,7 +16,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
 {
-    spawner: ProcessObligationsJobSpawner<Perms, E>,
+    process_obligations: ProcessObligationsJobSpawner<Perms, E>,
 }
 
 impl<Perms, E> ObligationEndOfDayHandler<Perms, E>
@@ -24,8 +24,10 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditCollectionEvent> + OutboxEventMarker<CoreTimeEvent>,
 {
-    pub fn new(spawner: ProcessObligationsJobSpawner<Perms, E>) -> Self {
-        Self { spawner }
+    pub fn new(process_obligations: ProcessObligationsJobSpawner<Perms, E>) -> Self {
+        Self {
+            process_obligations,
+        }
     }
 }
 
@@ -47,7 +49,7 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
-            self.spawner
+            self.process_obligations
                 .spawn_in_op(
                     op,
                     job::JobId::new(),
