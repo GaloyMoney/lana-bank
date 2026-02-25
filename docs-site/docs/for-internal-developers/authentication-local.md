@@ -83,3 +83,4 @@ The backend servers only accept internal JWTs from Oathkeeper — they verify us
 | Access token | 5 minutes |
 | Refresh token | 30 minutes |
 | Session | 8 hours |
+

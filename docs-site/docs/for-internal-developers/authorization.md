@@ -88,3 +88,4 @@ Authorization decisions are automatically logged with:
 - **Authorized**: Whether it was allowed or denied
 
 Both successful and failed access attempts are recorded, providing a complete audit trail for compliance.
+

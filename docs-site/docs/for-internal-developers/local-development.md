@@ -142,3 +142,4 @@ The Nix shell automatically sets key environment variables:
 | `ENCRYPTION_KEY` | (dev key) | Encryption key for secrets |
 | `KC_URL` | `http://localhost:8081` | Keycloak URL |
 | `REALM` | (configured per realm) | Keycloak realm |
+
