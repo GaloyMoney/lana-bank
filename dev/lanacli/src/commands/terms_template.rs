@@ -122,11 +122,7 @@ pub async fn execute(
             let data = client.execute::<TermsTemplateGet>(vars).await?;
             match data.terms_template {
                 Some(t) => {
-                    if json {
-                        output::print_json(&t)?;
-                    } else {
-                        output::print_json(&t)?;
-                    }
+                    output::print_json(&t)?;
                 }
                 None => {
                     if json {
@@ -186,11 +182,7 @@ pub async fn execute(
             };
             let data = client.execute::<TermsTemplateUpdate>(vars).await?;
             let t = data.terms_template_update.terms_template;
-            if json {
-                output::print_json(&t)?;
-            } else {
-                output::print_json(&t)?;
-            }
+            output::print_json(&t)?;
         }
     }
     Ok(())

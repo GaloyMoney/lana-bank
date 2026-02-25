@@ -304,11 +304,7 @@ pub async fn execute(
             let data = client.execute::<CreditFacilityFind>(vars).await?;
             match data.credit_facility {
                 Some(f) => {
-                    if json {
-                        output::print_json(&f)?;
-                    } else {
-                        output::print_json(&f)?;
-                    }
+                    output::print_json(&f)?;
                 }
                 None => {
                     if json {
@@ -333,11 +329,7 @@ pub async fn execute(
                 .execute::<CreditFacilityPartialPaymentRecord>(vars)
                 .await?;
             let f = data.credit_facility_partial_payment_record.credit_facility;
-            if json {
-                output::print_json(&f)?;
-            } else {
-                output::print_json(&f)?;
-            }
+            output::print_json(&f)?;
         }
     }
     Ok(())
