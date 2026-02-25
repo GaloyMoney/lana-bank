@@ -1,5 +1,6 @@
 {{
     config(
+        tags=["asof"],
         unique_key=["journal_id", "account_id", "currency", "effective", "version"],
     )
 }}
