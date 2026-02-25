@@ -434,7 +434,6 @@ resource "honeycombio_flexible_board" "jobs" {
   name        = "${local.name_prefix}-jobs"
   description = "Job execution and event processing metrics for ${local.name_prefix}"
 
-  # Row 1: Overview
   panel {
     type = "query"
 
@@ -465,8 +464,6 @@ resource "honeycombio_flexible_board" "jobs" {
     }
   }
 
-  # Row 2-3: Duration (both panels are double-height due to P50+P95, placed side by side)
-  # Event handler panels fill col 3 of both rows
   panel {
     type = "query"
 
@@ -507,7 +504,6 @@ resource "honeycombio_flexible_board" "jobs" {
     }
   }
 
-  # Row 4: Event handlers
   panel {
     type = "query"
 
@@ -518,7 +514,6 @@ resource "honeycombio_flexible_board" "jobs" {
     }
   }
 
-  # Row 4: Command jobs
   panel {
     type = "query"
 
@@ -549,7 +544,6 @@ resource "honeycombio_flexible_board" "jobs" {
     }
   }
 
-  # Row 5: Specialized
   panel {
     type = "query"
 

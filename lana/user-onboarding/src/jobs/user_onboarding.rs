@@ -9,13 +9,13 @@ use super::create_keycloak_user::CreateKeycloakUserConfig;
 pub const USER_ONBOARDING_JOB: JobType = JobType::new("outbox.user-onboarding");
 
 pub struct UserOnboardingHandler {
-    create_keycloak_user_job_spawner: JobSpawner<CreateKeycloakUserConfig>,
+    create_keycloak_user: JobSpawner<CreateKeycloakUserConfig>,
 }
 
 impl UserOnboardingHandler {
-    pub fn new(create_keycloak_user_job_spawner: JobSpawner<CreateKeycloakUserConfig>) -> Self {
+    pub fn new(create_keycloak_user: JobSpawner<CreateKeycloakUserConfig>) -> Self {
         Self {
-            create_keycloak_user_job_spawner,
+            create_keycloak_user,
         }
     }
 }
@@ -35,7 +35,7 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", access_event.as_ref());
 
-            self.create_keycloak_user_job_spawner
+            self.create_keycloak_user
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),

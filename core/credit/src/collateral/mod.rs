@@ -104,7 +104,7 @@ where
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
 
-        let sync_custodian_collateral_job_spawner = jobs.add_initializer(
+        let sync_custodian_collateral = jobs.add_initializer(
             sync_custodian_collateral::SyncCustodianCollateralJobInitializer::<
                 <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
                 E,
@@ -114,9 +114,7 @@ where
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(wallet_collateral_sync::WALLET_COLLATERAL_SYNC_JOB),
-                wallet_collateral_sync::WalletCollateralSyncHandler::new(
-                    sync_custodian_collateral_job_spawner,
-                ),
+                wallet_collateral_sync::WalletCollateralSyncHandler::new(sync_custodian_collateral),
             )
             .await?;
 

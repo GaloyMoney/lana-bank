@@ -10,15 +10,13 @@ use super::sync_custodian_collateral::SyncCustodianCollateralConfig;
 pub const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-collateral-sync");
 
 pub struct WalletCollateralSyncHandler {
-    sync_custodian_collateral_job_spawner: JobSpawner<SyncCustodianCollateralConfig>,
+    sync_custodian_collateral: JobSpawner<SyncCustodianCollateralConfig>,
 }
 
 impl WalletCollateralSyncHandler {
-    pub fn new(
-        sync_custodian_collateral_job_spawner: JobSpawner<SyncCustodianCollateralConfig>,
-    ) -> Self {
+    pub fn new(sync_custodian_collateral: JobSpawner<SyncCustodianCollateralConfig>) -> Self {
         Self {
-            sync_custodian_collateral_job_spawner,
+            sync_custodian_collateral,
         }
     }
 }
@@ -45,7 +43,7 @@ where
                     .as_ref()
                     .expect("WalletBalanceUpdated must have balance");
 
-                self.sync_custodian_collateral_job_spawner
+                self.sync_custodian_collateral
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),

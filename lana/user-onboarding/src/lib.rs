@@ -46,13 +46,13 @@ where
     ) -> Result<Self, UserOnboardingError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak);
 
-        let create_keycloak_user_job_spawner =
+        let create_keycloak_user =
             jobs.add_initializer(CreateKeycloakUserJobInitializer::new(keycloak_client));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(USER_ONBOARDING_JOB),
-                UserOnboardingHandler::new(create_keycloak_user_job_spawner),
+                UserOnboardingHandler::new(create_keycloak_user),
             )
             .await?;
 
