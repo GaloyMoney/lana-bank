@@ -89,8 +89,10 @@ impl<S: std::fmt::Display> From<InitiateWithdrawParams<S>> for Params {
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
         params.insert("effective", effective_date);
-        let entity_ref =
-            core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        let entity_ref = core_accounting_primitives::EntityRef::new(
+            WITHDRAWAL_TRANSACTION_ENTITY_TYPE,
+            entity_id,
+        );
         params.insert(
             "meta",
             serde_json::json!({

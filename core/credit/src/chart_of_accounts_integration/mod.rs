@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_accounting::Chart;
+use core_accounting_primitives::ChartLookup;
 use domain_config::InternalDomainConfigs;
 
 use crate::{CoreCreditAction, CoreCreditObject, ledger::*};
@@ -57,7 +57,7 @@ where
     pub async fn set_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart: &Chart,
+        chart: &dyn ChartLookup,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationError> {
         self.authz
@@ -68,7 +68,7 @@ where
             )
             .await?;
 
-        if chart.id != config.chart_of_accounts_id {
+        if chart.id() != config.chart_of_accounts_id {
             return Err(ChartOfAccountsIntegrationError::ChartIdMismatch);
         }
 
@@ -84,7 +84,7 @@ where
             return Ok(existing.config);
         }
 
-        if chart.accounting_base_config().is_none() {
+        if !chart.has_accounting_base_config() {
             return Err(ChartOfAccountsIntegrationError::AccountingBaseConfigNotFound);
         }
 

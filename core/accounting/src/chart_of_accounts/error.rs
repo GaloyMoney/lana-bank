@@ -40,13 +40,6 @@ pub enum ChartOfAccountsError {
     BaseConfigAlreadyInitializedWithDifferentConfig,
     #[error("ChartOfAccountsError - BaseConfigNotInitialized")]
     BaseConfigNotInitialized,
-    #[error(
-        "ChartOfAccountsError - InvalidAccountCategory: code {code} is not in category {category:?}"
-    )]
-    InvalidAccountCategory {
-        code: crate::primitives::AccountCode,
-        category: crate::primitives::AccountCategory,
-    },
     #[error("ChartOfAccountsError - AccountCategoryNotSupported: {0:?}")]
     AccountCategoryNotSupported(crate::primitives::AccountCategory),
 }
@@ -74,7 +67,6 @@ impl ErrorSeverity for ChartOfAccountsError {
             Self::AccountingBaseConfigError(e) => e.severity(),
             Self::BaseConfigAlreadyInitializedWithDifferentConfig => Level::WARN,
             Self::BaseConfigNotInitialized => Level::ERROR,
-            Self::InvalidAccountCategory { .. } => Level::ERROR,
             Self::AccountCategoryNotSupported(_) => Level::WARN,
         }
     }
