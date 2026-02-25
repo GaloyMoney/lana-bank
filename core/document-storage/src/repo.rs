@@ -11,7 +11,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Document",
     err = "DocumentStorageError",
-    columns(reference_id(ty = "ReferenceId", list_for, update(persist = false))),
+    columns(reference_id(ty = "ReferenceId", list_for(by(created_at)), update(persist = false))),
     tbl_prefix = "core",
     delete = "soft"
 )]

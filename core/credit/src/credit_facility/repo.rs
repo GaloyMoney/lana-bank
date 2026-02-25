@@ -19,7 +19,7 @@ use super::{
     entity = "CreditFacility",
     err = "CreditFacilityError",
     columns(
-        customer_id(ty = "CustomerId", list_for, update(persist = false)),
+        customer_id(ty = "CustomerId", list_for(by(created_at)), update(persist = false)),
         collateral_id(ty = "CollateralId", update(persist = false)),
         pending_credit_facility_id(ty = "PendingCreditFacilityId", update(persist = false)),
         collateralization_ratio(

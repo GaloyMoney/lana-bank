@@ -14,7 +14,7 @@ use super::{entity::*, error::PendingCreditFacilityError};
     entity = "PendingCreditFacility",
     err = "PendingCreditFacilityError",
     columns(
-        customer_id(ty = "CustomerId", list_for, update(persist = false)),
+        customer_id(ty = "CustomerId", list_for(by(created_at)), update(persist = false)),
         credit_facility_proposal_id(ty = "CreditFacilityProposalId", update(persist = false)),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         collateral_id(ty = "CollateralId", update(persist = false)),

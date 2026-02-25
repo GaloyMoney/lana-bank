@@ -10,7 +10,10 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Report",
     err = "ReportError",
-    columns(external_id(ty = "String"), run_id(ty = "ReportRunId", list_for)),
+    columns(
+        external_id(ty = "String"),
+        run_id(ty = "ReportRunId", list_for(by(created_at)))
+    ),
     tbl_prefix = "core"
 )]
 pub struct ReportRepo {

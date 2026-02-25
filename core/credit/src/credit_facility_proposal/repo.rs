@@ -14,7 +14,7 @@ use super::{entity::*, error::CreditFacilityProposalError};
     entity = "CreditFacilityProposal",
     err = "CreditFacilityProposalError",
     columns(
-        customer_id(ty = "CustomerId", list_for, update(persist = false)),
+        customer_id(ty = "CustomerId", list_for(by(created_at)), update(persist = false)),
         approval_process_id(ty = "Option<ApprovalProcessId>", list_by, create(persist = "false")),
     ),
     tbl_prefix = "core",

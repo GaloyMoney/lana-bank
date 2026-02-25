@@ -17,7 +17,11 @@ use super::{entity::*, error::*};
     entity = "DepositAccount",
     err = "DepositAccountError",
     columns(
-        account_holder_id(ty = "DepositAccountHolderId", list_for, update(persist = false)),
+        account_holder_id(
+            ty = "DepositAccountHolderId",
+            list_for(by(created_at, id)),
+            update(persist = false)
+        ),
         public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
