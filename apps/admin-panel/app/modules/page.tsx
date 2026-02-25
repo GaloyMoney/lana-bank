@@ -20,8 +20,20 @@ import { DetailsGroup } from "@lana/web/components/details"
 
 import { DepositConfigUpdateDialog } from "./deposit-config-update"
 import { CreditConfigUpdateDialog } from "./credit-config-update"
-import { CreditAccountCategoryKey } from "./credit-config-fields"
-import { DepositAccountCategoryKey } from "./deposit-config-fields"
+import {
+  DEPOSIT_CONFIG_FIELDS,
+  DEPOSIT_FIELD_GROUPS,
+  DepositAccountCategoryKey,
+  type DepositConfigField,
+} from "./deposit-config-fields"
+import {
+  CREDIT_CONFIG_FIELDS,
+  CREDIT_FIELD_GROUPS,
+  CreditAccountCategoryKey,
+  type CreditConfigField,
+} from "./credit-config-fields"
+
+import { formatOptionValue } from "@/app/components/account-set-combobox"
 
 import { DetailItem } from "@/components/details"
 import {
@@ -165,6 +177,71 @@ gql`
   }
 `
 
+type ConfigField = DepositConfigField | CreditConfigField
+
+interface ConfigGroupedDisplayProps {
+  fields: ConfigField[]
+  groups: { key: string; titleKey: string }[]
+  config: Record<string, string | null | undefined>
+  accountSetOptions: { accountSetId: string; code: string; name: string; category: string }[]
+  moduleKey: string
+}
+
+const ConfigGroupedDisplay: React.FC<ConfigGroupedDisplayProps> = ({
+  fields,
+  groups,
+  config,
+  accountSetOptions,
+  moduleKey,
+}) => {
+  const t = useTranslations("Modules")
+
+  return (
+    <div className="space-y-4">
+      {groups.map((group) => {
+        const groupFields = fields.filter((field) => field.group === group.key)
+        return (
+          <div
+            key={group.key}
+            className="space-y-3 rounded-lg border border-border bg-muted/30 p-4"
+          >
+            <div className="text-sm font-semibold">
+              {t(`${moduleKey}.groups.${group.titleKey}`)}
+            </div>
+            {groupFields.map((field) => {
+              const rawValue = config[field.key] ?? ""
+              const optionsForCategory = accountSetOptions.filter(
+                (o) => o.category === field.category,
+              )
+              const formatted = formatOptionValue(rawValue, optionsForCategory)
+              let displayValue: string
+              if (!formatted) {
+                displayValue = "\u2014"
+              } else if (formatted === rawValue) {
+                displayValue = rawValue.replace(/\./g, "")
+              } else {
+                displayValue = formatted
+              }
+
+              return (
+                <div key={field.key} className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 flex-1 text-sm font-medium">
+                    {t(`${moduleKey}.${field.key}`)}
+                  </span>
+                  <span className="text-sm">{displayValue}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t(`accountCategories.${field.category}`)}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 const Modules: React.FC = () => {
   const t = useTranslations("Modules")
 
@@ -247,18 +324,13 @@ const Modules: React.FC = () => {
           {depositConfigLoading ? (
             <LoaderCircle className="animate-spin" />
           ) : depositConfig?.depositConfig ? (
-            <DetailsGroup>
-              {Object.entries(depositConfig?.depositConfig || {}).map(
-                ([key, value]) =>
-                  key !== "__typename" && (
-                    <DetailItem
-                      key={key}
-                      label={t(`deposit.${key}`)}
-                      value={value?.replace(/\./g, "")}
-                    />
-                  ),
-              )}
-            </DetailsGroup>
+            <ConfigGroupedDisplay
+              fields={DEPOSIT_CONFIG_FIELDS}
+              groups={DEPOSIT_FIELD_GROUPS}
+              config={depositConfig.depositConfig as unknown as Record<string, string | null | undefined>}
+              accountSetOptions={depositAccountSetOptions}
+              moduleKey="deposit"
+            />
           ) : (
             <div>{t("notYetConfigured")}</div>
           )}
@@ -286,18 +358,13 @@ const Modules: React.FC = () => {
           {creditConfigLoading ? (
             <LoaderCircle className="animate-spin" />
           ) : creditConfig?.creditConfig ? (
-            <DetailsGroup>
-              {Object.entries(creditConfig?.creditConfig || {}).map(
-                ([key, value]) =>
-                  key !== "__typename" && (
-                    <DetailItem
-                      key={key}
-                      label={t(`credit.${key}`)}
-                      value={value?.replace(/\./g, "")}
-                    />
-                  ),
-              )}
-            </DetailsGroup>
+            <ConfigGroupedDisplay
+              fields={CREDIT_CONFIG_FIELDS}
+              groups={CREDIT_FIELD_GROUPS}
+              config={creditConfig.creditConfig as unknown as Record<string, string | null | undefined>}
+              accountSetOptions={accountSetOptions}
+              moduleKey="credit"
+            />
           ) : (
             <div>{t("notYetConfigured")}</div>
           )}
