@@ -10,6 +10,7 @@ dependencies = [
  "async-graphql",
  "es-entity",
  "lana-app",
+ "permission-sets-macro",
 ]
 
 [[package]]
@@ -20,12 +21,16 @@ dependencies = [
  "async-graphql",
  "es-entity",
  "lana-app",
+ "serde",
 ]
 
 [[package]]
 name = "admin-graphql-credit"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-accounting",
+ "admin-graphql-custody",
+ "admin-graphql-governance",
  "admin-graphql-shared",
  "async-graphql",
  "es-entity",
@@ -49,6 +54,8 @@ dependencies = [
 name = "admin-graphql-customer"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-credit",
+ "admin-graphql-deposit",
  "admin-graphql-shared",
  "async-graphql",
  "es-entity",
@@ -59,6 +66,8 @@ dependencies = [
 name = "admin-graphql-deposit"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-accounting",
+ "admin-graphql-governance",
  "admin-graphql-shared",
  "async-graphql",
  "es-entity",
@@ -69,6 +78,7 @@ dependencies = [
 name = "admin-graphql-governance"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-access",
  "admin-graphql-shared",
  "async-graphql",
  "es-entity",
@@ -85,7 +95,6 @@ dependencies = [
  "domain-config",
  "es-entity",
  "lana-app",
- "permission-sets-macro",
  "rust_decimal",
  "serde",
  "serde_json",

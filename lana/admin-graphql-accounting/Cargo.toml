@@ -8,3 +8,4 @@ lana-app = { workspace = true }
 admin-graphql-shared = { path = "../admin-graphql-shared" }
 es-entity = { workspace = true }
 async-graphql = { workspace = true }
+serde = { workspace = true }

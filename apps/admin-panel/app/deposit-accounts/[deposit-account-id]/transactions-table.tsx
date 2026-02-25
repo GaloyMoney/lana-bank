@@ -22,7 +22,6 @@ import PaginatedTable, {
 import { GetDepositAccountDetailsQuery } from "@/lib/graphql/generated"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 import { DepositStatusBadge } from "@/app/deposits/status-badge"
-import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type HistoryNode = NonNullable<
   NonNullable<GetDepositAccountDetailsQuery["depositAccountByPublicId"]>["history"]
@@ -111,9 +110,8 @@ export const DepositAccountTransactionsTable: React.FC<{
           case "CancelledWithdrawalEntry":
             return <Balance amount={entry.withdrawal.amount} currency="usd" />
           case "DisbursalEntry":
-            return <Balance amount={entry.disbursal.amount} currency="usd" />
           case "PaymentEntry":
-            return <Balance amount={entry.payment.amount} currency="usd" />
+            return "-"
           case "FreezeEntry":
           case "UnfreezeEntry":
             return <Balance amount={entry.amount} currency="usd" />
@@ -133,7 +131,6 @@ export const DepositAccountTransactionsTable: React.FC<{
           case "CancelledWithdrawalEntry":
             return <WithdrawalStatusBadge status={entry.withdrawal.status} />
           case "DisbursalEntry":
-            return <DisbursalStatusBadge status={entry.disbursal.status} />
           case "PaymentEntry":
           case "FreezeEntry":
           case "UnfreezeEntry":
@@ -153,7 +150,7 @@ export const DepositAccountTransactionsTable: React.FC<{
       case "CancelledWithdrawalEntry":
         return `/withdrawals/${entry.withdrawal.publicId}`
       case "DisbursalEntry":
-        return `/disbursals/${entry.disbursal.publicId}`
+        return `/disbursals/${entry.disbursalId}`
       case "FreezeEntry":
         return `/ledger-transactions/${entry.txId}`
       case "UnfreezeEntry":

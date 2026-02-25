@@ -714,15 +714,6 @@ export type CreditFacilityPartialPaymentWithDateRecordInput = {
   effective: Scalars['Date']['input'];
 };
 
-export type CreditFacilityPaymentAllocation = {
-  __typename?: 'CreditFacilityPaymentAllocation';
-  amount: Scalars['UsdCents']['output'];
-  createdAt: Scalars['Timestamp']['output'];
-  creditFacility: CreditFacility;
-  id: Scalars['ID']['output'];
-  paymentAllocationId: Scalars['UUID']['output'];
-};
-
 export type CreditFacilityProposal = {
   __typename?: 'CreditFacilityProposal';
   approvalProcess?: Maybe<ApprovalProcess>;
@@ -1366,7 +1357,7 @@ export enum DepositStatus {
 
 export type DisbursalEntry = {
   __typename?: 'DisbursalEntry';
-  disbursal: CreditFacilityDisbursal;
+  disbursalId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
 };
 
@@ -2212,7 +2203,7 @@ export type PageInfo = {
 
 export type PaymentEntry = {
   __typename?: 'PaymentEntry';
-  payment: CreditFacilityPaymentAllocation;
+  paymentAllocationId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
 };
 
@@ -4055,9 +4046,9 @@ export type GetDepositAccountDetailsQueryVariables = Exact<{
 export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, customerId: string, createdAt: any, status: DepositAccountStatus, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
           | { __typename: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
           | { __typename: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus } }
-          | { __typename: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }
+          | { __typename: 'DisbursalEntry', recordedAt: any, disbursalId: string }
           | { __typename: 'FreezeEntry', txId: string, recordedAt: any, amount: UsdCents }
-          | { __typename: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, paymentAllocationId: string, amount: UsdCents, createdAt: any } }
+          | { __typename: 'PaymentEntry', recordedAt: any, paymentAllocationId: string }
           | { __typename: 'UnfreezeEntry', txId: string, recordedAt: any, amount: UsdCents }
           | { __typename?: 'UnknownEntry' }
           | { __typename: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
@@ -8313,24 +8304,12 @@ export const GetDepositAccountDetailsDocument = gql`
           ... on DisbursalEntry {
             __typename
             recordedAt
-            disbursal {
-              id
-              disbursalId
-              publicId
-              amount
-              createdAt
-              status
-            }
+            disbursalId
           }
           ... on PaymentEntry {
             __typename
             recordedAt
-            payment {
-              id
-              paymentAllocationId
-              amount
-              createdAt
-            }
+            paymentAllocationId
           }
           ... on FreezeEntry {
             __typename

@@ -1,10 +1,45 @@
 use async_graphql::*;
 
+use std::sync::Arc;
+
 use admin_graphql_shared::primitives::*;
 
-pub use admin_graphql_shared::governance::Policy;
+use super::approval_process::ApprovalProcessType;
+use super::approval_rules::ApprovalRules;
 
-pub use lana_app::governance::policy_cursor::PoliciesByCreatedAtCursor;
+pub use lana_app::governance::{
+    ApprovalProcessType as DomainApprovalProcessType, Policy as DomainPolicy,
+    policy_cursor::PoliciesByCreatedAtCursor,
+};
+
+#[derive(SimpleObject, Clone)]
+#[graphql(complex)]
+pub struct Policy {
+    id: ID,
+    policy_id: UUID,
+    approval_process_type: ApprovalProcessType,
+
+    #[graphql(skip)]
+    pub entity: Arc<DomainPolicy>,
+}
+
+impl From<DomainPolicy> for Policy {
+    fn from(policy: DomainPolicy) -> Self {
+        Self {
+            id: policy.id.to_global_id(),
+            policy_id: policy.id.into(),
+            approval_process_type: ApprovalProcessType::from(&policy.process_type),
+            entity: Arc::new(policy),
+        }
+    }
+}
+
+#[ComplexObject]
+impl Policy {
+    async fn rules(&self) -> ApprovalRules {
+        ApprovalRules::from(self.entity.rules)
+    }
+}
 
 #[derive(InputObject)]
 pub struct PolicyAssignCommitteeInput {

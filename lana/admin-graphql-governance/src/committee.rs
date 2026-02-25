@@ -1,12 +1,54 @@
 use async_graphql::*;
 
-use admin_graphql_shared::primitives::*;
+use std::sync::Arc;
 
-pub use admin_graphql_shared::governance::Committee;
+use admin_graphql_access::User;
+use admin_graphql_shared::primitives::*;
 
 pub use lana_app::governance::{
     Committee as DomainCommittee, committee_cursor::CommitteesByCreatedAtCursor,
 };
+
+#[derive(SimpleObject, Clone)]
+#[graphql(complex)]
+pub struct Committee {
+    id: ID,
+    committee_id: UUID,
+    created_at: Timestamp,
+    #[graphql(skip)]
+    pub entity: Arc<DomainCommittee>,
+}
+
+impl From<DomainCommittee> for Committee {
+    fn from(committee: DomainCommittee) -> Self {
+        Self {
+            id: committee.id.to_global_id(),
+            committee_id: committee.id.into(),
+            created_at: committee.created_at().into(),
+            entity: Arc::new(committee),
+        }
+    }
+}
+
+#[ComplexObject]
+impl Committee {
+    async fn name(&self) -> &str {
+        &self.entity.name
+    }
+
+    async fn current_members(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let member_ids: Vec<UserId> = self
+            .entity
+            .members()
+            .into_iter()
+            .map(UserId::from)
+            .collect();
+        let users: std::collections::HashMap<UserId, User> =
+            app.access().users().find_all(&member_ids).await?;
+        Ok(users.into_values().collect())
+    }
+}
 
 #[derive(InputObject)]
 pub struct CommitteeCreateInput {
