@@ -71,7 +71,6 @@ where
     clock: es_entity::clock::ClockHandle,
     credit_facility_maturity_job_spawner:
         jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
-    interest_accrual_job_spawner: jobs::interest_accrual::InterestAccrualJobSpawner<Perms, E>,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -98,7 +97,6 @@ where
             public_ids: self.public_ids.clone(),
             clock: self.clock.clone(),
             credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
-            interest_accrual_job_spawner: self.interest_accrual_job_spawner.clone(),
         }
     }
 }
@@ -169,15 +167,17 @@ where
             jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo.clone()),
         );
 
-        let interest_accrual_job_spawner = jobs.add_initializer(
-            jobs::interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
+        let _process_accrual_cycle_spawner =
+            jobs.add_initializer(jobs::process_accrual_cycle::ProcessAccrualCycleJobInit::<
+                Perms,
+                E,
+            >::new(
                 ledger.clone(),
                 collections.clone(),
                 repo.clone(),
                 collaterals.clone(),
                 authz.clone(),
-            ),
-        );
+            ));
 
         let liquidation_payment_job_spawner =
             jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
@@ -214,7 +214,6 @@ where
             public_ids,
             clock,
             credit_facility_maturity_job_spawner,
-            interest_accrual_job_spawner,
         })
     }
 
@@ -283,23 +282,6 @@ where
                     _phantom: std::marker::PhantomData,
                 },
                 credit_facility.matures_at(),
-            )
-            .await?;
-
-        let accrual_id = credit_facility
-            .interest_accrual_cycle_in_progress()
-            .expect("First accrual not found")
-            .id;
-
-        self.interest_accrual_job_spawner
-            .spawn_at_in_op(
-                db,
-                accrual_id,
-                jobs::interest_accrual::InterestAccrualJobConfig::<Perms, E> {
-                    credit_facility_id,
-                    _phantom: std::marker::PhantomData,
-                },
-                periods.accrual.end,
             )
             .await?;
 
