@@ -692,9 +692,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.13.18"
+version = "0.13.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb3b2b84487231c9c7ef301a6829a5f7aca3d7147816978c5185461b27af9600"
+checksum = "83368619a57ab4a22dd1604e9a82ffafba1995770a519cefe5b0e2e0527348d7"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -710,9 +710,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.13.18"
+version = "0.13.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "308189b5718adb8363a3bc932fb7466281f8e108164059d5b67c04c5d5af35d9"
+checksum = "dd08d96c8891f97d705cceb16883fd0271a371cc554085772ac8924b344311b5"
 dependencies = [
  "cached",
  "lalrpop-util",
@@ -721,9 +721,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.13.18"
+version = "0.13.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e70846a822f4797c6cc18b6d1453aa224219d535ada3b7a8949241c16d8e240d"
+checksum = "df728ca8a440f7cc8640f97cafb2f282f5a2b9737da5368b9228b6e104c391e6"
 dependencies = [
  "async-graphql",
  "base64",
@@ -754,9 +754,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.13.18"
+version = "0.13.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97c181ad8908871c6c0055345cbd328bf28eff18fbab49868129ef1db69bb172"
+checksum = "5b73d59ccf79d352ccc07fc261591ce161783d587ba843126e93a03688e67d0c"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -776,9 +776,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.13.18"
+version = "0.13.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c0678c11a7a6da7ee0f0711f67731817c3a366f3dc7fb09c9b3e2fd9f50714c"
+checksum = "b9dff96e534e40067f7cc8046d80432c41d87812a948cd5d3ec9cf26606f02df"
 dependencies = [
  "anyhow",
  "axum-extra",
