@@ -44,7 +44,8 @@ pub use chart_of_accounts_integration::{
 };
 pub use collateral::{
     Collateral, Collaterals, Liquidation, RecordProceedsFromLiquidationData, liquidation_cursor,
-    liquidation_cursor::*, public::CoreCreditCollateralEvent, publisher::CollateralPublisher,
+    liquidation_cursor::*, primitives::*, public::CoreCreditCollateralEvent,
+    publisher::CollateralPublisher,
 };
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
@@ -163,12 +164,14 @@ where
         + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustomerAction>
-        + From<CoreCustodyAction>,
+        + From<CoreCustodyAction>
+        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CustomerObject>
-        + From<CoreCustodyObject>,
+        + From<CoreCustodyObject>
+        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>

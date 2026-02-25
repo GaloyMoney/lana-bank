@@ -60,10 +60,12 @@ where
 impl<Perms, E> OutboxEventHandler<E> for CreditFacilityLiquidationsHandler<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<core_credit_collection::CoreCreditCollectionAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<core_credit_collection::CoreCreditCollectionObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<core_credit_collection::CoreCreditCollectionAction>
+        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<core_credit_collection::CoreCreditCollectionObject>
+        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
