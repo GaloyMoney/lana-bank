@@ -24,17 +24,9 @@ pub enum DomainConfigEvent {
         encrypted: bool,
     },
     Updated {
-        #[serde(deserialize_with = "deserialize_value_or_rotated")]
+        #[serde(deserialize_with = "crate::value::deserialize_value_or_rotated")]
         value: DomainConfigValue,
     },
-}
-
-fn deserialize_value_or_rotated<'de, D>(deserializer: D) -> Result<DomainConfigValue, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    Ok(Option::<DomainConfigValue>::deserialize(deserializer)?
-        .unwrap_or(DomainConfigValue::Rotated))
 }
 
 #[derive(EsEntity, Builder)]

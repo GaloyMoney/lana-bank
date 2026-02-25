@@ -75,3 +75,13 @@ impl DomainConfigValue {
         Ok(Self::encrypted(new_key, &plaintext))
     }
 }
+
+pub(crate) fn deserialize_value_or_rotated<'de, D>(
+    deserializer: D,
+) -> Result<DomainConfigValue, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::<DomainConfigValue>::deserialize(deserializer)?
+        .unwrap_or(DomainConfigValue::Rotated))
+}
