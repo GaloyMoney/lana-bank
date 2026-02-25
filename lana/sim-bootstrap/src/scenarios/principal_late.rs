@@ -12,7 +12,8 @@ use tracing::{event, instrument};
 use crate::helpers;
 
 const ONE_DAY: Duration = Duration::from_secs(86400);
-const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(100);
+const MIN_EVENT_WAIT: Duration = Duration::from_millis(100);
+const MAX_EVENT_WAIT: Duration = Duration::from_secs(2);
 const ONE_MONTH_DAYS: i64 = 30;
 
 #[instrument(
@@ -47,9 +48,11 @@ pub async fn principal_late_scenario(
         .conclude_customer_approval(&sub, proposal_id, true)
         .await?;
 
+    let mut wait = MIN_EVENT_WAIT;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
+                wait = MIN_EVENT_WAIT;
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
                     entity,
                 })) = &msg.payload
@@ -68,8 +71,9 @@ pub async fn principal_late_scenario(
                     anyhow::bail!("Proposal was denied");
                 }
             }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+            _ = tokio::time::sleep(wait) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                wait = (wait * 2).min(MAX_EVENT_WAIT);
             }
         }
     }
@@ -91,9 +95,11 @@ pub async fn principal_late_scenario(
         )
         .await?;
 
+    let mut wait = MIN_EVENT_WAIT;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
+                wait = MIN_EVENT_WAIT;
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { entity })) = &msg.payload
                     && entity.id == cf_id
                 {
@@ -101,8 +107,9 @@ pub async fn principal_late_scenario(
                     break;
                 }
             }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+            _ = tokio::time::sleep(wait) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                wait = (wait * 2).min(MAX_EVENT_WAIT);
             }
         }
     }
@@ -118,9 +125,11 @@ pub async fn principal_late_scenario(
 
     let mut facility_completed = false;
 
+    let mut wait = MIN_EVENT_WAIT;
     while !facility_completed {
         tokio::select! {
             Some(msg) = stream.next() => {
+                wait = MIN_EVENT_WAIT;
                 if let Some(LanaEvent::CreditCollection(CoreCreditCollectionEvent::ObligationDue {
                     entity,
                 })) = &msg.payload
@@ -138,8 +147,9 @@ pub async fn principal_late_scenario(
                     facility_completed = true;
                 }
             }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+            _ = tokio::time::sleep(wait) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                wait = (wait * 2).min(MAX_EVENT_WAIT);
                 let current_date = clock.today();
 
                 if !main_loop_done {

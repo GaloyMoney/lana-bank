@@ -11,7 +11,8 @@ use tracing::{event, instrument};
 use crate::helpers;
 
 const ONE_DAY: Duration = Duration::from_secs(86400);
-const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(100);
+const MIN_EVENT_WAIT: Duration = Duration::from_millis(100);
+const MAX_EVENT_WAIT: Duration = Duration::from_secs(2);
 
 #[instrument(
     name = "sim_bootstrap.principal_under_payment_scenario",
@@ -52,9 +53,11 @@ pub async fn principal_under_payment_scenario(
         .await?;
 
     let mut days_waiting_for_approval = 0;
+    let mut wait = MIN_EVENT_WAIT;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
+                wait = MIN_EVENT_WAIT;
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
                     entity,
                 })) = &msg.payload
@@ -73,8 +76,9 @@ pub async fn principal_under_payment_scenario(
                     anyhow::bail!("Proposal was denied");
                 }
             }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+            _ = tokio::time::sleep(wait) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                wait = (wait * 2).min(MAX_EVENT_WAIT);
                 days_waiting_for_approval += 1;
                 if days_waiting_for_approval > 30 {
                     anyhow::bail!("Proposal approval timed out after 30 days");
@@ -101,9 +105,11 @@ pub async fn principal_under_payment_scenario(
         .await?;
 
     let mut days_waiting_for_activation = 0;
+    let mut wait = MIN_EVENT_WAIT;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
+                wait = MIN_EVENT_WAIT;
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { entity })) = &msg.payload
                     && entity.id == cf_id
                 {
@@ -111,8 +117,9 @@ pub async fn principal_under_payment_scenario(
                     break;
                 }
             }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+            _ = tokio::time::sleep(wait) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                wait = (wait * 2).min(MAX_EVENT_WAIT);
                 days_waiting_for_activation += 1;
                 if days_waiting_for_activation > 30 {
                     anyhow::bail!("Facility activation timed out after 30 days");
@@ -124,9 +131,11 @@ pub async fn principal_under_payment_scenario(
     let mut principal_remaining = UsdCents::ZERO;
     let mut scenario_done = false;
 
+    let mut wait = MIN_EVENT_WAIT;
     while !scenario_done {
         tokio::select! {
             Some(msg) = stream.next() => {
+                wait = MIN_EVENT_WAIT;
                 if let Some(LanaEvent::CreditCollection(CoreCreditCollectionEvent::ObligationDue {
                     entity,
                 })) = &msg.payload
@@ -144,8 +153,9 @@ pub async fn principal_under_payment_scenario(
                     }
                 }
             }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+            _ = tokio::time::sleep(wait) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                wait = (wait * 2).min(MAX_EVENT_WAIT);
 
                 if principal_remaining > UsdCents::ZERO {
                     let facility = app.credit().facilities().find_by_id(&sub, cf_id).await?.unwrap();

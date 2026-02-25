@@ -11,7 +11,8 @@ use tracing::{event, instrument};
 use crate::helpers;
 
 const ONE_DAY: Duration = Duration::from_secs(86400);
-const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(100);
+const MIN_EVENT_WAIT: Duration = Duration::from_millis(100);
+const MAX_EVENT_WAIT: Duration = Duration::from_secs(2);
 const ONE_MONTH_DAYS: i64 = 30;
 
 #[instrument(
@@ -50,9 +51,11 @@ pub async fn disbursal_different_months_scenario(
         .conclude_customer_approval(&sub, proposal_id, true)
         .await?;
 
+    let mut wait = MIN_EVENT_WAIT;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
+                wait = MIN_EVENT_WAIT;
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
                     entity,
                 })) = &msg.payload
@@ -71,8 +74,9 @@ pub async fn disbursal_different_months_scenario(
                     anyhow::bail!("Proposal was denied");
                 }
             }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+            _ = tokio::time::sleep(wait) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                wait = (wait * 2).min(MAX_EVENT_WAIT);
             }
         }
     }
@@ -95,9 +99,11 @@ pub async fn disbursal_different_months_scenario(
         .await?;
 
     let activation_date;
+    let mut wait = MIN_EVENT_WAIT;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
+                wait = MIN_EVENT_WAIT;
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { entity })) = &msg.payload
                     && entity.id == cf_id
                 {
@@ -111,8 +117,9 @@ pub async fn disbursal_different_months_scenario(
                     break;
                 }
             }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+            _ = tokio::time::sleep(wait) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                wait = (wait * 2).min(MAX_EVENT_WAIT);
             }
         }
     }
@@ -123,9 +130,11 @@ pub async fn disbursal_different_months_scenario(
     let mut disbursal_3_done = false;
     let expected_end_date = activation_date + chrono::Duration::days(380);
 
+    let mut wait = MIN_EVENT_WAIT;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
+                wait = MIN_EVENT_WAIT;
                 if let Some(LanaEvent::CreditCollection(CoreCreditCollectionEvent::ObligationDue {
                     entity,
                 })) = &msg.payload
@@ -136,7 +145,7 @@ pub async fn disbursal_different_months_scenario(
                     app.record_payment_with_date(&sub, cf_id, entity.outstanding_amount, clock.today()).await?;
                 }
             }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+            _ = tokio::time::sleep(wait) => {
                 let current_date = clock.today();
 
                 if !disbursal_2_done && current_date >= disbursal_2_date {
@@ -157,6 +166,7 @@ pub async fn disbursal_different_months_scenario(
                     break;
                 }
                 clock_ctrl.advance(ONE_DAY).await;
+                wait = (wait * 2).min(MAX_EVENT_WAIT);
             }
         }
     }
@@ -170,7 +180,7 @@ pub async fn disbursal_different_months_scenario(
             .expect("facility exists");
 
         if facility.interest_accrual_cycle_in_progress().is_some() {
-            tokio::time::sleep(EVENT_WAIT_TIMEOUT).await;
+            tokio::time::sleep(MIN_EVENT_WAIT).await;
             continue;
         }
 
@@ -181,7 +191,7 @@ pub async fn disbursal_different_months_scenario(
 
         app.record_payment_with_date(&sub, cf_id, total_outstanding, clock.today())
             .await?;
-        tokio::time::sleep(EVENT_WAIT_TIMEOUT).await;
+        tokio::time::sleep(MIN_EVENT_WAIT).await;
     }
 
     let _facility = app.credit().complete_facility(&sub, cf_id).await?;
