@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use admin_graphql_shared::credit::{
+use admin_graphql_credit::{
     CreditFacilityBase, CreditFacilityProposalBase, DomainCreditFacilitiesFilters,
     DomainCreditFacilitiesSortBy, PendingCreditFacilityBase,
 };
@@ -116,7 +116,7 @@ impl CustomerBase {
     async fn deposit_account(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<admin_graphql_shared::deposit::DepositAccountBase>> {
+    ) -> async_graphql::Result<Option<admin_graphql_deposit::DepositAccountBase>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         Ok(app
             .deposits()
@@ -129,7 +129,7 @@ impl CustomerBase {
             .await?
             .entities
             .into_iter()
-            .map(admin_graphql_shared::deposit::DepositAccountBase::from)
+            .map(admin_graphql_deposit::DepositAccountBase::from)
             .next())
     }
 
@@ -148,7 +148,7 @@ impl CustomerBase {
                     customer_id: Some(self.entity.id),
                     ..Default::default()
                 },
-                admin_graphql_shared::credit::Sort {
+                admin_graphql_credit::Sort {
                     by: DomainCreditFacilitiesSortBy::CreatedAt,
                     direction: ListDirection::Descending,
                 },

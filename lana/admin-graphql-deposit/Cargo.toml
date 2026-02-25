@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 lana-app = { workspace = true }
 admin-graphql-shared = { path = "../admin-graphql-shared" }
+admin-graphql-accounting = { path = "../admin-graphql-accounting" }
+admin-graphql-governance = { path = "../admin-graphql-governance" }
 
 async-graphql = { workspace = true }
 es-entity = { workspace = true }

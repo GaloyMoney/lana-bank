@@ -1,6 +1,6 @@
 use async_graphql::{Context, Object, types::connection::*};
 
-use admin_graphql_shared::accounting::CHART_REF;
+use admin_graphql_accounting::CHART_REF;
 use admin_graphql_shared::primitives::*;
 use lana_app::credit::LiquidationsByIdCursor;
 

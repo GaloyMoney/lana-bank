@@ -9,6 +9,8 @@ sumsub-testing = ["lana-app/sumsub-testing"]
 [dependencies]
 lana-app = { workspace = true }
 admin-graphql-shared = { path = "../admin-graphql-shared" }
+admin-graphql-credit = { path = "../admin-graphql-credit" }
+admin-graphql-deposit = { path = "../admin-graphql-deposit" }
 
 es-entity = { workspace = true }
 async-graphql = { workspace = true }

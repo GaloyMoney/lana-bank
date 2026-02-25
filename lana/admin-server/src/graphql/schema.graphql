@@ -683,14 +683,6 @@ input CreditFacilityPartialPaymentWithDateRecordInput {
 	effective: Date!
 }
 
-type CreditFacilityPaymentAllocation {
-	id: ID!
-	paymentAllocationId: UUID!
-	amount: UsdCents!
-	createdAt: Timestamp!
-	creditFacility: CreditFacility!
-}
-
 type CreditFacilityProposal {
 	id: ID!
 	creditFacilityProposalId: UUID!
@@ -1358,8 +1350,8 @@ enum DepositStatus {
 }
 
 type DisbursalEntry {
+	disbursalId: UUID!
 	recordedAt: Timestamp!
-	disbursal: CreditFacilityDisbursal!
 }
 
 enum DisbursalPolicy {
@@ -1917,8 +1909,8 @@ type PageInfo {
 }
 
 type PaymentEntry {
+	paymentAllocationId: UUID!
 	recordedAt: Timestamp!
-	payment: CreditFacilityPaymentAllocation!
 }
 
 type PaymentsUnapplied {
