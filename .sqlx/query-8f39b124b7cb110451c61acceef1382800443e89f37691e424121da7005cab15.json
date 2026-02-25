@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO inbox_events (id, idempotency_key, payload, recorded_at)\n            VALUES ($1, $2, $3, COALESCE($4::timestamptz, NOW()))\n            ON CONFLICT (idempotency_key) DO NOTHING\n            RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Jsonb",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "8f39b124b7cb110451c61acceef1382800443e89f37691e424121da7005cab15"
+}
