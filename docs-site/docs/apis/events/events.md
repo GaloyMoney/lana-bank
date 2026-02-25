@@ -57,7 +57,6 @@ Events related to credit facility lifecycle and operations.
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `PendingCreditFacilityCollateralizationChanged` | Collateralization state changed for pending facility | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `FacilityCollateralUpdated` | Collateral amount was updated | `entity.adjustment`, `entity.amount`, `entity.id`, `entity.secured_loan_id` |
 | `FacilityCollateralizationChanged` | Collateralization state changed for active facility | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 
 ### Payment Events
@@ -72,9 +71,6 @@ Events related to credit facility lifecycle and operations.
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `PartialLiquidationInitiated` | A partial liquidation was initiated | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
-| `PartialLiquidationCollateralSentOut` | Collateral was sent for liquidation | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at` |
-| `PartialLiquidationProceedsReceived` | Liquidation proceeds were received | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
-| `PartialLiquidationCompleted` | Liquidation was completed | `credit_facility_id`, `liquidation_id` |
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
