@@ -162,6 +162,7 @@ Cerrar desactiva permanentemente una cuenta de depósito. Esta acción no puede 
 ## Documentación Relacionada
 
 - [Operaciones de Depósito](operations) - Depósitos y retiros
+- [Libro Mayor](ledger) - Resumen de conjuntos de cuentas y plantillas de transacción
 
 ## Recorrido en Panel de Administración: Alta de Cuenta de Depósito
 
