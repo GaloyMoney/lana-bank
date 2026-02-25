@@ -120,6 +120,11 @@ where
     columns(
         credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for, parent),
         idx(ty = "InterestAccrualCycleIdx", update(persist = false), list_by),
+        next_accrual_period_end(
+            ty = "Option<chrono::NaiveDate>",
+            create(accessor = "next_accrual_period_end()"),
+            update(accessor = "next_accrual_period_end()")
+        ),
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"

@@ -191,6 +191,10 @@ impl InterestAccrualCycle {
             .count()
     }
 
+    pub fn next_accrual_period_end(&self) -> Option<chrono::NaiveDate> {
+        self.next_accrual_period().map(|p| p.end.date_naive())
+    }
+
     pub(crate) fn next_accrual_period(&self) -> Option<InterestPeriod> {
         let last_accrual = self.events.iter_all().rev().find_map(|event| match event {
             InterestAccrualCycleEvent::InterestAccrued { accrued_at, .. } => Some(*accrued_at),
@@ -351,6 +355,10 @@ impl NewInterestAccrualCycle {
 
     pub fn first_accrual_cycle_period(&self) -> InterestPeriod {
         self.terms.accrual_interval.period_from(self.period.start)
+    }
+
+    pub fn next_accrual_period_end(&self) -> Option<chrono::NaiveDate> {
+        Some(self.first_accrual_cycle_period().end.date_naive())
     }
 }
 
