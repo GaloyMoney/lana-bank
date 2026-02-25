@@ -52,7 +52,7 @@ pub struct CreateKeycloakUserJobRunner {
 
 #[async_trait]
 impl JobRunner for CreateKeycloakUserJobRunner {
-    #[record_error_severity]
+    // TODO: restore #[record_error_severity] after removing test hack
     #[tracing::instrument(
         name = "user_onboarding.create_keycloak_user_job.process_command",
         skip(self, _current_job),
@@ -65,6 +65,7 @@ impl JobRunner for CreateKeycloakUserJobRunner {
         self.keycloak_client
             .create_user(self.config.email.clone(), self.config.user_id.into())
             .await?;
-        Ok(JobCompletion::Complete)
+        // TODO: remove this - temporary error to test Honeycomb error panel
+        Err("TEMPORARY: testing command job error panel".into())
     }
 }

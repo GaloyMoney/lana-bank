@@ -59,7 +59,7 @@ resource "honeycombio_query" "attempt" {
 resource "honeycombio_query_annotation" "attempt" {
   dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.attempt.id
-  name     = "Multiple attempts"
+  name     = "Concurrent modification retries"
 }
 
 data "honeycombio_query_specification" "concurrent_modification_errors" {
@@ -170,7 +170,7 @@ resource "honeycombio_query" "events" {
 resource "honeycombio_query_annotation" "events" {
   dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.events.id
-  name     = "Events job queries"
+  name     = "Event types processed"
 }
 
 data "honeycombio_query_specification" "handled" {
@@ -201,7 +201,7 @@ resource "honeycombio_query" "handled" {
 resource "honeycombio_query_annotation" "handled" {
   dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.handled.id
-  name     = "handled job queries"
+  name     = "Event handler hit rate"
 }
 
 data "honeycombio_query_specification" "handler_duration" {
@@ -319,9 +319,15 @@ data "honeycombio_query_specification" "handler_trace_errors" {
   }
 
   filter {
-    column = "root.name"
+    column = "name"
+    op     = "="
+    value  = "job.execute_job"
+  }
+
+  filter {
+    column = "job_type"
     op     = "contains"
-    value  = "job.process"
+    value  = "outbox."
   }
 
   filter {
@@ -330,7 +336,7 @@ data "honeycombio_query_specification" "handler_trace_errors" {
     value  = "true"
   }
 
-  breakdowns = ["root.name", "exception.message"]
+  breakdowns = ["job_type", "error.message", "attempt"]
 
   time_range = 604800
 }
@@ -343,7 +349,7 @@ resource "honeycombio_query" "handler_trace_errors" {
 resource "honeycombio_query_annotation" "handler_trace_errors" {
   dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.handler_trace_errors.id
-  name     = "Errors in event handler traces"
+  name     = "Event handler errors and retries"
 }
 
 data "honeycombio_query_specification" "command_job_failures" {
@@ -353,8 +359,14 @@ data "honeycombio_query_specification" "command_job_failures" {
 
   filter {
     column = "name"
+    op     = "="
+    value  = "job.execute_job"
+  }
+
+  filter {
+    column = "job_type"
     op     = "contains"
-    value  = "job.process_command"
+    value  = "command."
   }
 
   filter {
@@ -363,7 +375,7 @@ data "honeycombio_query_specification" "command_job_failures" {
     value  = "true"
   }
 
-  breakdowns = ["name", "exception.message"]
+  breakdowns = ["job_type", "error.message", "attempt"]
 
   order {
     op    = "COUNT"
@@ -381,10 +393,10 @@ resource "honeycombio_query" "command_job_failures" {
 resource "honeycombio_query_annotation" "command_job_failures" {
   dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.command_job_failures.id
-  name     = "Command job failures"
+  name     = "Command job errors and retries"
 }
 
-data "honeycombio_query_specification" "command_job_error_severity" {
+data "honeycombio_query_specification" "command_types" {
   calculation {
     op = "COUNT"
   }
@@ -401,65 +413,20 @@ data "honeycombio_query_specification" "command_job_error_severity" {
     value  = "command."
   }
 
-  filter {
-    column = "error"
-    op     = "="
-    value  = "true"
-  }
-
-  breakdowns = ["error.level", "job_type"]
+  breakdowns = ["job_type"]
 
   time_range = 604800
 }
 
-resource "honeycombio_query" "command_job_error_severity" {
+resource "honeycombio_query" "command_types" {
   dataset    = var.honeycomb_dataset
-  query_json = data.honeycombio_query_specification.command_job_error_severity.json
+  query_json = data.honeycombio_query_specification.command_types.json
 }
 
-resource "honeycombio_query_annotation" "command_job_error_severity" {
+resource "honeycombio_query_annotation" "command_types" {
   dataset  = var.honeycomb_dataset
-  query_id = honeycombio_query.command_job_error_severity.id
-  name     = "Command job error severity"
-}
-
-data "honeycombio_query_specification" "command_job_retries" {
-  calculation {
-    op = "COUNT"
-  }
-
-  filter {
-    column = "name"
-    op     = "="
-    value  = "job.execute_job"
-  }
-
-  filter {
-    column = "job_type"
-    op     = "contains"
-    value  = "command."
-  }
-
-  filter {
-    column = "attempt"
-    op     = ">"
-    value  = "1"
-  }
-
-  breakdowns = ["job_type", "attempt"]
-
-  time_range = 604800
-}
-
-resource "honeycombio_query" "command_job_retries" {
-  dataset    = var.honeycomb_dataset
-  query_json = data.honeycombio_query_specification.command_job_retries.json
-}
-
-resource "honeycombio_query_annotation" "command_job_retries" {
-  dataset  = var.honeycomb_dataset
-  query_id = honeycombio_query.command_job_retries.id
-  name     = "Command job retries"
+  query_id = honeycombio_query.command_types.id
+  name     = "Command job types processed"
 }
 
 # Jobs dashboard
@@ -467,22 +434,13 @@ resource "honeycombio_flexible_board" "jobs" {
   name        = "${local.name_prefix}-jobs"
   description = "Job execution and event processing metrics for ${local.name_prefix}"
 
+  # Row 1: Overview
   panel {
     type = "query"
 
     query_panel {
       query_id            = honeycombio_query.job_runs.id
       query_annotation_id = honeycombio_query_annotation.job_runs.id
-      query_style         = "graph"
-    }
-  }
-
-  panel {
-    type = "query"
-
-    query_panel {
-      query_id            = honeycombio_query.attempt.id
-      query_annotation_id = honeycombio_query_annotation.attempt.id
       query_style         = "graph"
     }
   }
@@ -501,32 +459,14 @@ resource "honeycombio_flexible_board" "jobs" {
     type = "query"
 
     query_panel {
-      query_id            = honeycombio_query.process_type.id
-      query_annotation_id = honeycombio_query_annotation.process_type.id
+      query_id            = honeycombio_query.attempt.id
+      query_annotation_id = honeycombio_query_annotation.attempt.id
       query_style         = "graph"
     }
   }
 
-  panel {
-    type = "query"
-
-    query_panel {
-      query_id            = honeycombio_query.events.id
-      query_annotation_id = honeycombio_query_annotation.events.id
-      query_style         = "graph"
-    }
-  }
-
-  panel {
-    type = "query"
-
-    query_panel {
-      query_id            = honeycombio_query.handled.id
-      query_annotation_id = honeycombio_query_annotation.handled.id
-      query_style         = "graph"
-    }
-  }
-
+  # Row 2-3: Duration (both panels are double-height due to P50+P95, placed side by side)
+  # Event handler panels fill col 3 of both rows
   panel {
     type = "query"
 
@@ -551,8 +491,8 @@ resource "honeycombio_flexible_board" "jobs" {
     type = "query"
 
     query_panel {
-      query_id            = honeycombio_query.command_job_conclusions.id
-      query_annotation_id = honeycombio_query_annotation.command_job_conclusions.id
+      query_id            = honeycombio_query.events.id
+      query_annotation_id = honeycombio_query_annotation.events.id
       query_style         = "graph"
     }
   }
@@ -561,8 +501,40 @@ resource "honeycombio_flexible_board" "jobs" {
     type = "query"
 
     query_panel {
+      query_id            = honeycombio_query.handled.id
+      query_annotation_id = honeycombio_query_annotation.handled.id
+      query_style         = "graph"
+    }
+  }
+
+  # Row 4: Event handlers
+  panel {
+    type = "query"
+
+    query_panel {
       query_id            = honeycombio_query.handler_trace_errors.id
       query_annotation_id = honeycombio_query_annotation.handler_trace_errors.id
+      query_style         = "graph"
+    }
+  }
+
+  # Row 4: Command jobs
+  panel {
+    type = "query"
+
+    query_panel {
+      query_id            = honeycombio_query.command_types.id
+      query_annotation_id = honeycombio_query_annotation.command_types.id
+      query_style         = "graph"
+    }
+  }
+
+  panel {
+    type = "query"
+
+    query_panel {
+      query_id            = honeycombio_query.command_job_conclusions.id
+      query_annotation_id = honeycombio_query_annotation.command_job_conclusions.id
       query_style         = "graph"
     }
   }
@@ -577,22 +549,13 @@ resource "honeycombio_flexible_board" "jobs" {
     }
   }
 
+  # Row 5: Specialized
   panel {
     type = "query"
 
     query_panel {
-      query_id            = honeycombio_query.command_job_error_severity.id
-      query_annotation_id = honeycombio_query_annotation.command_job_error_severity.id
-      query_style         = "graph"
-    }
-  }
-
-  panel {
-    type = "query"
-
-    query_panel {
-      query_id            = honeycombio_query.command_job_retries.id
-      query_annotation_id = honeycombio_query_annotation.command_job_retries.id
+      query_id            = honeycombio_query.process_type.id
+      query_annotation_id = honeycombio_query_annotation.process_type.id
       query_style         = "graph"
     }
   }
