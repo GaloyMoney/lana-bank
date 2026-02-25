@@ -1,3 +1,36 @@
+## [0.44.0] - 2026-02-25
+
+### 🚀 Features
+
+- Add `make seed-data` to populate DB and exit (#3955)
+
+### 🐛 Bug Fixes
+
+- Use event-driven waiting in create_pending_facility test helper (#3945)
+
+### 💼 Other
+
+- Selective list_for(by(...)) for compile time reduction (#3939)
+
+### 🚜 Refactor
+
+- Introduce CoreCreditCollateralEvent (#3941)
+- Inline seed_only check into bootstrap block (#3969)
+
+### 📚 Documentation
+
+- Accounting and product module es coverage (#3963)
+
+### 🧪 Testing
+
+- AccrualPosted event (#3923)
+- FacilityCollateralizationChanged event (#3967)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.43.0 [ci skip] (#3961)
+- Introduce CoreCreditCollateral Action and Object (#3954)
+- Bump cala-* to 0.13.19 (#3972)
 ## [0.43.0] - 2026-02-24
 
 ### 🚀 Features
