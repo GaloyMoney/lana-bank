@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "docs-site/docs/**/*.md"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,26 +17,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Create symlinks
-        run: |
-          mkdir -p docs-site/i18n/es/docusaurus-plugin-content-docs/current
-          cd docs-site/.lingo-docs
-          ln -sf ../docs en
-          ln -sf ../i18n/es/docusaurus-plugin-content-docs/current es
-
-      - name: Run Lingo.dev translation
+      - name: Run docs translation
         env:
-          LINGO_API_KEY: ${{ secrets.LINGODOTDEV_API_KEY }}
-        run: |
-          cd docs-site/.lingo-docs
-          npx lingo.dev@latest i18n
-
-      - name: Cleanup symlinks
-        run: |
-          rm -f docs-site/.lingo-docs/en docs-site/.lingo-docs/es
+          LINGODOTDEV_API_KEY: ${{ secrets.LINGODOTDEV_API_KEY }}
+        run: bash docs-site/scripts/translate-docs.sh --full-run
 
       - name: Commit translations
         run: |
