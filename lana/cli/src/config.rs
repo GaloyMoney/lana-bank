@@ -86,12 +86,23 @@ impl Config {
             keycloak_internal_client_secret,
             keycloak_customer_client_secret,
         }: EnvSecrets,
+        config_overrides: &[String],
     ) -> anyhow::Result<Self> {
         let config_file = std::fs::read_to_string(&path)
             .context(format!("Couldn't read config file {:?}", path.as_ref()))?;
 
-        let mut config: Config =
+        let mut yaml_value: serde_yaml::Value =
             serde_yaml::from_str(&config_file).context("Couldn't parse config file")?;
+
+        for override_str in config_overrides {
+            let (key, value) = override_str.split_once('=').context(format!(
+                "Invalid override format '{override_str}', expected KEY=VALUE"
+            ))?;
+            apply_yaml_override(&mut yaml_value, key, value)?;
+        }
+
+        let mut config: Config =
+            serde_yaml::from_value(yaml_value).context("Couldn't deserialize config")?;
 
         config.db.pg_con.clone_from(&pg_con);
         config.app.notification.email.username = smtp_username;
@@ -112,4 +123,28 @@ impl Config {
 
         Ok(config)
     }
+}
+
+/// Apply a dot-separated key override to a YAML value tree.
+/// e.g. "bootstrap.seed_only" with value "true" sets yaml["bootstrap"]["seed_only"] = true
+fn apply_yaml_override(root: &mut serde_yaml::Value, key: &str, value: &str) -> anyhow::Result<()> {
+    let parts: Vec<&str> = key.split('.').collect();
+    let mut current = root;
+
+    for (i, part) in parts.iter().enumerate() {
+        if i == parts.len() - 1 {
+            let parsed_value = serde_yaml::from_str(value)
+                .unwrap_or_else(|_| serde_yaml::Value::String(value.to_string()));
+            current[*part] = parsed_value;
+        } else {
+            if !current.get(*part).is_some_and(|v| v.is_mapping()) {
+                current[*part] = serde_yaml::Value::Mapping(serde_yaml::Mapping::new());
+            }
+            current = current
+                .get_mut(*part)
+                .context(format!("Failed to traverse config key '{key}'"))?;
+        }
+    }
+
+    Ok(())
 }

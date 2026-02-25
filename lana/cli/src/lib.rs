@@ -40,6 +40,9 @@ struct Cli {
     keycloak_customer_client_secret: String,
     #[clap(long, env = "LANA_HOME", default_value = ".lana")]
     lana_home: String,
+    /// Override config values using dot-separated paths (e.g. --set bootstrap.seed_only=true)
+    #[clap(long = "set", value_name = "KEY=VALUE")]
+    config_overrides: Vec<String>,
     #[clap(subcommand)]
     command: Option<Commands>,
 }
@@ -87,6 +90,7 @@ pub async fn run() -> anyhow::Result<()> {
                     keycloak_internal_client_secret: cli.keycloak_internal_client_secret,
                     keycloak_customer_client_secret: cli.keycloak_customer_client_secret,
                 },
+                &cli.config_overrides,
             )?;
 
             run_cmd(&cli.lana_home, config).await?;
