@@ -74,6 +74,7 @@ encryption = { workspace = true }
 rand = { workspace = true }
 anyhow = { workspace = true }
 serde_yaml = { workspace = true }
+chrono-tz = { workspace = true }
 core-access = { workspace = true }
 core-deposit = { workspace = true }
 serial_test = { workspace = true }
