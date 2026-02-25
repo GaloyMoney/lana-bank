@@ -1,0 +1,31 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT cf.id AS \"id: CreditFacilityId\", cf.created_at\n               FROM core_credit_facilities cf\n               JOIN core_interest_accrual_cycles iac ON iac.credit_facility_id = cf.id\n               WHERE iac.next_accrual_period_end IS NOT NULL\n                 AND iac.next_accrual_period_end <= $1\n                 AND (($2::timestamptz IS NULL) OR (cf.created_at, cf.id) > ($2, $3))\n               ORDER BY cf.created_at, cf.id\n               LIMIT $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: CreditFacilityId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Timestamptz",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "67a6a9baad4b6a3b8dbefd96cd38f464b5a99671b19059cb9a267abafa95dc11"
+}
