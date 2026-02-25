@@ -16,8 +16,7 @@ with
             version,
             all_time_version,
             latest_entry_id,
-        values
-            ,
+            `values`,
             updated_at,
             created_at,
             timestamp_micros(
