@@ -6,6 +6,23 @@ query RunEvents($runId: ID!) {
           message
           eventType
         }
+        ... on ExecutionStepFailureEvent {
+          message
+          eventType
+          stepKey
+          error {
+            message
+            stack
+          }
+        }
+        ... on RunFailureEvent {
+          message
+          eventType
+          error {
+            message
+            stack
+          }
+        }
       }
     }
   }
