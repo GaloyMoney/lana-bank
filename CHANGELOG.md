@@ -1,3 +1,26 @@
+## [0.44.0] - 2026-02-25
+
+### 🚀 Features
+
+- Add `make seed-data` to populate DB and exit (#3955)
+
+### 🐛 Bug Fixes
+
+- Use event-driven waiting in create_pending_facility test helper (#3945)
+
+### 🚜 Refactor
+
+- Introduce CoreCreditCollateralEvent (#3941)
+- Inline seed_only check into bootstrap block (#3969)
+
+### 🧪 Testing
+
+- AccrualPosted event (#3923)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.43.0 [ci skip] (#3961)
+- Introduce CoreCreditCollateral Action and Object (#3954)
 ## [0.43.0] - 2026-02-24
 
 ### 🚀 Features
