@@ -47,7 +47,6 @@ dependencies = [
  "jwks-utils",
  "lana-app",
  "obix",
- "permission-sets-macro",
  "rust_decimal",
  "serde",
  "serde_json",

@@ -14,7 +14,6 @@ lana-app = { workspace = true }
 admin-graphql-access = { workspace = true }
 admin-graphql-shared = { workspace = true }
 domain-config = { workspace = true, features = ["graphql"] }
-permission-sets-macro = { workspace = true }
 obix = { workspace = true }
 audit = { workspace = true }
 tracing-utils = { workspace = true, features = ["http"] }
