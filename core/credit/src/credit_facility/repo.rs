@@ -94,6 +94,35 @@ where
             .await
     }
 
+    pub async fn list_facility_ids_eligible_for_accrual(
+        &self,
+        day: chrono::NaiveDate,
+        after: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
+        limit: i64,
+    ) -> Result<Vec<(CreditFacilityId, chrono::DateTime<chrono::Utc>)>, CreditFacilityError> {
+        let (after_created_at, after_id) = match after {
+            Some((ts, id)) => (Some(ts), Some(id)),
+            None => (None, None),
+        };
+        let rows = sqlx::query!(
+            r#"SELECT cf.id AS "id: CreditFacilityId", cf.created_at
+               FROM core_credit_facilities cf
+               JOIN core_interest_accrual_cycles iac ON iac.credit_facility_id = cf.id
+               WHERE iac.next_accrual_period_end IS NOT NULL
+                 AND iac.next_accrual_period_end <= $1
+                 AND (($2::timestamptz IS NULL) OR (cf.created_at, cf.id) > ($2, $3))
+               ORDER BY cf.created_at, cf.id
+               LIMIT $4"#,
+            day,
+            after_created_at,
+            after_id as Option<CreditFacilityId>,
+            limit,
+        )
+        .fetch_all(self.pool())
+        .await?;
+        Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
+    }
+
     #[record_error_severity]
     #[tracing::instrument(name = "credit_facility.find_by_custody_wallet", skip_all)]
     pub async fn find_by_custody_wallet(
