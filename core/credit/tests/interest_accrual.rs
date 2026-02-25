@@ -131,6 +131,8 @@ async fn setup_with_clock_control()
             customers,
             outbox,
             jobs,
+            pool: pool.clone(),
+            clock: clock.clone(),
         },
         clock_ctrl,
         pool,

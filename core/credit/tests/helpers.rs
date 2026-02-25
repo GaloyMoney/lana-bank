@@ -478,6 +478,8 @@ pub struct TestContext {
     pub customers: core_customer::Customers<TestPerms, TestEvent>,
     pub outbox: obix::Outbox<TestEvent>,
     pub jobs: job::Jobs,
+    pub pool: sqlx::PgPool,
+    pub clock: ClockHandle,
 }
 
 pub fn test_terms() -> TermValues {
@@ -600,6 +602,8 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         customers,
         outbox,
         jobs,
+        pool,
+        clock,
     })
 }
 
