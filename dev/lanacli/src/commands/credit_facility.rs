@@ -299,6 +299,46 @@ pub async fn execute(
                 ]);
             }
         }
+        CreditFacilityAction::Find { id } => {
+            let vars = credit_facility_find::Variables { id };
+            let data = client.execute::<CreditFacilityFind>(vars).await?;
+            match data.credit_facility {
+                Some(f) => {
+                    if json {
+                        output::print_json(&f)?;
+                    } else {
+                        output::print_json(&f)?;
+                    }
+                }
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Credit facility not found");
+                    }
+                }
+            }
+        }
+        CreditFacilityAction::PartialPaymentRecord {
+            credit_facility_id,
+            amount,
+        } => {
+            let vars = credit_facility_partial_payment_record::Variables {
+                input: credit_facility_partial_payment_record::CreditFacilityPartialPaymentRecordInput {
+                    credit_facility_id,
+                    amount: sval(amount),
+                },
+            };
+            let data = client
+                .execute::<CreditFacilityPartialPaymentRecord>(vars)
+                .await?;
+            let f = data.credit_facility_partial_payment_record.credit_facility;
+            if json {
+                output::print_json(&f)?;
+            } else {
+                output::print_json(&f)?;
+            }
+        }
     }
     Ok(())
 }

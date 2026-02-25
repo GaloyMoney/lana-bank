@@ -117,6 +117,81 @@ pub async fn execute(
                 );
             }
         }
+        TermsTemplateAction::Get { id } => {
+            let vars = terms_template_get::Variables { id };
+            let data = client.execute::<TermsTemplateGet>(vars).await?;
+            match data.terms_template {
+                Some(t) => {
+                    if json {
+                        output::print_json(&t)?;
+                    } else {
+                        output::print_json(&t)?;
+                    }
+                }
+                None => {
+                    if json {
+                        println!("null");
+                    } else {
+                        println!("Terms template not found");
+                    }
+                }
+            }
+        }
+        TermsTemplateAction::Update {
+            id,
+            annual_rate,
+            accrual_interval,
+            accrual_cycle_interval,
+            one_time_fee_rate,
+            disbursal_policy,
+            duration_months,
+            initial_cvl,
+            margin_call_cvl,
+            liquidation_cvl,
+            interest_due_days,
+            overdue_days,
+            liquidation_days,
+        } => {
+            let vars = terms_template_update::Variables {
+                input: terms_template_update::TermsTemplateUpdateInput {
+                    id,
+                    annual_rate: sval(annual_rate),
+                    accrual_interval: parse_update_interest_interval(&accrual_interval)?,
+                    accrual_cycle_interval: parse_update_interest_interval(
+                        &accrual_cycle_interval,
+                    )?,
+                    one_time_fee_rate: sval(one_time_fee_rate),
+                    disbursal_policy: parse_update_disbursal_policy(&disbursal_policy)?,
+                    duration: terms_template_update::DurationInput {
+                        period: terms_template_update::Period::MONTHS,
+                        units: duration_months,
+                    },
+                    initial_cvl: sval(initial_cvl),
+                    margin_call_cvl: sval(margin_call_cvl),
+                    liquidation_cvl: sval(liquidation_cvl),
+                    interest_due_duration_from_accrual: terms_template_update::DurationInput {
+                        period: terms_template_update::Period::DAYS,
+                        units: interest_due_days,
+                    },
+                    obligation_overdue_duration_from_due: terms_template_update::DurationInput {
+                        period: terms_template_update::Period::DAYS,
+                        units: overdue_days,
+                    },
+                    obligation_liquidation_duration_from_due:
+                        terms_template_update::DurationInput {
+                            period: terms_template_update::Period::DAYS,
+                            units: liquidation_days,
+                        },
+                },
+            };
+            let data = client.execute::<TermsTemplateUpdate>(vars).await?;
+            let t = data.terms_template_update.terms_template;
+            if json {
+                output::print_json(&t)?;
+            } else {
+                output::print_json(&t)?;
+            }
+        }
     }
     Ok(())
 }
@@ -133,6 +208,22 @@ fn parse_disbursal_policy(s: &str) -> Result<terms_template_create::DisbursalPol
     match s.to_uppercase().as_str() {
         "SINGLE_DISBURSAL" => Ok(terms_template_create::DisbursalPolicy::SINGLE_DISBURSAL),
         "MULTIPLE_DISBURSAL" => Ok(terms_template_create::DisbursalPolicy::MULTIPLE_DISBURSAL),
+        other => anyhow::bail!("Unknown disbursal policy: {other}"),
+    }
+}
+
+fn parse_update_interest_interval(s: &str) -> Result<terms_template_update::InterestInterval> {
+    match s.to_uppercase().as_str() {
+        "END_OF_MONTH" => Ok(terms_template_update::InterestInterval::END_OF_MONTH),
+        "END_OF_DAY" => Ok(terms_template_update::InterestInterval::END_OF_DAY),
+        other => anyhow::bail!("Unknown interest interval: {other}"),
+    }
+}
+
+fn parse_update_disbursal_policy(s: &str) -> Result<terms_template_update::DisbursalPolicy> {
+    match s.to_uppercase().as_str() {
+        "SINGLE_DISBURSAL" => Ok(terms_template_update::DisbursalPolicy::SINGLE_DISBURSAL),
+        "MULTIPLE_DISBURSAL" => Ok(terms_template_update::DisbursalPolicy::MULTIPLE_DISBURSAL),
         other => anyhow::bail!("Unknown disbursal policy: {other}"),
     }
 }

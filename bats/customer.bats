@@ -15,14 +15,10 @@ teardown_file() {
 }
 
 wait_for_approval() {
-  variables=$(
-    jq -n \
-      --arg withdrawId "$1" \
-    '{ id: $withdrawId }'
-  )
-  exec_admin_graphql 'find-withdraw' "$variables"
-  echo "withdrawal | $i. $(graphql_output)" >> $RUN_LOG_FILE
-  status=$(graphql_output '.data.withdrawal.status')
+  local cli_output
+  cli_output=$("$LANACLI" --json withdrawal find --id "$1")
+  echo "withdrawal | $i. $cli_output" >> $RUN_LOG_FILE
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "PENDING_CONFIRMATION" ]] || return 1
 }
 
@@ -87,9 +83,9 @@ wait_for_approval() {
   done
   [[ -n "$fetched_id" ]] || exit 1
 
-  variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-  exec_admin_graphql 'customer-audit-log' "$variables"
-  audit_nodes_count=$(graphql_output '.data.audit.nodes | length')
+  local audit_output
+  audit_output=$("$LANACLI" --json audit customer --id "$customer_id")
+  audit_nodes_count=$(echo "$audit_output" | jq '. | length')
   [[ "$audit_nodes_count" -gt 0 ]] || exit 1
 }
 

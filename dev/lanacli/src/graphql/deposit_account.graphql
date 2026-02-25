@@ -110,3 +110,39 @@ mutation WithdrawalRevert($input: WithdrawalRevertInput!) {
     }
   }
 }
+
+mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
+  depositAccountFreeze(input: $input) {
+    account {
+      depositAccountId
+      status
+      balance {
+        settled
+      }
+    }
+  }
+}
+
+mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
+  depositAccountUnfreeze(input: $input) {
+    account {
+      depositAccountId
+      status
+      balance {
+        settled
+      }
+    }
+  }
+}
+
+mutation DepositAccountClose($input: DepositAccountCloseInput!) {
+  depositAccountClose(input: $input) {
+    account {
+      depositAccountId
+      status
+      balance {
+        settled
+      }
+    }
+  }
+}

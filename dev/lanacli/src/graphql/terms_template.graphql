@@ -37,3 +37,89 @@ query TermsTemplatesList {
     }
   }
 }
+
+query TermsTemplateGet($id: UUID!) {
+  termsTemplate(id: $id) {
+    termsId
+    name
+    values {
+      annualRate
+      accrualCycleInterval
+      duration {
+        period
+        units
+      }
+      liquidationCvl {
+        __typename
+        ... on FiniteCvlPct {
+          value
+        }
+        ... on InfiniteCvlPct {
+          isInfinite
+        }
+      }
+      marginCallCvl {
+        __typename
+        ... on FiniteCvlPct {
+          value
+        }
+        ... on InfiniteCvlPct {
+          isInfinite
+        }
+      }
+      initialCvl {
+        __typename
+        ... on FiniteCvlPct {
+          value
+        }
+        ... on InfiniteCvlPct {
+          isInfinite
+        }
+      }
+    }
+  }
+}
+
+mutation TermsTemplateUpdate($input: TermsTemplateUpdateInput!) {
+  termsTemplateUpdate(input: $input) {
+    termsTemplate {
+      termsId
+      name
+      values {
+        annualRate
+        accrualCycleInterval
+        duration {
+          period
+          units
+        }
+        liquidationCvl {
+          __typename
+          ... on FiniteCvlPct {
+            value
+          }
+          ... on InfiniteCvlPct {
+            isInfinite
+          }
+        }
+        marginCallCvl {
+          __typename
+          ... on FiniteCvlPct {
+            value
+          }
+          ... on InfiniteCvlPct {
+            isInfinite
+          }
+        }
+        initialCvl {
+          __typename
+          ... on FiniteCvlPct {
+            value
+          }
+          ... on InfiniteCvlPct {
+            isInfinite
+          }
+        }
+      }
+    }
+  }
+}

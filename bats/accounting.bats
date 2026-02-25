@@ -17,42 +17,30 @@ teardown_file() {
 }
 
 @test "accounting: imported CSV file from seed into chart of accounts" {
-  exec_admin_graphql 'chart-of-accounts'
-  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
-  assets_code=$(graphql_output '
-    .data.chartOfAccounts.children[]
+  cli_output=$("$LANACLI" --json accounting chart-of-accounts)
+  chart_id=$(echo "$cli_output" | jq -r '.chartId')
+  assets_code=$(echo "$cli_output" | jq -r '
+    .children[]
     | select(.name == "Assets")
     | .accountCode' | head -n 1)
   [[ "$assets_code" -eq "1" ]] || exit 1
 }
 
 @test "accounting: add new root node into chart of accounts" {
-  exec_admin_graphql 'chart-of-accounts'
-  n_children_before=$(graphql_output '.data.chartOfAccounts.children | length')
-  
+  cli_output=$("$LANACLI" --json accounting chart-of-accounts)
+  n_children_before=$(echo "$cli_output" | jq -r '.children | length')
+
   new_code="$(( RANDOM % 9000 + 1000 ))"
   name="Root Account #$new_code"
-  variables=$(
-    jq -n \
-    --arg code "$new_code" \
-    --arg name "$name" \
-    '{
-      input: {
-        code: $code,
-        name: $name,
-        normalBalanceType: "CREDIT"
-      }
-    }'
-  )
-  exec_admin_graphql 'chart-of-accounts-add-root-node' "$variables"
-  n_children_after=$(graphql_output '.data.chartOfAccountsAddRootNode.chartOfAccounts.children | length')
+  cli_output=$("$LANACLI" --json accounting add-root-node --code "$new_code" --name "$name" --normal-balance-type CREDIT)
+  n_children_after=$(echo "$cli_output" | jq -r '.children | length')
   [[ "$n_children_after" -gt "$n_children_before" ]] || exit 1
 }
 
 @test "accounting: add new child node into chart of accounts" {
-  exec_admin_graphql 'chart-of-accounts'
-  n_children_before=$(graphql_output '
-    .data.chartOfAccounts.children[]
+  cli_output=$("$LANACLI" --json accounting chart-of-accounts)
+  n_children_before=$(echo "$cli_output" | jq -r '
+    .children[]
     | select(.accountCode == "1")
     | .children[]
     | select(.accountCode == "11")
@@ -60,24 +48,12 @@ teardown_file() {
     | select(.accountCode == "11.01")
     | .children
     | length')
-  
+
   new_code="11.01.$(( RANDOM % 9000 + 1000 ))"
   name="Account #$new_code"
-  variables=$(
-    jq -n \
-    --arg code "$new_code" \
-    --arg name "$name" \
-    '{
-      input: {
-        parent: "11.01",
-        code: $code,
-        name: $name
-      }
-    }'
-  )
-  exec_admin_graphql 'chart-of-accounts-add-child-node' "$variables"
-  n_children_after=$(graphql_output '
-    .data.chartOfAccountsAddChildNode.chartOfAccounts.children[]
+  cli_output=$("$LANACLI" --json accounting add-child-node --parent "11.01" --code "$new_code" --name "$name")
+  n_children_after=$(echo "$cli_output" | jq -r '
+    .children[]
     | select(.accountCode == "1")
     | .children[]
     | select(.accountCode == "11")
@@ -89,98 +65,97 @@ teardown_file() {
 }
 
 @test "accounting: imported credit module config from seed into chart of accounts" {
-  exec_admin_graphql 'credit-config'
-  omnibus_code=$(graphql_output '.data.creditConfig.chartOfAccountFacilityOmnibusParentCode')
+  cli_output=$("$LANACLI" --json accounting credit-config)
+  omnibus_code=$(echo "$cli_output" | jq -r '.chartOfAccountFacilityOmnibusParentCode')
   [[ "$omnibus_code" == "81.01" ]] || exit 1
 }
 
 @test "accounting: imported deposit module config from seed into chart of accounts" {
-  exec_admin_graphql 'deposit-config'
-  omnibus_code=$(graphql_output '.data.depositConfig.chartOfAccountsOmnibusParentCode')
+  cli_output=$("$LANACLI" --json accounting deposit-config)
+  omnibus_code=$(echo "$cli_output" | jq -r '.chartOfAccountsOmnibusParentCode')
   [[ "$omnibus_code" == "11.01.0101" ]] || exit 1
 }
 
 @test "accounting: accounting base config is set on chart of accounts" {
-  exec_admin_graphql 'accounting-base-config'
-  config='.data.chartOfAccounts.accountingBaseConfig'
+  cli_output=$("$LANACLI" --json accounting base-config)
 
-  assets_code=$(graphql_output "${config}.assetsCode")
+  assets_code=$(echo "$cli_output" | jq -r '.assetsCode')
   [[ "$assets_code" == "1" ]] || exit 1
 
-  liabilities_code=$(graphql_output "${config}.liabilitiesCode")
+  liabilities_code=$(echo "$cli_output" | jq -r '.liabilitiesCode')
   [[ "$liabilities_code" == "2" ]] || exit 1
 
-  equity_code=$(graphql_output "${config}.equityCode")
+  equity_code=$(echo "$cli_output" | jq -r '.equityCode')
   [[ "$equity_code" == "3" ]] || exit 1
 
-  revenue_code=$(graphql_output "${config}.revenueCode")
+  revenue_code=$(echo "$cli_output" | jq -r '.revenueCode')
   [[ "$revenue_code" == "4" ]] || exit 1
 
-  cost_of_revenue_code=$(graphql_output "${config}.costOfRevenueCode")
+  cost_of_revenue_code=$(echo "$cli_output" | jq -r '.costOfRevenueCode')
   [[ "$cost_of_revenue_code" == "5" ]] || exit 1
 
-  expenses_code=$(graphql_output "${config}.expensesCode")
+  expenses_code=$(echo "$cli_output" | jq -r '.expensesCode')
   [[ "$expenses_code" == "6" ]] || exit 1
 
-  retained_earnings_gain_code=$(graphql_output "${config}.equityRetainedEarningsGainCode")
+  retained_earnings_gain_code=$(echo "$cli_output" | jq -r '.equityRetainedEarningsGainCode')
   [[ "$retained_earnings_gain_code" == "32.01" ]] || exit 1
 
-  retained_earnings_loss_code=$(graphql_output "${config}.equityRetainedEarningsLossCode")
+  retained_earnings_loss_code=$(echo "$cli_output" | jq -r '.equityRetainedEarningsLossCode')
   [[ "$retained_earnings_loss_code" == "32.02" ]] || exit 1
 }
 
 @test "accounting: can query descendant account sets by category" {
   # Test ASSET category
-  exec_admin_graphql 'account-sets-by-category' '{"category": "ASSET"}'
-  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
+  cli_output=$("$LANACLI" --json accounting account-sets --category ASSET)
+  count=$(echo "$cli_output" | jq -r '. | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
+  first_code=$(echo "$cli_output" | jq -r '.[0].code')
   [[ "$first_code" =~ ^1 ]] || exit 1
 
   # Test LIABILITY category
-  exec_admin_graphql 'account-sets-by-category' '{"category": "LIABILITY"}'
-  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
+  cli_output=$("$LANACLI" --json accounting account-sets --category LIABILITY)
+  count=$(echo "$cli_output" | jq -r '. | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
+  first_code=$(echo "$cli_output" | jq -r '.[0].code')
   [[ "$first_code" =~ ^2 ]] || exit 1
 
   # Test EQUITY category
-  exec_admin_graphql 'account-sets-by-category' '{"category": "EQUITY"}'
-  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
+  cli_output=$("$LANACLI" --json accounting account-sets --category EQUITY)
+  count=$(echo "$cli_output" | jq -r '. | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
+  first_code=$(echo "$cli_output" | jq -r '.[0].code')
   [[ "$first_code" =~ ^3 ]] || exit 1
 
   # Test REVENUE category
-  exec_admin_graphql 'account-sets-by-category' '{"category": "REVENUE"}'
-  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
+  cli_output=$("$LANACLI" --json accounting account-sets --category REVENUE)
+  count=$(echo "$cli_output" | jq -r '. | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
+  first_code=$(echo "$cli_output" | jq -r '.[0].code')
   [[ "$first_code" =~ ^4 ]] || exit 1
 
   # Test COST_OF_REVENUE category
-  exec_admin_graphql 'account-sets-by-category' '{"category": "COST_OF_REVENUE"}'
-  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
+  cli_output=$("$LANACLI" --json accounting account-sets --category COST_OF_REVENUE)
+  count=$(echo "$cli_output" | jq -r '. | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
+  first_code=$(echo "$cli_output" | jq -r '.[0].code')
   [[ "$first_code" =~ ^5 ]] || exit 1
 
   # Test EXPENSES category
-  exec_admin_graphql 'account-sets-by-category' '{"category": "EXPENSES"}'
-  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
+  cli_output=$("$LANACLI" --json accounting account-sets --category EXPENSES)
+  count=$(echo "$cli_output" | jq -r '. | length')
   [[ "$count" -gt 0 ]] || exit 1
-  first_code=$(graphql_output '.data.descendantAccountSetsByCategory[0].code')
+  first_code=$(echo "$cli_output" | jq -r '.[0].code')
   [[ "$first_code" =~ ^6 ]] || exit 1
 }
 
 @test "accounting: can query off-balance sheet account sets" {
-  exec_admin_graphql 'account-sets-by-category' '{"category": "OFF_BALANCE_SHEET"}'
-  count=$(graphql_output '.data.descendantAccountSetsByCategory | length')
+  cli_output=$("$LANACLI" --json accounting account-sets --category OFF_BALANCE_SHEET)
+  count=$(echo "$cli_output" | jq -r '. | length')
   # The test chart has off-balance sheet accounts under codes 7 and 8
   [[ "$count" -gt 0 ]] || exit 1
 
   # Verify that returned account sets are not from the main statement categories (1-6)
-  codes=$(graphql_output '.data.descendantAccountSetsByCategory[].code')
+  codes=$(echo "$cli_output" | jq -r '.[].code')
   for code in $codes; do
     # Check that code doesn't start with 1-6 (main statement categories)
     [[ ! "$code" =~ ^[1-6] ]] || exit 1
@@ -188,8 +163,8 @@ teardown_file() {
 }
 
 @test "accounting: can import CSV file into chart of accounts" {
-  exec_admin_graphql 'chart-of-accounts'
-  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+  cli_output=$("$LANACLI" --json accounting chart-of-accounts)
+  chart_id=$(echo "$cli_output" | jq -r '.chartId')
 
   temp_file=$(mktemp)
   new_root_code=$((RANDOM % 100 + 900))
@@ -211,21 +186,21 @@ teardown_file() {
   payload_chart_id=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.chartOfAccounts.chartId')
   [[ "$payload_chart_id" == "$chart_id" ]] || exit 1
 
-  exec_admin_graphql 'chart-of-accounts'
-  res=$(graphql_output \
+  cli_output=$("$LANACLI" --json accounting chart-of-accounts)
+  res=$(echo "$cli_output" | jq -r \
       --arg code "$new_root_code" \
-      '.data.chartOfAccounts.children[]
+      '.children[]
       | select(.accountCode == $code)
       | .accountCode' | head -n 1)
   [[ "$res" == "$new_root_code" ]] || exit 1
 }
 
 @test "accounting: can traverse chart of accounts" {
-  exec_admin_graphql 'chart-of-accounts'
-  echo $(graphql_output)
+  cli_output=$("$LANACLI" --json accounting chart-of-accounts)
+  echo "$cli_output"
   # Check that Assets exists with code "1" (from seed data)
-  assets_code=$(echo "$(graphql_output)" | jq -r \
-    '.data.chartOfAccounts.children[] | select(.name == "Assets") | .accountCode'
+  assets_code=$(echo "$cli_output" | jq -r \
+    '.children[] | select(.name == "Assets") | .accountCode'
   )
   [[ "$assets_code" == "1" ]] || exit 1
 }
@@ -238,49 +213,44 @@ teardown_file() {
 
   amount=$((RANDOM % 1000))
 
-  variables=$(
-    jq -n \
+  entries_json=$(jq -n -c \
     --arg amount "$amount" \
-    --arg effective "2025-01-01" \
-    '{
-      input: {
-        description: "Manual transaction - test",
-        effective: $effective,
-        entries: [
-          {
-             "accountRef": "11.01.0101",
-             "amount": $amount,
-             "currency": "USD",
-             "direction": "CREDIT",
-             "description": "Entry 1 description"
-          },
-          {
-             "accountRef": "61.01",
-             "amount": $amount,
-             "currency": "USD",
-             "direction": "DEBIT",
-             "description": "Entry 2 description"
-          }]
-        }
-      }'
-  )
+    '[
+      {
+        "accountRef": "11.01.0101",
+        "amount": $amount,
+        "currency": "USD",
+        "direction": "CREDIT",
+        "description": "Entry 1 description"
+      },
+      {
+        "accountRef": "61.01",
+        "amount": $amount,
+        "currency": "USD",
+        "direction": "DEBIT",
+        "description": "Entry 2 description"
+      }
+    ]')
 
-  exec_admin_graphql 'manual-transaction-execute' "$variables"
+  "$LANACLI" --json accounting manual-transaction \
+    --description "Manual transaction - test" \
+    --effective "2025-01-01" \
+    --entries-json "$entries_json"
 
-  exec_admin_graphql 'ledger-account-by-code' '{"code":"11.01.0101"}'
-  txId1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
-  amount1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
-  direction1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
+  cli_output=$("$LANACLI" --json accounting ledger-account --code "11.01.0101")
+  txId1=$(echo "$cli_output" | jq -r '.history.nodes[0].txId')
+  amount1=$(echo "$cli_output" | jq -r '.history.nodes[0].amount.usd')
+  direction1=$(echo "$cli_output" | jq -r '.history.nodes[0].direction')
   [[ "$direction1" != "null" ]] || exit 1
-  entryType1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].entryType)
+  entryType1=$(echo "$cli_output" | jq -r '.history.nodes[0].entryType')
   [[ "$entryType1" != "null" ]] || exit 1
 
-  exec_admin_graphql 'ledger-account-by-code' '{"code":"61.01"}'
-  txId2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
-  amount2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
-  direction2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
+  cli_output=$("$LANACLI" --json accounting ledger-account --code "61.01")
+  txId2=$(echo "$cli_output" | jq -r '.history.nodes[0].txId')
+  amount2=$(echo "$cli_output" | jq -r '.history.nodes[0].amount.usd')
+  direction2=$(echo "$cli_output" | jq -r '.history.nodes[0].direction')
   [[ "$direction2" != "null" ]] || exit 1
-  entryType2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].entryType)
+  entryType2=$(echo "$cli_output" | jq -r '.history.nodes[0].entryType')
   [[ "$entryType2" != "null" ]] || exit 1
 
   [[ "$txId1" == "$txId2" ]] || exit 1
@@ -291,97 +261,69 @@ teardown_file() {
 }
 
 @test "accounting: can not execute transaction before system inception date" {
-  exec_admin_graphql 'fiscal-years' '{"first": 1}'
-  graphql_output
-  inception_date=$(graphql_output '.data.fiscalYears.nodes[0].openedAsOf')
+  cli_output=$("$LANACLI" --json fiscal-year list --first 1)
+  inception_date=$(echo "$cli_output" | jq -r '.[0].openedAsOf')
   [[ "$inception_date" != "null" ]] || exit 1
   first_closed_as_of_date=$(date -d "$inception_date -1 day" +%Y-%m-%d)
 
   amount=$((RANDOM % 1000))
-  variables=$(
-    jq -n \
+  entries_json=$(jq -n -c \
     --arg amount "$amount" \
-    --arg effective "$first_closed_as_of_date" \
-    '{
-      input: {
-        description: "Manual transaction - test",
-        effective: $effective,
-        entries: [
-          {
-             "accountRef": "11.01.0101",
-             "amount": $amount,
-             "currency": "USD",
-             "direction": "CREDIT",
-             "description": "Entry 1 description"
-          },
-          {
-             "accountRef": "61.01",
-             "amount": $amount,
-             "currency": "USD",
-             "direction": "DEBIT",
-             "description": "Entry 2 description"
-          }]
-        }
-      }'
-  )
+    '[
+      {
+        "accountRef": "11.01.0101",
+        "amount": $amount,
+        "currency": "USD",
+        "direction": "CREDIT",
+        "description": "Entry 1 description"
+      },
+      {
+        "accountRef": "61.01",
+        "amount": $amount,
+        "currency": "USD",
+        "direction": "DEBIT",
+        "description": "Entry 2 description"
+      }
+    ]')
 
-  exec_admin_graphql 'manual-transaction-execute' "$variables"
-  graphql_output
-  errors=$(graphql_output '.errors')
-  [[ "$errors" =~ "VelocityError" ]] || exit 1
+  cli_output=$("$LANACLI" --json accounting manual-transaction \
+    --description "Manual transaction - test" \
+    --effective "$first_closed_as_of_date" \
+    --entries-json "$entries_json" 2>&1 || true)
+  [[ "$cli_output" =~ "VelocityError" ]] || exit 1
 }
 
 @test "accounting: can close month in fiscal year" {
-  exec_admin_graphql 'fiscal-years' '{"first": 1}'
-  fiscal_year_id=$(graphql_output '.data.fiscalYears.nodes[0].fiscalYearId')
+  cli_output=$("$LANACLI" --json fiscal-year list --first 1)
+  fiscal_year_id=$(echo "$cli_output" | jq -r '.[0].fiscalYearId')
 
-  last_month_of_year_closed=$(graphql_output '.data.fiscalYears.nodes[0].isLastMonthOfYearClosed')
+  last_month_of_year_closed=$(echo "$cli_output" | jq -r '.[0].isLastMonthOfYearClosed')
   [[ "$last_month_of_year_closed" = "false" ]] || exit 1
-  n_month_closures_before=$(graphql_output '.data.fiscalYears.nodes[0].monthClosures | length')
+  n_month_closures_before=$(echo "$cli_output" | jq -r '.[0].monthClosures | length')
 
-  variables=$(
-    jq -n \
-    --arg fiscal_year_id "$fiscal_year_id" \
-    '{
-      input: {
-        fiscalYearId: $fiscal_year_id
-      }
-    }'
-  )
-  exec_admin_graphql 'fiscal-year-close-month' "$variables"
-  n_month_closures_after=$(graphql_output '.data.fiscalYearCloseMonth.fiscalYear.monthClosures | length')
+  cli_output=$("$LANACLI" --json fiscal-year close-month --fiscal-year-id "$fiscal_year_id")
+  n_month_closures_after=$(echo "$cli_output" | jq -r '.monthClosures | length')
   [[ "$n_month_closures_after" -gt "$n_month_closures_before" ]] || exit 1
 }
 
 @test "accounting: can close fiscal year" {
-  exec_admin_graphql 'fiscal-years' '{"first": 1}'
-  fiscal_year_id=$(graphql_output '.data.fiscalYears.nodes[0].fiscalYearId')
-  last_month_of_year_closed=$(graphql_output '.data.fiscalYears.nodes[0].isLastMonthOfYearClosed')
+  cli_output=$("$LANACLI" --json fiscal-year list --first 1)
+  fiscal_year_id=$(echo "$cli_output" | jq -r '.[0].fiscalYearId')
+  last_month_of_year_closed=$(echo "$cli_output" | jq -r '.[0].isLastMonthOfYearClosed')
 
-  is_open_before=$(graphql_output '.data.fiscalYears.nodes[0].isOpen')
+  is_open_before=$(echo "$cli_output" | jq -r '.[0].isOpen')
   [[ "$is_open_before" = "true" ]] || exit 1
-
-  variables=$(
-    jq -n \
-    --arg fiscal_year_id "$fiscal_year_id" \
-    '{
-      input: {
-        fiscalYearId: $fiscal_year_id
-      }
-    }'
-  )
 
   count=0
   while [[ "$last_month_of_year_closed" = "false" ]]; do
-    exec_admin_graphql 'fiscal-year-close-month' "$variables"
-    last_month_of_year_closed=$(graphql_output '.data.fiscalYearCloseMonth.fiscalYear.isLastMonthOfYearClosed')
+    cli_output=$("$LANACLI" --json fiscal-year close-month --fiscal-year-id "$fiscal_year_id")
+    last_month_of_year_closed=$(echo "$cli_output" | jq -r '.isLastMonthOfYearClosed')
 
     count=$(( $count + 1 ))
     [[ "$count" -lt 20 ]] || exit 1
   done
 
-  
-  exec_admin_graphql 'fiscal-year-close' "$variables"
-  is_open_after=$(graphql_output '.data.fiscalYearClose.fiscalYear.isOpen')
+  cli_output=$("$LANACLI" --json fiscal-year close --fiscal-year-id "$fiscal_year_id")
+  is_open_after=$(echo "$cli_output" | jq -r '.isOpen')
   [[ "$is_open_after" = "false" ]] || exit 1
 }

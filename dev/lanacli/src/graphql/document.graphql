@@ -1,0 +1,45 @@
+query CustomerDocumentGet($id: UUID!) {
+  customerDocument(id: $id) {
+    documentId
+    customerId
+    filename
+    status
+  }
+}
+
+query CustomerDocumentsList($customerId: UUID!) {
+  customer(id: $customerId) {
+    customerId
+    email
+    documents {
+      documentId
+      customerId
+      filename
+      status
+    }
+  }
+}
+
+mutation CustomerDocumentDownloadLinkGenerate($input: CustomerDocumentDownloadLinksGenerateInput!) {
+  customerDocumentDownloadLinkGenerate(input: $input) {
+    documentId
+    link
+  }
+}
+
+mutation CustomerDocumentArchive($input: CustomerDocumentArchiveInput!) {
+  customerDocumentArchive(input: $input) {
+    document {
+      id
+      customerId
+      filename
+      status
+    }
+  }
+}
+
+mutation CustomerDocumentDelete($input: CustomerDocumentDeleteInput!) {
+  customerDocumentDelete(input: $input) {
+    deletedDocumentId
+  }
+}

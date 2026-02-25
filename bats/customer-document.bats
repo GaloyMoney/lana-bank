@@ -40,46 +40,27 @@ teardown_file() {
   
   rm "$temp_file"
 
-  variables=$(jq -n \
-    --arg documentId "$document_id" \
-    '{
-      "id": $documentId
-    }')
-
-  exec_admin_graphql 'customer-document' "$variables"
-  fetched_document_id=$(graphql_output .data.customerDocument.documentId)
+  local cli_output
+  cli_output=$("$LANACLI" --json document get --id "$document_id")
+  fetched_document_id=$(echo "$cli_output" | jq -r '.documentId')
   [[ "$fetched_document_id" == "$document_id" ]] || exit 1
 
-  fetched_customer_id=$(graphql_output .data.customerDocument.customerId)
+  fetched_customer_id=$(echo "$cli_output" | jq -r '.customerId')
   [[ "$fetched_customer_id" == "$customer_id" ]] || exit 1
 
   # Fetch documents for the customer
-  variables=$(jq -n \
-    --arg customerId "$customer_id" \
-    '{
-      "customerId": $customerId
-    }')
+  cli_output=$("$LANACLI" --json document list --customer-id "$customer_id")
 
-  exec_admin_graphql 'customer-documents' "$variables"
-
-  documents_count=$(graphql_output '.data.customer.documents | length')
+  documents_count=$(echo "$cli_output" | jq '. | length')
   [[ "$documents_count" -ge 1 ]] || exit 1
 
-  first_document_id=$(graphql_output '.data.customer.documents[0].documentId')
+  first_document_id=$(echo "$cli_output" | jq -r '.[0].documentId')
   [[ "$first_document_id" == "$document_id" ]] || exit 1
 
   # Generate download link for the document
-  variables=$(jq -n \
-    --arg documentId "$document_id" \
-    '{
-      input: {
-        documentId: $documentId
-      }
-    }')
+  cli_output=$("$LANACLI" --json document download-link --document-id "$document_id")
 
-  exec_admin_graphql 'customer-document-download-link-generate' "$variables"
-
-  download_link=$(graphql_output .data.customerDocumentDownloadLinkGenerate.link)
+  download_link=$(echo "$cli_output" | jq -r '.link')
   echo "Download link: $download_link"
 
   [[ "$download_link" != "null" && "$download_link" != "" ]] || exit 1
@@ -97,55 +78,25 @@ teardown_file() {
   fi
 
   # archive the document
-  variables=$(jq -n \
-    --arg documentId "$document_id" \
-    '{
-      input: {
-        documentId: $documentId
-      }
-    }')
+  cli_output=$("$LANACLI" --json document archive --document-id "$document_id")
 
-  exec_admin_graphql 'customer-document-archive' "$variables"
-
-  status=$(graphql_output .data.customerDocumentArchive.document.status)
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "ARCHIVED" ]] || exit 1
 
   # Delete the document
-  variables=$(jq -n \
-    --arg documentId "$document_id" \
-    '{
-      input: {
-        documentId: $documentId
-      }
-    }')
+  cli_output=$("$LANACLI" --json document delete --document-id "$document_id")
 
-  exec_admin_graphql 'customer-document-delete' "$variables"
-
-  deleted_document_id=$(graphql_output .data.customerDocumentDelete.deletedDocumentId)
+  deleted_document_id=$(echo "$cli_output" | jq -r '.deletedDocumentId')
   [[ "$deleted_document_id" == "$document_id" ]] || exit 1
 
   # Verify that the deleted document is no longer accessible
   # Fetch documents for the customer again
-  variables=$(jq -n \
-    --arg customerId "$customer_id" \
-    '{
-      "customerId": $customerId
-    }')
-
-  exec_admin_graphql 'customer-documents' "$variables"
+  cli_output=$("$LANACLI" --json document list --customer-id "$customer_id")
 
   # Check if the deleted document is not in the list
-  documents=$(graphql_output '.data.customer.documents')
-  deleted_document_exists=$(echo "$documents" | jq --arg id "$document_id" 'any(.[]; .id == $id)')
+  deleted_document_exists=$(echo "$cli_output" | jq --arg id "$document_id" 'any(.[]; .id == $id)')
   [[ "$deleted_document_exists" == "false" ]] || exit 1
 
-  variables=$(jq -n \
-    --arg documentId "$document_id" \
-    '{
-      "id": $documentId
-    }')
-
-  exec_admin_graphql 'customer-document' "$variables"
-  document=$(graphql_output '.customerDocument')
-  [[ "$document" == "null" ]] || exit 1
+  cli_output=$("$LANACLI" --json document get --id "$document_id")
+  [[ "$cli_output" == "null" ]] || exit 1
 }

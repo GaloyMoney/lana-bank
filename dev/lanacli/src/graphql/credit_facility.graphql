@@ -111,3 +111,103 @@ query PendingCreditFacilityGet($id: UUID!) {
     }
   }
 }
+
+query CreditFacilityFind($id: UUID!) {
+  creditFacility(id: $id) {
+    creditFacilityId
+    collateralId
+    status
+    maturesAt
+    collateralizationState
+    facilityAmount
+    disbursals {
+      id
+      disbursalId
+      status
+    }
+    history {
+      __typename
+      ... on CreditFacilityInterestAccrued {
+        cents
+        recordedAt
+        txId
+        days
+      }
+      ... on CreditFacilityCollateralizationUpdated {
+        state
+      }
+    }
+    balance {
+      facilityRemaining {
+        usdBalance
+      }
+      outstanding {
+        usdBalance
+      }
+      collateral {
+        btcBalance
+      }
+      disbursed {
+        total {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+      }
+      interest {
+        total {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+      }
+      paymentsUnapplied {
+        usdBalance
+      }
+    }
+    liquidations {
+      liquidationId
+    }
+  }
+}
+
+mutation CreditFacilityPartialPaymentRecord($input: CreditFacilityPartialPaymentRecordInput!) {
+  creditFacilityPartialPaymentRecord(input: $input) {
+    creditFacility {
+      creditFacilityId
+      facilityAmount
+      balance {
+        facilityRemaining {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        collateral {
+          btcBalance
+        }
+        disbursed {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+        }
+        interest {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+        }
+        paymentsUnapplied {
+          usdBalance
+        }
+      }
+    }
+  }
+}

@@ -16,28 +16,18 @@ teardown_file() {
   bank_manager_email=$(generate_email)
 
   # First get the bank-manager role ID
-  exec_admin_graphql 'list-roles'
-  role_id=$(graphql_output ".data.roles.nodes[] | select(.name == \"bank-manager\").roleId")
+  local cli_output
+  cli_output=$("$LANACLI" --json user roles-list)
+  role_id=$(echo "$cli_output" | jq -r '.[] | select(.name == "bank-manager").roleId')
   [[ "$role_id" != "null" ]] || exit 1
 
   # Create user with email and roleId
-  variables=$(
-    jq -n \
-    --arg email "$bank_manager_email" --arg roleId "$role_id" \
-    '{
-      input: {
-        email: $email,
-        roleId: $roleId
-        }
-      }'
-  )
-
-  exec_admin_graphql 'user-create' "$variables"
-  user_id=$(graphql_output .data.userCreate.user.userId)
+  cli_output=$("$LANACLI" --json user create --email "$bank_manager_email" --role-id "$role_id")
+  user_id=$(echo "$cli_output" | jq -r '.userId')
   [[ "$user_id" != "null" ]] || exit 1
 
   # Verify the user was created with the correct role
-  role=$(graphql_output .data.userCreate.user.role.name)
+  role=$(echo "$cli_output" | jq -r '.role.name')
   [[ "$role" = "bank-manager" ]] || exit 1
 }
 

@@ -1,0 +1,39 @@
+query FindReportRun($id: UUID!) {
+  reportRun(id: $id) {
+    reportRunId
+    state
+    reports {
+      reportId
+      files {
+        extension
+      }
+    }
+  }
+}
+
+query ReportRunsList($first: Int!) {
+  reportRuns(first: $first) {
+    nodes {
+      reportRunId
+      state
+      reports {
+        reportId
+        files {
+          extension
+        }
+      }
+    }
+  }
+}
+
+mutation ReportFileDownloadLinkGenerate($input: ReportFileGenerateDownloadLinkInput!) {
+  reportFileGenerateDownloadLink(input: $input) {
+    url
+  }
+}
+
+mutation TriggerReportRun {
+  triggerReportRun {
+    runId
+  }
+}

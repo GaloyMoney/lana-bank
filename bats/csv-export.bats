@@ -18,62 +18,31 @@ teardown_file() {
 
 wait_for_csv_export_completion() {
   local ledger_account_id=$1
-  variables=$(
-    jq -n \
-      --arg ledgerAccountId "$ledger_account_id" \
-    '{ ledgerAccountId: $ledgerAccountId }'
-  )
-  exec_admin_graphql 'account-entry-csv' "$variables"
-  status=$(graphql_output '.data.accountEntryCsv.status')
+  local cli_output
+  cli_output=$("$LANACLI" --json csv-export account-entry --ledger-account-id "$ledger_account_id")
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "ACTIVE" ]] || return 1
 }
 
 @test "CSV export: can create and download CSV export" {
-  exec_admin_graphql 'chart-of-accounts'
-  ledger_account_code=$(graphql_output '.data.chartOfAccounts.children[0].accountCode')
+  local cli_output
+  cli_output=$("$LANACLI" --json accounting chart-of-accounts)
+  ledger_account_code=$(echo "$cli_output" | jq -r '.children[0].accountCode')
   [[ "$ledger_account_code" != "null" ]] || exit 1
 
-  variables=$(
-    jq -n \
-      --arg code "$ledger_account_code" \
-      '{
-        code: $code
-      }'
-  )
-
-  exec_admin_graphql 'ledger-account-by-code' "$variables"
-  ledger_account_id=$(graphql_output '.data.ledgerAccountByCode.ledgerAccountId')
+  cli_output=$("$LANACLI" --json accounting ledger-account --code "$ledger_account_code")
+  ledger_account_id=$(echo "$cli_output" | jq -r '.ledgerAccountId')
   [[ "$ledger_account_id" != "null" ]] || exit 1
 
-  variables=$(
-    jq -n \
-      --arg ledgerAccountId "$ledger_account_id" \
-      '{
-        input: {
-          ledgerAccountId: $ledgerAccountId
-        }
-      }'
-  )
-
-  exec_admin_graphql 'ledger-account-csv-create' "$variables"
-  document_id=$(graphql_output '.data.ledgerAccountCsvCreate.accountingCsvDocument.documentId')
+  cli_output=$("$LANACLI" --json csv-export create-ledger-csv --ledger-account-id "$ledger_account_id")
+  document_id=$(echo "$cli_output" | jq -r '.documentId')
   [[ "$document_id" != "null" ]] || exit 1
 
   # Wait for the async CSV generation job to complete
   retry 30 1 wait_for_csv_export_completion "$ledger_account_id"
 
-  variables=$(
-    jq -n \
-      --arg documentId "$document_id" \
-      '{
-        input: {
-          documentId: $documentId
-        }
-      }'
-  )
-
-  exec_admin_graphql 'accounting-csv-download-link-generate' "$variables"
-  download_url=$(graphql_output '.data.accountingCsvDownloadLinkGenerate')
+  cli_output=$("$LANACLI" --json csv-export download-link --document-id "$document_id")
+  download_url=$(echo "$cli_output" | jq -r '.url')
 
   [[ "$download_url" != "null" ]] || exit 1
 }

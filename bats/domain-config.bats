@@ -16,47 +16,28 @@ teardown_file() {
   from_email="notifications@example.com"
   from_name="Notifier"
 
-  exec_admin_graphql 'notification-email-config'
-  email_config_id=$(graphql_output '.data.domainConfigs.edges[].node | select(.key == "notification-email-from-email").domainConfigId')
-  name_config_id=$(graphql_output '.data.domainConfigs.edges[].node | select(.key == "notification-email-from-name").domainConfigId')
+  local cli_output
+  cli_output=$("$LANACLI" --json domain-config list)
+  email_config_id=$(echo "$cli_output" | jq -r '[.[].node | select(.key == "notification-email-from-email").domainConfigId] | first')
+  name_config_id=$(echo "$cli_output" | jq -r '[.[].node | select(.key == "notification-email-from-name").domainConfigId] | first')
 
-  variables=$(
-    jq -n \
-      --arg id "$email_config_id" \
-      --arg value "$from_email" \
-    '{
-      input: {
-        domainConfigId: $id,
-        value: $value
-      }
-    }'
-  )
+  cli_output=$("$LANACLI" --json domain-config update \
+    --domain-config-id "$email_config_id" \
+    --value-json "\"$from_email\"")
 
-  exec_admin_graphql 'notification-email-config-update' "$variables"
-
-  updated_email=$(graphql_output '.data.domainConfigUpdate.domainConfig.value')
+  updated_email=$(echo "$cli_output" | jq -r '.value')
   [[ "$updated_email" == "$from_email" ]] || exit 1
 
-  variables=$(
-    jq -n \
-      --arg id "$name_config_id" \
-      --arg value "$from_name" \
-    '{
-      input: {
-        domainConfigId: $id,
-        value: $value
-      }
-    }'
-  )
+  cli_output=$("$LANACLI" --json domain-config update \
+    --domain-config-id "$name_config_id" \
+    --value-json "\"$from_name\"")
 
-  exec_admin_graphql 'notification-email-config-update' "$variables"
-
-  updated_name=$(graphql_output '.data.domainConfigUpdate.domainConfig.value')
+  updated_name=$(echo "$cli_output" | jq -r '.value')
   [[ "$updated_name" == "$from_name" ]] || exit 1
 
-  exec_admin_graphql 'notification-email-config'
-  current_email=$(graphql_output '.data.domainConfigs.edges[].node | select(.key == "notification-email-from-email").value')
-  current_name=$(graphql_output '.data.domainConfigs.edges[].node | select(.key == "notification-email-from-name").value')
+  cli_output=$("$LANACLI" --json domain-config list)
+  current_email=$(echo "$cli_output" | jq -r '[.[].node | select(.key == "notification-email-from-email").value] | first')
+  current_name=$(echo "$cli_output" | jq -r '[.[].node | select(.key == "notification-email-from-name").value] | first')
   [[ "$current_email" == "$from_email" ]] || exit 1
   [[ "$current_name" == "$from_name" ]] || exit 1
 }

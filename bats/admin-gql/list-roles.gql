@@ -1,8 +1,0 @@
-query Roles {
-  roles(first: 100) {
-    nodes {
-      roleId
-       name
-    }
-  }
-}

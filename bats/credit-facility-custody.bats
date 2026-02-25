@@ -99,13 +99,9 @@ wait_for_collateral() {
 @test "credit-facility-custody: can update collateral by a custodian" {
   pending_credit_facility_id=$(read_value 'credit_facility_proposal_id')
 
-  variables=$(
-    jq -n \
-      --arg pending_credit_facility_id "$pending_credit_facility_id" \
-      '{ id: $pending_credit_facility_id }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility find --id "$pending_credit_facility_id")
+  collateral=$(echo "$cli_output" | jq -r '.balance.collateral.btcBalance')
   [[ "$collateral" -eq 0 ]] || exit 1
 
   # external wallet ID 123 is hard coded in mock custodian

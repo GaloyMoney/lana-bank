@@ -16,14 +16,10 @@ teardown_file() {
 }
 
 wait_for_approval() {
-  variables=$(
-    jq -n \
-      --arg withdrawId "$1" \
-    '{ id: $withdrawId }'
-  )
-  exec_admin_graphql 'find-withdraw' "$variables"
-  echo "withdrawal | $i. $(graphql_output)" >> $RUN_LOG_FILE
-  status=$(graphql_output '.data.withdrawal.status')
+  local cli_output
+  cli_output=$("$LANACLI" --json withdrawal find --id "$1")
+  echo "withdrawal | $i. $cli_output" >> $RUN_LOG_FILE
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "PENDING_CONFIRMATION" ]] || return 1
 }
 
@@ -147,22 +143,15 @@ wait_for_approval() {
 @test "checking-account: deposit account can be frozen" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId
-      }
-    }'
-  )
-  exec_admin_graphql 'deposit-account-freeze' "$variables"
-  echo $(graphql_output)
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account freeze \
+    --deposit-account-id "$deposit_account_id")
+  echo "$cli_output"
 
-  status=$(graphql_output '.data.depositAccountFreeze.account.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "FROZEN" ]] || exit 1
 
-  balance=$(graphql_output '.data.depositAccountFreeze.account.balance.settled')
+  balance=$(echo "$cli_output" | jq -r '.balance.settled')
   [[ "$balance" == 0 ]] || exit 1
 }
 
@@ -180,18 +169,11 @@ wait_for_approval() {
 @test "checking-account: deposit account can be unfrozen" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId
-      }
-    }'
-  )
-  exec_admin_graphql 'deposit-account-unfreeze' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account unfreeze \
+    --deposit-account-id "$deposit_account_id")
 
-  status=$(graphql_output '.data.depositAccountUnfreeze.account.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
 }
 
@@ -229,18 +211,10 @@ wait_for_approval() {
   deposit_account_id=$(read_value 'deposit_account_id')
 
   # close account with settled balance 50000 (from previous test)
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId
-      }
-    }'
-  )
-  exec_admin_graphql 'deposit-account-close' "$variables"
-  errors=$(graphql_output '.errors')
-  [[ "$errors" =~ "BalanceIsNotZero" ]] || exit 1
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account close \
+    --deposit-account-id "$deposit_account_id" 2>&1 || true)
+  [[ "$cli_output" =~ "BalanceIsNotZero" ]] || exit 1
 }
 
 @test "checking-account: can not close a frozen account with zero balance" {
@@ -267,66 +241,33 @@ wait_for_approval() {
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 
   # freeze the empty account
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId
-      }
-    }'
-  )
-  exec_admin_graphql 'deposit-account-freeze' "$variables"
+  cli_output=$("$LANACLI" --json deposit-account freeze \
+    --deposit-account-id "$deposit_account_id")
 
-  status=$(graphql_output '.data.depositAccountFreeze.account.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "FROZEN" ]] || exit 1
 
   # close the frozen account
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId
-      }
-    }'
-  )
-  exec_admin_graphql 'deposit-account-close' "$variables"
-
-  errors=$(graphql_output '.errors')
-  [[ "$errors" =~ "CannotUpdateFrozenAccount" ]] || exit 1
+  cli_output=$("$LANACLI" --json deposit-account close \
+    --deposit-account-id "$deposit_account_id" 2>&1 || true)
+  [[ "$cli_output" =~ "CannotUpdateFrozenAccount" ]] || exit 1
 }
 
 @test "checking-account: can close account" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
   # unfreeze the frozen account
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId
-      }
-    }'
-  )
-  exec_admin_graphql 'deposit-account-unfreeze' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account unfreeze \
+    --deposit-account-id "$deposit_account_id")
 
-  status=$(graphql_output '.data.depositAccountUnfreeze.account.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
 
   # close the unfrozen(active) account
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId
-      }
-    }'
-  )
-  exec_admin_graphql 'deposit-account-close' "$variables"
+  cli_output=$("$LANACLI" --json deposit-account close \
+    --deposit-account-id "$deposit_account_id")
 
-  status=$(graphql_output '.data.depositAccountClose.account.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "CLOSED" ]] || exit 1
 }

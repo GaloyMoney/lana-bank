@@ -21,5 +21,3 @@ graphql_client = { workspace = true }
 anyhow = { workspace = true }
 comfy-table = { workspace = true }
 url = { workspace = true }
-ratatui = { workspace = true }
-crossterm = { workspace = true }

@@ -1,0 +1,212 @@
+query ChartOfAccountsGet {
+  chartOfAccounts {
+    chartId
+    name
+    children {
+      ...child
+      children {
+        ...child
+        children {
+          ...child
+          children {
+            ...child
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment child on ChartNode {
+  name
+  accountCode
+}
+
+mutation ChartOfAccountsAddRootNode($input: ChartOfAccountsAddRootNodeInput!) {
+  chartOfAccountsAddRootNode(input: $input) {
+    chartOfAccounts {
+      chartId
+      name
+      children {
+        ...rootChild
+        children {
+          ...rootChild
+          children {
+            ...rootChild
+            children {
+              ...rootChild
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment rootChild on ChartNode {
+  name
+  accountCode
+}
+
+mutation ChartOfAccountsAddChildNode($input: ChartOfAccountsAddChildNodeInput!) {
+  chartOfAccountsAddChildNode(input: $input) {
+    chartOfAccounts {
+      chartId
+      name
+      children {
+        ...childNode
+        children {
+          ...childNode
+          children {
+            ...childNode
+            children {
+              ...childNode
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment childNode on ChartNode {
+  name
+  accountCode
+}
+
+mutation ChartOfAccountsCsvImport($input: ChartOfAccountsCsvImportInput!) {
+  chartOfAccountsCsvImport(input: $input) {
+    chartOfAccounts {
+      chartId
+    }
+  }
+}
+
+query AccountingBaseConfig {
+  chartOfAccounts {
+    accountingBaseConfig {
+      assetsCode
+      liabilitiesCode
+      equityCode
+      equityRetainedEarningsGainCode
+      equityRetainedEarningsLossCode
+      revenueCode
+      costOfRevenueCode
+      expensesCode
+    }
+  }
+}
+
+query CreditConfigGet {
+  creditConfig {
+    chartOfAccountFacilityOmnibusParentCode
+    chartOfAccountCollateralOmnibusParentCode
+    chartOfAccountLiquidationProceedsOmnibusParentCode
+    chartOfAccountFacilityParentCode
+    chartOfAccountCollateralParentCode
+    chartOfAccountCollateralInLiquidationParentCode
+    chartOfAccountInterestIncomeParentCode
+    chartOfAccountFeeIncomeParentCode
+    chartOfAccountPaymentHoldingParentCode
+    chartOfAccountShortTermIndividualDisbursedReceivableParentCode
+    chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
+    chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode
+    chartOfAccountShortTermBankDisbursedReceivableParentCode
+    chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode
+    chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+    chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode
+    chartOfAccountLongTermIndividualDisbursedReceivableParentCode
+    chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode
+    chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode
+    chartOfAccountLongTermBankDisbursedReceivableParentCode
+    chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode
+    chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+    chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode
+    chartOfAccountShortTermIndividualInterestReceivableParentCode
+    chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode
+    chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode
+    chartOfAccountShortTermBankInterestReceivableParentCode
+    chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode
+    chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+    chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode
+    chartOfAccountLongTermIndividualInterestReceivableParentCode
+    chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode
+    chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode
+    chartOfAccountLongTermBankInterestReceivableParentCode
+    chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode
+    chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+    chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode
+    chartOfAccountOverdueIndividualDisbursedReceivableParentCode
+    chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode
+    chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode
+    chartOfAccountOverdueBankDisbursedReceivableParentCode
+    chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode
+    chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+    chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode
+  }
+}
+
+query DepositConfigGet {
+  depositConfig {
+    chartOfAccountsOmnibusParentCode
+    chartOfAccountsIndividualDepositAccountsParentCode
+    chartOfAccountsGovernmentEntityDepositAccountsParentCode
+    chartOfAccountPrivateCompanyDepositAccountsParentCode
+    chartOfAccountBankDepositAccountsParentCode
+    chartOfAccountFinancialInstitutionDepositAccountsParentCode
+    chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
+    chartOfAccountsFrozenIndividualDepositAccountsParentCode
+    chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode
+    chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode
+    chartOfAccountFrozenBankDepositAccountsParentCode
+    chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode
+    chartOfAccountFrozenNonDomiciledCompanyDepositAccountsParentCode
+  }
+}
+
+query DescendantAccountSetsByCategory($category: AccountCategory!) {
+  descendantAccountSetsByCategory(category: $category) {
+    accountSetId
+    code
+    name
+  }
+}
+
+mutation ManualTransactionExecute($input: ManualTransactionExecuteInput!) {
+  manualTransactionExecute(input: $input) {
+    transaction {
+      ledgerTransactionId
+      createdAt
+      effective
+      description
+      entries {
+        entryId
+        txId
+      }
+    }
+  }
+}
+
+query LedgerAccountByCode($code: String!) {
+  ledgerAccountByCode(code: $code) {
+    ledgerAccountId
+    history(first: 100) {
+      nodes {
+        txId
+        amount {
+          __typename
+          ... on UsdAmount {
+            usd
+          }
+        }
+        direction
+        createdAt
+        entryType
+        description
+        ledgerTransaction {
+          ledgerTransactionId
+        }
+      }
+    }
+  }
+}

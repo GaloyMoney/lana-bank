@@ -13,21 +13,17 @@ teardown_file() {
 }
 
 find_report_run() {
-  variables=$(jq -n '{ first: 1 }')
-  exec_admin_graphql 'report-runs' "$variables"
-  run_id=$(graphql_output '.data.reportRuns.nodes[0].reportRunId')
+  local cli_output
+  cli_output=$("$LANACLI" --json report list --first 1)
+  run_id=$(echo "$cli_output" | jq -r '.[0].reportRunId')
   [[ "$run_id" != "null" && -n "$run_id" ]] || return 1
 }
 
 wait_for_report_run_complete() {
   local run_id=$1
-  variables=$(
-    jq -n \
-    --arg id "$run_id" \
-    '{ id: $id }'
-  )
-  exec_admin_graphql 'find-report' "$variables"
-  state=$(graphql_output .data.reportRun.state)
+  local cli_output
+  cli_output=$("$LANACLI" --json report find --id "$run_id")
+  state=$(echo "$cli_output" | jq -r '.state')
   [[ "$state" == "SUCCESS" || "$state" == "FAILED" ]] || return 1
 }
 
@@ -40,27 +36,26 @@ wait_for_report_run_complete() {
   fi
 
   # Trigger a report run
-  exec_admin_graphql 'trigger-report-run'
-  echo "triggerReportRun response: $(graphql_output)"
+  local cli_output
+  cli_output=$("$LANACLI" --json report trigger)
+  echo "triggerReportRun response: $cli_output"
 
   # Poll for the report run to appear (async creation, may take a while)
   retry 60 5 find_report_run
-  variables=$(jq -n '{ first: 1 }')
-  exec_admin_graphql 'report-runs' "$variables"
-  echo "reportRuns response: $(graphql_output)"
-  run_id=$(graphql_output '.data.reportRuns.nodes[0].reportRunId')
+  cli_output=$("$LANACLI" --json report list --first 1)
+  echo "reportRuns response: $cli_output"
+  run_id=$(echo "$cli_output" | jq -r '.[0].reportRunId')
   [[ "$run_id" != "null" && -n "$run_id" ]] || exit 1
 
   # Wait for the report run to reach a terminal state (up to ~8 minutes)
   retry 240 2 wait_for_report_run_complete "$run_id"
 
   # Fetch completed run details
-  variables=$(jq -n --arg id "$run_id" '{ id: $id }')
-  exec_admin_graphql 'find-report' "$variables"
-  echo "Completed run: $(graphql_output)"
+  cli_output=$("$LANACLI" --json report find --id "$run_id")
+  echo "Completed run: $cli_output"
 
   # Extract reports and their files, then generate download links
-  reports_json=$(graphql_output '.data.reportRun.reports')
+  reports_json=$(echo "$cli_output" | jq '.reports')
   reports_length=$(echo "$reports_json" | jq 'length')
   [[ "$reports_length" -gt 0 ]] || exit 1
 
@@ -73,20 +68,11 @@ wait_for_report_run_complete() {
     for j in $(seq 0 $((files_length - 1))); do
       extension=$(echo "$files_json" | jq -r ".[$j].extension")
 
-      variables=$(jq -n \
-        --arg reportId "$report_id" \
-        --arg extension "$extension" \
-        '{
-          input: {
-            reportId: $reportId,
-            extension: $extension
-          }
-        }')
+      local link_output
+      link_output=$("$LANACLI" --json report download-link --report-id "$report_id" --extension "$extension")
+      echo "Download link response: $link_output"
 
-      exec_admin_graphql 'report-file-download-link' "$variables"
-      echo "Download link response: $(graphql_output)"
-
-      url=$(graphql_output '.data.reportFileGenerateDownloadLink.url')
+      url=$(echo "$link_output" | jq -r '.url')
       [[ "$url" != "null" && -n "$url" ]] || exit 1
 
       # Handle both local file:// URLs and HTTP URLs

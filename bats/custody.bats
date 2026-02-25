@@ -18,7 +18,7 @@ teardown_file() {
   secret_key="test-secret-key-$(date +%s)"
   webhook_secret="test-webhook-secret-$(date +%s)"
 
-  variables=$(
+  input_json=$(
     jq -n \
     --arg name "$name" \
     --arg apiKey "$api_key" \
@@ -26,21 +26,20 @@ teardown_file() {
     --arg secretKey "$secret_key" \
     --arg webhookSecret "$webhook_secret" \
     '{
-      input: {
-        komainu: {
-          name: $name,
-          apiKey: $apiKey,
-          apiSecret: $apiSecret,
-          testingInstance: true,
-          secretKey: $secretKey,
-          webhookSecret: $webhookSecret
-        }
+      komainu: {
+        name: $name,
+        apiKey: $apiKey,
+        apiSecret: $apiSecret,
+        testingInstance: true,
+        secretKey: $secretKey,
+        webhookSecret: $webhookSecret
       }
     }'
   )
-  
-  exec_admin_graphql 'custodian-create' "$variables"
-  custodian_id=$(graphql_output .data.custodianCreate.custodian.custodianId)
+
+  local cli_output
+  cli_output=$("$LANACLI" --json custodian create --input-json "$input_json")
+  custodian_id=$(echo "$cli_output" | jq -r '.custodianId')
   [[ "$custodian_id" != "null" ]] || exit 1
 
   cache_value "custodian_id" "$custodian_id"
@@ -48,40 +47,37 @@ teardown_file() {
 
 @test "custody: can update custodian config" {
   custodian_id=$(read_value "custodian_id")
-  
+
   name="test-komainu-$(date +%s)"
   new_api_key="updated-api-key-$(date +%s)"
   new_api_secret="updated-api-secret-$(date +%s)"
   new_secret_key="updated-secret-key-$(date +%s)"
   new_webhook_secret="updated-webhook-secret-$(date +%s)"
-  
-  variables=$(
+
+  config_json=$(
     jq -n \
     --arg name "$name" \
-    --arg custodianId "$custodian_id" \
     --arg apiKey "$new_api_key" \
     --arg apiSecret "$new_api_secret" \
     --arg secretKey "$new_secret_key" \
     --arg webhookSecret "$new_webhook_secret" \
     '{
-      input: {
-        custodianId: $custodianId,
-        config: {
-          komainu: {
-            name: $name,
-            apiKey: $apiKey,
-            apiSecret: $apiSecret,
-            testingInstance: false,
-            secretKey: $secretKey,
-            webhookSecret: $webhookSecret
-          }
-        }
+      komainu: {
+        name: $name,
+        apiKey: $apiKey,
+        apiSecret: $apiSecret,
+        testingInstance: false,
+        secretKey: $secretKey,
+        webhookSecret: $webhookSecret
       }
     }'
   )
-  
-  exec_admin_graphql 'custodian-config-update' "$variables"
-  custodian_id=$(graphql_output .data.custodianConfigUpdate.custodian.custodianId)
-  [[ "$custodian_id" != "null" ]] || exit 1
-  
+
+  local cli_output
+  cli_output=$("$LANACLI" --json custodian config-update \
+    --custodian-id "$custodian_id" \
+    --config-json "$config_json")
+  updated_id=$(echo "$cli_output" | jq -r '.custodianId')
+  [[ "$updated_id" != "null" ]] || exit 1
+
 }

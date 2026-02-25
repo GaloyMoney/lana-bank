@@ -29,14 +29,10 @@ wait_for_approval() {
 wait_for_active() {
   credit_facility_id=$1
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
 
-  status=$(graphql_output '.data.creditFacility.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
 }
 
@@ -44,18 +40,14 @@ wait_for_disbursal() {
   credit_facility_id=$1
   disbursal_id=$2
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  echo "disbursal | $i. $(graphql_output)" >> $RUN_LOG_FILE
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
+  echo "disbursal | $i. $cli_output" >> $RUN_LOG_FILE
   num_disbursals=$(
-    graphql_output \
+    echo "$cli_output" | jq \
       --arg disbursal_id "$disbursal_id" \
       '[
-        .data.creditFacility.disbursals[]
+        .disbursals[]
         | select(.disbursalId == $disbursal_id)
         ] | length'
   )
@@ -66,16 +58,12 @@ wait_for_accruals() {
   expected_num_accruals=$1
   credit_facility_id=$2
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  echo "accrual | $i. $(graphql_output)" >> $RUN_LOG_FILE
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
+  echo "accrual | $i. $cli_output" >> $RUN_LOG_FILE
   num_accruals=$(
-    graphql_output '[
-      .data.creditFacility.history[]
+    echo "$cli_output" | jq '[
+      .history[]
       | select(.__typename == "CreditFacilityInterestAccrued")
       ] | length'
   )
@@ -89,8 +77,9 @@ wait_for_dashboard_disbursed() {
 
   expected_after="$(( $before + $disbursed_amount ))"
 
-  exec_admin_graphql 'dashboard'
-  after=$(graphql_output '.data.dashboard.totalDisbursed')
+  local cli_output
+  cli_output=$("$LANACLI" --json dashboard get)
+  after=$(echo "$cli_output" | jq -r '.totalDisbursed')
 
   [[ "$after" -eq "$expected_after" ]] || exit 1
 }
@@ -102,14 +91,10 @@ wait_for_payment() {
 
   expected_after="$(( $outstanding_before - $payment_amount ))"
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
 
-  balance=$(graphql_output '.data.creditFacility.balance')
+  balance=$(echo "$cli_output" | jq -r '.balance')
   after=$(echo $balance | jq -r '.outstanding.usdBalance')
 
   [[ "$after" -eq "$expected_after" ]] || exit 1
@@ -121,8 +106,9 @@ wait_for_dashboard_payment() {
 
   expected_after="$(( $before - $payment_amount ))"
 
-  exec_admin_graphql 'dashboard'
-  after=$(graphql_output '.data.dashboard.totalDisbursed')
+  local cli_output
+  cli_output=$("$LANACLI" --json dashboard get)
+  after=$(echo "$cli_output" | jq -r '.totalDisbursed')
 
   [[ "$after" -eq "$expected_after" ]] || exit 1
 }
@@ -195,8 +181,9 @@ ymd() {
 @test "credit-facility: can initiate disbursal" {
   credit_facility_id=$(read_value 'credit_facility_id')
 
-  exec_admin_graphql 'dashboard'
-  disbursed_before=$(graphql_output '.data.dashboard.totalDisbursed')
+  local dashboard_output
+  dashboard_output=$("$LANACLI" --json dashboard get)
+  disbursed_before=$(echo "$dashboard_output" | jq -r '.totalDisbursed')
 
   amount=50000
   local cli_output
@@ -217,15 +204,11 @@ ymd() {
 
   cat_logs | grep "interest accrual cycles completed for.*$credit_facility_id" || exit 1
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
   num_accruals=$(
-    graphql_output '[
-      .data.creditFacility.history[]
+    echo "$cli_output" | jq '[
+      .history[]
       | select(.__typename == "CreditFacilityInterestAccrued")
       ] | length'
   )
@@ -237,16 +220,13 @@ ymd() {
 @test "credit-facility: record payment" {
   credit_facility_id=$(read_value 'credit_facility_id')
 
-  exec_admin_graphql 'dashboard'
-  disbursed_before=$(graphql_output '.data.dashboard.totalDisbursed')
+  local dashboard_output
+  dashboard_output=$("$LANACLI" --json dashboard get)
+  disbursed_before=$(echo "$dashboard_output" | jq -r '.totalDisbursed')
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  balance=$(graphql_output '.data.creditFacility.balance')
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
+  balance=$(echo "$cli_output" | jq -c '.balance')
 
   interest=$(echo $balance | jq -r '.interest.total.usdBalance')
   interest_outstanding=$(echo $balance | jq -r '.interest.outstanding.usdBalance')
@@ -265,31 +245,18 @@ ymd() {
 
   disbursed_payment=25000
   amount="$(( $disbursed_payment + $interest_outstanding ))"
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-      --argjson amount "$amount" \
-    '{
-      input: {
-        creditFacilityId: $creditFacilityId,
-        amount: $amount,
-      }
-    }'
-  )
-  exec_admin_graphql 'credit-facility-partial-payment-record' "$variables"
-  balance_after_payment=$(graphql_output '.data.creditFacilityPartialPaymentRecord.creditFacility.balance')
+  local payment_output
+  payment_output=$("$LANACLI" --json credit-facility partial-payment-record \
+    --credit-facility-id "$credit_facility_id" \
+    --amount "$amount")
+  balance_after_payment=$(echo "$payment_output" | jq -c '.balance')
   payments_unapplied_after=$(echo $balance_after_payment | jq -r '.paymentsUnapplied.usdBalance')
   [[ "$payments_unapplied_after" -gt 0 ]] || exit 1
 
   retry 30 2 wait_for_payment "$credit_facility_id" "$total_outstanding" "$amount"
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  updated_balance=$(graphql_output '.data.creditFacility.balance')
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
+  updated_balance=$(echo "$cli_output" | jq -c '.balance')
 
   updated_interest=$(echo $updated_balance | jq -r '.interest.total.usdBalance')
   [[ "$interest" -eq "$updated_interest" ]] || exit 1

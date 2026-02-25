@@ -13,31 +13,33 @@ teardown_file() {
 }
 
 @test "audit: check audit logs" {
-  exec_admin_graphql 'audit-logs' '{"first": 1}'
-  exec_admin_graphql 'audit-logs' '{"first": 1}'
-  exec_admin_graphql 'audit-logs' '{"first": 1}'
+  local cli_output
 
-  edges_length=$(graphql_output '.data.audit.edges | length')
+  # Call audit list three times to generate audit entries
+  "$LANACLI" --json audit list --first 1 > /dev/null
+  "$LANACLI" --json audit list --first 1 > /dev/null
+  cli_output=$("$LANACLI" --json audit list --first 1)
+
+  edges_length=$(echo "$cli_output" | jq '. | length')
   [[ "$edges_length" -eq 1 ]] || exit 1
 
-  action=$(graphql_output '.data.audit.edges[-1].node.action')
+  action=$(echo "$cli_output" | jq -r '.[-1].node.action')
   [[ "$action" == "audit:audit:list" ]] || exit 1
 
-
-  exec_admin_graphql 'audit-logs' '{"first": 2}'
-  edges_length=$(graphql_output '.data.audit.edges | length')
+  cli_output=$("$LANACLI" --json audit list --first 2)
+  edges_length=$(echo "$cli_output" | jq '. | length')
   [[ "$edges_length" -eq 2 ]] || exit 1
 
-  action=$(graphql_output '.data.audit.edges[-1].node.action')
+  action=$(echo "$cli_output" | jq -r '.[-1].node.action')
   [[ "$action" == "audit:audit:list" ]] || exit 1
 
-  end_cursor=$(graphql_output '.data.audit.pageInfo.endCursor')
+  end_cursor=$(echo "$cli_output" | jq -r '.[-1].cursor')
   [[ -n "$end_cursor" ]] || exit 1  # Ensure endCursor is not empty
   echo "end_cursor: $end_cursor"
 
-  exec_admin_graphql 'audit-logs' "{\"first\": 2, \"after\": \"$end_cursor\"}"
-  echo "$output"
+  cli_output=$("$LANACLI" --json audit list --first 2 --after "$end_cursor")
+  echo "$cli_output"
 
-  edges_length=$(graphql_output '.data.audit.edges | length')
+  edges_length=$(echo "$cli_output" | jq '. | length')
   [[ "$edges_length" -eq 2 ]] || exit 1
 }

@@ -13,13 +13,9 @@ teardown_file() {
 }
 
 wait_for_loan_agreement_completion() {
-  variables=$(
-    jq -n \
-      --arg loanAgreementId "$1" \
-    '{ id: $loanAgreementId }'
-  )
-  exec_admin_graphql 'find-loan-agreement' "$variables"
-  status=$(graphql_output '.data.loanAgreement.status')
+  local cli_output
+  cli_output=$("$LANACLI" --json loan-agreement find --id "$1")
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "COMPLETED" ]] || return 1
 }
 
@@ -43,7 +39,14 @@ wait_for_loan_agreement_completion() {
   [[ "$prospect_id" != "null" && -n "$prospect_id" ]] || exit 1
 
   # Create permalink (for reference and fallback testing)
+  local permalink_output
+  permalink_output=$("$LANACLI" --json sumsub permalink-create --prospect-id "$prospect_id")
+  url=$(echo "$permalink_output" | jq -r '.url')
+  [[ "$url" != "null" ]] || exit 1
+  echo "Created permalink: $url"
 
+  # Test complete KYC flow via GraphQL mutation
+  echo "Testing complete KYC flow via sumsubTestApplicantCreate..."
   variables=$(
     jq -n \
     --arg prospectId "$prospect_id" \
@@ -53,14 +56,6 @@ wait_for_loan_agreement_completion() {
       }
     }'
   )
-
-  exec_admin_graphql 'sumsub-permalink-create' "$variables"
-  url=$(graphql_output .data.sumsubPermalinkCreate.url)
-  [[ "$url" != "null" ]] || exit 1
-  echo "Created permalink: $url"
-
-  # Test complete KYC flow via GraphQL mutation
-  echo "Testing complete KYC flow via sumsubTestApplicantCreate..."
   exec_admin_graphql 'sumsub-test-applicant-create' "$variables"
   echo "graphql_output: $(graphql_output)"
 
@@ -132,33 +127,23 @@ wait_for_loan_agreement_completion() {
 
   # Contract/PDF generation tests - skip if Gotenberg is not available
   if [[ "${GOTENBERG:-false}" == "true" ]]; then
-    variables=$(
-      jq -n \
-        --arg customerId "$customer_id" \
-      '{ input: { customerId: $customerId } }'
-    )
+    local la_output
+    la_output=$("$LANACLI" --json loan-agreement generate --customer-id "$customer_id")
 
-    exec_admin_graphql 'loan-agreement-generate' "$variables"
-
-    loan_agreement_id=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.id')
+    loan_agreement_id=$(echo "$la_output" | jq -r '.id')
     [[ "$loan_agreement_id" != "null" ]] || exit 1
     [[ "$loan_agreement_id" != "" ]] || exit 1
 
-    status=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.status')
+    status=$(echo "$la_output" | jq -r '.status')
     [[ "$status" == "PENDING" ]] || exit 1
 
     retry 30 1 wait_for_loan_agreement_completion $loan_agreement_id
 
-    variables=$(
-      jq -n \
-        --arg loanAgreementId "$loan_agreement_id" \
-      '{ input: { loanAgreementId: $loanAgreementId } }'
-    )
+    local dl_output
+    dl_output=$("$LANACLI" --json loan-agreement download-link --loan-agreement-id "$loan_agreement_id")
 
-    exec_admin_graphql 'loan-agreement-download-link-generate' "$variables"
-
-    download_link=$(graphql_output '.data.loanAgreementDownloadLinkGenerate.link')
-    returned_loan_agreement_id=$(graphql_output '.data.loanAgreementDownloadLinkGenerate.loanAgreementId')
+    download_link=$(echo "$dl_output" | jq -r '.link')
+    returned_loan_agreement_id=$(echo "$dl_output" | jq -r '.loanAgreementId')
 
     [[ "$download_link" != "null" ]] || exit 1
     [[ "$download_link" != "" ]] || exit 1

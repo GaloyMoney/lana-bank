@@ -205,6 +205,57 @@ pub async fn execute(
                 ]);
             }
         }
+        DepositAccountAction::Freeze { deposit_account_id } => {
+            let vars = deposit_account_freeze::Variables {
+                input: deposit_account_freeze::DepositAccountFreezeInput { deposit_account_id },
+            };
+            let data = client.execute::<DepositAccountFreeze>(vars).await?;
+            let a = data.deposit_account_freeze.account;
+            if json {
+                output::print_json(&a)?;
+            } else {
+                let settled = scalar(&a.balance.settled);
+                output::print_kv(&[
+                    ("Account ID", &a.deposit_account_id),
+                    ("Status", &format!("{:?}", a.status)),
+                    ("Balance (settled)", &settled),
+                ]);
+            }
+        }
+        DepositAccountAction::Unfreeze { deposit_account_id } => {
+            let vars = deposit_account_unfreeze::Variables {
+                input: deposit_account_unfreeze::DepositAccountUnfreezeInput { deposit_account_id },
+            };
+            let data = client.execute::<DepositAccountUnfreeze>(vars).await?;
+            let a = data.deposit_account_unfreeze.account;
+            if json {
+                output::print_json(&a)?;
+            } else {
+                let settled = scalar(&a.balance.settled);
+                output::print_kv(&[
+                    ("Account ID", &a.deposit_account_id),
+                    ("Status", &format!("{:?}", a.status)),
+                    ("Balance (settled)", &settled),
+                ]);
+            }
+        }
+        DepositAccountAction::Close { deposit_account_id } => {
+            let vars = deposit_account_close::Variables {
+                input: deposit_account_close::DepositAccountCloseInput { deposit_account_id },
+            };
+            let data = client.execute::<DepositAccountClose>(vars).await?;
+            let a = data.deposit_account_close.account;
+            if json {
+                output::print_json(&a)?;
+            } else {
+                let settled = scalar(&a.balance.settled);
+                output::print_kv(&[
+                    ("Account ID", &a.deposit_account_id),
+                    ("Status", &format!("{:?}", a.status)),
+                    ("Balance (settled)", &settled),
+                ]);
+            }
+        }
     }
     Ok(())
 }

@@ -29,30 +29,22 @@ wait_for_approval() {
 wait_for_active() {
   credit_facility_id=$1
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
 
-  status=$(graphql_output '.data.creditFacility.status')
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
 }
 
 wait_for_facility_to_be_under_liquidation_threshold() {
   credit_facility_id=$1
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  echo "liquidation | $i. $(graphql_output)" >> $RUN_LOG_FILE
+  local cli_output
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
+  echo "liquidation | $i. $cli_output" >> $RUN_LOG_FILE
 
-  state=$(graphql_output '.data.creditFacility.collateralizationState')
-  liquidations_len=$(graphql_output '[.data.creditFacility.liquidations[]] | length')
+  state=$(echo "$cli_output" | jq -r '.collateralizationState')
+  liquidations_len=$(echo "$cli_output" | jq '[.liquidations[]] | length')
 
   [[ "$state" == "UNDER_LIQUIDATION_THRESHOLD" ]] || return 1
   [[ "$liquidations_len" -ge "1" ]] || return 1
@@ -114,21 +106,16 @@ wait_for_facility_to_be_under_liquidation_threshold() {
 
   retry 60 2 wait_for_facility_to_be_under_liquidation_threshold "$credit_facility_id"
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
+  cli_output=$("$LANACLI" --json credit-facility find --id "$credit_facility_id")
 
-  state=$(graphql_output '.data.creditFacility.collateralizationState')
+  state=$(echo "$cli_output" | jq -r '.collateralizationState')
   [[ "$state" == "UNDER_LIQUIDATION_THRESHOLD" ]] || exit 1
 
-  liquidation_id=$(graphql_output '.data.creditFacility.liquidations[0].liquidationId')
+  liquidation_id=$(echo "$cli_output" | jq -r '.liquidations[0].liquidationId')
   [[ "$liquidation_id" != "null" ]] || exit 1
   cache_value 'liquidation_id' "$liquidation_id"
 
-  collateral_id=$(graphql_output '.data.creditFacility.collateralId')
+  collateral_id=$(echo "$cli_output" | jq -r '.collateralId')
   [[ "$collateral_id" != "null" ]] || exit 1
   cache_value 'collateral_id' "$collateral_id"
 }
@@ -138,26 +125,18 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   collateral_id=$(read_value 'collateral_id')
 
   collateral_to_send=50000000
-  variables=$(
-    jq -n \
-      --arg collateralId "$collateral_id" \
-      --argjson amount "$collateral_to_send" \
-    '{
-      input: {
-        collateralId: $collateralId,
-        amount: $amount
-      }
-    }'
-  )
-  exec_admin_graphql 'liquidation-record-collateral-sent' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json liquidation record-collateral-sent \
+    --collateral-id "$collateral_id" \
+    --amount "$collateral_to_send")
 
-  returned_id=$(graphql_output '.data.collateralRecordSentToLiquidation.collateral.creditFacility.liquidations[0].liquidationId')
+  returned_id=$(echo "$cli_output" | jq -r '.creditFacility.liquidations[0].liquidationId')
   [[ "$returned_id" == "$liquidation_id" ]] || exit 1
 
-  sent_total=$(graphql_output '.data.collateralRecordSentToLiquidation.collateral.creditFacility.liquidations[0].sentTotal')
+  sent_total=$(echo "$cli_output" | jq -r '.creditFacility.liquidations[0].sentTotal')
   [[ "$sent_total" -ge "$collateral_to_send" ]] || exit 1
 
-  last_sent_amount=$(graphql_output '.data.collateralRecordSentToLiquidation.collateral.creditFacility.liquidations[0].sentCollateral[-1].amount')
+  last_sent_amount=$(echo "$cli_output" | jq -r '.creditFacility.liquidations[0].sentCollateral[-1].amount')
   [[ "$last_sent_amount" -eq "$collateral_to_send" ]] || exit 1
 }
 
@@ -165,46 +144,28 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   liquidation_id=$(read_value 'liquidation_id')
   collateral_id=$(read_value 'collateral_id')
 
-  variables=$(
-    jq -n \
-      --arg id "$liquidation_id" \
-    '{ id: $id }'
-  )
-  exec_admin_graphql 'find-liquidation' "$variables"
-  before_received_total=$(graphql_output '.data.liquidation.amountReceived')
-  before_received_len=$(graphql_output '.data.liquidation.receivedProceeds | length')
+  local cli_output
+  cli_output=$("$LANACLI" --json liquidation find --id "$liquidation_id")
+  before_received_total=$(echo "$cli_output" | jq -r '.amountReceived')
+  before_received_len=$(echo "$cli_output" | jq '.receivedProceeds | length')
 
   payment=10000000
-  variables=$(
-    jq -n \
-      --arg collateralId "$collateral_id" \
-      --argjson amount "$payment" \
-    '{
-      input: {
-        collateralId: $collateralId,
-        amount: $amount
-      }
-    }'
-  )
-  exec_admin_graphql 'liquidation-record-payment-received' "$variables"
+  cli_output=$("$LANACLI" --json liquidation record-payment-received \
+    --collateral-id "$collateral_id" \
+    --amount "$payment")
 
-  returned_collateral_id=$(graphql_output '.data.collateralRecordProceedsFromLiquidation.collateral.collateralId')
+  returned_collateral_id=$(echo "$cli_output" | jq -r '.collateralId')
   [[ "$returned_collateral_id" == "$collateral_id" ]] || exit 1
 
   # Fetch liquidation to verify the payment was recorded
-  variables=$(
-    jq -n \
-      --arg id "$liquidation_id" \
-    '{ id: $id }'
-  )
-  exec_admin_graphql 'find-liquidation' "$variables"
+  cli_output=$("$LANACLI" --json liquidation find --id "$liquidation_id")
 
-  received_total=$(graphql_output '.data.liquidation.amountReceived')
+  received_total=$(echo "$cli_output" | jq -r '.amountReceived')
   [[ "$received_total" -eq "$((before_received_total + payment))" ]] || exit 1
 
-  received_len=$(graphql_output '.data.liquidation.receivedProceeds | length')
+  received_len=$(echo "$cli_output" | jq '.receivedProceeds | length')
   [[ "$received_len" -eq "$((before_received_len + 1))" ]] || exit 1
 
-  last_received_amount=$(graphql_output '.data.liquidation.receivedProceeds[-1].amount')
+  last_received_amount=$(echo "$cli_output" | jq -r '.receivedProceeds[-1].amount')
   [[ "$last_received_amount" -eq "$payment" ]] || exit 1
 }

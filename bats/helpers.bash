@@ -514,44 +514,36 @@ create_deposit_account_for_customer() {
 }
 
 assert_balance_sheet_balanced() {
-  variables=$(
-    jq -n \
-      --arg from "$(from_utc)" \
-      '{ from: $from }'
-  )
-  exec_admin_graphql 'balance-sheet' "$variables"
-  echo $(graphql_output)
+  local from_date
+  from_date=$(from_utc)
+  cli_output=$("$LANACLI" --json financial-statement balance-sheet --from "$from_date")
+  echo "$cli_output"
 
-  balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.netDebit')
-  balance=${balance_usd}
+  balance=$(echo "$cli_output" | jq -r '.balance.close.settled.net')
   echo "Balance Sheet USD Balance (should be 0): $balance"
   [[ "$balance" == "0" ]] || exit 1
 
-  debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.debit')
-  debit=${debit_usd}
+  debit=$(echo "$cli_output" | jq -r '.balance.close.settled.debit')
   echo "Balance Sheet USD Debit (should be >0): $debit"
   [[ "$debit" -gt "0" ]] || exit 1
 
-  credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.credit')
-  credit=${credit_usd}
+  credit=$(echo "$cli_output" | jq -r '.balance.close.settled.credit')
   echo "Balance Sheet USD Credit (should be == debit): $credit"
   [[ "$credit" == "$debit" ]] || exit 1
 }
 
 assert_trial_balance() {
-  variables=$(
-    jq -n \
-      --arg from "$(from_utc)" \
-      '{ from: $from }'
-  )
-  exec_admin_graphql 'trial-balance' "$variables"
-  echo $(graphql_output)
+  local from_date until_date
+  from_date=$(from_utc)
+  until_date=$(naive_now)
+  cli_output=$("$LANACLI" --json financial-statement trial-balance --from "$from_date" --until "$until_date")
+  echo "$cli_output"
 
-  all_btc=$(graphql_output '.data.trialBalance.total.btc.balancesByLayer.all.netDebit')
+  all_btc=$(echo "$cli_output" | jq -r '.total.btc.close.settled.net')
   echo "Trial Balance BTC (should be zero): $all_btc"
   [[ "$all_btc" == "0" ]] || exit 1
 
-  all_usd=$(graphql_output '.data.trialBalance.total.usd.balancesByLayer.all.netDebit')
+  all_usd=$(echo "$cli_output" | jq -r '.total.usd.close.settled.net')
   echo "Trial Balance USD (should be zero): $all_usd"
   [[ "$all_usd" == "0" ]] || exit 1
 }
@@ -562,14 +554,11 @@ assert_accounts_balanced() {
 }
 
 net_usd_revenue() {
-  variables=$(
-    jq -n \
-      --arg from "$(from_utc)" \
-      '{ from: $from }'
-  )
-  exec_admin_graphql 'profit-and-loss' "$variables"
+  local from_date
+  from_date=$(from_utc)
+  cli_output=$("$LANACLI" --json financial-statement profit-and-loss --from "$from_date")
 
-  revenue_usd=$(graphql_output '.data.profitAndLossStatement.net.usd.balancesByLayer.all.netCredit')
+  revenue_usd=$(echo "$cli_output" | jq -r '.total.usd.close.settled.net')
   echo $revenue_usd
 }
 
