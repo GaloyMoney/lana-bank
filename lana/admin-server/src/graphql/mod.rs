@@ -1,6 +1,5 @@
 mod accounting;
 mod approval_process;
-mod approval_rules;
 mod audit;
 mod committee;
 mod credit_facility;

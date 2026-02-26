@@ -33,8 +33,8 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    accounting::*, approval_process::*, credit_facility::*, customer::*, deposit::*, loader::*,
-    price::*, prospect::*, public_id::*, reports::*, withdrawal::*,
+    accounting::*, credit_facility::*, customer::*, deposit::*, loader::*, price::*, prospect::*,
+    public_id::*, reports::*, withdrawal::*,
 };
 
 #[derive(MergedObject, Default)]
@@ -505,38 +505,6 @@ impl BaseQuery {
             after,
             first,
             |query| app.credit().collaterals().list_liquidations(sub, query)
-        )
-    }
-
-    async fn approval_process(
-        &self,
-        ctx: &Context<'_>,
-        id: UUID,
-    ) -> async_graphql::Result<Option<ApprovalProcess>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(
-            ApprovalProcess,
-            ctx,
-            app.governance().find_approval_process_by_id(sub, id)
-        )
-    }
-
-    async fn approval_processes(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<ApprovalProcessesByCreatedAtCursor, ApprovalProcess, EmptyFields, EmptyFields>,
-    > {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            ApprovalProcessesByCreatedAtCursor,
-            ApprovalProcess,
-            ctx,
-            after,
-            first,
-            |query| app.governance().list_approval_processes(sub, query)
         )
     }
 
@@ -1331,35 +1299,6 @@ impl BaseMutation {
                     input.collateral_id.into(),
                     input.amount
                 )
-        )
-    }
-
-    async fn approval_process_approve(
-        &self,
-        ctx: &Context<'_>,
-        input: ApprovalProcessApproveInput,
-    ) -> async_graphql::Result<ApprovalProcessApprovePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            ApprovalProcessApprovePayload,
-            ApprovalProcess,
-            ctx,
-            app.governance().approve_process(sub, input.process_id)
-        )
-    }
-
-    async fn approval_process_deny(
-        &self,
-        ctx: &Context<'_>,
-        input: ApprovalProcessDenyInput,
-        reason: String,
-    ) -> async_graphql::Result<ApprovalProcessDenyPayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            ApprovalProcessDenyPayload,
-            ApprovalProcess,
-            ctx,
-            app.governance().deny_process(sub, input.process_id, reason)
         )
     }
 

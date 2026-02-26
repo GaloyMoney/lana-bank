@@ -156,7 +156,8 @@ export const mockApprovalProcess = (overrides?: Partial<ApprovalProcess>, _relat
         policy: overrides && overrides.hasOwnProperty('policy') ? overrides.policy! : relationshipsToOmit.has('Policy') ? {} as Policy : mockPolicy({}, relationshipsToOmit),
         rules: overrides && overrides.hasOwnProperty('rules') ? overrides.rules! : relationshipsToOmit.has('CommitteeThreshold') ? {} as CommitteeThreshold : mockCommitteeThreshold({}, relationshipsToOmit),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : mockEnums.approvalProcessStatus(),
-        target: overrides && overrides.hasOwnProperty('target') ? overrides.target! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
+        targetPublicId: overrides && overrides.hasOwnProperty('targetPublicId') ? overrides.targetPublicId! : faker.lorem.word(),
+        targetRef: overrides && overrides.hasOwnProperty('targetRef') ? overrides.targetRef! : faker.lorem.word(),
         userCanSubmitDecision: overrides && overrides.hasOwnProperty('userCanSubmitDecision') ? overrides.userCanSubmitDecision! : faker.datatype.boolean(),
         voters: overrides && overrides.hasOwnProperty('voters') ? overrides.voters! : [relationshipsToOmit.has('ApprovalProcessVoter') ? {} as ApprovalProcessVoter : mockApprovalProcessVoter({}, relationshipsToOmit)],
     };
