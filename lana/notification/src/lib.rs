@@ -19,7 +19,9 @@ use obix::out::OutboxEventJobConfig;
 pub use config::NotificationConfig;
 use email::EmailNotification;
 use email::job::{
-    EMAIL_LISTENER_JOB, EmailEventListenerHandler, ProcessEmailNotificationJobInitializer,
+    DepositAccountCreatedNotificationJobInitializer, EMAIL_LISTENER_JOB, EmailEventListenerHandler,
+    MarginCallNotificationJobInitializer, ObligationOverdueNotificationJobInitializer,
+    PartialLiquidationNotificationJobInitializer, RoleCreatedNotificationJobInitializer,
 };
 pub use email::{NotificationFromEmail, NotificationFromName};
 
@@ -84,13 +86,30 @@ where
         )
         .await?;
 
-        let process_email_notification =
-            jobs.add_initializer(ProcessEmailNotificationJobInitializer::new(email));
+        let obligation_overdue_notification = jobs.add_initializer(
+            ObligationOverdueNotificationJobInitializer::new(email.clone()),
+        );
+        let partial_liquidation_notification = jobs.add_initializer(
+            PartialLiquidationNotificationJobInitializer::new(email.clone()),
+        );
+        let margin_call_notification =
+            jobs.add_initializer(MarginCallNotificationJobInitializer::new(email.clone()));
+        let deposit_account_created_notification = jobs.add_initializer(
+            DepositAccountCreatedNotificationJobInitializer::new(email.clone()),
+        );
+        let role_created_notification =
+            jobs.add_initializer(RoleCreatedNotificationJobInitializer::new(email));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(EMAIL_LISTENER_JOB),
-                EmailEventListenerHandler::new(process_email_notification),
+                EmailEventListenerHandler::new(
+                    obligation_overdue_notification,
+                    partial_liquidation_notification,
+                    margin_call_notification,
+                    deposit_account_created_notification,
+                    role_created_notification,
+                ),
             )
             .await?;
 

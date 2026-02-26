@@ -7,18 +7,36 @@ use obix::out::{OutboxEventHandler, PersistentOutboxEvent};
 
 use job::{JobId, JobSpawner, JobType};
 
-use super::process_email_notification::EmailNotificationConfig;
+use super::process_deposit_account_created_notification::DepositAccountCreatedNotificationConfig;
+use super::process_margin_call_notification::MarginCallNotificationConfig;
+use super::process_obligation_overdue_notification::ObligationOverdueNotificationConfig;
+use super::process_partial_liquidation_notification::PartialLiquidationNotificationConfig;
+use super::process_role_created_notification::RoleCreatedNotificationConfig;
 
 pub const EMAIL_LISTENER_JOB: JobType = JobType::new("outbox.email-listener");
 
 pub struct EmailEventListenerHandler {
-    process_email_notification: JobSpawner<EmailNotificationConfig>,
+    obligation_overdue_notification: JobSpawner<ObligationOverdueNotificationConfig>,
+    partial_liquidation_notification: JobSpawner<PartialLiquidationNotificationConfig>,
+    margin_call_notification: JobSpawner<MarginCallNotificationConfig>,
+    deposit_account_created_notification: JobSpawner<DepositAccountCreatedNotificationConfig>,
+    role_created_notification: JobSpawner<RoleCreatedNotificationConfig>,
 }
 
 impl EmailEventListenerHandler {
-    pub fn new(process_email_notification: JobSpawner<EmailNotificationConfig>) -> Self {
+    pub fn new(
+        obligation_overdue_notification: JobSpawner<ObligationOverdueNotificationConfig>,
+        partial_liquidation_notification: JobSpawner<PartialLiquidationNotificationConfig>,
+        margin_call_notification: JobSpawner<MarginCallNotificationConfig>,
+        deposit_account_created_notification: JobSpawner<DepositAccountCreatedNotificationConfig>,
+        role_created_notification: JobSpawner<RoleCreatedNotificationConfig>,
+    ) -> Self {
         Self {
-            process_email_notification,
+            obligation_overdue_notification,
+            partial_liquidation_notification,
+            margin_call_notification,
+            deposit_account_created_notification,
+            role_created_notification,
         }
     }
 }
@@ -40,11 +58,11 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
 
                 let credit_facility_id: core_credit::CreditFacilityId =
                     entity.beneficiary_id.into();
-                self.process_email_notification
+                self.obligation_overdue_notification
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        EmailNotificationConfig::ObligationOverdue {
+                        ObligationOverdueNotificationConfig {
                             obligation_id: entity.id,
                             credit_facility_id,
                             outstanding_amount: entity.outstanding_amount,
@@ -64,11 +82,11 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                     .liquidation_trigger
                     .as_ref()
                     .expect("liquidation_trigger must be set for PartialLiquidationInitiated");
-                self.process_email_notification
+                self.partial_liquidation_notification
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        EmailNotificationConfig::PartialLiquidationInitiated {
+                        PartialLiquidationNotificationConfig {
                             credit_facility_id: entity.id,
                             customer_id: entity.customer_id,
                             trigger_price: trigger.trigger_price,
@@ -90,11 +108,11 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                 Span::current().record("event_type", credit_event.as_ref());
 
                 let collateralization = &entity.collateralization;
-                self.process_email_notification
+                self.margin_call_notification
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        EmailNotificationConfig::UnderMarginCallThreshold {
+                        MarginCallNotificationConfig {
                             credit_facility_id: entity.id,
                             customer_id: entity.customer_id,
                             effective: event.recorded_at.date_naive(),
@@ -114,11 +132,11 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", deposit_event.as_ref());
 
-                self.process_email_notification
+                self.deposit_account_created_notification
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        EmailNotificationConfig::DepositAccountCreated {
+                        DepositAccountCreatedNotificationConfig {
                             account_id: entity.id,
                             account_holder_id: entity.account_holder_id,
                         },
@@ -131,11 +149,11 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", access_event.as_ref());
 
-                self.process_email_notification
+                self.role_created_notification
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        EmailNotificationConfig::RoleCreated {
+                        RoleCreatedNotificationConfig {
                             role_id: entity.id,
                             role_name: entity.name.clone(),
                         },

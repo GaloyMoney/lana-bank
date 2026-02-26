@@ -1,7 +1,15 @@
 mod event_listener;
-mod process_email_notification;
+mod process_deposit_account_created_notification;
+mod process_margin_call_notification;
+mod process_obligation_overdue_notification;
+mod process_partial_liquidation_notification;
+mod process_role_created_notification;
 mod sender;
 
 pub use event_listener::*;
-pub use process_email_notification::ProcessEmailNotificationJobInitializer;
+pub use process_deposit_account_created_notification::DepositAccountCreatedNotificationJobInitializer;
+pub use process_margin_call_notification::MarginCallNotificationJobInitializer;
+pub use process_obligation_overdue_notification::ObligationOverdueNotificationJobInitializer;
+pub use process_partial_liquidation_notification::PartialLiquidationNotificationJobInitializer;
+pub use process_role_created_notification::RoleCreatedNotificationJobInitializer;
 pub use sender::*;
