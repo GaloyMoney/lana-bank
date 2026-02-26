@@ -1,7 +1,7 @@
 mod entity;
 pub mod error;
 mod jobs;
-pub mod ledger;
+mod ledger;
 pub mod liquidation;
 pub mod primitives;
 pub mod public;
@@ -26,18 +26,22 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use es_entity::Idempotent;
 
-use ledger::{
-    CollateralLedger, CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
-    FacilityProceedsFromLiquidationAccountId, LiquidationProceedsAccountIds,
-};
-
 use jobs::{record_collateral_update, wallet_collateral_sync};
+use repo::CollateralRepo;
+
+use ledger::CollateralLedger;
+
 pub use {
     entity::{Collateral, CollateralAdjustment, NewCollateral},
+    ledger::{
+        CollateralAccountSets, CollateralLedgerAccountIds, CollateralLedgerError,
+        FacilityLedgerAccountIdsForLiquidation, FacilityProceedsFromLiquidationAccountId,
+        InternalAccountSetDetails, LiquidationProceedsAccountIds,
+    },
     liquidation::Liquidation,
     primitives::*,
     public::CoreCreditCollateralEvent,
-    repo::{CollateralRepo, liquidation_cursor},
+    repo::liquidation_cursor,
 };
 
 #[cfg(feature = "json-schema")]
@@ -93,12 +97,32 @@ where
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
         authz: Arc<Perms>,
-        ledger: Arc<CollateralLedger>,
+        cala: &cala_ledger::CalaLedger,
+        journal_id: cala_ledger::JournalId,
+        collateral_omnibus_account_id: cala_ledger::AccountId,
+        account_sets: ledger::CollateralAccountSets,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
-        repo: Arc<CollateralRepo<E>>,
+        pool: &sqlx::PgPool,
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
+
+        let ledger = Arc::new(
+            CollateralLedger::init(
+                cala,
+                journal_id,
+                clock.clone(),
+                collateral_omnibus_account_id,
+                account_sets,
+            )
+            .await?,
+        );
+
+        let repo = Arc::new(CollateralRepo::new(
+            pool,
+            &publisher::CollateralPublisher::new(outbox),
+            clock.clone(),
+        ));
 
         let record_collateral_update = jobs.add_initializer(
             record_collateral_update::RecordCollateralUpdateJobInitializer::<
@@ -234,10 +258,11 @@ where
     #[record_error_severity]
     #[instrument(
         name = "collateral.record_collateral_update_via_manual_input_in_op",
-        skip(db, self)
+        skip(db, self, sub)
     )]
     pub async fn record_collateral_update_via_manual_input_in_op(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
         updated_collateral: money::Satoshis,
@@ -245,16 +270,17 @@ where
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
-        let res = if let es_entity::Idempotent::Executed(data) =
+        if let es_entity::Idempotent::Executed(collateral_update) =
             collateral.record_collateral_update_via_manual_input(updated_collateral, effective)?
         {
             self.repo.update_in_op(db, &mut collateral).await?;
-            Some(data)
-        } else {
-            None
-        };
 
-        Ok(res)
+            self.ledger
+                .update_collateral_amount_in_op(db, collateral_update, sub)
+                .await?;
+        }
+
+        Ok(None)
     }
 
     #[record_error_severity]

@@ -10,7 +10,7 @@ use audit::SystemSubject;
 use core_custody::{CUSTODIAN_SYNC, CoreCustodyEvent, WalletId as CustodyWalletId};
 use tracing_macros::record_error_severity;
 
-use crate::{CollateralRepo, ledger::CollateralLedger, public::CoreCreditCollateralEvent};
+use crate::{ledger::CollateralLedger, public::CoreCreditCollateralEvent, repo::CollateralRepo};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RecordCollateralUpdateConfig {

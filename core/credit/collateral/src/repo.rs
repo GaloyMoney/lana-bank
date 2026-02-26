@@ -24,7 +24,7 @@ use super::{
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub struct CollateralRepo<E>
+pub(crate) struct CollateralRepo<E>
 where
     E: OutboxEventMarker<CoreCreditCollateralEvent>,
 {

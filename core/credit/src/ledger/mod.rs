@@ -21,7 +21,7 @@ use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
 };
-use core_credit_collateral::ledger::CollateralAccountSets;
+use core_credit_collateral::CollateralAccountSets;
 
 type BalanceId = (JournalId, cala_ledger::AccountId, Currency);
 use tracing_macros::record_error_severity;
@@ -62,7 +62,7 @@ impl InternalAccountSetDetails {
     }
 }
 
-impl From<InternalAccountSetDetails> for core_credit_collateral::ledger::InternalAccountSetDetails {
+impl From<InternalAccountSetDetails> for core_credit_collateral::InternalAccountSetDetails {
     fn from(details: InternalAccountSetDetails) -> Self {
         Self::new(details.id(), details.normal_balance_type())
     }

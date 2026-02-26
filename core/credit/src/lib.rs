@@ -22,8 +22,7 @@ use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_credit_collateral::{
-    CollateralRepo, Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent,
-    CoreCreditCollateralObject, ledger::CollateralLedger,
+    Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
 };
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
@@ -105,7 +104,6 @@ where
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
     ledger: Arc<CreditLedger>,
-    collateral_ledger: Arc<CollateralLedger>,
     price: Arc<Price>,
     domain_configs: ExposedDomainConfigsReadOnly,
     approve_disbursal: Arc<ApproveDisbursal<Perms, E>>,
@@ -148,7 +146,6 @@ where
             governance: self.governance.clone(),
             customer: self.customer.clone(),
             ledger: self.ledger.clone(),
-            collateral_ledger: self.collateral_ledger.clone(),
             price: self.price.clone(),
             domain_configs: self.domain_configs.clone(),
             cala: self.cala.clone(),
@@ -220,16 +217,6 @@ where
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
-        let collateral_ledger = CollateralLedger::init(
-            cala,
-            journal_id,
-            clock.clone(),
-            ledger_arc.collateral_omnibus_account_ids().account_id,
-            ledger_arc.collateral_account_sets(),
-        )
-        .await?;
-        let collateral_ledger_arc = Arc::new(collateral_ledger);
-
         let collections = CoreCreditCollection::init(
             pool,
             authz_arc.clone(),
@@ -254,19 +241,15 @@ where
         .await?;
         let proposals_arc = Arc::new(credit_facility_proposals);
 
-        let collateral_repo = Arc::new(CollateralRepo::new(
-            pool,
-            todo!(),
-            // &CollateralPublisher::new(outbox),
-            clock.clone(),
-        ));
-
         let collaterals = Collaterals::init(
             authz_arc.clone(),
-            collateral_ledger_arc.clone(),
+            cala,
+            journal_id,
+            ledger_arc.collateral_omnibus_account_ids().account_id,
+            ledger_arc.collateral_account_sets(),
             outbox,
             jobs,
-            collateral_repo.clone(),
+            pool,
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);
@@ -412,7 +395,6 @@ where
             repayment_plans: repayment_plans_arc,
             governance: governance_arc,
             ledger: ledger_arc,
-            collateral_ledger: collateral_ledger_arc,
             price: price_arc,
             domain_configs: domain_configs.clone(),
             cala: cala_arc,
@@ -868,20 +850,15 @@ where
             CompletionOutcome::AlreadyApplied(facility) => facility,
 
             CompletionOutcome::Completed((facility, _completion)) => {
-                if let Some(collateral_update) = self
-                    .collaterals
+                self.collaterals
                     .record_collateral_update_via_manual_input_in_op(
+                        sub,
                         &mut db,
                         facility.collateral_id,
                         Satoshis::ZERO,
                         self.clock.today(),
                     )
-                    .await?
-                {
-                    self.collateral_ledger
-                        .update_collateral_amount_in_op(&mut db, collateral_update, sub)
-                        .await?;
-                }
+                    .await?;
 
                 db.commit().await?;
 
