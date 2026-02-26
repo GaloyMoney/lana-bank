@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::collateral::CollateralDirection;
+use core_credit_collateral::CollateralDirection;
 use crate::primitives::*;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

@@ -52,7 +52,7 @@ pub struct CollateralLedgerAccountIds {
 }
 
 impl CollateralLedgerAccountIds {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             collateral_account_id: CalaAccountId::new(),
             liquidated_collateral_account_id: CalaAccountId::new(),

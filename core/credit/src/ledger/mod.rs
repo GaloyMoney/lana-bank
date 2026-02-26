@@ -21,13 +21,13 @@ use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
 };
+use core_credit_collateral::ledger::CollateralAccountSets;
 
 type BalanceId = (JournalId, cala_ledger::AccountId, Currency);
 use tracing_macros::record_error_severity;
 
 use crate::{
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
-    collateral::ledger::CollateralAccountSets,
     pending_credit_facility::PendingCreditFacility,
     primitives::{
         CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, CalaAccountId,
@@ -62,7 +62,7 @@ impl InternalAccountSetDetails {
     }
 }
 
-impl From<InternalAccountSetDetails> for crate::collateral::ledger::InternalAccountSetDetails {
+impl From<InternalAccountSetDetails> for core_credit_collateral::ledger::InternalAccountSetDetails {
     fn from(details: InternalAccountSetDetails) -> Self {
         Self::new(details.id(), details.normal_balance_type())
     }

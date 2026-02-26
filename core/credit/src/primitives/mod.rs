@@ -93,8 +93,8 @@ es_entity::entity_id! {
     DisbursalId => public_id::PublicIdTargetId,
 
     CreditFacilityId => core_credit_collection::BeneficiaryId,
-    CreditFacilityId => crate::collateral::primitives::SecuredLoanId,
-    PendingCreditFacilityId => crate::collateral::primitives::SecuredLoanId,
+    CreditFacilityId => core_credit_collateral::primitives::SecuredLoanId,
+    PendingCreditFacilityId => core_credit_collateral::primitives::SecuredLoanId,
 }
 
 #[derive(Debug, Clone, Copy)]

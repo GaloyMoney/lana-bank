@@ -2,7 +2,6 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod chart_of_accounts_integration;
-mod collateral;
 mod credit_facility;
 mod credit_facility_proposal;
 mod disbursal;
@@ -22,6 +21,10 @@ use std::sync::Arc;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use core_credit_collateral::{
+    CollateralRepo, Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent,
+    CoreCreditCollateralObject, ledger::CollateralLedger,
+};
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -42,11 +45,6 @@ use tracing_macros::record_error_severity;
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrations,
     error::ChartOfAccountsIntegrationError,
-};
-pub use collateral::{
-    Collateral, Collaterals, Liquidation, RecordProceedsFromLiquidationData, liquidation_cursor,
-    liquidation_cursor::*, primitives::*, public::CoreCreditCollateralEvent,
-    publisher::CollateralPublisher,
 };
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
@@ -69,13 +67,16 @@ pub use repayment_plan::*;
 use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
 
 #[cfg(feature = "json-schema")]
+pub use core_credit_collateral::{CollateralEvent, LiquidationEvent};
+
+#[cfg(feature = "json-schema")]
 pub use core_credit_collection::{ObligationEvent, PaymentAllocationEvent, PaymentEvent};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::{
-        ObligationEvent, PaymentAllocationEvent, PaymentEvent, collateral::CollateralEvent,
-        collateral::LiquidationEvent, credit_facility::CreditFacilityEvent,
+        ObligationEvent, PaymentAllocationEvent, PaymentEvent,
+        credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
         interest_accrual_cycle::InterestAccrualCycleEvent,
         pending_credit_facility::PendingCreditFacilityEvent,
@@ -86,7 +87,7 @@ pub struct CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -104,7 +105,7 @@ where
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
     ledger: Arc<CreditLedger>,
-    collateral_ledger: Arc<collateral::ledger::CollateralLedger>,
+    collateral_ledger: Arc<CollateralLedger>,
     price: Arc<Price>,
     domain_configs: ExposedDomainConfigsReadOnly,
     approve_disbursal: Arc<ApproveDisbursal<Perms, E>>,
@@ -124,7 +125,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
@@ -168,16 +169,16 @@ where
         + From<GovernanceAction>
         + From<CoreCustomerAction>
         + From<CoreCustodyAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CustomerObject>
         + From<CoreCustodyObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
@@ -219,7 +220,7 @@ where
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
-        let collateral_ledger = collateral::ledger::CollateralLedger::init(
+        let collateral_ledger = CollateralLedger::init(
             cala,
             journal_id,
             clock.clone(),
@@ -253,9 +254,10 @@ where
         .await?;
         let proposals_arc = Arc::new(credit_facility_proposals);
 
-        let collateral_repo = Arc::new(crate::collateral::repo::CollateralRepo::new(
+        let collateral_repo = Arc::new(CollateralRepo::new(
             pool,
-            &CollateralPublisher::new(outbox),
+            todo!(),
+            // &CollateralPublisher::new(outbox),
             clock.clone(),
         ));
 

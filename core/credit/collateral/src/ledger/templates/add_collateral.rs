@@ -8,12 +8,12 @@ use cala_ledger::{
     *,
 };
 
-use crate::collateral::ledger::CollateralLedgerError;
+use crate::ledger::CollateralLedgerError;
 
-pub const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";
+pub const ADD_COLLATERAL_CODE: &str = "ADD_COLLATERAL";
 
 #[derive(Debug)]
-pub struct RemoveCollateralParams<S: std::fmt::Display> {
+pub struct AddCollateralParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -23,7 +23,7 @@ pub struct RemoveCollateralParams<S: std::fmt::Display> {
     pub initiated_by: S,
 }
 
-impl<S: std::fmt::Display> RemoveCollateralParams<S> {
+impl<S: std::fmt::Display> AddCollateralParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -65,9 +65,9 @@ impl<S: std::fmt::Display> RemoveCollateralParams<S> {
     }
 }
 
-impl<S: std::fmt::Display> From<RemoveCollateralParams<S>> for Params {
+impl<S: std::fmt::Display> From<AddCollateralParams<S>> for Params {
     fn from(
-        RemoveCollateralParams {
+        AddCollateralParams {
             journal_id,
             currency,
             amount,
@@ -75,7 +75,7 @@ impl<S: std::fmt::Display> From<RemoveCollateralParams<S>> for Params {
             bank_collateral_account_id,
             effective,
             initiated_by,
-        }: RemoveCollateralParams<S>,
+        }: AddCollateralParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -95,14 +95,11 @@ impl<S: std::fmt::Display> From<RemoveCollateralParams<S>> for Params {
     }
 }
 
-pub struct RemoveCollateral;
+pub struct AddCollateral;
 
-impl RemoveCollateral {
+impl AddCollateral {
     #[record_error_severity]
-    #[instrument(
-        name = "core_credit.collateral.ledger.remove_collateral.init",
-        skip_all
-    )]
+    #[instrument(name = "core_credit.collateral.ledger.add_collateral.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CollateralLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
@@ -113,18 +110,18 @@ impl RemoveCollateral {
             .expect("Couldn't build TxInput");
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("'REMOVE_COLLATERAL_DR'")
+                .entry_type("'ADD_COLLATERAL_DR'")
                 .currency("params.currency")
-                .account_id("params.collateral_account_id")
+                .account_id("params.bank_collateral_account_id")
                 .direction("DEBIT")
                 .layer("SETTLED")
                 .units("params.amount")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'REMOVE_COLLATERAL_CR'")
+                .entry_type("'ADD_COLLATERAL_CR'")
                 .currency("params.currency")
-                .account_id("params.bank_collateral_account_id")
+                .account_id("params.collateral_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .units("params.amount")
@@ -132,10 +129,10 @@ impl RemoveCollateral {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RemoveCollateralParams::<String>::defs();
+        let params = AddCollateralParams::<String>::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(REMOVE_COLLATERAL_CODE)
+            .code(ADD_COLLATERAL_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

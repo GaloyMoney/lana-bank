@@ -10,12 +10,13 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_credit_collateral::public::CoreCreditCollateralEvent;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
-    collateral::public::CoreCreditCollateralEvent, primitives::CreditFacilityId,
+    primitives::CreditFacilityId,
 };
 pub use entry::*;
 use error::CreditFacilityHistoryError;

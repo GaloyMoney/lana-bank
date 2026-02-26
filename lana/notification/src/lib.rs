@@ -44,7 +44,7 @@ where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_credit_collection::CoreCreditCollectionAction>
-        + From<core_credit::CoreCreditCollateralAction>
+        + From<core_credit_collateral::CoreCreditCollateralAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
@@ -52,7 +52,7 @@ where
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>
-        + From<core_credit::CoreCreditCollateralObject>
+        + From<core_credit_collateral::CoreCreditCollateralObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>

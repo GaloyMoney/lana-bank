@@ -41,9 +41,9 @@ pub enum CoreCreditError {
     #[error("CoreCreditError - RepaymentPlanError: {0}")]
     RepaymentPlanError(#[from] super::repayment_plan::error::CreditFacilityRepaymentPlanError),
     #[error("CoreCreditError - CollateralError: {0}")]
-    CollateralError(#[from] super::collateral::error::CollateralError),
+    CollateralError(#[from] core_credit_collateral::error::CollateralError),
     #[error("CoreCreditError - CollateralLedgerError: {0}")]
-    CollateralLedgerError(#[from] super::collateral::ledger::CollateralLedgerError),
+    CollateralLedgerError(#[from] core_credit_collateral::ledger::CollateralLedgerError),
     #[error("CoreCreditError - CoreCustodyError: {0}")]
     CustodyError(#[from] core_custody::error::CoreCustodyError),
     #[error("CoreCreditError - DisbursalError: {0}")]

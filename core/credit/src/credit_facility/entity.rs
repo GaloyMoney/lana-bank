@@ -4,13 +4,13 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use core_credit_collateral::{
+    CollateralId, LiquidationId, ledger::FacilityProceedsFromLiquidationAccountId,
+};
+use core_credit_collection::NewObligation;
 use es_entity::*;
 
-use crate::collateral::ledger::FacilityProceedsFromLiquidationAccountId;
-use crate::collateral::{CollateralId, LiquidationId};
 use crate::{ledger::*, primitives::*};
-
-use core_credit_collection::NewObligation;
 
 use super::{error::CreditFacilityError, interest_accrual_cycle::*};
 

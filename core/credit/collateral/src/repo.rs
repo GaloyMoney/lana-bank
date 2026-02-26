@@ -6,7 +6,7 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use crate::collateral::{
+use crate::{
     CollateralId, LiquidationId, public::CoreCreditCollateralEvent, publisher::CollateralPublisher,
 };
 

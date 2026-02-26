@@ -7,6 +7,9 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_credit_collateral::{
+    CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
+};
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::{CorePriceEvent, Price};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -17,9 +20,6 @@ pub use job::*;
 
 use crate::{
     CoreCreditEvent,
-    collateral::{
-        CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
-    },
     credit_facility::CreditFacilities,
     disbursal::Disbursals,
     error::CoreCreditError,

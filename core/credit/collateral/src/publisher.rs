@@ -2,7 +2,7 @@ use es_entity::AtomicOperation;
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
-use crate::collateral::{
+use crate::{
     entity::{Collateral, CollateralEvent},
     error::CollateralError,
     public::{CoreCreditCollateralEvent, PublicCollateral},

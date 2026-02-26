@@ -10,7 +10,7 @@ use core_price::PriceOfOneBTC;
 use es_entity::*;
 use money::{Satoshis, UsdCents};
 
-use crate::collateral::{
+use crate::{
     CalaAccountId, CollateralDirection, CollateralId, CollateralUpdate, Liquidation, LiquidationId,
     RecordProceedsFromLiquidationData, SecuredLoanId,
     error::CollateralError,
@@ -420,7 +420,7 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::collateral::ledger::FacilityProceedsFromLiquidationAccountId;
+    use crate::ledger::FacilityProceedsFromLiquidationAccountId;
 
     fn default_account_ids() -> CollateralLedgerAccountIds {
         CollateralLedgerAccountIds::new()

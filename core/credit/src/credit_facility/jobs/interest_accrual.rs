@@ -41,6 +41,9 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use obix::out::OutboxEventMarker;
 
+use core_credit_collateral::{
+    Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
+};
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 
@@ -48,7 +51,6 @@ use crate::{
     CompletedAccrualCycle, ConfirmedAccrual, CoreCreditAction, CoreCreditCollectionAction,
     CoreCreditCollectionEvent, CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
     CreditFacilityId,
-    collateral::{Collaterals, public::CoreCreditCollateralEvent},
     credit_facility::{
         CreditFacilityRepo, error::CreditFacilityError,
         interest_accrual_cycle::NewInterestAccrualCycleData,
@@ -126,12 +128,12 @@ where
         + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
@@ -165,12 +167,12 @@ where
         + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
@@ -227,12 +229,12 @@ where
         + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
@@ -272,12 +274,12 @@ where
         + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>

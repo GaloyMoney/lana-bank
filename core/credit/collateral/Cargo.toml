@@ -1,0 +1,55 @@
+[package]
+name = "core-credit-collateral"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+graphql = ["es-entity/graphql", "cala-ledger/graphql"]
+json-schema = [
+    "dep:schemars",
+    "es-entity/json-schema",
+    "money/json-schema",
+    "job/json-schema",
+    "cala-ledger/json-schema",
+]
+
+[dependencies]
+money = { workspace = true }
+permission-sets-macro = { workspace = true }
+core-credit-terms = { path = "../terms" }
+core-credit-collection = { path = "../collection" }
+
+audit = { workspace = true }
+authz = { workspace = true }
+obix = { workspace = true }
+job = { workspace = true }
+
+cala-ledger = { workspace = true }
+es-entity = { workspace = true }
+sqlx = { workspace = true }
+
+core-accounting-primitives = { path = "../../accounting-primitives" }
+core-custody = { path = "../../custody" }
+core-price = { path = "../../price" }
+governance = { path = "../../governance" }
+
+strum = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-macros = { workspace = true }
+tracing-utils = { workspace = true }
+uuid = { workspace = true }
+derive_builder = { workspace = true }
+rust_decimal = { workspace = true }
+async-trait = { workspace = true }
+schemars = { workspace = true, optional = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+authz = { workspace = true, features = ["test-dummy"] }
+obix = { workspace = true, features = ["test-utils"] }
+tokio = { workspace = true }

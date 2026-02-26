@@ -10,6 +10,10 @@ use tracing_macros::record_error_severity;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
+use core_credit_collateral::{
+    Collaterals, CoreCreditCollateralAction, CoreCreditCollateralObject,
+    public::CoreCreditCollateralEvent,
+};
 use core_price::{CorePriceEvent, Price};
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -18,7 +22,6 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 
 use crate::{
     CoreCreditEvent, PublicIds,
-    collateral::{Collaterals, public::CoreCreditCollateralEvent},
     disbursal::Disbursals,
     ledger::{
         CreditFacilityBalanceSummary, CreditFacilityCompletion, CreditFacilityInterestAccrual,
@@ -112,12 +115,12 @@ where
         + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
@@ -139,7 +142,7 @@ where
         public_ids: Arc<PublicIds>,
         outbox: &Outbox<E>,
         clock: ClockHandle,
-        collaterals: Arc<crate::collateral::Collaterals<Perms, E>>,
+        collaterals: Arc<core_credit_collateral::Collaterals<Perms, E>>,
     ) -> Result<Self, CreditFacilityError> {
         let repo = Arc::new(CreditFacilityRepo::new(pool, publisher, clock.clone()));
 

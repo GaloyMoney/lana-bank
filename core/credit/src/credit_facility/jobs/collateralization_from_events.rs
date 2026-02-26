@@ -12,13 +12,15 @@ use obix::out::{
 
 use job::JobType;
 
+use core_credit_collateral::{
+    Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
+};
 use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 use core_custody::CoreCustodyEvent;
 use core_price::{CorePriceEvent, Price};
 
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
-    collateral::{Collaterals, public::CoreCreditCollateralEvent},
     credit_facility::{
         CreditFacilitiesByCollateralizationRatioCursor, CreditFacilityRepo, CreditFacilityStatus,
     },
@@ -78,10 +80,10 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
@@ -160,10 +162,10 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<CoreCreditCollectionAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>

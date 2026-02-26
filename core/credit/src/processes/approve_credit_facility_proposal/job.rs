@@ -2,6 +2,9 @@ use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_credit_collateral::{
+    CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
+};
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -9,12 +12,7 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::JobType;
 
-use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    collateral::{
-        CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
-    },
-};
+use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 use core_credit_collection::CoreCreditCollectionEvent;
 
 use super::ApproveCreditFacilityProposal;

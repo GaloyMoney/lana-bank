@@ -191,7 +191,7 @@ impl From<LiquidationAction> for CoreCreditCollateralAction {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+// #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub enum CollateralDirection {
     Add,

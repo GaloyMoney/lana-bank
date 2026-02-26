@@ -48,6 +48,7 @@ core-access = { path = "core/access" }
 core-accounting = { path = "core/accounting" }
 core-accounting-primitives = { path = "core/accounting-primitives" }
 core-credit = { path = "core/credit" }
+core-credit-collateral = { path = "core/credit/collateral" }
 core-credit-collection = { path = "core/credit/collection" }
 core-credit-terms = { path = "core/credit/terms" }
 core-custody = { path = "core/custody" }
@@ -183,7 +184,7 @@ p256 = "0.13.2"
 paste = "1.0"
 pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
-bytes = "1.11"
+bytes = { version = "1.11", features = ["serde"] }
 keycloak = "26.4.0"
 
 [profile.dev]

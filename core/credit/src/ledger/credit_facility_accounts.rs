@@ -3,11 +3,12 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
+use core_credit_collateral::ledger::{
+    FacilityLedgerAccountIdsForLiquidation, FacilityProceedsFromLiquidationAccountId,
+};
 
 use crate::{
     FacilityDurationType, InterestPeriod,
-    collateral::ledger::FacilityLedgerAccountIdsForLiquidation,
-    collateral::ledger::FacilityProceedsFromLiquidationAccountId,
     primitives::{CreditFacilityId, CustomerType, DisbursalId, LedgerTxId, UsdCents},
 };
 

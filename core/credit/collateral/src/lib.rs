@@ -154,7 +154,7 @@ where
         skip(self, db),
         err
     )]
-    pub(super) async fn record_liquidation_started_in_op(
+    pub async fn record_liquidation_started_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
@@ -237,7 +237,7 @@ where
         name = "collateral.record_collateral_update_via_manual_input_in_op",
         skip(db, self)
     )]
-    pub(super) async fn record_collateral_update_via_manual_input_in_op(
+    pub async fn record_collateral_update_via_manual_input_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,

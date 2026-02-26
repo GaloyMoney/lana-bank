@@ -5,7 +5,7 @@ use cala_ledger::TransactionId as LedgerTxId;
 use core_credit_collection::PaymentId;
 use money::{Satoshis, UsdCents};
 
-use crate::collateral::{LiquidationId, SecuredLoanId};
+use crate::{LiquidationId, SecuredLoanId};
 
 use super::PublicCollateral;
 
