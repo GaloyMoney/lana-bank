@@ -20,6 +20,7 @@ audit = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
 
+async-trait = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
 schemars = { workspace = true, optional = true }
 

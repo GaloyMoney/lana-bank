@@ -2,7 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod error;
-mod job;
+mod jobs;
 mod primitives;
 mod repo;
 mod values;
@@ -15,7 +15,7 @@ use obix::out::OutboxEventJobConfig;
 use tracing_macros::record_error_severity;
 
 use error::*;
-use job::*;
+use jobs::*;
 pub use primitives::*;
 use repo::*;
 pub use values::*;
@@ -57,11 +57,13 @@ where
     ) -> Result<Self, DashboardError> {
         let repo = DashboardRepo::new(pool);
 
+        let update_dashboard =
+            jobs.add_initializer(UpdateDashboardJobInitializer::new(repo.clone()));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(DASHBOARD_PROJECTION_JOB),
-                DashboardProjectionHandler::new(&repo),
+                DashboardProjectionHandler::new(update_dashboard),
             )
             .await?;
 
