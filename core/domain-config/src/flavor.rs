@@ -80,7 +80,7 @@ impl ConfigFlavor for DomainConfigFlavorEncrypted {
         entity: DomainConfig,
         config: &EncryptionConfig,
     ) -> Result<TypedDomainConfig<C>, DomainConfigError> {
-        TypedDomainConfig::try_new_encrypted(entity, config.key, config.key_id.clone())
+        TypedDomainConfig::try_new_encrypted(entity, config.key, &config.key_id)
     }
 
     fn maybe_value<C: ConfigSpec<Flavor = Self>>(

@@ -31,7 +31,7 @@ impl Encrypted {
             .map_err(|_| EncryptionError::Decryption)
     }
 
-    pub fn encrypt(plaintext: &[u8], key: &EncryptionKey, key_id: KeyId) -> Self {
+    pub fn encrypt(plaintext: &[u8], key: &EncryptionKey, key_id: &KeyId) -> Self {
         let cipher = ChaCha20Poly1305::new(key);
         let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
         let ciphertext = cipher
@@ -41,7 +41,7 @@ impl Encrypted {
         Self {
             ciphertext,
             nonce: nonce.to_vec(),
-            key_id,
+            key_id: key_id.clone(),
         }
     }
 
@@ -65,7 +65,7 @@ mod tests {
         let original = serde_json::json!({"enabled": true, "limit": 42});
         let bytes = serde_json::to_vec(&original).unwrap();
 
-        let encrypted = Encrypted::encrypt(&bytes, &key, key_id.clone());
+        let encrypted = Encrypted::encrypt(&bytes, &key, &key_id);
         let decrypted_bytes = encrypted.decrypt(&key).unwrap();
         let decrypted: serde_json::Value = serde_json::from_slice(&decrypted_bytes).unwrap();
 

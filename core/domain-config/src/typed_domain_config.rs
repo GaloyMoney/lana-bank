@@ -31,14 +31,14 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>> TypedDomainConfig<C> {
     pub(crate) fn try_new_encrypted(
         entity: DomainConfig,
         key: EncryptionKey,
-        key_id: KeyId,
+        key_id: &KeyId,
     ) -> Result<Self, DomainConfigError> {
         DomainConfig::assert_compatible::<C>(&entity)?;
         Ok(Self {
             entity,
             _marker: PhantomData,
             encryption_key: Some(key),
-            encryption_key_id: Some(key_id),
+            encryption_key_id: Some(key_id.clone()),
         })
     }
 }

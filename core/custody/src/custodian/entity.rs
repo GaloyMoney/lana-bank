@@ -59,7 +59,7 @@ impl Custodian {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        let encrypted = new_config.encrypt(key, key_id.clone());
+        let encrypted = new_config.encrypt(key, key_id);
         self.encrypted_custodian_config = encrypted.clone();
 
         self.events.push(CustodianEvent::ConfigUpdated {
@@ -101,7 +101,7 @@ impl Custodian {
 
         let encrypted_config = CustodianConfig::rotate_encryption_key(
             new_key,
-            key_id.clone(),
+            key_id,
             deprecated_key,
             &self.encrypted_custodian_config,
         )?;
@@ -178,7 +178,7 @@ impl NewCustodianBuilder {
         key: &EncryptionKey,
         key_id: &KeyId,
     ) -> &mut Self {
-        self.encrypted_custodian_config = Some(custodian_config.encrypt(key, key_id.clone()));
+        self.encrypted_custodian_config = Some(custodian_config.encrypt(key, key_id));
         self
     }
 }

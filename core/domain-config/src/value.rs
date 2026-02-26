@@ -30,7 +30,7 @@ impl DomainConfigValue {
     /// Create a new encrypted value from plaintext JSON.
     pub(crate) fn encrypted(
         key: &EncryptionKey,
-        key_id: KeyId,
+        key_id: &KeyId,
         plaintext: &serde_json::Value,
     ) -> Self {
         let bytes = serde_json::to_vec(plaintext).expect("JSON serialization should not fail");
@@ -78,7 +78,7 @@ impl DomainConfigValue {
     pub(crate) fn rotate(
         &self,
         new_key: &EncryptionKey,
-        new_key_id: KeyId,
+        new_key_id: &KeyId,
         deprecated_key: &EncryptionKey,
     ) -> Result<Encrypted, DomainConfigError> {
         match self {

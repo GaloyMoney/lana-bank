@@ -194,7 +194,7 @@ impl DomainConfig {
         }
 
         self.events.push(DomainConfigEvent::Updated {
-            value: DomainConfigValue::encrypted(key, key_id.clone(), &plaintext),
+            value: DomainConfigValue::encrypted(key, key_id, &plaintext),
         });
 
         Ok(Idempotent::Executed(()))
@@ -294,7 +294,7 @@ impl DomainConfig {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        let new_encrypted = current.rotate(new_key, new_key_id.clone(), deprecated_key)?;
+        let new_encrypted = current.rotate(new_key, new_key_id, deprecated_key)?;
         self.events.push(DomainConfigEvent::KeyRotated {
             value: new_encrypted,
         });

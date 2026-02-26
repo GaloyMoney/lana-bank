@@ -63,7 +63,7 @@ impl CustodianConfig {
         }
     }
 
-    pub(super) fn encrypt(&self, key: &EncryptionKey, key_id: KeyId) -> Encrypted {
+    pub(super) fn encrypt(&self, key: &EncryptionKey, key_id: &KeyId) -> Encrypted {
         let bytes = serde_json::to_vec(self).expect("should serialize");
         Encrypted::encrypt(&bytes, key, key_id)
     }
@@ -78,7 +78,7 @@ impl CustodianConfig {
 
     pub(super) fn rotate_encryption_key(
         new_key: &EncryptionKey,
-        new_key_id: KeyId,
+        new_key_id: &KeyId,
         deprecated_key: &EncryptionKey,
         encrypted_config: &Encrypted,
     ) -> Result<Encrypted, CustodianError> {
