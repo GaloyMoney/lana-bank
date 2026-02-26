@@ -14,6 +14,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "admin-graphql-audit"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-access",
+ "admin-graphql-shared",
+ "async-graphql",
+ "audit",
+ "base64",
+ "es-entity",
+ "lana-app",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "admin-graphql-config"
 version = "0.0.0"
 dependencies = [
@@ -70,6 +85,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "admin-graphql-price"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "lana-app",
+]
+
+[[package]]
 name = "admin-graphql-reports"
 version = "0.0.0"
 dependencies = [
@@ -109,11 +132,13 @@ name = "admin-server"
 version = "0.0.0"
 dependencies = [
  "admin-graphql-access",
+ "admin-graphql-audit",
  "admin-graphql-config",
  "admin-graphql-contracts",
  "admin-graphql-custody",
  "admin-graphql-documents",
  "admin-graphql-governance",
+ "admin-graphql-price",
  "admin-graphql-reports",
  "admin-graphql-session",
  "admin-graphql-shared",

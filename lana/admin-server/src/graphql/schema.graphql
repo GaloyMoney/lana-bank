@@ -2219,6 +2219,8 @@ type Query {
 	role(id: UUID!): Role
 	roles(first: Int!, after: String): RoleConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
+	audit(first: Int!, after: String, subject: AuditSubjectId, authorized: Boolean, object: String, action: String): AuditEntryConnection!
+	auditSubjects: [AuditSubjectId!]!
 	depositConfig: DepositModuleConfig
 	domainConfigs(first: Int!, after: String): DomainConfigConnection!
 	creditConfig: CreditModuleConfig
@@ -2231,6 +2233,7 @@ type Query {
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy
 	policies(first: Int!, after: String): PolicyConnection!
+	realtimePrice: RealtimePrice!
 	reportRuns(first: Int!, after: String): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun
 	me: Me!
@@ -2279,9 +2282,6 @@ type Query {
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
-	realtimePrice: RealtimePrice!
-	audit(first: Int!, after: String, subject: AuditSubjectId, authorized: Boolean, object: String, action: String): AuditEntryConnection!
-	auditSubjects: [AuditSubjectId!]!
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 }
