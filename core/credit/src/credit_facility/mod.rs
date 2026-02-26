@@ -391,6 +391,14 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
+    pub async fn find_by_id_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        self.repo.find_by_id_in_op(op, id.into()).await
+    }
+
     #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.find_by_id",

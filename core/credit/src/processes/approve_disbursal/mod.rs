@@ -126,7 +126,7 @@ where
 
                 let credit_facility = self
                     .credit_facilities
-                    .find_by_id_without_audit(disbursal.facility_id) // changed for now
+                    .find_by_id_without_audit_in_op(&mut op, disbursal.facility_id)
                     .await?;
                 self.ledger
                     .settle_disbursal_in_op(
@@ -147,7 +147,7 @@ where
                 tracing::Span::current().record("already_applied", false);
                 let credit_facility = self
                     .credit_facilities
-                    .find_by_id_without_audit(disbursal.facility_id) // changed for now
+                    .find_by_id_without_audit_in_op(&mut op, disbursal.facility_id)
                     .await?;
                 self.ledger
                     .cancel_disbursal_in_op(

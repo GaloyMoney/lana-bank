@@ -137,6 +137,14 @@ where
         self.repo.find_by_id(id).await
     }
 
+    pub async fn find_by_id_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: CollateralId,
+    ) -> Result<Collateral, CollateralError> {
+        self.repo.find_by_id_in_op(op, id).await
+    }
+
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CollateralError> {
         Ok(self.repo.begin_op().await?)
     }

@@ -93,18 +93,18 @@ where
             .credit
             .collections()
             .obligations()
-            .find_by_id_without_audit(*obligation_id)
+            .find_by_id_without_audit_in_op(&mut *op, *obligation_id)
             .await?;
 
         let credit_facility = self
             .credit
             .facilities()
-            .find_by_id_without_audit(*credit_facility_id)
+            .find_by_id_without_audit_in_op(&mut *op, *credit_facility_id)
             .await?;
 
         let customer = self
             .customers
-            .find_by_id_without_audit(credit_facility.customer_id)
+            .find_by_id_without_audit_in_op(&mut *op, credit_facility.customer_id)
             .await?;
         let party = self
             .customers
@@ -165,7 +165,7 @@ where
     ) -> Result<(), EmailError> {
         let customer = self
             .customers
-            .find_by_id_without_audit(*customer_id)
+            .find_by_id_without_audit_in_op(&mut *op, *customer_id)
             .await?;
         let party = self
             .customers
@@ -230,7 +230,7 @@ where
     ) -> Result<(), EmailError> {
         let customer = self
             .customers
-            .find_by_id_without_audit(*customer_id)
+            .find_by_id_without_audit_in_op(&mut *op, *customer_id)
             .await?;
         let party = self
             .customers
@@ -266,7 +266,10 @@ where
         account_holder_id: &core_deposit::DepositAccountHolderId,
     ) -> Result<(), EmailError> {
         let customer_id: core_customer::CustomerId = (*account_holder_id).into();
-        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
+        let customer = self
+            .customers
+            .find_by_id_without_audit_in_op(&mut *op, customer_id)
+            .await?;
         let party = self
             .customers
             .find_party_by_id_without_audit(customer.party_id)

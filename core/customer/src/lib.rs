@@ -242,6 +242,16 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.find_by_id_without_audit_in_op", skip(self, op))]
+    pub async fn find_by_id_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        self.repo.find_by_id_in_op(op, id.into()).await
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.find_by_email", skip(self))]
     pub async fn find_by_email(
         &self,

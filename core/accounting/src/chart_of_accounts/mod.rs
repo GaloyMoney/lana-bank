@@ -152,7 +152,7 @@ where
                 CoreAccountingAction::CHART_IMPORT_ACCOUNTS,
             )
             .await?;
-        let mut chart = self.find_by_reference(chart_ref).await?;
+        let mut chart = self.find_by_reference_in_op(&mut *op, chart_ref).await?;
 
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;
@@ -466,6 +466,19 @@ where
     )]
     pub async fn find_by_reference(&self, reference: &str) -> Result<Chart, ChartOfAccountsError> {
         self.maybe_find_by_reference(reference)
+            .await?
+            .ok_or_else(move || {
+                ChartOfAccountsError::ChartOfAccountsNotFoundByReference(reference.to_string())
+            })
+    }
+
+    pub async fn find_by_reference_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        reference: &str,
+    ) -> Result<Chart, ChartOfAccountsError> {
+        self.repo
+            .maybe_find_by_reference_in_op(op, reference)
             .await?
             .ok_or_else(move || {
                 ChartOfAccountsError::ChartOfAccountsNotFoundByReference(reference.to_string())

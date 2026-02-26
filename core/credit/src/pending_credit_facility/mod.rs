@@ -262,7 +262,7 @@ where
 
         let collateral = self
             .collaterals
-            .find_by_id_without_audit(pending_facility.collateral_id)
+            .find_by_id_without_audit_in_op(&mut *db, pending_facility.collateral_id)
             .await?;
         let collateral_account_id = collateral.account_id();
 
