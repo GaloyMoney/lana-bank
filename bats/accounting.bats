@@ -173,17 +173,8 @@ teardown_file() {
     ,$((RANDOM % 100)),,CSV Import Test Child,,
   " > "$temp_file"
 
-  variables=$(
-    jq -n \
-    '{
-      input: {
-        file: null
-      }
-    }'
-  )
-
-  response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import' "$variables" "$temp_file" "input.file")
-  payload_chart_id=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.chartOfAccounts.chartId')
+  cli_output=$("$LANACLI" --json accounting csv-import --file "$temp_file")
+  payload_chart_id=$(echo "$cli_output" | jq -r '.chartId')
   [[ "$payload_chart_id" == "$chart_id" ]] || exit 1
 
   cli_output=$("$LANACLI" --json accounting chart-of-accounts)

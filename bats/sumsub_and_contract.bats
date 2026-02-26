@@ -45,21 +45,12 @@ wait_for_loan_agreement_completion() {
   [[ "$url" != "null" ]] || exit 1
   echo "Created permalink: $url"
 
-  # Test complete KYC flow via GraphQL mutation
-  echo "Testing complete KYC flow via sumsubTestApplicantCreate..."
-  variables=$(
-    jq -n \
-    --arg prospectId "$prospect_id" \
-    '{
-      input: {
-        prospectId: $prospectId
-      }
-    }'
-  )
-  exec_admin_graphql 'sumsub-test-applicant-create' "$variables"
-  echo "graphql_output: $(graphql_output)"
+  # Test complete KYC flow via lanacli command
+  echo "Testing complete KYC flow via sumsub test-applicant-create..."
+  cli_output=$("$LANACLI" --json sumsub test-applicant-create --prospect-id "$prospect_id")
+  echo "sumsub output: $cli_output"
 
-  test_applicant_id=$(graphql_output .data.sumsubTestApplicantCreate.applicantId)
+  test_applicant_id=$(echo "$cli_output" | jq -r '.applicantId')
 
   echo "Created test applicant_id: $test_applicant_id"
   [[ "$test_applicant_id" != "null" ]] || exit 1
@@ -250,4 +241,3 @@ wait_for_loan_agreement_completion() {
   [[ "$level" == "BASIC" ]] || exit 1
   [[ "$kyc_verification" == "REJECTED" ]] || exit 1
 }
-

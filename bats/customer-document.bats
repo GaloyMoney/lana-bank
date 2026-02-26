@@ -25,17 +25,9 @@ teardown_file() {
   temp_file=$(mktemp)
   echo "Test content" > "$temp_file"
   
-  # Prepare the variables for file upload
-  variables=$(jq -n \
-    --arg customerId "$customer_id" \
-    '{
-      "customerId": $customerId,
-      "file": null
-    }')
-
-  # Execute the GraphQL mutation for file upload
-  response=$(exec_admin_graphql_upload "customer-document-attach" "$variables" "$temp_file")
-  document_id=$(echo "$response" | jq -r '.data.customerDocumentAttach.document.documentId')
+  # Upload the file via lanacli
+  cli_output=$("$LANACLI" --json document attach --customer-id "$customer_id" --file "$temp_file")
+  document_id=$(echo "$cli_output" | jq -r '.documentId')
   [[ "$document_id" != null ]] || exit 1
   
   rm "$temp_file"

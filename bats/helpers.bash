@@ -7,7 +7,6 @@ mkdir -p "$CACHE_DIR"
 OATHKEEPER_PROXY="http://localhost:4455"
 
 GQL_APP_ENDPOINT="http://app.localhost:4455/graphql"
-GQL_ADMIN_ENDPOINT="http://admin.localhost:4455/graphql"
 
 LANA_HOME="${LANA_HOME:-.lana}"
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
@@ -133,18 +132,6 @@ gql_operation_name() {
   fi
 }
 
-gql_admin_query() {
-  cat "$(gql_admin_file $1)" | tr '\n' ' ' | sed 's/"/\\"/g'
-}
-
-gql_admin_file() {
-  echo "${REPO_ROOT}/bats/admin-gql/$1.gql"
-}
-
-gql_admin_operation_name() {
-  gql_operation_name "$(gql_admin_file $1)"
-}
-
 gql_customer_operation_name() {
   gql_operation_name "$(gql_file $1)"
 }
@@ -259,42 +246,6 @@ login_superadmin() {
 
 login_lanacli() {
   "$LANACLI" login 2>/dev/null || true
-}
-
-exec_admin_graphql() {
-  local query_name=$1
-  local variables=${2:-"{}"}
-  local run_cmd="${BATS_TEST_DIRNAME:+run}"
-  local operation_name=$(gql_admin_operation_name "$query_name")
-  local payload
-
-  payload=$(graphql_payload "$(gql_admin_query $query_name)" "$variables" "$operation_name")
-
-  ${run_cmd} curl -s -X POST \
-    -H "Authorization: Bearer $(read_value "superadmin")" \
-    -H "Content-Type: application/json" \
-    -d "$payload" \
-    "${GQL_ADMIN_ENDPOINT}"
-}
-
-exec_admin_graphql_upload() {
-  local query_name=$1
-  local variables=$2
-  local file_path=$3
-  local file_var_name=${4:-"file"}
-  local token=$(read_value "superadmin")
-  local operation_name=$(gql_admin_operation_name "$query_name")
-  local payload
-
-  payload=$(graphql_payload "$(gql_admin_query $query_name)" "$variables" "$operation_name")
-
-  curl -s -X POST \
-    -H "Authorization: Bearer ${token}" \
-    -H "Content-Type: multipart/form-data" \
-    -F "operations=${payload}" \
-    -F "map={\"0\":[\"variables.$file_var_name\"]}" \
-    -F "0=@$file_path" \
-    "${GQL_ADMIN_ENDPOINT}"
 }
 
 exec_dagster_graphql() {
