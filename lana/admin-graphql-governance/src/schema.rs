@@ -8,6 +8,36 @@ pub struct GovernanceQuery;
 
 #[Object]
 impl GovernanceQuery {
+    async fn approval_process(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<ApprovalProcess>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            ApprovalProcess,
+            app.governance().find_approval_process_by_id(sub, id)
+        )
+    }
+
+    async fn approval_processes(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<ApprovalProcessesByCreatedAtCursor, ApprovalProcess, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            ApprovalProcessesByCreatedAtCursor,
+            ApprovalProcess,
+            after,
+            first,
+            |query| app.governance().list_approval_processes(sub, query)
+        )
+    }
+
     async fn committee(
         &self,
         ctx: &Context<'_>,
@@ -60,6 +90,33 @@ pub struct GovernanceMutation;
 
 #[Object]
 impl GovernanceMutation {
+    async fn approval_process_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: ApprovalProcessApproveInput,
+    ) -> async_graphql::Result<ApprovalProcessApprovePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ApprovalProcessApprovePayload,
+            ApprovalProcess,
+            app.governance().approve_process(sub, input.process_id)
+        )
+    }
+
+    async fn approval_process_deny(
+        &self,
+        ctx: &Context<'_>,
+        input: ApprovalProcessDenyInput,
+        reason: String,
+    ) -> async_graphql::Result<ApprovalProcessDenyPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ApprovalProcessDenyPayload,
+            ApprovalProcess,
+            app.governance().deny_process(sub, input.process_id, reason)
+        )
+    }
+
     async fn committee_create(
         &self,
         ctx: &Context<'_>,
