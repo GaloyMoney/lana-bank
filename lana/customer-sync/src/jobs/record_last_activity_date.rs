@@ -17,15 +17,15 @@ use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateLastActivityDateConfig {
+pub struct RecordLastActivityDateConfig {
     pub deposit_account_id: DepositAccountId,
     pub recorded_at: DateTime<Utc>,
 }
 
-pub const UPDATE_LAST_ACTIVITY_DATE_COMMAND: JobType =
-    JobType::new("command.customer-sync.update-last-activity-date");
+pub const RECORD_LAST_ACTIVITY_DATE_COMMAND: JobType =
+    JobType::new("command.customer-sync.record-last-activity-date");
 
-pub struct UpdateLastActivityDateJobInitializer<Perms, E>
+pub struct RecordLastActivityDateJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -36,7 +36,7 @@ where
     deposits: CoreDeposit<Perms, E>,
 }
 
-impl<Perms, E> UpdateLastActivityDateJobInitializer<Perms, E>
+impl<Perms, E> RecordLastActivityDateJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -51,7 +51,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for UpdateLastActivityDateJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for RecordLastActivityDateJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -62,10 +62,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Config = UpdateLastActivityDateConfig;
+    type Config = RecordLastActivityDateConfig;
 
     fn job_type(&self) -> JobType {
-        UPDATE_LAST_ACTIVITY_DATE_COMMAND
+        RECORD_LAST_ACTIVITY_DATE_COMMAND
     }
 
     fn init(
@@ -73,7 +73,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UpdateLastActivityDateJobRunner {
+        Ok(Box::new(RecordLastActivityDateJobRunner {
             config: job.config()?,
             customers: self.customers.clone(),
             deposits: self.deposits.clone(),
@@ -81,20 +81,20 @@ where
     }
 }
 
-pub struct UpdateLastActivityDateJobRunner<Perms, E>
+pub struct RecordLastActivityDateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    config: UpdateLastActivityDateConfig,
+    config: RecordLastActivityDateConfig,
     customers: Customers<Perms, E>,
     deposits: CoreDeposit<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for UpdateLastActivityDateJobRunner<Perms, E>
+impl<Perms, E> JobRunner for RecordLastActivityDateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -107,7 +107,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "customer_sync.update_last_activity_date_job.process_command",
+        name = "customer_sync.record_last_activity_date_job.process_command",
         skip(self, _current_job),
         fields(deposit_account_id = %self.config.deposit_account_id),
     )]

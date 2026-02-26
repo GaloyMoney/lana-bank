@@ -98,25 +98,25 @@ where
             )
             .await?;
 
-        let update_last_activity_date = jobs.add_initializer(
-            UpdateLastActivityDateJobInitializer::new(customers.clone(), deposit.clone()),
+        let record_last_activity_date = jobs.add_initializer(
+            RecordLastActivityDateJobInitializer::new(customers.clone(), deposit.clone()),
         );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(UPDATE_LAST_ACTIVITY_DATE),
-                UpdateLastActivityDateHandler::new(update_last_activity_date),
+                UpdateLastActivityDateHandler::new(record_last_activity_date),
             )
             .await?;
 
-        let update_customer_activity_status = jobs.add_initializer(
-            UpdateCustomerActivityStatusJobInitializer::new(customers.clone()),
+        let perform_customer_activity_status_update = jobs.add_initializer(
+            PerformCustomerActivityStatusUpdateJobInitializer::new(customers.clone()),
         );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(UPDATE_CUSTOMER_ACTIVITY_STATUS),
-                UpdateCustomerActivityStatusHandler::new(update_customer_activity_status),
+                UpdateCustomerActivityStatusHandler::new(perform_customer_activity_status_update),
             )
             .await?;
 

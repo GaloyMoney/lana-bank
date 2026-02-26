@@ -5,18 +5,18 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::{JobId, JobSpawner, JobType};
 
-use super::update_last_activity_date_command::UpdateLastActivityDateConfig;
+use super::record_last_activity_date::RecordLastActivityDateConfig;
 
 pub const UPDATE_LAST_ACTIVITY_DATE: JobType = JobType::new("outbox.update-last-activity-date");
 
 pub struct UpdateLastActivityDateHandler {
-    update_last_activity_date: JobSpawner<UpdateLastActivityDateConfig>,
+    record_last_activity_date: JobSpawner<RecordLastActivityDateConfig>,
 }
 
 impl UpdateLastActivityDateHandler {
-    pub fn new(update_last_activity_date: JobSpawner<UpdateLastActivityDateConfig>) -> Self {
+    pub fn new(record_last_activity_date: JobSpawner<RecordLastActivityDateConfig>) -> Self {
         Self {
-            update_last_activity_date,
+            record_last_activity_date,
         }
     }
 }
@@ -25,7 +25,7 @@ impl<E> OutboxEventHandler<E> for UpdateLastActivityDateHandler
 where
     E: OutboxEventMarker<CoreDepositEvent>,
 {
-    #[instrument(name = "customer_sync.update_last_activity_date_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "customer_sync.record_last_activity_date_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
         op: &mut es_entity::DbOp<'_>,
@@ -48,11 +48,11 @@ where
         Span::current().record("handled", true);
         Span::current().record("event_type", e.as_ref());
 
-        self.update_last_activity_date
+        self.record_last_activity_date
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateLastActivityDateConfig {
+                RecordLastActivityDateConfig {
                     deposit_account_id,
                     recorded_at: event.recorded_at,
                 },

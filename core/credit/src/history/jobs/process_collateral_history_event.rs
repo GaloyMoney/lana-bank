@@ -13,30 +13,30 @@ use super::super::repo::HistoryRepo;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateCollateralHistoryConfig {
+pub struct ProcessCollateralHistoryEventConfig {
     pub facility_id: CreditFacilityId,
     pub recorded_at: DateTime<Utc>,
     pub event: CoreCreditCollateralEvent,
 }
 
-pub const UPDATE_COLLATERAL_HISTORY_COMMAND: JobType =
-    JobType::new("command.credit.update-collateral-history");
+pub const PROCESS_COLLATERAL_HISTORY_EVENT_COMMAND: JobType =
+    JobType::new("command.credit.process-collateral-history-event");
 
-pub struct UpdateCollateralHistoryJobInitializer {
+pub struct ProcessCollateralHistoryEventJobInitializer {
     repo: Arc<HistoryRepo>,
 }
 
-impl UpdateCollateralHistoryJobInitializer {
+impl ProcessCollateralHistoryEventJobInitializer {
     pub fn new(repo: Arc<HistoryRepo>) -> Self {
         Self { repo }
     }
 }
 
-impl JobInitializer for UpdateCollateralHistoryJobInitializer {
-    type Config = UpdateCollateralHistoryConfig;
+impl JobInitializer for ProcessCollateralHistoryEventJobInitializer {
+    type Config = ProcessCollateralHistoryEventConfig;
 
     fn job_type(&self) -> JobType {
-        UPDATE_COLLATERAL_HISTORY_COMMAND
+        PROCESS_COLLATERAL_HISTORY_EVENT_COMMAND
     }
 
     fn init(
@@ -44,23 +44,23 @@ impl JobInitializer for UpdateCollateralHistoryJobInitializer {
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UpdateCollateralHistoryJobRunner {
+        Ok(Box::new(ProcessCollateralHistoryEventJobRunner {
             config: job.config()?,
             repo: self.repo.clone(),
         }))
     }
 }
 
-struct UpdateCollateralHistoryJobRunner {
-    config: UpdateCollateralHistoryConfig,
+struct ProcessCollateralHistoryEventJobRunner {
+    config: ProcessCollateralHistoryEventConfig,
     repo: Arc<HistoryRepo>,
 }
 
 #[async_trait]
-impl JobRunner for UpdateCollateralHistoryJobRunner {
+impl JobRunner for ProcessCollateralHistoryEventJobRunner {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "credit.update_collateral_history_job.process_command",
+        name = "credit.process_collateral_history_event_job.process_command",
         skip(self, current_job)
     )]
     async fn run(

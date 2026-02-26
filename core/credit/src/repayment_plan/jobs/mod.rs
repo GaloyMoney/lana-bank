@@ -1,3 +1,3 @@
 pub mod credit_facility_repayment_plan;
-pub mod update_collection_repayment_plan;
-pub mod update_credit_repayment_plan;
+pub mod process_collection_repayment_plan_event;
+pub mod process_credit_repayment_plan_event;

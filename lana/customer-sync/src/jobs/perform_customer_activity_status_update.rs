@@ -13,14 +13,14 @@ use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateCustomerActivityStatusConfig {
+pub struct PerformCustomerActivityStatusUpdateConfig {
     pub closing_time: DateTime<Utc>,
 }
 
-pub const UPDATE_CUSTOMER_ACTIVITY_STATUS_COMMAND: JobType =
-    JobType::new("command.customer-sync.update-customer-activity-status");
+pub const PERFORM_CUSTOMER_ACTIVITY_STATUS_UPDATE_COMMAND: JobType =
+    JobType::new("command.customer-sync.perform-customer-activity-status-update");
 
-pub struct UpdateCustomerActivityStatusJobInitializer<Perms, E>
+pub struct PerformCustomerActivityStatusUpdateJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -28,7 +28,7 @@ where
     customers: Customers<Perms, E>,
 }
 
-impl<Perms, E> UpdateCustomerActivityStatusJobInitializer<Perms, E>
+impl<Perms, E> PerformCustomerActivityStatusUpdateJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -38,7 +38,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for UpdateCustomerActivityStatusJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for PerformCustomerActivityStatusUpdateJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -47,10 +47,10 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Config = UpdateCustomerActivityStatusConfig;
+    type Config = PerformCustomerActivityStatusUpdateConfig;
 
     fn job_type(&self) -> JobType {
-        UPDATE_CUSTOMER_ACTIVITY_STATUS_COMMAND
+        PERFORM_CUSTOMER_ACTIVITY_STATUS_UPDATE_COMMAND
     }
 
     fn init(
@@ -58,24 +58,24 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UpdateCustomerActivityStatusJobRunner {
+        Ok(Box::new(PerformCustomerActivityStatusUpdateJobRunner {
             config: job.config()?,
             customers: self.customers.clone(),
         }))
     }
 }
 
-pub struct UpdateCustomerActivityStatusJobRunner<Perms, E>
+pub struct PerformCustomerActivityStatusUpdateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    config: UpdateCustomerActivityStatusConfig,
+    config: PerformCustomerActivityStatusUpdateConfig,
     customers: Customers<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for UpdateCustomerActivityStatusJobRunner<Perms, E>
+impl<Perms, E> JobRunner for PerformCustomerActivityStatusUpdateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -86,7 +86,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "customer_sync.update_customer_activity_status_job.process_command",
+        name = "customer_sync.perform_customer_activity_status_update_job.process_command",
         skip(self, _current_job),
         fields(closing_time = %self.config.closing_time),
     )]

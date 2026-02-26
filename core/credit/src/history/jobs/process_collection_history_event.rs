@@ -1,42 +1,40 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use job::*;
 use tracing_macros::record_error_severity;
 
-use crate::{CoreCreditEvent, primitives::CreditFacilityId};
+use crate::{CoreCreditCollectionEvent, primitives::CreditFacilityId};
 
 use super::super::repo::HistoryRepo;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateCreditHistoryConfig {
+pub struct ProcessCollectionHistoryEventConfig {
     pub facility_id: CreditFacilityId,
-    pub recorded_at: DateTime<Utc>,
-    pub event: CoreCreditEvent,
+    pub event: CoreCreditCollectionEvent,
 }
 
-pub const UPDATE_CREDIT_HISTORY_COMMAND: JobType =
-    JobType::new("command.credit.update-credit-history");
+pub const PROCESS_COLLECTION_HISTORY_EVENT_COMMAND: JobType =
+    JobType::new("command.credit.process-collection-history-event");
 
-pub struct UpdateCreditHistoryJobInitializer {
+pub struct ProcessCollectionHistoryEventJobInitializer {
     repo: Arc<HistoryRepo>,
 }
 
-impl UpdateCreditHistoryJobInitializer {
+impl ProcessCollectionHistoryEventJobInitializer {
     pub fn new(repo: Arc<HistoryRepo>) -> Self {
         Self { repo }
     }
 }
 
-impl JobInitializer for UpdateCreditHistoryJobInitializer {
-    type Config = UpdateCreditHistoryConfig;
+impl JobInitializer for ProcessCollectionHistoryEventJobInitializer {
+    type Config = ProcessCollectionHistoryEventConfig;
 
     fn job_type(&self) -> JobType {
-        UPDATE_CREDIT_HISTORY_COMMAND
+        PROCESS_COLLECTION_HISTORY_EVENT_COMMAND
     }
 
     fn init(
@@ -44,23 +42,23 @@ impl JobInitializer for UpdateCreditHistoryJobInitializer {
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UpdateCreditHistoryJobRunner {
+        Ok(Box::new(ProcessCollectionHistoryEventJobRunner {
             config: job.config()?,
             repo: self.repo.clone(),
         }))
     }
 }
 
-struct UpdateCreditHistoryJobRunner {
-    config: UpdateCreditHistoryConfig,
+struct ProcessCollectionHistoryEventJobRunner {
+    config: ProcessCollectionHistoryEventConfig,
     repo: Arc<HistoryRepo>,
 }
 
 #[async_trait]
-impl JobRunner for UpdateCreditHistoryJobRunner {
+impl JobRunner for ProcessCollectionHistoryEventJobRunner {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "credit.update_credit_history_job.process_command",
+        name = "credit.process_collection_history_event_job.process_command",
         skip(self, current_job)
     )]
     async fn run(
@@ -72,7 +70,7 @@ impl JobRunner for UpdateCreditHistoryJobRunner {
         let facility_id = self.config.facility_id;
         let mut history = self.repo.load(facility_id).await?;
 
-        history.process_credit_event(&self.config.event, self.config.recorded_at);
+        history.process_collection_event(&self.config.event);
 
         self.repo
             .persist_in_tx(op.tx_mut(), facility_id, history)

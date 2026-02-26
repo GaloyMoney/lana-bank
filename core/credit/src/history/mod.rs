@@ -20,8 +20,8 @@ use crate::{
 pub use entry::*;
 use error::CreditFacilityHistoryError;
 use jobs::{
-    credit_facility_history, update_collateral_history, update_collection_history,
-    update_credit_history,
+    credit_facility_history, process_collateral_history_event, process_collection_history_event,
+    process_credit_history_event,
 };
 use repo::HistoryRepo;
 
@@ -227,23 +227,29 @@ where
     {
         let repo = Arc::new(HistoryRepo::new(pool));
 
-        let update_credit_history = job.add_initializer(
-            update_credit_history::UpdateCreditHistoryJobInitializer::new(repo.clone()),
+        let process_credit_history_event = job.add_initializer(
+            process_credit_history_event::ProcessCreditHistoryEventJobInitializer::new(
+                repo.clone(),
+            ),
         );
-        let update_collateral_history = job.add_initializer(
-            update_collateral_history::UpdateCollateralHistoryJobInitializer::new(repo.clone()),
+        let process_collateral_history_event = job.add_initializer(
+            process_collateral_history_event::ProcessCollateralHistoryEventJobInitializer::new(
+                repo.clone(),
+            ),
         );
-        let update_collection_history = job.add_initializer(
-            update_collection_history::UpdateCollectionHistoryJobInitializer::new(repo.clone()),
+        let process_collection_history_event = job.add_initializer(
+            process_collection_history_event::ProcessCollectionHistoryEventJobInitializer::new(
+                repo.clone(),
+            ),
         );
         outbox
             .register_event_handler(
                 job,
                 OutboxEventJobConfig::new(credit_facility_history::HISTORY_PROJECTION),
                 credit_facility_history::HistoryProjectionHandler::new(
-                    update_credit_history,
-                    update_collateral_history,
-                    update_collection_history,
+                    process_credit_history_event,
+                    process_collateral_history_event,
+                    process_collection_history_event,
                 ),
             )
             .await?;

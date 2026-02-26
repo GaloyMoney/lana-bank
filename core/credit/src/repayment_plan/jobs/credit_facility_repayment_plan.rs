@@ -9,26 +9,28 @@ use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 use crate::{CoreCreditCollectionEvent, CoreCreditEvent, primitives::CreditFacilityId};
 
 use super::{
-    update_collection_repayment_plan::UpdateCollectionRepaymentPlanConfig,
-    update_credit_repayment_plan::UpdateCreditRepaymentPlanConfig,
+    process_collection_repayment_plan_event::ProcessCollectionRepaymentPlanEventConfig,
+    process_credit_repayment_plan_event::ProcessCreditRepaymentPlanEventConfig,
 };
 
 pub const REPAYMENT_PLAN_PROJECTION: JobType =
     JobType::new("outbox.credit-facility-repayment-plan-projection");
 
 pub struct RepaymentPlanProjectionHandler {
-    update_credit_repayment_plan: JobSpawner<UpdateCreditRepaymentPlanConfig>,
-    update_collection_repayment_plan: JobSpawner<UpdateCollectionRepaymentPlanConfig>,
+    process_credit_repayment_plan_event: JobSpawner<ProcessCreditRepaymentPlanEventConfig>,
+    process_collection_repayment_plan_event: JobSpawner<ProcessCollectionRepaymentPlanEventConfig>,
 }
 
 impl RepaymentPlanProjectionHandler {
     pub fn new(
-        update_credit_repayment_plan: JobSpawner<UpdateCreditRepaymentPlanConfig>,
-        update_collection_repayment_plan: JobSpawner<UpdateCollectionRepaymentPlanConfig>,
+        process_credit_repayment_plan_event: JobSpawner<ProcessCreditRepaymentPlanEventConfig>,
+        process_collection_repayment_plan_event: JobSpawner<
+            ProcessCollectionRepaymentPlanEventConfig,
+        >,
     ) -> Self {
         Self {
-            update_credit_repayment_plan,
-            update_collection_repayment_plan,
+            process_credit_repayment_plan_event,
+            process_collection_repayment_plan_event,
         }
     }
 }
@@ -137,11 +139,11 @@ impl RepaymentPlanProjectionHandler {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        self.update_credit_repayment_plan
+        self.process_credit_repayment_plan_event
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateCreditRepaymentPlanConfig {
+                ProcessCreditRepaymentPlanEventConfig {
                     facility_id,
                     sequence,
                     recorded_at: message.recorded_at,
@@ -167,11 +169,11 @@ impl RepaymentPlanProjectionHandler {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        self.update_collection_repayment_plan
+        self.process_collection_repayment_plan_event
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateCollectionRepaymentPlanConfig {
+                ProcessCollectionRepaymentPlanEventConfig {
                     facility_id,
                     sequence,
                     event: event.clone(),

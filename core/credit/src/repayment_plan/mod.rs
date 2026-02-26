@@ -17,7 +17,8 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use error::CreditFacilityRepaymentPlanError;
 use jobs::{
-    credit_facility_repayment_plan, update_collection_repayment_plan, update_credit_repayment_plan,
+    credit_facility_repayment_plan, process_collection_repayment_plan_event,
+    process_credit_repayment_plan_event,
 };
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -353,13 +354,13 @@ where
     {
         let repo = Arc::new(RepaymentPlanRepo::new(pool));
 
-        let update_credit_repayment_plan = jobs.add_initializer(
-            update_credit_repayment_plan::UpdateCreditRepaymentPlanJobInitializer::new(
+        let process_credit_repayment_plan_event = jobs.add_initializer(
+            process_credit_repayment_plan_event::ProcessCreditRepaymentPlanEventJobInitializer::new(
                 repo.clone(),
             ),
         );
-        let update_collection_repayment_plan = jobs.add_initializer(
-            update_collection_repayment_plan::UpdateCollectionRepaymentPlanJobInitializer::new(
+        let process_collection_repayment_plan_event = jobs.add_initializer(
+            process_collection_repayment_plan_event::ProcessCollectionRepaymentPlanEventJobInitializer::new(
                 repo.clone(),
             ),
         );
@@ -370,8 +371,8 @@ where
                     credit_facility_repayment_plan::REPAYMENT_PLAN_PROJECTION,
                 ),
                 credit_facility_repayment_plan::RepaymentPlanProjectionHandler::new(
-                    update_credit_repayment_plan,
-                    update_collection_repayment_plan,
+                    process_credit_repayment_plan_event,
+                    process_collection_repayment_plan_event,
                 ),
             )
             .await?;

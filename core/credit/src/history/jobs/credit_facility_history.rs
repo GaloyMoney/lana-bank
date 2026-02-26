@@ -10,29 +10,29 @@ use crate::{
 };
 
 use super::{
-    update_collateral_history::UpdateCollateralHistoryConfig,
-    update_collection_history::UpdateCollectionHistoryConfig,
-    update_credit_history::UpdateCreditHistoryConfig,
+    process_collateral_history_event::ProcessCollateralHistoryEventConfig,
+    process_collection_history_event::ProcessCollectionHistoryEventConfig,
+    process_credit_history_event::ProcessCreditHistoryEventConfig,
 };
 
 pub const HISTORY_PROJECTION: JobType = JobType::new("outbox.credit-facility-history-projection");
 
 pub struct HistoryProjectionHandler {
-    update_credit_history: JobSpawner<UpdateCreditHistoryConfig>,
-    update_collateral_history: JobSpawner<UpdateCollateralHistoryConfig>,
-    update_collection_history: JobSpawner<UpdateCollectionHistoryConfig>,
+    process_credit_history_event: JobSpawner<ProcessCreditHistoryEventConfig>,
+    process_collateral_history_event: JobSpawner<ProcessCollateralHistoryEventConfig>,
+    process_collection_history_event: JobSpawner<ProcessCollectionHistoryEventConfig>,
 }
 
 impl HistoryProjectionHandler {
     pub fn new(
-        update_credit_history: JobSpawner<UpdateCreditHistoryConfig>,
-        update_collateral_history: JobSpawner<UpdateCollateralHistoryConfig>,
-        update_collection_history: JobSpawner<UpdateCollectionHistoryConfig>,
+        process_credit_history_event: JobSpawner<ProcessCreditHistoryEventConfig>,
+        process_collateral_history_event: JobSpawner<ProcessCollateralHistoryEventConfig>,
+        process_collection_history_event: JobSpawner<ProcessCollectionHistoryEventConfig>,
     ) -> Self {
         Self {
-            update_credit_history,
-            update_collateral_history,
-            update_collection_history,
+            process_credit_history_event,
+            process_collateral_history_event,
+            process_collection_history_event,
         }
     }
 }
@@ -152,11 +152,11 @@ impl HistoryProjectionHandler {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        self.update_credit_history
+        self.process_credit_history_event
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateCreditHistoryConfig {
+                ProcessCreditHistoryEventConfig {
                     facility_id,
                     recorded_at: message.recorded_at,
                     event: event.clone(),
@@ -182,11 +182,11 @@ impl HistoryProjectionHandler {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        self.update_collateral_history
+        self.process_collateral_history_event
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateCollateralHistoryConfig {
+                ProcessCollateralHistoryEventConfig {
                     facility_id,
                     recorded_at: message.recorded_at,
                     event: event.clone(),
@@ -212,11 +212,11 @@ impl HistoryProjectionHandler {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        self.update_collection_history
+        self.process_collection_history_event
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateCollectionHistoryConfig {
+                ProcessCollectionHistoryEventConfig {
                     facility_id,
                     event: event.clone(),
                 },

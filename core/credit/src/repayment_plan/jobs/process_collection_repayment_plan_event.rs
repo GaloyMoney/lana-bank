@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use es_entity::AtomicOperation;
@@ -9,35 +8,36 @@ use job::*;
 use obix::EventSequence;
 use tracing_macros::record_error_severity;
 
-use crate::{CoreCreditEvent, primitives::CreditFacilityId, repayment_plan::RepaymentPlanRepo};
+use crate::{
+    CoreCreditCollectionEvent, primitives::CreditFacilityId, repayment_plan::RepaymentPlanRepo,
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateCreditRepaymentPlanConfig {
+pub struct ProcessCollectionRepaymentPlanEventConfig {
     pub facility_id: CreditFacilityId,
     pub sequence: EventSequence,
-    pub recorded_at: DateTime<Utc>,
-    pub event: CoreCreditEvent,
+    pub event: CoreCreditCollectionEvent,
 }
 
-pub const UPDATE_CREDIT_REPAYMENT_PLAN_COMMAND: JobType =
-    JobType::new("command.credit.update-credit-repayment-plan");
+pub const PROCESS_COLLECTION_REPAYMENT_PLAN_EVENT_COMMAND: JobType =
+    JobType::new("command.credit.process-collection-repayment-plan-event");
 
-pub struct UpdateCreditRepaymentPlanJobInitializer {
+pub struct ProcessCollectionRepaymentPlanEventJobInitializer {
     repo: Arc<RepaymentPlanRepo>,
 }
 
-impl UpdateCreditRepaymentPlanJobInitializer {
+impl ProcessCollectionRepaymentPlanEventJobInitializer {
     pub fn new(repo: Arc<RepaymentPlanRepo>) -> Self {
         Self { repo }
     }
 }
 
-impl JobInitializer for UpdateCreditRepaymentPlanJobInitializer {
-    type Config = UpdateCreditRepaymentPlanConfig;
+impl JobInitializer for ProcessCollectionRepaymentPlanEventJobInitializer {
+    type Config = ProcessCollectionRepaymentPlanEventConfig;
 
     fn job_type(&self) -> JobType {
-        UPDATE_CREDIT_REPAYMENT_PLAN_COMMAND
+        PROCESS_COLLECTION_REPAYMENT_PLAN_EVENT_COMMAND
     }
 
     fn init(
@@ -45,23 +45,23 @@ impl JobInitializer for UpdateCreditRepaymentPlanJobInitializer {
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UpdateCreditRepaymentPlanJobRunner {
+        Ok(Box::new(ProcessCollectionRepaymentPlanEventJobRunner {
             config: job.config()?,
             repo: self.repo.clone(),
         }))
     }
 }
 
-struct UpdateCreditRepaymentPlanJobRunner {
-    config: UpdateCreditRepaymentPlanConfig,
+struct ProcessCollectionRepaymentPlanEventJobRunner {
+    config: ProcessCollectionRepaymentPlanEventConfig,
     repo: Arc<RepaymentPlanRepo>,
 }
 
 #[async_trait]
-impl JobRunner for UpdateCreditRepaymentPlanJobRunner {
+impl JobRunner for ProcessCollectionRepaymentPlanEventJobRunner {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "credit.update_credit_repayment_plan_job.process_command",
+        name = "credit.process_collection_repayment_plan_event_job.process_command",
         skip(self, current_job)
     )]
     async fn run(
@@ -75,12 +75,7 @@ impl JobRunner for UpdateCreditRepaymentPlanJobRunner {
         let facility_id = self.config.facility_id;
         let mut repayment_plan = self.repo.load(facility_id).await?;
 
-        repayment_plan.process_credit_event(
-            self.config.sequence,
-            &self.config.event,
-            now,
-            self.config.recorded_at,
-        );
+        repayment_plan.process_collection_event(self.config.sequence, &self.config.event, now);
 
         self.repo
             .persist_in_tx(op.tx_mut(), facility_id, repayment_plan)
