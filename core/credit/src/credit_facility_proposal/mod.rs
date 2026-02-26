@@ -157,7 +157,7 @@ where
         let id = credit_facility_proposal_id.into();
         Span::current().record("credit_facility_proposal_id", tracing::field::display(&id));
 
-        let mut proposal = self.repo.find_by_id(id).await?;
+        let mut proposal = self.repo.find_by_id_in_op(&mut *db, id).await?;
         match proposal.conclude_approval_process(approved)? {
             es_entity::Idempotent::Executed(res) => {
                 self.repo.update_in_op(db, &mut proposal).await?;

@@ -75,6 +75,14 @@ where
         self.repo.maybe_find_by_id(payment_id).await
     }
 
+    pub async fn find_by_id_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        payment_id: PaymentId,
+    ) -> Result<Option<Payment>, PaymentError> {
+        self.repo.maybe_find_by_id_in_op(db, payment_id).await
+    }
+
     /// Attempts to create new Payment entity with `payment_id` linked
     /// to `beneficiary_id`. Upon successful creation, the Payment
     /// is recorded in ledger by transferring `amount` from

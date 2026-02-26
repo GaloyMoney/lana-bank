@@ -224,7 +224,7 @@ where
             .await
             .map_err(authz::error::AuthorizationError::from)?;
 
-        let mut disbursal = self.repo.find_by_id(disbursal_id).await?;
+        let mut disbursal = self.repo.find_by_id_in_op(&mut *op, disbursal_id).await?;
 
         let ret = match disbursal.approval_process_concluded(approved, op.now().date_naive()) {
             es_entity::Idempotent::AlreadyApplied => {

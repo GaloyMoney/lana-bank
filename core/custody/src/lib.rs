@@ -279,7 +279,7 @@ where
     ) -> Result<(), CoreCustodyError> {
         if self
             .custodians
-            .maybe_find_by_id(CustodianId::mock_custodian_id())
+            .maybe_find_by_id_in_op(&mut *db, CustodianId::mock_custodian_id())
             .await?
             .is_none()
         {

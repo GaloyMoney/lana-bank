@@ -373,7 +373,7 @@ where
             )
             .await?;
 
-        let mut chart = self.find_by_id(chart_id).await?;
+        let mut chart = self.repo.find_by_id_in_op(&mut *op, chart_id).await?;
         if let Idempotent::Executed(closing_date) = chart.close_as_of(closed_as_of) {
             self.repo.update_in_op(op, &mut chart).await?;
             self.chart_ledger
@@ -394,7 +394,7 @@ where
         chart_id: ChartId,
         tx_details: ClosingTxDetails,
     ) -> Result<(), ChartOfAccountsError> {
-        let mut chart = self.find_by_id(chart_id).await?;
+        let mut chart = self.repo.find_by_id_in_op(&mut *op, chart_id).await?;
         let account_codes = ClosingAccountCodes::from(
             &chart
                 .accounting_base_config()

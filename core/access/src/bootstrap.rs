@@ -160,7 +160,7 @@ where
     ) -> Result<Vec<PermissionSet>, PermissionSetError> {
         let existing_permission_sets = self
             .permission_set_repo
-            .list_by_id(Default::default(), Default::default())
+            .list_by_id_in_op(&mut *db, Default::default(), Default::default())
             .await?
             .entities;
 
