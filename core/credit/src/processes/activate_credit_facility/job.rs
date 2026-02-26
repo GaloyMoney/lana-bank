@@ -1,88 +1,37 @@
 use tracing::{Span, instrument};
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_price::CorePriceEvent;
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
 
-use crate::{
-    CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
-    PendingCreditFacilityCollateralizationState,
-    collateral::{
-        CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
-    },
-};
+use crate::{CoreCreditEvent, PendingCreditFacilityCollateralizationState};
 
-use super::ActivateCreditFacility;
+use super::execute_activate_credit_facility::ExecuteActivateCreditFacilityConfig;
 
 pub const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("outbox.credit-facility-activation");
 
-pub(crate) struct CreditFacilityActivationHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    process: ActivateCreditFacility<Perms, E>,
+pub(crate) struct CreditFacilityActivationHandler {
+    execute_activate_credit_facility: JobSpawner<ExecuteActivateCreditFacilityConfig>,
 }
 
-impl<Perms, E> CreditFacilityActivationHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
-        + From<GovernanceAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
-        + From<GovernanceObject>
-        + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    pub fn new(process: &ActivateCreditFacility<Perms, E>) -> Self {
+impl CreditFacilityActivationHandler {
+    pub fn new(
+        execute_activate_credit_facility: JobSpawner<ExecuteActivateCreditFacilityConfig>,
+    ) -> Self {
         Self {
-            process: process.clone(),
+            execute_activate_credit_facility,
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for CreditFacilityActivationHandler<Perms, E>
+impl<E> OutboxEventHandler<E> for CreditFacilityActivationHandler
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
-        + From<CoreCreditCollateralAction>
-        + From<GovernanceAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
-        + From<CoreCreditCollateralObject>
-        + From<GovernanceObject>
-        + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    #[instrument(name = "core_credit.credit_facility_activation_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, pending_credit_facility_id = tracing::field::Empty))]
+    #[instrument(name = "core_credit.credit_facility_activation_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, pending_credit_facility_id = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        _op: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         use CoreCreditEvent::*;
@@ -99,8 +48,15 @@ where
             );
             Span::current().record("event_type", e.as_ref());
 
-            self.process
-                .execute_activate_credit_facility(entity.id)
+            self.execute_activate_credit_facility
+                .spawn_with_queue_id_in_op(
+                    op,
+                    JobId::new(),
+                    ExecuteActivateCreditFacilityConfig {
+                        pending_credit_facility_id: entity.id,
+                    },
+                    entity.id.to_string(),
+                )
                 .await?;
         }
         Ok(())

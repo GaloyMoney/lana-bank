@@ -1,3 +1,4 @@
+mod execute_approve_disbursal;
 mod job;
 
 use std::sync::Arc;
@@ -25,6 +26,7 @@ use crate::{
     primitives::DisbursalId,
 };
 
+pub use execute_approve_disbursal::*;
 pub use job::*;
 pub const APPROVE_DISBURSAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursal");
 

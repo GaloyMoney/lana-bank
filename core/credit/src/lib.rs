@@ -348,13 +348,15 @@ where
             AllocateCreditFacilityPayment::new(collections_arc.clone());
         let allocate_credit_facility_payment_arc = Arc::new(allocate_credit_facility_payment);
 
+        let execute_allocate_payment_spawner =
+            jobs.add_initializer(ExecuteAllocatePaymentJobInitializer::new(
+                allocate_credit_facility_payment_arc.as_ref().clone(),
+            ));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(ALLOCATE_CREDIT_FACILITY_PAYMENT),
-                AllocateCreditFacilityPaymentHandler::new(
-                    allocate_credit_facility_payment_arc.as_ref(),
-                ),
+                AllocateCreditFacilityPaymentHandler::new(execute_allocate_payment_spawner),
             )
             .await?;
 
@@ -365,27 +367,38 @@ where
         );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
+        let execute_approve_disbursal_spawner = jobs.add_initializer(
+            ExecuteApproveDisbursalJobInitializer::new(approve_disbursal_arc.as_ref().clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(DISBURSAL_APPROVE_JOB),
-                DisbursalApprovalHandler::new(approve_disbursal_arc.as_ref()),
+                DisbursalApprovalHandler::new(execute_approve_disbursal_spawner),
             )
             .await?;
 
+        let execute_activate_credit_facility_spawner =
+            jobs.add_initializer(ExecuteActivateCreditFacilityJobInitializer::new(
+                activate_credit_facility_arc.as_ref().clone(),
+            ));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CREDIT_FACILITY_ACTIVATE),
-                CreditFacilityActivationHandler::new(activate_credit_facility_arc.as_ref()),
+                CreditFacilityActivationHandler::new(execute_activate_credit_facility_spawner),
             )
             .await?;
 
+        let execute_approve_proposal_spawner =
+            jobs.add_initializer(ExecuteApproveCreditFacilityProposalJobInitializer::new(
+                approve_proposal_arc.as_ref().clone(),
+            ));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CREDIT_FACILITY_PROPOSAL_APPROVE_JOB),
-                CreditFacilityProposalApprovalHandler::new(approve_proposal_arc.as_ref()),
+                CreditFacilityProposalApprovalHandler::new(execute_approve_proposal_spawner),
             )
             .await?;
 

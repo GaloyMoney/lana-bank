@@ -1,55 +1,33 @@
 use tracing::{Span, instrument};
 
-use audit::{AuditSvc, SystemSubject};
-use authz::PermissionCheck;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
 
-use crate::{
-    CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
-    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
-};
+use crate::CoreCreditCollectionEvent;
 
-use super::AllocateCreditFacilityPayment;
+use super::execute_allocate_payment::ExecuteAllocatePaymentConfig;
 
 pub const ALLOCATE_CREDIT_FACILITY_PAYMENT: JobType =
     JobType::new("outbox.allocate-credit-facility-payment");
 
-pub struct AllocateCreditFacilityPaymentHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
-{
-    process: AllocateCreditFacilityPayment<Perms, E>,
+pub struct AllocateCreditFacilityPaymentHandler {
+    execute_allocate_payment: JobSpawner<ExecuteAllocatePaymentConfig>,
 }
 
-impl<Perms, E> AllocateCreditFacilityPaymentHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
-{
-    pub fn new(process: &AllocateCreditFacilityPayment<Perms, E>) -> Self {
+impl AllocateCreditFacilityPaymentHandler {
+    pub fn new(execute_allocate_payment: JobSpawner<ExecuteAllocatePaymentConfig>) -> Self {
         Self {
-            process: process.clone(),
+            execute_allocate_payment,
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for AllocateCreditFacilityPaymentHandler<Perms, E>
+impl<E> OutboxEventHandler<E> for AllocateCreditFacilityPaymentHandler
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<CoreCreditCollectionAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<CoreCreditCollectionObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    E: OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    #[instrument(name = "core_credit.allocate_credit_facility_payment_job.process_message_in_op", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
+    #[instrument(name = "core_credit.allocate_credit_facility_payment_job.process_message_in_op", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
         op: &mut es_entity::DbOp<'_>,
@@ -66,13 +44,14 @@ where
                 tracing::field::display(&entity.beneficiary_id),
             );
 
-            self.process
-                .execute_in_op(
+            self.execute_allocate_payment
+                .spawn_with_queue_id_in_op(
                     op,
-                    entity.id,
-                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                        crate::primitives::CREDIT_FACILITY_PAYMENT_ALLOCATION,
-                    ),
+                    JobId::new(),
+                    ExecuteAllocatePaymentConfig {
+                        payment_id: entity.id,
+                    },
+                    entity.id.to_string(),
                 )
                 .await?;
         }

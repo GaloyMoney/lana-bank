@@ -1,94 +1,46 @@
 use tracing::{Span, instrument};
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_price::CorePriceEvent;
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use governance::GovernanceEvent;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
 
-use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    collateral::{
-        CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
-    },
-};
-use core_credit_collection::CoreCreditCollectionEvent;
-
-use super::ApproveCreditFacilityProposal;
+use super::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS;
+use super::execute_approve_credit_facility_proposal::ExecuteApproveCreditFacilityProposalConfig;
 
 pub const CREDIT_FACILITY_PROPOSAL_APPROVE_JOB: JobType =
     JobType::new("outbox.credit-facility-proposal-approval");
 
-pub(crate) struct CreditFacilityProposalApprovalHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    process: ApproveCreditFacilityProposal<Perms, E>,
+pub(crate) struct CreditFacilityProposalApprovalHandler {
+    execute_approve_credit_facility_proposal:
+        JobSpawner<ExecuteApproveCreditFacilityProposalConfig>,
 }
 
-impl<Perms, E> CreditFacilityProposalApprovalHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
-        + From<GovernanceAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
-        + From<GovernanceObject>
-        + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    pub fn new(process: &ApproveCreditFacilityProposal<Perms, E>) -> Self {
+impl CreditFacilityProposalApprovalHandler {
+    pub fn new(
+        execute_approve_credit_facility_proposal: JobSpawner<
+            ExecuteApproveCreditFacilityProposalConfig,
+        >,
+    ) -> Self {
         Self {
-            process: process.clone(),
+            execute_approve_credit_facility_proposal,
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for CreditFacilityProposalApprovalHandler<Perms, E>
+impl<E> OutboxEventHandler<E> for CreditFacilityProposalApprovalHandler
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<crate::CoreCreditCollectionAction>
-        + From<CoreCreditCollateralAction>
-        + From<GovernanceAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<crate::CoreCreditCollectionObject>
-        + From<CoreCreditCollateralObject>
-        + From<GovernanceObject>
-        + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(name = "core_credit.credit_facility_proposal_approval_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
+    #[instrument(name = "core_credit.credit_facility_proposal_approval_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        _op: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         match event.as_event() {
             Some(e @ GovernanceEvent::ApprovalProcessConcluded { entity })
-                if entity.process_type == super::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS =>
+                if entity.process_type == APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS =>
             {
                 event.inject_trace_parent();
                 Span::current().record("handled", true);
@@ -98,10 +50,15 @@ where
                     tracing::field::display(entity.id),
                 );
                 Span::current().record("process_type", entity.process_type.to_string());
-                self.process
-                    .execute_approve_credit_facility_proposal(
-                        entity.id,
-                        entity.status.is_approved(),
+                self.execute_approve_credit_facility_proposal
+                    .spawn_with_queue_id_in_op(
+                        op,
+                        JobId::new(),
+                        ExecuteApproveCreditFacilityProposalConfig {
+                            approval_process_id: entity.id,
+                            approved: entity.status.is_approved(),
+                        },
+                        entity.id.to_string(),
                     )
                     .await?;
             }

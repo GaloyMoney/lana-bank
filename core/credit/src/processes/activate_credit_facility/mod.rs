@@ -1,3 +1,4 @@
+mod execute_activate_credit_facility;
 mod job;
 
 use std::sync::Arc;
@@ -13,6 +14,7 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 use public_id::PublicIds;
 
+pub use execute_activate_credit_facility::*;
 pub use job::*;
 
 use crate::{

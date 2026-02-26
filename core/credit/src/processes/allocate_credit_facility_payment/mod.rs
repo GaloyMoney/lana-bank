@@ -1,3 +1,4 @@
+mod execute_allocate_payment;
 mod job;
 
 use audit::SystemSubject;
@@ -16,6 +17,7 @@ use crate::{
     primitives::PaymentId,
 };
 
+pub use execute_allocate_payment::*;
 pub use job::*;
 
 pub struct AllocateCreditFacilityPayment<Perms, E>

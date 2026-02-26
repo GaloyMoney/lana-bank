@@ -1,3 +1,4 @@
+mod execute_approve_credit_facility_proposal;
 mod job;
 
 use std::sync::Arc;
@@ -25,6 +26,7 @@ use crate::{
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 
+pub use execute_approve_credit_facility_proposal::*;
 pub use job::*;
 pub const APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS: ApprovalProcessType =
     ApprovalProcessType::new("credit-facility-proposal");
