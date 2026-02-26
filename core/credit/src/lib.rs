@@ -785,6 +785,10 @@ where
             .await?;
 
         let payment_id = PaymentId::new();
+        let effective = effective.into();
+        if !credit_facility.check_payment_date(effective) {
+            return Err(CreditFacilityError::PaymentBeforeFacilityActivation.into());
+        }
         let initiated_by = sub;
         self.collections
             .payments()
@@ -799,7 +803,7 @@ where
                     payment_source_account_id,
                 },
                 amount,
-                effective.into(),
+                effective,
                 initiated_by,
             )
             .await?;

@@ -30,6 +30,8 @@ pub enum CreditFacilityError {
     OnlyOneDisbursalAllowed,
     #[error("CreditFacilityError - NotActivatedYet")]
     NotActivatedYet,
+    #[error("CreditFacilityError - PaymentBeforeFacilityActivation")]
+    PaymentBeforeFacilityActivation,
     #[error("CreditFacilityError - InterestAccrualNotCompletedYet")]
     InterestAccrualNotCompletedYet,
     #[error("CreditFacilityError - NoDisbursalInProgress")]
@@ -100,6 +102,7 @@ impl ErrorSeverity for CreditFacilityError {
             Self::DisbursalPastMaturityDate => Level::WARN,
             Self::OnlyOneDisbursalAllowed => Level::WARN,
             Self::NotActivatedYet => Level::WARN,
+            Self::PaymentBeforeFacilityActivation => Level::WARN,
             Self::InterestAccrualNotCompletedYet => Level::WARN,
             Self::NoDisbursalInProgress => Level::WARN,
             Self::CollateralNotUpdated(_, _) => Level::ERROR,
