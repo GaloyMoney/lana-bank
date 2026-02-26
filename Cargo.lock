@@ -39,9 +39,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "admin-graphql-custody"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "url",
+]
+
+[[package]]
+name = "admin-graphql-documents"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "lana-app",
+]
+
+[[package]]
+name = "admin-graphql-governance"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-access",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+]
+
+[[package]]
 name = "admin-graphql-reports"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+]
+
+[[package]]
+name = "admin-graphql-session"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-access",
  "admin-graphql-shared",
  "async-graphql",
  "lana-app",
@@ -69,7 +111,11 @@ dependencies = [
  "admin-graphql-access",
  "admin-graphql-config",
  "admin-graphql-contracts",
+ "admin-graphql-custody",
+ "admin-graphql-documents",
+ "admin-graphql-governance",
  "admin-graphql-reports",
+ "admin-graphql-session",
  "admin-graphql-shared",
  "anyhow",
  "async-graphql",

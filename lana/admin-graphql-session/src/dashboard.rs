@@ -1,8 +1,7 @@
 use async_graphql::*;
 
+use admin_graphql_shared::primitives::{Satoshis, UsdCents};
 use lana_app::dashboard::DashboardValues;
-
-use crate::primitives::{Satoshis, UsdCents};
 
 #[derive(SimpleObject)]
 pub struct Dashboard {

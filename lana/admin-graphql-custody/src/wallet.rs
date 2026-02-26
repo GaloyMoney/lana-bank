@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::{graphql::loader::LanaDataLoader, primitives::*};
+use admin_graphql_shared::primitives::*;
 
 pub use lana_app::custody::{Wallet as DomainWallet, WalletNetwork};
 
@@ -37,10 +37,13 @@ impl Wallet {
     }
 
     async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Custodian> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        Ok(loader
-            .load_one(self.entity.custodian_id)
+        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
+        Ok(app
+            .custody()
+            .find_all_custodians::<Custodian>(&[self.entity.custodian_id])
             .await?
+            .into_values()
+            .next()
             .expect("wallet must have a custodian"))
     }
 }

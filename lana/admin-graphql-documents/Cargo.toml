@@ -1,5 +1,5 @@
 [package]
-name = "admin-graphql-reports"
+name = "admin-graphql-documents"
 license = "BUSL-1.1"
 edition = "2024"
 
@@ -7,7 +7,3 @@ edition = "2024"
 lana-app = { workspace = true }
 admin-graphql-shared = { path = "../admin-graphql-shared" }
 async-graphql = { workspace = true }
-es-entity = { workspace = true }
-
-[package.metadata.cargo-machete]
-ignored = ["es-entity"]
