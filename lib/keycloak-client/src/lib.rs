@@ -11,6 +11,7 @@ pub use url::Url;
 use keycloak::prelude::reqwest::Client;
 use keycloak::types::*;
 use keycloak::{KeycloakAdmin, KeycloakServiceAccountAdminTokenRetriever};
+use std::sync::OnceLock;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 use uuid::Uuid;
@@ -20,12 +21,21 @@ pub struct KeycloakClient {
     connection: KeycloakConnectionConfig,
 }
 
+fn ensure_rustls_provider() {
+    static RUSTLS_PROVIDER: OnceLock<()> = OnceLock::new();
+    RUSTLS_PROVIDER.get_or_init(|| {
+        let _ = rustls::crypto::ring::default_provider().install_default();
+    });
+}
+
 impl KeycloakClient {
     pub fn new(connection: KeycloakConnectionConfig) -> Self {
         Self { connection }
     }
 
     fn get_client(&self) -> KeycloakAdmin<KeycloakServiceAccountAdminTokenRetriever> {
+        ensure_rustls_provider();
+
         let http_client = Client::builder()
             .default_headers(tracing_utils::http::inject_trace_reqwest())
             .build()

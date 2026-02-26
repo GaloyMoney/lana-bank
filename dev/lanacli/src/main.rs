@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
         Command::Login => {
             let mut auth = AuthClient::new(cli.keycloak_url, cli.username.clone(), cli.password);
             auth.get_token().await?;
-            println!("Logged in as {}", cli.username);
+            println!("Login successful");
             Ok(())
         }
         Command::Logout => {
