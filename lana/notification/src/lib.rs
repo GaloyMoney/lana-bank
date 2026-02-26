@@ -18,7 +18,9 @@ use obix::out::OutboxEventJobConfig;
 
 pub use config::NotificationConfig;
 use email::EmailNotification;
-use email::job::{EMAIL_LISTENER_JOB, EmailEventListenerHandler};
+use email::job::{
+    EMAIL_LISTENER_JOB, EmailEventListenerHandler, ProcessEmailNotificationJobInitializer,
+};
 pub use email::{NotificationFromEmail, NotificationFromName};
 
 pub struct Notification<AuthzType>
@@ -82,11 +84,13 @@ where
         )
         .await?;
 
+        let process_email_notification =
+            jobs.add_initializer(ProcessEmailNotificationJobInitializer::new(email));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(EMAIL_LISTENER_JOB),
-                EmailEventListenerHandler::new(&email),
+                EmailEventListenerHandler::new(process_email_notification),
             )
             .await?;
 
