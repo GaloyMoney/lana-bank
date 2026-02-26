@@ -110,7 +110,7 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Customer, ctx, app.customers().find_by_id(sub, id))
+        authz_maybe_fetch_one!(Customer, ctx, app.customers().find_by_id(sub, id))
     }
 
     async fn customer_by_email(
@@ -119,7 +119,7 @@ impl Query {
         email: String,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Customer, ctx, app.customers().find_by_email(sub, email))
+        authz_maybe_fetch_one!(Customer, ctx, app.customers().find_by_email(sub, email))
     }
 
     async fn customer_by_public_id(
@@ -128,7 +128,7 @@ impl Query {
         id: PublicId,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Customer, ctx, app.customers().find_by_public_id(sub, id))
+        authz_maybe_fetch_one!(Customer, ctx, app.customers().find_by_public_id(sub, id))
     }
 
     async fn customers(
@@ -150,7 +150,7 @@ impl Query {
             by: DomainCustomersSortBy::from(sort.unwrap_or_default()),
             direction: ListDirection::Descending,
         };
-        list_with_combo_cursor!(
+        authz_list_with_combo_cursor!(
             CustomersCursor,
             Customer,
             sort.by,
@@ -1362,7 +1362,7 @@ impl Mutation {
                 "Manual conversion is only available when 'Require verified customer for account' is disabled",
             ));
         }
-        exec_mutation!(
+        authz_exec_mutation!(
             ProspectConvertPayload,
             Customer,
             ctx,
@@ -1376,7 +1376,7 @@ impl Mutation {
         input: CustomerTelegramHandleUpdateInput,
     ) -> async_graphql::Result<CustomerTelegramHandleUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
+        authz_exec_mutation!(
             CustomerTelegramHandleUpdatePayload,
             Customer,
             ctx,
@@ -1391,7 +1391,7 @@ impl Mutation {
         input: CustomerEmailUpdateInput,
     ) -> async_graphql::Result<CustomerEmailUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
+        authz_exec_mutation!(
             CustomerEmailUpdatePayload,
             Customer,
             ctx,

@@ -108,9 +108,9 @@ impl Prospect {
         if self.entity.status != ProspectStatus::Converted {
             return Ok(None);
         }
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let (loader, sub) = crate::loader_and_sub_from_ctx!(ctx);
         let customer_id = CustomerId::from(self.entity.id);
-        let customer = loader.load_one(customer_id).await?;
+        let customer = loader.load_one((sub.clone(), customer_id)).await?;
         Ok(customer)
     }
 }

@@ -86,6 +86,8 @@ where
     }
 }
 
+type AuditSubject<Perms> = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject;
+
 impl<Perms, E> Customers<Perms, E>
 where
     Perms: PermissionCheck,
@@ -790,6 +792,48 @@ where
         ids: &[CustomerId],
     ) -> Result<HashMap<CustomerId, T>, CustomerError> {
         self.repo.find_all(ids).await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_all_authorized", skip(self, by_subject))]
+    pub async fn find_all_authorized<T: From<Customer> + Clone>(
+        &self,
+        by_subject: HashMap<&AuditSubject<Perms>, Vec<CustomerId>>,
+    ) -> Result<HashMap<(AuditSubject<Perms>, CustomerId), T>, CustomerError>
+    where
+        AuditSubject<Perms>: std::hash::Hash + Eq + Clone,
+    {
+        let mut all_ids = std::collections::HashSet::new();
+        let mut authorized_entries = Vec::new();
+
+        for (sub, ids) in by_subject {
+            if self
+                .authz
+                .enforce_permission(
+                    sub,
+                    CustomerObject::all_customers(),
+                    CoreCustomerAction::CUSTOMER_READ,
+                )
+                .await
+                .is_ok()
+            {
+                all_ids.extend(ids.iter().copied());
+                authorized_entries.push((sub, ids));
+            }
+        }
+
+        let ids: Vec<CustomerId> = all_ids.into_iter().collect();
+        let entities: HashMap<CustomerId, T> = self.repo.find_all(&ids).await?;
+
+        let mut result = HashMap::new();
+        for (sub, ids) in authorized_entries {
+            for id in ids {
+                if let Some(entity) = entities.get(&id) {
+                    result.insert((sub.clone(), id), entity.clone());
+                }
+            }
+        }
+        Ok(result)
     }
 
     #[record_error_severity]

@@ -48,9 +48,9 @@ impl CreditFacilityProposal {
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let (loader, sub) = crate::loader_and_sub_from_ctx!(ctx);
         let customer = loader
-            .load_one(self.entity.customer_id)
+            .load_one((sub.clone(), self.entity.customer_id))
             .await?
             .expect("customer not found");
         Ok(customer)
