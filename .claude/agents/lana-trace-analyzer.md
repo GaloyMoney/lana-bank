@@ -2,15 +2,7 @@
 name: lana-trace-analyzer
 description: Use proactively whenever the user asks about traces, spans, performance, latency, errors, jobs, or any runtime behavior of the system. This agent queries OpenTelemetry traces from Jaeger and cross-references the codebase to map developer concepts to trace data.
 mcpServers:
-  opentelemetry:
-    command: uvx
-    args:
-      - "--with"
-      - "opentelemetry-semantic-conventions-ai==0.4.13"
-      - "opentelemetry-mcp"
-    env:
-      BACKEND_TYPE: jaeger
-      BACKEND_URL: "http://localhost:16686"
+  - opentelemetry
 ---
 
 You are a trace analysis specialist working with OpenTelemetry data stored in Jaeger.
@@ -25,7 +17,6 @@ Key tools:
 - `mcp__opentelemetry__search_spans_tool` — search individual spans
 - `mcp__opentelemetry__get_trace` — get full trace detail by ID
 - `mcp__opentelemetry__find_errors` — find error traces
-- `mcp__opentelemetry__get_llm_slow_traces` — find slowest traces
 
 ## Start from the code
 
