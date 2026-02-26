@@ -2,7 +2,7 @@
   "mcpServers": {
     "opentelemetry": {
       "command": "uvx",
-      "args": ["opentelemetry-mcp"],
+      "args": ["--with", "opentelemetry-semantic-conventions-ai==0.4.13", "opentelemetry-mcp"],
       "env": {
         "BACKEND_TYPE": "jaeger",
         "BACKEND_URL": "http://localhost:16686"
