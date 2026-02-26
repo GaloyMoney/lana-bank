@@ -166,7 +166,9 @@ where
     ) -> Result<(), ObligationError> {
         let span = Span::current();
         span.record("beneficiary_id", tracing::field::display(beneficiary_id));
-        let mut obligations = self.beneficiary_obligations(beneficiary_id).await?;
+        let mut obligations = self
+            .beneficiary_obligations_in_op(&mut *op, beneficiary_id)
+            .await?;
         span.record("n_beneficiary_obligations", obligations.len());
 
         obligations.sort();
@@ -265,6 +267,44 @@ where
             let mut res = self
                 .repo
                 .list_for_beneficiary_id_by_created_at(
+                    beneficiary_id,
+                    query,
+                    es_entity::ListDirection::Ascending,
+                )
+                .await?;
+
+            obligations.append(&mut res.entities);
+
+            if let Some(q) = res.into_next_query() {
+                query = q;
+            } else {
+                break;
+            };
+        }
+
+        Span::current().record("n_obligations", obligations.len());
+
+        Ok(obligations)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "collections.obligation.beneficiary_obligations_in_op",
+        skip(self, op),
+        fields(beneficiary_id = %beneficiary_id, n_obligations)
+    )]
+    async fn beneficiary_obligations_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        beneficiary_id: BeneficiaryId,
+    ) -> Result<Vec<Obligation>, ObligationError> {
+        let mut obligations = Vec::new();
+        let mut query = Default::default();
+        loop {
+            let mut res = self
+                .repo
+                .list_for_beneficiary_id_by_created_at_in_op(
+                    &mut *op,
                     beneficiary_id,
                     query,
                     es_entity::ListDirection::Ascending,

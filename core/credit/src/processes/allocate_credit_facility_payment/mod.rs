@@ -61,7 +61,12 @@ where
         payment_id: PaymentId,
         initiated_by: &impl SystemSubject,
     ) -> Result<(), CoreCreditError> {
-        if let Some(payment) = self.collections.payments().find_by_id(payment_id).await? {
+        if let Some(payment) = self
+            .collections
+            .payments()
+            .find_by_id_in_op(&mut *db, payment_id)
+            .await?
+        {
             self.collections
                 .obligations()
                 .allocate_payment_in_op(db, payment.into(), initiated_by)

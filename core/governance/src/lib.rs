@@ -220,10 +220,14 @@ where
         target_ref: String,
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
-        let policy = self.policy_repo.find_by_process_type(process_type).await?;
+        let policy = self
+            .policy_repo
+            .find_by_process_type_in_op(&mut *db, process_type)
+            .await?;
         self.authz
             .audit()
-            .record_system_entry(
+            .record_system_entry_in_op(
+                &mut *db,
                 crate::primitives::GOVERNANCE,
                 GovernanceObject::all_approval_processes(),
                 GovernanceAction::APPROVAL_PROCESS_CREATE,
@@ -231,7 +235,7 @@ where
             .await?;
         let new_process = policy.spawn_process(id.into(), target_ref);
         let mut process = self.process_repo.create_in_op(db, new_process).await?;
-        let eligible = self.eligible_voters_for_process(&process).await?;
+        let eligible = self.eligible_voters_for_process_in_op(db, &process).await?;
         if self
             .maybe_fire_concluded_event_in_op(db, eligible, &mut process)
             .await?
@@ -578,6 +582,22 @@ where
         let res = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
                 .find_by_id(committee_id)
+                .await?
+                .members()
+        } else {
+            HashSet::new()
+        };
+        Ok(res)
+    }
+
+    async fn eligible_voters_for_process_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        process: &ApprovalProcess,
+    ) -> Result<HashSet<CommitteeMemberId>, GovernanceError> {
+        let res = if let Some(committee_id) = process.committee_id() {
+            self.committee_repo
+                .find_by_id_in_op(db, committee_id)
                 .await?
                 .members()
         } else {

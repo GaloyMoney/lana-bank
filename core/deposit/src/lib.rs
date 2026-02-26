@@ -359,7 +359,12 @@ where
 
         let accounts = self
             .deposit_accounts
-            .list_for_account_holder_id_by_id(holder_id, Default::default(), Default::default())
+            .list_for_account_holder_id_by_id_in_op(
+                &mut *op,
+                holder_id,
+                Default::default(),
+                Default::default(),
+            )
             .await?;
 
         for mut account in accounts.entities.into_iter() {

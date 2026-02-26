@@ -253,7 +253,10 @@ where
         db: &mut es_entity::DbOpWithTime<'_>,
         pending_credit_facility_id: PendingCreditFacilityId,
     ) -> Result<PendingCreditFacilityCompletionOutcome, PendingCreditFacilityError> {
-        let mut pending_facility = self.repo.find_by_id(pending_credit_facility_id).await?;
+        let mut pending_facility = self
+            .repo
+            .find_by_id_in_op(&mut *db, pending_credit_facility_id)
+            .await?;
 
         let price = self.price.usd_cents_per_btc().await;
 
