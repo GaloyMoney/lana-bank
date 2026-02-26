@@ -357,8 +357,13 @@ CREATE TABLE core_credit_facilities (
   collateralization_state VARCHAR NOT NULL,
   status VARCHAR NOT NULL,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
+  maturity_date DATE,
   created_at TIMESTAMPTZ NOT NULL
 );
+
+CREATE INDEX idx_credit_facilities_maturity
+  ON core_credit_facilities(maturity_date)
+  WHERE maturity_date IS NOT NULL AND status = 'Active';
 
 CREATE TABLE core_credit_facility_events (
   id UUID NOT NULL REFERENCES core_credit_facilities(id),

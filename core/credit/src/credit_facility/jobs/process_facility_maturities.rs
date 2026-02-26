@@ -15,11 +15,7 @@ use core_time_events::CoreTimeEvent;
 use super::credit_facility_maturity::{
     CreditFacilityMaturityJobConfig, CreditFacilityMaturityJobSpawner,
 };
-use crate::{
-    CoreCreditEvent,
-    credit_facility::{CreditFacilityError, CreditFacilityRepo},
-    primitives::*,
-};
+use crate::{CoreCreditEvent, credit_facility::CreditFacilityRepo, primitives::*};
 
 const PROCESS_FACILITY_MATURITIES_JOB: JobType = JobType::new("task.process-facility-maturities");
 const PAGE_SIZE: i64 = 100;
@@ -144,8 +140,7 @@ where
             let rows = self
                 .repo
                 .list_ids_ready_for_maturity(self.config.day, state.last_cursor, PAGE_SIZE)
-                .await
-                .map_err(|e: CreditFacilityError| -> Box<dyn std::error::Error> { Box::new(e) })?;
+                .await?;
 
             if rows.is_empty() {
                 break;
