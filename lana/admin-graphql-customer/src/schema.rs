@@ -103,9 +103,12 @@ impl CustomerQuery {
             ctx,
             after,
             first,
-            |query| app
-                .customers()
-                .list_prospects(sub, query, es_entity::ListDirection::Descending, stage,)
+            |query| app.customers().list_prospects(
+                sub,
+                query,
+                es_entity::ListDirection::Descending,
+                stage,
+            )
         )
     }
 }
