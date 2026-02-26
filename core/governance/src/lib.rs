@@ -185,14 +185,20 @@ where
             .await?;
 
         let committee_id = committee_id.into();
-        let committee = self.committee_repo.find_by_id(committee_id).await?;
 
-        let mut policy = self.policy_repo.find_by_id(policy_id).await?;
+        let mut db_tx = self.policy_repo.begin_op().await?;
+        let committee = self
+            .committee_repo
+            .find_by_id_in_op(&mut db_tx, committee_id)
+            .await?;
+        let mut policy = self
+            .policy_repo
+            .find_by_id_in_op(&mut db_tx, policy_id)
+            .await?;
         if policy
             .assign_committee(committee.id, committee.n_members(), threshold)?
             .did_execute()
         {
-            let mut db_tx = self.policy_repo.begin_op().await?;
             self.policy_repo
                 .update_in_op(&mut db_tx, &mut policy)
                 .await?;
@@ -266,11 +272,15 @@ where
             .await?;
         let member_id = CommitteeMemberId::try_from(sub)
             .map_err(|_| GovernanceError::SubjectIsNotCommitteeMember)?;
-        let mut process = self.process_repo.find_by_id(process_id).await?;
+
+        let mut db = self.policy_repo.begin_op().await?;
+        let mut process = self
+            .process_repo
+            .find_by_id_in_op(&mut db, process_id)
+            .await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
 
         if process.approve(&eligible, member_id).did_execute() {
-            let mut db = self.policy_repo.begin_op().await?;
             self.maybe_fire_concluded_event_in_op(&mut db, eligible, &mut process)
                 .await?;
             self.process_repo
@@ -304,17 +314,21 @@ where
             .await?;
         let member_id = CommitteeMemberId::try_from(sub)
             .map_err(|_| GovernanceError::SubjectIsNotCommitteeMember)?;
-        let mut process = self.process_repo.find_by_id(process_id).await?;
+
+        let mut db = self.policy_repo.begin_op().await?;
+        let mut process = self
+            .process_repo
+            .find_by_id_in_op(&mut db, process_id)
+            .await?;
         let eligible = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
-                .find_by_id(committee_id)
+                .find_by_id_in_op(&mut db, committee_id)
                 .await?
                 .members()
         } else {
             HashSet::new()
         };
         if process.deny(&eligible, member_id, reason).did_execute() {
-            let mut db = self.policy_repo.begin_op().await?;
             self.maybe_fire_concluded_event_in_op(&mut db, eligible, &mut process)
                 .await?;
             self.process_repo

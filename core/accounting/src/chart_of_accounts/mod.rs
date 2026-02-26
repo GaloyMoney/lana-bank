@@ -210,10 +210,12 @@ where
                 CoreAccountingAction::CHART_IMPORT_ACCOUNTS,
             )
             .await?;
-        let mut chart = self.find_by_reference(chart_ref).await?;
-
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;
+
+        let mut op = self.repo.begin_op().await?;
+        let mut chart = self.find_by_reference_in_op(&mut op, chart_ref).await?;
+
         let es_entity::Idempotent::Executed(bulk_import::BulkImportResult {
             new_account_sets,
             new_account_set_ids,
@@ -222,8 +224,6 @@ where
         else {
             return Ok((chart, None));
         };
-
-        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -280,7 +280,8 @@ where
             )
             .await?;
 
-        let mut chart = self.find_by_reference(chart_ref).await?;
+        let mut op = self.repo.begin_op().await?;
+        let mut chart = self.find_by_reference_in_op(&mut op, chart_ref).await?;
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
             parent_account_set_id,
             new_account_set,
@@ -289,8 +290,6 @@ where
             return Ok((chart, None));
         };
         let account_set_id = new_account_set.id;
-
-        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -327,7 +326,8 @@ where
             )
             .await?;
 
-        let mut chart = self.find_by_reference(chart_ref).await?;
+        let mut op = self.repo.begin_op().await?;
+        let mut chart = self.find_by_reference_in_op(&mut op, chart_ref).await?;
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
             parent_account_set_id,
             new_account_set,
@@ -336,8 +336,6 @@ where
             return Ok((chart, None));
         };
         let account_set_id = new_account_set.id;
-
-        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -505,8 +503,6 @@ where
         chart_ref: &str,
         account_id_or_code: AccountIdOrCode,
     ) -> Result<LedgerAccountId, ChartOfAccountsError> {
-        let mut chart = self.find_by_reference(chart_ref).await?;
-
         self.authz
             .enforce_permission(
                 sub,
@@ -515,6 +511,9 @@ where
             )
             .await?;
 
+        let mut op = self.repo.begin_op().await?;
+        let mut chart = self.find_by_reference_in_op(&mut op, chart_ref).await?;
+
         if let Some(id) = chart.find_manual_transaction_account(&account_id_or_code) {
             return Ok(id);
         }
@@ -522,8 +521,6 @@ where
         let (account_set_id, new_account) = chart
             .create_manual_transaction_account(&account_id_or_code)?
             .expect("create should execute when find returned None");
-
-        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let Account {

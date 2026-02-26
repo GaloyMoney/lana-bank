@@ -117,12 +117,11 @@ where
             )
             .await?;
 
-        let mut proposal = self.repo.find_by_id(id).await?;
+        let mut db = self.repo.begin_op().await?;
+        let mut proposal = self.repo.find_by_id_in_op(&mut db, id).await?;
 
         match proposal.conclude_customer_approval(approved) {
             es_entity::Idempotent::Executed(_) => {
-                let mut db = self.repo.begin_op().await?;
-
                 if approved {
                     self.governance
                         .start_process_in_op(

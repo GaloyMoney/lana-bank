@@ -173,6 +173,14 @@ impl DocumentStorage {
         self.repo.find_by_id(id.into()).await
     }
 
+    pub async fn find_by_id_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: impl Into<DocumentId> + std::fmt::Debug,
+    ) -> Result<Document, DocumentStorageError> {
+        self.repo.find_by_id_in_op(op, id.into()).await
+    }
+
     #[record_error_severity]
     #[instrument(name = "document_storage.list_for_reference_id", skip(self))]
     pub async fn list_for_reference_id(

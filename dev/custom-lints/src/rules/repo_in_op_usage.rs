@@ -125,20 +125,25 @@ impl<'a> FunctionVisitor<'a> {
         let has_op_param = has_db_op_parameter(&sig.inputs);
 
         // For functions with a DbOp parameter, the entire body is in transaction scope.
-        // For functions that call begin_op(), only code between begin_op() and commit() is in scope.
-        let (min_line, max_line) = if has_op_param {
-            (Some(0), None) // Flag everything
+        // For functions that call begin_op(), we flag everything:
+        //   - Calls after begin_op() should use _in_op variant
+        //   - Calls before begin_op() should be reordered to after begin_op() and use _in_op
+        //   Exception: calls before begin_op() inside a loop are not flagged (common pattern
+        //   of reading data in a loop to decide whether to start a transaction).
+        let (begin_op_line, max_line) = if has_op_param {
+            (Some(0), None) // Flag everything, no begin_op line distinction needed
         } else {
             let mut checker = BeginOpChecker::new();
             checker.visit_block(block);
+            if checker.begin_op_line.is_none() {
+                return;
+            }
             (checker.begin_op_line, checker.last_commit_line)
         };
 
-        let Some(min_line) = min_line else {
-            return;
-        };
+        let begin_op_line = begin_op_line.unwrap();
 
-        let mut call_checker = RepoCallChecker::new(self.path, fn_name, min_line, max_line);
+        let mut call_checker = RepoCallChecker::new(self.path, fn_name, begin_op_line, max_line);
         call_checker.visit_block(block);
         self.violations.extend(call_checker.violations);
     }
@@ -185,27 +190,30 @@ struct RepoCallChecker<'a> {
     violations: Vec<Violation>,
     path: &'a Path,
     fn_name: String,
-    /// Only flag method calls on lines strictly after this line number.
-    /// For DbOp parameter functions this is 0 (flag everything).
-    /// For begin_op() functions this is the line of the begin_op() call.
-    min_line: usize,
+    /// The line of the `begin_op()` call (0 for functions with a DbOp parameter).
+    begin_op_line: usize,
     /// Only flag method calls on or before this line number (the last commit() line).
-    /// None means no upper bound (flag everything after min_line).
+    /// None means no upper bound.
     max_line: Option<usize>,
     /// Whether we are currently inside an `.await` expression.
     /// Only `.await`ed calls are repo calls; sync calls like `entity.update()` are not.
     in_await: bool,
+    /// Depth of loop nesting (for/while/loop). Calls before begin_op inside
+    /// a loop are exempt because the pattern of reading data in a loop body
+    /// to decide whether to start a transaction is common.
+    loop_depth: usize,
 }
 
 impl<'a> RepoCallChecker<'a> {
-    fn new(path: &'a Path, fn_name: &str, min_line: usize, max_line: Option<usize>) -> Self {
+    fn new(path: &'a Path, fn_name: &str, begin_op_line: usize, max_line: Option<usize>) -> Self {
         Self {
             violations: Vec::new(),
             path,
             fn_name: fn_name.to_string(),
-            min_line,
+            begin_op_line,
             max_line,
             in_await: false,
+            loop_depth: 0,
         }
     }
 }
@@ -218,24 +226,57 @@ impl<'a> Visit<'a> for RepoCallChecker<'a> {
         self.in_await = prev;
     }
 
+    fn visit_expr_for_loop(&mut self, node: &'a syn::ExprForLoop) {
+        self.loop_depth += 1;
+        syn::visit::visit_expr_for_loop(self, node);
+        self.loop_depth -= 1;
+    }
+
+    fn visit_expr_while(&mut self, node: &'a syn::ExprWhile) {
+        self.loop_depth += 1;
+        syn::visit::visit_expr_while(self, node);
+        self.loop_depth -= 1;
+    }
+
+    fn visit_expr_loop(&mut self, node: &'a syn::ExprLoop) {
+        self.loop_depth += 1;
+        syn::visit::visit_expr_loop(self, node);
+        self.loop_depth -= 1;
+    }
+
     fn visit_expr_method_call(&mut self, node: &'a syn::ExprMethodCall) {
         let method_name = node.method.to_string();
 
         if self.in_await && is_repo_method_without_in_op(&method_name) {
             let call_line = node.method.span().start().line;
-            let after_begin = call_line > self.min_line;
+            let before_begin_op = call_line <= self.begin_op_line;
+            let in_loop = self.loop_depth > 0;
+
+            // Skip calls that are before begin_op AND inside a loop
+            // (common pattern: read in loop, conditionally begin transaction)
+            if before_begin_op && in_loop {
+                syn::visit::visit_expr_method_call(self, node);
+                return;
+            }
+
             let before_commit = self.max_line.map_or(true, |max| call_line <= max);
-            if after_begin && before_commit {
-                self.violations.push(
-                    Violation::new(
-                        "repo-in-op-usage",
-                        self.path.display().to_string(),
-                        format!(
-                            "in function `{}`: repo method `{}` should use `{}_in_op` when a database transaction is in scope",
-                            self.fn_name, method_name, method_name,
-                        ),
+            if before_commit {
+                let hint = if before_begin_op {
+                    format!(
+                        "in function `{}`: repo method `{}` called before `begin_op()` — \
+                         move it after `begin_op()` and use `{}_in_op`",
+                        self.fn_name, method_name, method_name,
                     )
-                    .with_line(call_line),
+                } else {
+                    format!(
+                        "in function `{}`: repo method `{}` should use `{}_in_op` \
+                         when a database transaction is in scope",
+                        self.fn_name, method_name, method_name,
+                    )
+                };
+                self.violations.push(
+                    Violation::new("repo-in-op-usage", self.path.display().to_string(), hint)
+                        .with_line(call_line),
                 );
             }
         }
@@ -374,8 +415,8 @@ mod tests {
     }
 
     #[test]
-    fn test_begin_op_call_before_transaction_not_flagged() {
-        // Calls before begin_op() are outside the transaction scope
+    fn test_begin_op_call_before_transaction_flagged() {
+        // Calls before begin_op() should be flagged — they should be reordered after begin_op
         let code = r#"
             impl Foo {
                 async fn process(&self, id: ItemId) -> Result<(), Error> {
@@ -390,10 +431,16 @@ mod tests {
             }
         "#;
         let violations = check_code(code);
-        assert!(
-            violations.is_empty(),
-            "Calls before begin_op should not be flagged: {:?}",
+        assert_eq!(
+            violations.len(),
+            1,
+            "Calls before begin_op should be flagged for reordering: {:?}",
             violations
+        );
+        assert!(
+            violations[0].message.contains("before `begin_op()`"),
+            "Message should suggest reordering: {}",
+            violations[0].message
         );
     }
 
@@ -912,6 +959,105 @@ mod tests {
             "Expected 1 violation between begin_op and commit: {:?}",
             violations
         );
+    }
+
+    #[test]
+    fn test_begin_op_call_before_in_loop_not_flagged() {
+        // Calls before begin_op() inside a loop are exempt
+        let code = r#"
+            impl Foo {
+                async fn process(&self, ids: Vec<ItemId>) -> Result<(), Error> {
+                    for id in ids {
+                        let item = self.repo.find_by_id(id).await?;
+                        if item.needs_update() {
+                            let mut op = self.repo.begin_op().await?;
+                            self.repo.update_in_op(&mut op, &mut item).await?;
+                            op.commit().await?;
+                        }
+                    }
+                    Ok(())
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert!(
+            violations.is_empty(),
+            "Calls before begin_op inside a loop should not be flagged: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn test_begin_op_call_before_in_while_loop_not_flagged() {
+        let code = r#"
+            impl Foo {
+                async fn process(&self) -> Result<(), Error> {
+                    while let Some(id) = queue.pop() {
+                        let item = self.repo.find_by_id(id).await?;
+                        if item.needs_update() {
+                            let mut op = self.repo.begin_op().await?;
+                            self.repo.update_in_op(&mut op, &mut item).await?;
+                            op.commit().await?;
+                        }
+                    }
+                    Ok(())
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert!(
+            violations.is_empty(),
+            "Calls before begin_op inside a while loop should not be flagged: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn test_begin_op_call_before_in_bare_loop_not_flagged() {
+        let code = r#"
+            impl Foo {
+                async fn process(&self) -> Result<(), Error> {
+                    loop {
+                        let item = self.repo.find_by_id(id).await?;
+                        let mut op = self.repo.begin_op().await?;
+                        self.repo.update_in_op(&mut op, &mut item).await?;
+                        op.commit().await?;
+                    }
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert!(
+            violations.is_empty(),
+            "Calls before begin_op inside a bare loop should not be flagged: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn test_begin_op_after_in_loop_still_flagged() {
+        // Calls AFTER begin_op inside a loop should still be flagged
+        let code = r#"
+            impl Foo {
+                async fn process(&self, ids: Vec<ItemId>) -> Result<(), Error> {
+                    for id in ids {
+                        let mut op = self.repo.begin_op().await?;
+                        let item = self.repo.find_by_id(id).await?;
+                        self.repo.update_in_op(&mut op, &mut item).await?;
+                        op.commit().await?;
+                    }
+                    Ok(())
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Calls after begin_op inside a loop should be flagged: {:?}",
+            violations
+        );
+        assert!(violations[0].message.contains("find_by_id"));
     }
 
     #[test]

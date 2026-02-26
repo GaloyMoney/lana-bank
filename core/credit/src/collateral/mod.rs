@@ -350,8 +350,6 @@ where
         collateral_id: CollateralId,
         amount_received: UsdCents,
     ) -> Result<Collateral, CollateralError> {
-        let mut collateral = self.repo.find_by_id(collateral_id).await?;
-
         self.authz
             .enforce_permission(
                 sub,
@@ -361,6 +359,7 @@ where
             .await?;
 
         let mut db = self.repo.begin_op().await?;
+        let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
 
         if let Idempotent::Executed(data) =
             collateral.record_proceeds_received_and_liquidation_completed(amount_received)?

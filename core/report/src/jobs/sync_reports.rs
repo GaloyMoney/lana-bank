@@ -176,9 +176,10 @@ where
         let state: ReportRunState = run_result.status.clone().into();
         let run_type: ReportRunType = run_result.into();
 
+        let mut db = self.report_runs.begin_op().await?;
         let existing = self
             .report_runs
-            .find_by_external_id(&run_result.run_id)
+            .find_by_external_id_in_op(&mut db, &run_result.run_id)
             .await;
 
         let run_id = match existing {
@@ -187,7 +188,6 @@ where
                     .update_state(state, run_type, run_result.start_time)
                     .did_execute()
                 {
-                    let mut db = self.report_runs.begin_op().await?;
                     self.report_runs
                         .update_in_op(&mut db, &mut report_run)
                         .await?;
@@ -203,7 +203,6 @@ where
                     .start_time(run_result.start_time)
                     .build()?;
 
-                let mut db = self.report_runs.begin_op().await?;
                 let report_run = self.report_runs.create_in_op(&mut db, new_run).await?;
                 db.commit().await?;
                 report_run.id
