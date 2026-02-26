@@ -247,6 +247,7 @@
           python313Packages.black
           python313Packages.isort
           python313Packages.sqlfmt
+          uv
           podman
           podman-compose
           cachix
