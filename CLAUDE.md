@@ -114,5 +114,8 @@ For detailed patterns on `Idempotent<T>`, `idempotency_guard!`, and infallible q
 - Use conventional commits
 - Open draft PR by default
 
+## Observability
+- For anything related to traces, spans, performance, latency, errors, jobs, or runtime behavior — whether asked by the user or needed during your own investigation — delegate to the `lana-trace-analyzer` subagent. Do not query tracing backends directly.
+
 ## Frontend
 - Do not edit es.json, let lingo.dev github action do it.
