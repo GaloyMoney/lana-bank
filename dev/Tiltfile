@@ -8,7 +8,7 @@ docker_compose(compose_files, project_name = "lana-bank")
 
 docker_groups = {
     "auth": ["keycloak", "keycloak-pg", "oathkeeper"],
-    "otel": ["otel-agent"],
+    "otel": ["otel-agent", "jaeger"],
     "core": ["core-pg"],
 }
 
@@ -16,7 +16,7 @@ for service, deps in docker_groups.items():
     for dep in deps:
         dc_resource(dep, labels = [service])
 
-dc_resource("jaeger", labels = ["otel"], links = [link("http://localhost:16686", "jaeger-ui")])
+dc_resource("jaeger", links = [link("http://localhost:16686", "jaeger-ui")])
 
 if os.getenv("DAGSTER", "false") == "true":
     dagster_services = [
