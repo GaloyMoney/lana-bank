@@ -1,5 +1,5 @@
 ---
-name: trace-analyzer
+name: lana-trace-analyzer
 description: Use proactively whenever the user asks about traces, spans, performance, latency, errors, jobs, or any runtime behavior of the system. This agent queries OpenTelemetry traces from Jaeger and cross-references the codebase to map developer concepts to trace data.
 mcpServers:
   opentelemetry:
