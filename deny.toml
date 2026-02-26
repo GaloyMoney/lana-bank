@@ -147,6 +147,11 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
+crate = "admin-graphql-audit"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
 crate = "admin-graphql-config"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
@@ -168,6 +173,11 @@ license-files = []
 
 [[licenses.clarify]]
 crate = "admin-graphql-governance"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-price"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
 

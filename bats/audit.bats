@@ -12,9 +12,13 @@ teardown_file() {
 }
 
 @test "audit: check audit logs" {
-  exec_admin_graphql 'audit-logs' '{"first": 1}'
-  exec_admin_graphql 'audit-logs' '{"first": 1}'
-  exec_admin_graphql 'audit-logs' '{"first": 1}'
+  local audit_action="audit:audit:list"
+  local first_one_vars="{\"first\": 1, \"action\": \"$audit_action\"}"
+  local first_two_vars="{\"first\": 2, \"action\": \"$audit_action\"}"
+
+  exec_admin_graphql 'audit-logs' "$first_one_vars"
+  exec_admin_graphql 'audit-logs' "$first_one_vars"
+  exec_admin_graphql 'audit-logs' "$first_one_vars"
 
   edges_length=$(graphql_output '.data.audit.edges | length')
   [[ "$edges_length" -eq 1 ]] || exit 1
@@ -23,7 +27,7 @@ teardown_file() {
   [[ "$action" == "audit:audit:list" ]] || exit 1
 
 
-  exec_admin_graphql 'audit-logs' '{"first": 2}'
+  exec_admin_graphql 'audit-logs' "$first_two_vars"
   edges_length=$(graphql_output '.data.audit.edges | length')
   [[ "$edges_length" -eq 2 ]] || exit 1
 
@@ -34,7 +38,7 @@ teardown_file() {
   [[ -n "$end_cursor" ]] || exit 1  # Ensure endCursor is not empty
   echo "end_cursor: $end_cursor"
 
-  exec_admin_graphql 'audit-logs' "{\"first\": 2, \"after\": \"$end_cursor\"}"
+  exec_admin_graphql 'audit-logs' "{\"first\": 2, \"after\": \"$end_cursor\", \"action\": \"$audit_action\"}"
   echo "$output"
 
   edges_length=$(graphql_output '.data.audit.edges | length')

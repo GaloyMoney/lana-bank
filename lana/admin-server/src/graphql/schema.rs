@@ -1,11 +1,13 @@
 use async_graphql::{Context, Error, MergedObject, Object, Subscription, types::connection::*};
 
 use admin_graphql_access::{AccessMutation, AccessQuery};
+use admin_graphql_audit::AuditQuery;
 use admin_graphql_config::{ConfigMutation, ConfigQuery};
 use admin_graphql_contracts::{ContractsMutation, ContractsQuery};
 use admin_graphql_custody::{CustodyMutation, CustodyQuery};
 use admin_graphql_documents::{DocumentsMutation, DocumentsQuery};
 use admin_graphql_governance::{GovernanceMutation, GovernanceQuery};
+use admin_graphql_price::PriceQuery;
 use admin_graphql_reports::{ReportsMutation, ReportsQuery};
 use admin_graphql_session::{SessionMutation, SessionQuery};
 
@@ -31,18 +33,20 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    accounting::*, approval_process::*, audit::*, credit_facility::*, customer::*, deposit::*,
-    loader::*, price::*, prospect::*, public_id::*, reports::*, withdrawal::*,
+    accounting::*, approval_process::*, credit_facility::*, customer::*, deposit::*, loader::*,
+    price::*, prospect::*, public_id::*, reports::*, withdrawal::*,
 };
 
 #[derive(MergedObject, Default)]
 pub struct Query(
     pub AccessQuery,
+    pub AuditQuery,
     pub ConfigQuery,
     pub ContractsQuery,
     pub CustodyQuery,
     pub DocumentsQuery,
     pub GovernanceQuery,
+    pub PriceQuery,
     pub ReportsQuery,
     pub SessionQuery,
     pub BaseQuery,
@@ -784,75 +788,6 @@ impl BaseQuery {
             )
             .await?;
         Ok(ProfitAndLossStatement::from(profit_and_loss))
-    }
-
-    async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
-        let app = ctx.data_unchecked::<LanaApp>();
-        let usd_cents_per_btc = app.price().usd_cents_per_btc().await;
-        Ok(usd_cents_per_btc.into())
-    }
-
-    async fn audit(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-        subject: Option<AuditSubjectId>,
-        authorized: Option<bool>,
-        object: Option<String>,
-        action: Option<String>,
-    ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let subject_filter: Option<String> = subject.map(String::from);
-        let authorized_filter = authorized;
-        let object_filter = object;
-        let action_filter = action;
-        query(
-            after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let res = app
-                    .list_audit(
-                        sub,
-                        es_entity::PaginatedQueryArgs {
-                            first,
-                            after: after.map(lana_app::audit::AuditCursor::from),
-                        },
-                        subject_filter.clone(),
-                        authorized_filter,
-                        object_filter.clone(),
-                        action_filter.clone(),
-                    )
-                    .await?;
-
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = AuditCursor::from(&entry);
-                        Edge::new(cursor, AuditEntry::from(entry))
-                    }));
-
-                Ok::<_, async_graphql::Error>(connection)
-            },
-        )
-        .await
-    }
-
-    async fn audit_subjects(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<AuditSubjectId>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .list_audit_subjects(sub)
-            .await?
-            .into_iter()
-            .map(AuditSubjectId::from)
-            .collect())
     }
 
     async fn public_id_target(

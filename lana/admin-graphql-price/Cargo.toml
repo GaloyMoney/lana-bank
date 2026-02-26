@@ -1,0 +1,8 @@
+[package]
+name = "admin-graphql-price"
+license = "BUSL-1.1"
+edition = "2024"
+
+[dependencies]
+lana-app = { workspace = true }
+async-graphql = { workspace = true }
