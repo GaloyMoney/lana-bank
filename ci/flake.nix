@@ -170,6 +170,7 @@
         runtimeInputs = with pkgs; [
           cargo
           nodejs
+          pnpm
           clang
           lld
           gnused
@@ -197,21 +198,21 @@
           # Step 2: Run docs-autogenerate (generate API docs and events docs)
           echo "Generating API and events documentation..."
           cd docs-site
-          npm ci
-          npm run generate-api-docs
-          npm run generate-events-docs
+          pnpm install --frozen-lockfile
+          pnpm run generate-api-docs
+          pnpm run generate-events-docs
 
           # Step 3: Create versioned docs snapshot
           echo "Creating versioned docs snapshot for $VERSION..."
-          npm run version-docs -- "$VERSION"
+          pnpm run version-docs -- "$VERSION"
 
           # Step 4: Snapshot schemas
           echo "Snapshotting schemas for $VERSION..."
-          npm run snapshot-schemas -- "$VERSION"
+          pnpm run snapshot-schemas -- "$VERSION"
 
           # Step 5: Prune old versions (keep max 5)
           echo "Pruning old documentation versions (keeping max 5)..."
-          npm run prune-old-versions
+          pnpm run prune-old-versions
 
           cd ..
 
