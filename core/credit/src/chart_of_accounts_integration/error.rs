@@ -12,9 +12,9 @@ pub enum ChartOfAccountsIntegrationError {
     ConfigAlreadySet,
     #[error("ChartOfAccountsIntegrationError - CreditLedgerError: {0}")]
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
-    #[error("ChartOfAccountIntegrationError - ChartLookupError: {0}")]
+    #[error("ChartOfAccountsIntegrationError - ChartLookupError: {0}")]
     ChartLookupError(#[from] core_accounting_primitives::ChartLookupError),
-    #[error("ChartOfAccountIntegrationError - AccountingBaseConfigNotFound")]
+    #[error("ChartOfAccountsIntegrationError - AccountingBaseConfigNotFound")]
     AccountingBaseConfigNotFound,
     #[error("ChartOfAccountsIntegrationError - DomainConfigError: {0}")]
     DomainConfigError(#[from] domain_config::error::DomainConfigError),
