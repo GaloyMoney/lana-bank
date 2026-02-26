@@ -9,7 +9,7 @@ use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
-    DepositId, GovernanceAction, GovernanceObject, UsdCents, WithdrawalId,
+    DepositId, GovernanceAction, GovernanceObject, UsdCents,
 };
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
@@ -17,22 +17,16 @@ use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub enum ExportToSumsubConfig {
-    Deposit {
-        id: DepositId,
-        deposit_account_id: DepositAccountId,
-        amount: UsdCents,
-    },
-    Withdrawal {
-        id: WithdrawalId,
-        deposit_account_id: DepositAccountId,
-        amount: UsdCents,
-    },
+pub struct ExportDepositToSumsubConfig {
+    pub id: DepositId,
+    pub deposit_account_id: DepositAccountId,
+    pub amount: UsdCents,
 }
 
-pub const EXPORT_TO_SUMSUB_COMMAND: JobType = JobType::new("command.deposit-sync.export-to-sumsub");
+pub const EXPORT_DEPOSIT_TO_SUMSUB_COMMAND: JobType =
+    JobType::new("command.deposit-sync.export-deposit-to-sumsub");
 
-pub struct ExportToSumsubJobInitializer<Perms, E>
+pub struct ExportDepositToSumsubJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -46,7 +40,7 @@ where
     customers: Customers<Perms, E>,
 }
 
-impl<Perms, E> ExportToSumsubJobInitializer<Perms, E>
+impl<Perms, E> ExportDepositToSumsubJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -68,7 +62,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for ExportToSumsubJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for ExportDepositToSumsubJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -81,10 +75,10 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    type Config = ExportToSumsubConfig;
+    type Config = ExportDepositToSumsubConfig;
 
     fn job_type(&self) -> JobType {
-        EXPORT_TO_SUMSUB_COMMAND
+        EXPORT_DEPOSIT_TO_SUMSUB_COMMAND
     }
 
     fn init(
@@ -92,7 +86,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ExportToSumsubJobRunner {
+        Ok(Box::new(ExportDepositToSumsubJobRunner {
             config: job.config()?,
             sumsub_client: self.sumsub_client.clone(),
             deposits: self.deposits.clone(),
@@ -101,7 +95,7 @@ where
     }
 }
 
-pub struct ExportToSumsubJobRunner<Perms, E>
+pub struct ExportDepositToSumsubJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -110,14 +104,14 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    config: ExportToSumsubConfig,
+    config: ExportDepositToSumsubConfig,
     sumsub_client: sumsub::SumsubClient,
     deposits: CoreDeposit<Perms, E>,
     customers: Customers<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ExportToSumsubJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ExportDepositToSumsubJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -132,41 +126,16 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "deposit_sync.export_to_sumsub_job.process_command",
+        name = "deposit_sync.export_deposit_to_sumsub_job.process_command",
         skip(self, _current_job)
     )]
     async fn run(
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let (deposit_account_id, tx_id, tx_type, direction, amount) = match &self.config {
-            ExportToSumsubConfig::Deposit {
-                id,
-                deposit_account_id,
-                amount,
-            } => (
-                *deposit_account_id,
-                id.to_string(),
-                "Deposit",
-                "in",
-                *amount,
-            ),
-            ExportToSumsubConfig::Withdrawal {
-                id,
-                deposit_account_id,
-                amount,
-            } => (
-                *deposit_account_id,
-                id.to_string(),
-                "Withdrawal",
-                "out",
-                *amount,
-            ),
-        };
-
         let account = self
             .deposits
-            .find_account_by_id_without_audit(deposit_account_id)
+            .find_account_by_id_without_audit(self.config.deposit_account_id)
             .await?;
 
         let customer = self
@@ -175,20 +144,20 @@ where
             .await?;
 
         if customer.should_sync_financial_transactions() {
-            let amount_usd: f64 = amount.to_usd().try_into()?;
+            let amount_usd: f64 = self.config.amount.to_usd().try_into()?;
             self.sumsub_client
                 .submit_finance_transaction(
                     account.account_holder_id,
-                    tx_id,
-                    tx_type,
-                    direction,
+                    self.config.id.to_string(),
+                    "Deposit",
+                    "in",
                     amount_usd,
                     "USD",
                 )
                 .await?;
         } else {
             tracing::warn!(
-                tx_type = tx_type,
+                tx_type = "Deposit",
                 customer_id = %account.account_holder_id,
                 kyc_level = ?customer.level,
                 "Skipping sync for non verified customer transaction"

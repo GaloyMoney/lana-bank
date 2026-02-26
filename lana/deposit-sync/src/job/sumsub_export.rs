@@ -5,17 +5,25 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::{JobId, JobSpawner, JobType};
 
-use super::export_to_sumsub::ExportToSumsubConfig;
+use super::export_deposit_to_sumsub::ExportDepositToSumsubConfig;
+use super::export_withdrawal_to_sumsub::ExportWithdrawalToSumsubConfig;
 
 pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("outbox.sumsub-export");
 
 pub struct SumsubExportHandler {
-    export_to_sumsub: JobSpawner<ExportToSumsubConfig>,
+    export_deposit_to_sumsub: JobSpawner<ExportDepositToSumsubConfig>,
+    export_withdrawal_to_sumsub: JobSpawner<ExportWithdrawalToSumsubConfig>,
 }
 
 impl SumsubExportHandler {
-    pub fn new(export_to_sumsub: JobSpawner<ExportToSumsubConfig>) -> Self {
-        Self { export_to_sumsub }
+    pub fn new(
+        export_deposit_to_sumsub: JobSpawner<ExportDepositToSumsubConfig>,
+        export_withdrawal_to_sumsub: JobSpawner<ExportWithdrawalToSumsubConfig>,
+    ) -> Self {
+        Self {
+            export_deposit_to_sumsub,
+            export_withdrawal_to_sumsub,
+        }
     }
 }
 
@@ -35,11 +43,11 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", e.as_ref());
 
-                self.export_to_sumsub
+                self.export_deposit_to_sumsub
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        ExportToSumsubConfig::Deposit {
+                        ExportDepositToSumsubConfig {
                             id: entity.id,
                             deposit_account_id: entity.deposit_account_id,
                             amount: entity.amount,
@@ -53,11 +61,11 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", e.as_ref());
 
-                self.export_to_sumsub
+                self.export_withdrawal_to_sumsub
                     .spawn_with_queue_id_in_op(
                         op,
                         JobId::new(),
-                        ExportToSumsubConfig::Withdrawal {
+                        ExportWithdrawalToSumsubConfig {
                             id: entity.id,
                             deposit_account_id: entity.deposit_account_id,
                             amount: entity.amount,
