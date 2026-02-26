@@ -204,11 +204,11 @@
 
           # Step 3: Create versioned docs snapshot
           echo "Creating versioned docs snapshot for $VERSION..."
-          pnpm run version-docs -- "$VERSION"
+          pnpm run version-docs "$VERSION"
 
           # Step 4: Snapshot schemas
           echo "Snapshotting schemas for $VERSION..."
-          pnpm run snapshot-schemas -- "$VERSION"
+          pnpm run snapshot-schemas "$VERSION"
 
           # Step 5: Prune old versions (keep max 5)
           echo "Pruning old documentation versions (keeping max 5)..."
