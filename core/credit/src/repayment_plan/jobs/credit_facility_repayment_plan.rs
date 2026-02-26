@@ -1,82 +1,71 @@
 use tracing::{Span, instrument};
 
-use std::sync::Arc;
-
-use es_entity::AtomicOperation;
-use obix::EventSequence;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
 
 use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 
-use crate::{CoreCreditCollectionEvent, CoreCreditEvent, repayment_plan::*};
+use crate::{CoreCreditCollectionEvent, CoreCreditEvent, primitives::CreditFacilityId};
+
+use super::update_repayment_plan::UpdateRepaymentPlanConfig;
 
 pub const REPAYMENT_PLAN_PROJECTION: JobType =
     JobType::new("outbox.credit-facility-repayment-plan-projection");
 
-pub struct RepaymentPlanProjectionHandler<
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
-> {
-    repo: Arc<RepaymentPlanRepo>,
-    _phantom: std::marker::PhantomData<E>,
+pub struct RepaymentPlanProjectionHandler {
+    update_repayment_plan: JobSpawner<UpdateRepaymentPlanConfig>,
 }
 
-impl<E> RepaymentPlanProjectionHandler<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
-{
-    pub fn new(repo: Arc<RepaymentPlanRepo>) -> Self {
+impl RepaymentPlanProjectionHandler {
+    pub fn new(update_repayment_plan: JobSpawner<UpdateRepaymentPlanConfig>) -> Self {
         Self {
-            repo,
-            _phantom: std::marker::PhantomData,
+            update_repayment_plan,
         }
     }
 }
 
-impl<E> OutboxEventHandler<E> for RepaymentPlanProjectionHandler<E>
+impl<E> OutboxEventHandler<E> for RepaymentPlanProjectionHandler
 where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    #[instrument(name = "outbox.core_credit.repayment_plan_projection_job.process_message", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "outbox.core_credit.repayment_plan_projection_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
         op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let sequence = event.sequence;
-        let clock = op.clock().clone();
-        let db = op.tx_mut();
 
         use CoreCreditEvent::*;
 
         match event.as_event() {
             Some(e @ FacilityProposalCreated { entity }) => {
-                self.handle_credit_event(db, event, e, entity.id, sequence, &clock)
+                self.spawn_credit_event(op, event, e, entity.id.into(), sequence)
                     .await?;
             }
             Some(e @ FacilityProposalConcluded { entity })
                 if entity.status == crate::primitives::CreditFacilityProposalStatus::Approved =>
             {
-                self.handle_credit_event(db, event, e, entity.id, sequence, &clock)
+                self.spawn_credit_event(op, event, e, entity.id.into(), sequence)
                     .await?;
             }
             Some(e @ FacilityActivated { entity })
             | Some(e @ FacilityCompleted { entity })
             | Some(e @ PartialLiquidationInitiated { entity }) => {
-                self.handle_credit_event(db, event, e, entity.id, sequence, &clock)
+                self.spawn_credit_event(op, event, e, entity.id, sequence)
                     .await?;
             }
             Some(e @ DisbursalSettled { entity }) => {
-                self.handle_credit_event(db, event, e, entity.credit_facility_id, sequence, &clock)
+                self.spawn_credit_event(op, event, e, entity.credit_facility_id, sequence)
                     .await?;
             }
             Some(e @ AccrualPosted { entity }) => {
-                self.handle_credit_event(db, event, e, entity.credit_facility_id, sequence, &clock)
+                self.spawn_credit_event(op, event, e, entity.credit_facility_id, sequence)
                     .await?;
             }
             Some(e @ FacilityCollateralizationChanged { entity }) => {
-                self.handle_credit_event(db, event, e, entity.id, sequence, &clock)
+                self.spawn_credit_event(op, event, e, entity.id, sequence)
                     .await?;
             }
             _ => {}
@@ -115,7 +104,7 @@ where
                     entity: PublicObligation { beneficiary_id, .. },
                 },
             ) => {
-                self.handle_collection_event(db, event, e, *beneficiary_id, sequence, &clock)
+                self.spawn_collection_event(op, event, e, (*beneficiary_id).into(), sequence)
                     .await?;
             }
             _ => {}
@@ -125,45 +114,63 @@ where
     }
 }
 
-impl<E> RepaymentPlanProjectionHandler<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
-{
-    async fn handle_credit_event(
+impl RepaymentPlanProjectionHandler {
+    async fn spawn_credit_event<E>(
         &self,
-        db: &mut sqlx::PgTransaction<'_>,
+        op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
         event: &CoreCreditEvent,
-        id: impl Into<crate::primitives::CreditFacilityId>,
-        sequence: EventSequence,
-        clock: &es_entity::clock::ClockHandle,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let id = id.into();
+        facility_id: CreditFacilityId,
+        sequence: obix::EventSequence,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    where
+        E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        let mut repayment_plan = self.repo.load(id).await?;
-        repayment_plan.process_credit_event(sequence, event, clock.now(), message.recorded_at);
-        self.repo.persist_in_tx(db, id, repayment_plan).await?;
+        self.update_repayment_plan
+            .spawn_with_queue_id_in_op(
+                op,
+                JobId::new(),
+                UpdateRepaymentPlanConfig::CreditEvent {
+                    facility_id,
+                    sequence,
+                    recorded_at: message.recorded_at,
+                    event: serde_json::to_value(event)?,
+                },
+                facility_id.to_string(),
+            )
+            .await?;
         Ok(())
     }
 
-    async fn handle_collection_event(
+    async fn spawn_collection_event<E>(
         &self,
-        db: &mut sqlx::PgTransaction<'_>,
+        op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
         event: &CoreCreditCollectionEvent,
-        id: impl Into<crate::primitives::CreditFacilityId>,
-        sequence: EventSequence,
-        clock: &es_entity::clock::ClockHandle,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let id = id.into();
+        facility_id: CreditFacilityId,
+        sequence: obix::EventSequence,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    where
+        E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
+    {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        let mut repayment_plan = self.repo.load(id).await?;
-        repayment_plan.process_collection_event(sequence, event, clock.now());
-        self.repo.persist_in_tx(db, id, repayment_plan).await?;
+        self.update_repayment_plan
+            .spawn_with_queue_id_in_op(
+                op,
+                JobId::new(),
+                UpdateRepaymentPlanConfig::CollectionEvent {
+                    facility_id,
+                    sequence,
+                    event: serde_json::to_value(event)?,
+                },
+                facility_id.to_string(),
+            )
+            .await?;
         Ok(())
     }
 }

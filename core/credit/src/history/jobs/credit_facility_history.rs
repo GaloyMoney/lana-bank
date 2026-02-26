@@ -1,50 +1,35 @@
 use tracing::{Span, instrument};
 
-use std::sync::Arc;
-
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
 
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent, collateral::public::CoreCreditCollateralEvent,
     primitives::CreditFacilityId,
 };
 
-use super::super::repo::HistoryRepo;
+use super::update_history::UpdateHistoryConfig;
 
 pub const HISTORY_PROJECTION: JobType = JobType::new("outbox.credit-facility-history-projection");
 
-pub struct HistoryProjectionHandler<
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>,
-> {
-    repo: Arc<HistoryRepo>,
-    _phantom: std::marker::PhantomData<E>,
+pub struct HistoryProjectionHandler {
+    update_history: JobSpawner<UpdateHistoryConfig>,
 }
 
-impl<E> HistoryProjectionHandler<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>,
-{
-    pub fn new(repo: Arc<HistoryRepo>) -> Self {
-        Self {
-            repo,
-            _phantom: std::marker::PhantomData,
-        }
+impl HistoryProjectionHandler {
+    pub fn new(update_history: JobSpawner<UpdateHistoryConfig>) -> Self {
+        Self { update_history }
     }
 }
 
-impl<E> OutboxEventHandler<E> for HistoryProjectionHandler<E>
+impl<E> OutboxEventHandler<E> for HistoryProjectionHandler
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    #[instrument(name = "outbox.core_credit.history_projection_job.process_message", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "outbox.core_credit.history_projection_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
         op: &mut es_entity::DbOp<'_>,
@@ -52,39 +37,40 @@ where
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         use CoreCreditEvent::*;
 
-        let db = op.tx_mut();
-
         match event.as_event() {
             Some(e @ FacilityProposalCreated { entity }) => {
-                self.handle_credit_event(db, event, e, entity.id).await?;
+                self.spawn_credit_event(op, event, e, entity.id.into())
+                    .await?;
             }
             Some(e @ FacilityProposalConcluded { entity })
                 if entity.status == crate::primitives::CreditFacilityProposalStatus::Approved =>
             {
-                self.handle_credit_event(db, event, e, entity.id).await?;
+                self.spawn_credit_event(op, event, e, entity.id.into())
+                    .await?;
             }
             Some(e @ PendingCreditFacilityCollateralizationChanged { entity }) => {
-                self.handle_credit_event(db, event, e, entity.id).await?;
+                self.spawn_credit_event(op, event, e, entity.id.into())
+                    .await?;
             }
             Some(e @ FacilityActivated { entity }) => {
-                self.handle_credit_event(db, event, e, entity.id).await?;
+                self.spawn_credit_event(op, event, e, entity.id).await?;
             }
             Some(e @ FacilityCompleted { entity }) => {
-                self.handle_credit_event(db, event, e, entity.id).await?;
+                self.spawn_credit_event(op, event, e, entity.id).await?;
             }
             Some(e @ DisbursalSettled { entity }) => {
-                self.handle_credit_event(db, event, e, entity.credit_facility_id)
+                self.spawn_credit_event(op, event, e, entity.credit_facility_id)
                     .await?;
             }
             Some(e @ AccrualPosted { entity }) => {
-                self.handle_credit_event(db, event, e, entity.credit_facility_id)
+                self.spawn_credit_event(op, event, e, entity.credit_facility_id)
                     .await?;
             }
             Some(e @ PartialLiquidationInitiated { entity }) => {
-                self.handle_credit_event(db, event, e, entity.id).await?;
+                self.spawn_credit_event(op, event, e, entity.id).await?;
             }
             Some(e @ FacilityCollateralizationChanged { entity }) => {
-                self.handle_credit_event(db, event, e, entity.id).await?;
+                self.spawn_credit_event(op, event, e, entity.id).await?;
             }
 
             _ => {}
@@ -93,7 +79,7 @@ where
         use CoreCreditCollateralEvent::*;
         match event.as_event() {
             Some(e @ CollateralUpdated { entity }) => {
-                self.handle_collateral_event(db, event, e, entity.secured_loan_id)
+                self.spawn_collateral_event(op, event, e, entity.secured_loan_id.into())
                     .await?;
             }
             Some(
@@ -114,7 +100,8 @@ where
                     ..
                 },
             ) => {
-                self.handle_collateral_event(db, event, e, *id).await?;
+                self.spawn_collateral_event(op, event, e, (*id).into())
+                    .await?;
             }
             _ => {}
         }
@@ -122,68 +109,102 @@ where
         if let Some(e @ CoreCreditCollectionEvent::PaymentAllocationCreated { entity }) =
             event.as_event()
         {
-            let id: CreditFacilityId = entity.beneficiary_id.into();
-            self.handle_collection_event(db, event, e, id).await?;
+            let facility_id: CreditFacilityId = entity.beneficiary_id.into();
+            self.spawn_collection_event(op, event, e, facility_id)
+                .await?;
         }
 
         Ok(())
     }
 }
 
-impl<E> HistoryProjectionHandler<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>,
-{
-    async fn handle_credit_event(
+impl HistoryProjectionHandler {
+    async fn spawn_credit_event<E>(
         &self,
-        db: &mut sqlx::PgTransaction<'_>,
+        op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
         event: &CoreCreditEvent,
-        id: impl Into<CreditFacilityId>,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let id = id.into();
+        facility_id: CreditFacilityId,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    where
+        E: OutboxEventMarker<CoreCreditEvent>
+            + OutboxEventMarker<CoreCreditCollateralEvent>
+            + OutboxEventMarker<CoreCreditCollectionEvent>,
+    {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        let mut history = self.repo.load(id).await?;
-        history.process_credit_event(event, message.recorded_at);
-        self.repo.persist_in_tx(db, id, history).await?;
+        self.update_history
+            .spawn_with_queue_id_in_op(
+                op,
+                JobId::new(),
+                UpdateHistoryConfig::CreditEvent {
+                    facility_id,
+                    recorded_at: message.recorded_at,
+                    event: serde_json::to_value(event)?,
+                },
+                facility_id.to_string(),
+            )
+            .await?;
         Ok(())
     }
 
-    async fn handle_collateral_event(
+    async fn spawn_collateral_event<E>(
         &self,
-        db: &mut sqlx::PgTransaction<'_>,
+        op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
         event: &CoreCreditCollateralEvent,
-        id: impl Into<CreditFacilityId>,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let id = id.into();
+        facility_id: CreditFacilityId,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    where
+        E: OutboxEventMarker<CoreCreditEvent>
+            + OutboxEventMarker<CoreCreditCollateralEvent>
+            + OutboxEventMarker<CoreCreditCollectionEvent>,
+    {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        let mut history = self.repo.load(id).await?;
-        history.process_collateral_event(event, message.recorded_at);
-        self.repo.persist_in_tx(db, id, history).await?;
+        self.update_history
+            .spawn_with_queue_id_in_op(
+                op,
+                JobId::new(),
+                UpdateHistoryConfig::CollateralEvent {
+                    facility_id,
+                    recorded_at: message.recorded_at,
+                    event: serde_json::to_value(event)?,
+                },
+                facility_id.to_string(),
+            )
+            .await?;
         Ok(())
     }
 
-    async fn handle_collection_event(
+    async fn spawn_collection_event<E>(
         &self,
-        db: &mut sqlx::PgTransaction<'_>,
+        op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
         event: &CoreCreditCollectionEvent,
-        id: impl Into<CreditFacilityId>,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let id = id.into();
+        facility_id: CreditFacilityId,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    where
+        E: OutboxEventMarker<CoreCreditEvent>
+            + OutboxEventMarker<CoreCreditCollateralEvent>
+            + OutboxEventMarker<CoreCreditCollectionEvent>,
+    {
         message.inject_trace_parent();
         Span::current().record("handled", true);
         Span::current().record("event_type", event.as_ref());
-        let mut history = self.repo.load(id).await?;
-        history.process_collection_event(event);
-        self.repo.persist_in_tx(db, id, history).await?;
+        self.update_history
+            .spawn_with_queue_id_in_op(
+                op,
+                JobId::new(),
+                UpdateHistoryConfig::CollectionEvent {
+                    facility_id,
+                    event: serde_json::to_value(event)?,
+                },
+                facility_id.to_string(),
+            )
+            .await?;
         Ok(())
     }
 }

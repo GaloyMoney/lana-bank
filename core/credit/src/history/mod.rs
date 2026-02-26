@@ -224,11 +224,14 @@ where
     {
         let repo = Arc::new(HistoryRepo::new(pool));
 
+        let update_history_spawner =
+            jobs::update_history::UpdateHistoryJobInitializer::new(repo.clone());
+        let update_history_spawner = job.add_initializer(update_history_spawner);
         outbox
             .register_event_handler(
                 job,
                 OutboxEventJobConfig::new(credit_facility_history::HISTORY_PROJECTION),
-                credit_facility_history::HistoryProjectionHandler::new(repo.clone()),
+                credit_facility_history::HistoryProjectionHandler::new(update_history_spawner),
             )
             .await?;
 

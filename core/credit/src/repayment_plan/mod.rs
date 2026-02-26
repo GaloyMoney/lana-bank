@@ -16,7 +16,7 @@ use crate::{CoreCreditCollectionEvent, CoreCreditEvent, primitives::*};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use error::CreditFacilityRepaymentPlanError;
-use jobs::credit_facility_repayment_plan;
+use jobs::{credit_facility_repayment_plan, update_repayment_plan};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -351,13 +351,18 @@ where
     {
         let repo = Arc::new(RepaymentPlanRepo::new(pool));
 
+        let update_repayment_plan_spawner = jobs.add_initializer(
+            update_repayment_plan::UpdateRepaymentPlanJobInitializer::new(repo.clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(
                     credit_facility_repayment_plan::REPAYMENT_PLAN_PROJECTION,
                 ),
-                credit_facility_repayment_plan::RepaymentPlanProjectionHandler::new(repo.clone()),
+                credit_facility_repayment_plan::RepaymentPlanProjectionHandler::new(
+                    update_repayment_plan_spawner,
+                ),
             )
             .await?;
 
