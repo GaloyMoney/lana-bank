@@ -27,16 +27,22 @@ impl Default for RepoInOpUsageRule {
     }
 }
 
-/// Known EsRepo-generated method names that have `_in_op` variants.
-const REPO_METHODS: &[&str] = &[
-    "find_by_id",
-    "maybe_find_by_id",
+/// EsRepo-generated exact method names that have `_in_op` variants.
+const REPO_EXACT_METHODS: &[&str] = &[
     "find_all",
     "create",
     "create_all",
     "update",
     "update_all",
+    "delete",
 ];
+
+/// EsRepo-generated method name prefixes that have `_in_op` variants.
+/// Covers dynamically-named methods generated from column definitions:
+///   find_by_{column}, maybe_find_by_{column},
+///   list_by_{column}, list_for_{column}_by_{sort},
+///   list_for_filters_by_{sort}
+const REPO_PREFIX_METHODS: &[&str] = &["find_by_", "maybe_find_by_", "list_by_", "list_for_"];
 
 /// Check if a method name matches a known EsRepo-generated method pattern
 /// that should use an `_in_op` variant when a transaction is in scope.
@@ -45,11 +51,14 @@ fn is_repo_method_without_in_op(name: &str) -> bool {
         return false;
     }
 
-    if REPO_METHODS.contains(&name) {
+    if REPO_EXACT_METHODS.contains(&name) {
         return true;
     }
 
-    if name.starts_with("list_by_id") || name.starts_with("list_for_") {
+    if REPO_PREFIX_METHODS
+        .iter()
+        .any(|prefix| name.starts_with(prefix))
+    {
         return true;
     }
 
@@ -483,6 +492,120 @@ mod tests {
             violations
         );
         assert!(violations[0].message.contains("list_by_id"));
+    }
+
+    #[test]
+    fn test_find_by_column_method() {
+        let code = r#"
+            impl Foo {
+                async fn lookup_in_op(
+                    &self,
+                    op: &mut DbOp<'_>,
+                    email: &str,
+                ) -> Result<Item, Error> {
+                    self.repo.find_by_email(email).await
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
+        assert!(violations[0].message.contains("find_by_email"));
+    }
+
+    #[test]
+    fn test_maybe_find_by_column_method() {
+        let code = r#"
+            impl Foo {
+                async fn lookup_in_op(
+                    &self,
+                    op: &mut DbOp<'_>,
+                    ref_id: &str,
+                ) -> Result<Option<Item>, Error> {
+                    self.repo.maybe_find_by_reference(ref_id).await
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
+        assert!(violations[0].message.contains("maybe_find_by_reference"));
+    }
+
+    #[test]
+    fn test_list_by_column_method() {
+        let code = r#"
+            impl Foo {
+                async fn fetch_in_op(
+                    &self,
+                    op: &mut DbOp<'_>,
+                ) -> Result<Vec<Item>, Error> {
+                    self.repo.list_by_name(Default::default(), Default::default()).await
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
+        assert!(violations[0].message.contains("list_by_name"));
+    }
+
+    #[test]
+    fn test_delete_method() {
+        let code = r#"
+            impl Foo {
+                async fn remove_in_op(
+                    &self,
+                    op: &mut DbOp<'_>,
+                    entity: Item,
+                ) -> Result<(), Error> {
+                    self.repo.delete(entity).await
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
+        assert!(violations[0].message.contains("delete"));
+    }
+
+    #[test]
+    fn test_list_for_filters_method() {
+        let code = r#"
+            impl Foo {
+                async fn search_in_op(
+                    &self,
+                    op: &mut DbOp<'_>,
+                    filters: Filters,
+                ) -> Result<Vec<Item>, Error> {
+                    self.repo.list_for_filters_by_id(filters, Default::default(), Default::default()).await
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 violation: {:?}",
+            violations
+        );
+        assert!(violations[0].message.contains("list_for_filters_by_id"));
     }
 
     #[test]
