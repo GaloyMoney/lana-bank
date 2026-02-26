@@ -88,7 +88,7 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
           <DetailsGroup layout="horizontal">
             <DetailItem
               label={t("fields.customerEmail")}
-              value={withdrawalData.account.customer?.email || t("values.na")}
+              value={withdrawalData.account.customerId || t("values.na")}
             />
             <DetailItem
               label={t("fields.amount")}

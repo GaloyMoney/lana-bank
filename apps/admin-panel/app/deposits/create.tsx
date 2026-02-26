@@ -30,22 +30,13 @@ gql`
       deposit {
         ...DepositFields
         account {
-          customer {
-            id
-            customerId
-            depositAccount {
-              id
-              deposits {
-                ...DepositFields
-              }
-            }
-            depositAccount {
-              id
-              balance {
-                settled
-                pending
-              }
-            }
+          customerId
+          deposits {
+            ...DepositFields
+          }
+          balance {
+            settled
+            pending
           }
         }
       }
@@ -98,7 +89,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
         await client.query({
           query: GetCustomerBasicDetailsDocument,
           variables: {
-            id: result.data.depositRecord.deposit.account.customer.customerId,
+            id: result.data.depositRecord.deposit.account.customerId,
           },
           fetchPolicy: "network-only",
         })

@@ -55,9 +55,7 @@ gql`
       ... on DepositAccount {
         depositAccountId
         publicId
-        customer {
-          publicId
-        }
+        customerId
       }
       ... on CreditFacility {
         publicId

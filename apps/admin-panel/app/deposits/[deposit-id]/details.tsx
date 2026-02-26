@@ -31,8 +31,7 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
   const details: DetailItemProps[] = [
     {
       label: t("fields.customerEmail"),
-      value: deposit.account.customer.email,
-      href: `/customers/${deposit.account.customer.publicId}`,
+      value: deposit.account.customerId,
     },
     {
       label: t("fields.depositAmount"),

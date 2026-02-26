@@ -25,10 +25,7 @@ gql`
     amount
     status
     account {
-      customer {
-        customerId
-        email
-      }
+      customerId
     }
   }
 
@@ -84,7 +81,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
     key: "account",
     label: t("headers.customer"),
-    render: (account) => account.customer.email,
+    render: (account) => account.customerId,
   },
   {
     key: "reference",

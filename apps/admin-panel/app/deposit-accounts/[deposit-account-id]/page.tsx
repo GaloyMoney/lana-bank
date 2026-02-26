@@ -28,13 +28,7 @@ gql`
       depositAccountId
       frozenDepositAccountId
     }
-    customer {
-      id
-      customerId
-      publicId
-      applicantId
-      email
-    }
+    customerId
   }
 
   query GetDepositAccountDetails($publicId: PublicId!, $first: Int!, $after: String) {
@@ -95,24 +89,12 @@ gql`
             ... on DisbursalEntry {
               __typename
               recordedAt
-              disbursal {
-                id
-                disbursalId
-                publicId
-                amount
-                createdAt
-                status
-              }
+              txId
             }
             ... on PaymentEntry {
               __typename
               recordedAt
-              payment {
-                id
-                paymentAllocationId
-                amount
-                createdAt
-              }
+              txId
             }
             ... on FreezeEntry {
               __typename

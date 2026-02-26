@@ -24,12 +24,6 @@ gql`
     createdAt
     status
     facilityAmount
-    customer {
-      customerId
-      customerType
-      publicId
-      email
-    }
     custodian {
       name
     }

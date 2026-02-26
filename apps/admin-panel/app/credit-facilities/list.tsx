@@ -29,16 +29,6 @@ import Balance from "@/components/balance/balance"
 import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
-  fragment CVLPctData on CvlPct {
-    __typename
-    ... on FiniteCvlPct {
-      value
-    }
-    ... on InfiniteCvlPct {
-      isInfinite
-    }
-  }
-
   query CreditFacilities(
     $first: Int!
     $after: String
@@ -56,15 +46,7 @@ gql`
           activatedAt
           status
           facilityAmount
-          currentCvl {
-            __typename
-            ... on FiniteCvlPct {
-              value
-            }
-            ... on InfiniteCvlPct {
-              isInfinite
-            }
-          }
+          currentCvl
           balance {
             collateral {
               btcBalance
@@ -72,10 +54,6 @@ gql`
             outstanding {
               usdBalance
             }
-          }
-          customer {
-            customerId
-            email
           }
         }
       }
@@ -138,12 +116,6 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     filterValues: Object.values(CreditFacilityStatus),
   },
   {
-    key: "customer",
-    label: t("table.headers.customer"),
-    labelClassName: "w-[27%]",
-    render: (customer) => <div className="truncate">{customer.email}</div>,
-  },
-  {
     key: "balance",
     label: t("table.headers.outstanding"),
     labelClassName: "w-[15%]",
@@ -162,7 +134,10 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     key: "currentCvl",
     label: t("table.headers.cvl"),
     labelClassName: "w-[10%]",
-    render: (cvl) => (cvl.__typename === "FiniteCvlPct" ? `${cvl.value}%` : "∞"),
+    render: (cvl) => {
+      const value = Number(cvl)
+      return Number.isFinite(value) ? `${value}%` : "-"
+    },
     sortable: true,
   },
   {

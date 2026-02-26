@@ -25,12 +25,8 @@ gql`
       }
       ... on DepositAccount {
         id
-        customer {
-          id
-          customerId
-          publicId
-          email
-        }
+        publicId
+        customerId
       }
       ... on CreditFacility {
         id

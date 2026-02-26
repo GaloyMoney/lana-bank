@@ -4,8 +4,6 @@ import { gql } from "@apollo/client"
 import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
-import LedgerTransactions from "../../../components/ledger-transactions"
-
 import DepositDetailsCard from "./details"
 
 import { useGetDepositDetailsQuery } from "@/lib/graphql/generated"
@@ -22,25 +20,10 @@ gql`
     createdAt
     reference
     status
-    ledgerTransactions {
-      ...LedgerTransactionFields
-    }
     account {
       id
       publicId
-      customer {
-        id
-        customerId
-        publicId
-        applicantId
-        email
-        depositAccount {
-          balance {
-            settled
-            pending
-          }
-        }
-      }
+      customerId
     }
   }
 
@@ -91,9 +74,6 @@ function DepositPage({
   return (
     <main className="max-w-7xl m-auto space-y-2">
       <DepositDetailsCard deposit={data.depositByPublicId} />
-      <LedgerTransactions
-        ledgerTransactions={data.depositByPublicId.ledgerTransactions}
-      />
     </main>
   )
 }

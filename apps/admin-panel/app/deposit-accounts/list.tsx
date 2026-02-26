@@ -25,11 +25,7 @@ gql`
       settled
       pending
     }
-    customer {
-      customerId
-      email
-      publicId
-    }
+    customerId
   }
 
   query DepositAccounts($first: Int!, $after: String) {
@@ -82,9 +78,9 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<DepositAccount>[
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
-    key: "customer",
+    key: "customerId",
     label: t("headers.customer"),
-    render: (customer) => customer.email,
+    render: (customerId) => customerId,
   },
   {
     key: "balance",

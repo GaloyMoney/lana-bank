@@ -35,10 +35,6 @@ gql`
           collateral {
             btcBalance
           }
-          customer {
-            customerId
-            email
-          }
         }
       }
       pageInfo {
@@ -85,21 +81,15 @@ const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] =>
     render: (status) => <PendingCreditFacilityStatusBadge status={status} />,
   },
   {
-    key: "customer",
-    label: t("table.headers.customer"),
-    labelClassName: "w-[25%]",
-    render: (customer) => <div className="truncate">{customer.email}</div>,
-  },
-  {
     key: "facilityAmount",
     label: t("table.headers.facilityAmount"),
-    labelClassName: "w-[15%]",
+    labelClassName: "w-[20%]",
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
   {
     key: "collateral",
     label: t("table.headers.collateral"),
-    labelClassName: "w-[15%]",
+    labelClassName: "w-[20%]",
     render: (collateral) => <Balance amount={collateral.btcBalance} currency="btc" />,
   },
   {

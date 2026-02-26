@@ -4,8 +4,6 @@ import { gql } from "@apollo/client"
 import { useEffect, use } from "react"
 import { useTranslations } from "next-intl"
 
-import LedgerTransactions from "../../../components/ledger-transactions"
-
 import WithdrawalDetailsCard from "./details"
 
 import { useGetWithdrawalDetailsQuery } from "@/lib/graphql/generated"
@@ -34,25 +32,10 @@ gql`
     status
     reference
     createdAt
-    ledgerTransactions {
-      ...LedgerTransactionFields
-    }
     account {
       id
       publicId
-      customer {
-        id
-        customerId
-        publicId
-        applicantId
-        email
-        depositAccount {
-          balance {
-            settled
-            pending
-          }
-        }
-      }
+      customerId
     }
     approvalProcess {
       ...ApprovalProcessFields
@@ -112,9 +95,6 @@ function WithdrawalPage({
   return (
     <main className="max-w-7xl m-auto space-y-2">
       <WithdrawalDetailsCard withdrawal={data.withdrawalByPublicId} />
-      <LedgerTransactions
-        ledgerTransactions={data.withdrawalByPublicId.ledgerTransactions}
-      />
     </main>
   )
 }

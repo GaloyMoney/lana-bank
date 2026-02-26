@@ -27,11 +27,6 @@ gql`
           amount
           createdAt
           status
-          creditFacility {
-            customer {
-              email
-            }
-          }
         }
         cursor
       }
@@ -61,17 +56,9 @@ const Disbursals = () => {
       render: (status) => <DisbursalStatusBadge status={status} />,
     },
     {
-      key: "creditFacility",
-      label: t("table.headers.customer"),
-      labelClassName: "w-[35%]",
-      render: (creditFacility) => (
-        <div className="truncate">{creditFacility.customer.email}</div>
-      ),
-    },
-    {
       key: "amount",
       label: t("table.headers.amount"),
-      labelClassName: "w-[25%]",
+      labelClassName: "w-[45%]",
       render: (amount) => <Balance amount={amount} currency="usd" />,
     },
     {

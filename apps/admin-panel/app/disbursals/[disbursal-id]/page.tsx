@@ -3,8 +3,6 @@ import React, { useEffect, use } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
-import LedgerTransactions from "../../../components/ledger-transactions"
-
 import { DisbursalDetailsCard } from "./details"
 
 import { VotersCard } from "./voters"
@@ -24,29 +22,12 @@ gql`
       createdAt
       status
       publicId
-      ledgerTransactions {
-        ...LedgerTransactionFields
-      }
       creditFacility {
         id
         creditFacilityId
         facilityAmount
         status
         publicId
-        customer {
-          id
-          email
-          customerId
-          publicId
-          depositAccount {
-            id
-            publicId
-            balance {
-              settled
-              pending
-            }
-          }
-        }
       }
       approvalProcess {
         ...ApprovalProcessFields
@@ -103,9 +84,6 @@ function DisbursalPage({
       {data.disbursalByPublicId.approvalProcess && (
         <VotersCard approvalProcess={data.disbursalByPublicId.approvalProcess} />
       )}
-      <LedgerTransactions
-        ledgerTransactions={data.disbursalByPublicId.ledgerTransactions}
-      />
     </main>
   )
 }
