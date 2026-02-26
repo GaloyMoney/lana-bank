@@ -21,7 +21,7 @@ use money::Satoshis;
 /// - `amount`: Updated collateral amount
 /// - `adjustment`: Ledger adjustment details for the update
 #[tokio::test]
-#[serial_test::file_serial(core_credit_shared_jobs)]
+#[serial_test::file_serial(job_poller)]
 async fn facility_collateral_updated_event_on_manual_update() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     ctx.jobs.start_poll().await?;

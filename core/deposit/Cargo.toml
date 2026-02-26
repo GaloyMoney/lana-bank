@@ -62,3 +62,4 @@ rand = { workspace = true }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 rust_decimal_macros = { workspace = true }
+serial_test = { workspace = true }

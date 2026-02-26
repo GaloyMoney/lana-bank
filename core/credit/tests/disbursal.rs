@@ -21,7 +21,7 @@ use helpers::event::expect_event;
 /// - `amount`: Disbursed amount
 /// - `settlement`: Settlement metadata (`tx_id`, `effective`)
 #[tokio::test]
-#[serial_test::file_serial(core_credit_shared_jobs)]
+#[serial_test::file_serial(job_poller)]
 async fn disbursal_settled_event_on_activation() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     ctx.jobs.start_poll().await?;

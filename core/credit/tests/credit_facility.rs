@@ -223,7 +223,7 @@ async fn facility_collateralization_changed_event_on_price_change() -> anyhow::R
 /// - `amount`: Approved facility amount
 /// - `completed_at`: Completion timestamp (none when activated)
 #[tokio::test]
-#[serial_test::file_serial(core_credit_shared_jobs)]
+#[serial_test::file_serial(job_poller)]
 async fn facility_activated_event_on_activation() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     ctx.jobs.start_poll().await?;
@@ -292,7 +292,7 @@ async fn facility_activated_event_on_activation() -> anyhow::Result<()> {
 /// - `completed_at`: Completion timestamp
 /// - `liquidation_trigger`: Optional liquidation context (none for normal completion)
 #[tokio::test]
-#[serial_test::file_serial(core_credit_shared_jobs)]
+#[serial_test::file_serial(job_poller)]
 async fn facility_completed_event_on_completion() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     ctx.jobs.start_poll().await?;
@@ -379,7 +379,7 @@ async fn facility_completed_event_on_completion() -> anyhow::Result<()> {
 /// - `amount`: Facility amount
 /// - `liquidation_trigger`: Estimated liquidation and proceeds requirements
 #[tokio::test]
-#[serial_test::file_serial(core_credit_shared_jobs)]
+#[serial_test::file_serial(job_poller)]
 async fn partial_liquidation_initiated_event_on_undercollateralization() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
     ctx.jobs.start_poll().await?;
