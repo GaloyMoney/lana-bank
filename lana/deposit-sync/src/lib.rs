@@ -74,11 +74,16 @@ where
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
     ) -> Result<Self, DepositSyncError> {
+        let export_to_sumsub = jobs.add_initializer(ExportToSumsubJobInitializer::new(
+            sumsub_client,
+            deposits.clone(),
+            customers.clone(),
+        ));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(SUMSUB_EXPORT_JOB),
-                SumsubExportHandler::new(sumsub_client, deposits, customers),
+                SumsubExportHandler::new(export_to_sumsub),
             )
             .await?;
 
