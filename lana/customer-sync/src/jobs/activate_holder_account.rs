@@ -17,6 +17,7 @@ use governance::GovernanceEvent;
 use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ActivateHolderAccountConfig {
     pub customer_id: CustomerId,
     pub trace_context: tracing_utils::persistence::SerializableTraceContext,

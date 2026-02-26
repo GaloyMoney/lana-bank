@@ -16,6 +16,7 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct RecordCollateralUpdateConfig {
     pub custody_wallet_id: CustodyWalletId,
     pub updated_collateral: money::Satoshis,
