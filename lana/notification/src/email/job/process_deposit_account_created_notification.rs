@@ -13,8 +13,7 @@ use crate::email::EmailNotification;
 pub struct DepositAccountCreatedNotificationConfig {
     pub account_id: DepositAccountId,
     pub account_holder_id: DepositAccountHolderId,
-    #[serde(default)]
-    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
+    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const DEPOSIT_ACCOUNT_CREATED_NOTIFICATION_COMMAND: JobType =
@@ -116,9 +115,7 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if let Some(ref ctx) = self.config.trace_context {
-            tracing_utils::persistence::set_parent(ctx);
-        }
+        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let mut op = current_job.begin_op().await?;
 
         self.email_notification

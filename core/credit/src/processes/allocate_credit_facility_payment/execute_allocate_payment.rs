@@ -19,8 +19,7 @@ use super::AllocateCreditFacilityPayment;
 #[serde(rename_all = "camelCase")]
 pub struct ExecuteAllocatePaymentConfig {
     pub payment_id: PaymentId,
-    #[serde(default)]
-    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
+    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const EXECUTE_ALLOCATE_PAYMENT_COMMAND: JobType =
@@ -100,9 +99,7 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if let Some(ref ctx) = self.config.trace_context {
-            tracing_utils::persistence::set_parent(ctx);
-        }
+        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let mut op = current_job.begin_op().await?;
         self.process
             .execute_in_op(

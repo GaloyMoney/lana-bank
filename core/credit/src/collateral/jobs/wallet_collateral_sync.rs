@@ -51,7 +51,7 @@ where
                             custody_wallet_id: entity.id,
                             updated_collateral: balance.amount,
                             effective: balance.updated_at.date_naive(),
-                            trace_context: Some(tracing_utils::persistence::extract()),
+                            trace_context: tracing_utils::persistence::extract(),
                         },
                         entity.id.to_string(),
                     )

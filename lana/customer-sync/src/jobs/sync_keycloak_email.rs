@@ -12,8 +12,7 @@ use tracing_macros::record_error_severity;
 pub struct SyncKeycloakEmailConfig {
     pub party_id: PartyId,
     pub email: String,
-    #[serde(default)]
-    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
+    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const SYNC_KEYCLOAK_EMAIL_COMMAND: JobType =
@@ -65,9 +64,7 @@ impl JobRunner for SyncKeycloakEmailJobRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if let Some(ref ctx) = self.config.trace_context {
-            tracing_utils::persistence::set_parent(ctx);
-        }
+        tracing_utils::persistence::set_parent(&self.config.trace_context);
         self.keycloak_client
             .update_user_email(self.config.party_id.into(), self.config.email.clone())
             .await?;

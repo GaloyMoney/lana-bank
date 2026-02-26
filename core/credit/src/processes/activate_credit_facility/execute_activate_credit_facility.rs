@@ -25,8 +25,7 @@ use super::ActivateCreditFacility;
 #[serde(rename_all = "camelCase")]
 pub struct ExecuteActivateCreditFacilityConfig {
     pub pending_credit_facility_id: PendingCreditFacilityId,
-    #[serde(default)]
-    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
+    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const EXECUTE_ACTIVATE_CREDIT_FACILITY_COMMAND: JobType =
@@ -143,9 +142,7 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if let Some(ref ctx) = self.config.trace_context {
-            tracing_utils::persistence::set_parent(ctx);
-        }
+        tracing_utils::persistence::set_parent(&self.config.trace_context);
         self.process
             .execute_activate_credit_facility(self.config.pending_credit_facility_id)
             .await?;

@@ -47,7 +47,7 @@ where
                         ExecuteApproveDisbursalConfig {
                             approval_process_id: entity.id,
                             approved: entity.status.is_approved(),
-                            trace_context: Some(tracing_utils::persistence::extract()),
+                            trace_context: tracing_utils::persistence::extract(),
                         },
                         entity.id.to_string(),
                     )

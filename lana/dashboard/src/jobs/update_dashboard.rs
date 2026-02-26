@@ -41,8 +41,7 @@ pub enum UpdateDashboardUpdate {
 #[serde(rename_all = "camelCase")]
 pub struct UpdateDashboardConfig {
     pub update: UpdateDashboardUpdate,
-    #[serde(default)]
-    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
+    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const UPDATE_DASHBOARD_COMMAND: JobType = JobType::new("command.dashboard.update-dashboard");
@@ -92,9 +91,7 @@ impl JobRunner for UpdateDashboardJobRunner {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if let Some(ref ctx) = self.config.trace_context {
-            tracing_utils::persistence::set_parent(ctx);
-        }
+        tracing_utils::persistence::set_parent(&self.config.trace_context);
 
         let mut op = current_job.begin_op().await?;
         let mut dashboard = self.repo.load().await?;

@@ -42,7 +42,7 @@ where
                     JobId::new(),
                     ActivateHolderAccountConfig {
                         customer_id: entity.id,
-                        trace_context: Some(tracing_utils::persistence::extract()),
+                        trace_context: tracing_utils::persistence::extract(),
                     },
                     entity.id.to_string(),
                 )

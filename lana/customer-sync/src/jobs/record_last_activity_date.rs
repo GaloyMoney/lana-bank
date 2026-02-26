@@ -20,8 +20,7 @@ use tracing_macros::record_error_severity;
 pub struct RecordLastActivityDateConfig {
     pub deposit_account_id: DepositAccountId,
     pub recorded_at: DateTime<Utc>,
-    #[serde(default)]
-    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
+    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const RECORD_LAST_ACTIVITY_DATE_COMMAND: JobType =
@@ -117,9 +116,7 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if let Some(ref ctx) = self.config.trace_context {
-            tracing_utils::persistence::set_parent(ctx);
-        }
+        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let account = self
             .deposits
             .find_account_by_id_without_audit(self.config.deposit_account_id)
