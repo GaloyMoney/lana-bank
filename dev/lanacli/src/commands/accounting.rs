@@ -1,7 +1,7 @@
 use anyhow::{Result, bail};
 
 use crate::cli::AccountingAction;
-use crate::client::GraphQLClient;
+use crate::client::{GraphQLClient, MultipartUpload};
 use crate::graphql::*;
 use crate::output;
 
@@ -49,9 +49,16 @@ pub async fn execute(
         }
         AccountingAction::CsvImport { file } => {
             let vars = chart_of_accounts_csv_import::Variables {
-                input: chart_of_accounts_csv_import::ChartOfAccountsCsvImportInput { file },
+                input: chart_of_accounts_csv_import::ChartOfAccountsCsvImportInput {
+                    file: file.clone(),
+                },
             };
-            let data = client.execute::<ChartOfAccountsCsvImport>(vars).await?;
+            let data = client
+                .execute_multipart::<ChartOfAccountsCsvImport>(
+                    vars,
+                    vec![MultipartUpload::new(file, "input.file")],
+                )
+                .await?;
             output::print_json(&data.chart_of_accounts_csv_import.chart_of_accounts)?;
         }
         AccountingAction::BaseConfig => {

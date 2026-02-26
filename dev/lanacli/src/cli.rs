@@ -624,6 +624,13 @@ pub enum CustodianAction {
 
 #[derive(Subcommand)]
 pub enum DocumentAction {
+    /// Attach a document to a customer
+    Attach {
+        #[arg(long)]
+        customer_id: String,
+        #[arg(long)]
+        file: String,
+    },
     /// Get a document by ID
     Get {
         #[arg(long)]
@@ -710,6 +717,11 @@ pub enum FinancialStatementAction {
 pub enum SumsubAction {
     /// Create Sumsub permalink for a prospect
     PermalinkCreate {
+        #[arg(long)]
+        prospect_id: String,
+    },
+    /// Create a full Sumsub test applicant for a prospect
+    TestApplicantCreate {
         #[arg(long)]
         prospect_id: String,
     },

@@ -1,12 +1,34 @@
 use anyhow::Result;
 
 use crate::cli::DocumentAction;
-use crate::client::GraphQLClient;
+use crate::client::{GraphQLClient, MultipartUpload};
 use crate::graphql::*;
 use crate::output;
 
 pub async fn execute(client: &mut GraphQLClient, action: DocumentAction, json: bool) -> Result<()> {
     match action {
+        DocumentAction::Attach { customer_id, file } => {
+            let vars = customer_document_attach::Variables {
+                file: file.clone(),
+                customer_id,
+            };
+            let data = client
+                .execute_multipart::<CustomerDocumentAttach>(
+                    vars,
+                    vec![MultipartUpload::new(file, "file")],
+                )
+                .await?;
+            let doc = data.customer_document_attach.document;
+            if json {
+                output::print_json(&doc)?;
+            } else {
+                output::print_kv(&[
+                    ("Document ID", &doc.document_id),
+                    ("Customer ID", &doc.customer_id),
+                    ("Filename", &doc.filename),
+                ]);
+            }
+        }
         DocumentAction::Get { id } => {
             let vars = customer_document_get::Variables { id };
             let data = client.execute::<CustomerDocumentGet>(vars).await?;

@@ -3,6 +3,9 @@ pub mod auth;
 use anyhow::{Context, bail};
 use graphql_client::GraphQLQuery;
 use serde::Deserialize;
+use serde::de::DeserializeOwned;
+use serde_json::json;
+use std::path::Path;
 
 use self::auth::AuthClient;
 
@@ -15,6 +18,21 @@ struct GraphQLResponse<D> {
 #[derive(Deserialize)]
 struct GraphQLError {
     message: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct MultipartUpload {
+    pub file_path: String,
+    pub variable_path: String,
+}
+
+impl MultipartUpload {
+    pub fn new(file_path: impl Into<String>, variable_path: impl Into<String>) -> Self {
+        Self {
+            file_path: file_path.into(),
+            variable_path: variable_path.into(),
+        }
+    }
 }
 
 pub struct GraphQLClient {
@@ -43,7 +61,7 @@ impl GraphQLClient {
         variables: Q::Variables,
     ) -> anyhow::Result<Q::ResponseData>
     where
-        Q::ResponseData: for<'de> Deserialize<'de>,
+        Q::ResponseData: DeserializeOwned,
     {
         let body = Q::build_query(variables);
         let token = self.auth.get_token().await?;
@@ -58,6 +76,88 @@ impl GraphQLClient {
             .await
             .context("Failed to reach admin server")?;
 
+        Self::parse_response(resp).await
+    }
+
+    pub async fn execute_multipart<Q: GraphQLQuery>(
+        &mut self,
+        variables: Q::Variables,
+        uploads: Vec<MultipartUpload>,
+    ) -> anyhow::Result<Q::ResponseData>
+    where
+        Q::ResponseData: DeserializeOwned,
+    {
+        let mut body = serde_json::to_value(Q::build_query(variables))
+            .context("Failed to serialize GraphQL request body")?;
+
+        let mut map = serde_json::Map::new();
+        for (idx, upload) in uploads.iter().enumerate() {
+            let variable_path = format!("variables.{}", upload.variable_path);
+            set_path_to_null(&mut body, &variable_path)?;
+            map.insert(idx.to_string(), json!([variable_path]));
+        }
+
+        let mut form = reqwest::multipart::Form::new()
+            .text("operations", body.to_string())
+            .text("map", serde_json::Value::Object(map).to_string());
+
+        for (idx, upload) in uploads.iter().enumerate() {
+            let file_bytes = std::fs::read(&upload.file_path)
+                .with_context(|| format!("Failed to read file '{}'", upload.file_path))?;
+            let filename = Path::new(&upload.file_path)
+                .file_name()
+                .and_then(|f| f.to_str())
+                .unwrap_or("upload.bin")
+                .to_string();
+            let part = reqwest::multipart::Part::bytes(file_bytes).file_name(filename);
+            form = form.part(idx.to_string(), part);
+        }
+
+        let token = self.auth.get_token().await?;
+
+        let resp = self
+            .http
+            .post(&self.connect_url)
+            .header("Host", &self.host_header)
+            .header("Authorization", format!("Bearer {token}"))
+            .multipart(form)
+            .send()
+            .await
+            .context("Failed to reach admin server")?;
+
+        Self::parse_response(resp).await
+    }
+
+    pub async fn execute_raw<R: DeserializeOwned>(
+        &mut self,
+        query: &str,
+        variables: serde_json::Value,
+        operation_name: Option<&str>,
+    ) -> anyhow::Result<R> {
+        let mut body = json!({
+            "query": query,
+            "variables": variables,
+        });
+        if let Some(op) = operation_name {
+            body["operationName"] = json!(op);
+        }
+
+        let token = self.auth.get_token().await?;
+
+        let resp = self
+            .http
+            .post(&self.connect_url)
+            .header("Host", &self.host_header)
+            .header("Authorization", format!("Bearer {token}"))
+            .json(&body)
+            .send()
+            .await
+            .context("Failed to reach admin server")?;
+
+        Self::parse_response(resp).await
+    }
+
+    async fn parse_response<R: DeserializeOwned>(resp: reqwest::Response) -> anyhow::Result<R> {
         let status = resp.status();
         let text = resp.text().await.context("Failed to read response body")?;
 
@@ -65,7 +165,7 @@ impl GraphQLClient {
             bail!("HTTP {}: {}", status, text);
         }
 
-        let gql_resp: GraphQLResponse<Q::ResponseData> =
+        let gql_resp: GraphQLResponse<R> =
             serde_json::from_str(&text).context("Failed to parse GraphQL response")?;
 
         if let Some(errors) = gql_resp.errors {
@@ -75,6 +175,31 @@ impl GraphQLClient {
 
         gql_resp.data.context("No data in GraphQL response")
     }
+}
+
+fn set_path_to_null(value: &mut serde_json::Value, path: &str) -> anyhow::Result<()> {
+    if path.is_empty() {
+        bail!("Upload variable path cannot be empty");
+    }
+
+    let mut current = value;
+    let mut segments = path.split('.').peekable();
+
+    while let Some(segment) = segments.next() {
+        if segments.peek().is_none() {
+            let object = current
+                .as_object_mut()
+                .with_context(|| format!("Path segment '{segment}' is not an object"))?;
+            object.insert(segment.to_string(), serde_json::Value::Null);
+            return Ok(());
+        }
+
+        current = current
+            .get_mut(segment)
+            .with_context(|| format!("Missing path segment '{segment}' in '{path}'"))?;
+    }
+
+    bail!("Upload variable path cannot be empty")
 }
 
 /// Rewrites a URL like `http://admin.localhost:4455/graphql` to connect via

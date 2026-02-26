@@ -1,3 +1,13 @@
+mutation CustomerDocumentAttach($file: Upload!, $customerId: UUID!) {
+  customerDocumentAttach(input: { file: $file, customerId: $customerId }) {
+    document {
+      documentId
+      customerId
+      filename
+    }
+  }
+}
+
 query CustomerDocumentGet($id: UUID!) {
   customerDocument(id: $id) {
     documentId
