@@ -1,6 +1,8 @@
 use async_graphql::{Context, Error, MergedObject, Object, Subscription, types::connection::*};
 
 use admin_graphql_access::{AccessMutation, AccessQuery};
+use admin_graphql_config::{ConfigMutation, ConfigQuery};
+use admin_graphql_contracts::{ContractsMutation, ContractsQuery};
 
 use std::io::Read;
 
@@ -24,14 +26,19 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    access::*, accounting::*, approval_process::*, audit::*, committee::*, contract_creation::*,
-    credit_config::*, credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*,
-    deposit_config::*, document::*, domain_config::*, loader::*, me::*, policy::*, price::*,
-    prospect::*, public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
+    access::*, accounting::*, approval_process::*, audit::*, committee::*, credit_config::*,
+    credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
+    document::*, loader::*, me::*, policy::*, price::*, prospect::*, public_id::*, reports::*,
+    sumsub::*, withdrawal::*,
 };
 
 #[derive(MergedObject, Default)]
-pub struct Query(pub AccessQuery, pub BaseQuery);
+pub struct Query(
+    pub AccessQuery,
+    pub ConfigQuery,
+    pub ContractsQuery,
+    pub BaseQuery,
+);
 
 #[derive(Default)]
 pub struct BaseQuery;
@@ -284,31 +291,6 @@ impl BaseQuery {
             first,
             |query| app.deposits().list_deposits(sub, query)
         )
-    }
-
-    async fn terms_template(
-        &self,
-        ctx: &Context<'_>,
-        id: UUID,
-    ) -> async_graphql::Result<Option<TermsTemplate>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(
-            TermsTemplate,
-            ctx,
-            app.terms_templates().find_by_id(sub, id)
-        )
-    }
-
-    async fn terms_templates(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<TermsTemplate>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let terms_templates = app.terms_templates().list(sub).await?;
-        Ok(terms_templates
-            .into_iter()
-            .map(TermsTemplate::from)
-            .collect())
     }
 
     async fn credit_facility(
@@ -968,51 +950,6 @@ impl BaseQuery {
             .collect())
     }
 
-    async fn deposit_config(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<DepositModuleConfig>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let config = app
-            .deposits()
-            .chart_of_accounts_integrations()
-            .get_config(sub)
-            .await?;
-        Ok(config.map(DepositModuleConfig::from))
-    }
-
-    async fn domain_configs(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<DomainConfigsByKeyCursor, DomainConfig, EmptyFields, EmptyFields>,
-    > {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            DomainConfigsByKeyCursor,
-            DomainConfig,
-            ctx,
-            after,
-            first,
-            |query| app.exposed_domain_configs().list(sub, query)
-        )
-    }
-
-    async fn credit_config(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<CreditModuleConfig>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let config = app
-            .credit()
-            .chart_of_accounts_integrations()
-            .get_config(sub)
-            .await?;
-        Ok(config.map(CreditModuleConfig::from))
-    }
-
     async fn public_id_target(
         &self,
         ctx: &Context<'_>,
@@ -1055,16 +992,6 @@ impl BaseQuery {
             _ => None,
         };
         Ok(res)
-    }
-
-    async fn loan_agreement(
-        &self,
-        ctx: &Context<'_>,
-        id: UUID,
-    ) -> async_graphql::Result<Option<LoanAgreement>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let agreement = app.contract_creation().find_by_id(sub, id).await?;
-        Ok(agreement.map(LoanAgreement::from))
     }
 
     async fn account_entry_csv(
@@ -1114,7 +1041,12 @@ impl BaseQuery {
 }
 
 #[derive(MergedObject, Default)]
-pub struct Mutation(pub AccessMutation, pub BaseMutation);
+pub struct Mutation(
+    pub AccessMutation,
+    pub ConfigMutation,
+    pub ContractsMutation,
+    pub BaseMutation,
+);
 
 #[derive(Default)]
 pub struct BaseMutation;
@@ -1267,24 +1199,6 @@ impl BaseMutation {
             ctx,
             app.customers()
                 .update_email(sub, input.customer_id, input.email)
-        )
-    }
-
-    async fn domain_config_update(
-        &self,
-        ctx: &Context<'_>,
-        input: DomainConfigUpdateInput,
-    ) -> async_graphql::Result<DomainConfigUpdatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            DomainConfigUpdatePayload,
-            DomainConfig,
-            ctx,
-            app.exposed_domain_configs().update_from_json(
-                sub,
-                input.domain_config_id,
-                input.value.into_inner(),
-            )
         )
     }
 
@@ -1536,73 +1450,6 @@ impl BaseMutation {
             DepositAccount,
             ctx,
             app.deposits().close_account(sub, input.deposit_account_id)
-        )
-    }
-
-    async fn terms_template_create(
-        &self,
-        ctx: &Context<'_>,
-        input: TermsTemplateCreateInput,
-    ) -> async_graphql::Result<TermsTemplateCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let term_values = lana_app::terms::TermValues::builder()
-            .annual_rate(input.annual_rate)
-            .accrual_interval(input.accrual_interval)
-            .accrual_cycle_interval(input.accrual_cycle_interval)
-            .one_time_fee_rate(input.one_time_fee_rate)
-            .disbursal_policy(input.disbursal_policy)
-            .duration(input.duration)
-            .interest_due_duration_from_accrual(input.interest_due_duration_from_accrual)
-            .obligation_overdue_duration_from_due(input.obligation_overdue_duration_from_due)
-            .obligation_liquidation_duration_from_due(
-                input.obligation_liquidation_duration_from_due,
-            )
-            .liquidation_cvl(input.liquidation_cvl)
-            .margin_call_cvl(input.margin_call_cvl)
-            .initial_cvl(input.initial_cvl)
-            .build()?;
-
-        exec_mutation!(
-            TermsTemplateCreatePayload,
-            TermsTemplate,
-            ctx,
-            app.terms_templates()
-                .create_terms_template(sub, input.name, term_values)
-        )
-    }
-
-    async fn terms_template_update(
-        &self,
-        ctx: &Context<'_>,
-        input: TermsTemplateUpdateInput,
-    ) -> async_graphql::Result<TermsTemplateUpdatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        let term_values = lana_app::terms::TermValues::builder()
-            .annual_rate(input.annual_rate)
-            .accrual_interval(input.accrual_interval)
-            .accrual_cycle_interval(input.accrual_cycle_interval)
-            .one_time_fee_rate(input.one_time_fee_rate)
-            .disbursal_policy(input.disbursal_policy)
-            .duration(input.duration)
-            .interest_due_duration_from_accrual(input.interest_due_duration_from_accrual)
-            .obligation_overdue_duration_from_due(input.obligation_overdue_duration_from_due)
-            .obligation_liquidation_duration_from_due(
-                input.obligation_liquidation_duration_from_due,
-            )
-            .liquidation_cvl(input.liquidation_cvl)
-            .margin_call_cvl(input.margin_call_cvl)
-            .initial_cvl(input.initial_cvl)
-            .build()?;
-        exec_mutation!(
-            TermsTemplateUpdatePayload,
-            TermsTemplate,
-            ctx,
-            app.terms_templates().update_term_values(
-                sub,
-                TermsTemplateId::from(input.id),
-                term_values
-            )
         )
     }
 
@@ -2375,36 +2222,6 @@ impl BaseMutation {
         let link = AccountingCsvDownloadLink::from(result);
 
         Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
-    }
-
-    pub async fn loan_agreement_generate(
-        &self,
-        ctx: &Context<'_>,
-        input: LoanAgreementGenerateInput,
-    ) -> async_graphql::Result<LoanAgreementGeneratePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        // Create async job for loan agreement generation
-        let loan_agreement = app
-            .contract_creation()
-            .initiate_loan_agreement_generation(sub, input.customer_id)
-            .await?;
-
-        let loan_agreement = LoanAgreement::from(loan_agreement);
-        Ok(LoanAgreementGeneratePayload::from(loan_agreement))
-    }
-
-    async fn loan_agreement_download_link_generate(
-        &self,
-        ctx: &Context<'_>,
-        input: LoanAgreementDownloadLinksGenerateInput,
-    ) -> async_graphql::Result<LoanAgreementDownloadLinksGeneratePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let doc = app
-            .contract_creation()
-            .generate_document_download_link(sub, input.loan_agreement_id)
-            .await?;
-        Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
     }
 
     async fn trigger_report_run(
