@@ -3,8 +3,6 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use tracing_macros::record_error_severity;
-
 use crate::primitives::*;
 
 use super::{entity::*, error::*};
@@ -46,30 +44,5 @@ impl CustodianRepo {
         }
 
         Ok(custodians)
-    }
-
-    #[record_error_severity]
-    #[tracing::instrument(name = "custodian.update_config_in_op", skip_all)]
-    pub async fn update_config_in_op(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        custodian: &mut Custodian,
-    ) -> Result<(), CustodianError> {
-        sqlx::query!(
-            r#"
-            UPDATE core_custodian_events
-            SET event = jsonb_set(event, '{encrypted_custodian_config}', 'null'::jsonb, false)
-            WHERE id = $1 
-              AND event_type = 'config_updated'
-              AND event->'encrypted_custodian_config' IS NOT NULL;
-            "#,
-            custodian.id as CustodianId,
-        )
-        .execute(op.as_executor())
-        .await?;
-
-        self.update_in_op(op, custodian).await?;
-
-        Ok(())
     }
 }

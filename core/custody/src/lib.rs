@@ -145,7 +145,11 @@ where
 
         if let Ok(custodian) = custodian
             && let Some(notification) = custodian
-                .custodian_client(&self.encryption_config.key, &self.config.custody_providers)?
+                .custodian_client(
+                    &self.encryption_config.key,
+                    &self.encryption_config.key_id,
+                    &self.config.custody_providers,
+                )?
                 .process_webhook(&header_map, payload)
                 .await?
         {
@@ -310,7 +314,11 @@ where
             .id(custodian_id)
             .name(custodian_name.as_ref().to_owned())
             .provider(custodian_config.discriminant().to_string())
-            .encrypted_custodian_config(custodian_config, &self.encryption_config.key)
+            .encrypted_custodian_config(
+                custodian_config,
+                &self.encryption_config.key,
+                &self.encryption_config.key_id,
+            )
             .build()
             .expect("should always build a new custodian");
 
@@ -359,7 +367,11 @@ where
             .id(custodian_id)
             .name(custodian_name.as_ref().to_owned())
             .provider(custodian_config.discriminant().to_string())
-            .encrypted_custodian_config(custodian_config, &self.encryption_config.key)
+            .encrypted_custodian_config(
+                custodian_config,
+                &self.encryption_config.key,
+                &self.encryption_config.key_id,
+            )
             .build()
             .expect("should always build a new custodian");
 
@@ -405,11 +417,15 @@ where
         let mut custodian = self.custodians.find_by_id_in_op(&mut op, id).await?;
 
         if custodian
-            .update_custodian_config(config, &self.encryption_config.key)
+            .update_custodian_config(
+                config,
+                &self.encryption_config.key,
+                &self.encryption_config.key_id,
+            )?
             .did_execute()
         {
             self.custodians
-                .update_config_in_op(&mut op, &mut custodian)
+                .update_in_op(&mut op, &mut custodian)
                 .await?;
             op.commit().await?;
         }
@@ -437,12 +453,14 @@ where
 
         for custodian in custodians.iter_mut() {
             if custodian
-                .rotate_encryption_key(&self.encryption_config.key, deprecated_key)?
+                .rotate_encryption_key(
+                    &self.encryption_config.key,
+                    &self.encryption_config.key_id,
+                    deprecated_key,
+                )?
                 .did_execute()
             {
-                self.custodians
-                    .update_config_in_op(&mut op, custodian)
-                    .await?;
+                self.custodians.update_in_op(&mut op, custodian).await?;
             }
         }
 
@@ -503,8 +521,11 @@ where
             .find_by_id_in_op(&mut *db, &custodian_id)
             .await?;
 
-        let client = custodian
-            .custodian_client(&self.encryption_config.key, &self.config.custody_providers)?;
+        let client = custodian.custodian_client(
+            &self.encryption_config.key,
+            &self.encryption_config.key_id,
+            &self.config.custody_providers,
+        )?;
 
         let external_wallet = client.initialize_wallet(wallet_label).await?;
 

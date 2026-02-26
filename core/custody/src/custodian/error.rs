@@ -12,6 +12,8 @@ pub enum CustodianError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CustodianError - Encryption: {0}")]
     Encryption(#[from] encryption::EncryptionError),
+    #[error("CustodianError - StaleEncryptionKey: value was rotated to a newer key")]
+    StaleEncryptionKey,
     #[error("CustodianError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
 }
@@ -25,6 +27,7 @@ impl ErrorSeverity for CustodianError {
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::Encryption(e) => e.severity(),
+            Self::StaleEncryptionKey => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
         }
     }

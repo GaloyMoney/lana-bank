@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use encryption::{Encrypted, EncryptionKey};
+use encryption::{Encrypted, EncryptionKey, KeyId};
 
 use crate::primitives::CustodianId;
 
@@ -24,8 +24,7 @@ pub enum CustodianEvent {
         provider: String,
     },
     ConfigUpdated {
-        // Option to handle null events when rehydrating after key rotation
-        encrypted_custodian_config: Option<Encrypted>,
+        encrypted_custodian_config: Encrypted,
     },
 }
 
@@ -50,44 +49,66 @@ impl Custodian {
         &mut self,
         new_config: CustodianConfig,
         key: &EncryptionKey,
-    ) -> Idempotent<()> {
-        let current_config = CustodianConfig::try_decrypt(key, &self.encrypted_custodian_config);
-        if current_config.as_ref() == Some(&new_config) {
-            return Idempotent::AlreadyApplied;
+        key_id: &KeyId,
+    ) -> Result<Idempotent<()>, CustodianError> {
+        if self.encrypted_custodian_config.key_id() != key_id {
+            return Err(CustodianError::StaleEncryptionKey);
+        }
+        let current_config = CustodianConfig::decrypt(key, &self.encrypted_custodian_config)?;
+        if current_config == new_config {
+            return Ok(Idempotent::AlreadyApplied);
         }
 
-        let encrypted = new_config.encrypt(key);
+        let encrypted = new_config.encrypt(key, key_id.clone());
         self.encrypted_custodian_config = encrypted.clone();
 
         self.events.push(CustodianEvent::ConfigUpdated {
-            encrypted_custodian_config: Some(encrypted),
+            encrypted_custodian_config: encrypted,
         });
 
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
-    fn custodian_config(&self, key: &EncryptionKey) -> Result<CustodianConfig, CustodianError> {
-        CustodianConfig::decrypt(key, &self.encrypted_custodian_config)
+    fn encrypted_config_for_key_id(&self, key_id: &KeyId) -> Option<&Encrypted> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            CustodianEvent::ConfigUpdated {
+                encrypted_custodian_config,
+            } if encrypted_custodian_config.key_id() == key_id => Some(encrypted_custodian_config),
+            _ => None,
+        })
+    }
+
+    fn custodian_config(
+        &self,
+        key: &EncryptionKey,
+        key_id: &KeyId,
+    ) -> Result<CustodianConfig, CustodianError> {
+        let encrypted = self
+            .encrypted_config_for_key_id(key_id)
+            .ok_or(CustodianError::StaleEncryptionKey)?;
+        CustodianConfig::decrypt(key, encrypted)
     }
 
     pub fn rotate_encryption_key(
         &mut self,
         new_key: &EncryptionKey,
+        key_id: &KeyId,
         deprecated_key: &EncryptionKey,
     ) -> Result<Idempotent<()>, CustodianError> {
-        if CustodianConfig::try_decrypt(new_key, &self.encrypted_custodian_config).is_some() {
+        if self.encrypted_custodian_config.key_id() == key_id {
             return Ok(Idempotent::AlreadyApplied);
         }
 
         let encrypted_config = CustodianConfig::rotate_encryption_key(
             new_key,
+            key_id.clone(),
             deprecated_key,
             &self.encrypted_custodian_config,
         )?;
 
         self.encrypted_custodian_config = encrypted_config.clone();
         self.events.push(CustodianEvent::ConfigUpdated {
-            encrypted_custodian_config: Some(encrypted_config),
+            encrypted_custodian_config: encrypted_config,
         });
 
         Ok(Idempotent::Executed(()))
@@ -98,9 +119,10 @@ impl Custodian {
     pub fn custodian_client(
         self,
         key: &EncryptionKey,
+        key_id: &KeyId,
         provider_config: &CustodyProviderConfig,
     ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
-        self.custodian_config(key)
+        self.custodian_config(key, key_id)
             .map_err(CustodianClientError::client)?
             .custodian_client(provider_config)
     }
@@ -124,9 +146,7 @@ impl TryFromEvents<CustodianEvent> for Custodian {
                     encrypted_custodian_config,
                     ..
                 } => {
-                    if let Some(config) = encrypted_custodian_config {
-                        builder = builder.encrypted_custodian_config(config.clone())
-                    }
+                    builder = builder.encrypted_custodian_config(encrypted_custodian_config.clone())
                 }
             }
         }
@@ -156,8 +176,9 @@ impl NewCustodianBuilder {
         &mut self,
         custodian_config: CustodianConfig,
         key: &EncryptionKey,
+        key_id: &KeyId,
     ) -> &mut Self {
-        self.encrypted_custodian_config = Some(custodian_config.encrypt(key));
+        self.encrypted_custodian_config = Some(custodian_config.encrypt(key, key_id.clone()));
         self
     }
 }
@@ -173,7 +194,7 @@ impl IntoEvents<CustodianEvent> for NewCustodian {
                     provider: self.provider,
                 },
                 CustodianEvent::ConfigUpdated {
-                    encrypted_custodian_config: Some(self.encrypted_custodian_config),
+                    encrypted_custodian_config: self.encrypted_custodian_config,
                 },
             ],
         )
