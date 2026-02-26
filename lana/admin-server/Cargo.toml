@@ -7,14 +7,18 @@ edition = "2024"
 
 fail-on-warnings = []
 mock-custodian = ["lana-app/mock-custodian"]
-sumsub-testing = ["lana-app/sumsub-testing"]
+sumsub-testing = ["lana-app/sumsub-testing", "admin-graphql-session/sumsub-testing"]
 
 [dependencies]
 lana-app = { workspace = true }
 admin-graphql-access = { workspace = true }
 admin-graphql-config = { workspace = true }
 admin-graphql-contracts = { workspace = true }
+admin-graphql-custody = { workspace = true }
+admin-graphql-documents = { workspace = true }
+admin-graphql-governance = { workspace = true }
 admin-graphql-reports = { workspace = true }
+admin-graphql-session = { workspace = true }
 admin-graphql-shared = { workspace = true }
 domain-config = { workspace = true, features = ["graphql"] }
 obix = { workspace = true }

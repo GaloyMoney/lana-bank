@@ -1,7 +1,7 @@
 use async_graphql::*;
 use url::Url;
 
-use crate::primitives::*;
+use admin_graphql_shared::primitives::*;
 
 pub use lana_app::custody::custodian::{
     BitgoConfig as DomainBitgoConfig, Custodian as DomainCustodian,
@@ -134,6 +134,6 @@ pub struct CustodianConfigUpdateInput {
     pub config: CustodianConfigInput,
 }
 
-crate::mutation_payload! { CustodianCreatePayload, custodian: Custodian }
+mutation_payload! { CustodianCreatePayload, custodian: Custodian }
 
-crate::mutation_payload! { CustodianConfigUpdatePayload, custodian: Custodian }
+mutation_payload! { CustodianConfigUpdatePayload, custodian: Custodian }

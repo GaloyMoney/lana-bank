@@ -9,7 +9,6 @@ use super::{
 
 pub use lana_app::governance::{
     ApprovalProcess as DomainApprovalProcess, ApprovalProcessStatus,
-    ApprovalProcessType as DomainApprovalProcessType,
     approval_process_cursor::ApprovalProcessesByCreatedAtCursor,
 };
 
@@ -167,28 +166,6 @@ impl ApprovalProcess {
                     .expect("disbursal not found");
                 Ok(ApprovalProcessTarget::CreditFacilityDisbursal(disbursal))
             }
-        }
-    }
-}
-
-#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
-#[allow(clippy::enum_variant_names)]
-pub enum ApprovalProcessType {
-    WithdrawalApproval,
-    DisbursalApproval,
-    CreditFacilityProposalApproval,
-}
-
-impl From<&DomainApprovalProcessType> for ApprovalProcessType {
-    fn from(process_type: &DomainApprovalProcessType) -> Self {
-        if process_type == &lana_app::governance::APPROVE_WITHDRAWAL_PROCESS {
-            Self::WithdrawalApproval
-        } else if process_type == &lana_app::governance::APPROVE_DISBURSAL_PROCESS {
-            Self::DisbursalApproval
-        } else if process_type == &lana_app::governance::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS {
-            Self::CreditFacilityProposalApproval
-        } else {
-            panic!("Unknown approval process type: {process_type:?}");
         }
     }
 }
