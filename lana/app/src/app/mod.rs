@@ -111,6 +111,7 @@ impl LanaApp {
                 &pool,
                 &authz,
                 &config.encryption.key,
+                &config.encryption.key_id,
                 &deprecated_key,
             )
             .await?;

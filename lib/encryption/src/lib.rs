@@ -3,6 +3,7 @@
 
 mod config;
 mod error;
+mod primitives;
 
 use chacha20poly1305::{
     ChaCha20Poly1305,
@@ -12,14 +13,14 @@ use serde::{Deserialize, Serialize};
 
 pub use config::EncryptionConfig;
 pub use error::EncryptionError;
-
-pub type EncryptionKey = chacha20poly1305::Key;
+pub use primitives::{EncryptionKey, KeyId};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct Encrypted {
     ciphertext: Vec<u8>,
     nonce: Vec<u8>,
+    key_id: KeyId,
 }
 
 impl Encrypted {
@@ -30,7 +31,7 @@ impl Encrypted {
             .map_err(|_| EncryptionError::Decryption)
     }
 
-    pub fn encrypt(plaintext: &[u8], key: &EncryptionKey) -> Self {
+    pub fn encrypt(plaintext: &[u8], key: &EncryptionKey, key_id: KeyId) -> Self {
         let cipher = ChaCha20Poly1305::new(key);
         let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
         let ciphertext = cipher
@@ -40,7 +41,12 @@ impl Encrypted {
         Self {
             ciphertext,
             nonce: nonce.to_vec(),
+            key_id,
         }
+    }
+
+    pub fn key_id(&self) -> &KeyId {
+        &self.key_id
     }
 }
 
@@ -55,13 +61,15 @@ mod tests {
     #[test]
     fn encrypt_decrypt_json_roundtrip() {
         let key = gen_encryption_key();
+        let key_id = KeyId::new("test-key");
         let original = serde_json::json!({"enabled": true, "limit": 42});
         let bytes = serde_json::to_vec(&original).unwrap();
 
-        let encrypted = Encrypted::encrypt(&bytes, &key);
+        let encrypted = Encrypted::encrypt(&bytes, &key, key_id.clone());
         let decrypted_bytes = encrypted.decrypt(&key).unwrap();
         let decrypted: serde_json::Value = serde_json::from_slice(&decrypted_bytes).unwrap();
 
         assert_eq!(original, decrypted);
+        assert_eq!(encrypted.key_id(), &key_id);
     }
 }

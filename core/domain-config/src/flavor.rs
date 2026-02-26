@@ -80,16 +80,17 @@ impl ConfigFlavor for DomainConfigFlavorEncrypted {
         entity: DomainConfig,
         config: &EncryptionConfig,
     ) -> Result<TypedDomainConfig<C>, DomainConfigError> {
-        TypedDomainConfig::try_new_encrypted(entity, config.key)
+        TypedDomainConfig::try_new_encrypted(entity, config.key, config.key_id.clone())
     }
 
     fn maybe_value<C: ConfigSpec<Flavor = Self>>(
         typed_config: &TypedDomainConfig<C>,
     ) -> Option<<C::Kind as ValueKind>::Value> {
         let key = typed_config.encryption_key.as_ref()?;
+        let key_id = typed_config.encryption_key_id.as_ref()?;
         typed_config
             .entity
-            .current_value_encrypted::<C>(key)
+            .current_value_encrypted::<C>(key, key_id)
             .or_else(C::default_value)
     }
 
@@ -98,6 +99,6 @@ impl ConfigFlavor for DomainConfigFlavorEncrypted {
         config: &EncryptionConfig,
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        entity.update_value_encrypted::<C>(&config.key, value)
+        entity.update_value_encrypted::<C>(&config.key, &config.key_id, value)
     }
 }

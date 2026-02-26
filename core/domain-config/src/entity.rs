@@ -4,6 +4,8 @@ use es_entity::*;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use encryption::{Encrypted, KeyId};
+
 use crate::{
     ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, EncryptionKey, ValueKind,
@@ -24,8 +26,10 @@ pub enum DomainConfigEvent {
         encrypted: bool,
     },
     Updated {
-        #[serde(deserialize_with = "crate::value::deserialize_value_or_rotated")]
         value: DomainConfigValue,
+    },
+    KeyRotated {
+        value: Encrypted,
     },
 }
 
@@ -54,14 +58,27 @@ impl DomainConfig {
     pub(super) fn current_value_encrypted<C>(
         &self,
         key: &EncryptionKey,
+        key_id: &KeyId,
     ) -> Option<<C::Kind as ValueKind>::Value>
     where
         C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>,
     {
         Self::assert_compatible::<C>(self).ok()?;
-        let stored = self.current_stored_value()?;
+        let stored = self.current_stored_value_for_key_id(key_id)?;
         let plaintext = stored.decrypt(key).ok()?;
         <C::Kind as ValueKind>::decode(plaintext).ok()
+    }
+
+    fn current_stored_value_for_key_id(&self, key_id: &KeyId) -> Option<DomainConfigValue> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            DomainConfigEvent::KeyRotated { value } if value.key_id() == key_id => {
+                Some(DomainConfigValue::Encrypted(value.clone()))
+            }
+            DomainConfigEvent::Updated { value } if value.key_id() == Some(key_id) => {
+                Some(value.clone())
+            }
+            _ => None,
+        })
     }
 
     pub(super) fn update_value_plain<C>(
@@ -80,6 +97,7 @@ impl DomainConfig {
     pub(super) fn update_value_encrypted<C>(
         &mut self,
         key: &EncryptionKey,
+        key_id: &KeyId,
         new_value: <C::Kind as ValueKind>::Value,
     ) -> Result<Idempotent<()>, DomainConfigError>
     where
@@ -88,7 +106,7 @@ impl DomainConfig {
         Self::assert_compatible::<C>(self)?;
         C::validate(&new_value)?;
         let encoded = <C::Kind as ValueKind>::encode(&new_value)?;
-        self.store_value_encrypted(key, encoded)
+        self.store_value_encrypted(key, key_id, encoded)
     }
 
     fn validate_exposed_update(
@@ -158,10 +176,17 @@ impl DomainConfig {
     fn store_value_encrypted(
         &mut self,
         key: &EncryptionKey,
+        key_id: &KeyId,
         plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        // Check idempotency by decrypting and comparing
-        if let Some(current) = self.current_stored_value()
+        // Block writes incase the latest event has a different key_id(has been rotated)
+        if let Some(latest) = self.current_stored_value()
+            && latest.key_id() != Some(key_id)
+        {
+            return Err(DomainConfigError::StaleEncryptionKey);
+        }
+
+        if let Some(current) = self.current_stored_value_for_key_id(key_id)
             && let Ok(current_plain) = current.decrypt(key)
             && current_plain == plaintext
         {
@@ -169,7 +194,7 @@ impl DomainConfig {
         }
 
         self.events.push(DomainConfigEvent::Updated {
-            value: DomainConfigValue::encrypted(key, &plaintext),
+            value: DomainConfigValue::encrypted(key, key_id.clone(), &plaintext),
         });
 
         Ok(Idempotent::Executed(()))
@@ -185,7 +210,7 @@ impl DomainConfig {
     ) -> Result<Idempotent<()>, DomainConfigError> {
         self.validate_exposed_update(entry, &new_value)?;
         if self.encrypted {
-            self.store_value_encrypted(&config.key, new_value)
+            self.store_value_encrypted(&config.key, &config.key_id, new_value)
         } else {
             self.store_value_plain(new_value)
         }
@@ -201,19 +226,19 @@ impl DomainConfig {
     ) -> Result<Idempotent<()>, DomainConfigError> {
         self.validate_update(entry, &new_value)?;
         if self.encrypted {
-            self.store_value_encrypted(&config.key, new_value)
+            self.store_value_encrypted(&config.key, &config.key_id, new_value)
         } else {
             self.store_value_plain(new_value)
         }
     }
 
     /// Returns the current stored value from the event stream.
-    pub fn current_stored_value(&self) -> Option<&DomainConfigValue> {
+    pub fn current_stored_value(&self) -> Option<DomainConfigValue> {
         self.events.iter_all().rev().find_map(|event| match event {
-            DomainConfigEvent::Updated {
-                value: DomainConfigValue::Rotated,
-            } => None,
-            DomainConfigEvent::Updated { value } => Some(value),
+            DomainConfigEvent::KeyRotated { value } => {
+                Some(DomainConfigValue::Encrypted(value.clone()))
+            }
+            DomainConfigEvent::Updated { value } => Some(value.clone()),
             _ => None,
         })
     }
@@ -253,22 +278,27 @@ impl DomainConfig {
     pub(super) fn rotate_encryption_key(
         &mut self,
         new_key: &EncryptionKey,
+        new_key_id: &KeyId,
         deprecated_key: &EncryptionKey,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        let Some(current) = self.current_stored_value() else {
-            return Ok(Idempotent::AlreadyApplied);
-        };
-        if !current.is_encrypted() {
+        if !self.encrypted {
             return Err(DomainConfigError::NotEncrypted(
                 "Cannot perform key rotation for a non-encrypted config".to_string(),
             ));
         }
-        if current.decrypt(new_key).is_ok() {
+
+        let Some(current) = self.current_stored_value() else {
+            return Ok(Idempotent::AlreadyApplied);
+        };
+        if current.key_id() == Some(new_key_id) {
             return Ok(Idempotent::AlreadyApplied);
         }
-        let new_value = current.rotate(new_key, deprecated_key)?;
-        self.events
-            .push(DomainConfigEvent::Updated { value: new_value });
+
+        let new_encrypted = current.rotate(new_key, new_key_id.clone(), deprecated_key)?;
+        self.events.push(DomainConfigEvent::KeyRotated {
+            value: new_encrypted,
+        });
+
         Ok(Idempotent::Executed(()))
     }
 }
@@ -295,6 +325,7 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
                         .encrypted(*encrypted);
                 }
                 DomainConfigEvent::Updated { .. } => {}
+                DomainConfigEvent::KeyRotated { .. } => {}
             }
         }
 
@@ -673,13 +704,17 @@ mod tests {
         };
         assert!(
             config
-                .update_value_encrypted::<SampleEncryptedConfig>(&key, value.clone())
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &key,
+                    &KeyId::new("test-key"),
+                    value.clone()
+                )
                 .unwrap()
                 .did_execute()
         );
         assert_eq!(
             config
-                .current_value_encrypted::<SampleEncryptedConfig>(&key)
+                .current_value_encrypted::<SampleEncryptedConfig>(&key, &KeyId::new("test-key"))
                 .unwrap(),
             value
         );
@@ -698,7 +733,11 @@ mod tests {
         };
         assert!(
             config
-                .update_value_encrypted::<SampleEncryptedConfig>(&key, value.clone())
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &key,
+                    &KeyId::new("test-key"),
+                    value.clone()
+                )
                 .unwrap()
                 .did_execute()
         );
@@ -706,7 +745,7 @@ mod tests {
         let event_count_after_first = config.events.iter_all().count();
 
         let result = config
-            .update_value_encrypted::<SampleEncryptedConfig>(&key, value)
+            .update_value_encrypted::<SampleEncryptedConfig>(&key, &KeyId::new("test-key"), value)
             .unwrap();
         assert!(result.was_already_applied());
         assert_eq!(config.events.iter_all().count(), event_count_after_first);
@@ -744,7 +783,11 @@ mod tests {
 
         assert!(
             config
-                .update_value_encrypted::<SampleEncryptedConfig>(&key, value.clone())
+                .update_value_encrypted::<SampleEncryptedConfig>(
+                    &key,
+                    &KeyId::new("test-key"),
+                    value.clone()
+                )
                 .unwrap()
                 .did_execute()
         );
@@ -753,21 +796,21 @@ mod tests {
 
         assert!(
             config
-                .rotate_encryption_key(&new_key, &key)
+                .rotate_encryption_key(&new_key, &KeyId::new("new-key"), &key)
                 .unwrap()
                 .did_execute()
         );
 
         assert!(
             config
-                .rotate_encryption_key(&new_key, &key)
+                .rotate_encryption_key(&new_key, &KeyId::new("new-key"), &key)
                 .unwrap()
                 .was_already_applied()
         );
 
         assert_eq!(
             config
-                .current_value_encrypted::<SampleEncryptedConfig>(&new_key)
+                .current_value_encrypted::<SampleEncryptedConfig>(&new_key, &KeyId::new("new-key"))
                 .unwrap(),
             value
         );

@@ -1,12 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-use crate::EncryptionKey;
+use crate::{EncryptionKey, KeyId};
 
 #[derive(Clone, Serialize, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
 pub struct EncryptionConfig {
     #[serde(skip)]
     pub key: EncryptionKey,
+
+    #[serde(skip)]
+    pub key_id: KeyId,
 
     #[serde(skip)]
     pub deprecated_encryption_key: Option<EncryptionKey>,

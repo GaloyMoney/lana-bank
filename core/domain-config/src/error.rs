@@ -18,6 +18,8 @@ pub enum DomainConfigError {
     Encryption(#[from] encryption::EncryptionError),
     #[error("DomainConfigError - Not Encrypted")]
     NotEncrypted(String),
+    #[error("DomainConfigError - StaleEncryptionKey: value was rotated to a newer key")]
+    StaleEncryptionKey,
     #[error("DomainConfigError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
     #[error("DomainConfigError - Sqlx: {0}")]
@@ -57,6 +59,7 @@ impl ErrorSeverity for DomainConfigError {
             Self::DuplicateKey => Level::DEBUG,
             Self::Encryption(e) => e.severity(),
             Self::NotEncrypted(_) => Level::ERROR,
+            Self::StaleEncryptionKey => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),

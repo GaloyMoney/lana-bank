@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use encryption::KeyId;
+
 use crate::{DomainConfigError, Encrypted, EncryptionKey};
 
 /// Represents a domain config value that can be either plaintext or encrypted.
@@ -9,7 +11,6 @@ use crate::{DomainConfigError, Encrypted, EncryptionKey};
 pub enum DomainConfigValue {
     Plain { value: serde_json::Value },
     Encrypted(Encrypted),
-    Rotated,
 }
 
 impl DomainConfigValue {
@@ -18,7 +19,6 @@ impl DomainConfigValue {
         match self {
             Self::Plain { value } => value.clone(),
             Self::Encrypted(_) => serde_json::Value::Null,
-            Self::Rotated => serde_json::Value::Null,
         }
     }
 
@@ -28,22 +28,34 @@ impl DomainConfigValue {
     }
 
     /// Create a new encrypted value from plaintext JSON.
-    pub(crate) fn encrypted(key: &EncryptionKey, plaintext: &serde_json::Value) -> Self {
+    pub(crate) fn encrypted(
+        key: &EncryptionKey,
+        key_id: KeyId,
+        plaintext: &serde_json::Value,
+    ) -> Self {
         let bytes = serde_json::to_vec(plaintext).expect("JSON serialization should not fail");
-        Self::Encrypted(Encrypted::encrypt(&bytes, key))
+        Self::Encrypted(Encrypted::encrypt(&bytes, key, key_id))
     }
 
     /// Returns the plaintext JSON value if this is a Plain variant.
     pub(crate) fn as_plain(&self) -> Option<&serde_json::Value> {
         match self {
             Self::Plain { value } => Some(value),
-            Self::Encrypted(_) | Self::Rotated => None,
+            Self::Encrypted(_) => None,
         }
     }
 
     /// Returns true if this is an encrypted value.
     pub fn is_encrypted(&self) -> bool {
         matches!(self, Self::Encrypted(_))
+    }
+
+    /// Returns the key_id if this is an Encrypted variant.
+    pub(crate) fn key_id(&self) -> Option<&KeyId> {
+        match self {
+            Self::Encrypted(e) => Some(e.key_id()),
+            Self::Plain { .. } => None,
+        }
     }
 
     /// Decrypt and return the plaintext JSON value.
@@ -56,9 +68,6 @@ impl DomainConfigValue {
             Self::Plain { .. } => Err(DomainConfigError::InvalidState(
                 "Cannot decrypt a plaintext value".to_string(),
             )),
-            Self::Rotated => Err(DomainConfigError::InvalidState(
-                "Cannot decrypt a rotated value".to_string(),
-            )),
             Self::Encrypted(encrypted) => {
                 let bytes = encrypted.decrypt(key)?;
                 Ok(serde_json::from_slice(&bytes)?)
@@ -69,19 +78,17 @@ impl DomainConfigValue {
     pub(crate) fn rotate(
         &self,
         new_key: &EncryptionKey,
+        new_key_id: KeyId,
         deprecated_key: &EncryptionKey,
-    ) -> Result<Self, DomainConfigError> {
-        let plaintext = self.decrypt(deprecated_key)?;
-        Ok(Self::encrypted(new_key, &plaintext))
+    ) -> Result<Encrypted, DomainConfigError> {
+        match self {
+            Self::Plain { .. } => Err(DomainConfigError::InvalidState(
+                "Cannot rotate a plaintext value".to_string(),
+            )),
+            Self::Encrypted(encrypted) => {
+                let bytes = encrypted.decrypt(deprecated_key)?;
+                Ok(Encrypted::encrypt(&bytes, new_key, new_key_id))
+            }
+        }
     }
-}
-
-pub(crate) fn deserialize_value_or_rotated<'de, D>(
-    deserializer: D,
-) -> Result<DomainConfigValue, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    Ok(Option::<DomainConfigValue>::deserialize(deserializer)?
-        .unwrap_or(DomainConfigValue::Rotated))
 }
