@@ -260,7 +260,6 @@ jobs:
           nix develop -c netlify deploy \
             --no-build \
             --dir=apps/admin-panel/cypress/manuals/results \
-            --filter=admin-panel \
             --site=$NETLIFY_SITE_ID \
             --auth=$NETLIFY_AUTH_TOKEN \
             --alias="commit-${COMMIT_SHORT}" \
