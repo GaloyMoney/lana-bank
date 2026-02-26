@@ -9,10 +9,14 @@ receivers:
 exporters:
   debug:
     verbosity: detailed
-  otlp:
+  otlp/honeycomb:
     endpoint: "api.honeycomb.io:443"
     headers:
       "x-honeycomb-team": ${HONEYCOMB_API_KEY}
+  otlp/jaeger:
+    endpoint: "jaeger:4317"
+    tls:
+      insecure: true
 
 extensions:
   health_check:
@@ -25,4 +29,4 @@ service:
     traces:
       receivers: [otlp]
       processors: []
-      exporters: [otlp, debug]
+      exporters: [otlp/honeycomb, otlp/jaeger, debug]

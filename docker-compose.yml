@@ -9,6 +9,13 @@ services:
       - HONEYCOMB_API_KEY=${INGEST_HONEYCOMB_API_KEY}
     command: --config=/etc/otel-agent-config.yaml
     volumes: ["./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml"]
+    depends_on: [jaeger]
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports: [16686:16686]
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.5.2
