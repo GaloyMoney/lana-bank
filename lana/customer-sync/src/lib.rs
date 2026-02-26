@@ -108,11 +108,13 @@ where
             )
             .await?;
 
+        let activate_holder_account =
+            jobs.add_initializer(ActivateHolderAccountJobInitializer::new(deposit.clone()));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_ACTIVE_SYNC),
-                CustomerActiveSyncHandler::new(deposit),
+                CustomerActiveSyncHandler::new(activate_holder_account),
             )
             .await?;
 
