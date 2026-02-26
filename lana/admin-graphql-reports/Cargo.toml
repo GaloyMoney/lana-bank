@@ -1,0 +1,9 @@
+[package]
+name = "admin-graphql-reports"
+license = "BUSL-1.1"
+edition = "2024"
+
+[dependencies]
+lana-app = { workspace = true }
+admin-graphql-shared = { path = "../admin-graphql-shared" }
+async-graphql = { workspace = true }
