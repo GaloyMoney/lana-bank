@@ -1,0 +1,13 @@
+[package]
+name = "command-job"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+
+[dependencies]
+job = { workspace = true }
+es-entity = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
