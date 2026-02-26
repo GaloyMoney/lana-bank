@@ -41,31 +41,31 @@ where
 
         match event.as_event() {
             Some(e @ FacilityProposalCreated { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.id.into(), sequence)
+                self.spawn_credit_event_in_op(op, event, e, entity.id.into(), sequence)
                     .await?;
             }
             Some(e @ FacilityProposalConcluded { entity })
                 if entity.status == crate::primitives::CreditFacilityProposalStatus::Approved =>
             {
-                self.spawn_credit_event(op, event, e, entity.id.into(), sequence)
+                self.spawn_credit_event_in_op(op, event, e, entity.id.into(), sequence)
                     .await?;
             }
             Some(e @ FacilityActivated { entity })
             | Some(e @ FacilityCompleted { entity })
             | Some(e @ PartialLiquidationInitiated { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.id, sequence)
+                self.spawn_credit_event_in_op(op, event, e, entity.id, sequence)
                     .await?;
             }
             Some(e @ DisbursalSettled { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.credit_facility_id, sequence)
+                self.spawn_credit_event_in_op(op, event, e, entity.credit_facility_id, sequence)
                     .await?;
             }
             Some(e @ AccrualPosted { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.credit_facility_id, sequence)
+                self.spawn_credit_event_in_op(op, event, e, entity.credit_facility_id, sequence)
                     .await?;
             }
             Some(e @ FacilityCollateralizationChanged { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.id, sequence)
+                self.spawn_credit_event_in_op(op, event, e, entity.id, sequence)
                     .await?;
             }
             _ => {}
@@ -104,7 +104,7 @@ where
                     entity: PublicObligation { beneficiary_id, .. },
                 },
             ) => {
-                self.spawn_collection_event(op, event, e, (*beneficiary_id).into(), sequence)
+                self.spawn_collection_event_in_op(op, event, e, (*beneficiary_id).into(), sequence)
                     .await?;
             }
             _ => {}
@@ -115,7 +115,7 @@ where
 }
 
 impl RepaymentPlanProjectionHandler {
-    async fn spawn_credit_event<E>(
+    async fn spawn_credit_event_in_op<E>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
@@ -145,7 +145,7 @@ impl RepaymentPlanProjectionHandler {
         Ok(())
     }
 
-    async fn spawn_collection_event<E>(
+    async fn spawn_collection_event_in_op<E>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,

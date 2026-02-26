@@ -39,38 +39,42 @@ where
 
         match event.as_event() {
             Some(e @ FacilityProposalCreated { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.id.into())
+                self.spawn_credit_event_in_op(op, event, e, entity.id.into())
                     .await?;
             }
             Some(e @ FacilityProposalConcluded { entity })
                 if entity.status == crate::primitives::CreditFacilityProposalStatus::Approved =>
             {
-                self.spawn_credit_event(op, event, e, entity.id.into())
+                self.spawn_credit_event_in_op(op, event, e, entity.id.into())
                     .await?;
             }
             Some(e @ PendingCreditFacilityCollateralizationChanged { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.id.into())
+                self.spawn_credit_event_in_op(op, event, e, entity.id.into())
                     .await?;
             }
             Some(e @ FacilityActivated { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.id).await?;
+                self.spawn_credit_event_in_op(op, event, e, entity.id)
+                    .await?;
             }
             Some(e @ FacilityCompleted { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.id).await?;
+                self.spawn_credit_event_in_op(op, event, e, entity.id)
+                    .await?;
             }
             Some(e @ DisbursalSettled { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.credit_facility_id)
+                self.spawn_credit_event_in_op(op, event, e, entity.credit_facility_id)
                     .await?;
             }
             Some(e @ AccrualPosted { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.credit_facility_id)
+                self.spawn_credit_event_in_op(op, event, e, entity.credit_facility_id)
                     .await?;
             }
             Some(e @ PartialLiquidationInitiated { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.id).await?;
+                self.spawn_credit_event_in_op(op, event, e, entity.id)
+                    .await?;
             }
             Some(e @ FacilityCollateralizationChanged { entity }) => {
-                self.spawn_credit_event(op, event, e, entity.id).await?;
+                self.spawn_credit_event_in_op(op, event, e, entity.id)
+                    .await?;
             }
 
             _ => {}
@@ -79,7 +83,7 @@ where
         use CoreCreditCollateralEvent::*;
         match event.as_event() {
             Some(e @ CollateralUpdated { entity }) => {
-                self.spawn_collateral_event(op, event, e, entity.secured_loan_id.into())
+                self.spawn_collateral_event_in_op(op, event, e, entity.secured_loan_id.into())
                     .await?;
             }
             Some(
@@ -100,7 +104,7 @@ where
                     ..
                 },
             ) => {
-                self.spawn_collateral_event(op, event, e, (*id).into())
+                self.spawn_collateral_event_in_op(op, event, e, (*id).into())
                     .await?;
             }
             _ => {}
@@ -110,7 +114,7 @@ where
             event.as_event()
         {
             let facility_id: CreditFacilityId = entity.beneficiary_id.into();
-            self.spawn_collection_event(op, event, e, facility_id)
+            self.spawn_collection_event_in_op(op, event, e, facility_id)
                 .await?;
         }
 
@@ -119,7 +123,7 @@ where
 }
 
 impl HistoryProjectionHandler {
-    async fn spawn_credit_event<E>(
+    async fn spawn_credit_event_in_op<E>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
@@ -149,7 +153,7 @@ impl HistoryProjectionHandler {
         Ok(())
     }
 
-    async fn spawn_collateral_event<E>(
+    async fn spawn_collateral_event_in_op<E>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
@@ -179,7 +183,7 @@ impl HistoryProjectionHandler {
         Ok(())
     }
 
-    async fn spawn_collection_event<E>(
+    async fn spawn_collection_event_in_op<E>(
         &self,
         op: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
