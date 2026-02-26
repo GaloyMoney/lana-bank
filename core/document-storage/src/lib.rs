@@ -241,7 +241,10 @@ impl DocumentStorage {
         document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<(), DocumentStorageError> {
         let mut db = self.begin_op().await?;
-        let mut document = self.repo.find_by_id(document_id.into()).await?;
+        let mut document = self
+            .repo
+            .find_by_id_in_op(&mut db, document_id.into())
+            .await?;
 
         let document_location = document.path_for_removal();
         self.storage
