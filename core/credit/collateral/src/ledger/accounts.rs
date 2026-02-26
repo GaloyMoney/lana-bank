@@ -51,6 +51,12 @@ pub struct CollateralLedgerAccountIds {
     pub collateral_in_liquidation_account_id: CalaAccountId,
 }
 
+impl Default for CollateralLedgerAccountIds {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CollateralLedgerAccountIds {
     pub fn new() -> Self {
         Self {

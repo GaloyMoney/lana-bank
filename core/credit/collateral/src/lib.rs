@@ -262,8 +262,8 @@ where
     )]
     pub async fn record_collateral_update_via_manual_input_in_op(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         db: &mut es_entity::DbOp<'_>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
         updated_collateral: money::Satoshis,
         effective: chrono::NaiveDate,

@@ -1302,7 +1302,6 @@ dependencies = [
  "chrono",
  "core-accounting-primitives",
  "core-credit-collection",
- "core-credit-terms",
  "core-custody",
  "core-price",
  "derive_builder",
@@ -1311,7 +1310,6 @@ dependencies = [
  "job",
  "money",
  "obix",
- "permission-sets-macro",
  "rust_decimal",
  "schemars 1.2.1",
  "serde",
@@ -1323,7 +1321,6 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
- "uuid",
 ]
 
 [[package]]

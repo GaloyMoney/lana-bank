@@ -66,9 +66,6 @@ pub use repayment_plan::*;
 use core_credit_collection::{CoreCreditCollection, PaymentLedgerAccountIds};
 
 #[cfg(feature = "json-schema")]
-pub use core_credit_collateral::{CollateralEvent, LiquidationEvent};
-
-#[cfg(feature = "json-schema")]
 pub use core_credit_collection::{ObligationEvent, PaymentAllocationEvent, PaymentEvent};
 
 #[cfg(feature = "json-schema")]
@@ -80,6 +77,8 @@ pub mod event_schema {
         interest_accrual_cycle::InterestAccrualCycleEvent,
         pending_credit_facility::PendingCreditFacilityEvent,
     };
+
+    pub use core_credit_collateral::{CollateralEvent, LiquidationEvent};
 }
 
 pub struct CoreCredit<Perms, E>
@@ -852,8 +851,8 @@ where
             CompletionOutcome::Completed((facility, _completion)) => {
                 self.collaterals
                     .record_collateral_update_via_manual_input_in_op(
-                        sub,
                         &mut db,
+                        sub,
                         facility.collateral_id,
                         Satoshis::ZERO,
                         self.clock.today(),

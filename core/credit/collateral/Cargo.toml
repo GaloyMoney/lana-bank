@@ -16,8 +16,6 @@ json-schema = [
 
 [dependencies]
 money = { workspace = true }
-permission-sets-macro = { workspace = true }
-core-credit-terms = { path = "../terms" }
 core-credit-collection = { path = "../collection" }
 
 audit = { workspace = true }
@@ -42,7 +40,6 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
-uuid = { workspace = true }
 derive_builder = { workspace = true }
 rust_decimal = { workspace = true }
 async-trait = { workspace = true }
