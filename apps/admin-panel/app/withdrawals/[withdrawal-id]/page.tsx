@@ -30,29 +30,13 @@ gql`
     id
     withdrawalId
     publicId
+    accountId
     amount
     status
     reference
     createdAt
     ledgerTransactions {
       ...LedgerTransactionFields
-    }
-    account {
-      id
-      publicId
-      customer {
-        id
-        customerId
-        publicId
-        applicantId
-        email
-        depositAccount {
-          balance {
-            settled
-            pending
-          }
-        }
-      }
     }
     approvalProcess {
       ...ApprovalProcessFields

@@ -80,4 +80,4 @@ pub struct DomainConfigUpdateInput {
     pub domain_config_id: UUID,
     pub value: Json,
 }
-crate::mutation_payload! { DomainConfigUpdatePayload, domain_config: DomainConfig }
+mutation_payload! { DomainConfigUpdatePayload, domain_config: DomainConfig }

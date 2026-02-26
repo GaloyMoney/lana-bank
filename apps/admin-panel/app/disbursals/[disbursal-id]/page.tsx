@@ -33,20 +33,6 @@ gql`
         facilityAmount
         status
         publicId
-        customer {
-          id
-          email
-          customerId
-          publicId
-          depositAccount {
-            id
-            publicId
-            balance {
-              settled
-              pending
-            }
-          }
-        }
       }
       approvalProcess {
         ...ApprovalProcessFields

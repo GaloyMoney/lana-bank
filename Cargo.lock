@@ -3,24 +3,127 @@
 version = 4
 
 [[package]]
+name = "admin-graphql-access"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "permission-sets-macro",
+]
+
+[[package]]
+name = "admin-graphql-accounting"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "serde",
+]
+
+[[package]]
+name = "admin-graphql-credit"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-accounting",
+ "admin-graphql-custody",
+ "admin-graphql-governance",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "rust_decimal",
+ "serde",
+]
+
+[[package]]
+name = "admin-graphql-custody"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "url",
+]
+
+[[package]]
+name = "admin-graphql-customer"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-credit",
+ "admin-graphql-deposit",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+]
+
+[[package]]
+name = "admin-graphql-deposit"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-accounting",
+ "admin-graphql-governance",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+]
+
+[[package]]
+name = "admin-graphql-governance"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-access",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+]
+
+[[package]]
+name = "admin-graphql-shared"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "audit",
+ "chrono",
+ "domain-config",
+ "es-entity",
+ "lana-app",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "admin-server"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-access",
+ "admin-graphql-accounting",
+ "admin-graphql-credit",
+ "admin-graphql-custody",
+ "admin-graphql-customer",
+ "admin-graphql-deposit",
+ "admin-graphql-governance",
+ "admin-graphql-shared",
  "anyhow",
  "async-graphql",
  "async-graphql-axum",
  "audit",
  "axum",
  "base64",
- "chrono",
  "domain-config",
  "es-entity",
  "futures",
  "jwks-utils",
  "lana-app",
  "obix",
- "permission-sets-macro",
- "rust_decimal",
  "serde",
  "serde_json",
  "tokio",

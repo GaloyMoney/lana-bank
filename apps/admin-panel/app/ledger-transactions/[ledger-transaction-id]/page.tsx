@@ -9,13 +9,10 @@ import Link from "next/link"
 import { formatDate } from "@lana/web/utils"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@lana/web/ui/card"
-import { Button } from "@lana/web/ui/button"
-import { ArrowRight } from "lucide-react"
 
 import {
   useLedgerTransactionQuery,
   DebitOrCredit,
-  LedgerTransactionQuery,
 } from "@/lib/graphql/generated"
 import { DetailsCard } from "@/components/details"
 import Balance from "@/components/balance/balance"
@@ -30,28 +27,6 @@ gql`
       createdAt
       description
       effective
-      initiatedBy {
-        __typename
-        ... on User {
-          userId
-          email
-        }
-        ... on System {
-          actor
-        }
-      }
-      entity {
-        __typename
-        ... on Deposit {
-          publicId
-        }
-        ... on Withdrawal {
-          publicId
-        }
-        ... on CreditFacilityDisbursal {
-          publicId
-        }
-      }
       entries {
         id
         entryId
@@ -95,17 +70,6 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
     variables: { id },
   })
 
-  const entityUrl = getEntityforTransaction(data?.ledgerTransaction?.entity, t)
-  const initiatedBy = getInitiatedByDisplay(data?.ledgerTransaction?.initiatedBy, t)
-  const footerContent = entityUrl ? (
-    <Button variant="outline" key="entity" asChild>
-      <Link href={entityUrl.url}>
-        {entityUrl.label}
-        <ArrowRight className="h-4 w-4" />
-      </Link>
-    </Button>
-  ) : undefined
-
   return (
     <>
       <DetailsCard
@@ -127,13 +91,7 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
               includeTime: false,
             }),
           },
-          {
-            label: t("details.initiatedBy"),
-            value: initiatedBy?.value,
-            href: initiatedBy?.href,
-          },
         ]}
-        footerContent={footerContent}
         errorMessage={error?.message}
       />
       <Card className="mt-2">
@@ -225,45 +183,3 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
 }
 
 export default LedgerTransactionPage
-
-const getEntityforTransaction = (
-  entity: NonNullable<LedgerTransactionQuery["ledgerTransaction"]>["entity"],
-  t: (key: string) => string,
-): { url: string; label: string } | null => {
-  if (!entity) return null
-  switch (entity.__typename) {
-    case "Deposit":
-      return { url: `/deposits/${entity.publicId}`, label: t("viewDeposit") }
-    case "Withdrawal":
-      return { url: `/withdrawals/${entity.publicId}`, label: t("viewWithdrawal") }
-    case "CreditFacilityDisbursal":
-      return { url: `/disbursals/${entity.publicId}`, label: t("viewDisbursal") }
-  }
-  const exhaustiveCheck: never = entity
-  return exhaustiveCheck
-}
-
-const getInitiatedByDisplay = (
-  initiatedBy:
-    | NonNullable<LedgerTransactionQuery["ledgerTransaction"]>["initiatedBy"]
-    | undefined,
-  t: (key: string) => string,
-): { value: string; href?: string } | null => {
-  if (!initiatedBy) return null
-
-  switch (initiatedBy.__typename) {
-    case "User":
-      return {
-        value: initiatedBy.email,
-        href: `/users/${initiatedBy.userId}`,
-      }
-    case "System":
-      return {
-        value: `${t("system")} (${initiatedBy.actor})`,
-      }
-    default: {
-      const exhaustiveCheck: never = initiatedBy
-      return exhaustiveCheck
-    }
-  }
-}

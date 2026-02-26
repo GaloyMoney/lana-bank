@@ -22,6 +22,7 @@ gql`
   fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
     id
     pendingCreditFacilityId
+    customerId
     collateralId
     approvalProcessId
     createdAt
@@ -32,12 +33,6 @@ gql`
       btcBalance
     }
     collateralToMatchInitialCvl @client
-    customer {
-      customerId
-      customerType
-      publicId
-      email
-    }
     creditFacilityTerms {
       annualRate
       accrualInterval

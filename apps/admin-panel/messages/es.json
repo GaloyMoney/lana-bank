@@ -1617,7 +1617,7 @@
       "DepositAccountDetailsCard": {
         "title": "Cuenta de Depósito",
         "fields": {
-          "customerEmail": "Correo del Cliente",
+          "customerId": "ID del Cliente",
           "settledBalance": "Saldo Liquidado",
           "pendingBalance": "Saldo Pendiente",
           "createdAt": "Fecha de Creación",

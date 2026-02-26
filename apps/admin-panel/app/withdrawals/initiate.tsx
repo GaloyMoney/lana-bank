@@ -26,20 +26,6 @@ gql`
     withdrawalInitiate(input: $input) {
       withdrawal {
         ...WithdrawalFields
-        account {
-          customer {
-            id
-            depositAccount {
-              withdrawals {
-                ...WithdrawalFields
-              }
-              balance {
-                settled
-                pending
-              }
-            }
-          }
-        }
       }
     }
   }

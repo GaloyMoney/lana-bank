@@ -18,6 +18,7 @@ gql`
     id
     publicId
     depositAccountId
+    customerId
     createdAt
     status
     balance {
@@ -27,13 +28,6 @@ gql`
     ledgerAccounts {
       depositAccountId
       frozenDepositAccountId
-    }
-    customer {
-      id
-      customerId
-      publicId
-      applicantId
-      email
     }
   }
 
@@ -95,24 +89,12 @@ gql`
             ... on DisbursalEntry {
               __typename
               recordedAt
-              disbursal {
-                id
-                disbursalId
-                publicId
-                amount
-                createdAt
-                status
-              }
+              disbursalId
             }
             ... on PaymentEntry {
               __typename
               recordedAt
-              payment {
-                id
-                paymentAllocationId
-                amount
-                createdAt
-              }
+              paymentAllocationId
             }
             ... on FreezeEntry {
               __typename
