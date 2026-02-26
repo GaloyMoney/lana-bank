@@ -1,6 +1,6 @@
 ---
 name: trace-analyzer
-description: Analyze OpenTelemetry traces from Jaeger. Use when investigating performance, errors, slow spans, job durations, or any observability question about the running system.
+description: Use proactively whenever the user asks about traces, spans, performance, latency, errors, jobs, or any runtime behavior of the system. This agent queries OpenTelemetry traces from Jaeger and cross-references the codebase to map developer concepts to trace data.
 mcpServers:
   opentelemetry:
     command: uvx
