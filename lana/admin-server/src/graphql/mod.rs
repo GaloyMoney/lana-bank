@@ -3,7 +3,6 @@ mod approval_process;
 mod approval_rules;
 mod audit;
 mod committee;
-mod contract_creation;
 mod credit_config;
 mod credit_facility;
 mod custody;

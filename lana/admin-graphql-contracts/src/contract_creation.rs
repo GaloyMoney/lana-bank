@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use admin_graphql_shared::primitives::*;
 
 #[derive(async_graphql::Enum, Clone, Debug, PartialEq, Eq, Copy)]
 pub enum LoanAgreementStatus {
@@ -56,7 +56,7 @@ pub struct LoanAgreementGenerateInput {
     pub customer_id: UUID,
 }
 
-crate::mutation_payload! { LoanAgreementGeneratePayload, loan_agreement: LoanAgreement }
+mutation_payload! { LoanAgreementGeneratePayload, loan_agreement: LoanAgreement }
 
 #[derive(InputObject)]
 pub struct LoanAgreementDownloadLinksGenerateInput {

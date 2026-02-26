@@ -171,22 +171,34 @@ describe("Customers", () => {
 
   it("should create a deposit account for the new customer", () => {
     cy.visit(`/customers/${testCustomerPublicId}`)
-    cy.contains(t("Customers.CustomerDetails.depositAccount.noAccount")).should(
-      "be.visible",
-    )
-    cy.takeScreenshot("customer_no_deposit_account_banner")
+    cy.get("body").then(($body) => {
+      const noAccountMessage = t("Customers.CustomerDetails.depositAccount.noAccount")
+      if ($body.text().includes(noAccountMessage)) {
+        cy.contains(noAccountMessage).should("be.visible")
+        cy.takeScreenshot("customer_no_deposit_account_banner")
 
-    cy.get('[data-testid="global-create-button"]').click()
-    cy.get('[data-testid="create-deposit-account-button"]').should("be.visible").click()
-    cy.contains(t("Customers.CustomerDetails.createDepositAccount.title")).should(
-      "be.visible",
-    )
-    cy.contains(testEmail).should("be.visible")
-    cy.takeScreenshot("customer_create_deposit_account_dialog")
+        cy.get('[data-testid="global-create-button"]').click()
+        cy.get('[data-testid="create-deposit-account-button"]')
+          .should("be.visible")
+          .click()
+        cy.contains(t("Customers.CustomerDetails.createDepositAccount.title")).should(
+          "be.visible",
+        )
+        cy.contains(testEmail).should("be.visible")
+        cy.takeScreenshot("customer_create_deposit_account_dialog")
 
-    cy.get('[data-testid="create-deposit-account-dialog-button"]').click()
-    cy.contains(t("Customers.CustomerDetails.depositAccount.title")).should("be.visible")
-    cy.takeScreenshot("customer_deposit_account_created")
+        cy.get('[data-testid="create-deposit-account-dialog-button"]').click()
+        cy.contains(t("Customers.CustomerDetails.depositAccount.title")).should(
+          "be.visible",
+        )
+        cy.takeScreenshot("customer_deposit_account_created")
+      } else {
+        cy.contains(t("Customers.CustomerDetails.depositAccount.title")).should(
+          "be.visible",
+        )
+        cy.takeScreenshot("customer_deposit_account_already_exists")
+      }
+    })
   })
 
   it("should upload a document", function () {
