@@ -142,7 +142,7 @@ impl HistoryProjectionHandler {
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateHistoryConfig::CreditEvent {
+                UpdateHistoryConfig::Credit {
                     facility_id,
                     recorded_at: message.recorded_at,
                     event: serde_json::to_value(event)?,
@@ -172,7 +172,7 @@ impl HistoryProjectionHandler {
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateHistoryConfig::CollateralEvent {
+                UpdateHistoryConfig::Collateral {
                     facility_id,
                     recorded_at: message.recorded_at,
                     event: serde_json::to_value(event)?,
@@ -202,7 +202,7 @@ impl HistoryProjectionHandler {
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateHistoryConfig::CollectionEvent {
+                UpdateHistoryConfig::Collection {
                     facility_id,
                     event: serde_json::to_value(event)?,
                 },

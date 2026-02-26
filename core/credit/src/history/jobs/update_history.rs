@@ -17,17 +17,17 @@ use super::super::repo::HistoryRepo;
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum UpdateHistoryConfig {
-    CreditEvent {
+    Credit {
         facility_id: CreditFacilityId,
         recorded_at: DateTime<Utc>,
         event: serde_json::Value,
     },
-    CollateralEvent {
+    Collateral {
         facility_id: CreditFacilityId,
         recorded_at: DateTime<Utc>,
         event: serde_json::Value,
     },
-    CollectionEvent {
+    Collection {
         facility_id: CreditFacilityId,
         event: serde_json::Value,
     },
@@ -36,9 +36,9 @@ pub enum UpdateHistoryConfig {
 impl UpdateHistoryConfig {
     pub(super) fn facility_id(&self) -> CreditFacilityId {
         match self {
-            Self::CreditEvent { facility_id, .. }
-            | Self::CollateralEvent { facility_id, .. }
-            | Self::CollectionEvent { facility_id, .. } => *facility_id,
+            Self::Credit { facility_id, .. }
+            | Self::Collateral { facility_id, .. }
+            | Self::Collection { facility_id, .. } => *facility_id,
         }
     }
 }
@@ -96,20 +96,20 @@ impl JobRunner for UpdateHistoryJobRunner {
         let mut history = self.repo.load(facility_id).await?;
 
         match &self.config {
-            UpdateHistoryConfig::CreditEvent {
+            UpdateHistoryConfig::Credit {
                 recorded_at, event, ..
             } => {
                 let credit_event: CoreCreditEvent = serde_json::from_value(event.clone())?;
                 history.process_credit_event(&credit_event, *recorded_at);
             }
-            UpdateHistoryConfig::CollateralEvent {
+            UpdateHistoryConfig::Collateral {
                 recorded_at, event, ..
             } => {
                 let collateral_event: CoreCreditCollateralEvent =
                     serde_json::from_value(event.clone())?;
                 history.process_collateral_event(&collateral_event, *recorded_at);
             }
-            UpdateHistoryConfig::CollectionEvent { event, .. } => {
+            UpdateHistoryConfig::Collection { event, .. } => {
                 let collection_event: CoreCreditCollectionEvent =
                     serde_json::from_value(event.clone())?;
                 history.process_collection_event(&collection_event);

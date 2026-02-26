@@ -17,13 +17,13 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum UpdateRepaymentPlanConfig {
-    CreditEvent {
+    Credit {
         facility_id: CreditFacilityId,
         sequence: EventSequence,
         recorded_at: DateTime<Utc>,
         event: serde_json::Value,
     },
-    CollectionEvent {
+    Collection {
         facility_id: CreditFacilityId,
         sequence: EventSequence,
         event: serde_json::Value,
@@ -33,9 +33,7 @@ pub enum UpdateRepaymentPlanConfig {
 impl UpdateRepaymentPlanConfig {
     pub(super) fn facility_id(&self) -> CreditFacilityId {
         match self {
-            Self::CreditEvent { facility_id, .. } | Self::CollectionEvent { facility_id, .. } => {
-                *facility_id
-            }
+            Self::Credit { facility_id, .. } | Self::Collection { facility_id, .. } => *facility_id,
         }
     }
 }
@@ -96,7 +94,7 @@ impl JobRunner for UpdateRepaymentPlanJobRunner {
         let mut repayment_plan = self.repo.load(facility_id).await?;
 
         match &self.config {
-            UpdateRepaymentPlanConfig::CreditEvent {
+            UpdateRepaymentPlanConfig::Credit {
                 sequence,
                 recorded_at,
                 event,
@@ -105,7 +103,7 @@ impl JobRunner for UpdateRepaymentPlanJobRunner {
                 let credit_event: CoreCreditEvent = serde_json::from_value(event.clone())?;
                 repayment_plan.process_credit_event(*sequence, &credit_event, now, *recorded_at);
             }
-            UpdateRepaymentPlanConfig::CollectionEvent {
+            UpdateRepaymentPlanConfig::Collection {
                 sequence, event, ..
             } => {
                 let collection_event: CoreCreditCollectionEvent =

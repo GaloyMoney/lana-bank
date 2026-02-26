@@ -133,7 +133,7 @@ impl RepaymentPlanProjectionHandler {
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateRepaymentPlanConfig::CreditEvent {
+                UpdateRepaymentPlanConfig::Credit {
                     facility_id,
                     sequence,
                     recorded_at: message.recorded_at,
@@ -163,7 +163,7 @@ impl RepaymentPlanProjectionHandler {
             .spawn_with_queue_id_in_op(
                 op,
                 JobId::new(),
-                UpdateRepaymentPlanConfig::CollectionEvent {
+                UpdateRepaymentPlanConfig::Collection {
                     facility_id,
                     sequence,
                     event: serde_json::to_value(event)?,
