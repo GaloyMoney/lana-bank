@@ -14,6 +14,14 @@ import { gql } from "@apollo/client"
 
 import { Button } from "@lana/web/ui/button"
 import { Separator } from "@lana/web/ui/separator"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@lana/web/ui/table"
 import { LoaderCircle, Pencil } from "lucide-react"
 
 import { DetailsGroup } from "@lana/web/components/details"
@@ -32,8 +40,6 @@ import {
   CreditAccountCategoryKey,
   type CreditConfigField,
 } from "./credit-config-fields"
-
-import { formatOptionValue } from "@/app/components/account-set-combobox"
 
 import { DetailItem } from "@/components/details"
 import {
@@ -208,33 +214,45 @@ const ConfigGroupedDisplay: React.FC<ConfigGroupedDisplayProps> = ({
             <div className="text-sm font-semibold">
               {t(`${moduleKey}.groups.${group.titleKey}`)}
             </div>
-            {groupFields.map((field) => {
-              const rawValue = config[field.key] ?? ""
-              const optionsForCategory = accountSetOptions.filter(
-                (o) => o.category === field.category,
-              )
-              const formatted = formatOptionValue(rawValue, optionsForCategory)
-              let displayValue: string
-              if (!formatted) {
-                displayValue = "\u2014"
-              } else if (formatted === rawValue) {
-                displayValue = rawValue.replace(/\./g, "")
-              } else {
-                displayValue = formatted
-              }
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("tableHeaders.group")}</TableHead>
+                  <TableHead>{t("tableHeaders.chartParent")}</TableHead>
+                  <TableHead>{t("tableHeaders.category")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {groupFields.map((field) => {
+                  const rawValue = config[field.key] ?? ""
+                  const optionsForCategory = accountSetOptions.filter(
+                    (o) => o.category === field.category,
+                  )
+                  const matchedOption = rawValue
+                    ? optionsForCategory.find((o) => o.code === rawValue)
+                    : null
+                  const displayName = matchedOption?.name ?? "\u2014"
+                  const displayCode = rawValue || "\u2014"
 
-              return (
-                <div key={field.key} className="flex items-center justify-between gap-2">
-                  <span className="min-w-0 flex-1 text-sm font-medium">
-                    {t(`${moduleKey}.${field.key}`)}
-                  </span>
-                  <span className="text-sm">{displayValue}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {t(`accountCategories.${field.category}`)}
-                  </span>
-                </div>
-              )
-            })}
+                  return (
+                    <TableRow key={field.key}>
+                      <TableCell className="font-medium">
+                        {t(`${moduleKey}.${field.key}`)}
+                      </TableCell>
+                      <TableCell>
+                        <div>{displayName}</div>
+                        <div className="font-mono text-xs text-muted-foreground">
+                          {displayCode}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {t(`accountCategories.${field.category}`)}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
           </div>
         )
       })}
