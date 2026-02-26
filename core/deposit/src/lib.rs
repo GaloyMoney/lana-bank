@@ -46,7 +46,10 @@ pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
 use ledger::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
-use processes::approval::{ApproveWithdrawal, WITHDRAW_APPROVE_JOB, WithdrawApprovalHandler};
+use processes::approval::{
+    ApproveWithdrawal, ExecuteWithdrawApprovalJobInitializer, WITHDRAW_APPROVE_JOB,
+    WithdrawApprovalHandler,
+};
 pub use public::*;
 use publisher::DepositPublisher;
 use withdrawal::*;
@@ -148,11 +151,14 @@ where
         let approve_withdrawal =
             ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, ledger_arc.as_ref());
 
+        let execute_withdraw_approval_spawner = jobs.add_initializer(
+            ExecuteWithdrawApprovalJobInitializer::new(approve_withdrawal.clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(WITHDRAW_APPROVE_JOB),
-                WithdrawApprovalHandler::new(&approve_withdrawal),
+                WithdrawApprovalHandler::new(execute_withdraw_approval_spawner),
             )
             .await?;
 
