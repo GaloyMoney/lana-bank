@@ -1,66 +1,37 @@
 use tracing::{Span, instrument};
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
-use core_deposit::{
-    CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
-};
 use core_time_events::CoreTimeEvent;
-use governance::GovernanceEvent;
-use lana_events::LanaEvent;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
+use job::{JobId, JobSpawner, JobType};
+
+use super::update_customer_activity_status_command::UpdateCustomerActivityStatusConfig;
 
 pub const UPDATE_CUSTOMER_ACTIVITY_STATUS: JobType =
     JobType::new("outbox.update-customer-activity-status");
 
-pub struct UpdateCustomerActivityStatusHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<LanaEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
-{
-    customers: Customers<Perms, E>,
+pub struct UpdateCustomerActivityStatusHandler {
+    update_customer_activity_status: JobSpawner<UpdateCustomerActivityStatusConfig>,
 }
 
-impl<Perms, E> UpdateCustomerActivityStatusHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<LanaEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
-{
-    pub fn new(customers: &Customers<Perms, E>) -> Self {
+impl UpdateCustomerActivityStatusHandler {
+    pub fn new(
+        update_customer_activity_status: JobSpawner<UpdateCustomerActivityStatusConfig>,
+    ) -> Self {
         Self {
-            customers: customers.clone(),
+            update_customer_activity_status,
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for UpdateCustomerActivityStatusHandler<Perms, E>
+impl<E> OutboxEventHandler<E> for UpdateCustomerActivityStatusHandler
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<LanaEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
-    #[instrument(name = "customer_sync.update_customer_activity_status.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "customer_sync.update_customer_activity_status.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        _op: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(e @ CoreTimeEvent::EndOfDay { closing_time, .. }) = event.as_event() {
@@ -68,8 +39,15 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
-            self.customers
-                .perform_customer_activity_status_update(*closing_time)
+            self.update_customer_activity_status
+                .spawn_with_queue_id_in_op(
+                    op,
+                    JobId::new(),
+                    UpdateCustomerActivityStatusConfig {
+                        closing_time: *closing_time,
+                    },
+                    "end-of-day".to_string(),
+                )
                 .await?;
         }
         Ok(())

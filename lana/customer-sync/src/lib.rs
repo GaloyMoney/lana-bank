@@ -76,35 +76,47 @@ where
     ) -> Result<Self, CustomerSyncError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak.clone());
 
+        let create_customer_keycloak_user = jobs.add_initializer(
+            CreateCustomerKeycloakUserJobInitializer::new(keycloak_client.clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_SYNC_CREATE_KEYCLOAK_USER),
-                CreateKeycloakUserHandler::new(keycloak_client.clone()),
+                CreateKeycloakUserHandler::new(create_customer_keycloak_user),
             )
             .await?;
 
+        let sync_keycloak_email = jobs.add_initializer(SyncKeycloakEmailJobInitializer::new(
+            keycloak_client.clone(),
+        ));
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(SYNC_EMAIL_JOB),
-                SyncEmailHandler::new(keycloak_client.clone()),
+                SyncEmailHandler::new(sync_keycloak_email),
             )
             .await?;
 
+        let update_last_activity_date = jobs.add_initializer(
+            UpdateLastActivityDateJobInitializer::new(customers.clone(), deposit.clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(UPDATE_LAST_ACTIVITY_DATE),
-                UpdateLastActivityDateHandler::new(customers, deposit),
+                UpdateLastActivityDateHandler::new(update_last_activity_date),
             )
             .await?;
 
+        let update_customer_activity_status = jobs.add_initializer(
+            UpdateCustomerActivityStatusJobInitializer::new(customers.clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(UPDATE_CUSTOMER_ACTIVITY_STATUS),
-                UpdateCustomerActivityStatusHandler::new(customers),
+                UpdateCustomerActivityStatusHandler::new(update_customer_activity_status),
             )
             .await?;
 
