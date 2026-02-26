@@ -12,11 +12,15 @@ sumsub-testing = ["lana-app/sumsub-testing", "admin-graphql-session/sumsub-testi
 [dependencies]
 lana-app = { workspace = true }
 admin-graphql-access = { workspace = true }
+admin-graphql-accounting = { workspace = true }
 admin-graphql-audit = { workspace = true }
 admin-graphql-config = { workspace = true }
 admin-graphql-contracts = { workspace = true }
+admin-graphql-customer = { workspace = true }
+admin-graphql-credit = { workspace = true }
 admin-graphql-custody = { workspace = true }
 admin-graphql-documents = { workspace = true }
+admin-graphql-deposit = { workspace = true }
 admin-graphql-governance = { workspace = true }
 admin-graphql-price = { workspace = true }
 admin-graphql-reports = { workspace = true }

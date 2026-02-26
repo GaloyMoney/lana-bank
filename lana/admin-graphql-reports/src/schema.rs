@@ -1,7 +1,10 @@
 use admin_graphql_shared::primitives::UUID;
-use async_graphql::{Context, Object, types::connection::*};
+use async_graphql::{Context, Object, Subscription, types::connection::*};
+use futures::{StreamExt, stream::Stream};
+use obix::out::OutboxEventMarker;
 
 use super::*;
+use lana_app::{app::LanaApp, report::CoreReportEvent};
 
 #[derive(Default)]
 pub struct ReportsQuery;
@@ -61,5 +64,33 @@ impl ReportsMutation {
             .generate_report_file_download_link(sub, input.report_id, input.extension)
             .await?;
         Ok(ReportFileGenerateDownloadLinkPayload { url })
+    }
+}
+
+#[derive(Default)]
+pub struct ReportsSubscription;
+
+#[Subscription]
+impl ReportsSubscription {
+    async fn report_run_updated(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<impl Stream<Item = ReportRunUpdatedPayload>> {
+        let app = ctx.data_unchecked::<LanaApp>();
+
+        let stream = app.outbox().listen_ephemeral();
+        let updates = stream.filter_map(move |event| async move {
+            let event: &CoreReportEvent = event.payload.as_event()?;
+            match event {
+                CoreReportEvent::ReportRunCreated { entity }
+                | CoreReportEvent::ReportRunStateUpdated { entity } => {
+                    Some(ReportRunUpdatedPayload {
+                        report_run_id: UUID::from(entity.id),
+                    })
+                }
+            }
+        });
+
+        Ok(updates)
     }
 }

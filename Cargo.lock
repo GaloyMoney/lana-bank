@@ -14,6 +14,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "admin-graphql-accounting"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "futures",
+ "lana-app",
+ "obix",
+ "serde",
+]
+
+[[package]]
 name = "admin-graphql-audit"
 version = "0.0.0"
 dependencies = [
@@ -54,6 +67,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "admin-graphql-credit"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-contracts",
+ "admin-graphql-custody",
+ "admin-graphql-governance",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "futures",
+ "lana-app",
+ "obix",
+ "tracing",
+]
+
+[[package]]
 name = "admin-graphql-custody"
 version = "0.0.0"
 dependencies = [
@@ -62,6 +91,32 @@ dependencies = [
  "es-entity",
  "lana-app",
  "url",
+]
+
+[[package]]
+name = "admin-graphql-customer"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-credit",
+ "admin-graphql-deposit",
+ "admin-graphql-documents",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "tracing",
+]
+
+[[package]]
+name = "admin-graphql-deposit"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-governance",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "tracing",
 ]
 
 [[package]]
@@ -89,7 +144,9 @@ name = "admin-graphql-price"
 version = "0.0.0"
 dependencies = [
  "async-graphql",
+ "futures",
  "lana-app",
+ "obix",
 ]
 
 [[package]]
@@ -99,7 +156,9 @@ dependencies = [
  "admin-graphql-shared",
  "async-graphql",
  "es-entity",
+ "futures",
  "lana-app",
+ "obix",
 ]
 
 [[package]]
@@ -132,10 +191,14 @@ name = "admin-server"
 version = "0.0.0"
 dependencies = [
  "admin-graphql-access",
+ "admin-graphql-accounting",
  "admin-graphql-audit",
  "admin-graphql-config",
  "admin-graphql-contracts",
+ "admin-graphql-credit",
  "admin-graphql-custody",
+ "admin-graphql-customer",
+ "admin-graphql-deposit",
  "admin-graphql-documents",
  "admin-graphql-governance",
  "admin-graphql-price",

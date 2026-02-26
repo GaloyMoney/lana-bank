@@ -1,0 +1,15 @@
+[package]
+name = "admin-graphql-customer"
+license = "BUSL-1.1"
+edition = "2024"
+
+[dependencies]
+lana-app = { workspace = true }
+admin-graphql-credit = { workspace = true }
+admin-graphql-deposit = { workspace = true }
+admin-graphql-documents = { workspace = true }
+admin-graphql-shared = { workspace = true }
+async-graphql = { workspace = true }
+es-entity = { workspace = true }
+tracing = { workspace = true }
+

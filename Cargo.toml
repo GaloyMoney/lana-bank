@@ -64,11 +64,15 @@ domain-config = { path = "core/domain-config" }
 
 # Lana dependencies
 admin-graphql-access = { path = "lana/admin-graphql-access" }
+admin-graphql-accounting = { path = "lana/admin-graphql-accounting" }
 admin-graphql-audit = { path = "lana/admin-graphql-audit" }
 admin-graphql-config = { path = "lana/admin-graphql-config" }
 admin-graphql-contracts = { path = "lana/admin-graphql-contracts" }
+admin-graphql-customer = { path = "lana/admin-graphql-customer" }
+admin-graphql-credit = { path = "lana/admin-graphql-credit" }
 admin-graphql-custody = { path = "lana/admin-graphql-custody" }
 admin-graphql-documents = { path = "lana/admin-graphql-documents" }
+admin-graphql-deposit = { path = "lana/admin-graphql-deposit" }
 admin-graphql-governance = { path = "lana/admin-graphql-governance" }
 admin-graphql-price = { path = "lana/admin-graphql-price" }
 admin-graphql-reports = { path = "lana/admin-graphql-reports" }

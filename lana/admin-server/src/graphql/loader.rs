@@ -16,7 +16,6 @@ use lana_app::{
     },
     app::LanaApp,
     custody::error::CoreCustodyError,
-    customer::{CustomerDocumentId, Party, PartyId},
     deposit::error::CoreDepositError,
     governance::error::GovernanceError,
     report::{ReportId, ReportRunId, error::ReportError},
@@ -26,8 +25,7 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
-    customer::*, deposit::*, deposit_account::*, document::*, domain_config::*, policy::*,
-    prospect::*, reports::*, terms_template::*, withdrawal::*,
+    deposit::*, domain_config::*, policy::*, reports::*, terms_template::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -157,67 +155,6 @@ impl Loader<ApprovalProcessId> for LanaLoader {
         self.app
             .governance()
             .find_all_approval_processes(keys)
-            .await
-            .map_err(Arc::new)
-    }
-}
-
-impl Loader<CustomerDocumentId> for LanaLoader {
-    type Value = CustomerDocument;
-    type Error = Arc<lana_app::customer::error::CustomerError>;
-
-    #[instrument(name = "loader.customer_documents", skip(self), fields(count = keys.len()), err)]
-    async fn load(
-        &self,
-        keys: &[CustomerDocumentId],
-    ) -> Result<HashMap<CustomerDocumentId, CustomerDocument>, Self::Error> {
-        self.app
-            .customers()
-            .find_all_documents(keys)
-            .await
-            .map_err(Arc::new)
-    }
-}
-
-impl Loader<CustomerId> for LanaLoader {
-    type Value = Customer;
-    type Error = Arc<lana_app::customer::error::CustomerError>;
-
-    #[instrument(name = "loader.customers", skip(self), fields(count = keys.len()), err)]
-    async fn load(
-        &self,
-        keys: &[CustomerId],
-    ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
-        self.app.customers().find_all(keys).await.map_err(Arc::new)
-    }
-}
-
-impl Loader<ProspectId> for LanaLoader {
-    type Value = Prospect;
-    type Error = Arc<lana_app::customer::error::CustomerError>;
-
-    #[instrument(name = "loader.prospects", skip(self), fields(count = keys.len()), err)]
-    async fn load(
-        &self,
-        keys: &[ProspectId],
-    ) -> Result<HashMap<ProspectId, Prospect>, Self::Error> {
-        self.app
-            .customers()
-            .find_all_prospects(keys)
-            .await
-            .map_err(Arc::new)
-    }
-}
-
-impl Loader<PartyId> for LanaLoader {
-    type Value = Arc<Party>;
-    type Error = Arc<lana_app::customer::error::CustomerError>;
-
-    #[instrument(name = "loader.parties", skip(self), fields(count = keys.len()), err)]
-    async fn load(&self, keys: &[PartyId]) -> Result<HashMap<PartyId, Arc<Party>>, Self::Error> {
-        self.app
-            .customers()
-            .find_all_parties(keys)
             .await
             .map_err(Arc::new)
     }
