@@ -1,8 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::*;
-
-use super::super::loader::LanaDataLoader;
+use admin_graphql_shared::primitives::*;
 
 pub use lana_app::report::{Report as DomainReport, ReportFile as DomainReportFile};
 
@@ -17,7 +15,7 @@ pub struct Report {
     created_at: Timestamp,
 
     #[graphql(skip)]
-    pub(super) entity: Arc<DomainReport>,
+    pub entity: Arc<DomainReport>,
 }
 
 impl From<lana_app::report::Report> for Report {
@@ -61,16 +59,14 @@ impl Report {
             .collect()
     }
 
-    async fn report_run(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<super::report_run::ReportRun> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let report_run = loader
-            .load_one(self.entity.run_id)
+    async fn report_run(&self, ctx: &Context<'_>) -> async_graphql::Result<super::ReportRun> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let report_run = app
+            .reports()
+            .find_report_run_by_id(sub, self.entity.run_id)
             .await?
-            .expect("report run not found");
-        Ok(report_run)
+            .ok_or_else(|| async_graphql::Error::new("report run not found"))?;
+        Ok(report_run.into())
     }
 }
 

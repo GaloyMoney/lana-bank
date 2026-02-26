@@ -1,8 +1,8 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use admin_graphql_shared::primitives::*;
 
-use super::report::Report;
+use super::Report;
 
 pub use lana_app::report::{
     ReportRun as DomainReportRun, ReportRunState as DomainReportRunState,
@@ -72,10 +72,7 @@ impl From<lana_app::report::ReportRun> for ReportRun {
 #[ComplexObject]
 impl ReportRun {
     async fn reports(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Report>> {
-        let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
-        let sub = &ctx
-            .data_unchecked::<crate::primitives::AdminAuthContext>()
-            .sub;
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let reports = app
             .reports()

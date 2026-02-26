@@ -14,6 +14,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "admin-graphql-reports"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "lana-app",
+]
+
+[[package]]
 name = "admin-graphql-shared"
 version = "0.0.0"
 dependencies = [
@@ -33,6 +42,7 @@ name = "admin-server"
 version = "0.0.0"
 dependencies = [
  "admin-graphql-access",
+ "admin-graphql-reports",
  "admin-graphql-shared",
  "anyhow",
  "async-graphql",
