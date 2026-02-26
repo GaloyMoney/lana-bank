@@ -104,11 +104,8 @@ where
             .get::<ResolvedChartOfAccountsIntegrationConfig>()
             .await?;
 
-        if let Some(existing) = existing_module_config
-            .maybe_value()
-            .filter(|existing| existing.config == config)
-        {
-            return Ok(existing.config);
+        if existing_module_config.maybe_value().is_some() {
+            return Err(ChartOfAccountsIntegrationError::ConfigAlreadySet);
         }
 
         if !chart.has_accounting_base_config() {

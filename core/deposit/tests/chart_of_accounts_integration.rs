@@ -277,81 +277,15 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert_eq!(res.entities.len(), 1);
 
-    let chart_ref = format!(
-        "other-ref-{:010}",
-        rand::rng().random_range(0..10_000_000_000u64)
-    );
-    let chart_id = accounting
-        .chart_of_accounts()
-        .create_chart(
-            &DummySubject,
-            "Other Test chart".to_string(),
-            chart_ref.to_string(),
-        )
-        .await?
-        .id;
-
-    let (balance_sheet_name2, pl_name2, tb_name2) =
-        helpers::create_test_statements(&accounting).await?;
-
-    let import = format!(
-        "{}{}",
-        BASE_ACCOUNTS_CSV,
-        r#"
-    11,,,Other Omnibus Parent,,
-    21,,,Other Individual Deposit Accounts,,
-    26,,,Other Government Entity Deposit Accounts,,
-    22,,,Other Private Company Deposit Accounts,,
-    23,,,Other Bank Deposit Accounts,,
-    24,,,Other Financial Institution Deposit Accounts,,
-    25,,,Other Non Domiciled Individual Deposit Accounts,,
-    27,,,Other Frozen Deposit Accounts,,
-    "#
-    );
-    let chart = accounting
-        .import_csv_with_base_config(
-            &DummySubject,
-            &chart_ref,
-            import,
-            base_config,
-            &balance_sheet_name2,
-            &pl_name2,
-            &tb_name2,
-        )
-        .await?;
-    let chart_of_accounts_integration_config = ChartOfAccountsIntegrationConfig {
-        chart_of_accounts_id: chart_id,
-        chart_of_accounts_omnibus_parent_code: "11".parse().unwrap(),
-        chart_of_accounts_individual_deposit_accounts_parent_code: "21".parse().unwrap(),
-        chart_of_accounts_government_entity_deposit_accounts_parent_code: "26".parse().unwrap(),
-        chart_of_account_private_company_deposit_accounts_parent_code: "22".parse().unwrap(),
-        chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
-        chart_of_account_financial_institution_deposit_accounts_parent_code: "24".parse().unwrap(),
-        chart_of_account_non_domiciled_company_deposit_accounts_parent_code: "25".parse().unwrap(),
-        chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27".parse().unwrap(),
-        chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
-            .parse()
-            .unwrap(),
-        chart_of_account_frozen_private_company_deposit_accounts_parent_code: "27".parse().unwrap(),
-        chart_of_account_frozen_bank_deposit_accounts_parent_code: "27".parse().unwrap(),
-        chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
-            .parse()
-            .unwrap(),
-        chart_of_account_frozen_non_domiciled_company_deposit_accounts_parent_code: "27"
-            .parse()
-            .unwrap(),
-    };
-    let res = deposit
+    // Immutable: setting config again should fail
+    let err = deposit
         .chart_of_accounts_integrations()
-        .set_config(
-            &DummySubject,
-            &chart,
-            chart_of_accounts_integration_config.clone(),
-        )
-        .await
-        .unwrap();
-
-    assert_eq!(res, chart_of_accounts_integration_config);
+        .set_config(&DummySubject, &chart, chart_of_accounts_config)
+        .await;
+    assert!(matches!(
+        err,
+        Err(core_deposit::ChartOfAccountsIntegrationError::ConfigAlreadySet)
+    ));
 
     Ok(())
 }
