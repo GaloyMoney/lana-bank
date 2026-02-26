@@ -114,6 +114,100 @@ Cypress.Commands.add("takeScreenshot", (filename): Cypress.Chainable<null> => {
   return cy.wrap(null)
 })
 
+const TYPE_MAX_RETRIES = 3
+const NUMERIC_LITERAL_REGEX = /^-?\d+(?:\.\d+)?$/
+const CYPRESS_SPECIAL_CHARS = /\{[^}]+\}/
+
+const normalizeNumericValue = (value: string) => value.replace(/,/g, "")
+const identityValue = (value: string) => value
+
+const isTextEntryElement = (
+  element: unknown,
+): element is HTMLInputElement | HTMLTextAreaElement => {
+  if (!element || typeof element !== "object") return false
+
+  const maybeElement = element as { tagName?: string }
+  const tagName = maybeElement.tagName?.toLowerCase()
+  return tagName === "input" || tagName === "textarea"
+}
+
+const setNatively = (el: HTMLInputElement | HTMLTextAreaElement, value: string) => {
+  const win = el.ownerDocument.defaultView
+  if (!win) return
+
+  const proto =
+    el instanceof win.HTMLTextAreaElement
+      ? win.HTMLTextAreaElement.prototype
+      : win.HTMLInputElement.prototype
+
+  const nativeSetter = Object.getOwnPropertyDescriptor(proto, "value")?.set
+  if (!nativeSetter) return
+
+  nativeSetter.call(el, value)
+  el.dispatchEvent(new Event("input", { bubbles: true }))
+}
+
+const clearNatively = (el: HTMLInputElement | HTMLTextAreaElement) => {
+  setNatively(el, "")
+}
+
+Cypress.Commands.overwrite(
+  "type",
+  (originalFn, subject, text, options) => {
+    const jquerySubject = subject as JQuery<HTMLElement>
+    const typedText = String(text)
+
+    const hasSpecialChars =
+      options?.parseSpecialCharSequences === false
+        ? false
+        : CYPRESS_SPECIAL_CHARS.test(typedText)
+
+    const normalizeActual = NUMERIC_LITERAL_REGEX.test(typedText)
+      ? normalizeNumericValue
+      : identityValue
+    const expected = normalizeActual(typedText)
+
+    return originalFn(jquerySubject, text, options).then(async ($el) => {
+      if (hasSpecialChars) return $el
+
+      const inputEl = $el[0]
+      if (!isTextEntryElement(inputEl)) {
+        return $el
+      }
+
+      const readValueAfterTick = async () =>
+        await new Cypress.Promise<string>((resolve) => {
+          setTimeout(() => resolve(String(inputEl.value ?? "")), 25)
+        })
+
+      let actualRaw = await readValueAfterTick()
+      let actual = normalizeActual(actualRaw)
+
+      if (actual === expected) return $el
+
+      for (let attempt = 1; attempt <= TYPE_MAX_RETRIES; attempt += 1) {
+        Cypress.log({
+          name: "type retry",
+          message: `expected "${typedText}", got "${actualRaw}" - retry ${attempt}/${TYPE_MAX_RETRIES}`,
+        })
+
+        clearNatively(inputEl)
+        setNatively(inputEl, typedText)
+
+        actualRaw = await readValueAfterTick()
+        actual = normalizeActual(actualRaw)
+
+        if (actual === expected) return $el
+      }
+
+      throw new Error(
+        `cy.type() value mismatch after ${TYPE_MAX_RETRIES} attempts: ` +
+          `expected "${typedText}", got "${actualRaw}"`,
+      )
+    })
+  },
+)
+
 interface ProspectCreateResponse {
   data: {
     prospectCreate: {
