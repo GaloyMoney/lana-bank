@@ -15,6 +15,8 @@ use tracing_macros::record_error_severity;
 #[serde(rename_all = "camelCase")]
 pub struct PerformCustomerActivityStatusUpdateConfig {
     pub closing_time: DateTime<Utc>,
+    #[serde(default)]
+    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
 }
 
 pub const PERFORM_CUSTOMER_ACTIVITY_STATUS_UPDATE_COMMAND: JobType =
@@ -94,6 +96,9 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        if let Some(ref ctx) = self.config.trace_context {
+            tracing_utils::persistence::set_parent(ctx);
+        }
         self.customers
             .perform_customer_activity_status_update(self.config.closing_time)
             .await?;

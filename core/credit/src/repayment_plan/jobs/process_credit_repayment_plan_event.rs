@@ -18,6 +18,8 @@ pub struct ProcessCreditRepaymentPlanEventConfig {
     pub sequence: EventSequence,
     pub recorded_at: DateTime<Utc>,
     pub event: CoreCreditEvent,
+    #[serde(default)]
+    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
 }
 
 pub const PROCESS_CREDIT_REPAYMENT_PLAN_EVENT_COMMAND: JobType =
@@ -68,6 +70,9 @@ impl JobRunner for ProcessCreditRepaymentPlanEventJobRunner {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        if let Some(ref ctx) = self.config.trace_context {
+            tracing_utils::persistence::set_parent(ctx);
+        }
         let mut op = current_job.begin_op().await?;
         let clock = op.clock().clone();
         let now = clock.now();

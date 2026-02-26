@@ -11,6 +11,8 @@ use tracing_macros::record_error_severity;
 pub struct CreateKeycloakUserConfig {
     pub email: String,
     pub user_id: UserId,
+    #[serde(default)]
+    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
 }
 
 pub const CREATE_KEYCLOAK_USER_COMMAND: JobType =
@@ -62,6 +64,9 @@ impl JobRunner for CreateKeycloakUserJobRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        if let Some(ref ctx) = self.config.trace_context {
+            tracing_utils::persistence::set_parent(ctx);
+        }
         self.keycloak_client
             .create_user(self.config.email.clone(), self.config.user_id.into())
             .await?;

@@ -26,6 +26,8 @@ use super::ApproveCreditFacilityProposal;
 pub struct ExecuteApproveCreditFacilityProposalConfig {
     pub approval_process_id: ApprovalProcessId,
     pub approved: bool,
+    #[serde(default)]
+    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
 }
 
 pub const EXECUTE_APPROVE_CREDIT_FACILITY_PROPOSAL_COMMAND: JobType =
@@ -142,6 +144,9 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        if let Some(ref ctx) = self.config.trace_context {
+            tracing_utils::persistence::set_parent(ctx);
+        }
         self.process
             .execute_approve_credit_facility_proposal(
                 self.config.approval_process_id,

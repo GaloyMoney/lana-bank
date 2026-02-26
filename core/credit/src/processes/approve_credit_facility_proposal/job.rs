@@ -57,6 +57,7 @@ where
                         ExecuteApproveCreditFacilityProposalConfig {
                             approval_process_id: entity.id,
                             approved: entity.status.is_approved(),
+                            trace_context: Some(tracing_utils::persistence::extract()),
                         },
                         entity.id.to_string(),
                     )

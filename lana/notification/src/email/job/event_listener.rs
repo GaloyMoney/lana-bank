@@ -66,6 +66,7 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                             obligation_id: entity.id,
                             credit_facility_id,
                             outstanding_amount: entity.outstanding_amount,
+                            trace_context: Some(tracing_utils::persistence::extract()),
                         },
                         entity.id.to_string(),
                     )
@@ -93,6 +94,7 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                             initially_estimated_to_liquidate: trigger
                                 .initially_estimated_to_liquidate,
                             initially_expected_to_receive: trigger.initially_expected_to_receive,
+                            trace_context: Some(tracing_utils::persistence::extract()),
                         },
                         entity.id.to_string(),
                     )
@@ -120,6 +122,7 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                             outstanding_disbursed: collateralization.outstanding.disbursed,
                             outstanding_interest: collateralization.outstanding.interest,
                             price: collateralization.price_at_state_change,
+                            trace_context: Some(tracing_utils::persistence::extract()),
                         },
                         entity.id.to_string(),
                     )
@@ -139,6 +142,7 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                         DepositAccountCreatedNotificationConfig {
                             account_id: entity.id,
                             account_holder_id: entity.account_holder_id,
+                            trace_context: Some(tracing_utils::persistence::extract()),
                         },
                         entity.id.to_string(),
                     )
@@ -156,6 +160,7 @@ impl OutboxEventHandler<LanaEvent> for EmailEventListenerHandler {
                         RoleCreatedNotificationConfig {
                             role_id: entity.id,
                             role_name: entity.name.clone(),
+                            trace_context: Some(tracing_utils::persistence::extract()),
                         },
                         entity.id.to_string(),
                     )

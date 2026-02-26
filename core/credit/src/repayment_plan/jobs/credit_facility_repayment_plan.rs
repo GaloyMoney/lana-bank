@@ -148,6 +148,7 @@ impl RepaymentPlanProjectionHandler {
                     sequence,
                     recorded_at: message.recorded_at,
                     event: event.clone(),
+                    trace_context: Some(tracing_utils::persistence::extract()),
                 },
                 facility_id.to_string(),
             )
@@ -177,6 +178,7 @@ impl RepaymentPlanProjectionHandler {
                     facility_id,
                     sequence,
                     event: event.clone(),
+                    trace_context: Some(tracing_utils::persistence::extract()),
                 },
                 facility_id.to_string(),
             )

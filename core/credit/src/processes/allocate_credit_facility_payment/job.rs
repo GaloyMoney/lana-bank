@@ -50,6 +50,7 @@ where
                     JobId::new(),
                     ExecuteAllocatePaymentConfig {
                         payment_id: entity.id,
+                        trace_context: Some(tracing_utils::persistence::extract()),
                     },
                     entity.id.to_string(),
                 )

@@ -55,6 +55,7 @@ where
                 RecordLastActivityDateConfig {
                     deposit_account_id,
                     recorded_at: event.recorded_at,
+                    trace_context: Some(tracing_utils::persistence::extract()),
                 },
                 deposit_account_id.to_string(),
             )

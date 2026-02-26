@@ -22,7 +22,7 @@ authz = { workspace = true }
 async-trait = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
-tracing-utils = { workspace = true }
+tracing-utils = { workspace = true, features = ["persistence"] }
 chrono = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }

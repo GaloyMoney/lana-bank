@@ -43,6 +43,7 @@ where
                     SyncKeycloakEmailConfig {
                         party_id: entity.id,
                         email: entity.email.clone(),
+                        trace_context: Some(tracing_utils::persistence::extract()),
                     },
                     entity.id.to_string(),
                 )

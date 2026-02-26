@@ -20,6 +20,8 @@ use super::ApproveWithdrawal;
 pub struct ExecuteWithdrawApprovalConfig {
     pub approval_process_id: ApprovalProcessId,
     pub approved: bool,
+    #[serde(default)]
+    pub trace_context: Option<tracing_utils::persistence::SerializableTraceContext>,
 }
 
 pub const EXECUTE_WITHDRAW_APPROVAL_COMMAND: JobType =
@@ -99,6 +101,9 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        if let Some(ref ctx) = self.config.trace_context {
+            tracing_utils::persistence::set_parent(ctx);
+        }
         self.process
             .execute_withdrawal_approval(self.config.approval_process_id, self.config.approved)
             .await?;
