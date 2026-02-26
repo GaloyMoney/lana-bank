@@ -258,6 +258,7 @@ jobs:
           COMMIT_SHORT="${{ github.sha }}"
           COMMIT_SHORT="${COMMIT_SHORT::7}"
           nix develop -c netlify deploy \
+            --no-build \
             --dir=apps/admin-panel/cypress/manuals/results \
             --filter=admin-panel \
             --site=$NETLIFY_SITE_ID \
