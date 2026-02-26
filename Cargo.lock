@@ -1294,6 +1294,7 @@ name = "core-credit-collateral"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "async-graphql",
  "async-trait",
  "audit",
  "authz",
@@ -3559,6 +3560,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-credit-collateral",
  "core-credit-terms",
  "core-custody",
  "core-customer",

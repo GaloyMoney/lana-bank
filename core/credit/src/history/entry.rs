@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 
-use core_credit_collateral::CollateralDirection;
 use crate::primitives::*;
+use core_credit_collateral::CollateralDirection;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreditFacilityApproved {

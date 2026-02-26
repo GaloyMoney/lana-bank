@@ -400,11 +400,11 @@ mod tests {
 
     use rust_decimal_macros::dec;
 
-    use core_credit_collateral::CollateralId;
     use crate::{
         CreditFacilityReceivable, DisbursalPolicy, FacilityCollateralization, FacilityDuration,
         InterestInterval, ObligationDuration, OneTimeFeeRatePct,
     };
+    use core_credit_collateral::CollateralId;
     use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 
     use super::*;

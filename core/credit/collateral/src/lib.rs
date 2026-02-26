@@ -31,10 +31,9 @@ use ledger::{
     FacilityProceedsFromLiquidationAccountId, LiquidationProceedsAccountIds,
 };
 
-pub(super) use entity::*;
 use jobs::{record_collateral_update, wallet_collateral_sync};
 pub use {
-    entity::{Collateral, CollateralAdjustment},
+    entity::{Collateral, CollateralAdjustment, NewCollateral},
     liquidation::Liquidation,
     primitives::*,
     public::CoreCreditCollateralEvent,

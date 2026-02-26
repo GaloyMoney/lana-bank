@@ -2,16 +2,10 @@ use tracing::{Span, instrument};
 
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use core_custody::CoreCustodyEvent;
 use job::{JobId, JobSpawner, JobType};
 
 use super::record_collateral_update::RecordCollateralUpdateConfig;
-use core_custody::{CoreCustodyEvent, WalletId as CustodyWalletId};
-
-use crate::{
-    collateral::public::CoreCreditCollateralEvent,
-    collateral::{CollateralError, CollateralRepo, ledger::CollateralLedger},
-};
+use core_custody::CoreCustodyEvent;
 
 pub const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-collateral-sync");
 

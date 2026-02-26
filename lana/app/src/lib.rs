@@ -170,19 +170,22 @@ pub mod custody {
 pub mod credit {
     pub use core_credit::{
         APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS, APPROVE_DISBURSAL_PROCESS,
-        COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, ChartOfAccountsIntegrationConfig,
-        Collateral, CollateralSentOut, CollateralUpdated, CollateralizationUpdated,
-        CoreCreditEvent, CreditFacilitiesCursor, CreditFacilitiesFilters, CreditFacilitiesSortBy,
-        CreditFacility, CreditFacilityApproved, CreditFacilityBalanceSummary,
-        CreditFacilityHistoryEntry, CreditFacilityProposal, CreditFacilityProposalId,
-        CreditFacilityProposalsByCreatedAtCursor, CreditFacilityRepaymentPlanEntry,
-        CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE, Disbursal, DisbursalExecuted,
-        DisbursalStatus, DisbursalsCursor, DisbursalsFilters, DisbursalsSortBy, IncrementalPayment,
-        InterestAccrualsPosted, Liquidation, LiquidationsByIdCursor, LiquidationsCursor,
-        ListDirection, Payment, PaymentAllocation, PendingCreditFacilitiesByCreatedAtCursor,
-        PendingCreditFacility, PendingCreditFacilityCollateralizationUpdated,
-        PendingCreditFacilityId, ProceedsFromLiquidationReceived, RepaymentStatus, RepaymentType,
-        Sort, error,
+        CREDIT_FACILITY_ENTITY_TYPE, ChartOfAccountsIntegrationConfig, CollateralSentOut,
+        CollateralUpdated, CollateralizationUpdated, CoreCreditEvent, CreditFacilitiesCursor,
+        CreditFacilitiesFilters, CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
+        CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityProposal,
+        CreditFacilityProposalId, CreditFacilityProposalsByCreatedAtCursor,
+        CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
+        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilters,
+        DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, ListDirection, Payment,
+        PaymentAllocation, PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility,
+        PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityId,
+        ProceedsFromLiquidationReceived, RepaymentStatus, RepaymentType, Sort, error,
+    };
+
+    pub use core_credit_collateral::{
+        COLLATERAL_ENTITY_TYPE, Collateral, CollateralDirection, Liquidation,
+        liquidation_cursor::LiquidationsByIdCursor,
     };
 
     pub type Credit =
