@@ -511,7 +511,6 @@ pub async fn rotate_encryption_key<Perms>(
     pool: &sqlx::PgPool,
     authz: &Perms,
     new_key: &EncryptionKey,
-    new_key_id: &encryption::KeyId,
     deprecated_key: &EncryptionKey,
 ) -> Result<(), DomainConfigError>
 where
@@ -536,7 +535,7 @@ where
 
     for mut entity in configs.into_iter() {
         if entity
-            .rotate_encryption_key(new_key, new_key_id, deprecated_key)?
+            .rotate_encryption_key(new_key, deprecated_key)?
             .did_execute()
         {
             updated_configs.push(entity);

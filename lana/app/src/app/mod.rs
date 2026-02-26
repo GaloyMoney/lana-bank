@@ -106,13 +106,12 @@ impl LanaApp {
 
         domain_config::apply_startup_configs(&pool, &config.encryption, startup_domain_configs)
             .await?;
-        if let Some(deprecated_key) = config.encryption.deprecated_encryption_key {
+        if let Some(ref deprecated_key) = config.encryption.deprecated_encryption_key {
             domain_config::rotate_encryption_key(
                 &pool,
                 &authz,
-                &config.encryption.key,
-                &config.encryption.key_id,
-                &deprecated_key,
+                &config.encryption.encryption_key,
+                deprecated_key,
             )
             .await?;
         }

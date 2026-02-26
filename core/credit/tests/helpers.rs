@@ -85,7 +85,7 @@ where
 
 pub fn custody_encryption_config() -> EncryptionConfig {
     EncryptionConfig {
-        key: [1u8; 32].into(),
+        encryption_key: encryption::EncryptionKey::new([1u8; 32]),
         ..Default::default()
     }
 }

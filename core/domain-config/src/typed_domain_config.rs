@@ -1,7 +1,5 @@
 use std::marker::PhantomData;
 
-use encryption::KeyId;
-
 use crate::{
     ConfigSpec, DefaultedConfig, DomainConfigError, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, EncryptionKey, ValueKind, entity::DomainConfig,
@@ -12,7 +10,6 @@ pub struct TypedDomainConfig<C: ConfigSpec> {
     pub(crate) entity: DomainConfig,
     pub(crate) _marker: PhantomData<C>,
     pub(crate) encryption_key: Option<EncryptionKey>,
-    pub(crate) encryption_key_id: Option<KeyId>,
 }
 
 impl<C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>> TypedDomainConfig<C> {
@@ -22,7 +19,6 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>> TypedDomainConfig<C> {
             entity,
             _marker: PhantomData,
             encryption_key: None,
-            encryption_key_id: None,
         })
     }
 }
@@ -31,14 +27,12 @@ impl<C: ConfigSpec<Flavor = DomainConfigFlavorEncrypted>> TypedDomainConfig<C> {
     pub(crate) fn try_new_encrypted(
         entity: DomainConfig,
         key: EncryptionKey,
-        key_id: &KeyId,
     ) -> Result<Self, DomainConfigError> {
         DomainConfig::assert_compatible::<C>(&entity)?;
         Ok(Self {
             entity,
             _marker: PhantomData,
             encryption_key: Some(key),
-            encryption_key_id: Some(key_id.clone()),
         })
     }
 }

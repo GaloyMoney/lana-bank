@@ -25,14 +25,14 @@ pub struct Encrypted {
 
 impl Encrypted {
     pub fn decrypt(&self, key: &EncryptionKey) -> Result<Vec<u8>, EncryptionError> {
-        let cipher = ChaCha20Poly1305::new(key);
+        let cipher = ChaCha20Poly1305::new(&key.key);
         cipher
             .decrypt(self.nonce.as_slice().into(), self.ciphertext.as_slice())
             .map_err(|_| EncryptionError::Decryption)
     }
 
-    pub fn encrypt(plaintext: &[u8], key: &EncryptionKey, key_id: &KeyId) -> Self {
-        let cipher = ChaCha20Poly1305::new(key);
+    pub fn encrypt(plaintext: &[u8], key: &EncryptionKey) -> Self {
+        let cipher = ChaCha20Poly1305::new(&key.key);
         let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
         let ciphertext = cipher
             .encrypt(&nonce, plaintext)
@@ -41,12 +41,12 @@ impl Encrypted {
         Self {
             ciphertext,
             nonce: nonce.to_vec(),
-            key_id: key_id.clone(),
+            key_id: key.id.clone(),
         }
     }
 
-    pub fn key_id(&self) -> &KeyId {
-        &self.key_id
+    pub fn matches_key(&self, key: &EncryptionKey) -> bool {
+        self.key_id == key.id
     }
 }
 
@@ -54,22 +54,17 @@ impl Encrypted {
 mod tests {
     use super::*;
 
-    fn gen_encryption_key() -> EncryptionKey {
-        ChaCha20Poly1305::generate_key(&mut OsRng)
-    }
-
     #[test]
     fn encrypt_decrypt_json_roundtrip() {
-        let key = gen_encryption_key();
-        let key_id = KeyId::new("test-key");
+        let key = EncryptionKey::new([1u8; 32]);
         let original = serde_json::json!({"enabled": true, "limit": 42});
         let bytes = serde_json::to_vec(&original).unwrap();
 
-        let encrypted = Encrypted::encrypt(&bytes, &key, &key_id);
+        let encrypted = Encrypted::encrypt(&bytes, &key);
         let decrypted_bytes = encrypted.decrypt(&key).unwrap();
         let decrypted: serde_json::Value = serde_json::from_slice(&decrypted_bytes).unwrap();
 
         assert_eq!(original, decrypted);
-        assert_eq!(encrypted.key_id(), &key_id);
+        assert!(encrypted.matches_key(&key));
     }
 }

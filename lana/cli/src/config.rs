@@ -71,7 +71,6 @@ pub struct EnvSecrets {
     pub smtp_username: String,
     pub smtp_password: String,
     pub encryption_key: String,
-    pub encryption_key_id: String,
     pub deprecated_encryption_key: Option<String>,
     pub keycloak_internal_client_secret: String,
     pub keycloak_customer_client_secret: String,
@@ -85,7 +84,6 @@ impl Config {
             smtp_username,
             smtp_password,
             encryption_key,
-            encryption_key_id,
             deprecated_encryption_key,
             keycloak_internal_client_secret,
             keycloak_customer_client_secret,
@@ -110,12 +108,12 @@ impl Config {
             })
         };
 
-        config.app.encryption.key = parse_key(encryption_key)?.into();
-        config.app.encryption.key_id = encryption::KeyId::new(encryption_key_id);
+        config.app.encryption.encryption_key =
+            encryption::EncryptionKey::new(parse_key(encryption_key)?);
         config.app.encryption.deprecated_encryption_key = deprecated_encryption_key
             .map(parse_key)
             .transpose()?
-            .map(Into::into);
+            .map(encryption::EncryptionKey::new);
 
         Ok(config)
     }

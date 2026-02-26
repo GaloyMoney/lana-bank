@@ -6,7 +6,7 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
-use encryption::{Encrypted, EncryptionKey, KeyId};
+use encryption::{Encrypted, EncryptionKey};
 pub use komainu::{KomainuConfig, KomainuDirectoryConfig};
 
 use super::{
@@ -63,9 +63,9 @@ impl CustodianConfig {
         }
     }
 
-    pub(super) fn encrypt(&self, key: &EncryptionKey, key_id: &KeyId) -> Encrypted {
+    pub(super) fn encrypt(&self, key: &EncryptionKey) -> Encrypted {
         let bytes = serde_json::to_vec(self).expect("should serialize");
-        Encrypted::encrypt(&bytes, key, key_id)
+        Encrypted::encrypt(&bytes, key)
     }
 
     pub(super) fn decrypt(
@@ -78,11 +78,10 @@ impl CustodianConfig {
 
     pub(super) fn rotate_encryption_key(
         new_key: &EncryptionKey,
-        new_key_id: &KeyId,
         deprecated_key: &EncryptionKey,
         encrypted_config: &Encrypted,
     ) -> Result<Encrypted, CustodianError> {
         let config = Self::decrypt(deprecated_key, encrypted_config)?;
-        Ok(config.encrypt(new_key, new_key_id))
+        Ok(config.encrypt(new_key))
     }
 }

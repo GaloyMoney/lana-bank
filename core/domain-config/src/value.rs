@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use encryption::KeyId;
-
 use crate::{DomainConfigError, Encrypted, EncryptionKey};
 
 /// Represents a domain config value that can be either plaintext or encrypted.
@@ -28,13 +26,9 @@ impl DomainConfigValue {
     }
 
     /// Create a new encrypted value from plaintext JSON.
-    pub(crate) fn encrypted(
-        key: &EncryptionKey,
-        key_id: &KeyId,
-        plaintext: &serde_json::Value,
-    ) -> Self {
+    pub(crate) fn encrypted(key: &EncryptionKey, plaintext: &serde_json::Value) -> Self {
         let bytes = serde_json::to_vec(plaintext).expect("JSON serialization should not fail");
-        Self::Encrypted(Encrypted::encrypt(&bytes, key, key_id))
+        Self::Encrypted(Encrypted::encrypt(&bytes, key))
     }
 
     /// Returns the plaintext JSON value if this is a Plain variant.
@@ -50,11 +44,11 @@ impl DomainConfigValue {
         matches!(self, Self::Encrypted(_))
     }
 
-    /// Returns the key_id if this is an Encrypted variant.
-    pub(crate) fn key_id(&self) -> Option<&KeyId> {
+    /// Returns true if this value was encrypted with the given key.
+    pub(crate) fn matches_key(&self, key: &EncryptionKey) -> bool {
         match self {
-            Self::Encrypted(e) => Some(e.key_id()),
-            Self::Plain { .. } => None,
+            Self::Encrypted(e) => e.matches_key(key),
+            Self::Plain { .. } => false,
         }
     }
 
@@ -78,7 +72,6 @@ impl DomainConfigValue {
     pub(crate) fn rotate(
         &self,
         new_key: &EncryptionKey,
-        new_key_id: &KeyId,
         deprecated_key: &EncryptionKey,
     ) -> Result<Encrypted, DomainConfigError> {
         match self {
@@ -87,7 +80,7 @@ impl DomainConfigValue {
             )),
             Self::Encrypted(encrypted) => {
                 let bytes = encrypted.decrypt(deprecated_key)?;
-                Ok(Encrypted::encrypt(&bytes, new_key, new_key_id))
+                Ok(Encrypted::encrypt(&bytes, new_key))
             }
         }
     }

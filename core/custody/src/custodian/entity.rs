@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use encryption::{Encrypted, EncryptionKey, KeyId};
+use encryption::{Encrypted, EncryptionKey};
 
 use crate::primitives::CustodianId;
 
@@ -49,9 +49,8 @@ impl Custodian {
         &mut self,
         new_config: CustodianConfig,
         key: &EncryptionKey,
-        key_id: &KeyId,
     ) -> Result<Idempotent<()>, CustodianError> {
-        if self.encrypted_custodian_config.key_id() != key_id {
+        if !self.encrypted_custodian_config.matches_key(key) {
             return Err(CustodianError::StaleEncryptionKey);
         }
         let current_config = CustodianConfig::decrypt(key, &self.encrypted_custodian_config)?;
@@ -59,7 +58,7 @@ impl Custodian {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        let encrypted = new_config.encrypt(key, key_id);
+        let encrypted = new_config.encrypt(key);
         self.encrypted_custodian_config = encrypted.clone();
 
         self.events.push(CustodianEvent::ConfigUpdated {
@@ -69,22 +68,18 @@ impl Custodian {
         Ok(Idempotent::Executed(()))
     }
 
-    fn encrypted_config_for_key_id(&self, key_id: &KeyId) -> Option<&Encrypted> {
+    fn encrypted_config_for_key(&self, key: &EncryptionKey) -> Option<&Encrypted> {
         self.events.iter_all().rev().find_map(|event| match event {
             CustodianEvent::ConfigUpdated {
                 encrypted_custodian_config,
-            } if encrypted_custodian_config.key_id() == key_id => Some(encrypted_custodian_config),
+            } if encrypted_custodian_config.matches_key(key) => Some(encrypted_custodian_config),
             _ => None,
         })
     }
 
-    fn custodian_config(
-        &self,
-        key: &EncryptionKey,
-        key_id: &KeyId,
-    ) -> Result<CustodianConfig, CustodianError> {
+    fn custodian_config(&self, key: &EncryptionKey) -> Result<CustodianConfig, CustodianError> {
         let encrypted = self
-            .encrypted_config_for_key_id(key_id)
+            .encrypted_config_for_key(key)
             .ok_or(CustodianError::StaleEncryptionKey)?;
         CustodianConfig::decrypt(key, encrypted)
     }
@@ -92,16 +87,14 @@ impl Custodian {
     pub fn rotate_encryption_key(
         &mut self,
         new_key: &EncryptionKey,
-        key_id: &KeyId,
         deprecated_key: &EncryptionKey,
     ) -> Result<Idempotent<()>, CustodianError> {
-        if self.encrypted_custodian_config.key_id() == key_id {
+        if self.encrypted_custodian_config.matches_key(new_key) {
             return Ok(Idempotent::AlreadyApplied);
         }
 
         let encrypted_config = CustodianConfig::rotate_encryption_key(
             new_key,
-            key_id,
             deprecated_key,
             &self.encrypted_custodian_config,
         )?;
@@ -119,10 +112,9 @@ impl Custodian {
     pub fn custodian_client(
         self,
         key: &EncryptionKey,
-        key_id: &KeyId,
         provider_config: &CustodyProviderConfig,
     ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
-        self.custodian_config(key, key_id)
+        self.custodian_config(key)
             .map_err(CustodianClientError::client)?
             .custodian_client(provider_config)
     }
@@ -176,9 +168,8 @@ impl NewCustodianBuilder {
         &mut self,
         custodian_config: CustodianConfig,
         key: &EncryptionKey,
-        key_id: &KeyId,
     ) -> &mut Self {
-        self.encrypted_custodian_config = Some(custodian_config.encrypt(key, key_id));
+        self.encrypted_custodian_config = Some(custodian_config.encrypt(key));
         self
     }
 }
