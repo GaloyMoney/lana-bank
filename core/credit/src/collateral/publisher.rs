@@ -2,13 +2,10 @@ use es_entity::AtomicOperation;
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
-use crate::{
-    PublicCollateral,
-    collateral::{
-        entity::{Collateral, CollateralEvent},
-        error::CollateralError,
-        public::CoreCreditCollateralEvent,
-    },
+use crate::collateral::{
+    entity::{Collateral, CollateralEvent},
+    error::CollateralError,
+    public::{CoreCreditCollateralEvent, PublicCollateral},
 };
 
 pub struct CollateralPublisher<E>

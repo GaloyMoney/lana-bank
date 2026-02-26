@@ -223,7 +223,7 @@ where
             cala,
             journal_id,
             clock.clone(),
-            *ledger_arc.collateral_omnibus_account_ids(),
+            ledger_arc.collateral_omnibus_account_ids().account_id,
             ledger_arc.collateral_account_sets(),
         )
         .await?;

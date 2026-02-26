@@ -4,6 +4,7 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::collateral::CollateralId;
 use core_custody::CustodianId;
 use es_entity::*;
 

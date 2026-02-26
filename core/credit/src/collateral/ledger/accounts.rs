@@ -1,9 +1,40 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    ledger::{FacilityProceedsFromLiquidationAccountId, PendingCreditFacilityAccountIds},
-    primitives::CalaAccountId,
-};
+use cala_ledger::AccountId as CalaAccountId;
+use core_credit_collection::PaymentSourceAccountId;
+
+#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(transparent)]
+pub struct FacilityProceedsFromLiquidationAccountId(CalaAccountId);
+
+impl FacilityProceedsFromLiquidationAccountId {
+    pub fn new() -> Self {
+        Self(CalaAccountId::new())
+    }
+
+    pub const fn into_inner(self) -> CalaAccountId {
+        self.0
+    }
+}
+
+impl Default for FacilityProceedsFromLiquidationAccountId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<FacilityProceedsFromLiquidationAccountId> for PaymentSourceAccountId {
+    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
+        Self::new(account.0)
+    }
+}
+
+impl From<FacilityProceedsFromLiquidationAccountId> for CalaAccountId {
+    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
+        account.0
+    }
+}
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
@@ -39,12 +70,16 @@ pub struct FacilityLedgerAccountIdsForLiquidation {
     pub uncovered_outstanding_account_id: CalaAccountId,
 }
 
-impl From<PendingCreditFacilityAccountIds> for FacilityLedgerAccountIdsForLiquidation {
-    fn from(ids: PendingCreditFacilityAccountIds) -> Self {
+impl FacilityLedgerAccountIdsForLiquidation {
+    pub fn new(
+        proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
+        payment_holding_account_id: CalaAccountId,
+        uncovered_outstanding_account_id: CalaAccountId,
+    ) -> Self {
         Self {
-            proceeds_from_liquidation_account_id: ids.facility_proceeds_from_liquidation_account_id,
-            payment_holding_account_id: ids.facility_payment_holding_account_id,
-            uncovered_outstanding_account_id: ids.facility_uncovered_outstanding_account_id,
+            proceeds_from_liquidation_account_id,
+            payment_holding_account_id,
+            uncovered_outstanding_account_id,
         }
     }
 }

@@ -2,6 +2,7 @@ use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub const CUSTODY_KEY_ROTATION: audit::SystemActor =
     audit::SystemActor::new("custody-key-rotation");
+pub const CUSTODIAN_SYNC: audit::SystemActor = audit::SystemActor::new("custodian-sync");
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 

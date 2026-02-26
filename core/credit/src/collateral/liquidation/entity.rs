@@ -1,14 +1,16 @@
 use derive_builder::Builder;
-#[cfg(feature = "json-schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use cala_ledger::TransactionId as LedgerTxId;
+use core_price::PriceOfOneBTC;
+use money::{Satoshis, UsdCents};
 
 use es_entity::*;
 
-use crate::{collateral::ledger::LiquidationProceedsAccountIds, primitives::*};
+use crate::collateral::{ledger::LiquidationProceedsAccountIds, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "LiquidationId")]
 pub enum LiquidationEvent {
@@ -198,7 +200,7 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
 mod tests {
     use super::*;
     use crate::{
-        ledger::FacilityProceedsFromLiquidationAccountId,
+        collateral::ledger::FacilityProceedsFromLiquidationAccountId,
         primitives::{CalaAccountId, PriceOfOneBTC, Satoshis, UsdCents},
     };
 

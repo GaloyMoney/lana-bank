@@ -20,10 +20,8 @@ use governance::GovernanceEvent;
 
 use crate::collateral::public::CoreCreditCollateralEvent;
 use crate::{
-    collateral::Collaterals,
-    credit_facility::CreditFacilityRepo,
-    primitives::{CollateralId, CreditFacilityId, LiquidationId},
-    public::CoreCreditEvent,
+    CollateralId, LiquidationId, collateral::Collaterals, credit_facility::CreditFacilityRepo,
+    primitives::CreditFacilityId, public::CoreCreditEvent,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]

@@ -1,32 +1,28 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
-use money::UsdCents;
-#[cfg(feature = "json-schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
+use cala_ledger::TransactionId as LedgerTxId;
+use core_credit_collection::PaymentId;
+use core_custody::WalletId as CustodyWalletId;
+use core_price::PriceOfOneBTC;
 use es_entity::*;
+use money::{Satoshis, UsdCents};
 
-use crate::primitives::{
-    CalaAccountId, CollateralDirection, CollateralId, CustodyWalletId, LedgerTxId, LiquidationId,
-    PaymentId, PriceOfOneBTC, Satoshis,
-};
-
-use super::primitives::SecuredLoanId;
-
-use super::{
-    CollateralUpdate, RecordProceedsFromLiquidationData,
+use crate::collateral::{
+    CalaAccountId, CollateralDirection, CollateralId, CollateralUpdate, Liquidation, LiquidationId,
+    RecordProceedsFromLiquidationData, SecuredLoanId,
     error::CollateralError,
     ledger::{
         CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
         LiquidationProceedsAccountIds,
     },
-    liquidation::{Liquidation, NewLiquidation},
+    liquidation::NewLiquidation,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CollateralId")]
 pub enum CollateralEvent {
@@ -88,7 +84,7 @@ pub struct Collateral {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct CollateralAdjustment {
     pub tx_id: LedgerTxId,
     pub abs_diff: Satoshis,
@@ -424,10 +420,7 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        ledger::FacilityProceedsFromLiquidationAccountId,
-        primitives::{PriceOfOneBTC, UsdCents},
-    };
+    use crate::collateral::ledger::FacilityProceedsFromLiquidationAccountId;
 
     fn default_account_ids() -> CollateralLedgerAccountIds {
         CollateralLedgerAccountIds::new()

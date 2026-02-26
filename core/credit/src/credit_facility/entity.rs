@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use crate::collateral::ledger::FacilityProceedsFromLiquidationAccountId;
+use crate::collateral::{CollateralId, LiquidationId};
 use crate::{ledger::*, primitives::*};
 
 use core_credit_collection::NewObligation;
