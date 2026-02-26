@@ -25,6 +25,15 @@ Cypress.on("window:before:load", (win) => {
     [data-nextjs-toast-wrapper] {
       display: none !important;
     }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0s !important;
+      animation-delay: 0s !important;
+      transition-duration: 0s !important;
+      transition-delay: 0s !important;
+    }
   `
   win.document.head.appendChild(style)
 })
