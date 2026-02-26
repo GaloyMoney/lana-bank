@@ -19,7 +19,10 @@ use crate::{
 };
 pub use entry::*;
 use error::CreditFacilityHistoryError;
-use jobs::*;
+use jobs::{
+    credit_facility_history, update_collateral_history, update_collection_history,
+    update_credit_history,
+};
 use repo::HistoryRepo;
 
 #[derive(Default, serde::Deserialize, serde::Serialize)]
@@ -224,14 +227,24 @@ where
     {
         let repo = Arc::new(HistoryRepo::new(pool));
 
-        let update_history_spawner =
-            jobs::update_history::UpdateHistoryJobInitializer::new(repo.clone());
-        let update_history_spawner = job.add_initializer(update_history_spawner);
+        let update_credit_history = job.add_initializer(
+            update_credit_history::UpdateCreditHistoryJobInitializer::new(repo.clone()),
+        );
+        let update_collateral_history = job.add_initializer(
+            update_collateral_history::UpdateCollateralHistoryJobInitializer::new(repo.clone()),
+        );
+        let update_collection_history = job.add_initializer(
+            update_collection_history::UpdateCollectionHistoryJobInitializer::new(repo.clone()),
+        );
         outbox
             .register_event_handler(
                 job,
                 OutboxEventJobConfig::new(credit_facility_history::HISTORY_PROJECTION),
-                credit_facility_history::HistoryProjectionHandler::new(update_history_spawner),
+                credit_facility_history::HistoryProjectionHandler::new(
+                    update_credit_history,
+                    update_collateral_history,
+                    update_collection_history,
+                ),
             )
             .await?;
 
