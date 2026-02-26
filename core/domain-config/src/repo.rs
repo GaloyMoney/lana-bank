@@ -15,11 +15,7 @@ use crate::{
     err = "DomainConfigError",
     columns(
         key(ty = "DomainConfigKey", list_by),
-        visibility(
-            ty = "Visibility",
-            list_for(by(key)),
-            update(persist = false)
-        ),
+        visibility(ty = "Visibility", list_for(by(key)), update(persist = false)),
         encrypted(ty = "bool", list_for(by(id)), update(persist = false))
     ),
     tbl_prefix = "core"

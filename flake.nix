@@ -287,6 +287,7 @@
         DATABASE_URL = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";
         PG_CON = "${DATABASE_URL}";
         ENCRYPTION_KEY = "0000000000000000000000000000000000000000000000000000000000000000";
+        ENCRYPTION_KEY_ID = "dev-key";
       };
     in
       with pkgs; {
@@ -390,6 +391,7 @@
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
+                export ENCRYPTION_KEY_ID="${devEnvVars.ENCRYPTION_KEY_ID}"
                 export DAGSTER="''${DAGSTER:-"true"}"
                 export GOTENBERG="''${GOTENBERG:-"false"}"
                 export MAILCRAB="''${MAILCRAB:-"false"}"
@@ -505,6 +507,7 @@
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
+                export ENCRYPTION_KEY_ID="${devEnvVars.ENCRYPTION_KEY_ID}"
                 # Use info level to capture both success and error logs
                 export RUST_LOG="info"
 
@@ -907,6 +910,7 @@
             ];
 
             ENCRYPTION_KEY = devEnvVars.ENCRYPTION_KEY;
+            ENCRYPTION_KEY_ID = devEnvVars.ENCRYPTION_KEY_ID;
 
             buildPhase = ''
               echo "Generating default config..."
