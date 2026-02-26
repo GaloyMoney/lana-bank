@@ -536,7 +536,7 @@ where
 
     for mut entity in configs.into_iter() {
         if entity
-            .rotate_encryption_key(new_key, &new_key_id, deprecated_key)?
+            .rotate_encryption_key(new_key, new_key_id, deprecated_key)?
             .did_execute()
         {
             updated_configs.push(entity);
