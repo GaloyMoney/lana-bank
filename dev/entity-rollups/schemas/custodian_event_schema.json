@@ -11,6 +11,9 @@
           },
           "type": "array"
         },
+        "key_id": {
+          "$ref": "#/$defs/KeyId"
+        },
         "nonce": {
           "items": {
             "format": "uint8",
@@ -23,9 +26,13 @@
       },
       "required": [
         "ciphertext",
-        "nonce"
+        "nonce",
+        "key_id"
       ],
       "type": "object"
+    },
+    "KeyId": {
+      "type": "string"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -58,14 +65,7 @@
     {
       "properties": {
         "encrypted_custodian_config": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Encrypted"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/Encrypted"
         },
         "type": {
           "const": "config_updated",
@@ -73,7 +73,8 @@
         }
       },
       "required": [
-        "type"
+        "type",
+        "encrypted_custodian_config"
       ],
       "type": "object"
     }

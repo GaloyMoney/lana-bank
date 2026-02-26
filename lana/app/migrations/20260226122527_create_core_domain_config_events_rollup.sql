@@ -34,7 +34,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'updated') THEN
+  IF event_type NOT IN ('initialized', 'updated', 'key_rotated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -69,6 +69,8 @@ BEGIN
       new_row.key := (NEW.event ->> 'key');
       new_row.visibility := (NEW.event ->> 'visibility');
     WHEN 'updated' THEN
+      new_row.value := (NEW.event -> 'value');
+    WHEN 'key_rotated' THEN
       new_row.value := (NEW.event -> 'value');
   END CASE;
 
