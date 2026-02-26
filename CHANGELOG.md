@@ -1,3 +1,49 @@
+## [0.44.0] - 2026-02-26
+
+### 🚀 Features
+
+- Add `make seed-data` to populate DB and exit (#3955)
+- *(collection)* Migrate obligation lifecycle to EndOfDay batch processing (#3926)
+
+### 🐛 Bug Fixes
+
+- Use event-driven waiting in create_pending_facility test helper (#3945)
+- Disable animations in Cypress tests to prevent flaky inputs (#3987)
+- Validate effective dates for credit facility payments (#3699)
+- *(ci)* Add --no-build to Netlify commit alias deploy (#3991)
+
+### 💼 Other
+
+- Selective list_for(by(...)) for compile time reduction (#3939)
+
+### 🚜 Refactor
+
+- Introduce CoreCreditCollateralEvent (#3941)
+- Inline seed_only check into bootstrap block (#3969)
+- Extract core-accounting-primitives to break serial compilation chain (#3918)
+- Break up event handler into handler + command job (#3869)
+
+### 📚 Documentation
+
+- Accounting and product module es coverage (#3963)
+
+### ⚡ Performance
+
+- Use _in_op repo methods when transaction already in scope (#3986)
+
+### 🧪 Testing
+
+- AccrualPosted event (#3923)
+- FacilityCollateralizationChanged event (#3967)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.43.0 [ci skip] (#3961)
+- Introduce CoreCreditCollateral Action and Object (#3954)
+- Bump cala-* to 0.13.19 (#3972)
+- Switch to pnpm for docs (#3992)
+- Make product module COA config immutable (#3932)
+- Fix pnpm run syntax in update docs (#3995)
 ## [0.43.0] - 2026-02-24
 
 ### 🚀 Features
