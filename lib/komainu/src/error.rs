@@ -26,7 +26,7 @@ impl ErrorSeverity for KomainuError {
     fn severity(&self) -> Level {
         match self {
             Self::ReqwestError(_) => Level::ERROR,
-            Self::SecretKey => Level::ERROR,
+            Self::SecretKey => Level::WARN,
             Self::KomainuError { .. } => Level::ERROR,
             Self::JsonFormat(_) => Level::ERROR,
             Self::MissingWebhookHeaders => Level::WARN,
