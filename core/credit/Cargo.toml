@@ -36,6 +36,7 @@ audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
+command-job = { workspace = true }
 cloud-storage = { workspace = true }
 public-id = { workspace = true }
 
