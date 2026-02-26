@@ -11,6 +11,7 @@ use tracing::{event, instrument};
 use crate::helpers;
 
 const ONE_DAY: Duration = Duration::from_secs(86400);
+const TEN_MINUTES: Duration = Duration::from_secs(10 * 60);
 const MIN_EVENT_WAIT: Duration = Duration::from_millis(100);
 const MAX_EVENT_WAIT: Duration = Duration::from_secs(2);
 
@@ -151,6 +152,7 @@ pub async fn timely_payments_scenario(
 
         if facility.interest_accrual_cycle_in_progress().is_some() {
             tokio::time::sleep(MIN_EVENT_WAIT).await;
+            clock_ctrl.advance(TEN_MINUTES).await;
             continue;
         }
 
