@@ -12,6 +12,7 @@ use core_deposit::{CoreDepositAction, CoreDepositObject, GovernanceAction, Gover
 use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateCustomerActivityStatusConfig {
     pub closing_time: DateTime<Utc>,
 }

@@ -16,6 +16,7 @@ use governance::GovernanceEvent;
 use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateLastActivityDateConfig {
     pub deposit_account_id: DepositAccountId,
     pub recorded_at: DateTime<Utc>,

@@ -8,6 +8,7 @@ use keycloak_client::KeycloakClient;
 use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct SyncKeycloakEmailConfig {
     pub party_id: PartyId,
     pub email: String,
