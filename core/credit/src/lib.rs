@@ -328,6 +328,7 @@ where
             facilities_arc.clone(),
             governance_arc.clone(),
             ledger_arc.clone(),
+            clock.clone(),
         );
         let approve_disbursal_arc = Arc::new(approve_disbursal);
 

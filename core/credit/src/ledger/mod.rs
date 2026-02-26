@@ -798,7 +798,7 @@ impl CreditLedger {
 
     pub async fn handle_activation_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         CreditFacilityActivation {
             credit_facility_id,
             tx_id,
@@ -866,7 +866,7 @@ impl CreditLedger {
 
     async fn initial_disbursal_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         InitialDisbursalOnActivation {
             id: disbursal_id,
             amount,
@@ -903,7 +903,7 @@ impl CreditLedger {
 
     async fn activate_credit_facility_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         tx_id: LedgerTxId,
         account_ids: CreditFacilityLedgerAccountIds,
         facility_amount: UsdCents,
@@ -932,7 +932,7 @@ impl CreditLedger {
 
     async fn add_structuring_fee_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         StructuringFeeOnActivation { tx_id, amount }: StructuringFeeOnActivation,
         account_ids: CreditFacilityLedgerAccountIds,
         debit_account_id: CalaAccountId,
@@ -1067,7 +1067,7 @@ impl CreditLedger {
 
     pub async fn cancel_disbursal_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         entity_id: DisbursalId,
         tx_id: LedgerTxId,
         amount: UsdCents,
@@ -1096,7 +1096,7 @@ impl CreditLedger {
 
     pub async fn settle_disbursal_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         entity_id: DisbursalId,
         disbursed_into_account_id: CalaAccountId,
         obligation: Obligation,
@@ -1376,7 +1376,7 @@ impl CreditLedger {
 
     async fn create_accounts_for_credit_facility_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         account_ids: CreditFacilityLedgerAccountIds,
         customer_type: CustomerType,
@@ -1564,7 +1564,7 @@ impl CreditLedger {
 
     async fn attach_charts_account_set_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         internal_account_set_id: CalaAccountSetId,
         new_parent_account_set_id: CalaAccountSetId,
         old_parent_account_set_id: Option<CalaAccountSetId>,
@@ -1586,7 +1586,7 @@ impl CreditLedger {
 
     pub(crate) async fn attach_chart_of_accounts_account_sets_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         new_integration_config: &ResolvedChartOfAccountsIntegrationConfig,
         old_integration_config: Option<&ResolvedChartOfAccountsIntegrationConfig>,
     ) -> Result<(), CreditLedgerError> {
@@ -1785,7 +1785,7 @@ impl CreditLedger {
 
     pub async fn attach_short_term_disbursed_receivable_account_sets_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         new_integration_meta: &ShortTermDisbursedIntegrationMeta,
         old_integration_meta: Option<&ShortTermDisbursedIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {
@@ -1872,7 +1872,7 @@ impl CreditLedger {
 
     pub async fn attach_long_term_disbursed_receivable_account_sets_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         new_integration_meta: &LongTermDisbursedIntegrationMeta,
         old_integration_meta: Option<&LongTermDisbursedIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {
@@ -1959,7 +1959,7 @@ impl CreditLedger {
 
     async fn attach_short_term_interest_receivable_account_sets_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         new_integration_meta: &ShortTermInterestIntegrationMeta,
         old_integration_meta: Option<&ShortTermInterestIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {
@@ -2046,7 +2046,7 @@ impl CreditLedger {
 
     async fn attach_long_term_interest_receivable_account_sets_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         new_integration_meta: &LongTermInterestIntegrationMeta,
         old_integration_meta: Option<&LongTermInterestIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {
@@ -2133,7 +2133,7 @@ impl CreditLedger {
 
     async fn attach_overdue_disbursed_receivable_account_sets_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         new_integration_meta: &OverdueDisbursedIntegrationMeta,
         old_integration_meta: Option<&OverdueDisbursedIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {

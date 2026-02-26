@@ -913,7 +913,7 @@ impl DepositLedger {
     #[instrument(name = "deposit_ledger.attach_charts_account_set_in_op", skip_all)]
     async fn attach_charts_account_set_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         internal_account_set_id: CalaAccountSetId,
         new_parent_account_set_id: CalaAccountSetId,
         old_parent_account_set_id: Option<CalaAccountSetId>,
@@ -940,7 +940,7 @@ impl DepositLedger {
     )]
     pub(crate) async fn attach_chart_of_accounts_account_sets_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         new_integration_config: &ResolvedChartOfAccountsIntegrationConfig,
         old_integration_config: Option<&ResolvedChartOfAccountsIntegrationConfig>,
     ) -> Result<(), DepositLedgerError> {

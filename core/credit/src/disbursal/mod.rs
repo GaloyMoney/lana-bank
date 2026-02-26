@@ -37,6 +37,7 @@ where
     authz: Arc<Perms>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     governance: Arc<Governance<Perms, E>>,
+    clock: es_entity::clock::ClockHandle,
 }
 
 impl<Perms, E> Clone for Disbursals<Perms, E>
@@ -52,6 +53,7 @@ where
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             collections: self.collections.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -86,10 +88,11 @@ where
             .await?;
 
         Ok(Self {
-            repo: Arc::new(DisbursalRepo::new(pool, publisher, clock)),
+            repo: Arc::new(DisbursalRepo::new(pool, publisher, clock.clone())),
             authz,
             collections,
             governance,
+            clock,
         })
     }
 
@@ -122,13 +125,14 @@ where
     )]
     pub(super) async fn create_pre_approved_disbursal_in_op(
         &self,
-        db: &mut es_entity::DbOpWithTime<'_>,
+        db: &mut es_entity::DbOp<'_>,
+        effective: chrono::NaiveDate,
         new_disbursal: NewDisbursal,
     ) -> Result<Disbursal, DisbursalError> {
         let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
         let new_obligation = disbursal
-            .approval_process_concluded_for_initial_disbursal(db.now().date_naive())
+            .approval_process_concluded_for_initial_disbursal(effective)
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
@@ -209,9 +213,10 @@ where
 
     pub(super) async fn conclude_approval_process_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         disbursal_id: DisbursalId,
         approved: bool,
+        effective: chrono::NaiveDate,
     ) -> Result<ApprovalProcessOutcome, DisbursalError> {
         self.authz
             .audit()
@@ -226,7 +231,7 @@ where
 
         let mut disbursal = self.repo.find_by_id_in_op(&mut *op, disbursal_id).await?;
 
-        let ret = match disbursal.approval_process_concluded(approved, op.now().date_naive()) {
+        let ret = match disbursal.approval_process_concluded(approved, effective) {
             es_entity::Idempotent::AlreadyApplied => {
                 ApprovalProcessOutcome::AlreadyApplied(disbursal)
             }

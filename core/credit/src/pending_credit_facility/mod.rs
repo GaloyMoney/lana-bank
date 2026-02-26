@@ -250,7 +250,7 @@ where
     ]
     pub(crate) async fn complete_in_op(
         &self,
-        db: &mut es_entity::DbOpWithTime<'_>,
+        db: &mut es_entity::DbOp<'_>,
         pending_credit_facility_id: PendingCreditFacilityId,
     ) -> Result<PendingCreditFacilityCompletionOutcome, PendingCreditFacilityError> {
         let mut pending_facility = self

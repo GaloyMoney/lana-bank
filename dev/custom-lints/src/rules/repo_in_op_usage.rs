@@ -259,7 +259,7 @@ impl<'a> Visit<'a> for RepoCallChecker<'a> {
                 return;
             }
 
-            let before_commit = self.max_line.map_or(true, |max| call_line <= max);
+            let before_commit = self.max_line.is_none_or(|max| call_line <= max);
             if before_commit {
                 let hint = if before_begin_op {
                     format!(

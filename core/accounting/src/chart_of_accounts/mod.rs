@@ -226,7 +226,6 @@ where
         };
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
             .create_all_in_op(&mut op, new_account_sets)
@@ -292,7 +291,6 @@ where
         let account_set_id = new_account_set.id;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
@@ -338,7 +336,6 @@ where
         let account_set_id = new_account_set.id;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
