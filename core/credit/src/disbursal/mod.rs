@@ -134,7 +134,7 @@ where
 
         self.collections
             .obligations()
-            .create_with_jobs_in_op(db, new_obligation)
+            .create_in_op(db, new_obligation)
             .await?;
 
         self.repo.update_in_op(db, &mut disbursal).await?;
@@ -234,7 +234,7 @@ where
                 let obligation = self
                     .collections
                     .obligations()
-                    .create_with_jobs_in_op(op, new_obligation)
+                    .create_in_op(op, new_obligation)
                     .await?;
                 self.repo.update_in_op(op, &mut disbursal).await?;
                 ApprovalProcessOutcome::Approved((disbursal, obligation))

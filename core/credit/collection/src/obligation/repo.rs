@@ -23,7 +23,16 @@ use super::{entity::*, error::*};
             list_for(by(created_at)),
             update(persist = false)
         ),
-        reference(ty = "String", create(accessor = "reference()")),
+        reference(
+            ty = "String",
+            create(accessor = "reference()"),
+            update(persist = false)
+        ),
+        next_transition_date(
+            ty = "Option<chrono::NaiveDate>",
+            create(accessor = "next_transition_date()"),
+            update(accessor = "next_transition_date()")
+        ),
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -73,5 +82,33 @@ where
         self.publisher
             .publish_obligation_in_op(op, entity, new_events)
             .await
+    }
+
+    pub async fn list_ids_needing_transition(
+        &self,
+        day: chrono::NaiveDate,
+        after: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
+        limit: i64,
+    ) -> Result<Vec<(ObligationId, chrono::DateTime<chrono::Utc>)>, ObligationError> {
+        let (after_created_at, after_id) = match after {
+            Some((ts, id)) => (Some(ts), Some(id)),
+            None => (None, None),
+        };
+        let rows = sqlx::query!(
+            r#"SELECT id AS "id: ObligationId", created_at
+               FROM core_obligations
+               WHERE next_transition_date IS NOT NULL
+                 AND next_transition_date <= $1
+                 AND (($2::timestamptz IS NULL) OR (created_at, id) > ($2, $3))
+               ORDER BY created_at, id
+               LIMIT $4"#,
+            day,
+            after_created_at,
+            after_id as Option<ObligationId>,
+            limit,
+        )
+        .fetch_all(self.pool())
+        .await?;
+        Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }
 }

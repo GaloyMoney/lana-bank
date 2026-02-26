@@ -9,11 +9,34 @@ use core_credit_collection::{
     PaymentSourceAccountId,
 };
 use core_credit_terms::EffectiveDate;
+use core_time_events::CoreTimeEvent;
 use es_entity::DbOp;
 use helpers::event::{DummyEvent, expect_event};
 use money::UsdCents;
+use obix::Outbox;
 
 use helpers::TestContext;
+
+async fn publish_end_of_day(
+    outbox: &Outbox<DummyEvent>,
+    pool: &sqlx::PgPool,
+    clock: &es_entity::clock::ClockHandle,
+    day: chrono::NaiveDate,
+) -> anyhow::Result<()> {
+    let mut op = DbOp::init_with_clock(pool, clock).await?;
+    outbox
+        .publish_persisted_in_op(
+            &mut op,
+            CoreTimeEvent::EndOfDay {
+                day,
+                closing_time: chrono::Utc::now(),
+                timezone: chrono_tz::UTC,
+            },
+        )
+        .await?;
+    op.commit().await?;
+    Ok(())
+}
 
 async fn create_obligation_with_dates(
     ctx: &TestContext,
@@ -49,7 +72,7 @@ async fn create_obligation_with_dates(
     let obligation = ctx
         .collections
         .obligations()
-        .create_with_jobs_in_op(&mut op, new_obligation)
+        .create_in_op(&mut op, new_obligation)
         .await?;
     op.commit().await?;
 
@@ -74,7 +97,7 @@ async fn create_obligation(
 /// `ObligationCreated` is published when a new obligation is created.
 ///
 /// # Trigger
-/// `Obligations::create_with_jobs_in_op`
+/// `Obligations::create_in_op`
 ///
 /// # Consumers
 /// - `RepaymentPlan::process_collection_event` - adds a new repayment entry
@@ -115,181 +138,129 @@ async fn obligation_created_event_on_create() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// `ObligationDue` is published when an obligation moves to the due state.
+/// Obligation lifecycle transitions through Due → Overdue → Defaulted via EndOfDay events.
 ///
-/// # Trigger
-/// `ObligationDueJobRunner::record_due` (scheduled by `Obligations::create_withjobs_in_op`)
+/// Creates a single obligation with distinct dates for each transition, then publishes
+/// an EndOfDay event for each date and verifies the corresponding outbox event.
 ///
-/// # Consumers
-/// - `RepaymentPlan::process_collection_event` - marks repayment entry as `Due`
-/// - `CreditFacilityRepaymentPlanJob` - rebuilds the repayment plan projection
-/// - Dagster dbt pipeline - `int_core_obligation_events_rollup_sequence.sql`
-///
-/// # Event Contents
-/// - `id`: Unique obligation identifier
-/// - `beneficiary_id`: Beneficiary identifier
-/// - `initial_amount`: Original obligation amount
-/// - `outstanding_amount`: Current amount owed
-/// - `due_at`: Effective due date
+/// # Events verified
+/// - `ObligationDue` — consumers: RepaymentPlan, CreditFacilityRepaymentPlanJob, Dagster
+/// - `ObligationOverdue` — consumers: RepaymentPlan, CreditFacilityRepaymentPlanJob, Dagster
+/// - `ObligationDefaulted` — consumers: RepaymentPlan, CreditFacilityRepaymentPlanJob, Dagster
 #[tokio::test]
-async fn obligation_due_event_on_due_job() -> anyhow::Result<()> {
+#[serial_test::file_serial(core_credit_collection_shared_jobs)]
+async fn obligation_lifecycle_transitions() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
-    // The due/overdue/defaulted jobs run via the poller.
-    ctx.jobs.start_poll().await?;
-
-    let beneficiary_id = BeneficiaryId::new();
-    let amount = UsdCents::from(100_000);
-    // Due today so the scheduled job fires immediately.
-    let due_date: EffectiveDate = ctx.clock.today().into();
-
-    let (obligation, recorded) = expect_event(
-        &ctx.outbox,
-        || create_obligation_with_dates(&ctx, beneficiary_id, amount, due_date, None, None),
-        |result, e| match e {
-            DummyEvent::CoreCreditCollection(CoreCreditCollectionEvent::ObligationDue {
-                entity,
-            }) if entity.id == result.id => Some(entity.clone()),
-            _ => None,
-        },
-    )
-    .await?;
-
-    assert_eq!(recorded.beneficiary_id, beneficiary_id);
-    assert_eq!(recorded.initial_amount, amount);
-    assert_eq!(recorded.outstanding_amount, amount);
-    assert_eq!(recorded.due_at, due_date);
-    assert!(recorded.overdue_at.is_none());
-    assert!(recorded.defaulted_at.is_none());
-    assert_eq!(recorded.id, obligation.id);
-
-    ctx.jobs.shutdown().await?;
-    Ok(())
-}
-
-/// `ObligationOverdue` is published when an obligation moves to the overdue state.
-///
-/// # Trigger
-/// `ObligationOverdueJobRunner::record_overdue` (scheduled by `ObligationDueJobRunner::record_due`)
-///
-/// # Consumers
-/// - `RepaymentPlan::process_collection_event` - marks repayment entry as `Overdue`
-/// - `CreditFacilityRepaymentPlanJob` - rebuilds the repayment plan projection
-/// - Dagster dbt pipeline - `int_core_obligation_events_rollup_sequence.sql`
-///
-/// # Event Contents
-/// - `id`: Unique obligation identifier
-/// - `beneficiary_id`: Beneficiary identifier
-/// - `outstanding_amount`: Current amount owed
-/// - `overdue_at`: Effective overdue date
-#[tokio::test]
-async fn obligation_overdue_event_on_overdue_job() -> anyhow::Result<()> {
-    let mut ctx = helpers::setup().await?;
-    // The due/overdue/defaulted jobs run via the poller.
     ctx.jobs.start_poll().await?;
 
     let beneficiary_id = BeneficiaryId::new();
     let amount = UsdCents::from(100_000);
     let today = ctx.clock.today();
-    // Set due in the past and overdue today to trigger the overdue job without advancing time.
-    let due_date: EffectiveDate = today
-        .checked_sub_days(chrono::Days::new(1))
-        .expect("due date underflow")
+    let due_date: EffectiveDate = today.into();
+    let overdue_date: EffectiveDate = today
+        .checked_add_days(chrono::Days::new(1))
+        .expect("overflow")
         .into();
-    let overdue_date: EffectiveDate = today.into();
+    let defaulted_date: EffectiveDate = today
+        .checked_add_days(chrono::Days::new(2))
+        .expect("overflow")
+        .into();
 
-    let (obligation, recorded) = expect_event(
-        &ctx.outbox,
-        || {
-            create_obligation_with_dates(
-                &ctx,
-                beneficiary_id,
-                amount,
-                due_date,
-                Some(overdue_date),
-                None,
-            )
-        },
-        |result, e| match e {
-            DummyEvent::CoreCreditCollection(CoreCreditCollectionEvent::ObligationOverdue {
-                entity,
-            }) if entity.id == result.id => Some(entity.clone()),
-            _ => None,
-        },
+    let obligation = create_obligation_with_dates(
+        &ctx,
+        beneficiary_id,
+        amount,
+        due_date,
+        Some(overdue_date),
+        Some(defaulted_date),
     )
     .await?;
+    let obligation_id = obligation.id;
 
-    assert_eq!(recorded.beneficiary_id, beneficiary_id);
-    assert_eq!(recorded.initial_amount, amount);
-    assert_eq!(recorded.outstanding_amount, amount);
-    assert_eq!(recorded.due_at, due_date);
-    assert_eq!(recorded.overdue_at, Some(overdue_date));
-    assert!(recorded.defaulted_at.is_none());
-    assert_eq!(recorded.id, obligation.id);
+    // Day 1: EndOfDay(due_date) → ObligationDue
+    {
+        let outbox = ctx.outbox.clone();
+        let pool = ctx.pool.clone();
+        let clock = ctx.clock.clone();
+        let day = chrono::NaiveDate::from(due_date);
 
-    ctx.jobs.shutdown().await?;
-    Ok(())
-}
+        let (_, recorded) = expect_event(
+            &ctx.outbox,
+            move || async move {
+                publish_end_of_day(&outbox, &pool, &clock, day).await?;
+                Ok::<_, anyhow::Error>(())
+            },
+            move |_, e| match e {
+                DummyEvent::CoreCreditCollection(CoreCreditCollectionEvent::ObligationDue {
+                    entity,
+                }) if entity.id == obligation_id => Some(entity.clone()),
+                _ => None,
+            },
+        )
+        .await?;
 
-/// `ObligationDefaulted` is published when an obligation moves to the defaulted state.
-///
-/// # Trigger
-/// `ObligationDefaultedJobRunner::record_defaulted` (scheduled by `ObligationOverdueJobRunner::record_overdue`)
-///
-/// # Consumers
-/// - `RepaymentPlan::process_collection_event` - marks repayment entry as `Defaulted`
-/// - `CreditFacilityRepaymentPlanJob` - rebuilds the repayment plan projection
-/// - Dagster dbt pipeline - `int_core_obligation_events_rollup_sequence.sql`
-///
-/// # Event Contents
-/// - `id`: Unique obligation identifier
-/// - `beneficiary_id`: Beneficiary identifier
-/// - `outstanding_amount`: Current amount owed
-/// - `defaulted_at`: Effective defaulted date
-#[tokio::test]
-async fn obligation_defaulted_event_on_defaulted_job() -> anyhow::Result<()> {
-    let mut ctx = helpers::setup().await?;
-    // The due/overdue/defaulted jobs run via the poller.
-    ctx.jobs.start_poll().await?;
+        assert_eq!(recorded.id, obligation_id);
+        assert_eq!(recorded.beneficiary_id, beneficiary_id);
+        assert_eq!(recorded.initial_amount, amount);
+        assert_eq!(recorded.outstanding_amount, amount);
+        assert_eq!(recorded.due_at, due_date);
+    }
 
-    let beneficiary_id = BeneficiaryId::new();
-    let amount = UsdCents::from(100_000);
-    let today = ctx.clock.today();
-    // Set due in the past and overdue/defaulted today to trigger the defaulted job immediately.
-    let due_date: EffectiveDate = today
-        .checked_sub_days(chrono::Days::new(1))
-        .expect("due date underflow")
-        .into();
-    let overdue_date: EffectiveDate = today.into();
-    let defaulted_date: EffectiveDate = today.into();
+    // Day 2: EndOfDay(overdue_date) → ObligationOverdue
+    {
+        let outbox = ctx.outbox.clone();
+        let pool = ctx.pool.clone();
+        let clock = ctx.clock.clone();
+        let day = chrono::NaiveDate::from(overdue_date);
 
-    let (obligation, recorded) = expect_event(
-        &ctx.outbox,
-        || {
-            create_obligation_with_dates(
-                &ctx,
-                beneficiary_id,
-                amount,
-                due_date,
-                Some(overdue_date),
-                Some(defaulted_date),
-            )
-        },
-        |result, e| match e {
-            DummyEvent::CoreCreditCollection(CoreCreditCollectionEvent::ObligationDefaulted {
-                entity,
-            }) if entity.id == result.id => Some(entity.clone()),
-            _ => None,
-        },
-    )
-    .await?;
+        let (_, recorded) = expect_event(
+            &ctx.outbox,
+            move || async move {
+                publish_end_of_day(&outbox, &pool, &clock, day).await?;
+                Ok::<_, anyhow::Error>(())
+            },
+            move |_, e| match e {
+                DummyEvent::CoreCreditCollection(
+                    CoreCreditCollectionEvent::ObligationOverdue { entity },
+                ) if entity.id == obligation_id => Some(entity.clone()),
+                _ => None,
+            },
+        )
+        .await?;
 
-    assert_eq!(recorded.beneficiary_id, beneficiary_id);
-    assert_eq!(recorded.initial_amount, amount);
-    assert_eq!(recorded.outstanding_amount, amount);
-    assert_eq!(recorded.due_at, due_date);
-    assert_eq!(recorded.overdue_at, Some(overdue_date));
-    assert_eq!(recorded.defaulted_at, Some(defaulted_date));
-    assert_eq!(recorded.id, obligation.id);
+        assert_eq!(recorded.id, obligation_id);
+        assert_eq!(recorded.beneficiary_id, beneficiary_id);
+        assert_eq!(recorded.outstanding_amount, amount);
+        assert_eq!(recorded.overdue_at, Some(overdue_date));
+    }
+
+    // Day 3: EndOfDay(defaulted_date) → ObligationDefaulted
+    {
+        let outbox = ctx.outbox.clone();
+        let pool = ctx.pool.clone();
+        let clock = ctx.clock.clone();
+        let day = chrono::NaiveDate::from(defaulted_date);
+
+        let (_, recorded) = expect_event(
+            &ctx.outbox,
+            move || async move {
+                publish_end_of_day(&outbox, &pool, &clock, day).await?;
+                Ok::<_, anyhow::Error>(())
+            },
+            move |_, e| match e {
+                DummyEvent::CoreCreditCollection(
+                    CoreCreditCollectionEvent::ObligationDefaulted { entity },
+                ) if entity.id == obligation_id => Some(entity.clone()),
+                _ => None,
+            },
+        )
+        .await?;
+
+        assert_eq!(recorded.id, obligation_id);
+        assert_eq!(recorded.beneficiary_id, beneficiary_id);
+        assert_eq!(recorded.outstanding_amount, amount);
+        assert_eq!(recorded.defaulted_at, Some(defaulted_date));
+    }
 
     ctx.jobs.shutdown().await?;
     Ok(())

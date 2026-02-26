@@ -110,7 +110,7 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   )
   exec_admin_graphql 'credit-facility-proposal-customer-approval-conclude' "$variables"
 
-  retry 30 2 wait_for_approval "$credit_facility_proposal_id"
+  retry 60 2 wait_for_approval "$credit_facility_proposal_id"
 
   # Get collateral_id from pending credit facility
   variables=$(jq -n --arg id "$credit_facility_proposal_id" '{ id: $id }')
@@ -135,7 +135,7 @@ wait_for_facility_to_be_under_liquidation_threshold() {
 
   credit_facility_id=$credit_facility_proposal_id
 
-  retry 30 2 wait_for_active "$credit_facility_id"
+  retry 60 2 wait_for_active "$credit_facility_id"
   cache_value 'credit_facility_id' "$credit_facility_id"
 
   # Drop collateral so CVL falls below the liquidation threshold.

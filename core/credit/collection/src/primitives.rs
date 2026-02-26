@@ -25,7 +25,8 @@ es_entity::entity_id! {
     PaymentAllocationId => LedgerTxId,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "snake_case")]
 pub enum ObligationStatus {
     NotYetDue,
     Due,

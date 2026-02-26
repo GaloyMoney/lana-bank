@@ -125,6 +125,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         accounts.payments_made_omnibus,
         &mut jobs,
         &publisher,
+        &outbox,
         clock.clone(),
     )
     .await?;
@@ -199,11 +200,13 @@ pub mod event {
     use serde::{Deserialize, Serialize};
 
     use core_credit_collection::CoreCreditCollectionEvent;
+    use core_time_events::CoreTimeEvent;
 
     #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
     pub enum DummyEvent {
         CoreCreditCollection(CoreCreditCollectionEvent),
+        CoreTimeEvent(CoreTimeEvent),
         #[serde(other)]
         Unknown,
     }

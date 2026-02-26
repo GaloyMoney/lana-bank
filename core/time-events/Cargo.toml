@@ -18,7 +18,6 @@ chrono = { workspace = true }
 chrono-tz = { workspace = true, features = ["serde"] }
 serde = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-utils = { workspace = true }
 tracing-macros = { workspace = true }

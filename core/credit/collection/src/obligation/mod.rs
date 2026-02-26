@@ -1,6 +1,6 @@
 mod entity;
 pub mod error;
-mod jobs;
+pub(crate) mod jobs;
 mod repo;
 
 use audit::SystemSubject;
@@ -11,7 +11,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use es_entity::clock::ClockHandle;
+use es_entity::{Idempotent, clock::ClockHandle};
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -22,14 +22,12 @@ use crate::{
     publisher::CollectionPublisher,
 };
 
-pub use entity::Obligation;
-use jobs::{obligation_defaulted, obligation_due, obligation_overdue};
-
-pub use entity::NewObligation;
-pub(crate) use entity::ObligationDefaultedReallocationData;
-pub(crate) use entity::ObligationDueReallocationData;
-pub use entity::ObligationEvent;
-pub(crate) use entity::ObligationOverdueReallocationData;
+use entity::ObligationTransition;
+pub use entity::{NewObligation, Obligation, ObligationEvent};
+pub(crate) use entity::{
+    ObligationDefaultedReallocationData, ObligationDueReallocationData,
+    ObligationOverdueReallocationData,
+};
 use error::ObligationError;
 pub(crate) use repo::ObligationRepo;
 
@@ -42,7 +40,6 @@ where
     repo: Arc<ObligationRepo<E>>,
     payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     ledger: Arc<CollectionLedger>,
-    obligation_due_job_spawner: obligation_due::ObligationDueJobSpawner<Perms, E>,
     clock: ClockHandle,
 }
 
@@ -57,7 +54,6 @@ where
             repo: self.repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
             ledger: self.ledger.clone(),
-            obligation_due_job_spawner: self.obligation_due_job_spawner.clone(),
             clock: self.clock.clone(),
         }
     }
@@ -74,65 +70,26 @@ where
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         ledger: Arc<CollectionLedger>,
-        jobs: &mut job::Jobs,
         publisher: &CollectionPublisher<E>,
         clock: ClockHandle,
     ) -> Self {
         let obligation_repo_arc = Arc::new(ObligationRepo::new(pool, publisher, clock.clone()));
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher, clock.clone());
-        let obligation_defaulted_job_spawner = jobs.add_initializer(
-            obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
-                ledger.clone(),
-                obligation_repo_arc.clone(),
-                authz.clone(),
-            ),
-        );
-
-        let obligation_overdue_job_spawner =
-            jobs.add_initializer(obligation_overdue::ObligationOverdueInit::new(
-                ledger.clone(),
-                obligation_repo_arc.clone(),
-                authz.clone(),
-                obligation_defaulted_job_spawner.clone(),
-            ));
-
-        let obligation_due_job_spawner =
-            jobs.add_initializer(obligation_due::ObligationDueInit::new(
-                ledger.clone(),
-                obligation_repo_arc.clone(),
-                authz.clone(),
-                obligation_overdue_job_spawner,
-                obligation_defaulted_job_spawner,
-            ));
         Self {
             authz,
             repo: obligation_repo_arc,
             ledger,
             payment_allocation_repo: Arc::new(payment_allocation_repo),
-            obligation_due_job_spawner,
             clock,
         }
     }
 
-    pub async fn create_with_jobs_in_op(
+    pub async fn create_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         new_obligation: NewObligation,
     ) -> Result<Obligation, ObligationError> {
         let obligation = self.repo.create_in_op(&mut *op, new_obligation).await?;
-        self.obligation_due_job_spawner
-            .spawn_at_in_op(
-                op,
-                job::JobId::new(),
-                obligation_due::ObligationDueJobConfig::<Perms, E> {
-                    obligation_id: obligation.id,
-                    effective: obligation.due_at().date_naive(),
-                    _phantom: std::marker::PhantomData,
-                },
-                obligation.due_at(),
-            )
-            .await?;
-
         Ok(obligation)
     }
 
@@ -141,6 +98,61 @@ where
         id: ObligationId,
     ) -> Result<Obligation, ObligationError> {
         self.repo.find_by_id(id).await
+    }
+
+    pub async fn list_ids_needing_transition(
+        &self,
+        day: chrono::NaiveDate,
+        after: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
+        limit: i64,
+    ) -> Result<Vec<(ObligationId, chrono::DateTime<chrono::Utc>)>, ObligationError> {
+        self.repo
+            .list_ids_needing_transition(day, after, limit)
+            .await
+    }
+
+    pub async fn execute_transition_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        id: ObligationId,
+        effective: chrono::NaiveDate,
+    ) -> Result<(), ObligationError> {
+        let mut obligation = self.repo.find_by_id_in_op(&mut *op, id).await?;
+
+        self.authz
+            .audit()
+            .record_system_entry_in_op(
+                op,
+                OBLIGATION_SYNC,
+                CoreCreditCollectionObject::obligation(id),
+                CoreCreditCollectionAction::OBLIGATION_UPDATE_STATUS,
+            )
+            .await?;
+
+        let subject =
+            <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(OBLIGATION_SYNC);
+
+        while let Idempotent::Executed(transition) = obligation.transition(effective) {
+            self.repo.update_in_op(op, &mut obligation).await?;
+            match transition {
+                ObligationTransition::Due(data) => {
+                    self.ledger
+                        .record_obligation_due_in_op(op, data, &subject)
+                        .await?;
+                }
+                ObligationTransition::Overdue(data) => {
+                    self.ledger
+                        .record_obligation_overdue_in_op(op, data, &subject)
+                        .await?;
+                }
+                ObligationTransition::Defaulted(data) => {
+                    self.ledger
+                        .record_obligation_defaulted_in_op(op, data, &subject)
+                        .await?;
+                }
+            }
+        }
+        Ok(())
     }
 
     #[record_error_severity]

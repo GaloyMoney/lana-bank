@@ -80,7 +80,7 @@ user-onboarding = { path = "lana/user-onboarding" }
 es-entity = { version = "0.10.19", features = ["event-context", "tracing-context", "instrument"] }
 cala-ledger = "0.13.20"
 cala-cel-interpreter = "0.13.20"
-job = { version = "0.6.5", features = ["es-entity"] }
+job = { version = "0.6.6", features = ["es-entity"] }
 obix = { version = "0.2.14", features = ["tracing"] }
 
 aes = "0.8"

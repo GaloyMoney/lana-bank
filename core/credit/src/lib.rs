@@ -27,6 +27,7 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
+use core_time_events::CoreTimeEvent;
 use domain_config::{
     ExposedDomainConfigsReadOnly, InternalDomainConfigs, RequireVerifiedCustomerForAccount,
 };
@@ -90,7 +91,8 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     authz: Arc<Perms>,
     credit_facility_proposals: Arc<CreditFacilityProposals<Perms, E>>,
@@ -126,7 +128,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -178,7 +181,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     #[record_error_severity]
     #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id))]
@@ -233,6 +237,7 @@ where
             ledger_arc.payments_made_omnibus_account_ids().account_id,
             jobs,
             &collections_publisher,
+            outbox,
             clock.clone(),
         )
         .await?;

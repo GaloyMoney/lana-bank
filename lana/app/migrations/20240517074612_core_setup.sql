@@ -391,8 +391,11 @@ CREATE TABLE core_obligations (
   id UUID PRIMARY KEY,
   beneficiary_id UUID NOT NULL,
   reference VARCHAR NOT NULL UNIQUE,
+  next_transition_date DATE,
   created_at TIMESTAMPTZ NOT NULL
 );
+
+CREATE INDEX idx_obligations_next_transition ON core_obligations(next_transition_date) WHERE next_transition_date IS NOT NULL;
 
 CREATE TABLE core_obligation_events (
   id UUID NOT NULL REFERENCES core_obligations(id),

@@ -12,6 +12,8 @@ pub enum CoreCreditCollectionError {
     PaymentAllocationError(#[from] crate::payment_allocation::error::PaymentAllocationError),
     #[error("CoreCreditCollectionError - CollectionLedgerError: {0}")]
     CollectionLedgerError(#[from] crate::ledger::error::CollectionLedgerError),
+    #[error("CoreCreditCollectionError - RegisterEventHandler: {0}")]
+    RegisterEventHandler(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
 impl ErrorSeverity for CoreCreditCollectionError {
@@ -21,6 +23,7 @@ impl ErrorSeverity for CoreCreditCollectionError {
             Self::PaymentError(e) => e.severity(),
             Self::PaymentAllocationError(e) => e.severity(),
             Self::CollectionLedgerError(e) => e.severity(),
+            Self::RegisterEventHandler(_) => Level::ERROR,
         }
     }
 }

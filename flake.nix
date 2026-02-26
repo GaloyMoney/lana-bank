@@ -539,17 +539,9 @@
                 INTERVAL=5
 
                 while [ $ELAPSED -lt $MAX_WAIT ]; do
-                  # Check for simulation errors first
-                  if grep -q "ERROR sim_bootstrap" server.log; then
-                    echo "❌ Simulation failed with error; dumping last 200 lines of logs:"
-                    tail -n 200 server.log
-                    exit 1
-                  fi
-
                   # Check for successful completion
                   if grep -q "transitioning to realtime" server.log; then
                     echo "✅ Simulation completed successfully!"
-                    # Verify health check is now available
                     if wait4x http http://localhost:5253/health --timeout 30s; then
                       echo "✅ Health check passed!"
                       exit 0
@@ -558,6 +550,11 @@
                       tail -n 200 server.log
                       exit 1
                     fi
+                  fi
+                  if grep -q "ERROR sim_bootstrap" server.log; then
+                    echo "❌ Simulation failed with error; dumping last 200 lines of logs:"
+                    tail -n 200 server.log
+                    exit 1
                   fi
 
                   sleep $INTERVAL

@@ -449,6 +449,7 @@ pub mod event {
     use core_customer::CoreCustomerEvent;
     use core_deposit::CoreDepositEvent;
     use core_price::CorePriceEvent;
+    use core_time_events::CoreTimeEvent;
     use governance::GovernanceEvent;
 
     #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
@@ -462,6 +463,7 @@ pub mod event {
         CoreCustody(CoreCustodyEvent),
         CoreCustomer(CoreCustomerEvent),
         CoreDeposit(CoreDepositEvent),
+        CoreTimeEvent(CoreTimeEvent),
         Governance(GovernanceEvent),
         Price(CorePriceEvent),
         #[serde(other)]
