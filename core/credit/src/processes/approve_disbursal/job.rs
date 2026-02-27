@@ -1,103 +1,53 @@
 use tracing::{Span, instrument};
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_credit_collateral::{
-    CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
-};
-use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_price::CorePriceEvent;
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use governance::GovernanceEvent;
+use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
-
-use crate::{
-    CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
-    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
-};
-
-use super::ApproveDisbursal;
+use super::ExecuteApproveDisbursalConfig;
 
 pub const DISBURSAL_APPROVE_JOB: JobType = JobType::new("outbox.disbursal-approval");
 
-pub(crate) struct DisbursalApprovalHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    process: ApproveDisbursal<Perms, E>,
+pub struct DisbursalApprovalHandler {
+    execute_approve_disbursal: JobSpawner<ExecuteApproveDisbursalConfig>,
 }
 
-impl<Perms, E> DisbursalApprovalHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<CoreCreditCollectionAction>
-        + From<GovernanceAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<CoreCreditCollectionObject>
-        + From<GovernanceObject>
-        + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    pub fn new(process: &ApproveDisbursal<Perms, E>) -> Self {
+impl DisbursalApprovalHandler {
+    pub fn new(execute_approve_disbursal: JobSpawner<ExecuteApproveDisbursalConfig>) -> Self {
         Self {
-            process: process.clone(),
+            execute_approve_disbursal,
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for DisbursalApprovalHandler<Perms, E>
+impl<E> OutboxEventHandler<E> for DisbursalApprovalHandler
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<CoreCreditCollectionAction>
-        + From<CoreCreditCollateralAction>
-        + From<GovernanceAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<CoreCreditCollectionObject>
-        + From<CoreCreditCollateralObject>
-        + From<GovernanceObject>
-        + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCreditCollateralEvent>
-        + OutboxEventMarker<CoreCreditCollectionEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(name = "core_credit.disbursal_approval_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty))]
+    #[instrument(name = "core_credit.disbursal_approval_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        _op: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        match event.as_event() {
-            Some(e @ GovernanceEvent::ApprovalProcessConcluded { entity })
-                if entity.process_type == super::APPROVE_DISBURSAL_PROCESS =>
-            {
-                event.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", e.as_ref());
-                Span::current().record("process_type", entity.process_type.to_string());
-                self.process
-                    .execute_approve_disbursal(entity.id, entity.status.is_approved())
-                    .await?;
-            }
-            _ => {}
+        if let Some(e @ GovernanceEvent::ApprovalProcessConcluded { entity }) = event.as_event()
+            && entity.process_type == super::APPROVE_DISBURSAL_PROCESS
+        {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", e.as_ref());
+            Span::current().record("process_type", entity.process_type.to_string());
+            self.execute_approve_disbursal
+                .spawn_with_queue_id_in_op(
+                    op,
+                    JobId::new(),
+                    ExecuteApproveDisbursalConfig {
+                        approval_process_id: entity.id,
+                        approved: entity.status.is_approved(),
+                    },
+                    entity.id.to_string(),
+                )
+                .await?;
         }
         Ok(())
     }
