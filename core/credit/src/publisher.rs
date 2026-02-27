@@ -70,6 +70,9 @@ where
                         entity: PublicCreditFacility::from(entity),
                     })
                 }
+                Matured { .. } => Some(CoreCreditEvent::FacilityMatured {
+                    entity: PublicCreditFacility::from(entity),
+                }),
                 PartialLiquidationInitiated { .. } => {
                     Some(CoreCreditEvent::PartialLiquidationInitiated {
                         entity: PublicCreditFacility::from(entity),
