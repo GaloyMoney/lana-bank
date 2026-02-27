@@ -80,13 +80,13 @@ where
         approved: bool,
     ) -> Result<Withdrawal, WithdrawalError> {
         let id = id.into();
-        let mut withdraw = self.repo.find_by_id_in_op(op, id).await?;
+        let mut withdraw = self.repo.find_by_id_in_op(&mut *op, id).await?;
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
         }
         self.audit
             .record_system_entry_in_op(
-                op,
+                &mut *op,
                 crate::primitives::DEPOSIT_APPROVAL,
                 CoreDepositObject::withdrawal(id),
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
@@ -94,10 +94,10 @@ where
             .await?;
         match withdraw.approval_process_concluded(approved) {
             es_entity::Idempotent::Executed(Some(denied_tx_id)) => {
-                self.repo.update_in_op(op, &mut withdraw).await?;
+                self.repo.update_in_op(&mut *op, &mut withdraw).await?;
                 self.ledger
                     .deny_withdrawal_in_op(
-                        op,
+                        &mut *op,
                         withdraw.id,
                         denied_tx_id,
                         withdraw.amount,
@@ -109,7 +109,7 @@ where
                     .await?;
             }
             es_entity::Idempotent::Executed(None) => {
-                self.repo.update_in_op(op, &mut withdraw).await?;
+                self.repo.update_in_op(&mut *op, &mut withdraw).await?;
             }
             _ => (),
         };
