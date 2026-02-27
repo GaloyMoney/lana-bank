@@ -172,18 +172,22 @@ impl DomainConfig {
         key: &EncryptionKey,
         plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        // Block writes incase the latest event has a different key (has been rotated)
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DomainConfigEvent::Updated { value }
+                if value.matches_key(key)
+                    && value.decrypt(key).ok().as_ref() == Some(&plaintext),
+            DomainConfigEvent::KeyRotated { value }
+                if value.matches_key(key)
+                    && key.decrypt_json::<serde_json::Value>(value).ok().as_ref() == Some(&plaintext),
+            => DomainConfigEvent::Updated { .. } | DomainConfigEvent::KeyRotated { .. }
+        );
+
+        // Block writes if the latest event has a different key (has been rotated)
         if let Some(latest) = self.current_stored_value()
             && !latest.matches_key(key)
         {
             return Err(DomainConfigError::StaleEncryptionKey);
-        }
-
-        if let Some(current) = self.current_stored_value_for_key(key)
-            && let Ok(current_plain) = current.decrypt(key)
-            && current_plain == plaintext
-        {
-            return Ok(Idempotent::AlreadyApplied);
         }
 
         self.events.push(DomainConfigEvent::Updated {
