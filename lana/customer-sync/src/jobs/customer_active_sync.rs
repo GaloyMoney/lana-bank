@@ -38,7 +38,7 @@ where
             Span::current().record("event_type", e.as_ref());
 
             self.activate_holder_account
-                .spawn(
+                .spawn_in_op(
                     op,
                     ActivateHolderAccountCommand {
                         customer_id: entity.id,

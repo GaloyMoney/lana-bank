@@ -38,7 +38,7 @@ where
             Span::current().record("event_type", access_event.as_ref());
 
             self.create_keycloak_user
-                .spawn(
+                .spawn_in_op(
                     op,
                     CreateKeycloakUserCommand {
                         email: entity.email.clone(),

@@ -143,7 +143,7 @@ impl<Command> CommandJobSpawner<Command>
 where
     Command: Serialize + DeserializeOwned + Clone + Send + Sync + 'static,
 {
-    pub async fn spawn(
+    pub async fn spawn_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         command: Command,
