@@ -56,6 +56,21 @@ if result.did_execute() {
 }
 ```
 
+## Transaction Types: DbOp vs DbOpWithTime
+
+- `DbOp<'c>` — base transaction wrapper. Returned by `repo.begin_op()` and `current_job.begin_op()`.
+- `DbOpWithTime<'c>` — wraps `DbOp` with guaranteed cached time. Created via `db_op.with_db_time()` which **consumes** the `DbOp` (no way to extract it back).
+- `OpWithTime<'a, Op>` — **borrows** an `&mut Op` instead of consuming. Use `OpWithTime::cached_or_db_time(&mut op)`.
+- `JobCompletion::CompleteWithOp` only accepts `DbOp<'static>`. If `_in_op` methods need `DbOpWithTime`, the runner must commit manually and return `Complete` instead.
+- Many ledger `_in_op` methods (e.g., `settle_disbursal_in_op`) take `&mut DbOpWithTime<'_>` specifically — check the signature before assuming `DbOp` will work.
+
+## retry_on_concurrent_modification
+
+- `#[es_entity::retry_on_concurrent_modification]` wraps the function in a retry loop, re-calling on version conflicts.
+- **Incompatible with `&mut` parameters**: the macro re-invokes the inner function on each retry, but a mutable reference can't be passed multiple times. Only use with owned/`Copy` parameters.
+- `RetryableInto<T>` is used instead of `Into<T>` so the macro can re-pass the value on retry.
+- When a method is only called from a job runner, the retry attribute is unnecessary — the job framework retries the entire job on failure (default: up to 30 attempts with exponential backoff).
+
 ## Infallible Entity Queries (lint: `entity-query-infallible`)
 
 All public `&self` methods on `#[derive(EsEntity)]` structs must NOT return `Result`. This is enforced by the `entity-query-infallible` custom lint. Private methods (`fn`, no `pub`) are exempt.
