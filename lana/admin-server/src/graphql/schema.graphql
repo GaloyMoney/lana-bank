@@ -2180,6 +2180,11 @@ type ProspectCreatePayload {
 	prospect: Prospect!
 }
 
+type ProspectKycUpdatedPayload {
+	kycStatus: KycStatus!
+	prospect: Prospect!
+}
+
 """
 An edge in a connection.
 """
@@ -2449,6 +2454,7 @@ enum SortDirection {
 }
 
 type Subscription {
+	prospectKycUpdated(prospectId: UUID!): ProspectKycUpdatedPayload!
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!
