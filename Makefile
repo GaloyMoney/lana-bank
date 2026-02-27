@@ -53,19 +53,19 @@ gotenberg-down:
 	docker compose -f docker-compose.gotenberg.yml down
 
 run-server-normal:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana-normal.yml > >(tee .e2e-logs) 2>&1
+	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana-normal.yml serve > >(tee .e2e-logs) 2>&1
 
 run-server:
-	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml > >(tee .e2e-logs) 2>&1
+	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml serve > >(tee .e2e-logs) 2>&1
 
 run-server-nix:
 	nix run . -- --config ./bats/lana.yml 2>&1 | tee .e2e-logs
 
 run-server-with-bootstrap:
-	cargo run --all-features --bin lana-cli -- --config ./bats/lana-bootstrap.yml | tee .e2e-logs
+	cargo run --all-features --bin lana-cli -- --config ./bats/lana-bootstrap.yml serve | tee .e2e-logs
 
 seed-data:
-	cargo run --all-features --bin lana-cli -- --config ./bats/lana-seed.yml
+	cargo run --all-features --bin lana-cli -- --config ./bats/lana-seed.yml serve
 
 check-code: check-code-apps
 	nix flake check
@@ -74,7 +74,7 @@ update-schemas:
 	SQLX_OFFLINE=true cargo run --package entity-rollups --all-features -- update-schemas --force-recreate
 
 e2e: clean-deps start-deps
-	SQLX_OFFLINE=true cargo build --bin lanacli
+	SQLX_OFFLINE=true cargo build --bin lana-cli
 	bats -t bats
 
 # Cargo alternative for faster compilation during development

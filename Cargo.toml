@@ -69,6 +69,7 @@ customer-server = { path = "lana/customer-server" }
 customer-sync = { path = "lana/customer-sync" }
 dashboard = { path = "lana/dashboard" }
 deposit-sync = { path = "lana/deposit-sync" }
+lanacli = { path = "dev/lanacli" }
 lana-app = { path = "lana/app" }
 lana-events = { path = "lana/events" }
 lana-ids = { path = "lana/ids" }

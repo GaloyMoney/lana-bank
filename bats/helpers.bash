@@ -11,7 +11,10 @@ GQL_APP_ENDPOINT="http://app.localhost:4455/graphql"
 LANA_HOME="${LANA_HOME:-.lana}"
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
 
-LANACLI="${LANACLI:-${REPO_ROOT}/target/debug/lanacli}"
+LANACLI="${LANACLI:-${REPO_ROOT}/target/debug/lana-cli}"
+if [[ ! -x "$LANACLI" && -x "${REPO_ROOT}/target/debug/lanacli" ]]; then
+  LANACLI="${REPO_ROOT}/target/debug/lanacli"
+fi
 
 LOG_FILE=".e2e-logs"
 
@@ -30,7 +33,7 @@ server_cmd() {
     else
       export LANA_CONFIG="${REPO_ROOT}/bats/lana.yml"
     fi
-    "${LANA_BIN}"
+    "${LANA_BIN}" serve
   else
     SQLX_OFFLINE=true make run-server
   fi

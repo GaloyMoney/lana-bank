@@ -399,7 +399,7 @@
 
                 # Set environment variables needed by bats tests
                 export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
-                export LANACLI="${lanacli-debug}/bin/lanacli"
+                export LANACLI="${lana-cli-debug}/bin/lana-cli"
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
@@ -542,7 +542,7 @@
 
                 echo "Running cli"
                 export LANA_CONFIG="./bats/lana-bootstrap.yml"
-                ${lana-cli-bootstrap}/bin/lana-cli 2>&1 | tee server.log &
+                ${lana-cli-bootstrap}/bin/lana-cli serve 2>&1 | tee server.log &
                 echo "$!" > .server.pid
 
                 # Wait for simulation to complete by polling logs
