@@ -154,13 +154,11 @@ impl DomainConfig {
         &mut self,
         plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        // Check idempotency
-        if let Some(current) = self.current_stored_value()
-            && let Some(current_plain) = current.as_plain()
-            && current_plain == &plaintext
-        {
-            return Ok(Idempotent::AlreadyApplied);
-        }
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DomainConfigEvent::Updated { value } if value.as_plain() == Some(&plaintext),
+            => DomainConfigEvent::Updated { .. }
+        );
 
         self.events.push(DomainConfigEvent::Updated {
             value: DomainConfigValue::plain(plaintext),

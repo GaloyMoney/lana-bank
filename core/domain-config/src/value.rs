@@ -27,8 +27,7 @@ impl DomainConfigValue {
 
     /// Create a new encrypted value from plaintext JSON.
     pub(crate) fn encrypted(key: &EncryptionKey, plaintext: &serde_json::Value) -> Self {
-        let bytes = serde_json::to_vec(plaintext).expect("JSON serialization should not fail");
-        Self::Encrypted(key.encrypt(&bytes))
+        Self::Encrypted(key.encrypt_json(plaintext))
     }
 
     /// Returns the plaintext JSON value if this is a Plain variant.
@@ -62,10 +61,7 @@ impl DomainConfigValue {
             Self::Plain { .. } => Err(DomainConfigError::InvalidState(
                 "Cannot decrypt a plaintext value".to_string(),
             )),
-            Self::Encrypted(encrypted) => {
-                let bytes = key.decrypt(encrypted)?;
-                Ok(serde_json::from_slice(&bytes)?)
-            }
+            Self::Encrypted(encrypted) => Ok(key.decrypt_json(encrypted)?),
         }
     }
 

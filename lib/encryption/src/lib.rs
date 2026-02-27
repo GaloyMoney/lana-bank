@@ -8,7 +8,7 @@ use chacha20poly1305::{
     ChaCha20Poly1305,
     aead::{Aead, AeadCore, KeyInit, OsRng},
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::{Digest, Sha256};
 
 pub use config::EncryptionConfig;
@@ -63,6 +63,19 @@ impl EncryptionKey {
             )
             .map_err(|_| EncryptionError::Decryption)
     }
+
+    pub fn encrypt_json(&self, value: &impl Serialize) -> Encrypted {
+        let bytes = serde_json::to_vec(value).expect("JSON serialization should not fail");
+        self.encrypt(&bytes)
+    }
+
+    pub fn decrypt_json<T: DeserializeOwned>(
+        &self,
+        encrypted: &Encrypted,
+    ) -> Result<T, EncryptionError> {
+        let bytes = self.decrypt(encrypted)?;
+        Ok(serde_json::from_slice(&bytes)?)
+    }
 }
 
 impl Default for EncryptionKey {
@@ -93,11 +106,9 @@ mod tests {
     fn encrypt_decrypt_json_roundtrip() {
         let key = EncryptionKey::new([1u8; 32]);
         let original = serde_json::json!({"enabled": true, "limit": 42});
-        let bytes = serde_json::to_vec(&original).unwrap();
 
-        let encrypted = key.encrypt(&bytes);
-        let decrypted_bytes = key.decrypt(&encrypted).unwrap();
-        let decrypted: serde_json::Value = serde_json::from_slice(&decrypted_bytes).unwrap();
+        let encrypted = key.encrypt_json(&original);
+        let decrypted: serde_json::Value = key.decrypt_json(&encrypted).unwrap();
 
         assert_eq!(original, decrypted);
         assert!(encrypted.matches_key(&key));
