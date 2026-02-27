@@ -1,4 +1,6 @@
-{{ config(tags=["asof"]) }}
+{{
+    config(materialized="view")
+}}
 
 with
 
@@ -26,6 +28,7 @@ with
 
     balances as (
         select
+            daily_balances.as_of_date,
             h.*,
             coalesce(
                 case
@@ -44,9 +47,9 @@ with
         left join
             {{ ref("int_accounts") }} as accounts on accounts.account_id = member_id
 
-        left join
-            {{ ref("int_account_balances_asof") }} as balances
-            on balances.account_id = member_id
+        inner join
+            {{ ref("int_account_balances_daily") }} as daily_balances
+            on daily_balances.account_id = member_id
 
         where member_type = "Account"
     )

@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: int_account_balances_daily
+    columns:
+      - name: as_of_date
+        tests:
+          - not_null
+      - name: account_id
+        tests:
+          - not_null
+      - name: currency
+        tests:
+          - not_null
