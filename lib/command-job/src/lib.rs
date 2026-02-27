@@ -27,7 +27,7 @@ pub trait CommandJob: Send + Sync + 'static {
 
     fn job_type() -> JobType;
 
-    fn entity_id(command: &Self::Command) -> String;
+    fn queue_id(command: &Self::Command) -> String;
 
     fn retry_settings() -> RetrySettings {
         RetrySettings::default()
@@ -53,7 +53,7 @@ pub fn build_command_job<C: CommandJob>(
     let spawner = jobs.add_initializer(CommandJobInitializer::new(command_job));
     CommandJobSpawner {
         inner: spawner,
-        entity_id_fn: C::entity_id,
+        queue_id_fn: C::queue_id,
     }
 }
 
@@ -115,7 +115,7 @@ impl<C: CommandJob> JobRunner for CommandJobRunner<C> {
     }
 }
 
-/// Wraps `JobSpawner` to provide entity-id-based queue control.
+/// Wraps `JobSpawner` to provide queue-id-based queue control.
 ///
 /// Generic over the `Command` type only (not the full `CommandJob`), so handlers
 /// that hold this spawner don't need to propagate the job's generic parameters.
@@ -124,7 +124,7 @@ where
     Command: Serialize + DeserializeOwned + Clone + Send + Sync + 'static,
 {
     inner: JobSpawner<Command>,
-    entity_id_fn: fn(&Command) -> String,
+    queue_id_fn: fn(&Command) -> String,
 }
 
 impl<Command> Clone for CommandJobSpawner<Command>
@@ -134,7 +134,7 @@ where
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
-            entity_id_fn: self.entity_id_fn,
+            queue_id_fn: self.queue_id_fn,
         }
     }
 }
@@ -148,7 +148,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         command: Command,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let queue_id = (self.entity_id_fn)(&command);
+        let queue_id = (self.queue_id_fn)(&command);
         self.inner
             .spawn_with_queue_id_in_op(op, JobId::new(), command, queue_id)
             .await?;
@@ -170,7 +170,7 @@ pub trait AtomicCommandJob: Send + Sync + 'static {
 
     fn job_type() -> JobType;
 
-    fn entity_id(command: &Self::Command) -> String;
+    fn queue_id(command: &Self::Command) -> String;
 
     fn retry_settings() -> RetrySettings {
         RetrySettings::default()
@@ -191,7 +191,7 @@ pub fn build_atomic_command_job<C: AtomicCommandJob>(
     let spawner = jobs.add_initializer(AtomicCommandJobInitializer::new(command_job));
     CommandJobSpawner {
         inner: spawner,
-        entity_id_fn: C::entity_id,
+        queue_id_fn: C::queue_id,
     }
 }
 
