@@ -47,7 +47,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
 }) => {
   const t = useTranslations("Committees.CommitteeDetails.AddUserCommitteeDialog")
   const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation()
-  const { data: userData, loading: usersLoading } = useUsersQuery()
+  const { data: userData, loading: usersLoading } = useUsersQuery({ variables: { first: 100 } })
 
   const [selectedUserId, setSelectedUserId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -111,11 +111,14 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
               <SelectValue placeholder={t("placeholders.selectUser")} />
             </SelectTrigger>
             <SelectContent>
-              {userData?.users.map((user) => (
-                <SelectItem key={user.userId} value={user.userId}>
-                  {user.email} {user.role?.name}
-                </SelectItem>
-              ))}
+              {userData?.users?.edges?.map((edge) => {
+                const user = edge.node;
+                return (
+                  <SelectItem key={user.userId} value={user.userId}>
+                    {user.email} {user.role?.name}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
 

@@ -2549,7 +2549,7 @@ export type Query = {
   transactionTemplates: TransactionTemplateConnection;
   trialBalance: TrialBalance;
   user?: Maybe<User>;
-  users: Array<User>;
+  users: UserConnection;
   withdrawal?: Maybe<Withdrawal>;
   withdrawalByPublicId?: Maybe<Withdrawal>;
   withdrawals: WithdrawalConnection;
@@ -2878,6 +2878,12 @@ export type QueryTrialBalanceArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryUsersArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 
@@ -3262,8 +3268,14 @@ export type User = {
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   role: Role;
-  userCanUpdateRoleOfUser: Scalars['Boolean']['output'];
   userId: Scalars['UUID']['output'];
+};
+
+export type UserConnection = {
+  __typename?: 'UserConnection';
+  edges: Array<UserEdge>;
+  nodes: Array<User>;
+  pageInfo: PageInfo;
 };
 
 export type UserCreateInput = {
@@ -3274,6 +3286,12 @@ export type UserCreateInput = {
 export type UserCreatePayload = {
   __typename?: 'UserCreatePayload';
   user: User;
+};
+
+export type UserEdge = {
+  __typename?: 'UserEdge';
+  cursor: Scalars['String']['output'];
+  node: User;
 };
 
 export type UserUpdateRoleInput = {
@@ -4836,10 +4854,13 @@ export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __type
 
 export type UserFieldsFragment = { __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } };
 
-export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
+export type UsersQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> };
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', edges: Array<{ __typename?: 'UserEdge', node: { __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type UserUpdateRoleMutationVariables = Exact<{
   input: UserUpdateRoleInput;
@@ -12092,9 +12113,17 @@ export type UserCreateMutationHookResult = ReturnType<typeof useUserCreateMutati
 export type UserCreateMutationResult = Apollo.MutationResult<UserCreateMutation>;
 export type UserCreateMutationOptions = Apollo.BaseMutationOptions<UserCreateMutation, UserCreateMutationVariables>;
 export const UsersDocument = gql`
-    query Users {
-  users {
-    ...UserFields
+    query Users($first: Int!, $after: String) {
+  users(first: $first, after: $after) {
+    edges {
+      node {
+        ...UserFields
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
   }
 }
     ${UserFieldsFragmentDoc}`;
@@ -12111,10 +12140,12 @@ export const UsersDocument = gql`
  * @example
  * const { data, loading, error } = useUsersQuery({
  *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useUsersQuery(baseOptions?: Apollo.QueryHookOptions<UsersQuery, UsersQueryVariables>) {
+export function useUsersQuery(baseOptions: Apollo.QueryHookOptions<UsersQuery, UsersQueryVariables> & ({ variables: UsersQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
       }
