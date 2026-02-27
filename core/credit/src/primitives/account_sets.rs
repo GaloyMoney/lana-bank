@@ -11,7 +11,7 @@ pub enum CreditAccountCategory {
     Expenses,
 }
 
-impl From<CreditAccountCategory> for core_accounting_primitives::AccountCategory {
+impl From<CreditAccountCategory> for chart_primitives::AccountCategory {
     fn from(value: CreditAccountCategory) -> Self {
         match value {
             CreditAccountCategory::OffBalanceSheet => Self::OffBalanceSheet,

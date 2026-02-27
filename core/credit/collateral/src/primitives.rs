@@ -11,8 +11,8 @@ es_entity::entity_id! {
     LiquidationId,
 }
 
-pub const COLLATERAL_ENTITY_TYPE: core_accounting_primitives::EntityType =
-    core_accounting_primitives::EntityType::new("Collateral");
+pub const COLLATERAL_ENTITY_TYPE: chart_primitives::EntityType =
+    chart_primitives::EntityType::new("Collateral");
 
 pub type CollateralAllOrOne = AllOrOne<CollateralId>;
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;

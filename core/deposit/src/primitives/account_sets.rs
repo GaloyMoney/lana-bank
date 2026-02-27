@@ -6,7 +6,7 @@ pub enum DepositAccountCategory {
     Liability,
 }
 
-impl From<DepositAccountCategory> for core_accounting_primitives::AccountCategory {
+impl From<DepositAccountCategory> for chart_primitives::AccountCategory {
     fn from(value: DepositAccountCategory) -> Self {
         match value {
             DepositAccountCategory::Asset => Self::Asset,

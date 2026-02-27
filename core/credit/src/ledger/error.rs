@@ -21,7 +21,7 @@ pub enum CreditLedgerError {
     #[error("CreditLedgerError - CalaVelocityError: {0}")]
     CalaVelocity(#[from] cala_ledger::velocity::error::VelocityError),
     #[error("CreditLedgerError - ChartLookupError: {0}")]
-    ChartLookupError(#[from] core_accounting_primitives::ChartLookupError),
+    ChartLookupError(#[from] chart_primitives::ChartLookupError),
     #[error(
         "CreditLedgerError - NonAccountMemberFoundInAccountSet: Found non-Account typed member in account set {0}"
     )]
