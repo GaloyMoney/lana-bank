@@ -7,10 +7,12 @@ mod jobs;
 
 use config::*;
 use error::*;
+use jobs::activate_holder_account::ActivateHolderAccountCommandJob;
 use jobs::*;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use command_job::build_atomic_command_job;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
@@ -108,8 +110,10 @@ where
             )
             .await?;
 
-        let activate_holder_account =
-            jobs.add_initializer(ActivateHolderAccountJobInitializer::new(deposit.clone()));
+        let activate_holder_account = build_atomic_command_job(
+            jobs,
+            ActivateHolderAccountCommandJob::<Perms, E>::new(deposit.clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,

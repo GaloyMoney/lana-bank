@@ -7,18 +7,9 @@
   },
   "pnpm": {
     "overrides": {
-      "qs": ">=6.14.2",
-      "lodash": ">=4.17.23",
       "lodash-es": ">=4.17.23",
-      "systeminformation": ">=5.31.0",
-      "minimatch": ">=10.2.1",
-      "eslint-plugin-import>minimatch": ">=3.1.3",
-      "ajv@<6.14.0": "^6.14.0"
-    },
-    "auditConfig": {
-      "ignoreCves": [
-        "CVE-2026-26996"
-      ]
+      "minimatch@3.1.2": "3.1.5",
+      "storybook": ">=10.2.10"
     }
   }
 }
