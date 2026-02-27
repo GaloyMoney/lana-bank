@@ -1,3 +1,11 @@
+## [0.44.1] - 2026-02-27
+
+### ⚙️ Miscellaneous Tasks
+
+- Allow netlify commit alias deploy to fail gracefully (#4017)
+- Release 0.44.0 [ci skip] (#4020)
+- Downgrade error to warn in OTEL (#4001)
+- Symlink .agents/skills to .claude/skills for Codex compatibility (#4025)
 ## [0.44.0] - 2026-02-27
 
 ### 🚀 Features
