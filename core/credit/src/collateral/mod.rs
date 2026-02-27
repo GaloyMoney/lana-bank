@@ -32,6 +32,7 @@ use ledger::{
     LiquidationProceedsAccountIds,
 };
 
+use command_job::build_atomic_command_job;
 pub(super) use entity::*;
 use jobs::{record_collateral_update, wallet_collateral_sync};
 pub use {
@@ -101,8 +102,9 @@ where
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
 
-        let record_collateral_update = jobs.add_initializer(
-            record_collateral_update::RecordCollateralUpdateJobInitializer::<
+        let record_collateral_update = build_atomic_command_job(
+            jobs,
+            record_collateral_update::RecordCollateralUpdateCommandJob::<
                 <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
                 E,
             >::new(ledger.clone(), repo.clone()),
