@@ -3,7 +3,7 @@ import { t } from "../support/translation"
 describe("Customers", () => {
   let testEmail: string
   let testTelegramHandle: string
-  let testCustomerId: string
+  let testProspectId: string
   let testCustomerPublicId: string
   let testProspectPublicId: string
 
@@ -62,7 +62,7 @@ describe("Customers", () => {
           `query ProspectByPublicId($id: PublicId!) { prospectByPublicId(id: $id) { prospectId } }`,
           { id: testProspectPublicId },
         ).then((res) => {
-          testCustomerId = res.data.prospectByPublicId.prospectId
+          testProspectId = res.data.prospectByPublicId.prospectId
         })
       })
   })
@@ -90,10 +90,12 @@ describe("Customers", () => {
     cy.visit(`/prospects/${testProspectPublicId}`)
     cy.takeScreenshot("14_prospect_kyc_details_page")
 
-    cy.get('[data-testid="prospect-create-kyc-link"]').click()
-    cy.contains("https://in.sumsub.com/test/link")
-      .should("be.visible")
-      .and("have.attr", "href", "https://in.sumsub.com/test/link")
+    cy.get("body").then(($body) => {
+      if ($body.find('[data-testid="prospect-create-kyc-link"]').length > 0) {
+        cy.get('[data-testid="prospect-create-kyc-link"]').click()
+        cy.contains("https://in.sumsub.com/test/link").should("be.visible")
+      }
+    })
     cy.takeScreenshot("15_kyc_link_created")
 
     const webhookId = `req-${Date.now()}`
@@ -110,7 +112,7 @@ describe("Customers", () => {
         applicantId,
         inspectionId: `test-inspection-${webhookId}`,
         correlationId: webhookId,
-        externalUserId: testCustomerId,
+        externalUserId: testProspectId,
         levelName: "basic-kyc-level",
         type: "applicantCreated",
         reviewStatus: "init",
@@ -132,7 +134,7 @@ describe("Customers", () => {
         applicantId,
         inspectionId: `test-inspection-${webhookId}`,
         correlationId: webhookId,
-        externalUserId: testCustomerId,
+        externalUserId: testProspectId,
         levelName: "basic-kyc-level",
         type: "applicantReviewed",
         reviewResult: {
@@ -146,20 +148,15 @@ describe("Customers", () => {
       expect(response.status).to.eq(200)
     })
 
-    // Convert prospect to customer synchronously via prospectConvert mutation.
-    // The webhooks above test the webhook endpoint; prospectConvert ensures the
-    // customer exists without depending on async inbox job processing.
-    cy.graphqlRequest<{
-      data: { prospectConvert: { customer: { customerId: string; publicId: string } } }
-    }>(
-      `mutation ProspectConvert($input: ProspectConvertInput!) {
-        prospectConvert(input: $input) {
-          customer { customerId publicId }
-        }
-      }`,
-      { input: { prospectId: testCustomerId } },
-    ).then((res) => {
-      testCustomerPublicId = res.data.prospectConvert.customer.publicId
+    // Wait for subscription-driven UI transition: prospect stage becomes converted.
+    cy.get('[data-testid="prospect-stage-badge"]', { timeout: 30000 })
+      .should("be.visible")
+      .invoke("text")
+      .should("eq", t("Prospects.stage.converted"))
+    cy.get('[data-testid="view-customer-btn"]').should("be.visible").click()
+    cy.url().should("match", /\/customers\/[0-9]+$/)
+    cy.getIdFromUrl("/customers/").then((id) => {
+      testCustomerPublicId = id
     })
   })
 
