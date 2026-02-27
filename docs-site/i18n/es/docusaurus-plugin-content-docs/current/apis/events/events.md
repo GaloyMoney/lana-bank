@@ -57,7 +57,6 @@ Eventos relacionados con el ciclo de vida y operaciones de facilidades de credit
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `PendingCreditFacilityCollateralizationChanged` | Cambio el estado de colateralizacion para facilidad pendiente | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `FacilityCollateralUpdated` | Se actualizo el monto del colateral | `entity.adjustment`, `entity.amount`, `entity.id`, `entity.secured_loan_id` |
 | `FacilityCollateralizationChanged` | Cambio el estado de colateralizacion para facilidad activa | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 
 ### Eventos de Pago
@@ -72,9 +71,6 @@ Eventos relacionados con el ciclo de vida y operaciones de facilidades de credit
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `PartialLiquidationInitiated` | Se inicio una liquidacion parcial | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
-| `PartialLiquidationCollateralSentOut` | Se envio colateral para liquidacion | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at` |
-| `PartialLiquidationProceedsReceived` | Se recibieron los ingresos de liquidacion | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
-| `PartialLiquidationCompleted` | Se completo la liquidacion | `credit_facility_id`, `liquidation_id` |
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
