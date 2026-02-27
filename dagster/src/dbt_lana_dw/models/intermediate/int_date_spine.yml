@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: int_date_spine
+    columns:
+      - name: as_of_date
+        tests:
+          - unique
+          - not_null
