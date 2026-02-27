@@ -1,3 +1,4 @@
+mod execute_withdraw_approval;
 mod job;
 
 use authz::PermissionCheck;
@@ -17,6 +18,7 @@ use crate::{
     withdrawal::{Withdrawal, error::WithdrawalError, repo::WithdrawalRepo},
 };
 
+pub use execute_withdraw_approval::*;
 pub use job::*;
 
 pub const APPROVE_WITHDRAWAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
