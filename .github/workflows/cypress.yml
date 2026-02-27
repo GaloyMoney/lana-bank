@@ -248,6 +248,7 @@ jobs:
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
       - name: Deploy to Netlify with commit alias
+        continue-on-error: true
         if: >
           github.event_name == 'push'
           && env.NETLIFY_TOKEN_PRESENT == 'true'
