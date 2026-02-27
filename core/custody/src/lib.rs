@@ -408,7 +408,7 @@ where
         let mut custodian = self.custodians.find_by_id_in_op(&mut op, id).await?;
 
         if custodian
-            .update_custodian_config(config, &self.encryption_config.encryption_key)?
+            .update_custodian_config(&self.encryption_config.encryption_key, config)?
             .did_execute()
         {
             self.custodians
