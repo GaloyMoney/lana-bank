@@ -90,12 +90,8 @@ describe("Customers", () => {
     cy.visit(`/prospects/${testProspectPublicId}`)
     cy.takeScreenshot("14_prospect_kyc_details_page")
 
-    cy.get("body").then(($body) => {
-      if ($body.find('[data-testid="prospect-create-kyc-link"]').length > 0) {
-        cy.get('[data-testid="prospect-create-kyc-link"]').click()
-        cy.contains("https://in.sumsub.com/test/link").should("be.visible")
-      }
-    })
+    cy.get('[data-testid="prospect-create-kyc-link"]').should("be.visible").click()
+    cy.contains("https://in.sumsub.com/test/link").should("be.visible")
     cy.takeScreenshot("15_kyc_link_created")
 
     const webhookId = `req-${Date.now()}`
