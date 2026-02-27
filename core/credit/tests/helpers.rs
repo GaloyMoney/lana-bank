@@ -13,7 +13,7 @@ use core_credit::{CreditOmnibusAccountSetSpec, CreditSummaryAccountSetSpec};
 use core_custody::CustodyConfig;
 use document_storage::DocumentStorage;
 use domain_config::{
-    EncryptionConfig as DomainEncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly,
+    EncryptionConfig as DomainEncryptionConfig, ExposedDomainConfigsReadOnly,
     InternalDomainConfigs, RequireVerifiedCustomerForAccount,
 };
 use encryption::EncryptionConfig;
@@ -29,29 +29,24 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     Ok(pool)
 }
 
-pub async fn init_read_only_exposed_domain_configs(
+pub async fn init_domain_configs(
     pool: &sqlx::PgPool,
     authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
-) -> anyhow::Result<ExposedDomainConfigsReadOnly> {
-    let exposed_configs = ExposedDomainConfigs::new(pool, authz, DomainEncryptionConfig::default());
-    exposed_configs.seed_registered().await?;
+) -> anyhow::Result<(InternalDomainConfigs, ExposedDomainConfigsReadOnly)> {
+    let startup_configs: Vec<(String, serde_json::Value)> = vec![];
+    let (internal, exposed, exposed_readonly) = domain_config::init(
+        pool,
+        authz,
+        DomainEncryptionConfig::default(),
+        startup_configs,
+    )
+    .await?;
     // Disable the require verified customer check for tests
     // Ignore concurrent modification - all tests want the same value (false)
-    let _ = exposed_configs
+    let _ = exposed
         .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
         .await;
-    Ok(ExposedDomainConfigsReadOnly::new(
-        pool,
-        DomainEncryptionConfig::default(),
-    ))
-}
-
-pub async fn init_internal_domain_configs(
-    pool: &sqlx::PgPool,
-) -> anyhow::Result<InternalDomainConfigs> {
-    let internal_configs = InternalDomainConfigs::new(pool, DomainEncryptionConfig::default());
-    internal_configs.seed_registered().await?;
-    Ok(internal_configs)
+    Ok((internal, exposed_readonly))
 }
 
 pub fn test_btc_price() -> core_price::PriceOfOneBTC {
@@ -556,13 +551,12 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         &outbox,
     )
     .await?;
-    let domain_configs = init_read_only_exposed_domain_configs(&pool, &authz).await?;
     domain_config::DomainConfigTestUtils::clear_config_by_key(
         &pool,
         "credit-chart-of-accounts-integration",
     )
     .await?;
-    let internal_domain_configs = init_internal_domain_configs(&pool).await?;
+    let (internal_domain_configs, domain_configs) = init_domain_configs(&pool, &authz).await?;
 
     let credit = CoreCredit::init(
         &pool,

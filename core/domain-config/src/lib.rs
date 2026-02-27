@@ -64,41 +64,14 @@
 //! }
 //! ```
 //!
-//! ## Using Configs
+//! ## Initialization
 //!
-//! Use [`InternalDomainConfigs`] for internal configs. The owning crate is responsible
-//! for enforcing authorization before calling these methods:
+//! All three config accessors are created via [`init`], which also seeds registered
+//! configs, applies startup overrides, and rotates encryption keys if needed:
 //! ```no_run
-//! # domain_config::define_internal_config! {
-//! #     pub struct MyInternalFlag(bool);
-//! #     spec {
-//! #         key: "my-internal-flag";
-//! #     }
-//! # }
-//! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
-//!     // Enforce your custom authorization here before accessing the config
-//!     let configs = domain_config::InternalDomainConfigs::new(
-//!         pool,
-//!         domain_config::EncryptionConfig::default(),
-//!     );
-//!     let value = configs.get::<MyInternalFlag>().await?.maybe_value();
-//!     configs.update::<MyInternalFlag>(true).await?;
-//! #     Ok(())
-//! # }
-//! ```
-//!
-//! Use [`ExposedDomainConfigs`] for exposed configs (requires auth subject):
-//! ```no_run
-//! # domain_config::define_exposed_config! {
-//! #     pub struct MyExposedSetting(String);
-//! #     spec {
-//! #         key: "my-exposed-setting";
-//! #     }
-//! # }
 //! # async fn example<P: authz::PermissionCheck>(
 //! #     pool: &sqlx::PgPool,
 //! #     authz: &P,
-//! #     subject: &<P::Audit as audit::AuditSvc>::Subject,
 //! # ) -> Result<(), domain_config::DomainConfigError>
 //! # where
 //! #     <<P as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
@@ -106,35 +79,26 @@
 //! #     <<P as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
 //! #         From<domain_config::DomainConfigObject>,
 //! # {
-//!     let configs = domain_config::ExposedDomainConfigs::new(
+//!     let startup_configs: Vec<(String, serde_json::Value)> = vec![];
+//!     let (internal, exposed, exposed_readonly) = domain_config::init(
 //!         pool,
 //!         authz,
 //!         domain_config::EncryptionConfig::default(),
-//!     );
-//!     let value = configs.get::<MyExposedSetting>(subject).await?.maybe_value();
-//!     configs.update::<MyExposedSetting>(subject, "new-value".into()).await?;
+//!         startup_configs,
+//!     ).await?;
 //! #     Ok(())
 //! # }
 //! ```
 //!
+//! ## Using Configs
+//!
+//! Use [`InternalDomainConfigs`] for internal configs. The owning crate is responsible
+//! for enforcing authorization before calling these methods.
+//!
+//! Use [`ExposedDomainConfigs`] for exposed configs (requires auth subject).
+//!
 //! Use [`ExposedDomainConfigsReadOnly`] for read-only access without authorization
-//! (for background jobs and internal processes):
-//! ```no_run
-//! # domain_config::define_exposed_config! {
-//! #     pub struct MyExposedSetting(String);
-//! #     spec {
-//! #         key: "my-exposed-setting";
-//! #     }
-//! # }
-//! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
-//!     let configs = domain_config::ExposedDomainConfigsReadOnly::new(
-//!         pool,
-//!         domain_config::EncryptionConfig::default(),
-//!     );
-//!     let value = configs.get_without_audit::<MyExposedSetting>().await?.maybe_value();
-//! #     Ok(())
-//! # }
-//! ```
+//! (for background jobs and internal processes).
 //!
 //! ## Config Lifecycle
 //!
@@ -167,11 +131,14 @@ mod spec;
 mod typed_domain_config;
 mod value;
 
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use encryption::{Encrypted, EncryptionKey};
+use encryption::EncryptionKey;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -206,7 +173,7 @@ pub mod event_schema {
 
 #[derive(Clone)]
 pub struct InternalDomainConfigs {
-    repo: DomainConfigRepo,
+    repo: Arc<DomainConfigRepo>,
     encryption_config: EncryptionConfig,
 }
 
@@ -215,7 +182,7 @@ pub struct ExposedDomainConfigs<Perms>
 where
     Perms: PermissionCheck,
 {
-    repo: DomainConfigRepo,
+    repo: Arc<DomainConfigRepo>,
     authz: Perms,
     encryption_config: EncryptionConfig,
 }
@@ -226,13 +193,12 @@ where
 /// to read exposed config values without user context.
 #[derive(Clone)]
 pub struct ExposedDomainConfigsReadOnly {
-    repo: DomainConfigRepo,
+    repo: Arc<DomainConfigRepo>,
     encryption_config: EncryptionConfig,
 }
 
 impl InternalDomainConfigs {
-    pub fn new(pool: &sqlx::PgPool, encryption_config: EncryptionConfig) -> Self {
-        let repo = DomainConfigRepo::new(pool);
+    fn new(repo: Arc<DomainConfigRepo>, encryption_config: EncryptionConfig) -> Self {
         Self {
             repo,
             encryption_config,
@@ -268,12 +234,6 @@ impl InternalDomainConfigs {
     }
 
     #[record_error_severity]
-    #[instrument(name = "domain_config.seed_registered", skip(self))]
-    pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
-        seed_registered_for_visibility(&self.repo, Visibility::Internal).await
-    }
-
-    #[record_error_severity]
     #[instrument(name = "domain_config.begin_op", skip(self))]
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, DomainConfigError> {
         Ok(self.repo.begin_op().await?)
@@ -299,8 +259,7 @@ impl InternalDomainConfigs {
 }
 
 impl ExposedDomainConfigsReadOnly {
-    pub fn new(pool: &sqlx::PgPool, encryption_config: EncryptionConfig) -> Self {
-        let repo = DomainConfigRepo::new(pool);
+    fn new(repo: Arc<DomainConfigRepo>, encryption_config: EncryptionConfig) -> Self {
         Self {
             repo,
             encryption_config,
@@ -324,8 +283,11 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, encryption_config: EncryptionConfig) -> Self {
-        let repo = DomainConfigRepo::new(pool);
+    fn new(
+        repo: Arc<DomainConfigRepo>,
+        authz: &Perms,
+        encryption_config: EncryptionConfig,
+    ) -> Self {
         Self {
             repo,
             authz: authz.clone(),
@@ -429,12 +391,6 @@ where
         Ok(entity)
     }
 
-    #[record_error_severity]
-    #[instrument(name = "domain_config.seed_registered", skip(self))]
-    pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
-        seed_registered_for_visibility(&self.repo, Visibility::Exposed).await
-    }
-
     async fn ensure_read_permission(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -464,10 +420,55 @@ where
     }
 }
 
-async fn seed_registered_for_visibility(
-    repo: &DomainConfigRepo,
-    visibility: Visibility,
-) -> Result<(), DomainConfigError> {
+/// Initialize domain configs: seed registered configs, apply startup overrides,
+/// and rotate encryption keys if a deprecated key is present.
+#[instrument(name = "domain_config.init", skip_all)]
+pub async fn init<Perms, I, K>(
+    pool: &sqlx::PgPool,
+    authz: &Perms,
+    encryption_config: EncryptionConfig,
+    startup_configs: I,
+) -> Result<
+    (
+        InternalDomainConfigs,
+        ExposedDomainConfigs<Perms>,
+        ExposedDomainConfigsReadOnly,
+    ),
+    DomainConfigError,
+>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
+    I: IntoIterator<Item = (K, serde_json::Value)>,
+    K: Into<DomainConfigKey> + std::fmt::Display + Clone,
+{
+    let repo = Arc::new(DomainConfigRepo::new(pool));
+
+    let internal = InternalDomainConfigs::new(Arc::clone(&repo), encryption_config.clone());
+    let exposed = ExposedDomainConfigs::new(Arc::clone(&repo), authz, encryption_config.clone());
+    let exposed_readonly =
+        ExposedDomainConfigsReadOnly::new(Arc::clone(&repo), encryption_config.clone());
+
+    seed_registered(&repo).await?;
+
+    apply_startup_configs(&repo, &encryption_config, startup_configs).await?;
+
+    if let Some(ref deprecated_key) = encryption_config.deprecated_encryption_key {
+        rotate_encryption_key(
+            &repo,
+            authz,
+            &encryption_config.encryption_key,
+            deprecated_key,
+        )
+        .await?;
+    }
+
+    Ok((internal, exposed, exposed_readonly))
+}
+
+#[instrument(name = "domain_config.seed_registered", skip_all)]
+async fn seed_registered(repo: &DomainConfigRepo) -> Result<(), DomainConfigError> {
     let mut seen = HashSet::new();
     for spec in registry::all_specs() {
         if !seen.insert(spec.key) {
@@ -475,10 +476,6 @@ async fn seed_registered_for_visibility(
                 "Duplicate domain config key: {}",
                 spec.key
             )));
-        }
-
-        if spec.visibility != visibility {
-            continue;
         }
 
         let key = DomainConfigKey::new(spec.key);
@@ -507,8 +504,8 @@ async fn seed_registered_for_visibility(
 }
 
 #[instrument(name = "domain_config.rotate_encryption_key", skip_all)]
-pub async fn rotate_encryption_key<Perms>(
-    pool: &sqlx::PgPool,
+async fn rotate_encryption_key<Perms>(
+    repo: &DomainConfigRepo,
     authz: &Perms,
     new_key: &EncryptionKey,
     deprecated_key: &EncryptionKey,
@@ -518,7 +515,6 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
 {
-    let repo = DomainConfigRepo::new(pool);
     let mut op = repo.begin_op().await?;
 
     authz
@@ -547,16 +543,9 @@ where
     Ok(())
 }
 
-/// Apply domain config settings at startup from key-value pairs.
-///
-/// This is intended for bootstrap scenarios where configs need to be set
-/// from environment variables before user context is available.
-/// Works for both internal and exposed configs.
-///
-/// All settings are applied atomically within a single transaction.
 #[instrument(name = "domain_config.apply_startup_configs", skip_all)]
-pub async fn apply_startup_configs<I, K>(
-    pool: &sqlx::PgPool,
+async fn apply_startup_configs<I, K>(
+    repo: &DomainConfigRepo,
     encryption_config: &EncryptionConfig,
     settings: I,
 ) -> Result<(), DomainConfigError>
@@ -564,7 +553,6 @@ where
     I: IntoIterator<Item = (K, serde_json::Value)>,
     K: Into<DomainConfigKey> + std::fmt::Display + Clone,
 {
-    let repo = DomainConfigRepo::new(pool);
     let mut db_tx = repo.begin_op().await?;
 
     for (key, value) in settings {

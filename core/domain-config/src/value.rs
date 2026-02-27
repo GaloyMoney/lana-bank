@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{DomainConfigError, Encrypted, EncryptionKey};
+use encryption::Encrypted;
+
+use crate::{DomainConfigError, EncryptionKey};
 
 /// Represents a domain config value that can be either plaintext or encrypted.
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -78,7 +78,6 @@ async fn setup_with_clock_control()
         &outbox,
     )
     .await?;
-    let domain_configs = helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
     // Reset this event-sourced config so each test builds a fresh
     // chart-of-accounts mapping. Reusing stale config can reference
     // account-set IDs that no longer exist in a clean integration run.
@@ -87,7 +86,8 @@ async fn setup_with_clock_control()
         "credit-chart-of-accounts-integration",
     )
     .await?;
-    let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
+    let (internal_domain_configs, domain_configs) =
+        helpers::init_domain_configs(&pool, &authz).await?;
 
     let credit = CoreCredit::init(
         &pool,
