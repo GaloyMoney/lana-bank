@@ -18,16 +18,17 @@ Evaluate what it would take to merge the new admin CLI (`dev/lanacli`) with the 
 
 ## Merge Options
 
-### Option A: Single package (`lana-cli`) with split subcommands (recommended)
+### Option A: Single package (`lana-cli`) with top-level business commands (recommended)
 Make `lana-cli` a multi-role binary:
-- `lana-cli serve` (current server behavior)
-- `lana-cli admin <...>` (current `lanacli` behavior)
+- `lana-cli serve` (server behavior)
+- `lana-cli <resource> <action> ...` for admin operations (for example `lana-cli customer create`)
 - `lana-cli login/logout` (admin auth session)
 
 Pros:
 - One canonical binary and packaging surface.
 - No duplicated auth/client stack.
 - Matches “crate/server + admin ops in one place” intent.
+- Avoids an extra namespace layer (`lana-cli admin customer create`).
 
 Cons:
 - Larger server binary + broader dependency surface.
@@ -36,7 +37,7 @@ Cons:
 ### Option B: Shared library + two binaries
 Extract `dev/lanacli` logic into a library crate and call it from:
 - `lanacli` binary (compat)
-- `lana-cli admin ...` wrapper
+- `lana-cli <resource> <action> ...` wrapper
 
 Pros:
 - Low-risk migration with compatibility period.
@@ -51,8 +52,9 @@ Minimal churn, but does not really merge crate/server ownership.
 
 ### Phase 0: Compatibility wrapper
 1. Keep `dev/lanacli` as-is.
-2. Add `admin` command path in `lana/cli` that delegates to shared admin command runner.
+2. Add top-level admin command paths in `lana/cli` that delegate to shared admin command runner.
 3. Keep `lanacli` binary as a thin compatibility wrapper calling the same runner.
+4. Introduce explicit `lana-cli serve` as the server entrypoint (while preserving current behavior during migration).
 
 ### Phase 1: Internal convergence
 1. Move admin CLI modules from `dev/lanacli` into `lana/cli` (or a shared internal crate).
@@ -71,7 +73,8 @@ Minimal churn, but does not really merge crate/server ownership.
 
 ### `lana/cli`
 - `src/lib.rs`
-  - Extend `Commands` with an `Admin` variant.
+  - Extend `Commands` with top-level admin resources (`customer`, `prospect`, `accounting`, etc.).
+  - Keep server/utility commands (`serve`, `build-info`, etc.) reserved and non-conflicting.
   - Route admin commands to shared command execution path.
 - `src/main.rs`
   - Keep current rustls provider install + runtime setup.
@@ -85,24 +88,25 @@ Minimal churn, but does not really merge crate/server ownership.
 - Preserve CLI interface used in Bats until transition is complete.
 
 ### CI/Tooling
-- Verify Bats `LANACLI` path assumptions and decide when to point to `lana-cli admin`.
+- Verify Bats `LANACLI` path assumptions and decide when to point to `lana-cli`.
 - Verify nix/build artifacts for expected binary naming.
 
 ## Key Risks
 - Accidental server startup behavior changes (default command semantics).
+- CLI name collisions between server utility commands and top-level admin resources.
 - Regression in Bats/admin workflows if command flags/output format shift.
 - Dependency bloat in server package and slower build times.
 - Auth/session path changes causing hidden login regressions.
 
 ## Acceptance Criteria for merge project
 - `lana-cli serve` behaves identically to current `lana-cli` server mode.
-- `lana-cli admin ...` reaches command parity with `lanacli ...`.
+- `lana-cli <resource> <action> ...` reaches command parity with `lanacli ...`.
 - Existing Bats suite passes with either compatibility binary or updated invocation.
 - CI/release produce expected artifacts with documented migration path.
 
 ## Suggested PR breakdown
 1. PR1: shared admin command runner crate/module + compatibility wrapper.
-2. PR2: add `lana-cli admin` command surface, keep `lanacli` wrapper.
+2. PR2: add top-level `lana-cli <resource> <action>` command surface, keep `lanacli` wrapper.
 3. PR3: migrate CI/docs/tooling to canonical invocation.
 4. PR4: deprecate/remove legacy wrapper (optional, after soak period).
 
