@@ -1291,7 +1291,6 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
- "command-job",
  "core-access",
  "core-accounting",
  "core-accounting-primitives",
