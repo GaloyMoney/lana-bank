@@ -4,7 +4,7 @@ use lana_app::balance_sheet::BalanceSheet as DomainBalanceSheet;
 
 use crate::{graphql::loader::*, primitives::*};
 
-use super::{LedgerAccount, LedgerAccountBalanceRange};
+use super::{LedgerAccount, LedgerAccountBalanceByCurrency};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -26,12 +26,18 @@ impl From<DomainBalanceSheet> for BalanceSheet {
 
 #[ComplexObject]
 impl BalanceSheet {
-    async fn balance(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
-        if let Some(balance) = self.entity.btc_balance_range.as_ref() {
-            Ok(Some(balance).into())
-        } else {
-            Ok(self.entity.usd_balance_range.as_ref().into())
-        }
+    async fn assets_balance(&self) -> async_graphql::Result<LedgerAccountBalanceByCurrency> {
+        Ok(LedgerAccountBalanceByCurrency::from(&self.entity.assets))
+    }
+
+    async fn liabilities_balance(&self) -> async_graphql::Result<LedgerAccountBalanceByCurrency> {
+        Ok(LedgerAccountBalanceByCurrency::from(
+            &self.entity.liabilities,
+        ))
+    }
+
+    async fn equity_balance(&self) -> async_graphql::Result<LedgerAccountBalanceByCurrency> {
+        Ok(LedgerAccountBalanceByCurrency::from(&self.entity.equity))
     }
 
     async fn categories(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {

@@ -26,6 +26,11 @@ const toDateString = (date: Date): string => {
   return `${year}-${month}-${day}`
 }
 
+export const parseDateString = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split("-").map(Number)
+  return new Date(year, month - 1, day)
+}
+
 export const getInitialDateRange = (): DateRange => {
   const today = new Date()
   const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
@@ -42,10 +47,10 @@ export const DateRangeSelector = ({
   const t = useTranslations("DateRangePicker")
   const [isOpen, setIsOpen] = useState(false)
   const [selectedFrom, setSelectedFrom] = useState<Date | undefined>(
-    new Date(initialDateRange.from),
+    parseDateString(initialDateRange.from),
   )
   const [selectedTo, setSelectedTo] = useState<Date | undefined>(
-    new Date(initialDateRange.until),
+    parseDateString(initialDateRange.until),
   )
 
   const today = useMemo(() => {

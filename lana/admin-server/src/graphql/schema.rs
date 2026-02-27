@@ -918,19 +918,13 @@ impl Query {
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
-        from: Date,
-        until: Option<Date>,
+        as_of: Date,
     ) -> async_graphql::Result<BalanceSheet> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let balance_sheet = app
             .accounting()
             .balance_sheets()
-            .balance_sheet(
-                sub,
-                BALANCE_SHEET_NAME.to_string(),
-                from.into_inner(),
-                until.map(|t| t.into_inner()),
-            )
+            .balance_sheet(sub, BALANCE_SHEET_NAME.to_string(), as_of.into_inner())
             .await?;
         Ok(BalanceSheet::from(balance_sheet))
     }

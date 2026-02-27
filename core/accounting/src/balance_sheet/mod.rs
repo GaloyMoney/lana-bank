@@ -12,7 +12,7 @@ use tracing_macros::record_error_severity;
 use crate::{
     LedgerAccountId,
     primitives::{
-        BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject,
+        CalaAccountBalance, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject,
         ResolvedAccountingBaseConfig,
     },
 };
@@ -117,8 +117,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
+        as_of: NaiveDate,
     ) -> Result<BalanceSheet, BalanceSheetError> {
         self.authz
             .enforce_permission(
@@ -130,16 +129,22 @@ where
 
         Ok(self
             .balance_sheet_ledger
-            .get_balance_sheet(reference, from, until)
+            .get_balance_sheet(reference, as_of)
             .await?)
     }
 }
 
 #[derive(Clone)]
+pub struct AccountCategoryBalance {
+    pub usd: Option<CalaAccountBalance>,
+    pub btc: Option<CalaAccountBalance>,
+}
+
+#[derive(Clone)]
 pub struct BalanceSheet {
-    pub id: LedgerAccountId,
     pub name: String,
-    pub usd_balance_range: Option<BalanceRange>,
-    pub btc_balance_range: Option<BalanceRange>,
+    pub assets: AccountCategoryBalance,
+    pub liabilities: AccountCategoryBalance,
+    pub equity: AccountCategoryBalance,
     pub category_ids: Vec<LedgerAccountId>,
 }

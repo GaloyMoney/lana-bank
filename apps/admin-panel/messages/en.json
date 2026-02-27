@@ -2218,6 +2218,8 @@
     "description": "A financial statement showing the company's assets, liabilities, and equity at a specific point in time.",
     "noData": "No data",
     "total": "Total",
+    "asOf": "As Of",
+    "apply": "Apply",
     "columns": {
       "assets": "Total Assets",
       "liabilitiesAndEquity": "Total Liabilities & Equity"

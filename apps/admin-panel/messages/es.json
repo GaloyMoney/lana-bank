@@ -2218,6 +2218,8 @@
     "description": "Un estado financiero que muestra los activos, pasivos y patrimonio de la empresa en un momento específico.",
     "noData": "Sin datos",
     "total": "Total",
+    "asOf": "A la fecha",
+    "apply": "Aplicar",
     "columns": {
       "assets": "Total de Activos",
       "liabilitiesAndEquity": "Total de Pasivos y Patrimonio"
