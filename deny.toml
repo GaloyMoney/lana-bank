@@ -102,7 +102,6 @@ allow = [
     "LicenseRef-BUSL-1.1",
     "CDLA-Permissive-2.0",
     "0BSD",
-    "OpenSSL",
 ]
 # The confidence threshold for detecting a license from license text.
 # The higher the value, the more closely the license text must be to the
@@ -136,6 +135,11 @@ exceptions = [
 #]
 
 # Clarifications for internal lana-bank crates using FSL-1.1-ALv2
+[[licenses.clarify]]
+crate = "command-job"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
 [[licenses.clarify]]
 crate = "admin-server"
 expression = "LicenseRef-BUSL-1.1"

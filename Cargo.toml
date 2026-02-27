@@ -42,6 +42,7 @@ smtp-client = { path = "lib/smtp-client" }
 sumsub = { path = "lib/sumsub" }
 tracing-macros = { path = "lib/tracing-macros" }
 tracing-utils = { path = "lib/tracing-utils" }
+command-job = { path = "lib/command-job" }
 
 # Core dependencies
 core-access = { path = "core/access" }

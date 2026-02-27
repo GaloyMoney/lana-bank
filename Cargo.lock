@@ -1115,6 +1115,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "command-job"
+version = "0.0.0"
+dependencies = [
+ "async-trait",
+ "es-entity",
+ "job",
+ "serde",
+]
+
+[[package]]
 name = "concurrent-queue"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1281,6 +1291,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
+ "command-job",
  "core-access",
  "core-accounting",
  "core-accounting-primitives",
@@ -1333,6 +1344,7 @@ dependencies = [
  "authz",
  "cala-ledger",
  "chrono",
+ "command-job",
  "core-accounting-primitives",
  "core-credit-collection",
  "core-custody",
@@ -1818,6 +1830,7 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
+ "command-job",
  "core-customer",
  "core-deposit",
  "core-time-events",
@@ -6750,6 +6763,7 @@ name = "user-onboarding"
 version = "0.0.0"
 dependencies = [
  "async-trait",
+ "command-job",
  "core-access",
  "es-entity",
  "job",
