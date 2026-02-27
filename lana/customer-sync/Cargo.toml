@@ -16,6 +16,7 @@ governance = { workspace = true }
 es-entity = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
+command-job = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 
