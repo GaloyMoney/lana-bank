@@ -57,9 +57,16 @@ config:
 #@ end
 
 #@ def exec_phase(pkgs):
+#@ pkg = pkgs[0]
 do:
 - #@ check_latest_commit()
-- #@ nix_build_and_cache(pkgs)
+- in_parallel:
+  - #@ set_pr_status("Running", context = pkg)
+  - #@ nix_build_and_cache(pkgs)
+  on_failure: #@ set_pr_status("Failed", context = pkg, status = "failure")
+  on_abort: #@ set_pr_status("Aborted", context = pkg, status = "failure")
+  on_error: #@ set_pr_status("Errored", context = pkg, status = "error")
+- #@ set_pr_status("Complete", context = pkg, status = "success")
 #@ end
 
 #@ def nix_build_and_cache(pkgs, resource_name="prs"):
@@ -88,6 +95,15 @@ config:
         done
 #@ end
 
+#@ def set_pr_status(description, context = "status", status = "pending"):
+put: prs-out
+params:
+  path: prs
+  status: #@ status
+  base_context: nix-cache
+  context: #@ context
+  description: #@ description
+#@ end
 
 #@ def check_latest_commit():
 task: check-latest-commit
