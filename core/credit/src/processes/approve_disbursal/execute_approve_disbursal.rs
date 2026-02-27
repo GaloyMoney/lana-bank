@@ -140,8 +140,7 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let op = current_job.begin_op().await?;
-        let mut op = op.with_db_time().await?;
+        let mut op = current_job.begin_op().await?;
         self.process
             .execute_approve_disbursal_in_op(
                 &mut op,
@@ -149,7 +148,6 @@ where
                 self.config.approved,
             )
             .await?;
-        op.commit().await?;
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(op))
     }
 }

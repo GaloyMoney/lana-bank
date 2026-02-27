@@ -213,15 +213,16 @@ where
 
     pub(super) async fn conclude_approval_process_in_op(
         &self,
-        op: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         disbursal_id: DisbursalId,
         approved: bool,
         effective: chrono::NaiveDate,
     ) -> Result<ApprovalProcessOutcome, DisbursalError> {
+        let mut op = es_entity::OpWithTime::cached_or_db_time(op).await?;
         self.authz
             .audit()
             .record_system_entry_in_op(
-                op,
+                &mut op,
                 crate::primitives::DISBURSAL_APPROVAL,
                 CoreCreditObject::disbursal(disbursal_id),
                 CoreCreditAction::DISBURSAL_SETTLE,
@@ -229,7 +230,7 @@ where
             .await
             .map_err(authz::error::AuthorizationError::from)?;
 
-        let mut disbursal = self.repo.find_by_id_in_op(&mut *op, disbursal_id).await?;
+        let mut disbursal = self.repo.find_by_id_in_op(&mut op, disbursal_id).await?;
 
         let ret = match disbursal.approval_process_concluded(approved, effective) {
             es_entity::Idempotent::AlreadyApplied => {
@@ -239,13 +240,13 @@ where
                 let obligation = self
                     .collections
                     .obligations()
-                    .create_in_op(op, new_obligation)
+                    .create_in_op(&mut op, new_obligation)
                     .await?;
-                self.repo.update_in_op(op, &mut disbursal).await?;
+                self.repo.update_in_op(&mut op, &mut disbursal).await?;
                 ApprovalProcessOutcome::Approved((disbursal, obligation))
             }
             es_entity::Idempotent::Executed(None) => {
-                self.repo.update_in_op(op, &mut disbursal).await?;
+                self.repo.update_in_op(&mut op, &mut disbursal).await?;
                 ApprovalProcessOutcome::Denied(disbursal)
             }
         };
