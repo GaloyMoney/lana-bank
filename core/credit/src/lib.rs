@@ -2,7 +2,6 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod chart_of_accounts_integration;
-mod collateral;
 mod credit_facility;
 mod credit_facility_proposal;
 mod disbursal;
@@ -22,6 +21,9 @@ use std::sync::Arc;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use core_credit_collateral::{
+    Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
+};
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -42,11 +44,6 @@ use tracing_macros::record_error_severity;
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrations,
     error::ChartOfAccountsIntegrationError,
-};
-pub use collateral::{
-    Collateral, Collaterals, Liquidation, RecordProceedsFromLiquidationData, liquidation_cursor,
-    liquidation_cursor::*, primitives::*, public::CoreCreditCollateralEvent,
-    publisher::CollateralPublisher,
 };
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
@@ -74,19 +71,21 @@ pub use core_credit_collection::{ObligationEvent, PaymentAllocationEvent, Paymen
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::{
-        ObligationEvent, PaymentAllocationEvent, PaymentEvent, collateral::CollateralEvent,
-        collateral::LiquidationEvent, credit_facility::CreditFacilityEvent,
+        ObligationEvent, PaymentAllocationEvent, PaymentEvent,
+        credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
         interest_accrual_cycle::InterestAccrualCycleEvent,
         pending_credit_facility::PendingCreditFacilityEvent,
     };
+
+    pub use core_credit_collateral::{CollateralEvent, LiquidationEvent};
 }
 
 pub struct CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -104,7 +103,6 @@ where
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
     ledger: Arc<CreditLedger>,
-    collateral_ledger: Arc<collateral::ledger::CollateralLedger>,
     price: Arc<Price>,
     domain_configs: ExposedDomainConfigsReadOnly,
     approve_disbursal: Arc<ApproveDisbursal<Perms, E>>,
@@ -124,7 +122,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
@@ -147,7 +145,6 @@ where
             governance: self.governance.clone(),
             customer: self.customer.clone(),
             ledger: self.ledger.clone(),
-            collateral_ledger: self.collateral_ledger.clone(),
             price: self.price.clone(),
             domain_configs: self.domain_configs.clone(),
             cala: self.cala.clone(),
@@ -168,16 +165,16 @@ where
         + From<GovernanceAction>
         + From<CoreCustomerAction>
         + From<CoreCustodyAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CustomerObject>
         + From<CoreCustodyObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<collateral::public::CoreCreditCollateralEvent>
+        + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
@@ -219,16 +216,6 @@ where
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
-        let collateral_ledger = collateral::ledger::CollateralLedger::init(
-            cala,
-            journal_id,
-            clock.clone(),
-            *ledger_arc.collateral_omnibus_account_ids(),
-            ledger_arc.collateral_account_sets(),
-        )
-        .await?;
-        let collateral_ledger_arc = Arc::new(collateral_ledger);
-
         let collections = CoreCreditCollection::init(
             pool,
             authz_arc.clone(),
@@ -253,18 +240,15 @@ where
         .await?;
         let proposals_arc = Arc::new(credit_facility_proposals);
 
-        let collateral_repo = Arc::new(crate::collateral::repo::CollateralRepo::new(
-            pool,
-            &CollateralPublisher::new(outbox),
-            clock.clone(),
-        ));
-
         let collaterals = Collaterals::init(
+            pool,
             authz_arc.clone(),
-            collateral_ledger_arc.clone(),
+            cala,
+            journal_id,
+            ledger_arc.collateral_omnibus_account_ids().account_id,
+            ledger_arc.collateral_account_sets(),
             outbox,
             jobs,
-            collateral_repo.clone(),
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);
@@ -410,7 +394,6 @@ where
             repayment_plans: repayment_plans_arc,
             governance: governance_arc,
             ledger: ledger_arc,
-            collateral_ledger: collateral_ledger_arc,
             price: price_arc,
             domain_configs: domain_configs.clone(),
             cala: cala_arc,
@@ -866,20 +849,15 @@ where
             CompletionOutcome::AlreadyApplied(facility) => facility,
 
             CompletionOutcome::Completed((facility, _completion)) => {
-                if let Some(collateral_update) = self
-                    .collaterals
+                self.collaterals
                     .record_collateral_update_via_manual_input_in_op(
                         &mut db,
+                        sub,
                         facility.collateral_id,
                         Satoshis::ZERO,
                         self.clock.today(),
                     )
-                    .await?
-                {
-                    self.collateral_ledger
-                        .update_collateral_amount_in_op(&mut db, collateral_update, sub)
-                        .await?;
-                }
+                    .await?;
 
                 db.commit().await?;
 

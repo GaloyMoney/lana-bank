@@ -7,7 +7,8 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use cala_ledger::{
-    CalaLedger, Currency, JournalId, TransactionId as CalaTransactionId, account::NewAccount,
+    AccountSetId as CalaAccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId,
+    TransactionId as CalaTransactionId, account::NewAccount,
 };
 use core_accounting_primitives::EntityRef;
 use es_entity::clock::ClockHandle;
@@ -15,19 +16,34 @@ use money::Satoshis;
 
 pub use accounts::{
     CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
-    LiquidationProceedsAccountIds,
+    FacilityProceedsFromLiquidationAccountId, LiquidationProceedsAccountIds,
 };
 pub use error::CollateralLedgerError;
 
-use crate::{
-    ledger::InternalAccountSetDetails,
-    primitives::{
-        COLLATERAL_ENTITY_TYPE, CalaAccountId, CollateralDirection, CollateralId, CollateralUpdate,
-        LedgerOmnibusAccountIds,
-    },
-};
+#[derive(Clone, Copy)]
+pub struct InternalAccountSetDetails {
+    id: CalaAccountSetId,
+    normal_balance_type: DebitOrCredit,
+}
 
-use super::RecordProceedsFromLiquidationData;
+impl InternalAccountSetDetails {
+    pub fn new(id: CalaAccountSetId, normal_balance_type: DebitOrCredit) -> Self {
+        Self {
+            id,
+            normal_balance_type,
+        }
+    }
+
+    pub fn id(&self) -> CalaAccountSetId {
+        self.id
+    }
+
+    pub fn normal_balance_type(&self) -> DebitOrCredit {
+        self.normal_balance_type
+    }
+}
+
+use super::{RecordProceedsFromLiquidationData, primitives::*};
 
 #[derive(Clone, Copy)]
 pub struct CollateralAccountSets {
@@ -41,7 +57,7 @@ pub struct CollateralLedger {
     cala: CalaLedger,
     journal_id: JournalId,
     clock: ClockHandle,
-    collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
+    collateral_omnibus_account_id: CalaAccountId,
     account_sets: CollateralAccountSets,
     btc: Currency,
 }
@@ -53,7 +69,7 @@ impl CollateralLedger {
         cala: &CalaLedger,
         journal_id: JournalId,
         clock: ClockHandle,
-        collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
+        collateral_omnibus_account_id: CalaAccountId,
         account_sets: CollateralAccountSets,
     ) -> Result<Self, CollateralLedgerError> {
         templates::AddCollateral::init(cala).await?;
@@ -65,7 +81,7 @@ impl CollateralLedger {
             cala: cala.clone(),
             journal_id,
             clock,
-            collateral_omnibus_account_ids,
+            collateral_omnibus_account_id,
             account_sets,
             btc: Currency::BTC,
         })
@@ -199,9 +215,7 @@ impl CollateralLedger {
                             currency: self.btc,
                             amount: abs_diff.to_btc(),
                             collateral_account_id,
-                            bank_collateral_account_id: self
-                                .collateral_omnibus_account_ids
-                                .account_id,
+                            bank_collateral_account_id: self.collateral_omnibus_account_id,
                             effective,
                             initiated_by,
                         },
@@ -219,9 +233,7 @@ impl CollateralLedger {
                             currency: self.btc,
                             amount: abs_diff.to_btc(),
                             collateral_account_id,
-                            bank_collateral_account_id: self
-                                .collateral_omnibus_account_ids
-                                .account_id,
+                            bank_collateral_account_id: self.collateral_omnibus_account_id,
                             effective,
                             initiated_by,
                         },

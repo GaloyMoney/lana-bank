@@ -4,6 +4,7 @@ use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_credit_collateral;
 use core_custody::CoreCustodyEvent;
 use es_entity::DbOp;
 use governance::GovernanceEvent;
@@ -14,9 +15,9 @@ use job::JobType;
 use super::liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner};
 use crate::{
     CoreCreditCollectionEvent, CoreCreditEvent,
-    collateral::{Collaterals, SecuredLoanId, public::CoreCreditCollateralEvent},
     primitives::{CoreCreditAction, CoreCreditObject},
 };
+use core_credit_collateral::{Collaterals, SecuredLoanId, public::CoreCreditCollateralEvent};
 
 pub const CREDIT_FACILITY_LIQUIDATIONS_JOB: JobType =
     JobType::new("outbox.credit-facility-liquidations");
@@ -62,10 +63,10 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<core_credit_collection::CoreCreditCollectionAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<core_credit_collateral::primitives::CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<core_credit_collection::CoreCreditCollectionObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<core_credit_collateral::primitives::CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>

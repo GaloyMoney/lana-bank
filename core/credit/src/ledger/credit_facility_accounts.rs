@@ -3,7 +3,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
-use core_credit_collection::PaymentSourceAccountId;
+use core_credit_collateral::{
+    FacilityLedgerAccountIdsForLiquidation, FacilityProceedsFromLiquidationAccountId,
+};
 
 use crate::{
     FacilityDurationType, InterestPeriod,
@@ -227,35 +229,12 @@ pub struct CreditFacilityInterestAccrualCycle {
     pub account_ids: InterestAccrualCycleLedgerAccountIds,
 }
 
-#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(transparent)]
-pub struct FacilityProceedsFromLiquidationAccountId(CalaAccountId);
-
-impl FacilityProceedsFromLiquidationAccountId {
-    pub fn new() -> Self {
-        Self(CalaAccountId::new())
-    }
-
-    pub const fn into_inner(self) -> CalaAccountId {
-        self.0
-    }
-}
-
-impl Default for FacilityProceedsFromLiquidationAccountId {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl From<FacilityProceedsFromLiquidationAccountId> for PaymentSourceAccountId {
-    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
-        Self::new(account.0)
-    }
-}
-
-impl From<FacilityProceedsFromLiquidationAccountId> for CalaAccountId {
-    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
-        account.0
+impl From<PendingCreditFacilityAccountIds> for FacilityLedgerAccountIdsForLiquidation {
+    fn from(ids: PendingCreditFacilityAccountIds) -> Self {
+        Self::new(
+            ids.facility_proceeds_from_liquidation_account_id,
+            ids.facility_payment_holding_account_id,
+            ids.facility_uncovered_outstanding_account_id,
+        )
     }
 }

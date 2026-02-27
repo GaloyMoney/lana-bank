@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use core_credit_collateral::CollateralId;
+
 use crate::{
     credit_facility::{CreditFacilityReceivable, NewCreditFacilityBuilder},
     disbursal::NewDisbursalBuilder,

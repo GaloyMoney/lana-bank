@@ -7,7 +7,7 @@ use contract_creation::ContractModuleAction;
 use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
-use core_credit::CoreCreditCollateralAction;
+use core_credit_collateral::CoreCreditCollateralAction;
 use core_credit_collection::CoreCreditCollectionAction;
 use core_credit_terms::CoreCreditTermsAction;
 use core_custody::CoreCustodyAction;

@@ -1,7 +1,7 @@
 mod entity;
 pub mod error;
 mod jobs;
-pub mod ledger;
+mod ledger;
 pub mod liquidation;
 pub mod primitives;
 pub mod public;
@@ -15,30 +15,33 @@ use tracing_macros::record_error_severity;
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
-use core_custody::CoreCustodyEvent;
+use cala_ledger::TransactionId as LedgerTxId;
+use core_credit_collection::CoreCreditCollectionEvent;
+use core_custody::{CoreCustodyEvent, WalletId as CustodyWalletId};
+use core_price::PriceOfOneBTC;
 use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
-use money::UsdCents;
+use money::{Satoshis, UsdCents};
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
-
-use crate::{FacilityProceedsFromLiquidationAccountId, primitives::CoreCreditCollectionEvent};
 
 use es_entity::Idempotent;
 
-use crate::{collateral::public::CoreCreditCollateralEvent, primitives::*};
-
-use ledger::{
-    CollateralLedger, CollateralLedgerAccountIds, FacilityLedgerAccountIdsForLiquidation,
-    LiquidationProceedsAccountIds,
-};
-
-pub(super) use entity::*;
 use jobs::{record_collateral_update, wallet_collateral_sync};
+use repo::CollateralRepo;
+
+use ledger::CollateralLedger;
+
 pub use {
-    entity::{Collateral, CollateralAdjustment},
+    entity::{Collateral, CollateralAdjustment, NewCollateral},
+    ledger::{
+        CollateralAccountSets, CollateralLedgerAccountIds, CollateralLedgerError,
+        FacilityLedgerAccountIdsForLiquidation, FacilityProceedsFromLiquidationAccountId,
+        InternalAccountSetDetails, LiquidationProceedsAccountIds,
+    },
     liquidation::Liquidation,
     primitives::*,
-    repo::{CollateralRepo, liquidation_cursor},
+    public::CoreCreditCollateralEvent,
+    repo::liquidation_cursor,
 };
 
 #[cfg(feature = "json-schema")]
@@ -93,13 +96,33 @@ where
 {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
+        pool: &sqlx::PgPool,
         authz: Arc<Perms>,
-        ledger: Arc<CollateralLedger>,
+        cala: &cala_ledger::CalaLedger,
+        journal_id: cala_ledger::JournalId,
+        collateral_omnibus_account_id: cala_ledger::AccountId,
+        account_sets: ledger::CollateralAccountSets,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
-        repo: Arc<CollateralRepo<E>>,
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
+
+        let ledger = Arc::new(
+            CollateralLedger::init(
+                cala,
+                journal_id,
+                clock.clone(),
+                collateral_omnibus_account_id,
+                account_sets,
+            )
+            .await?,
+        );
+
+        let repo = Arc::new(CollateralRepo::new(
+            pool,
+            &publisher::CollateralPublisher::new(outbox),
+            clock.clone(),
+        ));
 
         let record_collateral_update = jobs.add_initializer(
             record_collateral_update::RecordCollateralUpdateJobInitializer::<
@@ -154,7 +177,7 @@ where
         skip(self, db),
         err
     )]
-    pub(super) async fn record_liquidation_started_in_op(
+    pub async fn record_liquidation_started_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
@@ -235,27 +258,29 @@ where
     #[record_error_severity]
     #[instrument(
         name = "collateral.record_collateral_update_via_manual_input_in_op",
-        skip(db, self)
+        skip(db, self, sub)
     )]
-    pub(super) async fn record_collateral_update_via_manual_input_in_op(
+    pub async fn record_collateral_update_via_manual_input_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
         updated_collateral: money::Satoshis,
         effective: chrono::NaiveDate,
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
-        let res = if let es_entity::Idempotent::Executed(data) =
+        if let es_entity::Idempotent::Executed(collateral_update) =
             collateral.record_collateral_update_via_manual_input(updated_collateral, effective)?
         {
             self.repo.update_in_op(db, &mut collateral).await?;
-            Some(data)
-        } else {
-            None
-        };
 
-        Ok(res)
+            self.ledger
+                .update_collateral_amount_in_op(db, collateral_update, sub)
+                .await?;
+        }
+
+        Ok(None)
     }
 
     #[record_error_severity]

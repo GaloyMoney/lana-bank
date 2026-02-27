@@ -1,17 +1,15 @@
+mod event;
+
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "json-schema")]
-use schemars::JsonSchema;
+use money::Satoshis;
 
-pub use crate::collateral::CollateralAdjustment;
-use crate::collateral::primitives::SecuredLoanId;
-use crate::{
-    collateral::Collateral,
-    primitives::{CollateralId, Satoshis},
-};
+pub use event::CoreCreditCollateralEvent;
+
+use super::{Collateral, CollateralAdjustment, CollateralId, SecuredLoanId};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct PublicCollateral {
     pub id: CollateralId,
     pub secured_loan_id: SecuredLoanId,

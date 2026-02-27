@@ -3,11 +3,14 @@ use authz::PermissionCheck;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 
+use core_credit_collateral::{
+    Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
+};
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 
 use super::*;
-use crate::{collateral::public::CoreCreditCollateralEvent, history::CreditFacilityHistoryEntry};
+use crate::history::CreditFacilityHistoryEntry;
 
 use core_credit_collection::{CoreCreditCollection, PaymentAllocation};
 
@@ -40,12 +43,12 @@ where
         + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>

@@ -404,6 +404,7 @@ mod tests {
         CreditFacilityReceivable, DisbursalPolicy, FacilityCollateralization, FacilityDuration,
         InterestInterval, ObligationDuration, OneTimeFeeRatePct,
     };
+    use core_credit_collateral::CollateralId;
     use core_credit_collection::{PublicObligation, PublicPaymentAllocation};
 
     use super::*;

@@ -21,13 +21,13 @@ use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
 };
+use core_credit_collateral::CollateralAccountSets;
 
 type BalanceId = (JournalId, cala_ledger::AccountId, Currency);
 use tracing_macros::record_error_severity;
 
 use crate::{
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
-    collateral::ledger::CollateralAccountSets,
     pending_credit_facility::PendingCreditFacility,
     primitives::{
         CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, CalaAccountId,
@@ -59,6 +59,12 @@ impl InternalAccountSetDetails {
 
     pub fn normal_balance_type(&self) -> DebitOrCredit {
         self.normal_balance_type
+    }
+}
+
+impl From<InternalAccountSetDetails> for core_credit_collateral::InternalAccountSetDetails {
+    fn from(details: InternalAccountSetDetails) -> Self {
+        Self::new(details.id(), details.normal_balance_type())
     }
 }
 
@@ -303,9 +309,10 @@ impl CreditLedger {
         let internal_account_sets = CreditFacilityInternalAccountSets {
             facility: get(&summary.credit_facility_remaining),
             collateral: CollateralAccountSets {
-                collateral: get(&summary.credit_collateral),
-                collateral_in_liquidation: get(&summary.credit_facility_collateral_in_liquidation),
-                liquidated_collateral: get(&summary.credit_facility_liquidated_collateral),
+                collateral: get(&summary.credit_collateral).into(),
+                collateral_in_liquidation: get(&summary.credit_facility_collateral_in_liquidation)
+                    .into(),
+                liquidated_collateral: get(&summary.credit_facility_liquidated_collateral).into(),
             },
             proceeds_from_liquidation: get(&summary.credit_facility_proceeds_from_liquidation),
             disbursed_receivable,
@@ -1669,7 +1676,7 @@ impl CreditLedger {
         .await?;
         self.attach_charts_account_set_in_op(
             op,
-            self.internal_account_sets.collateral.collateral.id,
+            self.internal_account_sets.collateral.collateral.id(),
             *collateral_parent_account_set_id,
             old_integration_config.map(|config| config.collateral_parent_account_set_id),
         )
@@ -1679,7 +1686,7 @@ impl CreditLedger {
             self.internal_account_sets
                 .collateral
                 .collateral_in_liquidation
-                .id,
+                .id(),
             *collateral_in_liquidation_parent_account_set_id,
             old_integration_config
                 .map(|config| config.collateral_in_liquidation_parent_account_set_id),
@@ -1690,7 +1697,7 @@ impl CreditLedger {
             self.internal_account_sets
                 .collateral
                 .liquidated_collateral
-                .id,
+                .id(),
             *liquidated_collateral_parent_account_set_id,
             old_integration_config.map(|config| config.liquidated_collateral_parent_account_set_id),
         )

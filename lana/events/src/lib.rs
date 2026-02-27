@@ -8,8 +8,8 @@ use schemars::JsonSchema;
 
 pub use core_access::CoreAccessEvent;
 pub use core_accounting::CoreAccountingEvent;
-pub use core_credit::CoreCreditCollateralEvent;
-pub use core_credit::{CollateralDirection, CoreCreditEvent, ObligationStatus, ObligationType};
+pub use core_credit::{CoreCreditEvent, ObligationStatus, ObligationType};
+pub use core_credit_collateral::{CollateralDirection, CoreCreditCollateralEvent};
 pub use core_credit_collection::CoreCreditCollectionEvent;
 pub use core_custody::CoreCustodyEvent;
 pub use core_customer::CoreCustomerEvent;

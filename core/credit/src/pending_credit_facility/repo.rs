@@ -6,6 +6,7 @@ use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
+use core_credit_collateral::CollateralId;
 
 use super::{entity::*, error::PendingCreditFacilityError};
 

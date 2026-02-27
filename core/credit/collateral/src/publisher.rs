@@ -3,12 +3,9 @@ use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
 use crate::{
-    PublicCollateral,
-    collateral::{
-        entity::{Collateral, CollateralEvent},
-        error::CollateralError,
-        public::CoreCreditCollateralEvent,
-    },
+    entity::{Collateral, CollateralEvent},
+    error::CollateralError,
+    public::{CoreCreditCollateralEvent, PublicCollateral},
 };
 
 pub struct CollateralPublisher<E>

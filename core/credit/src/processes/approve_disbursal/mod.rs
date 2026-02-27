@@ -11,18 +11,16 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use audit::SystemSubject;
+use core_credit_collateral::{
+    CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
+};
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, Disbursals,
-    collateral::{
-        CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
-    },
-    credit_facility::CreditFacilities,
-    ledger::CreditLedger,
-    primitives::DisbursalId,
+    credit_facility::CreditFacilities, ledger::CreditLedger, primitives::DisbursalId,
 };
 
 pub use job::*;

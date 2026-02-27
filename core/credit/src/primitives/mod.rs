@@ -72,8 +72,6 @@ es_entity::entity_id! {
     CreditFacilityId,
     DisbursalId,
     ChartOfAccountsIntegrationConfigId,
-    CollateralId,
-    LiquidationId,
     InterestAccrualCycleId,
     FiscalYearId;
 
@@ -95,8 +93,8 @@ es_entity::entity_id! {
     DisbursalId => public_id::PublicIdTargetId,
 
     CreditFacilityId => core_credit_collection::BeneficiaryId,
-    CreditFacilityId => crate::collateral::primitives::SecuredLoanId,
-    PendingCreditFacilityId => crate::collateral::primitives::SecuredLoanId,
+    CreditFacilityId => core_credit_collateral::primitives::SecuredLoanId,
+    PendingCreditFacilityId => core_credit_collateral::primitives::SecuredLoanId,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -109,8 +107,6 @@ pub const CREDIT_FACILITY_ENTITY_TYPE: core_accounting_primitives::EntityType =
     core_accounting_primitives::EntityType::new("CreditFacility");
 pub const CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE: core_accounting_primitives::EntityType =
     core_accounting_primitives::EntityType::new("CreditFacilityProposal");
-pub const COLLATERAL_ENTITY_TYPE: core_accounting_primitives::EntityType =
-    core_accounting_primitives::EntityType::new("Collateral");
 pub const DISBURSAL_TRANSACTION_ENTITY_TYPE: core_accounting_primitives::EntityType =
     core_accounting_primitives::EntityType::new("Disbursal");
 
@@ -489,22 +485,6 @@ impl InterestAccrualCycleIdx {
     pub const fn next(&self) -> Self {
         Self(self.0 + 1)
     }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum CollateralDirection {
-    Add,
-    Remove,
-}
-
-pub struct CollateralUpdate {
-    pub tx_id: LedgerTxId,
-    pub collateral_account_id: CalaAccountId,
-    pub abs_diff: Satoshis,
-    pub direction: CollateralDirection,
-    pub effective: chrono::NaiveDate,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]

@@ -7,6 +7,9 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_credit_collateral::{
+    CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
+};
 use governance::{
     ApprovalProcessType, Governance, GovernanceAction, GovernanceEvent, GovernanceObject,
 };
@@ -15,11 +18,7 @@ use obix::out::OutboxEventMarker;
 use crate::{
     CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
     CreditFacilityProposal, CreditFacilityProposalId, CreditFacilityProposals,
-    PendingCreditFacilities,
-    collateral::{
-        CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
-    },
-    error::CoreCreditError,
+    PendingCreditFacilities, error::CoreCreditError,
 };
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};

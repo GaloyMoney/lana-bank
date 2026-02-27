@@ -1,20 +1,16 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "json-schema")]
-use schemars::JsonSchema;
-
+use cala_ledger::TransactionId as LedgerTxId;
+use core_credit_collection::PaymentId;
 use money::{Satoshis, UsdCents};
 
-use crate::{
-    primitives::{LedgerTxId, LiquidationId, PaymentId},
-    public::PublicCollateral,
-};
+use crate::{LiquidationId, SecuredLoanId};
 
-use crate::collateral::primitives::SecuredLoanId;
+use super::PublicCollateral;
 
 #[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type")]
 pub enum CoreCreditCollateralEvent {
     CollateralUpdated {

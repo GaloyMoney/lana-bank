@@ -1,13 +1,14 @@
 use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
+use core_custody::WalletId as CustodyWalletId;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use super::publisher::CollateralPublisher;
-use crate::collateral::public::CoreCreditCollateralEvent;
-use crate::primitives::{CollateralId, CustodyWalletId, LiquidationId};
+use crate::{
+    CollateralId, LiquidationId, public::CoreCreditCollateralEvent, publisher::CollateralPublisher,
+};
 
 use super::{
     entity::*,
@@ -23,7 +24,7 @@ use super::{
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub struct CollateralRepo<E>
+pub(crate) struct CollateralRepo<E>
 where
     E: OutboxEventMarker<CoreCreditCollateralEvent>,
 {

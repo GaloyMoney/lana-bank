@@ -4,12 +4,13 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
+use core_credit_collateral::CollateralId;
 use money::UsdCents;
 
 pub use crate::credit_facility::{FacilityCollateralization, LiquidationTrigger};
 use crate::{
     credit_facility::CreditFacility,
-    primitives::{CollateralId, CreditFacilityId, CustomerId, LedgerTxId},
+    primitives::{CreditFacilityId, CustomerId, LedgerTxId},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

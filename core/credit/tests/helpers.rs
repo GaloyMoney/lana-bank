@@ -10,6 +10,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
 use core_credit::*;
 use core_credit::{CreditOmnibusAccountSetSpec, CreditSummaryAccountSetSpec};
+use core_credit_collateral::CollateralId;
 use core_custody::CustodyConfig;
 use document_storage::DocumentStorage;
 use domain_config::{
@@ -269,8 +270,8 @@ where
 pub mod action {
     use core_accounting::CoreAccountingAction;
     use core_credit::CoreCreditAction;
-    use core_credit::CoreCreditCollateralAction;
     use core_credit::CoreCreditCollectionAction;
+    use core_credit_collateral::CoreCreditCollateralAction;
     use core_custody::CoreCustodyAction;
     use core_customer::CoreCustomerAction;
     use core_deposit::CoreDepositAction;
@@ -352,9 +353,9 @@ pub mod action {
 
 pub mod object {
     use core_accounting::CoreAccountingObject;
-    use core_credit::CoreCreditCollateralObject;
     use core_credit::CoreCreditCollectionObject;
     use core_credit::CoreCreditObject;
+    use core_credit_collateral::CoreCreditCollateralObject;
     use core_custody::CoreCustodyObject;
     use core_customer::CustomerObject;
     use core_deposit::CoreDepositObject;
@@ -437,9 +438,9 @@ pub mod event {
 
     use core_access::CoreAccessEvent;
     use core_accounting::CoreAccountingEvent;
-    use core_credit::CoreCreditCollateralEvent;
     use core_credit::CoreCreditCollectionEvent;
     use core_credit::CoreCreditEvent;
+    use core_credit_collateral::CoreCreditCollateralEvent;
     use core_custody::CoreCustodyEvent;
     use core_customer::CoreCustomerEvent;
     use core_deposit::CoreDepositEvent;

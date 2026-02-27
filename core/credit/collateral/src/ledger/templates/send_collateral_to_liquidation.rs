@@ -1,60 +1,63 @@
-use rust_decimal::Decimal;
+use chrono::NaiveDate;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
 
 use cala_ledger::{
-    tx_template::{Params, error::TxTemplateError, *},
-    *,
+    AccountId as CalaAccountId, CalaLedger, Currency, JournalId, TxTemplateId,
+    tx_template::{
+        NewTxTemplate, NewTxTemplateEntry, NewTxTemplateTransaction, error::TxTemplateError,
+    },
+    velocity::{NewParamDefinition, ParamDataType, Params},
 };
+use money::Satoshis;
+use tracing_macros::record_error_severity;
 
-use crate::{collateral::ledger::CollateralLedgerError, primitives::CalaAccountId};
+use crate::ledger::CollateralLedgerError;
 
-pub const ADD_COLLATERAL_CODE: &str = "ADD_COLLATERAL";
+pub const SEND_COLLATERAL_TO_LIQUIDATION: &str = "SEND_COLLATERAL_TO_LIQUIDATION";
 
 #[derive(Debug)]
-pub struct AddCollateralParams<S: std::fmt::Display> {
+pub struct SendCollateralToLiquidationParams<S: std::fmt::Display> {
     pub journal_id: JournalId,
-    pub currency: Currency,
-    pub amount: Decimal,
+    pub amount: Satoshis,
     pub collateral_account_id: CalaAccountId,
-    pub bank_collateral_account_id: CalaAccountId,
-    pub effective: chrono::NaiveDate,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub effective: NaiveDate,
     pub initiated_by: S,
 }
 
-impl<S: std::fmt::Display> AddCollateralParams<S> {
+impl<S: std::fmt::Display> SendCollateralToLiquidationParams<S> {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("currency")
-                .r#type(ParamDataType::String)
-                .build()
-                .unwrap(),
+                .expect("Could not build param definition"),
             NewParamDefinition::builder()
                 .name("amount")
                 .r#type(ParamDataType::Decimal)
                 .build()
-                .unwrap(),
+                .expect("Could not build param definition"),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
+                .build()
+                .expect("Could not build param definition"),
             NewParamDefinition::builder()
                 .name("collateral_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
-                .unwrap(),
+                .expect("Could not build param definition"),
             NewParamDefinition::builder()
-                .name("bank_collateral_account_id")
+                .name("collateral_in_liquidation_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
-                .unwrap(),
+                .expect("Could not build param definition"),
             NewParamDefinition::builder()
                 .name("effective")
                 .r#type(ParamDataType::Date)
                 .build()
-                .unwrap(),
+                .expect("Could not build param definition"),
             NewParamDefinition::builder()
                 .name("meta")
                 .r#type(ParamDataType::Json)
@@ -64,24 +67,26 @@ impl<S: std::fmt::Display> AddCollateralParams<S> {
     }
 }
 
-impl<S: std::fmt::Display> From<AddCollateralParams<S>> for Params {
+impl<S: std::fmt::Display> From<SendCollateralToLiquidationParams<S>> for Params {
     fn from(
-        AddCollateralParams {
+        SendCollateralToLiquidationParams {
             journal_id,
-            currency,
             amount,
             collateral_account_id,
-            bank_collateral_account_id,
+            collateral_in_liquidation_account_id,
             effective,
             initiated_by,
-        }: AddCollateralParams<S>,
+        }: SendCollateralToLiquidationParams<S>,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("currency", currency);
-        params.insert("amount", amount);
+        params.insert("currency", Currency::BTC);
+        params.insert("amount", amount.to_btc());
         params.insert("collateral_account_id", collateral_account_id);
-        params.insert("bank_collateral_account_id", bank_collateral_account_id);
+        params.insert(
+            "collateral_in_liquidation_account_id",
+            collateral_in_liquidation_account_id,
+        );
         params.insert("effective", effective);
         params.insert(
             "meta",
@@ -94,49 +99,52 @@ impl<S: std::fmt::Display> From<AddCollateralParams<S>> for Params {
     }
 }
 
-pub struct AddCollateral;
+pub struct SendCollateralToLiquidation;
 
-impl AddCollateral {
+impl SendCollateralToLiquidation {
     #[record_error_severity]
-    #[instrument(name = "core_credit.collateral.ledger.add_collateral.init", skip_all)]
+    #[instrument(name = "core_credit.collateral.ledger.templates.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CollateralLedgerError> {
-        let tx_input = NewTxTemplateTransaction::builder()
+        let transaction = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
             .metadata("params.meta")
-            .description("'Record a deposit'")
+            .description("'Send collateral to liquidation'")
             .build()
-            .expect("Couldn't build TxInput");
+            .expect("Could not build new template transaction");
+
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("'ADD_COLLATERAL_DR'")
+                .entry_type("'SEND_COLLATERAL_TO_LIQUIDATION_DR'")
                 .currency("params.currency")
-                .account_id("params.bank_collateral_account_id")
+                .account_id("params.collateral_account_id")
                 .direction("DEBIT")
                 .layer("SETTLED")
                 .units("params.amount")
                 .build()
-                .expect("Couldn't build entry"),
+                .expect("Could not build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'ADD_COLLATERAL_CR'")
+                .entry_type("'SEND_COLLATERAL_TO_LIQUIDATION_CR'")
                 .currency("params.currency")
-                .account_id("params.collateral_account_id")
+                .account_id("params.collateral_in_liquidation_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .units("params.amount")
                 .build()
-                .expect("Couldn't build entry"),
+                .expect("Could not build entry"),
         ];
 
-        let params = AddCollateralParams::<String>::defs();
+        let params = SendCollateralToLiquidationParams::<String>::defs();
+
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(ADD_COLLATERAL_CODE)
-            .transaction(tx_input)
+            .code(SEND_COLLATERAL_TO_LIQUIDATION)
+            .transaction(transaction)
             .entries(entries)
             .params(params)
             .build()
-            .expect("Couldn't build template");
+            .expect("Could not build transaction template");
+
         match ledger.tx_templates().create(template).await {
             Err(TxTemplateError::DuplicateCode) => Ok(()),
             Err(e) => Err(e.into()),

@@ -6,6 +6,8 @@ pub use es_entity::{ListDirection, Sort};
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
+use core_credit_collateral::CollateralId;
+
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
 
 use super::{

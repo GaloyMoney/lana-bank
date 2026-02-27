@@ -4,12 +4,10 @@ use std::sync::Arc;
 
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
+use core_credit_collateral::public::CoreCreditCollateralEvent;
 use job::JobType;
 
-use crate::{
-    CoreCreditCollectionEvent, CoreCreditEvent, collateral::public::CoreCreditCollateralEvent,
-    primitives::CreditFacilityId,
-};
+use crate::{CoreCreditCollectionEvent, CoreCreditEvent, primitives::CreditFacilityId};
 
 use super::super::repo::HistoryRepo;
 

@@ -7,13 +7,10 @@ use job::*;
 use obix::out::OutboxEventMarker;
 
 use audit::SystemSubject;
-use core_custody::CoreCustodyEvent;
+use core_custody::{CUSTODIAN_SYNC, CoreCustodyEvent, WalletId as CustodyWalletId};
 use tracing_macros::record_error_severity;
 
-use crate::{
-    collateral::{CollateralRepo, ledger::CollateralLedger, public::CoreCreditCollateralEvent},
-    primitives::CustodyWalletId,
-};
+use crate::{ledger::CollateralLedger, public::CoreCreditCollateralEvent, repo::CollateralRepo};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RecordCollateralUpdateConfig {
@@ -120,11 +117,7 @@ where
             self.repo.update_in_op(&mut op, &mut collateral).await?;
 
             self.ledger
-                .update_collateral_amount_in_op(
-                    &mut op,
-                    data,
-                    &S::system(crate::primitives::COLLATERALIZATION_SYNC),
-                )
+                .update_collateral_amount_in_op(&mut op, data, &S::system(CUSTODIAN_SYNC))
                 .await?;
         }
 

@@ -59,7 +59,7 @@ pub enum CreditFacilityError {
     #[error(
         "CreditFacilityError - NoSuchLiquidationInitiated: liquidation {0} attempted to complete but has not been initiated"
     )]
-    NoSuchLiquidationInitiated(crate::LiquidationId),
+    NoSuchLiquidationInitiated(core_credit_collateral::LiquidationId),
     #[error("CreditFacilityError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CreditFacilityError - AuditError: {0}")]
@@ -85,7 +85,7 @@ pub enum CreditFacilityError {
         #[from] crate::pending_credit_facility::error::PendingCreditFacilityError,
     ),
     #[error("CreditFacilityError - CollateralError: {0}")]
-    CollateralError(#[from] crate::collateral::error::CollateralError),
+    CollateralError(#[from] core_credit_collateral::error::CollateralError),
 }
 
 impl ErrorSeverity for CreditFacilityError {

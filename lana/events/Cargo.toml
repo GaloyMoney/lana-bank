@@ -28,6 +28,7 @@ core-accounting = { workspace = true }
 core-custody = { workspace = true }
 core-customer = { workspace = true }
 core-credit = { workspace = true }
+core-credit-collateral = { workspace = true }
 core-credit-collection = { workspace = true }
 core-deposit = { workspace = true }
 core-report = { workspace = true }

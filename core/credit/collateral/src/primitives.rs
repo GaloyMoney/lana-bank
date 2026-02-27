@@ -1,12 +1,18 @@
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
-
-use crate::{CollateralId, LiquidationId};
+pub use cala_ledger::{AccountId as CalaAccountId, TransactionId as CalaTransactionId};
+use money::Satoshis;
 
 es_entity::entity_id! {
+    CollateralId,
     SecuredLoanId,
+    LiquidationId,
 }
+
+pub const COLLATERAL_ENTITY_TYPE: core_accounting_primitives::EntityType =
+    core_accounting_primitives::EntityType::new("Collateral");
 
 pub type CollateralAllOrOne = AllOrOne<CollateralId>;
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
@@ -182,4 +188,20 @@ impl From<LiquidationAction> for CoreCreditCollateralAction {
     fn from(action: LiquidationAction) -> Self {
         Self::Liquidation(action)
     }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub enum CollateralDirection {
+    Add,
+    Remove,
+}
+
+pub struct CollateralUpdate {
+    pub tx_id: CalaTransactionId,
+    pub collateral_account_id: CalaAccountId,
+    pub abs_diff: Satoshis,
+    pub direction: CollateralDirection,
+    pub effective: chrono::NaiveDate,
 }

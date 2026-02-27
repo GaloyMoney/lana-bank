@@ -3,11 +3,12 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use cala_ledger::{
+    AccountId as CalaAccountId,
     tx_template::{Params, error::TxTemplateError, *},
     *,
 };
 
-use crate::{collateral::ledger::CollateralLedgerError, primitives::CalaAccountId};
+use crate::ledger::CollateralLedgerError;
 
 pub const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";
 

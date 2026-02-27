@@ -4,11 +4,12 @@ pub use core_accounting::{
     LedgerTransactionId, ManualTransactionId,
 };
 pub use core_credit::{
-    CollateralDirection, CollateralId, CreditFacilityId, CreditFacilityProposalId,
-    CreditFacilityProposalStatus, CreditFacilityStatus, DisbursalId, DisbursalStatus,
-    LiquidationId, PaymentAllocationId, PaymentId, PendingCreditFacilityCollateralizationState,
-    PendingCreditFacilityId, PendingCreditFacilityStatus, TermsTemplateId,
+    CreditFacilityId, CreditFacilityProposalId, CreditFacilityProposalStatus, CreditFacilityStatus,
+    DisbursalId, DisbursalStatus, PaymentAllocationId, PaymentId,
+    PendingCreditFacilityCollateralizationState, PendingCreditFacilityId,
+    PendingCreditFacilityStatus, TermsTemplateId,
 };
+pub use core_credit_collateral::{CollateralDirection, CollateralId, LiquidationId};
 pub use core_custody::{CustodianId, WalletId};
 pub use core_customer::{CustomerDocumentId, CustomerId, PartyId, ProspectId};
 pub use core_deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};

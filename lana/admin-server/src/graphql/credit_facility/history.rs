@@ -1,7 +1,6 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-pub use lana_app::primitives::CollateralDirection;
 
 #[derive(async_graphql::Union)]
 pub enum CreditFacilityHistoryEntry {

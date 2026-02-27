@@ -1,14 +1,16 @@
 use derive_builder::Builder;
-#[cfg(feature = "json-schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use cala_ledger::TransactionId as LedgerTxId;
+use core_price::PriceOfOneBTC;
+use money::{Satoshis, UsdCents};
 
 use es_entity::*;
 
-use crate::{collateral::ledger::LiquidationProceedsAccountIds, primitives::*};
+use crate::{ledger::LiquidationProceedsAccountIds, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "LiquidationId")]
 pub enum LiquidationEvent {
@@ -50,7 +52,7 @@ impl Liquidation {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub(in crate::collateral) fn record_collateral_sent_out(
+    pub(crate) fn record_collateral_sent_out(
         &mut self,
         amount_sent: Satoshis,
     ) -> Idempotent<LedgerTxId> {
@@ -65,7 +67,7 @@ impl Liquidation {
         Idempotent::Executed(ledger_tx_id)
     }
 
-    pub(in crate::collateral) fn record_proceeds_from_liquidation_and_complete(
+    pub(crate) fn record_proceeds_from_liquidation_and_complete(
         &mut self,
         amount_received: UsdCents,
     ) -> Idempotent<LedgerTxId> {
@@ -197,10 +199,7 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        ledger::FacilityProceedsFromLiquidationAccountId,
-        primitives::{CalaAccountId, PriceOfOneBTC, Satoshis, UsdCents},
-    };
+    use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::CalaAccountId};
 
     fn default_liquidation_proceeds_account_ids() -> LiquidationProceedsAccountIds {
         LiquidationProceedsAccountIds {

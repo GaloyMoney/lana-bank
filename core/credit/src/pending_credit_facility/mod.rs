@@ -7,6 +7,10 @@ use std::sync::Arc;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
+use core_credit_collateral::{
+    CollateralLedgerAccountIds, Collaterals, CoreCreditCollateralAction,
+    CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
+};
 use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -17,8 +21,7 @@ use tracing_macros::record_error_severity;
 use es_entity::clock::ClockHandle;
 
 use crate::{
-    Collaterals, CoreCreditEvent, CreditFacilityProposals,
-    collateral::{ledger::CollateralLedgerAccountIds, public::CoreCreditCollateralEvent},
+    CoreCreditEvent, CreditFacilityProposals,
     credit_facility::NewCreditFacilityBuilder,
     credit_facility_proposal::{CreditFacilityProposal, ProposalApprovalOutcome},
     disbursal::NewDisbursalBuilder,
@@ -95,12 +98,12 @@ where
         + From<CoreCreditCollectionAction>
         + From<GovernanceAction>
         + From<CoreCustodyAction>
-        + From<crate::collateral::primitives::CoreCreditCollateralAction>,
+        + From<CoreCreditCollateralAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<CoreCreditCollectionObject>
         + From<GovernanceObject>
         + From<CoreCustodyObject>
-        + From<crate::collateral::primitives::CoreCreditCollateralObject>,
+        + From<CoreCreditCollateralObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<CoreCreditCollectionEvent>
