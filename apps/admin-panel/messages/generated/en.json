@@ -16,6 +16,10 @@
       "description": "Can create and manage charts of accounts, ledger and manual transactions, balance sheets, profit-and-loss reports, and related accounting data",
       "label": "Accounting Writer"
     },
+    "all_config_writer": {
+      "description": "Can update all configuration values",
+      "label": "All Config Writer"
+    },
     "audit_viewer": {
       "description": "Can view audit logs and system activity records",
       "label": "Audit Viewer"

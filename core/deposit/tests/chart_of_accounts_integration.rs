@@ -95,8 +95,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         clock.clone(),
     );
 
-    let exposed_domain_configs =
-        helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
     // Required to prevent the case there is an attempt to remove an account set member from
     // an account set that no longer exists.
     domain_config::DomainConfigTestUtils::clear_config_by_key(
@@ -104,7 +102,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         "deposit-chart-of-accounts-integration",
     )
     .await?;
-    let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
+    let (internal_domain_configs, exposed_domain_configs) =
+        helpers::init_domain_configs(&pool, &authz).await?;
 
     let deposit = CoreDeposit::init(
         &pool,

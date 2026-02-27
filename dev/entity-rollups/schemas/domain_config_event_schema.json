@@ -56,6 +56,9 @@
           },
           "type": "array"
         },
+        "key_id": {
+          "$ref": "#/$defs/EncryptionKeyId"
+        },
         "nonce": {
           "items": {
             "format": "uint8",
@@ -68,9 +71,13 @@
       },
       "required": [
         "ciphertext",
-        "nonce"
+        "nonce",
+        "key_id"
       ],
       "type": "object"
+    },
+    "EncryptionKeyId": {
+      "type": "string"
     },
     "Visibility": {
       "enum": [
@@ -123,6 +130,22 @@
         },
         "value": {
           "$ref": "#/$defs/DomainConfigValue"
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "key_rotated",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/Encrypted"
         }
       },
       "required": [

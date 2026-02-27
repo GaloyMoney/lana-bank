@@ -47,12 +47,19 @@ impl Custodian {
 
     pub fn update_custodian_config(
         &mut self,
-        new_config: CustodianConfig,
         key: &EncryptionKey,
-    ) -> Idempotent<()> {
-        let current_config = CustodianConfig::try_decrypt(key, &self.encrypted_custodian_config);
-        if current_config.as_ref() == Some(&new_config) {
-            return Idempotent::AlreadyApplied;
+        new_config: CustodianConfig,
+    ) -> Result<Idempotent<()>, CustodianError> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustodianEvent::ConfigUpdated { encrypted_custodian_config }
+                if encrypted_custodian_config.matches_key(key)
+                    && key.decrypt_json::<CustodianConfig>(encrypted_custodian_config).ok().as_ref() == Some(&new_config),
+            => CustodianEvent::ConfigUpdated { .. }
+        );
+
+        if !self.encrypted_custodian_config.matches_key(key) {
+            return Err(CustodianError::StaleEncryptionKey);
         }
 
         let encrypted = new_config.encrypt(key);
@@ -62,11 +69,23 @@ impl Custodian {
             encrypted_custodian_config: encrypted,
         });
 
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
+    }
+
+    fn encrypted_config_for_key(&self, key: &EncryptionKey) -> Option<&Encrypted> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            CustodianEvent::ConfigUpdated {
+                encrypted_custodian_config,
+            } if encrypted_custodian_config.matches_key(key) => Some(encrypted_custodian_config),
+            _ => None,
+        })
     }
 
     fn custodian_config(&self, key: &EncryptionKey) -> Result<CustodianConfig, CustodianError> {
-        CustodianConfig::decrypt(key, &self.encrypted_custodian_config)
+        let encrypted = self
+            .encrypted_config_for_key(key)
+            .ok_or(CustodianError::StaleEncryptionKey)?;
+        CustodianConfig::decrypt(key, encrypted)
     }
 
     pub fn rotate_encryption_key(
@@ -74,7 +93,7 @@ impl Custodian {
         new_key: &EncryptionKey,
         deprecated_key: &EncryptionKey,
     ) -> Result<Idempotent<()>, CustodianError> {
-        if CustodianConfig::try_decrypt(new_key, &self.encrypted_custodian_config).is_some() {
+        if self.encrypted_custodian_config.matches_key(new_key) {
             return Ok(Idempotent::AlreadyApplied);
         }
 

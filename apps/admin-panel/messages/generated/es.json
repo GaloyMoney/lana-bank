@@ -16,6 +16,10 @@
       "description": "Puede crear y gestionar planes de cuentas, transacciones del libro mayor y manuales, balances, informes de pérdidas y ganancias, y datos contables relacionados",
       "label": "Editor de contabilidad"
     },
+    "all_config_writer": {
+      "description": "Puede actualizar todos los valores de configuración",
+      "label": "Editor de toda la configuración"
+    },
     "audit_viewer": {
       "description": "Puede ver registros de auditoría y registros de actividad del sistema",
       "label": "Visualizador de auditoría"

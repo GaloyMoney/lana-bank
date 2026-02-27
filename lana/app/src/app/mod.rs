@@ -25,7 +25,7 @@ use crate::{
     deposit::Deposits,
     deposit_sync::DepositSync,
     document::DocumentStorage,
-    domain_config::{ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs},
+    domain_config::ExposedDomainConfigs,
     governance::Governance,
     job::Jobs,
     kyc::CustomerKyc,
@@ -96,15 +96,13 @@ impl LanaApp {
         )
         .await?;
         let authz = Authorization::init(&pool, &audit).await?;
-        let internal_domain_configs = InternalDomainConfigs::new(&pool, config.encryption.clone());
-        let exposed_domain_configs =
-            ExposedDomainConfigs::new(&pool, &authz, config.encryption.clone());
-        let exposed_domain_configs_readonly =
-            ExposedDomainConfigsReadOnly::new(&pool, config.encryption.clone());
-        internal_domain_configs.seed_registered().await?;
-        exposed_domain_configs.seed_registered().await?;
-
-        domain_config::apply_startup_configs(&pool, &config.encryption, startup_domain_configs)
+        let (internal_domain_configs, exposed_domain_configs, exposed_domain_configs_readonly) =
+            domain_config::init(
+                &pool,
+                &authz,
+                config.encryption.clone(),
+                startup_domain_configs,
+            )
             .await?;
 
         let access = Access::init(

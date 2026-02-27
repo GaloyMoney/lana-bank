@@ -2,10 +2,9 @@ use std::marker::PhantomData;
 
 use crate::{
     ConfigSpec, DefaultedConfig, DomainConfigError, DomainConfigFlavorEncrypted,
-    DomainConfigFlavorPlaintext, EncryptionKey, ValueKind, flavor::ConfigFlavor,
+    DomainConfigFlavorPlaintext, EncryptionKey, ValueKind, entity::DomainConfig,
+    flavor::ConfigFlavor,
 };
-
-use crate::entity::DomainConfig;
 
 pub struct TypedDomainConfig<C: ConfigSpec> {
     pub(crate) entity: DomainConfig,

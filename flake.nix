@@ -906,6 +906,8 @@
               lana-cli-bootstrap
             ];
 
+            ENCRYPTION_KEY = devEnvVars.ENCRYPTION_KEY;
+
             buildPhase = ''
               echo "Generating default config..."
               ${lana-cli-bootstrap}/bin/lana-cli dump-default-config > default-config-generated.yml

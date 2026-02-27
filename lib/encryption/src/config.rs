@@ -6,9 +6,8 @@ use crate::EncryptionKey;
 #[serde(deny_unknown_fields)]
 pub struct EncryptionConfig {
     #[serde(skip)]
-    pub key: EncryptionKey,
+    pub encryption_key: EncryptionKey,
 
-    // FIXME: there is no way to pass for now
     #[serde(skip)]
     pub deprecated_encryption_key: Option<EncryptionKey>,
 }

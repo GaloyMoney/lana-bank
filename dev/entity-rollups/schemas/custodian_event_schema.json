@@ -11,6 +11,9 @@
           },
           "type": "array"
         },
+        "key_id": {
+          "$ref": "#/$defs/EncryptionKeyId"
+        },
         "nonce": {
           "items": {
             "format": "uint8",
@@ -23,9 +26,13 @@
       },
       "required": [
         "ciphertext",
-        "nonce"
+        "nonce",
+        "key_id"
       ],
       "type": "object"
+    },
+    "EncryptionKeyId": {
+      "type": "string"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",

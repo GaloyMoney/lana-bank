@@ -1764,6 +1764,8 @@ checksums:
     Permissions/accounting_viewer/label: f37692937ca9cef086d57f9a8e14ad57
     Permissions/accounting_writer/description: c1c4979bc08582bfe879bfec7bd3c2f6
     Permissions/accounting_writer/label: 3d8def43666d10ff58c6de5e275d5f6f
+    Permissions/all_config_writer/description: bec4c0332b2111cebf46cba3fecba962
+    Permissions/all_config_writer/label: 5e85383ccb2710577b7470d58f930feb
     Permissions/audit_viewer/description: 436080627e6050f7217a5274ce7ec212
     Permissions/audit_viewer/label: 75f0c18197c4d3835383742445c7c44f
     Permissions/collection_payment_date/description: bc28ab098de7c4acedef7bd81d19a2e5

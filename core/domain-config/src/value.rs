@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{DomainConfigError, Encrypted, EncryptionKey};
+use encryption::Encrypted;
+
+use crate::{DomainConfigError, EncryptionKey};
 
 /// Represents a domain config value that can be either plaintext or encrypted.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -27,8 +29,7 @@ impl DomainConfigValue {
 
     /// Create a new encrypted value from plaintext JSON.
     pub(crate) fn encrypted(key: &EncryptionKey, plaintext: &serde_json::Value) -> Self {
-        let bytes = serde_json::to_vec(plaintext).expect("JSON serialization should not fail");
-        Self::Encrypted(Encrypted::encrypt(&bytes, key))
+        Self::Encrypted(key.encrypt_json(plaintext))
     }
 
     /// Returns the plaintext JSON value if this is a Plain variant.
@@ -44,6 +45,14 @@ impl DomainConfigValue {
         matches!(self, Self::Encrypted(_))
     }
 
+    /// Returns true if this value was encrypted with the given key.
+    pub(crate) fn matches_key(&self, key: &EncryptionKey) -> bool {
+        match self {
+            Self::Encrypted(e) => e.matches_key(key),
+            Self::Plain { .. } => false,
+        }
+    }
+
     /// Decrypt and return the plaintext JSON value.
     /// Returns an error for Plain variants (use as_plain instead).
     pub(crate) fn decrypt(
@@ -54,9 +63,22 @@ impl DomainConfigValue {
             Self::Plain { .. } => Err(DomainConfigError::InvalidState(
                 "Cannot decrypt a plaintext value".to_string(),
             )),
+            Self::Encrypted(encrypted) => Ok(key.decrypt_json(encrypted)?),
+        }
+    }
+
+    pub(crate) fn rotate(
+        &self,
+        new_key: &EncryptionKey,
+        deprecated_key: &EncryptionKey,
+    ) -> Result<Encrypted, DomainConfigError> {
+        match self {
+            Self::Plain { .. } => Err(DomainConfigError::InvalidState(
+                "Cannot rotate a plaintext value".to_string(),
+            )),
             Self::Encrypted(encrypted) => {
-                let bytes = encrypted.decrypt(key)?;
-                Ok(serde_json::from_slice(&bytes)?)
+                let bytes = deprecated_key.decrypt(encrypted)?;
+                Ok(new_key.encrypt(&bytes))
             }
         }
     }

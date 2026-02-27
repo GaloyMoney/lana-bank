@@ -6,7 +6,7 @@ use cala_ledger::{CalaLedger, JournalId, account_set::AccountSetMemberId};
 use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
 use core_deposit::{DepositOmnibusAccountSetSpec, DepositSummaryAccountSetSpec};
 use domain_config::{
-    EncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
+    EncryptionConfig, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
     RequireVerifiedCustomerForAccount,
 };
 use rand::RngExt;
@@ -16,29 +16,19 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     Ok(pool)
 }
 
-pub async fn init_read_only_exposed_domain_configs(
+pub async fn init_domain_configs(
     pool: &sqlx::PgPool,
     authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
-) -> anyhow::Result<ExposedDomainConfigsReadOnly> {
-    let exposed_configs = ExposedDomainConfigs::new(pool, authz, EncryptionConfig::default());
-    exposed_configs.seed_registered().await?;
+) -> anyhow::Result<(InternalDomainConfigs, ExposedDomainConfigsReadOnly)> {
+    let startup_configs: Vec<(String, serde_json::Value)> = vec![];
+    let (internal, exposed, exposed_readonly) =
+        domain_config::init(pool, authz, EncryptionConfig::default(), startup_configs).await?;
     // Disable the require verified customer check for tests
     // Ignore concurrent modification - all tests want the same value (false)
-    let _ = exposed_configs
+    let _ = exposed
         .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
         .await;
-    Ok(ExposedDomainConfigsReadOnly::new(
-        pool,
-        EncryptionConfig::default(),
-    ))
-}
-
-pub async fn init_internal_domain_configs(
-    pool: &sqlx::PgPool,
-) -> anyhow::Result<InternalDomainConfigs> {
-    let internal_configs = InternalDomainConfigs::new(pool, EncryptionConfig::default());
-    internal_configs.seed_registered().await?;
-    Ok(internal_configs)
+    Ok((internal, exposed_readonly))
 }
 
 pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {

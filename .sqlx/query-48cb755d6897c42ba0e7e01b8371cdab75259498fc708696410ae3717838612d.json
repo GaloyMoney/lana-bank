@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT created_at, id FROM core_domain_configs WHERE COALESCE(visibility = $1, $1 IS NULL) AND (COALESCE((created_at, id) > ($4, $3), $3 IS NULL)) ORDER BY created_at ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_domain_config_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT created_at, id FROM core_domain_configs WHERE COALESCE(visibility = $1, $1 IS NULL) AND COALESCE(encrypted = $2, $2 IS NULL) AND (COALESCE((created_at, id) < ($5, $4), $4 IS NULL)) ORDER BY created_at DESC, id DESC LIMIT $3) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $6 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_domain_config_events e ON i.id = e.id ORDER BY i.created_at desc, i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -32,6 +32,7 @@
     "parameters": {
       "Left": [
         "Text",
+        "Bool",
         "Int8",
         "Uuid",
         "Timestamptz",
@@ -46,5 +47,5 @@
       false
     ]
   },
-  "hash": "314497f885ec4186da939025aae8d2631bad99ceea84b4a7e38a384450d35e0b"
+  "hash": "48cb755d6897c42ba0e7e01b8371cdab75259498fc708696410ae3717838612d"
 }

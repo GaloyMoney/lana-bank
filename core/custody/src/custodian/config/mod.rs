@@ -64,20 +64,14 @@ impl CustodianConfig {
     }
 
     pub(super) fn encrypt(&self, key: &EncryptionKey) -> Encrypted {
-        let bytes = serde_json::to_vec(self).expect("should serialize");
-        Encrypted::encrypt(&bytes, key)
-    }
-
-    pub(super) fn try_decrypt(key: &EncryptionKey, encrypted_config: &Encrypted) -> Option<Self> {
-        Self::decrypt(key, encrypted_config).ok()
+        key.encrypt_json(self)
     }
 
     pub(super) fn decrypt(
         key: &EncryptionKey,
         encrypted_config: &Encrypted,
     ) -> Result<Self, CustodianError> {
-        let bytes = encrypted_config.decrypt(key)?;
-        Ok(serde_json::from_slice(&bytes)?)
+        Ok(key.decrypt_json(encrypted_config)?)
     }
 
     pub(super) fn rotate_encryption_key(
