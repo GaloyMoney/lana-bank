@@ -215,6 +215,7 @@ impl BaseQuery {
         let Some(public_id) = app.public_ids().find_by_id(id).await? else {
             return Ok(None);
         };
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
 
         let res = match public_id.target_type.as_str() {
             "customer" => app
@@ -223,11 +224,9 @@ impl BaseQuery {
                 .await?
                 .map(Customer::from)
                 .map(PublicIdTarget::Customer),
-            "deposit_account" => app
-                .deposits()
-                .find_account_by_id(sub, DepositAccountId::from(public_id.target_id))
+            "deposit_account" => loader
+                .load_one(DepositAccountId::from(public_id.target_id))
                 .await?
-                .map(DepositAccount::from)
                 .map(PublicIdTarget::DepositAccount),
             "deposit" => app
                 .deposits()

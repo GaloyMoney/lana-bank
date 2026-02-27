@@ -91,11 +91,23 @@ impl AccountingQuery {
     ) -> async_graphql::Result<Option<AccountingCsvDocument>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let latest = app
+        let docs = app
             .accounting()
             .csvs()
-            .get_latest_for_ledger_account_id(sub, ledger_account_id)
-            .await?
+            .list_for_ledger_account_id_paginated(
+                sub,
+                ledger_account_id,
+                es_entity::PaginatedQueryArgs {
+                    first: 1,
+                    after: None,
+                },
+            )
+            .await?;
+
+        let latest = docs
+            .entities
+            .into_iter()
+            .next()
             .map(AccountingCsvDocument::from);
 
         Ok(latest)

@@ -27,7 +27,6 @@ admin-graphql-reports = { workspace = true }
 admin-graphql-session = { workspace = true }
 admin-graphql-shared = { workspace = true }
 domain-config = { workspace = true, features = ["graphql"] }
-obix = { workspace = true }
 audit = { workspace = true }
 tracing-utils = { workspace = true, features = ["http"] }
 jwks-utils = { workspace = true }

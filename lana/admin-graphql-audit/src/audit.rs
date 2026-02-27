@@ -68,14 +68,14 @@ pub struct AuditEntry {
 #[ComplexObject]
 impl AuditEntry {
     async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<AuditSubject> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
 
         match &self.subject {
             DomainSubject::User(id) => {
-                let user = app.access().users().find_by_id(sub, *id).await?;
-                match user {
+                let mut users = app.access().users().find_all::<User>(&[*id]).await?;
+                match users.remove(id) {
                     None => Err("User not found".into()),
-                    Some(user) => Ok(AuditSubject::User(User::from(user))),
+                    Some(user) => Ok(AuditSubject::User(user)),
                 }
             }
             DomainSubject::System(actor) => Ok(AuditSubject::System(System::from_actor(actor))),
