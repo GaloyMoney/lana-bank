@@ -109,7 +109,7 @@ where
         skip(self, op),
         fields(already_applied, disbursal_executed)
     )]
-    pub async fn execute_approve_disbursal(
+    pub async fn execute_approve_disbursal_in_op(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
         id: DisbursalId,

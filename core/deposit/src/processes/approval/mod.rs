@@ -73,7 +73,7 @@ where
 
     #[record_error_severity]
     #[instrument(name = "core_deposit.withdrawal_approval.execute", skip(self, op))]
-    pub async fn execute_withdrawal_approval(
+    pub async fn execute_withdrawal_approval_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         id: WithdrawalId,

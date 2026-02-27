@@ -96,7 +96,7 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut op = current_job.begin_op().await?;
         self.process
-            .execute_withdrawal_approval(
+            .execute_withdrawal_approval_in_op(
                 &mut op,
                 self.config.approval_process_id.into(),
                 self.config.approved,

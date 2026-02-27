@@ -143,7 +143,7 @@ where
         let op = current_job.begin_op().await?;
         let mut op = op.with_db_time().await?;
         self.process
-            .execute_approve_disbursal(
+            .execute_approve_disbursal_in_op(
                 &mut op,
                 self.config.approval_process_id.into(),
                 self.config.approved,
