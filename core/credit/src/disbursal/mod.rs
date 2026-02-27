@@ -221,12 +221,13 @@ where
         self.authz
             .audit()
             .record_system_entry_in_op(
-                &mut *op,
+                op,
                 crate::primitives::DISBURSAL_APPROVAL,
                 CoreCreditObject::disbursal(disbursal_id),
                 CoreCreditAction::DISBURSAL_SETTLE,
             )
-            .await?;
+            .await
+            .map_err(authz::error::AuthorizationError::from)?;
 
         let mut disbursal = self.repo.find_by_id_in_op(&mut *op, disbursal_id).await?;
 
