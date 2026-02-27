@@ -96,6 +96,7 @@ where
 {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
+        pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         cala: &cala_ledger::CalaLedger,
         journal_id: cala_ledger::JournalId,
@@ -103,7 +104,6 @@ where
         account_sets: ledger::CollateralAccountSets,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
-        pool: &sqlx::PgPool,
     ) -> Result<Self, CollateralError> {
         let clock = jobs.clock().clone();
 

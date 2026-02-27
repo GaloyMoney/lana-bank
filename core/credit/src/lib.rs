@@ -241,6 +241,7 @@ where
         let proposals_arc = Arc::new(credit_facility_proposals);
 
         let collaterals = Collaterals::init(
+            pool,
             authz_arc.clone(),
             cala,
             journal_id,
@@ -248,7 +249,6 @@ where
             ledger_arc.collateral_account_sets(),
             outbox,
             jobs,
-            pool,
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);
