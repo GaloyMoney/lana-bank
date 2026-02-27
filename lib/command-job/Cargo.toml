@@ -1,5 +1,6 @@
 [package]
 name = "command-job"
+version = "0.0.0"
 license = "BUSL-1.1"
 edition = "2024"
 
