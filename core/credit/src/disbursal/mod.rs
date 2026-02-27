@@ -213,7 +213,7 @@ where
 
     pub(super) async fn conclude_approval_process_in_op(
         &self,
-        op: &mut impl es_entity::AtomicOperation,
+        op: &mut es_entity::DbOp<'_>,
         disbursal_id: DisbursalId,
         approved: bool,
         effective: chrono::NaiveDate,
@@ -221,7 +221,7 @@ where
         self.authz
             .audit()
             .record_system_entry_in_op(
-                op,
+                &mut *op,
                 crate::primitives::DISBURSAL_APPROVAL,
                 CoreCreditObject::disbursal(disbursal_id),
                 CoreCreditAction::DISBURSAL_SETTLE,

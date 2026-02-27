@@ -111,7 +111,7 @@ where
     )]
     pub async fn execute_approve_disbursal_in_op(
         &self,
-        op: &mut impl es_entity::AtomicOperation,
+        op: &mut es_entity::DbOp<'_>,
         id: DisbursalId,
         approved: bool,
     ) -> Result<Disbursal, CoreCreditError> {

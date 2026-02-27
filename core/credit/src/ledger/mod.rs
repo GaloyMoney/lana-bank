@@ -1074,7 +1074,7 @@ impl CreditLedger {
 
     pub async fn cancel_disbursal_in_op(
         &self,
-        op: &mut impl es_entity::AtomicOperation,
+        op: &mut es_entity::DbOp<'_>,
         entity_id: DisbursalId,
         tx_id: LedgerTxId,
         amount: UsdCents,
@@ -1103,7 +1103,7 @@ impl CreditLedger {
 
     pub async fn settle_disbursal_in_op(
         &self,
-        op: &mut impl es_entity::AtomicOperation,
+        op: &mut es_entity::DbOp<'_>,
         entity_id: DisbursalId,
         disbursed_into_account_id: CalaAccountId,
         obligation: Obligation,
