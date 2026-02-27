@@ -401,13 +401,13 @@ where
                 CoreCustodyAction::CUSTODIAN_UPDATE,
             )
             .await?;
-        let mut custodian = self.custodians.find_by_id(id).await?;
+        let mut op = self.custodians.begin_op().await?;
+        let mut custodian = self.custodians.find_by_id_in_op(&mut op, id).await?;
 
         if custodian
             .update_custodian_config(config, &self.encryption_config.key)
             .did_execute()
         {
-            let mut op = self.custodians.begin_op().await?;
             self.custodians
                 .update_config_in_op(&mut op, &mut custodian)
                 .await?;

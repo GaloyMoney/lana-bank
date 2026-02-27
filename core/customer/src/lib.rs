@@ -242,6 +242,16 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.find_by_id_without_audit_in_op", skip(self, op))]
+    pub async fn find_by_id_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        self.repo.find_by_id_in_op(op, id.into()).await
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.find_by_email", skip(self))]
     pub async fn find_by_email(
         &self,
@@ -418,7 +428,13 @@ where
         applicant_id: String,
         personal_info: PersonalInfo,
     ) -> Result<Option<Customer>, CustomerError> {
-        let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
+        let mut db = self.prospect_repo.begin_op().await?;
+
+        let Some(mut prospect) = self
+            .prospect_repo
+            .maybe_find_by_id_in_op(&mut db, prospect_id)
+            .await?
+        else {
             return Ok(None);
         };
 
@@ -432,8 +448,10 @@ where
             .await?;
 
         // Update personal info on Party
-        let mut party = self.party_repo.find_by_id(prospect.party_id).await?;
-        let mut db = self.prospect_repo.begin_op().await?;
+        let mut party = self
+            .party_repo
+            .find_by_id_in_op(&mut db, prospect.party_id)
+            .await?;
         if party.update_personal_info(personal_info).did_execute() {
             self.party_repo.update_in_op(&mut db, &mut party).await?;
         }
@@ -470,7 +488,11 @@ where
         applicant_id: String,
         personal_info: PersonalInfo,
     ) -> Result<Customer, CustomerError> {
-        let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
+        let mut db = self.prospect_repo.begin_op().await?;
+        let mut prospect = self
+            .prospect_repo
+            .find_by_id_in_op(&mut db, prospect_id)
+            .await?;
 
         self.authz
             .audit()
@@ -482,12 +504,14 @@ where
             .await?;
 
         // Update personal info on Party
-        let mut party = self.party_repo.find_by_id(prospect.party_id).await?;
+        let mut party = self
+            .party_repo
+            .find_by_id_in_op(&mut db, prospect.party_id)
+            .await?;
         let _ = party.update_personal_info(personal_info);
 
         match prospect.approve_kyc(&applicant_id, KycLevel::Basic)? {
             es_entity::Idempotent::Executed(new_customer) => {
-                let mut db = self.prospect_repo.begin_op().await?;
                 self.party_repo.update_in_op(&mut db, &mut party).await?;
                 self.prospect_repo
                     .update_in_op(&mut db, &mut prospect)
@@ -673,11 +697,14 @@ where
             )
             .await?;
 
-        let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
+        let mut db = self.prospect_repo.begin_op().await?;
+        let mut prospect = self
+            .prospect_repo
+            .find_by_id_in_op(&mut db, prospect_id)
+            .await?;
 
         match prospect.convert_manually() {
             Ok(es_entity::Idempotent::Executed(new_customer)) => {
-                let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
                     .update_in_op(&mut db, &mut prospect)
                     .await?;

@@ -100,6 +100,14 @@ where
         self.repo.find_by_id(id).await
     }
 
+    pub async fn find_by_id_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: ObligationId,
+    ) -> Result<Obligation, ObligationError> {
+        self.repo.find_by_id_in_op(op, id).await
+    }
+
     pub async fn list_ids_needing_transition(
         &self,
         day: chrono::NaiveDate,

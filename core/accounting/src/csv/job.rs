@@ -119,9 +119,12 @@ where
             .await?;
 
         let document_id = self.config.document_id;
-        let mut document = self.document_storage.find_by_id(document_id).await?;
 
         let mut op = current_job.begin_op().await?;
+        let mut document = self
+            .document_storage
+            .find_by_id_in_op(&mut op, document_id)
+            .await?;
         self.document_storage
             .upload_in_op(&mut op, csv_result, &mut document)
             .await?;

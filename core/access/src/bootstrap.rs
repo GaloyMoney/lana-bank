@@ -79,7 +79,11 @@ where
         name: String,
         permission_sets: HashSet<PermissionSetId>,
     ) -> Result<Role, RoleError> {
-        let role = match self.role_repo.maybe_find_by_name(&name).await? {
+        let role = match self
+            .role_repo
+            .maybe_find_by_name_in_op(&mut *db, &name)
+            .await?
+        {
             Some(existing) => existing,
             None => {
                 let new_role = NewRole::builder()

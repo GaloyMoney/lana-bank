@@ -224,24 +224,28 @@ where
             .await?;
 
         let customer_id = CustomerId::from(holder_id.into());
-        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
-        let party = self
-            .customers
-            .find_party_by_id_without_audit(customer.party_id)
-            .await?;
 
         let require_verified = self
             .domain_configs
             .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
             .value();
-        if require_verified && !customer.kyc_verification.is_verified() {
-            return Err(CoreDepositError::CustomerNotVerified);
-        }
 
         let account_id = DepositAccountId::new();
 
         let mut op = self.deposit_accounts.begin_op().await?;
+
+        let customer = self
+            .customers
+            .find_by_id_without_audit_in_op(&mut op, customer_id)
+            .await?;
+        let party = self
+            .customers
+            .find_party_by_id_without_audit(customer.party_id)
+            .await?;
+        if require_verified && !customer.kyc_verification.is_verified() {
+            return Err(CoreDepositError::CustomerNotVerified);
+        }
 
         let public_id = self
             .public_ids
@@ -531,12 +535,12 @@ where
             )
             .await?;
 
-        let mut deposit = self.deposits.find_by_id(id).await?;
+        let mut op = self.deposits.begin_op().await?;
+        let mut deposit = self.deposits.find_by_id_in_op(&mut op, id).await?;
         self.check_account_active(deposit.deposit_account_id)
             .await?;
 
         if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert() {
-            let mut op = self.deposits.begin_op().await?;
             self.deposits.update_in_op(&mut op, &mut deposit).await?;
             self.ledger
                 .revert_deposit_in_op(&mut op, deposit_reversal_data, sub)
@@ -563,13 +567,13 @@ where
             )
             .await?;
 
-        let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        let mut op = self.withdrawals.begin_op().await?;
+        let mut withdrawal = self.withdrawals.find_by_id_in_op(&mut op, id).await?;
 
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
 
         if let Ok(es_entity::Idempotent::Executed(withdrawal_reversal_data)) = withdrawal.revert() {
-            let mut op = self.withdrawals.begin_op().await?;
             self.withdrawals
                 .update_in_op(&mut op, &mut withdrawal)
                 .await?;
@@ -597,10 +601,10 @@ where
                 CoreDepositAction::WITHDRAWAL_CONFIRM,
             )
             .await?;
-        let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        let mut op = self.withdrawals.begin_op().await?;
+        let mut withdrawal = self.withdrawals.find_by_id_in_op(&mut op, id).await?;
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
-        let mut op = self.withdrawals.begin_op().await?;
         let es_entity::Idempotent::Executed(tx_id) = withdrawal.confirm()? else {
             return Ok(withdrawal);
         };
@@ -642,10 +646,10 @@ where
                 CoreDepositAction::WITHDRAWAL_CANCEL,
             )
             .await?;
-        let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        let mut op = self.withdrawals.begin_op().await?;
+        let mut withdrawal = self.withdrawals.find_by_id_in_op(&mut op, id).await?;
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
-        let mut op = self.withdrawals.begin_op().await?;
         let es_entity::Idempotent::Executed(tx_id) = withdrawal.cancel()? else {
             return Ok(withdrawal);
         };
@@ -682,11 +686,13 @@ where
             )
             .await?;
 
-        let mut account = self.deposit_accounts.find_by_id(account_id).await?;
+        let mut op = self.deposit_accounts.begin_op().await?;
+        let mut account = self
+            .deposit_accounts
+            .find_by_id_in_op(&mut op, account_id)
+            .await?;
 
         if account.freeze()?.did_execute() {
-            let mut op = self.deposit_accounts.begin_op().await?;
-
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
@@ -716,11 +722,13 @@ where
             )
             .await?;
 
-        let mut account = self.deposit_accounts.find_by_id(account_id).await?;
+        let mut op = self.deposit_accounts.begin_op().await?;
+        let mut account = self
+            .deposit_accounts
+            .find_by_id_in_op(&mut op, account_id)
+            .await?;
 
         if account.unfreeze()?.did_execute() {
-            let mut op = self.deposit_accounts.begin_op().await?;
-
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
@@ -754,11 +762,13 @@ where
             return Err(DepositAccountError::BalanceIsNotZero.into());
         }
 
-        let mut account = self.deposit_accounts.find_by_id(account_id).await?;
+        let mut op = self.deposit_accounts.begin_op().await?;
+        let mut account = self
+            .deposit_accounts
+            .find_by_id_in_op(&mut op, account_id)
+            .await?;
 
         if account.close()?.did_execute() {
-            let mut op = self.deposit_accounts.begin_op().await?;
-
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;

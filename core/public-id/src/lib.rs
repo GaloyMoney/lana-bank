@@ -69,7 +69,7 @@ impl PublicIds {
         target_type: impl Into<PublicIdTargetType> + std::fmt::Debug,
         target_id: impl Into<PublicIdTargetId> + std::fmt::Debug,
     ) -> Result<(), PublicIdError> {
-        let mut public_id_entity = self.repo.find_by_id(id.clone()).await?;
+        let mut public_id_entity = self.repo.find_by_id_in_op(&mut *op, id.clone()).await?;
         if public_id_entity
             .update_target(target_id, target_type)
             .did_execute()

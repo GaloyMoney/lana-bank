@@ -123,7 +123,6 @@ where
             )
             .await?;
 
-        let mut op = op.with_db_time().await?;
         self.ledger
             .attach_chart_of_accounts_account_sets_in_op(
                 &mut op,

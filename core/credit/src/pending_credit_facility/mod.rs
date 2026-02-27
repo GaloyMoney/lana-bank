@@ -250,7 +250,7 @@ where
     ]
     pub(crate) async fn complete_in_op(
         &self,
-        db: &mut es_entity::DbOpWithTime<'_>,
+        db: &mut es_entity::DbOp<'_>,
         pending_credit_facility_id: PendingCreditFacilityId,
     ) -> Result<PendingCreditFacilityCompletionOutcome, PendingCreditFacilityError> {
         let mut pending_facility = self
@@ -262,7 +262,7 @@ where
 
         let collateral = self
             .collaterals
-            .find_by_id_without_audit(pending_facility.collateral_id)
+            .find_by_id_without_audit_in_op(&mut *db, pending_facility.collateral_id)
             .await?;
         let collateral_account_id = collateral.account_id();
 

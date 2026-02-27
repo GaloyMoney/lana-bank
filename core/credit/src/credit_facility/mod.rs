@@ -65,6 +65,7 @@ where
     price: Arc<Price>,
     governance: Arc<Governance<Perms, E>>,
     public_ids: Arc<PublicIds>,
+    clock: es_entity::clock::ClockHandle,
     credit_facility_maturity_job_spawner:
         jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
     interest_accrual_job_spawner: jobs::interest_accrual::InterestAccrualJobSpawner<Perms, E>,
@@ -92,6 +93,7 @@ where
             price: self.price.clone(),
             governance: self.governance.clone(),
             public_ids: self.public_ids.clone(),
+            clock: self.clock.clone(),
             credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
             interest_accrual_job_spawner: self.interest_accrual_job_spawner.clone(),
         }
@@ -207,6 +209,7 @@ where
             price,
             governance,
             public_ids,
+            clock,
             credit_facility_maturity_job_spawner,
             interest_accrual_job_spawner,
         })
@@ -222,7 +225,7 @@ where
         &self,
         credit_facility_id: CreditFacilityId,
     ) -> Result<(), CreditFacilityError> {
-        let mut db = self.repo.begin_op().await?.with_db_time().await?;
+        let mut db = self.repo.begin_op().await?;
 
         self.authz
             .audit()
@@ -315,7 +318,11 @@ where
                 .expect("could not build new disbursal");
             let disbursal = self
                 .disbursals
-                .create_pre_approved_disbursal_in_op(&mut db, new_disbursal)
+                .create_pre_approved_disbursal_in_op(
+                    &mut db,
+                    self.clock.now().date_naive(),
+                    new_disbursal,
+                )
                 .await?;
 
             credit_facility.activation_data(Some(InitialDisbursalOnActivation {
@@ -389,6 +396,14 @@ where
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacility, CreditFacilityError> {
         self.repo.find_by_id(id.into()).await
+    }
+
+    pub async fn find_by_id_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        self.repo.find_by_id_in_op(op, id.into()).await
     }
 
     #[record_error_severity]

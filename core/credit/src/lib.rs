@@ -328,6 +328,7 @@ where
             facilities_arc.clone(),
             governance_arc.clone(),
             ledger_arc.clone(),
+            clock.clone(),
         );
         let approve_disbursal_arc = Arc::new(approve_disbursal);
 
@@ -523,19 +524,11 @@ where
             .await?
             .expect("audit info missing");
 
-        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
-        let party = self
-            .customer
-            .find_party_by_id_without_audit(customer.party_id)
-            .await?;
         let require_verified = self
             .domain_configs
             .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
             .value();
-        if require_verified && !customer.kyc_verification.is_verified() {
-            return Err(CoreCreditError::CustomerNotVerified);
-        }
 
         let proposal_id = CreditFacilityProposalId::new();
         tracing::Span::current().record(
@@ -544,6 +537,18 @@ where
         );
 
         let mut db = self.pending_credit_facilities.begin_op().await?;
+
+        let customer = self
+            .customer
+            .find_by_id_without_audit_in_op(&mut db, customer_id)
+            .await?;
+        let party = self
+            .customer
+            .find_party_by_id_without_audit(customer.party_id)
+            .await?;
+        if require_verified && !customer.kyc_verification.is_verified() {
+            return Err(CoreCreditError::CustomerNotVerified);
+        }
 
         let new_facility_proposal = NewCreditFacilityProposal::builder()
             .id(proposal_id)
@@ -594,23 +599,30 @@ where
             .await?
             .expect("audit info missing");
 
-        let facility = self
-            .facilities
-            .find_by_id_without_audit(credit_facility_id)
-            .await?;
-
-        let customer_id = facility.customer_id;
-        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         let require_verified = self
             .domain_configs
             .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
             .value();
+
+        let now = self.clock.now();
+
+        let mut db = self.facilities.begin_op().await?;
+
+        let facility = self
+            .facilities
+            .find_by_id_without_audit_in_op(&mut db, credit_facility_id)
+            .await?;
+
+        let customer_id = facility.customer_id;
+        let customer = self
+            .customer
+            .find_by_id_without_audit_in_op(&mut db, customer_id)
+            .await?;
         if require_verified && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
         }
 
-        let now = self.clock.now();
         if facility.is_single_disbursal() {
             return Err(CreditFacilityError::OnlyOneDisbursalAllowed.into());
         }
@@ -620,7 +632,7 @@ where
 
         let collateral = self
             .collaterals
-            .find_by_id_without_audit(facility.collateral_id)
+            .find_by_id_without_audit_in_op(&mut db, facility.collateral_id)
             .await?;
         let collateral_account_id = collateral.account_id();
 
@@ -634,8 +646,6 @@ where
         if !facility.terms.is_disbursal_allowed(cvl) {
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
-
-        let mut db = self.facilities.begin_op().await?;
         let disbursal_id = DisbursalId::new();
         let due_date = facility.maturity_date;
         let overdue_date = facility

@@ -137,6 +137,14 @@ where
         self.repo.find_by_id(id).await
     }
 
+    pub async fn find_by_id_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: CollateralId,
+    ) -> Result<Collateral, CollateralError> {
+        self.repo.find_by_id_in_op(op, id).await
+    }
+
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CollateralError> {
         Ok(self.repo.begin_op().await?)
     }
@@ -342,8 +350,6 @@ where
         collateral_id: CollateralId,
         amount_received: UsdCents,
     ) -> Result<Collateral, CollateralError> {
-        let mut collateral = self.repo.find_by_id(collateral_id).await?;
-
         self.authz
             .enforce_permission(
                 sub,
@@ -353,6 +359,7 @@ where
             .await?;
 
         let mut db = self.repo.begin_op().await?;
+        let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
 
         if let Idempotent::Executed(data) =
             collateral.record_proceeds_received_and_liquidation_completed(amount_received)?
