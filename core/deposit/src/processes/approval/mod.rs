@@ -1,5 +1,5 @@
 mod execute_withdraw_approval;
-mod job;
+mod withdraw_approval;
 
 use authz::PermissionCheck;
 use governance::{ApprovalProcessType, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -19,7 +19,7 @@ use crate::{
 };
 
 pub use execute_withdraw_approval::*;
-pub use job::*;
+pub use withdraw_approval::*;
 
 pub const APPROVE_WITHDRAWAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
 

@@ -1,5 +1,5 @@
+mod disbursal_approval;
 mod execute_approve_disbursal;
-mod job;
 
 pub use execute_approve_disbursal::*;
 
@@ -26,7 +26,7 @@ use crate::{
     credit_facility::CreditFacilities, ledger::CreditLedger, primitives::DisbursalId,
 };
 
-pub use job::*;
+pub use disbursal_approval::*;
 pub const APPROVE_DISBURSAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursal");
 
 pub struct ApproveDisbursal<Perms, E>
