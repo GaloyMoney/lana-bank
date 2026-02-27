@@ -19,7 +19,7 @@ chrono = { workspace = true }
 lana-app = { workspace = true }
 admin-server = { workspace = true }
 customer-server = { workspace = true }
-lanacli = { workspace = true }
+lana-admin-cli = { workspace = true }
 
 sim-bootstrap = { workspace = true, optional = true }
 

@@ -45,7 +45,7 @@ wait_for_loan_agreement_completion() {
   [[ "$url" != "null" ]] || exit 1
   echo "Created permalink: $url"
 
-  # Test complete KYC flow via lanacli command
+  # Test complete KYC flow via admin CLI command
   echo "Testing complete KYC flow via sumsub test-applicant-create..."
   cli_output=$("$LANACLI" --json sumsub test-applicant-create --prospect-id "$prospect_id")
   echo "sumsub output: $cli_output"

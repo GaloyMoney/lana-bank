@@ -97,7 +97,7 @@
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path
-          || pkgs.lib.hasInfix "/dev/lanacli/src/graphql/" path;
+          || pkgs.lib.hasInfix "/dev/lana-admin-cli/src/graphql/" path;
       };
 
       commonArgs = {
@@ -142,11 +142,11 @@
         }
       );
 
-      lanacli-debug = craneLib.buildPackage (
+      lana-admin-cli-debug = craneLib.buildPackage (
         individualCrateArgs
         // {
-          pname = "lanacli-debug";
-          cargoExtraArgs = "-p lanacli";
+          pname = "lana-admin-cli-debug";
+          cargoExtraArgs = "-p lana-admin-cli";
           src = rustSource;
         }
       );
@@ -365,7 +365,7 @@
               pkgs.gawk
               pkgs.poppler-utils
               pkgs.libuuid
-              lanacli-debug
+              lana-admin-cli-debug
             ];
           in
             pkgs.symlinkJoin {
@@ -386,7 +386,7 @@
                 pkgs.poppler-utils
                 pkgs.libuuid
                 lana-cli-debug
-                lanacli-debug
+                lana-admin-cli-debug
               ];
               postBuild = ''
                 mkdir -p $out/bin

@@ -34,9 +34,17 @@ struct Cli {
     smtp_password: String,
     #[clap(long, env = "ENCRYPTION_KEY", default_value = "")]
     encryption_key: String,
-    #[clap(long, env = "KEYCLOAK_INTERNAL_CLIENT_SECRET", default_value = "secret")]
+    #[clap(
+        long,
+        env = "KEYCLOAK_INTERNAL_CLIENT_SECRET",
+        default_value = "secret"
+    )]
     keycloak_internal_client_secret: String,
-    #[clap(long, env = "KEYCLOAK_CUSTOMER_CLIENT_SECRET", default_value = "secret")]
+    #[clap(
+        long,
+        env = "KEYCLOAK_CUSTOMER_CLIENT_SECRET",
+        default_value = "secret"
+    )]
     keycloak_customer_client_secret: String,
     #[clap(long, env = "LANA_HOME", default_value = ".lana")]
     lana_home: String,
@@ -142,7 +150,7 @@ async fn run_admin_command(cli: &Cli, admin_cmd: Vec<String>) -> anyhow::Result<
     }
     args.extend(admin_cmd.into_iter().map(OsString::from));
 
-    lanacli::run_from_args(args).await
+    lana_admin_cli::run_from_args(args).await
 }
 
 /// Setup GCP credentials by decoding SA_CREDS_BASE64 and setting GOOGLE_APPLICATION_CREDENTIALS

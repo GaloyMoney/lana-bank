@@ -3701,6 +3701,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "lana-admin-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "comfy-table",
+ "graphql_client",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "lana-app"
 version = "0.0.0"
 dependencies = [
@@ -3767,8 +3782,8 @@ dependencies = [
  "customer-server",
  "es-entity",
  "hex",
+ "lana-admin-cli",
  "lana-app",
- "lanacli",
  "log",
  "rustls 0.23.36",
  "serde",
@@ -3813,21 +3828,6 @@ dependencies = [
  "schemars 1.2.1",
  "serde",
  "sqlx",
-]
-
-[[package]]
-name = "lanacli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "comfy-table",
- "graphql_client",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "tokio",
- "url",
 ]
 
 [[package]]

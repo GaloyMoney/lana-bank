@@ -12,8 +12,8 @@ LANA_HOME="${LANA_HOME:-.lana}"
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
 
 LANACLI="${LANACLI:-${REPO_ROOT}/target/debug/lana-cli}"
-if [[ ! -x "$LANACLI" && -x "${REPO_ROOT}/target/debug/lanacli" ]]; then
-  LANACLI="${REPO_ROOT}/target/debug/lanacli"
+if [[ ! -x "$LANACLI" && -x "${REPO_ROOT}/target/debug/lana-admin-cli" ]]; then
+  LANACLI="${REPO_ROOT}/target/debug/lana-admin-cli"
 fi
 
 LOG_FILE=".e2e-logs"

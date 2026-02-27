@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "lanacli", about = "LANA Bank Admin CLI")]
+#[command(name = "lana-admin-cli", about = "LANA Bank Admin CLI")]
 pub struct Cli {
     /// Admin GraphQL endpoint URL
     #[arg(

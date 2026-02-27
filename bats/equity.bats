@@ -13,5 +13,5 @@ teardown_file() {
 }
 
 @test "equity: can add usd equity" {
-  skip "TODO: rewrite this broken test to use lanacli-only flow"
+  skip "TODO: rewrite this broken test to use admin-cli-only flow"
 }

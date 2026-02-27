@@ -13,5 +13,5 @@ teardown_file() {
 }
 
 @test "dashboard: counts facilities" {
-  skip "TODO: rewrite this broken test to use lanacli-only flow"
+  skip "TODO: rewrite this broken test to use admin-cli-only flow"
 }

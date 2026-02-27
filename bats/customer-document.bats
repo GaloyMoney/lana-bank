@@ -25,7 +25,7 @@ teardown_file() {
   temp_file=$(mktemp)
   echo "Test content" > "$temp_file"
   
-  # Upload the file via lanacli
+  # Upload the file via admin CLI
   cli_output=$("$LANACLI" --json document attach --customer-id "$customer_id" --file "$temp_file")
   document_id=$(echo "$cli_output" | jq -r '.documentId')
   [[ "$document_id" != null ]] || exit 1

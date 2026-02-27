@@ -37,7 +37,7 @@ struct CachedToken {
 fn session_path() -> Option<PathBuf> {
     std::env::var("HOME")
         .ok()
-        .map(|home| PathBuf::from(home).join(".config/lanacli/session.json"))
+        .map(|home| PathBuf::from(home).join(".config/lana-admin-cli/session.json"))
 }
 
 fn now_epoch() -> u64 {
