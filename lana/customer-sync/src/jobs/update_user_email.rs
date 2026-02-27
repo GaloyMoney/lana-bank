@@ -6,31 +6,31 @@ use job::*;
 use keycloak_client::KeycloakClient;
 use tracing_macros::record_error_severity;
 
-pub const SYNC_KEYCLOAK_EMAIL_COMMAND: JobType =
-    JobType::new("command.customer-sync.sync-keycloak-email");
+pub const UPDATE_USER_EMAIL_COMMAND: JobType =
+    JobType::new("command.customer-sync.update-user-email");
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct SyncKeycloakEmailConfig {
+pub struct UpdateUserEmailConfig {
     pub party_id: PartyId,
     pub email: String,
 }
 
-pub struct SyncKeycloakEmailJobInitializer {
+pub struct UpdateUserEmailJobInitializer {
     keycloak_client: KeycloakClient,
 }
 
-impl SyncKeycloakEmailJobInitializer {
+impl UpdateUserEmailJobInitializer {
     pub fn new(keycloak_client: KeycloakClient) -> Self {
         Self { keycloak_client }
     }
 }
 
-impl JobInitializer for SyncKeycloakEmailJobInitializer {
-    type Config = SyncKeycloakEmailConfig;
+impl JobInitializer for UpdateUserEmailJobInitializer {
+    type Config = UpdateUserEmailConfig;
 
     fn job_type(&self) -> JobType {
-        SYNC_KEYCLOAK_EMAIL_COMMAND
+        UPDATE_USER_EMAIL_COMMAND
     }
 
     fn init(
@@ -38,22 +38,22 @@ impl JobInitializer for SyncKeycloakEmailJobInitializer {
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(SyncKeycloakEmailJobRunner {
+        Ok(Box::new(UpdateUserEmailJobRunner {
             config: job.config()?,
             keycloak_client: self.keycloak_client.clone(),
         }))
     }
 }
 
-pub struct SyncKeycloakEmailJobRunner {
-    config: SyncKeycloakEmailConfig,
+pub struct UpdateUserEmailJobRunner {
+    config: UpdateUserEmailConfig,
     keycloak_client: KeycloakClient,
 }
 
 #[async_trait]
-impl JobRunner for SyncKeycloakEmailJobRunner {
+impl JobRunner for UpdateUserEmailJobRunner {
     #[record_error_severity]
-    #[tracing::instrument(name = "customer_sync.sync_keycloak_email.process_command", skip_all)]
+    #[tracing::instrument(name = "customer_sync.update_user_email.process_command", skip_all)]
     async fn run(
         &self,
         _current_job: CurrentJob,

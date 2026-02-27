@@ -4,19 +4,17 @@ use core_customer::CoreCustomerEvent;
 use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use super::SyncKeycloakEmailConfig;
+use super::UpdateUserEmailConfig;
 
 pub const SYNC_EMAIL_JOB: JobType = JobType::new("outbox.sync-email-job");
 
 pub struct SyncEmailHandler {
-    sync_keycloak_email: JobSpawner<SyncKeycloakEmailConfig>,
+    update_user_email: JobSpawner<UpdateUserEmailConfig>,
 }
 
 impl SyncEmailHandler {
-    pub fn new(sync_keycloak_email: JobSpawner<SyncKeycloakEmailConfig>) -> Self {
-        Self {
-            sync_keycloak_email,
-        }
+    pub fn new(update_user_email: JobSpawner<UpdateUserEmailConfig>) -> Self {
+        Self { update_user_email }
     }
 }
 
@@ -35,11 +33,11 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
-            self.sync_keycloak_email
+            self.update_user_email
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    SyncKeycloakEmailConfig {
+                    UpdateUserEmailConfig {
                         party_id: entity.id,
                         email: entity.email.clone(),
                     },

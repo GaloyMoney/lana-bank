@@ -84,15 +84,14 @@ where
             )
             .await?;
 
-        let sync_keycloak_email_spawner = jobs.add_initializer(
-            SyncKeycloakEmailJobInitializer::new(keycloak_client.clone()),
-        );
+        let update_user_email_spawner =
+            jobs.add_initializer(UpdateUserEmailJobInitializer::new(keycloak_client.clone()));
 
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(SYNC_EMAIL_JOB),
-                SyncEmailHandler::new(sync_keycloak_email_spawner),
+                SyncEmailHandler::new(update_user_email_spawner),
             )
             .await?;
 
