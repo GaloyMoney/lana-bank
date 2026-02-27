@@ -13,7 +13,7 @@ use super::{entity::*, error::*};
     err = "DocumentStorageError",
     columns(reference_id(ty = "ReferenceId", list_for(by(created_at)), update(persist = false))),
     tbl_prefix = "core",
-    delete = "soft"
+    delete = "soft_without_queries"
 )]
 pub struct DocumentRepo {
     pool: PgPool,
