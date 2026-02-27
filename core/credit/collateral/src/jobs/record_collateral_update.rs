@@ -59,7 +59,7 @@ where
         RECORD_COLLATERAL_UPDATE_COMMAND
     }
 
-    fn entity_id(command: &Self::Command) -> String {
+    fn queue_id(command: &Self::Command) -> String {
         command.custody_wallet_id.to_string()
     }
 

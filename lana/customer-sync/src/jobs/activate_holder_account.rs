@@ -65,7 +65,7 @@ where
         ACTIVATE_HOLDER_ACCOUNT_COMMAND
     }
 
-    fn entity_id(command: &Self::Command) -> String {
+    fn queue_id(command: &Self::Command) -> String {
         command.customer_id.to_string()
     }
 

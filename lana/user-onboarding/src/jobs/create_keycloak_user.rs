@@ -35,7 +35,7 @@ impl CommandJob for CreateKeycloakUserCommandJob {
         CREATE_KEYCLOAK_USER_COMMAND
     }
 
-    fn entity_id(command: &Self::Command) -> String {
+    fn queue_id(command: &Self::Command) -> String {
         command.user_id.to_string()
     }
 
