@@ -79,7 +79,6 @@ where
         id: WithdrawalId,
         approved: bool,
     ) -> Result<Withdrawal, WithdrawalError> {
-        let id = id.into();
         let mut withdraw = self.repo.find_by_id_in_op(&mut *op, id).await?;
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);

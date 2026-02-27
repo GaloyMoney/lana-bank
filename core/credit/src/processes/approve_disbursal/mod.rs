@@ -117,7 +117,7 @@ where
     ) -> Result<Disbursal, CoreCreditError> {
         let disbursal = match self
             .disbursals
-            .conclude_approval_process_in_op(op, id.into(), approved, self.clock.now().date_naive())
+            .conclude_approval_process_in_op(op, id, approved, self.clock.now().date_naive())
             .await?
         {
             crate::ApprovalProcessOutcome::AlreadyApplied(disbursal) => {
