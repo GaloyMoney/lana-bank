@@ -78,4 +78,3 @@ chrono-tz = { workspace = true }
 core-access = { workspace = true }
 core-deposit = { workspace = true }
 serial_test = { workspace = true }
-chrono-tz = { workspace = true }

@@ -4,8 +4,7 @@ use authz::dummy::DummySubject;
 use core_credit::*;
 use core_time_events::CoreTimeEvent;
 use es_entity::DbOp;
-use helpers::event::DummyEvent;
-use std::time::Duration;
+use helpers::event::{DummyEvent, expect_event};
 
 async fn publish_end_of_day(
     outbox: &obix::Outbox<DummyEvent>,
@@ -41,11 +40,23 @@ async fn publish_end_of_day(
 /// ```
 ///
 /// # Verified
-/// - Facility status transitions from `Active` to `Matured`
+/// - `FacilityMatured` event is published with the correct facility id
+async fn cleanup_stale_task_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
+    sqlx::query(
+        "DELETE FROM job_executions
+         WHERE state = 'pending'
+           AND job_type IN ('task.process-facility-maturities', 'task.credit-facility-maturity')",
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 #[tokio::test]
 #[serial_test::file_serial(core_credit_shared_jobs)]
 async fn facility_matures_on_end_of_day() -> anyhow::Result<()> {
     let mut ctx = helpers::setup().await?;
+    cleanup_stale_task_jobs(&ctx.pool).await?;
     ctx.jobs.start_poll().await?;
 
     let state = helpers::create_active_facility(&ctx, helpers::test_terms()).await?;
@@ -59,25 +70,34 @@ async fn facility_matures_on_end_of_day() -> anyhow::Result<()> {
     assert_eq!(facility.status(), CreditFacilityStatus::Active);
 
     let maturity_date = facility.maturity_date();
+    let facility_id = state.facility_id;
 
-    publish_end_of_day(&ctx.outbox, &ctx.pool, &ctx.clock, maturity_date).await?;
+    let outbox = ctx.outbox.clone();
+    let pool = ctx.pool.clone();
+    let clock = ctx.clock.clone();
 
-    for attempt in 0..100 {
-        let facility = ctx
-            .credit
-            .facilities()
-            .find_by_id(&DummySubject, state.facility_id)
-            .await?
-            .expect("facility must exist");
-        if facility.status() == CreditFacilityStatus::Matured {
-            break;
-        }
-        if attempt == 99 {
-            panic!("Timed out waiting for facility to mature after 10 seconds");
-        }
-        tokio::time::sleep(Duration::from_millis(100)).await;
-    }
+    let (_, recorded) = expect_event(
+        &ctx.outbox,
+        move || async move {
+            publish_end_of_day(&outbox, &pool, &clock, maturity_date).await?;
+            Ok::<_, anyhow::Error>(())
+        },
+        move |_, e| match e {
+            DummyEvent::CoreCredit(CoreCreditEvent::FacilityMatured { entity })
+                if entity.id == facility_id =>
+            {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, facility_id);
+    assert_eq!(recorded.customer_id, state.customer_id);
+    assert_eq!(recorded.amount, state.amount);
 
     ctx.jobs.shutdown().await?;
+    cleanup_stale_task_jobs(&ctx.pool).await?;
     Ok(())
 }
