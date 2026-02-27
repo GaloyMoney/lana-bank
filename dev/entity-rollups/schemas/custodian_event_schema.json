@@ -12,7 +12,7 @@
           "type": "array"
         },
         "key_id": {
-          "$ref": "#/$defs/KeyId"
+          "$ref": "#/$defs/EncryptionKeyId"
         },
         "nonce": {
           "items": {
@@ -31,7 +31,7 @@
       ],
       "type": "object"
     },
-    "KeyId": {
+    "EncryptionKeyId": {
       "type": "string"
     }
   },
