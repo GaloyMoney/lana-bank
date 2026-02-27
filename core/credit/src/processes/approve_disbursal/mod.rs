@@ -106,25 +106,18 @@ where
     #[record_error_severity]
     #[instrument(
         name = "credit_facility.approve_disbursal",
-        skip(self),
+        skip(self, op),
         fields(already_applied, disbursal_executed)
     )]
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn execute_approve_disbursal(
         &self,
-        id: impl es_entity::RetryableInto<DisbursalId>,
+        op: &mut es_entity::DbOpWithTime<'_>,
+        id: DisbursalId,
         approved: bool,
     ) -> Result<Disbursal, CoreCreditError> {
-        let mut op = self.disbursals.begin_op().await?;
-
         let disbursal = match self
             .disbursals
-            .conclude_approval_process_in_op(
-                &mut op,
-                id.into(),
-                approved,
-                self.clock.now().date_naive(),
-            )
+            .conclude_approval_process_in_op(op, id.into(), approved, self.clock.now().date_naive())
             .await?
         {
             crate::ApprovalProcessOutcome::AlreadyApplied(disbursal) => {
@@ -136,11 +129,11 @@ where
 
                 let credit_facility = self
                     .credit_facilities
-                    .find_by_id_without_audit_in_op(&mut op, disbursal.facility_id)
+                    .find_by_id_without_audit_in_op(op, disbursal.facility_id)
                     .await?;
                 self.ledger
                     .settle_disbursal_in_op(
-                        &mut op,
+                        op,
                         disbursal.id,
                         disbursal.disbursal_credit_account_id,
                         obligation,
@@ -150,18 +143,17 @@ where
                         ),
                     )
                     .await?;
-                op.commit().await?;
                 disbursal
             }
             crate::ApprovalProcessOutcome::Denied(disbursal) => {
                 tracing::Span::current().record("already_applied", false);
                 let credit_facility = self
                     .credit_facilities
-                    .find_by_id_without_audit_in_op(&mut op, disbursal.facility_id)
+                    .find_by_id_without_audit_in_op(op, disbursal.facility_id)
                     .await?;
                 self.ledger
                     .cancel_disbursal_in_op(
-                        &mut op,
+                        op,
                         disbursal.id,
                         disbursal.initiated_tx_id,
                         disbursal.amount,
@@ -171,7 +163,6 @@ where
                         ),
                     )
                     .await?;
-                op.commit().await?;
                 disbursal
             }
         };

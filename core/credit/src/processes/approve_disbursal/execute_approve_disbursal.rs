@@ -138,11 +138,18 @@ where
     #[tracing::instrument(name = "credit.execute_approve_disbursal.process_command", skip_all)]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let op = current_job.begin_op().await?;
+        let mut op = op.with_db_time().await?;
         self.process
-            .execute_approve_disbursal(self.config.approval_process_id, self.config.approved)
+            .execute_approve_disbursal(
+                &mut op,
+                self.config.approval_process_id.into(),
+                self.config.approved,
+            )
             .await?;
+        op.commit().await?;
         Ok(JobCompletion::Complete)
     }
 }

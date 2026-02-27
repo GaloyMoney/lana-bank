@@ -92,11 +92,16 @@ where
     #[tracing::instrument(name = "deposit.execute_withdraw_approval.process_command", skip_all)]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let mut op = current_job.begin_op().await?;
         self.process
-            .execute_withdrawal_approval(self.config.approval_process_id, self.config.approved)
+            .execute_withdrawal_approval(
+                &mut op,
+                self.config.approval_process_id.into(),
+                self.config.approved,
+            )
             .await?;
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(op))
     }
 }
