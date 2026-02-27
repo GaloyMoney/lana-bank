@@ -45,7 +45,7 @@ where
                     .expect("WalletBalanceUpdated must have balance");
 
                 self.record_collateral_update
-                    .spawn(
+                    .spawn_in_op(
                         op,
                         RecordCollateralUpdateCommand {
                             custody_wallet_id: entity.id,
