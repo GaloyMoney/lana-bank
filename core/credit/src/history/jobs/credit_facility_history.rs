@@ -95,24 +95,12 @@ where
                     .await?;
             }
             Some(
-                e @ LiquidationCompleted {
-                    secured_loan_id: id,
-                    ..
-                },
-            )
-            | Some(
-                e @ LiquidationProceedsReceived {
-                    secured_loan_id: id,
-                    ..
-                },
-            )
-            | Some(
-                e @ LiquidationCollateralSentOut {
-                    secured_loan_id: id,
-                    ..
-                },
+                e @ LiquidationCompleted { entity }
+                | e @ LiquidationProceedsReceived { entity }
+                | e @ LiquidationCollateralSentOut { entity },
             ) => {
-                self.handle_collateral_event(db, event, e, *id).await?;
+                self.handle_collateral_event(db, event, e, entity.secured_loan_id)
+                    .await?;
             }
             _ => {}
         }
