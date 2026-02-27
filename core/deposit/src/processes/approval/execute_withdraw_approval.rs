@@ -12,7 +12,7 @@ use crate::{CoreDepositAction, CoreDepositObject, public::CoreDepositEvent};
 
 use super::ApproveWithdrawal;
 
-pub const EXECUTE_WITHDRAW_APPROVAL: JobType =
+pub const EXECUTE_WITHDRAW_APPROVAL_COMMAND: JobType =
     JobType::new("command.deposit.execute-withdraw-approval");
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -54,7 +54,7 @@ where
     type Config = ExecuteWithdrawApprovalConfig;
 
     fn job_type(&self) -> JobType {
-        EXECUTE_WITHDRAW_APPROVAL
+        EXECUTE_WITHDRAW_APPROVAL_COMMAND
     }
 
     fn init(
