@@ -54,7 +54,6 @@ where
                     JobId::new(),
                     ExecuteActivateCreditFacilityConfig {
                         pending_credit_facility_id: entity.id,
-                        trace_context: tracing_utils::persistence::extract(),
                     },
                     entity.id.to_string(),
                 )

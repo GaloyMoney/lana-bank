@@ -5,7 +5,7 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::{JobId, JobSpawner, JobType};
 
-use super::update_dashboard::{UpdateDashboardConfig, UpdateDashboardUpdate};
+use super::update_dashboard::UpdateDashboardConfig;
 
 pub const DASHBOARD_PROJECTION_JOB: JobType = JobType::new("outbox.dashboard-projection");
 
@@ -29,31 +29,31 @@ where
         op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let update = match event.as_event::<LanaEvent>() {
+        let config = match event.as_event::<LanaEvent>() {
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalCreated { .. })) => {
-                Some(UpdateDashboardUpdate::FacilityProposalCreated {
+                Some(UpdateDashboardConfig::FacilityProposalCreated {
                     recorded_at: event.recorded_at,
                 })
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { .. })) => {
-                Some(UpdateDashboardUpdate::FacilityActivated {
+                Some(UpdateDashboardConfig::FacilityActivated {
                     recorded_at: event.recorded_at,
                 })
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { .. })) => {
-                Some(UpdateDashboardUpdate::FacilityCompleted {
+                Some(UpdateDashboardConfig::FacilityCompleted {
                     recorded_at: event.recorded_at,
                 })
             }
             Some(LanaEvent::Credit(CoreCreditEvent::DisbursalSettled { entity })) => {
-                Some(UpdateDashboardUpdate::DisbursalSettled {
+                Some(UpdateDashboardConfig::DisbursalSettled {
                     recorded_at: event.recorded_at,
                     amount: entity.amount,
                 })
             }
             Some(LanaEvent::CreditCollection(
                 CoreCreditCollectionEvent::PaymentAllocationCreated { entity },
-            )) => Some(UpdateDashboardUpdate::PaymentAllocationCreated {
+            )) => Some(UpdateDashboardConfig::PaymentAllocationCreated {
                 recorded_at: event.recorded_at,
                 amount: entity.amount,
                 obligation_type: entity.obligation_type,
@@ -65,7 +65,7 @@ where
                     .adjustment
                     .as_ref()
                     .expect("adjustment must be set for CollateralUpdated");
-                Some(UpdateDashboardUpdate::CollateralUpdated {
+                Some(UpdateDashboardConfig::CollateralUpdated {
                     recorded_at: event.recorded_at,
                     direction: adjustment.direction,
                     abs_diff: adjustment.abs_diff,
@@ -74,20 +74,12 @@ where
             _ => None,
         };
 
-        if let Some(update) = update {
+        if let Some(config) = config {
             event.inject_trace_parent();
             Span::current().record("handled", true);
 
             self.update_dashboard
-                .spawn_with_queue_id_in_op(
-                    op,
-                    JobId::new(),
-                    UpdateDashboardConfig {
-                        update,
-                        trace_context: tracing_utils::persistence::extract(),
-                    },
-                    "dashboard".to_string(),
-                )
+                .spawn_with_queue_id_in_op(op, JobId::new(), config, "dashboard".to_string())
                 .await?;
         }
 

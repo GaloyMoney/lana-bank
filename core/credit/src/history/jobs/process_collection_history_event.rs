@@ -15,7 +15,6 @@ use super::super::repo::HistoryRepo;
 pub struct ProcessCollectionHistoryEventConfig {
     pub facility_id: CreditFacilityId,
     pub event: CoreCreditCollectionEvent,
-    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const PROCESS_COLLECTION_HISTORY_EVENT_COMMAND: JobType =
@@ -66,7 +65,6 @@ impl JobRunner for ProcessCollectionHistoryEventJobRunner {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let mut op = current_job.begin_op().await?;
 
         let facility_id = self.config.facility_id;

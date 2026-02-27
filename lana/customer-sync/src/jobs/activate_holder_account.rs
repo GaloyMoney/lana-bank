@@ -20,7 +20,6 @@ use tracing_macros::record_error_severity;
 #[serde(rename_all = "camelCase")]
 pub struct ActivateHolderAccountConfig {
     pub customer_id: CustomerId,
-    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const ACTIVATE_HOLDER_ACCOUNT_COMMAND: JobType =
@@ -110,7 +109,6 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let mut op = current_job.begin_op().await?;
         self.deposit
             .update_account_status_for_holder_in_op(

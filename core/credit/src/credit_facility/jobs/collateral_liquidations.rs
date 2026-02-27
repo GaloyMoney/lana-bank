@@ -52,7 +52,6 @@ where
                         trigger_price: trigger.trigger_price,
                         initially_expected_to_receive: trigger.initially_expected_to_receive,
                         initially_estimated_to_liquidate: trigger.initially_estimated_to_liquidate,
-                        trace_context: tracing_utils::persistence::extract(),
                     },
                     entity.id.to_string(),
                 )

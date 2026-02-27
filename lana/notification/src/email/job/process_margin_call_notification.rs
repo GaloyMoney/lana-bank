@@ -20,7 +20,6 @@ pub struct MarginCallNotificationConfig {
     pub outstanding_disbursed: UsdCents,
     pub outstanding_interest: UsdCents,
     pub price: PriceOfOneBTC,
-    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const MARGIN_CALL_NOTIFICATION_COMMAND: JobType =
@@ -122,7 +121,6 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let mut op = current_job.begin_op().await?;
 
         self.email_notification

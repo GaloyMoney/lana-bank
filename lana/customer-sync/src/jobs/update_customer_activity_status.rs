@@ -47,7 +47,6 @@ where
                     JobId::new(),
                     PerformCustomerActivityStatusUpdateConfig {
                         closing_time: *closing_time,
-                        trace_context: tracing_utils::persistence::extract(),
                     },
                     "end-of-day".to_string(),
                 )

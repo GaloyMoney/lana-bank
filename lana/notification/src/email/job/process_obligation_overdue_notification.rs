@@ -16,7 +16,6 @@ pub struct ObligationOverdueNotificationConfig {
     pub obligation_id: ObligationId,
     pub credit_facility_id: CreditFacilityId,
     pub outstanding_amount: UsdCents,
-    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const OBLIGATION_OVERDUE_NOTIFICATION_COMMAND: JobType =
@@ -118,7 +117,6 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let mut op = current_job.begin_op().await?;
 
         self.email_notification

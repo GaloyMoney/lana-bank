@@ -17,7 +17,6 @@ pub struct ProcessCollateralHistoryEventConfig {
     pub facility_id: CreditFacilityId,
     pub recorded_at: DateTime<Utc>,
     pub event: CoreCreditCollateralEvent,
-    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const PROCESS_COLLATERAL_HISTORY_EVENT_COMMAND: JobType =
@@ -68,7 +67,6 @@ impl JobRunner for ProcessCollateralHistoryEventJobRunner {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let mut op = current_job.begin_op().await?;
 
         let facility_id = self.config.facility_id;

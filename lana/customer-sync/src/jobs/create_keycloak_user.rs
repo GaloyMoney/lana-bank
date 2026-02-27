@@ -46,7 +46,6 @@ where
                     CreateCustomerKeycloakUserConfig {
                         email: entity.email.clone(),
                         party_id: entity.id,
-                        trace_context: tracing_utils::persistence::extract(),
                     },
                     entity.id.to_string(),
                 )

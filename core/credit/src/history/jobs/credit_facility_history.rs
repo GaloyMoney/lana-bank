@@ -160,7 +160,6 @@ impl HistoryProjectionHandler {
                     facility_id,
                     recorded_at: message.recorded_at,
                     event: event.clone(),
-                    trace_context: tracing_utils::persistence::extract(),
                 },
                 facility_id.to_string(),
             )
@@ -191,7 +190,6 @@ impl HistoryProjectionHandler {
                     facility_id,
                     recorded_at: message.recorded_at,
                     event: event.clone(),
-                    trace_context: tracing_utils::persistence::extract(),
                 },
                 facility_id.to_string(),
             )
@@ -221,7 +219,6 @@ impl HistoryProjectionHandler {
                 ProcessCollectionHistoryEventConfig {
                     facility_id,
                     event: event.clone(),
-                    trace_context: tracing_utils::persistence::extract(),
                 },
                 facility_id.to_string(),
             )

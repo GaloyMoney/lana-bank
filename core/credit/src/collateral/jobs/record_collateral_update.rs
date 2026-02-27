@@ -21,7 +21,6 @@ pub struct RecordCollateralUpdateConfig {
     pub custody_wallet_id: CustodyWalletId,
     pub updated_collateral: money::Satoshis,
     pub effective: chrono::NaiveDate,
-    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const RECORD_COLLATERAL_UPDATE_COMMAND: JobType =
@@ -107,7 +106,6 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let mut op = current_job.begin_op().await?;
         let mut collateral = self
             .repo

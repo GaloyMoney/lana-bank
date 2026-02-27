@@ -11,7 +11,7 @@ use crate::repo::DashboardRepo;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub enum UpdateDashboardUpdate {
+pub enum UpdateDashboardConfig {
     FacilityProposalCreated {
         recorded_at: DateTime<Utc>,
     },
@@ -35,13 +35,6 @@ pub enum UpdateDashboardUpdate {
         direction: CollateralDirection,
         abs_diff: Satoshis,
     },
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateDashboardConfig {
-    pub update: UpdateDashboardUpdate,
-    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const UPDATE_DASHBOARD_COMMAND: JobType = JobType::new("command.dashboard.update-dashboard");
@@ -91,33 +84,31 @@ impl JobRunner for UpdateDashboardJobRunner {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing_utils::persistence::set_parent(&self.config.trace_context);
-
         let mut op = current_job.begin_op().await?;
         let mut dashboard = self.repo.load().await?;
 
-        match &self.config.update {
-            UpdateDashboardUpdate::FacilityProposalCreated { recorded_at } => {
+        match &self.config {
+            UpdateDashboardConfig::FacilityProposalCreated { recorded_at } => {
                 dashboard.last_updated = *recorded_at;
                 dashboard.pending_facilities += 1;
             }
-            UpdateDashboardUpdate::FacilityActivated { recorded_at } => {
+            UpdateDashboardConfig::FacilityActivated { recorded_at } => {
                 dashboard.last_updated = *recorded_at;
                 dashboard.pending_facilities -= 1;
                 dashboard.active_facilities += 1;
             }
-            UpdateDashboardUpdate::FacilityCompleted { recorded_at } => {
+            UpdateDashboardConfig::FacilityCompleted { recorded_at } => {
                 dashboard.last_updated = *recorded_at;
                 dashboard.active_facilities -= 1;
             }
-            UpdateDashboardUpdate::DisbursalSettled {
+            UpdateDashboardConfig::DisbursalSettled {
                 recorded_at,
                 amount,
             } => {
                 dashboard.last_updated = *recorded_at;
                 dashboard.total_disbursed += *amount;
             }
-            UpdateDashboardUpdate::PaymentAllocationCreated {
+            UpdateDashboardConfig::PaymentAllocationCreated {
                 recorded_at,
                 amount,
                 obligation_type,
@@ -127,7 +118,7 @@ impl JobRunner for UpdateDashboardJobRunner {
                     dashboard.total_disbursed -= *amount;
                 }
             }
-            UpdateDashboardUpdate::CollateralUpdated {
+            UpdateDashboardConfig::CollateralUpdated {
                 recorded_at,
                 direction,
                 abs_diff,

@@ -34,7 +34,7 @@ handlebars = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
-tracing-utils = { workspace = true, features = ["persistence"] }
+tracing-utils = { workspace = true }
 lettre = { workspace = true }
 
 [dev-dependencies]

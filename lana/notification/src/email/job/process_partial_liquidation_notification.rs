@@ -17,7 +17,6 @@ pub struct PartialLiquidationNotificationConfig {
     pub trigger_price: PriceOfOneBTC,
     pub initially_estimated_to_liquidate: Satoshis,
     pub initially_expected_to_receive: UsdCents,
-    pub trace_context: tracing_utils::persistence::SerializableTraceContext,
 }
 
 pub const PARTIAL_LIQUIDATION_NOTIFICATION_COMMAND: JobType =
@@ -119,7 +118,6 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        tracing_utils::persistence::set_parent(&self.config.trace_context);
         let mut op = current_job.begin_op().await?;
 
         self.email_notification
