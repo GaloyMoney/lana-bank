@@ -17,16 +17,16 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct SyncCustodianCollateralCommand {
+pub struct RecordCollateralUpdateCommand {
     pub custody_wallet_id: CustodyWalletId,
     pub updated_collateral: money::Satoshis,
     pub effective: chrono::NaiveDate,
 }
 
-pub const SYNC_CUSTODIAN_COLLATERAL_COMMAND: JobType =
-    JobType::new("command.core-credit.sync-custodian-collateral");
+pub const RECORD_COLLATERAL_UPDATE_COMMAND: JobType =
+    JobType::new("command.core-credit.record-collateral-update");
 
-pub struct SyncCustodianCollateralCommandJob<S, E>
+pub struct RecordCollateralUpdateCommandJob<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -36,7 +36,7 @@ where
     _phantom: std::marker::PhantomData<S>,
 }
 
-impl<S, E> SyncCustodianCollateralCommandJob<S, E>
+impl<S, E> RecordCollateralUpdateCommandJob<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
@@ -51,15 +51,15 @@ where
 }
 
 #[async_trait]
-impl<S, E> AtomicCommandJob for SyncCustodianCollateralCommandJob<S, E>
+impl<S, E> AtomicCommandJob for RecordCollateralUpdateCommandJob<S, E>
 where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
-    type Command = SyncCustodianCollateralCommand;
+    type Command = RecordCollateralUpdateCommand;
 
     fn job_type() -> JobType {
-        SYNC_CUSTODIAN_COLLATERAL_COMMAND
+        RECORD_COLLATERAL_UPDATE_COMMAND
     }
 
     fn entity_id(command: &Self::Command) -> String {
@@ -68,7 +68,7 @@ where
 
     #[record_error_severity]
     #[tracing::instrument(
-        name = "core_credit.sync_custodian_collateral_job.process_command",
+        name = "core_credit.record_collateral_update_job.process_command",
         skip(self, op, command),
         fields(
             custody_wallet_id = %command.custody_wallet_id,
