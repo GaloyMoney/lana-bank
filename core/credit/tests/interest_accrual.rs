@@ -334,7 +334,7 @@ async fn cleanup_stale_task_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     sqlx::query(
         "DELETE FROM job_executions
          WHERE state = 'pending'
-           AND job_type IN ('task.interest-accrual', 'task.credit-facility-maturity')",
+           AND job_type IN ('task.interest-accrual', 'task.process-facility-maturities', 'task.credit-facility-maturity')",
     )
     .execute(pool)
     .await?;
