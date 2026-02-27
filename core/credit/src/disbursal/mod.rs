@@ -226,8 +226,7 @@ where
                 CoreCreditObject::disbursal(disbursal_id),
                 CoreCreditAction::DISBURSAL_SETTLE,
             )
-            .await
-            .map_err(authz::error::AuthorizationError::from)?;
+            .await?;
 
         let mut disbursal = self.repo.find_by_id_in_op(&mut *op, disbursal_id).await?;
 
