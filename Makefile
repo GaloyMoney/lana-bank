@@ -165,6 +165,43 @@ dagster-stop:
 dagster-down:
 	docker compose -f docker-compose.dagster.yml down
 
+# Dagster asset materialization - run in correct dependency order
+# 1. EL raw tables first (from lana-core → DW)
+# 2. dbt seeds (reference data)
+# 3. dbt models (transforms on raw tables)
+
+dagster-materialize-el:
+	@echo "Materializing EL raw tables (lana → DW)..."
+	docker compose -f docker-compose.dagster.yml exec -T dagster_webserver \
+		dagster job execute -j lana_to_dw_el -w workspace.yaml
+
+dagster-materialize-dbt-seeds:
+	@echo "Materializing dbt seeds..."
+	docker compose -f docker-compose.dagster.yml exec -T dagster_webserver \
+		dagster job execute -j dbt_seeds_job -w workspace.yaml
+
+dagster-materialize-dbt-models:
+	@echo "Materializing dbt models..."
+	docker compose -f docker-compose.dagster.yml exec -T dagster_webserver \
+		dagster job execute -j dbt_models_job -w workspace.yaml
+
+dagster-materialize-bitfinex:
+	@echo "Materializing Bitfinex EL assets..."
+	docker compose -f docker-compose.dagster.yml exec -T dagster_webserver \
+		dagster job execute -j bitfinex_ticker_el -w workspace.yaml
+	docker compose -f docker-compose.dagster.yml exec -T dagster_webserver \
+		dagster job execute -j bitfinex_trades_el -w workspace.yaml
+	docker compose -f docker-compose.dagster.yml exec -T dagster_webserver \
+		dagster job execute -j bitfinex_order_book_el -w workspace.yaml
+
+# Full materialization in dependency order (cold start)
+dagster-materialize-all: dagster-materialize-el dagster-materialize-dbt-seeds dagster-materialize-dbt-models
+	@echo "All assets materialized successfully."
+
+# Quick refresh: just EL + dbt models (skip seeds if already loaded)
+dagster-refresh: dagster-materialize-el dagster-materialize-dbt-models
+	@echo "Refresh complete."
+
 # Usage: make dbt ARGS="run -s my_model"
 dbt:
 	docker compose -f docker-compose.dagster.yml run --rm --no-deps \
