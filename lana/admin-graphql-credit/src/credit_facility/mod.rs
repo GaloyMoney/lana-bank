@@ -90,7 +90,7 @@ impl CreditFacility {
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
         let (app, _) = app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().current_cvl(&self.entity).await?.into())
+        Ok(app.credit().current_cvl(&self.entity).await?)
     }
 
     async fn history(
