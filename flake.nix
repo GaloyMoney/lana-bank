@@ -399,7 +399,7 @@
 
                 # Set environment variables needed by bats tests
                 export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
-                export LANACLI="${lanacli-debug}/bin/lanacli"
+                export LANACLI="${lana-cli-debug}/bin/lana-cli"
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
