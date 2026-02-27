@@ -542,7 +542,7 @@
 
                 echo "Running cli"
                 export LANA_CONFIG="./bats/lana-bootstrap.yml"
-                ${lana-cli-bootstrap}/bin/lana-cli 2>&1 | tee server.log &
+                ${lana-cli-bootstrap}/bin/lana-cli serve 2>&1 | tee server.log &
                 echo "$!" > .server.pid
 
                 # Wait for simulation to complete by polling logs

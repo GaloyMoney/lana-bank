@@ -33,7 +33,7 @@ server_cmd() {
     else
       export LANA_CONFIG="${REPO_ROOT}/bats/lana.yml"
     fi
-    "${LANA_BIN}"
+    "${LANA_BIN}" serve
   else
     SQLX_OFFLINE=true make run-server
   fi
