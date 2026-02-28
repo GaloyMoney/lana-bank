@@ -1,7 +1,0 @@
-query ChartOfAccountsClosing {
-  chartOfAccounts {
-    chartId
-    name
-  }
-}
-

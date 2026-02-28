@@ -7,10 +7,15 @@ mkdir -p "$CACHE_DIR"
 OATHKEEPER_PROXY="http://localhost:4455"
 
 GQL_APP_ENDPOINT="http://app.localhost:4455/graphql"
-GQL_ADMIN_ENDPOINT="http://admin.localhost:4455/graphql"
 
 LANA_HOME="${LANA_HOME:-.lana}"
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
+
+LANACLI_DEFAULT="${REPO_ROOT}/target/debug/lana-admin-cli"
+if [[ ! -x "$LANACLI_DEFAULT" ]]; then
+  LANACLI_DEFAULT="${REPO_ROOT}/target/debug/lana-cli"
+fi
+LANACLI="${LANACLI:-${LANACLI_DEFAULT}}"
 
 LOG_FILE=".e2e-logs"
 
@@ -29,7 +34,7 @@ server_cmd() {
     else
       export LANA_CONFIG="${REPO_ROOT}/bats/lana.yml"
     fi
-    "${LANA_BIN}"
+    "${LANA_BIN}" serve
   else
     SQLX_OFFLINE=true make run-server
   fi
@@ -129,18 +134,6 @@ gql_operation_name() {
   else
     echo ""
   fi
-}
-
-gql_admin_query() {
-  cat "$(gql_admin_file $1)" | tr '\n' ' ' | sed 's/"/\\"/g'
-}
-
-gql_admin_file() {
-  echo "${REPO_ROOT}/bats/admin-gql/$1.gql"
-}
-
-gql_admin_operation_name() {
-  gql_operation_name "$(gql_admin_file $1)"
 }
 
 gql_customer_operation_name() {
@@ -255,40 +248,8 @@ login_superadmin() {
   cache_value "superadmin" $access_token
 }
 
-exec_admin_graphql() {
-  local query_name=$1
-  local variables=${2:-"{}"}
-  local run_cmd="${BATS_TEST_DIRNAME:+run}"
-  local operation_name=$(gql_admin_operation_name "$query_name")
-  local payload
-
-  payload=$(graphql_payload "$(gql_admin_query $query_name)" "$variables" "$operation_name")
-
-  ${run_cmd} curl -s -X POST \
-    -H "Authorization: Bearer $(read_value "superadmin")" \
-    -H "Content-Type: application/json" \
-    -d "$payload" \
-    "${GQL_ADMIN_ENDPOINT}"
-}
-
-exec_admin_graphql_upload() {
-  local query_name=$1
-  local variables=$2
-  local file_path=$3
-  local file_var_name=${4:-"file"}
-  local token=$(read_value "superadmin")
-  local operation_name=$(gql_admin_operation_name "$query_name")
-  local payload
-
-  payload=$(graphql_payload "$(gql_admin_query $query_name)" "$variables" "$operation_name")
-
-  curl -s -X POST \
-    -H "Authorization: Bearer ${token}" \
-    -H "Content-Type: multipart/form-data" \
-    -F "operations=${payload}" \
-    -F "map={\"0\":[\"variables.$file_var_name\"]}" \
-    -F "0=@$file_path" \
-    "${GQL_ADMIN_ENDPOINT}"
+login_lanacli() {
+  "$LANACLI" login 2>/dev/null || true
 }
 
 exec_dagster_graphql() {
@@ -442,23 +403,13 @@ create_customer() {
   telegramHandle=$(generate_email)
   customer_type="INDIVIDUAL"
 
-  variables=$(
-    jq -n \
-      --arg email "$customer_email" \
-      --arg telegramHandle "$telegramHandle" \
-      --arg customerType "$customer_type" \
-      '{
-      input: {
-        email: $email,
-        telegramHandle: $telegramHandle,
-        customerType: $customerType
-      }
-    }'
-  )
-
-  exec_admin_graphql 'prospect-create' "$variables"
-  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
-  [[ "$prospect_id" != "null" ]] || exit 1
+  local cli_output
+  cli_output=$("$LANACLI" --json prospect create \
+    --email "$customer_email" \
+    --telegram-handle "$telegramHandle" \
+    --customer-type "$customer_type")
+  prospect_id=$(echo "$cli_output" | jq -r '.prospectId')
+  [[ "$prospect_id" != "null" && -n "$prospect_id" ]] || exit 1
 
   # Simulate KYC start via SumSub applicantCreated webhook
   local webhook_id="req-$(date +%s%N)"
@@ -497,75 +448,57 @@ create_customer() {
   # Poll until the customer exists.
   customer_id="$prospect_id"
   for i in {1..30}; do
-    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-    exec_admin_graphql 'customer' "$variables"
-    fetched_id=$(graphql_output .data.customer.customerId)
-    [[ "$fetched_id" != "null" ]] && break
+    cli_output=$("$LANACLI" --json customer get --id "$customer_id" 2>/dev/null || echo '{}')
+    fetched_id=$(echo "$cli_output" | jq -r '.customerId // empty')
+    [[ -n "$fetched_id" ]] && break
     sleep 1
   done
-  [[ "$fetched_id" != "null" ]] || exit 1
+  [[ -n "$fetched_id" ]] || exit 1
 
   echo $prospect_id
 }
 
 create_deposit_account_for_customer() {
-  customer_id=$1
+  local customer_id=$1
 
-  variables=$(
-    jq -n \
-      --arg customerId "$customer_id" \
-    '{
-      input: {
-        customerId: $customerId
-      }
-    }'
-  )
-
-  exec_admin_graphql 'deposit-account-create' "$variables"
-  deposit_account_id=$(graphql_output '.data.depositAccountCreate.account.depositAccountId')
-  [[ "$deposit_account_id" != "null" ]] || exit 1
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account create --customer-id "$customer_id")
+  deposit_account_id=$(echo "$cli_output" | jq -r '.depositAccountId')
+  [[ "$deposit_account_id" != "null" && -n "$deposit_account_id" ]] || exit 1
   echo "$deposit_account_id"
 }
 
 assert_balance_sheet_balanced() {
-  variables=$(
-    jq -n \
-      --arg from "$(from_utc)" \
-      '{ from: $from }'
-  )
-  exec_admin_graphql 'balance-sheet' "$variables"
-  echo $(graphql_output)
+  local from_date
+  from_date=$(from_utc)
+  cli_output=$("$LANACLI" --json financial-statement balance-sheet --from "$from_date")
+  echo "$cli_output"
 
-  balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.netDebit')
-  balance=${balance_usd}
+  balance=$(echo "$cli_output" | jq -r '.balance.close.settled.net')
   echo "Balance Sheet USD Balance (should be 0): $balance"
   [[ "$balance" == "0" ]] || exit 1
 
-  debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.debit')
-  debit=${debit_usd}
+  debit=$(echo "$cli_output" | jq -r '.balance.close.settled.debit')
   echo "Balance Sheet USD Debit (should be >0): $debit"
   [[ "$debit" -gt "0" ]] || exit 1
 
-  credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.credit')
-  credit=${credit_usd}
+  credit=$(echo "$cli_output" | jq -r '.balance.close.settled.credit')
   echo "Balance Sheet USD Credit (should be == debit): $credit"
   [[ "$credit" == "$debit" ]] || exit 1
 }
 
 assert_trial_balance() {
-  variables=$(
-    jq -n \
-      --arg from "$(from_utc)" \
-      '{ from: $from }'
-  )
-  exec_admin_graphql 'trial-balance' "$variables"
-  echo $(graphql_output)
+  local from_date until_date
+  from_date=$(from_utc)
+  until_date=$(naive_now)
+  cli_output=$("$LANACLI" --json financial-statement trial-balance --from "$from_date" --until "$until_date")
+  echo "$cli_output"
 
-  all_btc=$(graphql_output '.data.trialBalance.total.btc.balancesByLayer.all.netDebit')
+  all_btc=$(echo "$cli_output" | jq -r '.total.btc.close.settled.net')
   echo "Trial Balance BTC (should be zero): $all_btc"
   [[ "$all_btc" == "0" ]] || exit 1
 
-  all_usd=$(graphql_output '.data.trialBalance.total.usd.balancesByLayer.all.netDebit')
+  all_usd=$(echo "$cli_output" | jq -r '.total.usd.close.settled.net')
   echo "Trial Balance USD (should be zero): $all_usd"
   [[ "$all_usd" == "0" ]] || exit 1
 }
@@ -576,14 +509,11 @@ assert_accounts_balanced() {
 }
 
 net_usd_revenue() {
-  variables=$(
-    jq -n \
-      --arg from "$(from_utc)" \
-      '{ from: $from }'
-  )
-  exec_admin_graphql 'profit-and-loss' "$variables"
+  local from_date
+  from_date=$(from_utc)
+  cli_output=$("$LANACLI" --json financial-statement profit-and-loss --from "$from_date")
 
-  revenue_usd=$(graphql_output '.data.profitAndLossStatement.net.usd.balancesByLayer.all.netCredit')
+  revenue_usd=$(echo "$cli_output" | jq -r '.total.usd.close.settled.net')
   echo $revenue_usd
 }
 

@@ -1,5 +1,0 @@
-mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
-  sumsubPermalinkCreate(input: $input) {
-    url
-  }
-}

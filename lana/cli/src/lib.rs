@@ -26,19 +26,28 @@ struct Cli {
         value_name = "FILE"
     )]
     config: PathBuf,
-    #[clap(env = "PG_CON", default_value = "")]
+    #[clap(long, env = "PG_CON", default_value = "")]
     pg_con: String,
-    #[clap(env = "SMTP_USERNAME", default_value = "")]
+    #[clap(long, env = "SMTP_USERNAME", default_value = "")]
     smtp_username: String,
-    #[clap(env = "SMTP_PASSWORD", default_value = "")]
+    #[clap(long, env = "SMTP_PASSWORD", default_value = "")]
     smtp_password: String,
+    /// Required only for server mode (`serve` or no subcommand).
     #[clap(long, env = "ENCRYPTION_KEY")]
-    encryption_key: String,
+    encryption_key: Option<String>,
     #[clap(long, env = "DEPRECATED_ENCRYPTION_KEY")]
     deprecated_encryption_key: Option<String>,
-    #[clap(env = "KEYCLOAK_INTERNAL_CLIENT_SECRET", default_value = "secret")]
+    #[clap(
+        long,
+        env = "KEYCLOAK_INTERNAL_CLIENT_SECRET",
+        default_value = "secret"
+    )]
     keycloak_internal_client_secret: String,
-    #[clap(env = "KEYCLOAK_CUSTOMER_CLIENT_SECRET", default_value = "secret")]
+    #[clap(
+        long,
+        env = "KEYCLOAK_CUSTOMER_CLIENT_SECRET",
+        default_value = "secret"
+    )]
     keycloak_customer_client_secret: String,
     #[clap(long, env = "LANA_HOME", default_value = ".lana")]
     lana_home: String,
@@ -46,22 +55,23 @@ struct Cli {
     command: Option<Commands>,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 enum Commands {
-    /// Show build information including compilation flags
+    /// Show server build information including compilation flags
     BuildInfo,
-    /// Generate encryption key
+    /// Generate an encryption key for server mode
     Genencryptionkey,
-    /// Generate default configuration file (lana.yml) with all default values
+    /// Generate default server configuration file (lana.yml) with all default values
     DumpDefaultConfig,
     /// Run the main server (default when no subcommand is specified)
-    Run,
+    #[command(alias = "run")]
+    Serve,
 }
 
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    match cli.command.unwrap_or(Commands::Run) {
+    match cli.command.clone().unwrap_or(Commands::Serve) {
         Commands::BuildInfo => {
             let build_info = BuildInfo::get();
             println!("{}", build_info.display());
@@ -78,25 +88,32 @@ pub async fn run() -> anyhow::Result<()> {
             println!("{yaml_output}");
             return Ok(());
         }
-        Commands::Run => {
-            let config = Config::try_new(
-                cli.config,
-                EnvSecrets {
-                    pg_con: cli.pg_con,
-                    smtp_username: cli.smtp_username,
-                    smtp_password: cli.smtp_password,
-                    encryption_key: cli.encryption_key,
-                    deprecated_encryption_key: cli.deprecated_encryption_key,
-                    keycloak_internal_client_secret: cli.keycloak_internal_client_secret,
-                    keycloak_customer_client_secret: cli.keycloak_customer_client_secret,
-                },
-            )?;
-
-            run_cmd(&cli.lana_home, config).await?;
-        }
+        Commands::Serve => run_server(&cli).await?,
     }
 
     Ok(())
+}
+
+async fn run_server(cli: &Cli) -> anyhow::Result<()> {
+    let encryption_key = cli
+        .encryption_key
+        .clone()
+        .context("--encryption-key (or ENCRYPTION_KEY) is required when running the server")?;
+
+    let config = Config::try_new(
+        cli.config.clone(),
+        EnvSecrets {
+            pg_con: cli.pg_con.clone(),
+            smtp_username: cli.smtp_username.clone(),
+            smtp_password: cli.smtp_password.clone(),
+            encryption_key,
+            deprecated_encryption_key: cli.deprecated_encryption_key.clone(),
+            keycloak_internal_client_secret: cli.keycloak_internal_client_secret.clone(),
+            keycloak_customer_client_secret: cli.keycloak_customer_client_secret.clone(),
+        },
+    )?;
+
+    run_cmd(&cli.lana_home, config).await
 }
 
 /// Setup GCP credentials by decoding SA_CREDS_BASE64 and setting GOOGLE_APPLICATION_CREDENTIALS

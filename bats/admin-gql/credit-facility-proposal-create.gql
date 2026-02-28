@@ -1,9 +1,0 @@
-mutation CreditFacilityProposalCreate(
-  $input: CreditFacilityProposalCreateInput!
-) {
-  creditFacilityProposalCreate(input: $input) {
-    creditFacilityProposal {
-      creditFacilityProposalId
-    }
-  }
-}

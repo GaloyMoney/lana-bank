@@ -1,9 +1,0 @@
-mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
-  loanAgreementGenerate(input: $input) {
-    loanAgreement {
-      id
-      status
-      createdAt
-    }
-  }
-} 

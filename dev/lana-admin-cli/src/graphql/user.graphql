@@ -1,0 +1,21 @@
+query RolesList {
+  roles(first: 100) {
+    nodes {
+      roleId
+      name
+    }
+  }
+}
+
+mutation UserCreate($input: UserCreateInput!) {
+  userCreate(input: $input) {
+    user {
+      userId
+      email
+      role {
+        roleId
+        name
+      }
+    }
+  }
+}

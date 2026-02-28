@@ -1,0 +1,48 @@
+mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
+  approvalProcessApprove(input: $input) {
+    approvalProcess {
+      approvalProcessId
+      approvalProcessType
+      status
+      createdAt
+    }
+  }
+}
+
+mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!, $reason: String!) {
+  approvalProcessDeny(input: $input, reason: $reason) {
+    approvalProcess {
+      approvalProcessId
+      approvalProcessType
+      status
+      createdAt
+      deniedReason
+    }
+  }
+}
+
+query ApprovalProcessesList($first: Int!, $after: String) {
+  approvalProcesses(first: $first, after: $after) {
+    nodes {
+      approvalProcessId
+      approvalProcessType
+      status
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query ApprovalProcessGet($id: UUID!) {
+  approvalProcess(id: $id) {
+    approvalProcessId
+    approvalProcessType
+    status
+    createdAt
+    deniedReason
+    userCanSubmitDecision
+  }
+}

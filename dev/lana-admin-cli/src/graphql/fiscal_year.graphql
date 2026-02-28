@@ -1,0 +1,55 @@
+query FiscalYearsList($first: Int!, $after: String) {
+  fiscalYears(first: $first, after: $after) {
+    nodes {
+      id
+      fiscalYearId
+      openedAsOf
+      monthClosures {
+        closedAsOf
+        closedAt
+      }
+      isLastMonthOfYearClosed
+      isOpen
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+mutation FiscalYearCloseMonth($input: FiscalYearCloseMonthInput!) {
+  fiscalYearCloseMonth(input: $input) {
+    fiscalYear {
+      id
+      fiscalYearId
+      chartId
+      isOpen
+      openedAsOf
+      closedAsOf
+      monthClosures {
+        closedAsOf
+        closedAt
+      }
+      isLastMonthOfYearClosed
+    }
+  }
+}
+
+mutation FiscalYearClose($input: FiscalYearCloseInput!) {
+  fiscalYearClose(input: $input) {
+    fiscalYear {
+      id
+      fiscalYearId
+      chartId
+      isOpen
+      openedAsOf
+      closedAsOf
+      monthClosures {
+        closedAsOf
+        closedAt
+      }
+      isLastMonthOfYearClosed
+    }
+  }
+}

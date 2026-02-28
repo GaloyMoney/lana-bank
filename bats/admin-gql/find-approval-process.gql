@@ -1,6 +1,0 @@
-query approvalProcess($id: UUID!) {
-  approvalProcess(id: $id) {
-    approvalProcessId
-    status
-  }
-}

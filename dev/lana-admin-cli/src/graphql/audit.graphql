@@ -1,0 +1,55 @@
+query AuditLogsList($first: Int!, $after: String) {
+  audit(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        subject {
+          __typename
+          ... on User {
+            userId
+            email
+          }
+          ... on System {
+            actor
+          }
+        }
+        object
+        action
+        authorized
+        recordedAt
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query CustomerAuditLog($id: UUID!) {
+  customer(id: $id) {
+    customerId
+  }
+  audit(first: 100, after: null) {
+    nodes {
+      subject {
+        __typename
+        ... on User {
+          userId
+          email
+          role {
+            name
+          }
+        }
+        ... on System {
+          actor
+        }
+      }
+      object
+      action
+      authorized
+      recordedAt
+    }
+  }
+}
