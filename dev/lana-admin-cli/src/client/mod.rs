@@ -130,36 +130,6 @@ impl GraphQLClient {
         Self::parse_response(resp).await
     }
 
-    pub async fn execute_raw<R: DeserializeOwned>(
-        &mut self,
-        query: &str,
-        variables: serde_json::Value,
-        operation_name: Option<&str>,
-    ) -> anyhow::Result<R> {
-        let mut body = json!({
-            "query": query,
-            "variables": variables,
-        });
-        if let Some(op) = operation_name {
-            body["operationName"] = json!(op);
-        }
-
-        let token = self.auth.get_token().await?;
-
-        let mut req = self
-            .http
-            .post(&self.connect_url)
-            .header("Authorization", format!("Bearer {token}"))
-            .json(&body);
-        if let Some(ref host) = self.host_header {
-            req = req.header("Host", host);
-        }
-
-        let resp = req.send().await.context("Failed to reach admin server")?;
-
-        Self::parse_response(resp).await
-    }
-
     async fn parse_response<R: DeserializeOwned>(resp: reqwest::Response) -> anyhow::Result<R> {
         let status = resp.status();
         let text = resp.text().await.context("Failed to read response body")?;

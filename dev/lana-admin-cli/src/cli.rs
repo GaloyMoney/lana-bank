@@ -27,7 +27,8 @@ Example:
 Accepted direction values: DEBIT, CREDIT"#;
 
 const CUSTODIAN_CREATE_INPUT_HELP: &str = r#"CustodianCreateInput as JSON.
-Example:
+Provider-specific object shape is required (do not pass a generic object).
+Minimal Komainu example:
 {
   "komainu": {
     "name": "test-komainu",
@@ -37,10 +38,15 @@ Example:
     "secretKey": "test-secret-key",
     "webhookSecret": "test-webhook-secret"
   }
-}"#;
+  }
+}
+
+If your environment uses another provider key (for example `bitgo`), pass that
+provider object with its required fields instead."#;
 
 const CUSTODIAN_CONFIG_HELP: &str = r#"CustodianConfigInput as JSON.
-Example:
+Provider-specific object shape is required (do not pass generic payloads such as {"enabled":true}).
+Minimal Komainu example:
 {
   "komainu": {
     "name": "updated-komainu",
@@ -50,7 +56,10 @@ Example:
     "secretKey": "updated-secret-key",
     "webhookSecret": "updated-webhook-secret"
   }
-}"#;
+  }
+}
+
+Use the same provider key and schema family that was used when creating the custodian."#;
 
 const DOMAIN_CONFIG_VALUE_HELP: &str = r#"JSON value for the target config key.
 Examples:
@@ -188,11 +197,6 @@ pub enum Command {
     FinancialStatement {
         #[command(subcommand)]
         action: FinancialStatementAction,
-    },
-    /// Manage Sumsub integration
-    Sumsub {
-        #[command(subcommand)]
-        action: SumsubAction,
     },
     /// Manage loan agreements
     LoanAgreement {
@@ -791,20 +795,6 @@ pub enum FinancialStatementAction {
         from: String,
         #[arg(long, help = "Optional end date in YYYY-MM-DD format")]
         until: Option<String>,
-    },
-}
-
-#[derive(Subcommand)]
-pub enum SumsubAction {
-    /// Create Sumsub permalink for a prospect
-    PermalinkCreate {
-        #[arg(long)]
-        prospect_id: String,
-    },
-    /// Create a full Sumsub test applicant for a prospect (requires backend support for this mutation)
-    TestApplicantCreate {
-        #[arg(long)]
-        prospect_id: String,
     },
 }
 

@@ -5,8 +5,7 @@ description: Run broad exploratory testing on QA with a prebuilt lana-admin-cli 
 
 # Lana Admin CLI QA Exploration
 
-Goal: exercise the QA admin API broadly through `lana-admin-cli` only.  
-Do not rely on external Python harnesses; use CLI help + shell commands.
+Goal: run broad QA coverage using `lana-admin-cli` only, with deterministic fixture chaining and machine-readable command contracts.
 
 ## Setup
 
@@ -16,8 +15,14 @@ export LANA_ADMIN_URL="https://admin.qa.lana.galoy.io/graphql"
 export LANA_KEYCLOAK_URL="https://auth.qa.lana.galoy.io"
 export LANA_KEYCLOAK_CLIENT_ID="${LANA_KEYCLOAK_CLIENT_ID:-admin-panel}"
 
-CLI_BIN="./lana-admin-cli"
-[[ -x "${CLI_BIN}" ]] || { echo "Missing ./lana-admin-cli" >&2; exit 1; }
+CLI_BIN="./skills/lana-qa/lana-admin-cli"
+if [[ ! -x "${CLI_BIN}" ]]; then
+  CLI_BIN="./lana-admin-cli"
+fi
+[[ -x "${CLI_BIN}" ]] || {
+  echo "Missing lana-admin-cli at ./skills/lana-qa/lana-admin-cli or ./lana-admin-cli" >&2
+  exit 1
+}
 
 CLI=(
   "${CLI_BIN}"
@@ -35,92 +40,140 @@ CLI=(
 "${CLI[@]}" customer list --first 1 --json >/dev/null
 ```
 
-## Discover All Actions
+## Discover Commands From `spec`
 
 ```bash
 WORKDIR="/tmp/lana-qa-$(date +%s)"
 mkdir -p "${WORKDIR}"
 "${CLI[@]}" spec > "${WORKDIR}/spec.json"
+
 jq -r '
-  def walk_cmd:
+  def walk:
     . as $c
-    | ($c.subcommands // []) as $subs
-    | if ($subs|length) == 0 then
-        $c.path | sub("^lana-admin-cli "; "")
-      else
-        $subs[] | walk_cmd
+    | if ((.subcommands // []) | length) == 0
+      then $c.path | sub("^lana-admin-cli "; "")
+      else (.subcommands // [])[] | walk
       end;
-  .root | walk_cmd
+  .root | walk
 ' "${WORKDIR}/spec.json" | sort -u > "${WORKDIR}/all-actions.txt"
 ```
 
-`spec.json` is machine-readable and includes required flags, possible values, defaults, and help text.
+The `spec` output is the source of truth for:
+- required args
+- enum/format hints
+- mutating vs read-only
+- lifecycle phase
+- preconditions
+- output ID fields
 
-To inspect required args for one action:
+## ID Normalization Helpers
 
-```bash
-ACTION="credit-facility proposal-create"
-jq -r --arg a "lana-admin-cli ${ACTION}" '
-  def find($p):
-    if .path == $p then .
-    else (.subcommands // [])[]? | find($p)
-    end;
-  .root | find($a) | .args[] | select(.required) | [.long_flag, .value_names[0]] | @tsv
-' "${WORKDIR}/spec.json"
-```
-
-## Use Built-In Command Contracts
-
-Before executing complex commands, read their own help:
+Normalize any entity-ref style IDs before using UUID args:
 
 ```bash
-"${CLI[@]}" accounting manual-transaction --help
-"${CLI[@]}" custodian create --help
-"${CLI[@]}" custodian config-update --help
-"${CLI[@]}" domain-config update --help
-"${CLI[@]}" accounting account-sets --help
-"${CLI[@]}" accounting add-root-node --help
+normalize_id() {
+  # Example: FiscalYear:019c... -> 019c...
+  sed -E 's/^[A-Za-z]+://'
+}
+
+is_uuid() {
+  [[ "$1" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]
+}
 ```
 
-`lana-admin-cli --help` and command-level `--help` include examples and accepted values.  
-For automation, prefer `lana-admin-cli spec`.
+Use pattern:
 
-## Seed Prerequisites
+```bash
+FY_RAW="$(jq -r '.[0].fiscalYearId // .[0].id // empty' <<<"$FISCAL_YEARS_JSON")"
+FY_ID="$(printf '%s' "$FY_RAW" | normalize_id)"
+if is_uuid "$FY_ID"; then
+  "${CLI[@]}" fiscal-year close --fiscal-year-id "$FY_ID" --json
+else
+  echo "SKIP id_normalization fiscal-year close: invalid UUID from '$FY_RAW'" >> "${WORKDIR}/skip.txt"
+fi
+```
 
-Create an initial fixture graph and capture IDs for reuse:
+## Canonical Fixture Extraction Map
 
-1. `prospect create` -> `prospect convert` -> `customer_id`
-2. `deposit-account create` + `record-deposit` + `initiate-withdrawal` (captures `withdrawal_id` and often `process_id`)
-3. `terms-template create`
-4. `credit-facility proposal-create` + `proposal-conclude` + `pending-get` (captures `credit_facility_id` and `collateral_id`)
-5. `accounting chart-of-accounts` + `ledger-account --code ...` (captures `ledger_account_id`)
-6. `domain-config list`, `report list`, `approval-process list`, `fiscal-year list`, `user roles-list`
+Use these JSON fields exactly when chaining fixtures:
 
-## Coverage + Mixed Pass
+- `prospect create` -> `.prospectId`
+- `prospect convert` -> `.customerId`
+- `deposit-account create` -> `.depositAccountId`
+- `deposit-account initiate-withdrawal` -> `.withdrawalId`, `.approvalProcessId`
+- `terms-template create` -> `.termsId`
+- `credit-facility proposal-create` -> `.creditFacilityProposalId`
+- `credit-facility pending-get` -> `.collateralId`
+- `credit-facility find` -> `.creditFacilityId`, `.collateralId`
+- `document attach` -> `.documentId`
+- `csv-export create-ledger-csv` -> `.documentId`
+- `report trigger` -> `.runId`
+- `fiscal-year list` -> `.[] .fiscalYearId` (fallback `.[] .id`, then normalize)
 
-1. Attempt each leaf action at least once (`all-actions.txt`).
-2. Then run randomized mixed actions (`shuf ... | head -n "${RUNS:-80}"`).
-3. Prefer non-destructive actions first (`list/get/find` before `close/freeze/delete/archive`).
-4. Retry once after auth errors by running `login`.
+## Deterministic Execution Stages
 
-Record:
-- `pass.txt`
-- `fail.txt`
-- `skip.txt`
-- `summary.json`
+Run in stages to reduce false negatives:
+
+1. `read_only`
+- all `list/get/find/...` style actions first
+
+2. `seed_or_setup_mutation`
+- create foundational entities:
+  - prospect -> customer
+  - deposit account
+  - terms template
+  - credit-facility proposal
+  - document attach
+
+3. `stateful_mutation`
+- run transitions that require prior state:
+  - proposal conclude
+  - withdrawal lifecycle
+  - disbursal/payment/liquidation transitions
+
+4. `destructive_end_state`
+- only at the end:
+  - close/freeze/archive/delete/revert/cancel actions
+
+The lifecycle phase is available directly in `spec.json` under each command.
+
+## Recommended Coverage Driver
+
+```bash
+jq -r '
+  def walk:
+    . as $c
+    | if ((.subcommands // []) | length) == 0 then [$c]
+      else [(.subcommands // [])[] | walk[]]
+      end;
+  .root | walk[]
+  | [.lifecycle_phase, (.path | sub("^lana-admin-cli "; ""))]
+  | @tsv
+' "${WORKDIR}/spec.json" \
+| sort -k1,1 -k2,2 > "${WORKDIR}/ordered-actions.tsv"
+```
 
 ## Failure Buckets
 
-Classify failures so follow-up work is obvious:
+Classify each non-pass with one of:
 
-- `schema_mismatch`: command exists in CLI but mutation/field missing in deployed backend
-- `missing_dependency`: required IDs/entities not available yet
-- `payload_shape`: malformed `--*-json` or file payload
-- `precondition`: entity state/lifecycle blocked action (frozen/closed/no active liquidation/etc.)
-- `auth`: token/session issues
+- `missing_dependency`
+- `payload_shape`
+- `precondition`
+- `auth`
+- `output_contract_mismatch`
+- `id_format_contract`
+- `permission_boundary`
+- `environment_drift`
+- `unknown`
+
+## Known QA Drift (timestamped)
+
+- `2026-03-01`: fiscal-year APIs may expose prefixed entity references in some fields (for example `FiscalYear:<uuid>`). Mutations expecting UUID must use normalized raw UUID values.
 
 ## Guardrails
 
 - QA only.
-- Never stop on first failure; finish full pass and report coverage.
-- Leave irreversible actions (`close`, `freeze`, `delete`, `archive`, `deny`) for late in the run.
+- Use `spec` metadata instead of parsing plain help text.
+- Never stop on first failure; finish full run and produce artifacts.
+- Do not add commands that are absent from `spec` for this binary.

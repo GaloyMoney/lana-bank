@@ -16,7 +16,6 @@ pub mod liquidation;
 pub mod loan_agreement;
 pub mod prospect;
 pub mod report;
-pub mod sumsub;
 pub mod terms_template;
 pub mod user;
 pub mod withdrawal;

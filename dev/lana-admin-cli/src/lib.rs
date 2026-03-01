@@ -98,9 +98,6 @@ pub async fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
                 Command::FinancialStatement { action } => {
                     commands::financial_statement::execute(&mut client, action, cli.json).await
                 }
-                Command::Sumsub { action } => {
-                    commands::sumsub::execute(&mut client, action, cli.json).await
-                }
                 Command::LoanAgreement { action } => {
                     commands::loan_agreement::execute(&mut client, action, cli.json).await
                 }

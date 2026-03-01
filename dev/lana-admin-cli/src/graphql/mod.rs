@@ -640,16 +640,6 @@ pub struct TrialBalanceGet;
 )]
 pub struct ProfitAndLossGet;
 
-// -- Sumsub operations --
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/sumsub.graphql",
-    response_derives = "Debug, Clone, Serialize"
-)]
-pub struct SumsubPermalinkCreate;
-
 // -- Loan Agreement operations --
 
 #[derive(GraphQLQuery)]
