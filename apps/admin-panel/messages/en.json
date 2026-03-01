@@ -2373,6 +2373,11 @@
   },
   "Modules": {
     "notYetConfigured": "Not yet configured",
+    "tableHeaders": {
+      "group": "Group",
+      "chartParent": "Chart Parent",
+      "category": "Category"
+    },
     "accountCategories": {
       "offBalanceSheet": "Off Balance Sheet",
       "asset": "Asset",

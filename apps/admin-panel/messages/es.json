@@ -2373,6 +2373,11 @@
   },
   "Modules": {
     "notYetConfigured": "Aún no configurado",
+    "tableHeaders": {
+      "group": "Grupo",
+      "chartParent": "Cuenta Padre",
+      "category": "Categoría"
+    },
     "accountCategories": {
       "offBalanceSheet": "Cuentas de orden y contingencias",
       "asset": "Activo",
