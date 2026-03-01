@@ -40,32 +40,33 @@ CLI=(
 ```bash
 WORKDIR="/tmp/lana-qa-$(date +%s)"
 mkdir -p "${WORKDIR}"
+"${CLI[@]}" spec > "${WORKDIR}/spec.json"
+jq -r '
+  def walk_cmd:
+    . as $c
+    | ($c.subcommands // []) as $subs
+    | if ($subs|length) == 0 then
+        $c.path | sub("^lana-admin-cli "; "")
+      else
+        $subs[] | walk_cmd
+      end;
+  .root | walk_cmd
+' "${WORKDIR}/spec.json" | sort -u > "${WORKDIR}/all-actions.txt"
+```
 
-list_subcommands() {
-  awk '/^Commands:/{flag=1;next}/^Options:/{flag=0}flag' |
-    sed -n 's/^  \([a-z0-9-][a-z0-9-]*\).*/\1/p' |
-    grep -Ev '^(help)$' || true
-}
+`spec.json` is machine-readable and includes required flags, possible values, defaults, and help text.
 
-discover_paths() {
-  local -a prefix=("$@")
-  local help
-  if [ ${#prefix[@]} -eq 0 ]; then
-    help="$(${CLI[@]} --help 2>/dev/null || true)"
-  else
-    help="$(${CLI[@]} "${prefix[@]}" --help 2>/dev/null || true)"
-  fi
-  mapfile -t subs < <(printf '%s\n' "${help}" | list_subcommands)
-  if [ ${#subs[@]} -eq 0 ]; then
-    printf '%s\n' "${prefix[*]}"
-    return
-  fi
-  for sub in "${subs[@]}"; do
-    discover_paths "${prefix[@]}" "${sub}"
-  done
-}
+To inspect required args for one action:
 
-discover_paths | sed '/^$/d' | sort -u > "${WORKDIR}/all-actions.txt"
+```bash
+ACTION="credit-facility proposal-create"
+jq -r --arg a "lana-admin-cli ${ACTION}" '
+  def find($p):
+    if .path == $p then .
+    else (.subcommands // [])[]? | find($p)
+    end;
+  .root | find($a) | .args[] | select(.required) | [.long_flag, .value_names[0]] | @tsv
+' "${WORKDIR}/spec.json"
 ```
 
 ## Use Built-In Command Contracts
@@ -81,7 +82,8 @@ Before executing complex commands, read their own help:
 "${CLI[@]}" accounting add-root-node --help
 ```
 
-`lana-admin-cli --help` and command-level `--help` include examples and accepted values.
+`lana-admin-cli --help` and command-level `--help` include examples and accepted values.  
+For automation, prefer `lana-admin-cli spec`.
 
 ## Seed Prerequisites
 

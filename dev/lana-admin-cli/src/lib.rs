@@ -6,6 +6,7 @@ mod client;
 mod commands;
 mod graphql;
 mod output;
+mod spec;
 
 use clap::Parser;
 
@@ -30,6 +31,10 @@ pub async fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
         Command::Logout => {
             client::auth::clear_session();
             println!("Session cleared.");
+            Ok(())
+        }
+        Command::Spec => {
+            spec::print()?;
             Ok(())
         }
         command => {
@@ -108,7 +113,7 @@ pub async fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
                 Command::Withdrawal { action } => {
                     commands::withdrawal::execute(&mut client, action, cli.json).await
                 }
-                Command::Login | Command::Logout => unreachable!(),
+                Command::Login | Command::Logout | Command::Spec => unreachable!(),
             }
         }
     }

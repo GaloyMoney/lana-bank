@@ -13,6 +13,9 @@ const CLI_AFTER_HELP: &str = r#"Examples:
     --description "QA test entry" \
     --entries-json '[{"accountRef":"11.01.0101","amount":"1","currency":"USD","direction":"CREDIT","description":"Entry 1"},{"accountRef":"61.01","amount":"1","currency":"USD","direction":"DEBIT","description":"Entry 2"}]' \
     --json
+
+  # Machine-readable command/arg spec for automation
+  lana-admin-cli spec
 "#;
 
 const MANUAL_TRANSACTION_ENTRIES_HELP: &str = r#"JSON array of transaction entries.
@@ -215,6 +218,8 @@ pub enum Command {
     Login,
     /// Clear cached session token
     Logout,
+    /// Print machine-readable command specification for automation
+    Spec,
 }
 
 #[derive(Subcommand)]
