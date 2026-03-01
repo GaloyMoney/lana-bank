@@ -1,0 +1,13 @@
+[package]
+name = "admin-graphql-session"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+sumsub-testing = ["lana-app/sumsub-testing"]
+
+[dependencies]
+lana-app = { workspace = true }
+admin-graphql-access = { workspace = true }
+admin-graphql-shared = { path = "../admin-graphql-shared" }
+async-graphql = { workspace = true }

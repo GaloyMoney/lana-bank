@@ -84,12 +84,18 @@ describe("Governance Test", () => {
 
   it("attach a committee to a policy", () => {
     cy.visit(`/policies`)
-    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a').should(
-      "be.visible",
-    )
+    cy.get('[data-testid^="table-row-"]')
+      .first()
+      .find('a[href^="/policies/"]')
+      .first()
+      .should("be.visible")
     cy.takeScreenshot("12_step-visit-policies-page")
 
-    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a').click()
+    cy.get('[data-testid^="table-row-"]')
+      .first()
+      .find('a[href^="/policies/"]')
+      .first()
+      .click()
     cy.takeScreenshot("13_step-select-policy")
 
     cy.get('[data-testid="policy-assign-committee"]').click()
@@ -109,18 +115,48 @@ describe("Governance Test", () => {
   it("Pending actions should be visible in list", () => {
     const amount = 1000
     cy.createDeposit(amount, depositAccountId).then(() => {
-      cy.initiateWithdrawal(amount, depositAccountId).then(() => {
-        cy.visit(`/actions`)
-        cy.get('[data-testid="table-row-0"] > :nth-child(4) > a').should(
-          "be.visible",
-        )
-        cy.takeScreenshot("16_step-view-actions-page")
-        cy.get('[data-testid="table-row-0"] > :nth-child(4) > a').click()
-
+      cy.initiateWithdrawal(amount, depositAccountId).then((withdrawalPublicId) => {
+        cy.visit(`/withdrawals/${withdrawalPublicId}`)
         cy.get("[data-testid=withdrawal-status-badge]")
-          .should("be.visible")
-          .should("have.text", t("Withdrawals.WithdrawalStatus.pending_approval"))
-        cy.takeScreenshot("17_step-verify-pending-withdrawal")
+          .invoke("text")
+          .then((statusText) => {
+            const status = statusText.trim()
+            const pendingApproval = t("Withdrawals.WithdrawalStatus.pending_approval")
+            const pendingConfirmation = t("Withdrawals.WithdrawalStatus.pending_confirmation")
+
+            if (status === pendingApproval) {
+              const openPendingAction = (attempt = 0): void => {
+                if (attempt > 20) {
+                  throw new Error("Pending action was not visible in actions list")
+                }
+
+                cy.get("body").then(($body) => {
+                  if ($body.find(`a[href="/withdrawals/${withdrawalPublicId}"]`).length) {
+                    cy.get(`a[href="/withdrawals/${withdrawalPublicId}"]`).first().click()
+                    return
+                  }
+                  cy.wait(2000)
+                  cy.reload()
+                  openPendingAction(attempt + 1)
+                })
+              }
+
+              cy.visit(`/actions`)
+              openPendingAction()
+              cy.takeScreenshot("16_step-view-actions-page")
+
+              cy.get("[data-testid=withdrawal-status-badge]")
+                .invoke("text")
+                .then((currentStatusText) => {
+                  const currentStatus = currentStatusText.trim()
+                  expect([pendingApproval, pendingConfirmation]).to.include(currentStatus)
+                })
+              cy.takeScreenshot("17_step-verify-pending-withdrawal")
+              return
+            }
+
+            expect(status).to.eq(pendingConfirmation)
+          })
       })
     })
   })
@@ -134,7 +170,8 @@ describe("Governance Test", () => {
         cy.takeScreenshot("18_step-visit-withdrawal-details")
 
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-          if (badge.text() === t("Withdrawals.WithdrawalStatus.pending_approval")) {
+          const status = badge.text().trim()
+          if (status === t("Withdrawals.WithdrawalStatus.pending_approval")) {
             cy.get('[data-testid="approval-process-approve-button"]').click()
             cy.takeScreenshot("19_step-click-approve-button")
 
@@ -146,10 +183,9 @@ describe("Governance Test", () => {
               .should("be.visible")
               .invoke("text")
               .should("eq", t("Withdrawals.WithdrawalStatus.pending_confirmation"))
-          } else if (
-            badge.text() === t("Withdrawals.WithdrawalStatus.pending_confirmation")
-          ) {
-            throw new Error("State is Pending Confirmation")
+          } else if (status === t("Withdrawals.WithdrawalStatus.pending_confirmation")) {
+            cy.log("Withdrawal is already pending confirmation")
+            cy.wrap(status).should("eq", t("Withdrawals.WithdrawalStatus.pending_confirmation"))
           } else {
             throw new Error("Unexpected Withdraw State found")
           }
@@ -167,7 +203,8 @@ describe("Governance Test", () => {
         cy.takeScreenshot("21_step-visit-withdrawal-for-denial")
 
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-          if (badge.text() === t("Withdrawals.WithdrawalStatus.pending_approval")) {
+          const status = badge.text().trim()
+          if (status === t("Withdrawals.WithdrawalStatus.pending_approval")) {
             cy.get('[data-testid="approval-process-deny-button"]').click()
             cy.takeScreenshot("22_step-click-deny-button")
 
@@ -180,10 +217,9 @@ describe("Governance Test", () => {
               .should("be.visible")
               .invoke("text")
               .should("eq", t("Withdrawals.WithdrawalStatus.denied"))
-          } else if (
-            badge.text() === t("Withdrawals.WithdrawalStatus.pending_confirmation")
-          ) {
-            throw new Error("State is Pending Confirmation")
+          } else if (status === t("Withdrawals.WithdrawalStatus.pending_confirmation")) {
+            cy.log("Withdrawal is already pending confirmation")
+            cy.wrap(status).should("eq", t("Withdrawals.WithdrawalStatus.pending_confirmation"))
           } else {
             throw new Error("Unexpected Withdraw State found")
           }

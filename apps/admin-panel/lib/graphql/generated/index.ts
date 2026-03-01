@@ -122,7 +122,8 @@ export type ApprovalProcess = {
   policy: Policy;
   rules: ApprovalRules;
   status: ApprovalProcessStatus;
-  target: ApprovalProcessTarget;
+  targetPublicId?: Maybe<Scalars['String']['output']>;
+  targetRef: Scalars['String']['output'];
   userCanSubmitDecision: Scalars['Boolean']['output'];
   voters: Array<ApprovalProcessVoter>;
 };
@@ -169,8 +170,6 @@ export enum ApprovalProcessStatus {
   Denied = 'DENIED',
   InProgress = 'IN_PROGRESS'
 }
-
-export type ApprovalProcessTarget = CreditFacilityDisbursal | CreditFacilityProposal | Withdrawal;
 
 export enum ApprovalProcessType {
   CreditFacilityProposalApproval = 'CREDIT_FACILITY_PROPOSAL_APPROVAL',
@@ -3431,11 +3430,7 @@ export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalPro
 export type AllActionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, createdAt: any, target:
-          | { __typename: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, creditFacility: { __typename?: 'CreditFacility', publicId: any, customer: { __typename?: 'Customer', email: string } } }
-          | { __typename: 'CreditFacilityProposal', creditFacilityProposalId: string, customer: { __typename?: 'Customer', email: string } }
-          | { __typename: 'Withdrawal', withdrawalId: string, publicId: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', email: string } } }
-         } }> } };
+export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, createdAt: any, targetRef: string, targetPublicId?: string | null } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -6139,35 +6134,8 @@ export const AllActionsDocument = gql`
         status
         userCanSubmitDecision
         createdAt
-        target {
-          __typename
-          ... on Withdrawal {
-            withdrawalId
-            publicId
-            account {
-              customer {
-                email
-              }
-            }
-          }
-          ... on CreditFacilityProposal {
-            creditFacilityProposalId
-            customer {
-              email
-            }
-          }
-          ... on CreditFacilityDisbursal {
-            id
-            disbursalId
-            publicId
-            creditFacility {
-              publicId
-              customer {
-                email
-              }
-            }
-          }
-        }
+        targetRef
+        targetPublicId
       }
       cursor
     }

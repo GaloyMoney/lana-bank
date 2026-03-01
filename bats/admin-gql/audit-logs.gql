@@ -1,5 +1,5 @@
-query AuditLogs($first: Int!, $after: String) {
-  audit(first: $first, after: $after) {
+query AuditLogs($first: Int!, $after: String, $action: String) {
+  audit(first: $first, after: $after, action: $action) {
     edges {
       cursor
       node {
