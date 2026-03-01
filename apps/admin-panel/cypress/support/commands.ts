@@ -209,7 +209,7 @@ interface TermsTemplateResponse {
   data: {
     termsTemplateCreate: {
       termsTemplate: {
-        termsId: string
+        termsTemplateId: string
       }
     }
   }
@@ -221,7 +221,7 @@ Cypress.Commands.add(
       mutation CreateTermsTemplate($input: TermsTemplateCreateInput!) {
         termsTemplateCreate(input: $input) {
           termsTemplate {
-            termsId
+            termsTemplateId
           }
         }
       }
@@ -256,7 +256,7 @@ Cypress.Commands.add(
           disbursalPolicy: input.disbursalPolicy,
         },
       })
-      .then((response) => response.data.termsTemplateCreate.termsTemplate.termsId)
+      .then((response) => response.data.termsTemplateCreate.termsTemplate.termsTemplateId)
   },
 )
 

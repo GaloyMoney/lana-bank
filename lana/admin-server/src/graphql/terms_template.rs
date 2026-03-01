@@ -10,7 +10,7 @@ use lana_app::terms_template::TermsTemplate as DomainTermsTemplate;
 #[graphql(complex)]
 pub struct TermsTemplate {
     id: ID,
-    terms_id: UUID,
+    terms_template_id: UUID,
     values: TermValues,
     created_at: Timestamp,
 
@@ -23,7 +23,7 @@ impl From<DomainTermsTemplate> for TermsTemplate {
         Self {
             id: terms.id.to_global_id(),
             created_at: terms.created_at().into(),
-            terms_id: terms.id.into(),
+            terms_template_id: terms.id.into(),
             values: terms.values.into(),
             entity: Arc::new(terms),
         }
@@ -69,7 +69,7 @@ crate::mutation_payload! { TermsTemplateCreatePayload, terms_template: TermsTemp
 
 #[derive(InputObject)]
 pub(super) struct TermsTemplateUpdateInput {
-    pub id: UUID,
+    pub terms_template_id: UUID,
     pub annual_rate: AnnualRatePct,
     pub accrual_interval: InterestInterval,
     pub accrual_cycle_interval: InterestInterval,

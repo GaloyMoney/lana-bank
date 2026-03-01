@@ -7,7 +7,8 @@ pub use lana_app::accounting::transaction_templates::TransactionTemplateCursor;
 
 #[derive(Clone, SimpleObject)]
 pub struct TransactionTemplate {
-    id: UUID,
+    id: ID,
+    transaction_template_id: UUID,
     code: String,
 
     #[graphql(skip)]
@@ -17,7 +18,8 @@ pub struct TransactionTemplate {
 impl From<DomainTransactionTemplate> for TransactionTemplate {
     fn from(template: DomainTransactionTemplate) -> Self {
         Self {
-            id: template.id.into(),
+            id: template.id.to_global_id(),
+            transaction_template_id: template.id.into(),
             code: template.values().code.clone(),
             entity: Arc::new(template),
         }
