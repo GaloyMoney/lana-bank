@@ -6,6 +6,7 @@ use obix::out::OutboxEventMarker;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
+use command_job::AtomicCommandJob;
 use core_customer::{
     CUSTOMER_SYNC, CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject,
 };
@@ -17,14 +18,14 @@ use governance::GovernanceEvent;
 use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct ActivateHolderAccountConfig {
+pub struct ActivateHolderAccountCommand {
     pub customer_id: CustomerId,
 }
 
 pub const ACTIVATE_HOLDER_ACCOUNT_COMMAND: JobType =
     JobType::new("command.customer-sync.activate-holder-account");
 
-pub struct ActivateHolderAccountJobInitializer<Perms, E>
+pub struct ActivateHolderAccountCommandJob<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -34,7 +35,7 @@ where
     deposit: CoreDeposit<Perms, E>,
 }
 
-impl<Perms, E> ActivateHolderAccountJobInitializer<Perms, E>
+impl<Perms, E> ActivateHolderAccountCommandJob<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -46,7 +47,8 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for ActivateHolderAccountJobInitializer<Perms, E>
+#[async_trait]
+impl<Perms, E> AtomicCommandJob for ActivateHolderAccountCommandJob<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -57,66 +59,35 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Config = ActivateHolderAccountConfig;
+    type Command = ActivateHolderAccountCommand;
 
-    fn job_type(&self) -> JobType {
+    fn job_type() -> JobType {
         ACTIVATE_HOLDER_ACCOUNT_COMMAND
     }
 
-    fn init(
-        &self,
-        job: &Job,
-        _: JobSpawner<Self::Config>,
-    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ActivateHolderAccountJobRunner {
-            config: job.config()?,
-            deposit: self.deposit.clone(),
-        }))
+    fn queue_id(command: &Self::Command) -> String {
+        command.customer_id.to_string()
     }
-}
 
-pub struct ActivateHolderAccountJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    config: ActivateHolderAccountConfig,
-    deposit: CoreDeposit<Perms, E>,
-}
-
-#[async_trait]
-impl<Perms, E> JobRunner for ActivateHolderAccountJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
     #[record_error_severity]
     #[tracing::instrument(
         name = "customer_sync.activate_holder_account_job.process_command",
-        skip(self, current_job),
-        fields(customer_id = %self.config.customer_id),
+        skip(self, op, command),
+        fields(customer_id = %command.customer_id),
     )]
     async fn run(
         &self,
-        current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut op = current_job.begin_op().await?;
+        op: &mut es_entity::DbOp<'static>,
+        command: &Self::Command,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         self.deposit
             .update_account_status_for_holder_in_op(
-                &mut op,
+                op,
                 &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(CUSTOMER_SYNC),
-                self.config.customer_id,
+                command.customer_id,
                 DepositAccountHolderStatus::Active,
             )
             .await?;
-        Ok(JobCompletion::CompleteWithOp(op))
+        Ok(())
     }
 }
