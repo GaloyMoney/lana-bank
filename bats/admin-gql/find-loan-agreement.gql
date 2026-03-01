@@ -1,6 +1,7 @@
 query FindLoanAgreement($id: UUID!) {
   loanAgreement(id: $id) {
     id
+    loanAgreementId
     status
     createdAt
   }

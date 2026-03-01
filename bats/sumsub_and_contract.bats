@@ -152,7 +152,7 @@ wait_for_loan_agreement_completion() {
 
     exec_admin_graphql 'loan-agreement-generate' "$variables"
 
-    loan_agreement_id=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.id')
+    loan_agreement_id=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.loanAgreementId')
     [[ "$loan_agreement_id" != "null" ]] || exit 1
     [[ "$loan_agreement_id" != "" ]] || exit 1
 

@@ -111,7 +111,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
       await approveProcess({
         variables: {
           input: {
-            processId: approvalProcess.approvalProcessId,
+            approvalProcessId: approvalProcess.approvalProcessId,
           },
         },
         onCompleted: async () => {

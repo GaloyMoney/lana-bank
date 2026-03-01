@@ -30,6 +30,7 @@ gql`
         cursor
         node {
           id
+          transactionTemplateId
           code
         }
       }

@@ -77,7 +77,7 @@ mutation_payload! { UserCreatePayload, user: User }
 
 #[derive(InputObject)]
 pub struct UserUpdateRoleInput {
-    pub id: UUID,
+    pub user_id: UUID,
     pub role_id: UUID,
 }
 mutation_payload! { UserUpdateRolePayload, user: User }

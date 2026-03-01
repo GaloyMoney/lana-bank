@@ -166,7 +166,7 @@ export const mockApprovalProcessApproveInput = (overrides?: Partial<ApprovalProc
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ApprovalProcessApproveInput');
     return {
-        processId: overrides && overrides.hasOwnProperty('processId') ? overrides.processId! : generateMockValue.uuid(),
+        approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
     };
 };
 
@@ -194,7 +194,7 @@ export const mockApprovalProcessDenyInput = (overrides?: Partial<ApprovalProcess
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ApprovalProcessDenyInput');
     return {
-        processId: overrides && overrides.hasOwnProperty('processId') ? overrides.processId! : generateMockValue.uuid(),
+        approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
     };
 };
 
@@ -2262,6 +2262,7 @@ export const mockLoanAgreement = (overrides?: Partial<LoanAgreement>, _relations
         __typename: 'LoanAgreement',
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        loanAgreementId: overrides && overrides.hasOwnProperty('loanAgreementId') ? overrides.loanAgreementId! : generateMockValue.uuid(),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : LoanAgreementStatus.Completed,
     };
 };
@@ -3111,7 +3112,7 @@ export const mockTermsTemplate = (overrides?: Partial<TermsTemplate>, _relations
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
-        termsId: overrides && overrides.hasOwnProperty('termsId') ? overrides.termsId! : generateMockValue.uuid(),
+        termsTemplateId: overrides && overrides.hasOwnProperty('termsTemplateId') ? overrides.termsTemplateId! : generateMockValue.uuid(),
         userCanUpdateTermsTemplate: overrides && overrides.hasOwnProperty('userCanUpdateTermsTemplate') ? overrides.userCanUpdateTermsTemplate! : faker.datatype.boolean(),
         values: overrides && overrides.hasOwnProperty('values') ? overrides.values! : relationshipsToOmit.has('TermValues') ? {} as TermValues : mockTermValues({}, relationshipsToOmit),
     };
@@ -3155,7 +3156,6 @@ export const mockTermsTemplateUpdateInput = (overrides?: Partial<TermsTemplateUp
         annualRate: overrides && overrides.hasOwnProperty('annualRate') ? overrides.annualRate! : generateMockValue.int(),
         disbursalPolicy: overrides && overrides.hasOwnProperty('disbursalPolicy') ? overrides.disbursalPolicy! : DisbursalPolicy.MultipleDisbursal,
         duration: overrides && overrides.hasOwnProperty('duration') ? overrides.duration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
-        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : faker.lorem.word(),
         interestDueDurationFromAccrual: overrides && overrides.hasOwnProperty('interestDueDurationFromAccrual') ? overrides.interestDueDurationFromAccrual! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : faker.lorem.word(),
@@ -3163,6 +3163,7 @@ export const mockTermsTemplateUpdateInput = (overrides?: Partial<TermsTemplateUp
         obligationLiquidationDurationFromDue: overrides && overrides.hasOwnProperty('obligationLiquidationDurationFromDue') ? overrides.obligationLiquidationDurationFromDue! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         obligationOverdueDurationFromDue: overrides && overrides.hasOwnProperty('obligationOverdueDurationFromDue') ? overrides.obligationOverdueDurationFromDue! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
+        termsTemplateId: overrides && overrides.hasOwnProperty('termsTemplateId') ? overrides.termsTemplateId! : generateMockValue.uuid(),
     };
 };
 
@@ -3190,7 +3191,8 @@ export const mockTransactionTemplate = (overrides?: Partial<TransactionTemplate>
     return {
         __typename: 'TransactionTemplate',
         code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
-        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        transactionTemplateId: overrides && overrides.hasOwnProperty('transactionTemplateId') ? overrides.transactionTemplateId! : generateMockValue.uuid(),
     };
 };
 
@@ -3325,8 +3327,8 @@ export const mockUserUpdateRoleInput = (overrides?: Partial<UserUpdateRoleInput>
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('UserUpdateRoleInput');
     return {
-        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         roleId: overrides && overrides.hasOwnProperty('roleId') ? overrides.roleId! : generateMockValue.uuid(),
+        userId: overrides && overrides.hasOwnProperty('userId') ? overrides.userId! : generateMockValue.uuid(),
     };
 };
 

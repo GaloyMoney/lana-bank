@@ -27,7 +27,7 @@ gql`
   fragment TermsTemplateFields on TermsTemplate {
     id
     name
-    termsId
+    termsTemplateId
     createdAt
     userCanUpdateTermsTemplate
     values {
@@ -155,7 +155,7 @@ function TermPage() {
             data={data?.termsTemplates || []}
             columns={columns(t)}
             loading={loading}
-            navigateTo={(template) => `/terms-templates/${template.termsId}`}
+            navigateTo={(template) => `/terms-templates/${template.termsTemplateId}`}
           />
         </CardContent>
       </Card>

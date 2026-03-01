@@ -2,6 +2,7 @@ mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
   loanAgreementGenerate(input: $input) {
     loanAgreement {
       id
+      loanAgreementId
       status
       createdAt
     }

@@ -863,15 +863,13 @@ impl Query {
     async fn fiscal_year(
         &self,
         ctx: &Context<'_>,
-        fiscal_year_id: UUID,
+        id: UUID,
     ) -> async_graphql::Result<Option<FiscalYear>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             FiscalYear,
             ctx,
-            app.accounting()
-                .fiscal_year()
-                .find_by_id(sub, fiscal_year_id)
+            app.accounting().fiscal_year().find_by_id(sub, id)
         )
     }
 
@@ -1249,12 +1247,12 @@ impl Mutation {
         input: UserUpdateRoleInput,
     ) -> async_graphql::Result<UserUpdateRolePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let UserUpdateRoleInput { id, role_id } = input;
+        let UserUpdateRoleInput { user_id, role_id } = input;
         exec_mutation!(
             UserUpdateRolePayload,
             User,
             ctx,
-            app.access().update_role_of_user(sub, id, role_id)
+            app.access().update_role_of_user(sub, user_id, role_id)
         )
     }
 
@@ -1730,7 +1728,7 @@ impl Mutation {
             ctx,
             app.terms_templates().update_term_values(
                 sub,
-                TermsTemplateId::from(input.id),
+                TermsTemplateId::from(input.terms_template_id),
                 term_values
             )
         )
@@ -2253,7 +2251,8 @@ impl Mutation {
             ApprovalProcessApprovePayload,
             ApprovalProcess,
             ctx,
-            app.governance().approve_process(sub, input.process_id)
+            app.governance()
+                .approve_process(sub, input.approval_process_id)
         )
     }
 
@@ -2268,7 +2267,8 @@ impl Mutation {
             ApprovalProcessDenyPayload,
             ApprovalProcess,
             ctx,
-            app.governance().deny_process(sub, input.process_id, reason)
+            app.governance()
+                .deny_process(sub, input.approval_process_id, reason)
         )
     }
 
