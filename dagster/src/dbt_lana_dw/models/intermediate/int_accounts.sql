@@ -1,4 +1,13 @@
 with
+    chart_initialized_at as (
+        select
+            coalesce(
+                max(recorded_at), timestamp("1900-01-01")
+            ) as initialized_recorded_at
+        from {{ ref("stg_core_chart_node_events") }}
+        where event_type = "initialized"
+    ),
+
     all_accounts as (
 
         select
@@ -9,11 +18,8 @@ with
 
         from {{ ref("stg_accounts") }}
         where
-            loaded_to_dw_at >= (
-                select coalesce(max(loaded_to_dw_at), '1900-01-01')
-                from {{ ref("stg_core_chart_node_events") }}
-                where event_type = 'initialized'
-            )
+            created_at
+            >= (select initialized_recorded_at from chart_initialized_at)
 
     ),
 

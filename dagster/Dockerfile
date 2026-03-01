@@ -52,6 +52,10 @@ RUN pip install /lana-dw/generate_es_reports/
 RUN DBT_BIGQUERY_PROJECT=build-placeholder \
     DBT_BIGQUERY_DATASET=build-placeholder \
     DBT_BIGQUERY_CREDENTIALS_JSON='{"type":"service_account","project_id":"x"}' \
+    dbt deps --project-dir /lana-dw/src/dbt_lana_dw --profiles-dir /lana-dw/src/dbt_lana_dw && \
+    DBT_BIGQUERY_PROJECT=build-placeholder \
+    DBT_BIGQUERY_DATASET=build-placeholder \
+    DBT_BIGQUERY_CREDENTIALS_JSON='{"type":"service_account","project_id":"x"}' \
     dbt parse --project-dir /lana-dw/src/dbt_lana_dw --profiles-dir /lana-dw/src/dbt_lana_dw
 
 EXPOSE 4000

@@ -18,7 +18,8 @@ with
                 cast(cast(_dlt_load_id as decimal) * 1e6 as int64)
             ) as loaded_to_dw_at,
             row_number() over (
-                partition by account_id order by _dlt_load_id desc
+                partition by journal_id, account_id, currency, version
+                order by _dlt_load_id desc
             ) as order_received_desc
 
         from raw_stg_cala_balance_history
