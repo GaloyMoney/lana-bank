@@ -29,6 +29,7 @@ with
     balances as (
         select
             daily_balances.as_of_date,
+            daily_balances.currency,
             h.*,
             coalesce(
                 case

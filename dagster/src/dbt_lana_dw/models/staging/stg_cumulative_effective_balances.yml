@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: stg_cumulative_effective_balances
+    columns:
+      - name: journal_id
+        tests:
+          - not_null
+      - name: account_id
+        tests:
+          - not_null
+      - name: currency
+        tests:
+          - not_null
+      - name: effective
+        tests:
+          - not_null
+      - name: version
+        tests:
+          - not_null

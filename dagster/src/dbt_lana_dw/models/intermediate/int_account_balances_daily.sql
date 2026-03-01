@@ -10,8 +10,8 @@ with
     chart_initialized_at as (
         select
             coalesce(
-                max(loaded_to_dw_at), timestamp("1900-01-01")
-            ) as initialized_loaded_to_dw_at
+                max(recorded_at), timestamp("1900-01-01")
+            ) as initialized_recorded_at
         from {{ ref("stg_core_chart_node_events") }}
         where event_type = "initialized"
     ),
@@ -20,8 +20,7 @@ with
         select account_id, currency, effective, version, all_time_version, `values`
         from {{ ref("stg_cumulative_effective_balances") }}
         where
-            loaded_to_dw_at
-            >= (select initialized_loaded_to_dw_at from chart_initialized_at)
+            effective >= date((select initialized_recorded_at from chart_initialized_at))
     ),
 
     account_currencies as (

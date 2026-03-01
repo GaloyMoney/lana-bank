@@ -4,8 +4,8 @@ with
     chart_initialized_at as (
         select
             coalesce(
-                max(loaded_to_dw_at), timestamp("1900-01-01")
-            ) as initialized_loaded_to_dw_at
+                max(recorded_at), timestamp("1900-01-01")
+            ) as initialized_recorded_at
         from {{ ref("stg_core_chart_node_events") }}
         where event_type = "initialized"
     ),
@@ -13,9 +13,7 @@ with
     cumulative_effective_balances as (
         select effective
         from {{ ref("stg_cumulative_effective_balances") }}
-        where
-            loaded_to_dw_at
-            >= (select initialized_loaded_to_dw_at from chart_initialized_at)
+        where effective >= date((select initialized_recorded_at from chart_initialized_at))
     ),
 
     bounds as (
@@ -29,7 +27,9 @@ with
             bounds,
             unnest(
                 generate_date_array(
-                    min_effective_date, current_date("UTC"), interval 1 day
+                    least(min_effective_date, current_date("UTC")),
+                    current_date("UTC"),
+                    interval 1 day
                 )
             ) as as_of_date
     )
