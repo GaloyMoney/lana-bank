@@ -128,7 +128,7 @@ export type ApprovalProcess = {
 };
 
 export type ApprovalProcessApproveInput = {
-  processId: Scalars['UUID']['input'];
+  approvalProcessId: Scalars['UUID']['input'];
 };
 
 export type ApprovalProcessApprovePayload = {
@@ -147,7 +147,7 @@ export type ApprovalProcessConnection = {
 };
 
 export type ApprovalProcessDenyInput = {
-  processId: Scalars['UUID']['input'];
+  approvalProcessId: Scalars['UUID']['input'];
 };
 
 export type ApprovalProcessDenyPayload = {
@@ -1777,6 +1777,7 @@ export type LoanAgreement = {
   __typename?: 'LoanAgreement';
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
+  loanAgreementId: Scalars['UUID']['output'];
   status: LoanAgreementStatus;
 };
 
@@ -2722,7 +2723,7 @@ export type QueryDomainConfigsArgs = {
 
 
 export type QueryFiscalYearArgs = {
-  fiscalYearId: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 };
 
 
@@ -3131,7 +3132,7 @@ export type TermsTemplate = {
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  termsId: Scalars['UUID']['output'];
+  termsTemplateId: Scalars['UUID']['output'];
   userCanUpdateTermsTemplate: Scalars['Boolean']['output'];
   values: TermValues;
 };
@@ -3163,7 +3164,6 @@ export type TermsTemplateUpdateInput = {
   annualRate: Scalars['AnnualRatePct']['input'];
   disbursalPolicy: DisbursalPolicy;
   duration: DurationInput;
-  id: Scalars['UUID']['input'];
   initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
   liquidationCvl: Scalars['CVLPctValue']['input'];
@@ -3171,6 +3171,7 @@ export type TermsTemplateUpdateInput = {
   obligationLiquidationDurationFromDue: DurationInput;
   obligationOverdueDurationFromDue: DurationInput;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
+  termsTemplateId: Scalars['UUID']['input'];
 };
 
 export type TermsTemplateUpdatePayload = {
@@ -3188,7 +3189,8 @@ export type Transaction = Deposit | Withdrawal;
 export type TransactionTemplate = {
   __typename?: 'TransactionTemplate';
   code: Scalars['String']['output'];
-  id: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  transactionTemplateId: Scalars['UUID']['output'];
 };
 
 export type TransactionTemplateConnection = {
@@ -3277,8 +3279,8 @@ export type UserCreatePayload = {
 };
 
 export type UserUpdateRoleInput = {
-  id: Scalars['UUID']['input'];
   roleId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
 };
 
 export type UserUpdateRolePayload = {
@@ -4719,7 +4721,7 @@ export type TermsTemplateQueryVariables = Exact<{
 }>;
 
 
-export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4735,7 +4737,7 @@ export type UpdateTermsTemplateMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4751,7 +4753,7 @@ export type CreateTermsTemplateMutationVariables = Exact<{
 }>;
 
 
-export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4762,7 +4764,7 @@ export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTempla
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
-export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , marginCallCvl:
@@ -4776,7 +4778,7 @@ export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: st
 export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4802,7 +4804,7 @@ export type TransactionTemplatesQueryVariables = Exact<{
 }>;
 
 
-export type TransactionTemplatesQuery = { __typename?: 'Query', transactionTemplates: { __typename?: 'TransactionTemplateConnection', edges: Array<{ __typename?: 'TransactionTemplateEdge', cursor: string, node: { __typename?: 'TransactionTemplate', id: string, code: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type TransactionTemplatesQuery = { __typename?: 'Query', transactionTemplates: { __typename?: 'TransactionTemplateConnection', edges: Array<{ __typename?: 'TransactionTemplateEdge', cursor: string, node: { __typename?: 'TransactionTemplate', id: string, transactionTemplateId: string, code: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type GetTrialBalanceQueryVariables = Exact<{
   from: Scalars['Date']['input'];
@@ -4932,7 +4934,7 @@ export type LoanAgreementGenerateMutationVariables = Exact<{
 }>;
 
 
-export type LoanAgreementGenerateMutation = { __typename?: 'Mutation', loanAgreementGenerate: { __typename?: 'LoanAgreementGeneratePayload', loanAgreement: { __typename?: 'LoanAgreement', id: string, status: LoanAgreementStatus, createdAt: any } } };
+export type LoanAgreementGenerateMutation = { __typename?: 'Mutation', loanAgreementGenerate: { __typename?: 'LoanAgreementGeneratePayload', loanAgreement: { __typename?: 'LoanAgreement', id: string, loanAgreementId: string, status: LoanAgreementStatus, createdAt: any } } };
 
 export type LoanAgreementDownloadLinkGenerateMutationVariables = Exact<{
   input: LoanAgreementDownloadLinksGenerateInput;
@@ -4946,7 +4948,7 @@ export type LoanAgreementQueryVariables = Exact<{
 }>;
 
 
-export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', id: string, status: LoanAgreementStatus, createdAt: any } | null };
+export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', id: string, loanAgreementId: string, status: LoanAgreementStatus, createdAt: any } | null };
 
 export type SearchPublicIdTargetQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -5882,7 +5884,7 @@ export const TermsTemplateFieldsFragmentDoc = gql`
     fragment TermsTemplateFields on TermsTemplate {
   id
   name
-  termsId
+  termsTemplateId
   createdAt
   userCanUpdateTermsTemplate
   values {
@@ -11917,6 +11919,7 @@ export const TransactionTemplatesDocument = gql`
       cursor
       node {
         id
+        transactionTemplateId
         code
       }
     }
@@ -12545,6 +12548,7 @@ export const LoanAgreementGenerateDocument = gql`
   loanAgreementGenerate(input: $input) {
     loanAgreement {
       id
+      loanAgreementId
       status
       createdAt
     }
@@ -12615,6 +12619,7 @@ export const LoanAgreementDocument = gql`
     query LoanAgreement($id: UUID!) {
   loanAgreement(id: $id) {
     id
+    loanAgreementId
     status
     createdAt
   }

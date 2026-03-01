@@ -17,6 +17,7 @@ gql`
     loanAgreementGenerate(input: $input) {
       loanAgreement {
         id
+        loanAgreementId
         status
         createdAt
       }
@@ -35,6 +36,7 @@ gql`
   query LoanAgreement($id: UUID!) {
     loanAgreement(id: $id) {
       id
+      loanAgreementId
       status
       createdAt
     }
@@ -145,9 +147,9 @@ export const useLoanAgreement = () => {
         }
 
         if (loanAgreement.status === LoanAgreementStatus.Completed) {
-          await handleDownload(loanAgreement.id)
+          await handleDownload(loanAgreement.loanAgreementId)
         } else if (loanAgreement.status === LoanAgreementStatus.Pending) {
-          startPolling(loanAgreement.id)
+          startPolling(loanAgreement.loanAgreementId)
         } else {
           throw new Error("Unexpected loan agreement status")
         }

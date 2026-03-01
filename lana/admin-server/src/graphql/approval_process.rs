@@ -227,12 +227,12 @@ pub(super) enum ApprovalProcessTarget {
 
 #[derive(InputObject)]
 pub struct ApprovalProcessApproveInput {
-    pub process_id: UUID,
+    pub approval_process_id: UUID,
 }
 crate::mutation_payload! { ApprovalProcessApprovePayload, approval_process: ApprovalProcess }
 
 #[derive(InputObject)]
 pub struct ApprovalProcessDenyInput {
-    pub process_id: UUID,
+    pub approval_process_id: UUID,
 }
 crate::mutation_payload! { ApprovalProcessDenyPayload, approval_process: ApprovalProcess }

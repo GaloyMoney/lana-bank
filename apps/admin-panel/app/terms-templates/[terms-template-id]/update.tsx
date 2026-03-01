@@ -103,7 +103,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
       const { data } = await updateTermsTemplate({
         variables: {
           input: {
-            id: termsTemplate.termsId,
+            termsTemplateId: termsTemplate.termsTemplateId,
             annualRate: formValues.annualRate,
             accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
             accrualInterval: DEFAULT_TERMS.ACCRUAL_INTERVAL,

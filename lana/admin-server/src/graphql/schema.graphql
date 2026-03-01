@@ -83,7 +83,7 @@ type ApprovalProcess {
 }
 
 input ApprovalProcessApproveInput {
-	processId: UUID!
+	approvalProcessId: UUID!
 }
 
 type ApprovalProcessApprovePayload {
@@ -106,7 +106,7 @@ type ApprovalProcessConnection {
 }
 
 input ApprovalProcessDenyInput {
-	processId: UUID!
+	approvalProcessId: UUID!
 }
 
 type ApprovalProcessDenyPayload {
@@ -1783,6 +1783,7 @@ type LiquidationProceedsReceived {
 
 type LoanAgreement {
 	id: ID!
+	loanAgreementId: UUID!
 	status: LoanAgreementStatus!
 	createdAt: Timestamp!
 }
@@ -2268,7 +2269,7 @@ type Query {
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
 	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
-	fiscalYear(fiscalYearId: UUID!): FiscalYear
+	fiscalYear(id: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
@@ -2503,7 +2504,7 @@ input TermsInput {
 
 type TermsTemplate {
 	id: ID!
-	termsId: UUID!
+	termsTemplateId: UUID!
 	values: TermValues!
 	createdAt: Timestamp!
 	name: String!
@@ -2531,7 +2532,7 @@ type TermsTemplateCreatePayload {
 }
 
 input TermsTemplateUpdateInput {
-	id: UUID!
+	termsTemplateId: UUID!
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
@@ -2557,7 +2558,8 @@ type Total {
 }
 
 type TransactionTemplate {
-	id: UUID!
+	id: ID!
+	transactionTemplateId: UUID!
 	code: String!
 }
 
@@ -2657,7 +2659,7 @@ type UserCreatePayload {
 }
 
 input UserUpdateRoleInput {
-	id: UUID!
+	userId: UUID!
 	roleId: UUID!
 }
 

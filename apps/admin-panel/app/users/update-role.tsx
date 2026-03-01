@@ -83,7 +83,7 @@ export function UpdateUserRoleDialog({
       await assignRole({
         variables: {
           input: {
-            id: userId,
+            userId: userId,
             roleId: newRoleId,
           },
         },

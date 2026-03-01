@@ -1,6 +1,6 @@
 query TermsTemplateGet($id: UUID!) {
   termsTemplate(id: $id) {
-    termsId
+    termsTemplateId
     name
     values {
       annualRate

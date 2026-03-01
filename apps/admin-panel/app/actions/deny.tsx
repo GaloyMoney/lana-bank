@@ -78,7 +78,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
       await denyProcess({
         variables: {
           input: {
-            processId: approvalProcess.approvalProcessId,
+            approvalProcessId: approvalProcess.approvalProcessId,
           },
           reason: reason.trim(),
         },
