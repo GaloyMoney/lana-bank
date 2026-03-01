@@ -22,7 +22,7 @@ pub const ROLE_NAME_ACCOUNTANT: &str = "accountant";
 pub const ROLE_NAME_ADMIN: &str = "admin";
 pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
 
-#[derive(Clone, Debug, strum::EnumDiscriminants)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum Subject {

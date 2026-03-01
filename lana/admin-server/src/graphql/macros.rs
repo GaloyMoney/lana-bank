@@ -21,6 +21,15 @@ macro_rules! app_and_sub_from_ctx {
     }};
 }
 
+#[macro_export]
+macro_rules! loader_and_sub_from_ctx {
+    ($ctx:expr) => {{
+        let loader = $ctx.data_unchecked::<LanaDataLoader>();
+        let $crate::primitives::AdminAuthContext { sub } = $ctx.data()?;
+        (loader, sub)
+    }};
+}
+
 /// Helper for a 'standard' find and return
 ///
 /// Instead of:
@@ -228,6 +237,85 @@ macro_rules! list_with_combo_cursor {
                             .edges
                             .iter()
                             .map(|e| (e.node.entity.id, e.node.clone())),
+                    )
+                    .await;
+
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }};
+}
+
+/// Like `maybe_fetch_one!` but feeds the loader with `(Subject, Id)` keys
+/// for authorization-aware data loading. Extracts `sub` from `ctx` for the
+/// loader key; the caller's `$load_entity` expression should use its own `sub`.
+#[macro_export]
+macro_rules! authz_maybe_fetch_one {
+    ($ty:ty, $ctx:expr, $load_entity:expr) => {
+        if let Some(entity) = $load_entity.await? {
+            let entity = <$ty>::from(entity);
+            let loader = $ctx.data_unchecked::<LanaDataLoader>();
+            let $crate::primitives::AdminAuthContext { sub: __sub } = $ctx.data()?;
+            loader
+                .feed_one((__sub.clone(), entity.entity.id), entity.clone())
+                .await;
+            Ok(Some(entity))
+        } else {
+            Ok(None)
+        }
+    };
+}
+
+/// Like `exec_mutation!` but feeds the loader with `(Subject, Id)` keys
+/// for authorization-aware data loading. Extracts `sub` from `ctx` for the
+/// loader key; the caller's `$load` expression should use its own `sub`.
+#[macro_export]
+macro_rules! authz_exec_mutation {
+    ($payload:ty, $ty:ty, $ctx:expr, $load:expr) => {{
+        let entity = <$ty>::from($load.await?);
+        let loader = $ctx.data_unchecked::<LanaDataLoader>();
+        let $crate::primitives::AdminAuthContext { sub: __sub } = $ctx.data()?;
+        loader
+            .feed_one((__sub.clone(), entity.entity.id), entity.clone())
+            .await;
+        Ok(<$payload>::from(entity))
+    }};
+}
+
+/// Like `list_with_combo_cursor!` but feeds the loader with `(Subject, Id)` keys
+/// for authorization-aware data loading. Extracts `sub` from `ctx` for the
+/// loader key; the caller's `$load` closure should use its own `sub`.
+#[macro_export]
+macro_rules! authz_list_with_combo_cursor {
+    ($combo_cursor:ty, $entity:ty, $sort_by:expr, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
+        let loader = $ctx.data_unchecked::<LanaDataLoader>();
+        let $crate::primitives::AdminAuthContext { sub: __sub } = $ctx.data()?;
+        let __sub = __sub.clone();
+        async_graphql::types::connection::query(
+            $after,
+            None,
+            Some($first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists") as usize;
+                let after = after.map(<$combo_cursor>::from);
+                let args = es_entity::PaginatedQueryArgs { first, after };
+                let res = $load(args).await?;
+                let mut connection =
+                    async_graphql::types::connection::Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entity| {
+                        let cursor = <$combo_cursor>::from(($sort_by, &entity));
+                        Edge::new(cursor, <$entity>::from(entity))
+                    }));
+                loader
+                    .feed_many(
+                        connection
+                            .edges
+                            .iter()
+                            .map(|e| ((__sub.clone(), e.node.entity.id), e.node.clone())),
                     )
                     .await;
 

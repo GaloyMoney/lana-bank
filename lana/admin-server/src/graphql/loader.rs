@@ -22,6 +22,8 @@ use lana_app::{
     report::{ReportId, ReportRunId, error::ReportError},
 };
 
+use crate::primitives::Subject;
+
 use crate::primitives::*;
 
 use super::{
@@ -179,16 +181,25 @@ impl Loader<CustomerDocumentId> for LanaLoader {
     }
 }
 
-impl Loader<CustomerId> for LanaLoader {
+impl Loader<(Subject, CustomerId)> for LanaLoader {
     type Value = Customer;
     type Error = Arc<lana_app::customer::error::CustomerError>;
 
     #[instrument(name = "loader.customers", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
-        keys: &[CustomerId],
-    ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
-        self.app.customers().find_all(keys).await.map_err(Arc::new)
+        keys: &[(Subject, CustomerId)],
+    ) -> Result<HashMap<(Subject, CustomerId), Customer>, Self::Error> {
+        let mut by_subject: HashMap<&Subject, Vec<CustomerId>> = HashMap::new();
+        for (sub, id) in keys {
+            by_subject.entry(sub).or_default().push(*id);
+        }
+
+        self.app
+            .customers()
+            .find_all_authorized(by_subject)
+            .await
+            .map_err(Arc::new)
     }
 }
 
