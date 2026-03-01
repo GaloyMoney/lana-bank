@@ -1,7 +1,67 @@
 use clap::{Parser, Subcommand};
 
+const CLI_AFTER_HELP: &str = r#"Examples:
+  lana-admin-cli login \
+    --admin-url https://admin.qa.lana.galoy.io/graphql \
+    --keycloak-url https://auth.qa.lana.galoy.io \
+    --keycloak-client-id admin-panel \
+    --username galoysuperuser@mailinator.com
+
+  lana-admin-cli customer list --first 5 --json
+
+  lana-admin-cli accounting manual-transaction \
+    --description "QA test entry" \
+    --entries-json '[{"accountRef":"11.01.0101","amount":"1","currency":"USD","direction":"CREDIT","description":"Entry 1"},{"accountRef":"61.01","amount":"1","currency":"USD","direction":"DEBIT","description":"Entry 2"}]' \
+    --json
+"#;
+
+const MANUAL_TRANSACTION_ENTRIES_HELP: &str = r#"JSON array of transaction entries.
+Example:
+[
+  {"accountRef":"11.01.0101","amount":"1","currency":"USD","direction":"CREDIT","description":"Entry 1"},
+  {"accountRef":"61.01","amount":"1","currency":"USD","direction":"DEBIT","description":"Entry 2"}
+]
+Accepted direction values: DEBIT, CREDIT"#;
+
+const CUSTODIAN_CREATE_INPUT_HELP: &str = r#"CustodianCreateInput as JSON.
+Example:
+{
+  "komainu": {
+    "name": "test-komainu",
+    "apiKey": "test-api-key",
+    "apiSecret": "test-api-secret",
+    "testingInstance": true,
+    "secretKey": "test-secret-key",
+    "webhookSecret": "test-webhook-secret"
+  }
+}"#;
+
+const CUSTODIAN_CONFIG_HELP: &str = r#"CustodianConfigInput as JSON.
+Example:
+{
+  "komainu": {
+    "name": "updated-komainu",
+    "apiKey": "updated-api-key",
+    "apiSecret": "updated-api-secret",
+    "testingInstance": false,
+    "secretKey": "updated-secret-key",
+    "webhookSecret": "updated-webhook-secret"
+  }
+}"#;
+
+const DOMAIN_CONFIG_VALUE_HELP: &str = r#"JSON value for the target config key.
+Examples:
+  --value-json '"notifications@example.com"'
+  --value-json '123'
+  --value-json '{"enabled":true}'"#;
+
 #[derive(Parser)]
-#[command(name = "lana-admin-cli", about = "LANA Bank Admin CLI")]
+#[command(
+    name = "lana-admin-cli",
+    about = "LANA Bank Admin CLI",
+    long_about = "Admin CLI for Lana Bank backoffice actions. Use `login` to cache credentials, then run entity commands (customer, credit-facility, accounting, etc).",
+    after_long_help = CLI_AFTER_HELP
+)]
 pub struct Cli {
     /// Admin GraphQL endpoint URL
     #[arg(
@@ -19,7 +79,7 @@ pub struct Cli {
     )]
     pub keycloak_url: String,
 
-    /// Keycloak client ID for direct grant login
+    /// Keycloak client ID for login flow (QA/staging default: admin-panel)
     #[arg(long, env = "LANA_KEYCLOAK_CLIENT_ID", default_value = "admin-panel")]
     pub keycloak_client_id: String,
 
@@ -27,7 +87,7 @@ pub struct Cli {
     #[arg(long, env = "LANA_USERNAME", default_value = "admin@galoy.io")]
     pub username: String,
 
-    /// Admin password (empty for local dev)
+    /// Admin password (empty for passwordless/browser-based flows)
     #[arg(long, env = "LANA_PASSWORD", default_value = "")]
     pub password: String,
 
@@ -151,7 +211,7 @@ pub enum Command {
         #[command(subcommand)]
         action: WithdrawalAction,
     },
-    /// Authenticate and cache session token
+    /// Authenticate and cache session token for subsequent commands
     Login,
     /// Clear cached session token
     Logout,
@@ -245,7 +305,7 @@ pub enum DepositAccountAction {
         deposit_account_id: String,
         #[arg(long)]
         amount: String,
-        #[arg(long)]
+        #[arg(long, help = "External/operator reference string for this withdrawal")]
         reference: String,
     },
     /// Confirm a withdrawal
@@ -521,7 +581,11 @@ pub enum AccountingAction {
         code: String,
         #[arg(long)]
         name: String,
-        #[arg(long)]
+        #[arg(
+            long,
+            value_parser = ["DEBIT", "CREDIT"],
+            help = "Normal balance type (accepted: DEBIT, CREDIT)"
+        )]
         normal_balance_type: String,
     },
     /// Add a child node to the chart of accounts
@@ -546,7 +610,19 @@ pub enum AccountingAction {
     DepositConfig,
     /// Get account sets by category
     AccountSets {
-        #[arg(long)]
+        #[arg(
+            long,
+            value_parser = [
+                "ASSET",
+                "LIABILITY",
+                "EQUITY",
+                "REVENUE",
+                "COST_OF_REVENUE",
+                "EXPENSES",
+                "OFF_BALANCE_SHEET"
+            ],
+            help = "Account category"
+        )]
         category: String,
     },
     /// Execute a manual transaction
@@ -557,8 +633,7 @@ pub enum AccountingAction {
         reference: Option<String>,
         #[arg(long)]
         effective: Option<String>,
-        /// JSON array of entries: [{"accountRef":"...","amount":"...","currency":"...","direction":"...","description":"..."}]
-        #[arg(long)]
+        #[arg(long, long_help = MANUAL_TRANSACTION_ENTRIES_HELP)]
         entries_json: String,
     },
     /// Get ledger account by code
@@ -612,16 +687,14 @@ pub enum CsvExportAction {
 pub enum CustodianAction {
     /// Create a custodian (pass full input as JSON)
     Create {
-        /// JSON input, e.g. {"komainu":{"name":"...","apiKey":"...","apiSecret":"...","testingInstance":true,"secretKey":"..."}}
-        #[arg(long)]
+        #[arg(long, long_help = CUSTODIAN_CREATE_INPUT_HELP)]
         input_json: String,
     },
     /// Update custodian config
     ConfigUpdate {
         #[arg(long)]
         custodian_id: String,
-        /// JSON config, e.g. {"komainu":{"name":"...","apiKey":"...","apiSecret":"...","testingInstance":true,"secretKey":"..."}}
-        #[arg(long)]
+        #[arg(long, long_help = CUSTODIAN_CONFIG_HELP)]
         config_json: String,
     },
 }
@@ -670,8 +743,7 @@ pub enum DomainConfigAction {
     Update {
         #[arg(long)]
         domain_config_id: String,
-        /// JSON value to set
-        #[arg(long)]
+        #[arg(long, long_help = DOMAIN_CONFIG_VALUE_HELP)]
         value_json: String,
     },
 }
@@ -696,23 +768,23 @@ pub enum AuditAction {
 pub enum FinancialStatementAction {
     /// Get balance sheet
     BalanceSheet {
-        #[arg(long)]
+        #[arg(long, help = "Start date in YYYY-MM-DD format")]
         from: String,
-        #[arg(long)]
+        #[arg(long, help = "Optional end date in YYYY-MM-DD format")]
         until: Option<String>,
     },
     /// Get trial balance
     TrialBalance {
-        #[arg(long)]
+        #[arg(long, help = "Start date in YYYY-MM-DD format")]
         from: String,
-        #[arg(long)]
+        #[arg(long, help = "End date in YYYY-MM-DD format")]
         until: String,
     },
     /// Get profit and loss statement
     ProfitAndLoss {
-        #[arg(long)]
+        #[arg(long, help = "Start date in YYYY-MM-DD format")]
         from: String,
-        #[arg(long)]
+        #[arg(long, help = "Optional end date in YYYY-MM-DD format")]
         until: Option<String>,
     },
 }
@@ -724,7 +796,7 @@ pub enum SumsubAction {
         #[arg(long)]
         prospect_id: String,
     },
-    /// Create a full Sumsub test applicant for a prospect
+    /// Create a full Sumsub test applicant for a prospect (requires backend support for this mutation)
     TestApplicantCreate {
         #[arg(long)]
         prospect_id: String,
@@ -779,7 +851,10 @@ pub enum ReportAction {
     DownloadLink {
         #[arg(long)]
         report_id: String,
-        #[arg(long)]
+        #[arg(
+            long,
+            help = "File extension for the report file (use values returned by report list/find, e.g. pdf)"
+        )]
         extension: String,
     },
     /// Trigger a report run
