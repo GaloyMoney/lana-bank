@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use core_accounting_primitives::{
-    AccountCode, CalaAccountSetId, ChartId, ChartLookup, ChartLookupError,
-};
+use chart_primitives::{AccountCode, CalaAccountSetId, ChartId, ChartLookup, ChartLookupError};
 use domain_config::define_internal_config;
 
 use super::error::ChartOfAccountsIntegrationError;

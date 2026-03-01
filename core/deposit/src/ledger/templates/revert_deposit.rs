@@ -106,7 +106,7 @@ impl<S: std::fmt::Display> From<RevertDepositParams<S>> for Params {
 
         params.insert("effective", effective_date);
         let entity_ref =
-            core_accounting_primitives::EntityRef::new(DEPOSIT_TRANSACTION_ENTITY_TYPE, entity_id);
+            chart_primitives::EntityRef::new(DEPOSIT_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(
             "meta",
             serde_json::json!({

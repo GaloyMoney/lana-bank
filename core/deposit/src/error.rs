@@ -25,7 +25,7 @@ pub enum CoreDepositError {
     #[error("CoreDepositError - CustomerError: {0}")]
     CustomerError(#[from] core_customer::error::CustomerError),
     #[error("CoreDepositError - ChartLookupError: {0}")]
-    ChartLookupError(#[from] core_accounting_primitives::ChartLookupError),
+    ChartLookupError(#[from] chart_primitives::ChartLookupError),
     #[error("CoreDepositError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - RegisterEventHandler: {0}")]

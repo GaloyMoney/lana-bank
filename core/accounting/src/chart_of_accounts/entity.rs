@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use super::chart_node::*;
-use core_accounting_primitives::ChartLookup;
+use chart_primitives::ChartLookup;
 
 use crate::{
     chart_of_accounts::ledger::ClosingTxParentIdsAndDetails,

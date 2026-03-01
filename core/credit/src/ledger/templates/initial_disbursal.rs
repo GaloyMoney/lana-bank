@@ -118,10 +118,8 @@ impl<S: std::fmt::Display> From<InitialDisbursalParams<S>> for Params {
         params.insert("currency", currency);
         params.insert("external_id", external_id);
         params.insert("effective", effective);
-        let entity_ref = core_accounting_primitives::EntityRef::new(
-            DISBURSAL_TRANSACTION_ENTITY_TYPE,
-            entity_id,
-        );
+        let entity_ref =
+            chart_primitives::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(
             "meta",
             serde_json::json!({
