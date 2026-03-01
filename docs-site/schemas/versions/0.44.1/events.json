@@ -1,0 +1,2127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LanaEvent",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Governance"
+        }
+      },
+      "$ref": "#/$defs/GovernanceEvent",
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "CoreAccess"
+        }
+      },
+      "$ref": "#/$defs/CoreAccessEvent",
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Accounting"
+        }
+      },
+      "$ref": "#/$defs/CoreAccountingEvent",
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Customer"
+        }
+      },
+      "$ref": "#/$defs/CoreCustomerEvent",
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Credit"
+        }
+      },
+      "$ref": "#/$defs/CoreCreditEvent",
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "CreditCollateral"
+        }
+      },
+      "$ref": "#/$defs/CoreCreditCollateralEvent",
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "CreditCollection"
+        }
+      },
+      "$ref": "#/$defs/CoreCreditCollectionEvent",
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Deposit"
+        }
+      },
+      "$ref": "#/$defs/CoreDepositEvent",
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Custody"
+        }
+      },
+      "$ref": "#/$defs/CoreCustodyEvent",
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Report"
+        }
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ReportRunCreated": {
+              "type": "object",
+              "properties": {
+                "entity": {
+                  "$ref": "#/$defs/PublicReportRun"
+                }
+              },
+              "required": [
+                "entity"
+              ]
+            }
+          },
+          "required": [
+            "ReportRunCreated"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ReportRunStateUpdated": {
+              "type": "object",
+              "properties": {
+                "entity": {
+                  "$ref": "#/$defs/PublicReportRun"
+                }
+              },
+              "required": [
+                "entity"
+              ]
+            }
+          },
+          "required": [
+            "ReportRunStateUpdated"
+          ]
+        }
+      ],
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Price"
+        }
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "PriceUpdated": {
+              "type": "object",
+              "properties": {
+                "price": {
+                  "$ref": "#/$defs/PriceOfOneBTC"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "price",
+                "timestamp"
+              ]
+            }
+          },
+          "required": [
+            "PriceUpdated"
+          ]
+        }
+      ],
+      "required": [
+        "module"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Time"
+        }
+      },
+      "$ref": "#/$defs/CoreTimeEvent",
+      "required": [
+        "module"
+      ]
+    }
+  ],
+  "$defs": {
+    "AccrualPosting": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "effective": {
+          "type": "string",
+          "format": "date"
+        },
+        "tx_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "tx_id",
+        "amount",
+        "effective"
+      ]
+    },
+    "ApprovalProcessStatus": {
+      "type": "string",
+      "enum": [
+        "Approved",
+        "Denied",
+        "InProgress"
+      ]
+    },
+    "CVLPct": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "Infinite"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "Finite": {
+              "type": [
+                "string",
+                "number"
+              ],
+              "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "Finite"
+          ]
+        }
+      ]
+    },
+    "CollateralAdjustment": {
+      "type": "object",
+      "properties": {
+        "abs_diff": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "direction": {
+          "$ref": "#/$defs/CollateralDirection"
+        },
+        "tx_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "tx_id",
+        "abs_diff",
+        "direction"
+      ]
+    },
+    "CollateralDirection": {
+      "type": "string",
+      "enum": [
+        "Add",
+        "Remove"
+      ]
+    },
+    "CollateralizationState": {
+      "type": "string",
+      "enum": [
+        "FullyCollateralized",
+        "UnderMarginCallThreshold",
+        "UnderLiquidationThreshold",
+        "NoCollateral",
+        "NoExposure"
+      ]
+    },
+    "CoreAccessEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicUser"
+            },
+            "type": {
+              "type": "string",
+              "const": "UserCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicRole"
+            },
+            "type": {
+              "type": "string",
+              "const": "RoleCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        }
+      ]
+    },
+    "CoreAccountingEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "ledger_account_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": {
+              "type": "string",
+              "const": "LedgerAccountCsvExportUploaded"
+            }
+          },
+          "required": [
+            "type",
+            "id",
+            "ledger_account_id"
+          ]
+        }
+      ]
+    },
+    "CoreCreditCollateralEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCollateral"
+            },
+            "type": {
+              "type": "string",
+              "const": "CollateralUpdated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "$ref": "#/$defs/Satoshis"
+            },
+            "effective": {
+              "type": "string",
+              "format": "date"
+            },
+            "ledger_tx_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "liquidation_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "recorded_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "secured_loan_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": {
+              "type": "string",
+              "const": "LiquidationCollateralSentOut"
+            }
+          },
+          "required": [
+            "type",
+            "liquidation_id",
+            "secured_loan_id",
+            "amount",
+            "ledger_tx_id",
+            "recorded_at",
+            "effective"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "$ref": "#/$defs/UsdCents"
+            },
+            "effective": {
+              "type": "string",
+              "format": "date"
+            },
+            "ledger_tx_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "liquidation_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "payment_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "recorded_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "secured_loan_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": {
+              "type": "string",
+              "const": "LiquidationProceedsReceived"
+            }
+          },
+          "required": [
+            "type",
+            "liquidation_id",
+            "secured_loan_id",
+            "amount",
+            "payment_id",
+            "ledger_tx_id",
+            "recorded_at",
+            "effective"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "liquidation_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "secured_loan_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": {
+              "type": "string",
+              "const": "LiquidationCompleted"
+            }
+          },
+          "required": [
+            "type",
+            "liquidation_id",
+            "secured_loan_id"
+          ]
+        }
+      ]
+    },
+    "CoreCreditCollectionEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicPayment"
+            },
+            "type": {
+              "type": "string",
+              "const": "PaymentCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicPaymentAllocation"
+            },
+            "type": {
+              "type": "string",
+              "const": "PaymentAllocationCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicObligation"
+            },
+            "type": {
+              "type": "string",
+              "const": "ObligationCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicObligation"
+            },
+            "type": {
+              "type": "string",
+              "const": "ObligationDue"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicObligation"
+            },
+            "type": {
+              "type": "string",
+              "const": "ObligationOverdue"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicObligation"
+            },
+            "type": {
+              "type": "string",
+              "const": "ObligationDefaulted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicObligation"
+            },
+            "type": {
+              "type": "string",
+              "const": "ObligationCompleted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        }
+      ]
+    },
+    "CoreCreditEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCreditFacilityProposal"
+            },
+            "type": {
+              "type": "string",
+              "const": "FacilityProposalCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCreditFacilityProposal"
+            },
+            "type": {
+              "type": "string",
+              "const": "FacilityProposalConcluded"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicPendingCreditFacility"
+            },
+            "type": {
+              "type": "string",
+              "const": "PendingCreditFacilityCollateralizationChanged"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicPendingCreditFacility"
+            },
+            "type": {
+              "type": "string",
+              "const": "PendingCreditFacilityCompleted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCreditFacility"
+            },
+            "type": {
+              "type": "string",
+              "const": "FacilityActivated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCreditFacility"
+            },
+            "type": {
+              "type": "string",
+              "const": "FacilityCompleted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCreditFacility"
+            },
+            "type": {
+              "type": "string",
+              "const": "FacilityCollateralizationChanged"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicDisbursal"
+            },
+            "type": {
+              "type": "string",
+              "const": "DisbursalSettled"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicInterestAccrualCycle"
+            },
+            "type": {
+              "type": "string",
+              "const": "AccrualPosted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCreditFacility"
+            },
+            "type": {
+              "type": "string",
+              "const": "PartialLiquidationInitiated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        }
+      ]
+    },
+    "CoreCustodyEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicWallet"
+            },
+            "type": {
+              "type": "string",
+              "const": "WalletBalanceUpdated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        }
+      ]
+    },
+    "CoreCustomerEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCustomer"
+            },
+            "type": {
+              "type": "string",
+              "const": "CustomerCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicCustomer"
+            },
+            "type": {
+              "type": "string",
+              "const": "CustomerKycUpdated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicParty"
+            },
+            "type": {
+              "type": "string",
+              "const": "PartyCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicParty"
+            },
+            "type": {
+              "type": "string",
+              "const": "PartyEmailUpdated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectKycStarted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectKycPending"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectKycDeclined"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectConverted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicProspect"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProspectClosed"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        }
+      ]
+    },
+    "CoreDepositEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicDepositAccount"
+            },
+            "type": {
+              "type": "string",
+              "const": "DepositAccountCreated"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicDeposit"
+            },
+            "type": {
+              "type": "string",
+              "const": "DepositInitialized"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicWithdrawal"
+            },
+            "type": {
+              "type": "string",
+              "const": "WithdrawalConfirmed"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicDeposit"
+            },
+            "type": {
+              "type": "string",
+              "const": "DepositReverted"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        }
+      ]
+    },
+    "CoreTimeEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "closing_time": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "day": {
+              "type": "string",
+              "format": "date"
+            },
+            "timezone": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "EndOfDay"
+            }
+          },
+          "required": [
+            "type",
+            "day",
+            "closing_time",
+            "timezone"
+          ]
+        }
+      ]
+    },
+    "CreditFacilityProposalStatus": {
+      "type": "string",
+      "enum": [
+        "PendingCustomerApproval",
+        "CustomerDenied",
+        "PendingApproval",
+        "Approved",
+        "Denied"
+      ]
+    },
+    "CreditFacilityReceivable": {
+      "type": "object",
+      "properties": {
+        "disbursed": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "interest": {
+          "$ref": "#/$defs/UsdCents"
+        }
+      },
+      "required": [
+        "disbursed",
+        "interest"
+      ]
+    },
+    "CustomerType": {
+      "type": "string",
+      "enum": [
+        "Individual",
+        "GovernmentEntity",
+        "PrivateCompany",
+        "Bank",
+        "FinancialInstitution",
+        "ForeignAgencyOrSubsidiary",
+        "NonDomiciledCompany"
+      ]
+    },
+    "DisbursalPolicy": {
+      "type": "string",
+      "enum": [
+        "SingleDisbursal",
+        "MultipleDisbursal"
+      ]
+    },
+    "DisbursalSettlement": {
+      "type": "object",
+      "properties": {
+        "effective": {
+          "type": "string",
+          "format": "date"
+        },
+        "tx_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "tx_id",
+        "effective"
+      ]
+    },
+    "EffectiveDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "FacilityCollateralization": {
+      "type": "object",
+      "properties": {
+        "collateral": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "outstanding": {
+          "$ref": "#/$defs/CreditFacilityReceivable"
+        },
+        "price_at_state_change": {
+          "$ref": "#/$defs/PriceOfOneBTC"
+        },
+        "state": {
+          "$ref": "#/$defs/CollateralizationState"
+        }
+      },
+      "required": [
+        "state",
+        "collateral",
+        "outstanding",
+        "price_at_state_change"
+      ]
+    },
+    "FacilityDuration": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "months"
+            },
+            "value": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ]
+        }
+      ]
+    },
+    "GovernanceEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "$ref": "#/$defs/PublicApprovalProcess"
+            },
+            "type": {
+              "type": "string",
+              "const": "ApprovalProcessConcluded"
+            }
+          },
+          "required": [
+            "type",
+            "entity"
+          ]
+        }
+      ]
+    },
+    "InterestInterval": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "end_of_month"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "end_of_day"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        }
+      ]
+    },
+    "InterestPeriod": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "interval": {
+          "$ref": "#/$defs/InterestInterval"
+        },
+        "start": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "interval",
+        "start",
+        "end"
+      ]
+    },
+    "KycStatus": {
+      "type": "string",
+      "enum": [
+        "not-started",
+        "started",
+        "pending",
+        "approved",
+        "declined"
+      ]
+    },
+    "KycVerification": {
+      "type": "string",
+      "enum": [
+        "no-kyc",
+        "verified",
+        "rejected"
+      ]
+    },
+    "LiquidationTrigger": {
+      "type": "object",
+      "properties": {
+        "initially_estimated_to_liquidate": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "initially_expected_to_receive": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "liquidation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "trigger_price": {
+          "$ref": "#/$defs/PriceOfOneBTC"
+        }
+      },
+      "required": [
+        "liquidation_id",
+        "trigger_price",
+        "initially_expected_to_receive",
+        "initially_estimated_to_liquidate"
+      ]
+    },
+    "ObligationDuration": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "days"
+            },
+            "value": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ]
+        }
+      ]
+    },
+    "ObligationType": {
+      "type": "string",
+      "enum": [
+        "Disbursal",
+        "Interest"
+      ]
+    },
+    "PendingCreditFacilityCollateralizationState": {
+      "type": "string",
+      "enum": [
+        "FullyCollateralized",
+        "UnderCollateralized",
+        "NotYetCollateralized"
+      ]
+    },
+    "PendingCreditFacilityStatus": {
+      "type": "string",
+      "enum": [
+        "PendingCollateralization",
+        "Completed"
+      ]
+    },
+    "PendingFacilityCollateralization": {
+      "type": "object",
+      "properties": {
+        "collateral": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Satoshis"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "price_at_state_change": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PriceOfOneBTC"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/PendingCreditFacilityCollateralizationState"
+        }
+      },
+      "required": [
+        "state"
+      ]
+    },
+    "PriceOfOneBTC": {
+      "$ref": "#/$defs/UsdCents"
+    },
+    "ProspectStage": {
+      "type": "string",
+      "enum": [
+        "new",
+        "kyc-started",
+        "kyc-pending",
+        "kyc-declined",
+        "converted",
+        "closed"
+      ]
+    },
+    "ProspectStatus": {
+      "type": "string",
+      "enum": [
+        "open",
+        "converted",
+        "closed"
+      ]
+    },
+    "PublicApprovalProcess": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "process_type": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ApprovalProcessStatus"
+        },
+        "target_ref": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "process_type",
+        "status",
+        "target_ref"
+      ]
+    },
+    "PublicCollateral": {
+      "type": "object",
+      "properties": {
+        "adjustment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CollateralAdjustment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "secured_loan_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "secured_loan_id",
+        "amount"
+      ]
+    },
+    "PublicCreditFacility": {
+      "type": "object",
+      "properties": {
+        "activated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "activation_tx_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "collateral_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "collateralization": {
+          "$ref": "#/$defs/FacilityCollateralization"
+        },
+        "completed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "customer_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "liquidation_trigger": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LiquidationTrigger"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "customer_id",
+        "collateral_id",
+        "activation_tx_id",
+        "activated_at",
+        "amount",
+        "collateralization"
+      ]
+    },
+    "PublicCreditFacilityProposal": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "customer_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "$ref": "#/$defs/CreditFacilityProposalStatus"
+        },
+        "terms": {
+          "$ref": "#/$defs/TermValues"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "amount",
+        "terms",
+        "customer_id",
+        "created_at"
+      ]
+    },
+    "PublicCustomer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kyc_verification": {
+          "$ref": "#/$defs/KycVerification"
+        },
+        "party_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "party_id",
+        "kyc_verification"
+      ]
+    },
+    "PublicDeposit": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "deposit_account_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "deposit_account_id",
+        "amount"
+      ]
+    },
+    "PublicDepositAccount": {
+      "type": "object",
+      "properties": {
+        "account_holder_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "account_holder_id"
+      ]
+    },
+    "PublicDisbursal": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "credit_facility_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "settlement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DisbursalSettlement"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "credit_facility_id",
+        "amount"
+      ]
+    },
+    "PublicInterestAccrualCycle": {
+      "type": "object",
+      "properties": {
+        "credit_facility_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "due_at": {
+          "$ref": "#/$defs/EffectiveDate"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "period": {
+          "$ref": "#/$defs/InterestPeriod"
+        },
+        "posting": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AccrualPosting"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "credit_facility_id",
+        "period",
+        "due_at"
+      ]
+    },
+    "PublicObligation": {
+      "type": "object",
+      "properties": {
+        "beneficiary_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "defaulted_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EffectiveDate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "due_at": {
+          "$ref": "#/$defs/EffectiveDate"
+        },
+        "effective": {
+          "type": "string",
+          "format": "date"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "initial_amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "obligation_type": {
+          "$ref": "#/$defs/ObligationType"
+        },
+        "outstanding_amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "overdue_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EffectiveDate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "obligation_type",
+        "beneficiary_id",
+        "initial_amount",
+        "outstanding_amount",
+        "due_at",
+        "recorded_at",
+        "effective"
+      ]
+    },
+    "PublicParty": {
+      "type": "object",
+      "properties": {
+        "customer_type": {
+          "$ref": "#/$defs/CustomerType"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "customer_type"
+      ]
+    },
+    "PublicPayment": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "beneficiary_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "effective": {
+          "type": "string",
+          "format": "date"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "beneficiary_id",
+        "amount",
+        "recorded_at",
+        "effective"
+      ]
+    },
+    "PublicPaymentAllocation": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "beneficiary_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "effective": {
+          "type": "string",
+          "format": "date"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "obligation_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "obligation_type": {
+          "$ref": "#/$defs/ObligationType"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "obligation_id",
+        "obligation_type",
+        "beneficiary_id",
+        "amount",
+        "recorded_at",
+        "effective"
+      ]
+    },
+    "PublicPendingCreditFacility": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "collateralization": {
+          "$ref": "#/$defs/PendingFacilityCollateralization"
+        },
+        "completed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "customer_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "$ref": "#/$defs/PendingCreditFacilityStatus"
+        },
+        "terms": {
+          "$ref": "#/$defs/TermValues"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "collateralization",
+        "amount",
+        "terms",
+        "customer_id",
+        "created_at"
+      ]
+    },
+    "PublicProspect": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kyc_status": {
+          "$ref": "#/$defs/KycStatus"
+        },
+        "party_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
+        "status": {
+          "$ref": "#/$defs/ProspectStatus"
+        }
+      },
+      "required": [
+        "id",
+        "party_id",
+        "status",
+        "kyc_status",
+        "stage"
+      ]
+    },
+    "PublicReportRun": {
+      "type": "object",
+      "properties": {
+        "external_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "run_type": {
+          "$ref": "#/$defs/ReportRunType"
+        },
+        "state": {
+          "$ref": "#/$defs/ReportRunState"
+        }
+      },
+      "required": [
+        "id",
+        "external_id",
+        "state",
+        "run_type"
+      ]
+    },
+    "PublicRole": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "PublicUser": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "role_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "role_id"
+      ]
+    },
+    "PublicWallet": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "balance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WalletBalance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "network": {
+          "$ref": "#/$defs/WalletNetwork"
+        }
+      },
+      "required": [
+        "id",
+        "address",
+        "network"
+      ]
+    },
+    "PublicWithdrawal": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "deposit_account_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "deposit_account_id",
+        "amount"
+      ]
+    },
+    "ReportRunState": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "success",
+        "failed"
+      ]
+    },
+    "ReportRunType": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "manual"
+      ]
+    },
+    "Satoshis": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "TermValues": {
+      "type": "object",
+      "properties": {
+        "accrual_cycle_interval": {
+          "$ref": "#/$defs/InterestInterval"
+        },
+        "accrual_interval": {
+          "$ref": "#/$defs/InterestInterval"
+        },
+        "annual_rate": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$"
+        },
+        "disbursal_policy": {
+          "$ref": "#/$defs/DisbursalPolicy"
+        },
+        "duration": {
+          "$ref": "#/$defs/FacilityDuration"
+        },
+        "initial_cvl": {
+          "$ref": "#/$defs/CVLPct"
+        },
+        "interest_due_duration_from_accrual": {
+          "$ref": "#/$defs/ObligationDuration"
+        },
+        "liquidation_cvl": {
+          "$ref": "#/$defs/CVLPct"
+        },
+        "margin_call_cvl": {
+          "$ref": "#/$defs/CVLPct"
+        },
+        "obligation_liquidation_duration_from_due": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObligationDuration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "obligation_overdue_duration_from_due": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObligationDuration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "one_time_fee_rate": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$"
+        }
+      },
+      "required": [
+        "annual_rate",
+        "duration",
+        "interest_due_duration_from_accrual",
+        "accrual_cycle_interval",
+        "accrual_interval",
+        "one_time_fee_rate",
+        "liquidation_cvl",
+        "margin_call_cvl",
+        "initial_cvl",
+        "disbursal_policy"
+      ]
+    },
+    "UsdCents": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "WalletBalance": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "amount",
+        "updated_at"
+      ]
+    },
+    "WalletNetwork": {
+      "type": "string",
+      "enum": [
+        "Testnet3",
+        "Testnet4",
+        "Mainnet"
+      ]
+    }
+  }
+}
