@@ -32,12 +32,6 @@ gql`
       btcBalance
     }
     collateralToMatchInitialCvl @client
-    customer {
-      customerId
-      customerType
-      publicId
-      email
-    }
     creditFacilityTerms {
       annualRate
       accrualInterval

@@ -23,8 +23,6 @@ import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
-import { removeUnderscore } from "@/lib/utils"
-
 type CreditFacilityProposalDetailsCardProps = {
   proposalDetails: NonNullable<
     GetCreditFacilityProposalLayoutDetailsQuery["creditFacilityProposal"]
@@ -45,8 +43,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
   const details: DetailItemProps[] = [
     {
       label: t("details.customer"),
-      value: `${proposalDetails.customer.email} (${removeUnderscore(proposalDetails.customer.customerType)})`,
-      href: `/customers/${proposalDetails.customer.publicId}`,
+      value: "-",
     },
     {
       label: t("details.status"),
@@ -157,7 +154,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
         creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
         approved={true}
         facilityAmount={proposalDetails.facilityAmount}
-        customerEmail={proposalDetails.customer.email}
+        customerEmail="-"
         createdAt={proposalDetails.createdAt}
       />
       <CustomerApprovalDialog
@@ -166,7 +163,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
         creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
         approved={false}
         facilityAmount={proposalDetails.facilityAmount}
-        customerEmail={proposalDetails.customer.email}
+        customerEmail="-"
         createdAt={proposalDetails.createdAt}
       />
     </>

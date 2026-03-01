@@ -1,11 +1,10 @@
+use admin_graphql_accounting::AccountCode;
 use async_graphql::{connection::*, *};
-use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
 use lana_app::{
     accounting::{
-        AccountCode as DomainAccountCode, AccountCodeSection as DomainAccountCodeSection,
         journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
     },
     credit::{COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE},
@@ -353,30 +352,4 @@ struct BtcBalanceDetails {
     debit: Satoshis,
     credit: Satoshis,
     net: SignedSatoshis,
-}
-
-scalar!(AccountCode);
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
-pub struct AccountCode(String);
-
-impl From<&DomainAccountCode> for AccountCode {
-    fn from(value: &DomainAccountCode) -> Self {
-        AccountCode(value.to_string())
-    }
-}
-
-impl TryFrom<AccountCode> for DomainAccountCode {
-    type Error = Box<dyn std::error::Error + Sync + Send>;
-
-    fn try_from(value: AccountCode) -> Result<Self, Self::Error> {
-        Ok(value.0.parse()?)
-    }
-}
-
-impl TryFrom<AccountCode> for Vec<DomainAccountCodeSection> {
-    type Error = Box<dyn std::error::Error + Sync + Send>;
-
-    fn try_from(value: AccountCode) -> Result<Self, Self::Error> {
-        Ok(Self::from(DomainAccountCode::try_from(value)?))
-    }
 }

@@ -6,6 +6,7 @@ pub use lana_app::credit::PaymentAllocation as DomainPaymentAllocation;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
+#[allow(dead_code)]
 pub struct CreditFacilityPaymentAllocation {
     id: ID,
     payment_allocation_id: UUID,
@@ -29,6 +30,7 @@ impl From<DomainPaymentAllocation> for CreditFacilityPaymentAllocation {
 }
 
 #[ComplexObject]
+#[allow(dead_code)]
 impl CreditFacilityPaymentAllocation {
     async fn credit_facility(
         &self,

@@ -5,7 +5,6 @@ import {
   ApprovalProcessType,
   ApprovalRules,
   CollateralDirection,
-  CvlPctDataFragment,
   GetRealtimePriceUpdatesQuery,
 } from "./graphql/generated"
 
@@ -139,11 +138,35 @@ export const getCurrentLocalDate = (): string => {
   return new Date(now.getTime() - offset).toISOString().split("T")[0]
 }
 
-export const formatCvl = (cvl: CvlPctDataFragment): string =>
-  cvl.__typename === "FiniteCvlPct" ? `${Number(cvl.value || 0)}%` : "-"
+type CvlLike =
+  | {
+      __typename?: string
+      value?: number | string | null
+      isInfinite?: boolean | null
+    }
+  | number
+  | string
+  | null
+  | undefined
 
-export const getCvlValue = (cvl: CvlPctDataFragment): number =>
-  cvl.__typename === "FiniteCvlPct" ? Number(cvl.value) : Infinity
+export const getCvlValue = (cvl: CvlLike): number => {
+  if (typeof cvl === "number") return cvl
+  if (typeof cvl === "string") {
+    const parsed = Number(cvl)
+    return Number.isFinite(parsed) ? parsed : Infinity
+  }
+  if (!cvl) return Infinity
+  if (cvl.__typename === "FiniteCvlPct") return Number(cvl.value)
+  if (cvl.__typename === "InfiniteCvlPct") return Infinity
+
+  const parsed = Number(cvl.value)
+  return Number.isFinite(parsed) ? parsed : Infinity
+}
+
+export const formatCvl = (cvl: CvlLike): string => {
+  const value = getCvlValue(cvl)
+  return Number.isFinite(value) ? `${value}%` : "-"
+}
 
 /**
  * Validates and sanitizes a URL to ensure it's a safe internal navigation path.

@@ -27,17 +27,13 @@ gql`
       withdrawal {
         ...WithdrawalFields
         account {
-          customer {
-            id
-            depositAccount {
-              withdrawals {
-                ...WithdrawalFields
-              }
-              balance {
-                settled
-                pending
-              }
-            }
+          customerId
+          withdrawals {
+            ...WithdrawalFields
+          }
+          balance {
+            settled
+            pending
           }
         }
       }

@@ -3,24 +3,219 @@
 version = 4
 
 [[package]]
+name = "admin-graphql-access"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "permission-sets-macro",
+]
+
+[[package]]
+name = "admin-graphql-accounting"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "futures",
+ "lana-app",
+ "obix",
+ "serde",
+]
+
+[[package]]
+name = "admin-graphql-audit"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-access",
+ "admin-graphql-shared",
+ "async-graphql",
+ "audit",
+ "base64",
+ "es-entity",
+ "lana-app",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "admin-graphql-config"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "domain-config",
+ "es-entity",
+ "lana-app",
+ "serde_json",
+]
+
+[[package]]
+name = "admin-graphql-contracts"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "chrono",
+ "lana-app",
+ "rust_decimal",
+ "serde",
+ "uuid",
+]
+
+[[package]]
+name = "admin-graphql-credit"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-contracts",
+ "admin-graphql-custody",
+ "admin-graphql-governance",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "futures",
+ "lana-app",
+ "obix",
+ "tracing",
+]
+
+[[package]]
+name = "admin-graphql-custody"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "url",
+]
+
+[[package]]
+name = "admin-graphql-customer"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-credit",
+ "admin-graphql-deposit",
+ "admin-graphql-documents",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "tracing",
+]
+
+[[package]]
+name = "admin-graphql-deposit"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-governance",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+ "tracing",
+]
+
+[[package]]
+name = "admin-graphql-documents"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "lana-app",
+]
+
+[[package]]
+name = "admin-graphql-governance"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-access",
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "lana-app",
+]
+
+[[package]]
+name = "admin-graphql-price"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "futures",
+ "lana-app",
+ "obix",
+]
+
+[[package]]
+name = "admin-graphql-reports"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-shared",
+ "async-graphql",
+ "es-entity",
+ "futures",
+ "lana-app",
+ "obix",
+]
+
+[[package]]
+name = "admin-graphql-session"
+version = "0.0.0"
+dependencies = [
+ "admin-graphql-access",
+ "admin-graphql-shared",
+ "async-graphql",
+ "lana-app",
+]
+
+[[package]]
+name = "admin-graphql-shared"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "audit",
+ "chrono",
+ "domain-config",
+ "es-entity",
+ "lana-app",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "admin-server"
 version = "0.0.0"
 dependencies = [
+ "admin-graphql-access",
+ "admin-graphql-accounting",
+ "admin-graphql-audit",
+ "admin-graphql-config",
+ "admin-graphql-contracts",
+ "admin-graphql-credit",
+ "admin-graphql-custody",
+ "admin-graphql-customer",
+ "admin-graphql-deposit",
+ "admin-graphql-documents",
+ "admin-graphql-governance",
+ "admin-graphql-price",
+ "admin-graphql-reports",
+ "admin-graphql-session",
+ "admin-graphql-shared",
  "anyhow",
  "async-graphql",
  "async-graphql-axum",
  "audit",
  "axum",
  "base64",
- "chrono",
  "domain-config",
  "es-entity",
  "futures",
  "jwks-utils",
  "lana-app",
- "obix",
- "permission-sets-macro",
- "rust_decimal",
  "serde",
  "serde_json",
  "tokio",

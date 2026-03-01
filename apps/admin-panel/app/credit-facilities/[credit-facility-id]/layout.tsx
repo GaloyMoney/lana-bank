@@ -32,15 +32,7 @@ gql`
     maturesAt
     collateralizationState
     activatedAt
-    currentCvl {
-      __typename
-      ... on FiniteCvlPct {
-        value
-      }
-      ... on InfiniteCvlPct {
-        isInfinite
-      }
-    }
+    currentCvl
     publicId
     collateralToMatchInitialCvl @client
     disbursals {
@@ -119,12 +111,6 @@ gql`
       outstanding
       accrualAt
       dueAt
-    }
-    customer {
-      customerId
-      publicId
-      customerType
-      email
     }
     wallet {
       id

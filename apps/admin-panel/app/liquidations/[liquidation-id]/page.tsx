@@ -43,15 +43,7 @@ gql`
         facilityAmount
         activatedAt
         maturesAt
-        currentCvl {
-          __typename
-          ... on FiniteCvlPct {
-            value
-          }
-          ... on InfiniteCvlPct {
-            isInfinite
-          }
-        }
+        currentCvl
         creditFacilityTerms {
           liquidationCvl {
             __typename
@@ -70,12 +62,6 @@ gql`
           collateral {
             btcBalance
           }
-        }
-        customer {
-          customerId
-          publicId
-          customerType
-          email
         }
       }
     }

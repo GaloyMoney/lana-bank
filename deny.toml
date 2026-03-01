@@ -142,6 +142,81 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
+crate = "admin-graphql-access"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-accounting"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-audit"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-config"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-contracts"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-customer"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-credit"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-custody"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-documents"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-deposit"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-governance"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-price"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-shared"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-reports"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "admin-graphql-session"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
 crate = "audit"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []

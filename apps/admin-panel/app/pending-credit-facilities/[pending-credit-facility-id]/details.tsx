@@ -22,8 +22,6 @@ import {
   PendingCreditFacilityStatus,
 } from "@/lib/graphql/generated"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
-
-import { removeUnderscore } from "@/lib/utils"
 import { mempoolAddressUrl } from "@/app/credit-facilities/[credit-facility-id]/details"
 import { usePublicIdForCreditFacility } from "@/hooks/use-public-id"
 
@@ -51,8 +49,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
   const details: DetailItemProps[] = [
     {
       label: t("details.customer"),
-      value: `${pendingDetails.customer.email} (${removeUnderscore(pendingDetails.customer.customerType)})`,
-      href: `/customers/${pendingDetails.customer.publicId}`,
+      value: "-",
     },
     {
       label: t("details.status"),

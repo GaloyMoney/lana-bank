@@ -28,8 +28,7 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
   const details: DetailItemProps[] = [
     {
       label: t("details.customerEmail"),
-      value: disbursal.creditFacility.customer.email,
-      href: `/customers/${disbursal.creditFacility.customer.publicId}`,
+      value: "-",
     },
     {
       label: t("details.disbursalAmount"),
@@ -52,16 +51,6 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
 
   const footerContent = (
     <>
-      {disbursal.creditFacility.customer.depositAccount && (
-        <Button variant="outline" asChild>
-          <Link
-            href={`/deposit-accounts/${disbursal.creditFacility.customer.depositAccount.publicId}`}
-          >
-            {t("buttons.viewDepositAccount")}
-            <ArrowRight />
-          </Link>
-        </Button>
-      )}
       {disbursal.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
         disbursal.approvalProcess.userCanSubmitDecision && (
           <>

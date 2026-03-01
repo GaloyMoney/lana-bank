@@ -7,13 +7,26 @@ edition = "2024"
 
 fail-on-warnings = []
 mock-custodian = ["lana-app/mock-custodian"]
-sumsub-testing = ["lana-app/sumsub-testing"]
+sumsub-testing = ["lana-app/sumsub-testing", "admin-graphql-session/sumsub-testing"]
 
 [dependencies]
 lana-app = { workspace = true }
+admin-graphql-access = { workspace = true }
+admin-graphql-accounting = { workspace = true }
+admin-graphql-audit = { workspace = true }
+admin-graphql-config = { workspace = true }
+admin-graphql-contracts = { workspace = true }
+admin-graphql-customer = { workspace = true }
+admin-graphql-credit = { workspace = true }
+admin-graphql-custody = { workspace = true }
+admin-graphql-documents = { workspace = true }
+admin-graphql-deposit = { workspace = true }
+admin-graphql-governance = { workspace = true }
+admin-graphql-price = { workspace = true }
+admin-graphql-reports = { workspace = true }
+admin-graphql-session = { workspace = true }
+admin-graphql-shared = { workspace = true }
 domain-config = { workspace = true, features = ["graphql"] }
-permission-sets-macro = { workspace = true }
-obix = { workspace = true }
 audit = { workspace = true }
 tracing-utils = { workspace = true, features = ["http"] }
 jwks-utils = { workspace = true }
@@ -29,11 +42,8 @@ axum = { workspace = true }
 tower-http = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-chrono = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
-rust_decimal = { workspace = true }
 anyhow = { workspace = true }
 
 futures = { workspace = true }
-

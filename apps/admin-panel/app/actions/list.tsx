@@ -39,35 +39,7 @@ gql`
           status
           userCanSubmitDecision
           createdAt
-          target {
-            __typename
-            ... on Withdrawal {
-              withdrawalId
-              publicId
-              account {
-                customer {
-                  email
-                }
-              }
-            }
-            ... on CreditFacilityProposal {
-              creditFacilityProposalId
-              customer {
-                email
-              }
-            }
-            ... on CreditFacilityDisbursal {
-              id
-              disbursalId
-              publicId
-              creditFacility {
-                publicId
-                customer {
-                  email
-                }
-              }
-            }
-          }
+          targetRef
         }
         cursor
       }
@@ -106,41 +78,21 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
   if (loading && !data) return <ActionListSkeleton />
 
   const getVisitUrl = (data: ActionNode): string | null => {
-    if (
-      data.approvalProcessType === ApprovalProcessType.CreditFacilityProposalApproval &&
-      data.target.__typename === "CreditFacilityProposal"
-    ) {
-      return `/credit-facility-proposals/${data.target.creditFacilityProposalId}`
-    } else if (
-      data.approvalProcessType === ApprovalProcessType.WithdrawalApproval &&
-      data.target.__typename === "Withdrawal"
-    ) {
-      return `/withdrawals/${data.target.publicId}`
-    } else if (
-      data.approvalProcessType === ApprovalProcessType.DisbursalApproval &&
-      data.target.__typename === "CreditFacilityDisbursal"
-    ) {
-      return `/disbursals/${data.target.publicId}`
+    if (data.approvalProcessType === ApprovalProcessType.CreditFacilityProposalApproval) {
+      return `/credit-facility-proposals/${data.targetRef}`
+    } else if (data.approvalProcessType === ApprovalProcessType.WithdrawalApproval) {
+      return `/withdrawals/${data.targetRef}`
+    } else if (data.approvalProcessType === ApprovalProcessType.DisbursalApproval) {
+      return `/disbursals/${data.targetRef}`
     }
     return null
   }
 
   const columns: Column<ActionNode>[] = [
     {
-      key: "target",
+      key: "targetRef",
       header: t("headers.customer"),
-      render: (target) => {
-        switch (target.__typename) {
-          case "CreditFacilityDisbursal":
-            return target.creditFacility.customer.email
-          case "CreditFacilityProposal":
-            return target.customer.email
-          case "Withdrawal":
-            return target.account.customer.email
-          default:
-            return t("values.unknown")
-        }
-      },
+      render: (targetRef) => targetRef || t("values.unknown"),
     },
     {
       key: "approvalProcessType",

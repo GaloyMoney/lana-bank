@@ -5,7 +5,6 @@ import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
   CreditFacilityStatus,
-  CvlPctDataFragment,
   GetCreditFacilityLayoutDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
@@ -18,11 +17,13 @@ type CreditFacilityOverviewProps = {
   >
 }
 
+type CvlValue = number | string | { __typename?: string; value?: number | string | null }
+
 const getCvlStatus = (
-  currentCvl: CvlPctDataFragment,
-  initialCvl: CvlPctDataFragment,
-  marginCallCvl: CvlPctDataFragment,
-  liquidationCvl: CvlPctDataFragment,
+  currentCvl: CvlValue,
+  initialCvl: CvlValue,
+  marginCallCvl: CvlValue,
+  liquidationCvl: CvlValue,
   t: (key: string) => string,
 ) => {
   const currentVal = getCvlValue(currentCvl)
@@ -38,10 +39,10 @@ const getCvlStatus = (
 }
 
 const CvlStatusText: React.FC<{
-  currentCvl: CvlPctDataFragment
-  initialCvl: CvlPctDataFragment
-  marginCallCvl: CvlPctDataFragment
-  liquidationCvl: CvlPctDataFragment
+  currentCvl: CvlValue
+  initialCvl: CvlValue
+  marginCallCvl: CvlValue
+  liquidationCvl: CvlValue
   t: (key: string) => string
 }> = ({ currentCvl, initialCvl, marginCallCvl, liquidationCvl, t }) => {
   const { label, color } = getCvlStatus(

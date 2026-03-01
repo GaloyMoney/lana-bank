@@ -30,10 +30,6 @@ gql`
           createdAt
           facilityAmount
           status
-          customer {
-            customerId
-            email
-          }
         }
       }
       pageInfo {
@@ -81,21 +77,15 @@ const columns = (t: (key: string) => string): Column<CreditFacilityProposal>[] =
     render: (status) => <CreditFacilityProposalStatusBadge status={status} />,
   },
   {
-    key: "customer",
-    label: t("table.headers.customer"),
-    labelClassName: "w-[40%]",
-    render: (customer) => <div className="truncate">{customer.email}</div>,
-  },
-  {
     key: "facilityAmount",
     label: t("table.headers.facilityAmount"),
-    labelClassName: "w-[25%]",
+    labelClassName: "w-[40%]",
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
   {
     key: "createdAt",
     label: t("table.headers.createdAt"),
-    labelClassName: "w-[15%]",
+    labelClassName: "w-[25%]",
     render: (date) => <DateWithTooltip value={date} />,
   },
 ]

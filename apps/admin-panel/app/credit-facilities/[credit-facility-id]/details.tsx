@@ -9,7 +9,7 @@ import { formatDate } from "@lana/web/utils"
 
 import { toast } from "sonner"
 
-import { ExternalLinkIcon, FileText, Download, RefreshCw } from "lucide-react"
+import { ExternalLinkIcon, FileText, RefreshCw } from "lucide-react"
 
 import { Label } from "@lana/web/ui/label"
 
@@ -26,9 +26,7 @@ import {
 } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { removeUnderscore } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
-import { useLoanAgreement } from "@/hooks/use-loan-agreement"
 
 type CreditFacilityDetailsProps = {
   creditFacilityDetails: NonNullable<
@@ -46,22 +44,11 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
 
-  const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
-
-  const handleGenerateLoanAgreement = () => {
-    generateLoanAgreementPdf(creditFacilityDetails.customer.customerId)
-  }
-
   const monthlyPaymentAmount = creditFacilityDetails.repaymentPlan.find(
     (plan) => plan.repaymentType === CreditFacilityRepaymentType.Interest,
   )?.initial
 
   const details: DetailItemProps[] = [
-    {
-      label: t("details.customer"),
-      value: `${creditFacilityDetails.customer.email} (${removeUnderscore(creditFacilityDetails.customer.customerType)})`,
-      href: `/customers/${creditFacilityDetails.customer.publicId}`,
-    },
     {
       label: t("details.status"),
       value: (
@@ -142,15 +129,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       >
         <FileText className="h-4 w-4 mr-2" />
         {t("buttons.loanTerms")}
-      </Button>
-      <Button
-        variant="outline"
-        onClick={handleGenerateLoanAgreement}
-        loading={isGenerating}
-        data-testid="loan-agreement-button"
-      >
-        <Download className="h-4 w-4 mr-2" />
-        {t("buttons.loanAgreement")}
       </Button>
       {creditFacilityDetails.userCanUpdateCollateral && (
         <Button

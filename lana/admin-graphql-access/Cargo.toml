@@ -1,0 +1,13 @@
+[package]
+name = "admin-graphql-access"
+license = "BUSL-1.1"
+edition = "2024"
+
+[dependencies]
+lana-app = { workspace = true }
+admin-graphql-shared = { path = "../admin-graphql-shared" }
+es-entity = { workspace = true }
+async-graphql = { workspace = true }
+permission-sets-macro = { workspace = true }
+[package.metadata.cargo-machete]
+ignored = ["es-entity"]
