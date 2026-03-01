@@ -33,7 +33,7 @@ gql`
   }
 
   query LoanAgreement($id: UUID!) {
-    loanAgreement(id: $id) {
+    loanAgreement(loanAgreementId: $id) {
       id
       status
       createdAt

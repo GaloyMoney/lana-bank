@@ -22,7 +22,7 @@ import { useLedgerTransactionLazyQuery } from "@/lib/graphql/generated"
 
 gql`
   query LedgerTransactionExistsById($id: UUID!) {
-    ledgerTransaction(id: $id) {
+    ledgerTransaction(ledgerTransactionId: $id) {
       id
     }
   }

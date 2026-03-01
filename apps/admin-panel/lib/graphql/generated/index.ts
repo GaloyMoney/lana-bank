@@ -1777,6 +1777,7 @@ export type LoanAgreement = {
   __typename?: 'LoanAgreement';
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
+  loanAgreementId: Scalars['UUID']['output'];
   status: LoanAgreementStatus;
 };
 
@@ -2562,7 +2563,7 @@ export type QueryAccountEntryCsvArgs = {
 
 
 export type QueryApprovalProcessArgs = {
-  id: Scalars['UUID']['input'];
+  approvalProcessId: Scalars['UUID']['input'];
 };
 
 
@@ -2589,7 +2590,7 @@ export type QueryBalanceSheetArgs = {
 
 
 export type QueryCommitteeArgs = {
-  id: Scalars['UUID']['input'];
+  committeeId: Scalars['UUID']['input'];
 };
 
 
@@ -2608,17 +2609,17 @@ export type QueryCreditFacilitiesArgs = {
 
 
 export type QueryCreditFacilityArgs = {
-  id: Scalars['UUID']['input'];
+  creditFacilityId: Scalars['UUID']['input'];
 };
 
 
 export type QueryCreditFacilityByPublicIdArgs = {
-  id: Scalars['PublicId']['input'];
+  publicId: Scalars['PublicId']['input'];
 };
 
 
 export type QueryCreditFacilityProposalArgs = {
-  id: Scalars['UUID']['input'];
+  creditFacilityProposalId: Scalars['UUID']['input'];
 };
 
 
@@ -2635,7 +2636,7 @@ export type QueryCustodiansArgs = {
 
 
 export type QueryCustomerArgs = {
-  id: Scalars['UUID']['input'];
+  customerId: Scalars['UUID']['input'];
 };
 
 
@@ -2645,12 +2646,12 @@ export type QueryCustomerByEmailArgs = {
 
 
 export type QueryCustomerByPublicIdArgs = {
-  id: Scalars['PublicId']['input'];
+  publicId: Scalars['PublicId']['input'];
 };
 
 
 export type QueryCustomerDocumentArgs = {
-  id: Scalars['UUID']['input'];
+  customerDocumentId: Scalars['UUID']['input'];
 };
 
 
@@ -2663,17 +2664,17 @@ export type QueryCustomersArgs = {
 
 
 export type QueryDepositArgs = {
-  id: Scalars['UUID']['input'];
+  depositId: Scalars['UUID']['input'];
 };
 
 
 export type QueryDepositAccountArgs = {
-  id: Scalars['UUID']['input'];
+  depositAccountId: Scalars['UUID']['input'];
 };
 
 
 export type QueryDepositAccountByPublicIdArgs = {
-  id: Scalars['PublicId']['input'];
+  publicId: Scalars['PublicId']['input'];
 };
 
 
@@ -2684,7 +2685,7 @@ export type QueryDepositAccountsArgs = {
 
 
 export type QueryDepositByPublicIdArgs = {
-  id: Scalars['PublicId']['input'];
+  publicId: Scalars['PublicId']['input'];
 };
 
 
@@ -2700,12 +2701,12 @@ export type QueryDescendantAccountSetsByCategoryArgs = {
 
 
 export type QueryDisbursalArgs = {
-  id: Scalars['UUID']['input'];
+  disbursalId: Scalars['UUID']['input'];
 };
 
 
 export type QueryDisbursalByPublicIdArgs = {
-  id: Scalars['PublicId']['input'];
+  publicId: Scalars['PublicId']['input'];
 };
 
 
@@ -2744,7 +2745,7 @@ export type QueryJournalEntriesArgs = {
 
 
 export type QueryLedgerAccountArgs = {
-  id: Scalars['UUID']['input'];
+  ledgerAccountId: Scalars['UUID']['input'];
 };
 
 
@@ -2754,7 +2755,7 @@ export type QueryLedgerAccountByCodeArgs = {
 
 
 export type QueryLedgerTransactionArgs = {
-  id: Scalars['UUID']['input'];
+  ledgerTransactionId: Scalars['UUID']['input'];
 };
 
 
@@ -2766,7 +2767,7 @@ export type QueryLedgerTransactionsForTemplateCodeArgs = {
 
 
 export type QueryLiquidationArgs = {
-  id: Scalars['UUID']['input'];
+  liquidationId: Scalars['UUID']['input'];
 };
 
 
@@ -2777,7 +2778,7 @@ export type QueryLiquidationsArgs = {
 
 
 export type QueryLoanAgreementArgs = {
-  id: Scalars['UUID']['input'];
+  loanAgreementId: Scalars['UUID']['input'];
 };
 
 
@@ -2788,7 +2789,7 @@ export type QueryPendingCreditFacilitiesArgs = {
 
 
 export type QueryPendingCreditFacilityArgs = {
-  id: Scalars['UUID']['input'];
+  pendingCreditFacilityId: Scalars['UUID']['input'];
 };
 
 
@@ -2805,7 +2806,7 @@ export type QueryPoliciesArgs = {
 
 
 export type QueryPolicyArgs = {
-  id: Scalars['UUID']['input'];
+  policyId: Scalars['UUID']['input'];
 };
 
 
@@ -2816,12 +2817,12 @@ export type QueryProfitAndLossStatementArgs = {
 
 
 export type QueryProspectArgs = {
-  id: Scalars['UUID']['input'];
+  prospectId: Scalars['UUID']['input'];
 };
 
 
 export type QueryProspectByPublicIdArgs = {
-  id: Scalars['PublicId']['input'];
+  publicId: Scalars['PublicId']['input'];
 };
 
 
@@ -2833,12 +2834,12 @@ export type QueryProspectsArgs = {
 
 
 export type QueryPublicIdTargetArgs = {
-  id: Scalars['PublicId']['input'];
+  publicId: Scalars['PublicId']['input'];
 };
 
 
 export type QueryReportRunArgs = {
-  id: Scalars['UUID']['input'];
+  reportRunId: Scalars['UUID']['input'];
 };
 
 
@@ -2849,7 +2850,7 @@ export type QueryReportRunsArgs = {
 
 
 export type QueryRoleArgs = {
-  id: Scalars['UUID']['input'];
+  roleId: Scalars['UUID']['input'];
 };
 
 
@@ -2860,7 +2861,7 @@ export type QueryRolesArgs = {
 
 
 export type QueryTermsTemplateArgs = {
-  id: Scalars['UUID']['input'];
+  termsTemplateId: Scalars['UUID']['input'];
 };
 
 
@@ -2877,17 +2878,17 @@ export type QueryTrialBalanceArgs = {
 
 
 export type QueryUserArgs = {
-  id: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
 };
 
 
 export type QueryWithdrawalArgs = {
-  id: Scalars['UUID']['input'];
+  withdrawalId: Scalars['UUID']['input'];
 };
 
 
 export type QueryWithdrawalByPublicIdArgs = {
-  id: Scalars['PublicId']['input'];
+  publicId: Scalars['PublicId']['input'];
 };
 
 
@@ -3131,7 +3132,7 @@ export type TermsTemplate = {
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  termsId: Scalars['UUID']['output'];
+  termsTemplateId: Scalars['UUID']['output'];
   userCanUpdateTermsTemplate: Scalars['Boolean']['output'];
   values: TermValues;
 };
@@ -3163,7 +3164,6 @@ export type TermsTemplateUpdateInput = {
   annualRate: Scalars['AnnualRatePct']['input'];
   disbursalPolicy: DisbursalPolicy;
   duration: DurationInput;
-  id: Scalars['UUID']['input'];
   initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
   liquidationCvl: Scalars['CVLPctValue']['input'];
@@ -3171,6 +3171,7 @@ export type TermsTemplateUpdateInput = {
   obligationLiquidationDurationFromDue: DurationInput;
   obligationOverdueDurationFromDue: DurationInput;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
+  termsTemplateId: Scalars['UUID']['input'];
 };
 
 export type TermsTemplateUpdatePayload = {
@@ -3188,7 +3189,8 @@ export type Transaction = Deposit | Withdrawal;
 export type TransactionTemplate = {
   __typename?: 'TransactionTemplate';
   code: Scalars['String']['output'];
-  id: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  transactionTemplateId: Scalars['UUID']['output'];
 };
 
 export type TransactionTemplateConnection = {
@@ -3277,8 +3279,8 @@ export type UserCreatePayload = {
 };
 
 export type UserUpdateRoleInput = {
-  id: Scalars['UUID']['input'];
   roleId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
 };
 
 export type UserUpdateRolePayload = {
@@ -4719,7 +4721,7 @@ export type TermsTemplateQueryVariables = Exact<{
 }>;
 
 
-export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4735,7 +4737,7 @@ export type UpdateTermsTemplateMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4751,7 +4753,7 @@ export type CreateTermsTemplateMutationVariables = Exact<{
 }>;
 
 
-export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4762,7 +4764,7 @@ export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTempla
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
-export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , marginCallCvl:
@@ -4776,7 +4778,7 @@ export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: st
 export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
+export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsTemplateId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -5882,7 +5884,7 @@ export const TermsTemplateFieldsFragmentDoc = gql`
     fragment TermsTemplateFields on TermsTemplate {
   id
   name
-  termsId
+  termsTemplateId
   createdAt
   userCanUpdateTermsTemplate
   values {
@@ -6596,7 +6598,7 @@ export type ChartOfAccountsCsvImportWithBaseConfigMutationResult = Apollo.Mutati
 export type ChartOfAccountsCsvImportWithBaseConfigMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>;
 export const GetCommitteeDetailsDocument = gql`
     query GetCommitteeDetails($id: UUID!) {
-  committee(id: $id) {
+  committee(committeeId: $id) {
     ...CommitteeFields
   }
 }
@@ -6896,7 +6898,7 @@ export type DomainConfigUpdateMutationResult = Apollo.MutationResult<DomainConfi
 export type DomainConfigUpdateMutationOptions = Apollo.BaseMutationOptions<DomainConfigUpdateMutation, DomainConfigUpdateMutationVariables>;
 export const GetCreditFacilityDisbursalsDocument = gql`
     query GetCreditFacilityDisbursals($publicId: PublicId!) {
-  creditFacilityByPublicId(id: $publicId) {
+  creditFacilityByPublicId(publicId: $publicId) {
     id
     creditFacilityId
     disbursals {
@@ -6943,7 +6945,7 @@ export type GetCreditFacilityDisbursalsSuspenseQueryHookResult = ReturnType<type
 export type GetCreditFacilityDisbursalsQueryResult = Apollo.QueryResult<GetCreditFacilityDisbursalsQuery, GetCreditFacilityDisbursalsQueryVariables>;
 export const GetCreditFacilityLayoutDetailsDocument = gql`
     query GetCreditFacilityLayoutDetails($publicId: PublicId!) {
-  creditFacilityByPublicId(id: $publicId) {
+  creditFacilityByPublicId(publicId: $publicId) {
     ...CreditFacilityLayoutFragment
   }
 }
@@ -7018,7 +7020,7 @@ export type CreditFacilityCollateralizationUpdatedSubscriptionHookResult = Retur
 export type CreditFacilityCollateralizationUpdatedSubscriptionResult = Apollo.SubscriptionResult<CreditFacilityCollateralizationUpdatedSubscription>;
 export const CreditFacilityLedgerAccountsDocument = gql`
     query CreditFacilityLedgerAccounts($publicId: PublicId!) {
-  creditFacilityByPublicId(id: $publicId) {
+  creditFacilityByPublicId(publicId: $publicId) {
     id
     ledgerAccounts {
       facilityAccount {
@@ -7114,7 +7116,7 @@ export type CreditFacilityLedgerAccountsSuspenseQueryHookResult = ReturnType<typ
 export type CreditFacilityLedgerAccountsQueryResult = Apollo.QueryResult<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>;
 export const GetCreditFacilityLiquidationsDocument = gql`
     query GetCreditFacilityLiquidations($publicId: PublicId!) {
-  creditFacilityByPublicId(id: $publicId) {
+  creditFacilityByPublicId(publicId: $publicId) {
     id
     creditFacilityId
     liquidations {
@@ -7161,7 +7163,7 @@ export type GetCreditFacilityLiquidationsSuspenseQueryHookResult = ReturnType<ty
 export type GetCreditFacilityLiquidationsQueryResult = Apollo.QueryResult<GetCreditFacilityLiquidationsQuery, GetCreditFacilityLiquidationsQueryVariables>;
 export const GetCreditFacilityHistoryDocument = gql`
     query GetCreditFacilityHistory($publicId: PublicId!) {
-  creditFacilityByPublicId(id: $publicId) {
+  creditFacilityByPublicId(publicId: $publicId) {
     ...CreditFacilityHistoryFragment
   }
 }
@@ -7204,7 +7206,7 @@ export type GetCreditFacilityHistorySuspenseQueryHookResult = ReturnType<typeof 
 export type GetCreditFacilityHistoryQueryResult = Apollo.QueryResult<GetCreditFacilityHistoryQuery, GetCreditFacilityHistoryQueryVariables>;
 export const GetCreditFacilityRepaymentPlanDocument = gql`
     query GetCreditFacilityRepaymentPlan($publicId: PublicId!) {
-  creditFacilityByPublicId(id: $publicId) {
+  creditFacilityByPublicId(publicId: $publicId) {
     id
     creditFacilityId
     repaymentPlan {
@@ -7493,7 +7495,7 @@ export type CreditFacilityProposalCustomerApprovalConcludeMutationResult = Apoll
 export type CreditFacilityProposalCustomerApprovalConcludeMutationOptions = Apollo.BaseMutationOptions<CreditFacilityProposalCustomerApprovalConcludeMutation, CreditFacilityProposalCustomerApprovalConcludeMutationVariables>;
 export const GetCreditFacilityProposalLayoutDetailsDocument = gql`
     query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: UUID!) {
-  creditFacilityProposal(id: $creditFacilityProposalId) {
+  creditFacilityProposal(creditFacilityProposalId: $creditFacilityProposalId) {
     ...CreditFacilityProposalLayoutFragment
   }
 }
@@ -7571,7 +7573,7 @@ export type CreditFacilityProposalConcludedSubscriptionHookResult = ReturnType<t
 export type CreditFacilityProposalConcludedSubscriptionResult = Apollo.SubscriptionResult<CreditFacilityProposalConcludedSubscription>;
 export const GetCreditFacilityProposalRepaymentPlanDocument = gql`
     query GetCreditFacilityProposalRepaymentPlan($id: UUID!) {
-  creditFacilityProposal(id: $id) {
+  creditFacilityProposal(creditFacilityProposalId: $id) {
     id
     creditFacilityProposalId
     repaymentPlan {
@@ -7815,7 +7817,7 @@ export type CustodiansSuspenseQueryHookResult = ReturnType<typeof useCustodiansS
 export type CustodiansQueryResult = Apollo.QueryResult<CustodiansQuery, CustodiansQueryVariables>;
 export const GetCustomerCreditFacilityProposalsDocument = gql`
     query GetCustomerCreditFacilityProposals($id: PublicId!) {
-  customerByPublicId(id: $id) {
+  customerByPublicId(publicId: $id) {
     id
     creditFacilityProposals {
       id
@@ -7973,7 +7975,7 @@ export type CustomerDocumentAttachMutationResult = Apollo.MutationResult<Custome
 export type CustomerDocumentAttachMutationOptions = Apollo.BaseMutationOptions<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>;
 export const GetCustomerDocumentsDocument = gql`
     query GetCustomerDocuments($id: PublicId!) {
-  customerByPublicId(id: $id) {
+  customerByPublicId(publicId: $id) {
     id
     customerId
     documents {
@@ -8022,7 +8024,7 @@ export type GetCustomerDocumentsSuspenseQueryHookResult = ReturnType<typeof useG
 export type GetCustomerDocumentsQueryResult = Apollo.QueryResult<GetCustomerDocumentsQuery, GetCustomerDocumentsQueryVariables>;
 export const GetCustomerBasicDetailsDocument = gql`
     query GetCustomerBasicDetails($id: PublicId!) {
-  customerByPublicId(id: $id) {
+  customerByPublicId(publicId: $id) {
     ...CustomerDetailsFragment
   }
 }
@@ -8065,7 +8067,7 @@ export type GetCustomerBasicDetailsSuspenseQueryHookResult = ReturnType<typeof u
 export type GetCustomerBasicDetailsQueryResult = Apollo.QueryResult<GetCustomerBasicDetailsQuery, GetCustomerBasicDetailsQueryVariables>;
 export const GetCustomerCreditFacilitiesDocument = gql`
     query GetCustomerCreditFacilities($id: PublicId!) {
-  customerByPublicId(id: $id) {
+  customerByPublicId(publicId: $id) {
     id
     creditFacilities {
       id
@@ -8124,7 +8126,7 @@ export type GetCustomerCreditFacilitiesSuspenseQueryHookResult = ReturnType<type
 export type GetCustomerCreditFacilitiesQueryResult = Apollo.QueryResult<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>;
 export const GetCustomerPendingCreditFacilitiesDocument = gql`
     query GetCustomerPendingCreditFacilities($id: PublicId!) {
-  customerByPublicId(id: $id) {
+  customerByPublicId(publicId: $id) {
     id
     pendingCreditFacilities {
       id
@@ -8440,7 +8442,7 @@ export type DepositAccountFreezeMutationResult = Apollo.MutationResult<DepositAc
 export type DepositAccountFreezeMutationOptions = Apollo.BaseMutationOptions<DepositAccountFreezeMutation, DepositAccountFreezeMutationVariables>;
 export const GetDepositAccountDetailsDocument = gql`
     query GetDepositAccountDetails($publicId: PublicId!, $first: Int!, $after: String) {
-  depositAccountByPublicId(id: $publicId) {
+  depositAccountByPublicId(publicId: $publicId) {
     ...DepositAccountDetailsFragment
     history(first: $first, after: $after) {
       pageInfo {
@@ -8702,7 +8704,7 @@ export type DepositAccountsSuspenseQueryHookResult = ReturnType<typeof useDeposi
 export type DepositAccountsQueryResult = Apollo.QueryResult<DepositAccountsQuery, DepositAccountsQueryVariables>;
 export const GetDepositDetailsDocument = gql`
     query GetDepositDetails($publicId: PublicId!) {
-  depositByPublicId(id: $publicId) {
+  depositByPublicId(publicId: $publicId) {
     ...DepositDetailsPageFragment
   }
 }
@@ -8889,7 +8891,7 @@ export type DepositsSuspenseQueryHookResult = ReturnType<typeof useDepositsSuspe
 export type DepositsQueryResult = Apollo.QueryResult<DepositsQuery, DepositsQueryVariables>;
 export const GetDisbursalDetailsDocument = gql`
     query GetDisbursalDetails($publicId: PublicId!) {
-  disbursalByPublicId(id: $publicId) {
+  disbursalByPublicId(publicId: $publicId) {
     id
     disbursalId
     amount
@@ -9635,7 +9637,7 @@ export type LedgerAccountByCodeSuspenseQueryHookResult = ReturnType<typeof useLe
 export type LedgerAccountByCodeQueryResult = Apollo.QueryResult<LedgerAccountByCodeQuery, LedgerAccountByCodeQueryVariables>;
 export const LedgerAccountDocument = gql`
     query LedgerAccount($id: UUID!, $first: Int!, $after: String) {
-  ledgerAccount(id: $id) {
+  ledgerAccount(ledgerAccountId: $id) {
     ...LedgerAccountDetails
   }
 }
@@ -9723,7 +9725,7 @@ export type LedgerAccountExistsByCodeSuspenseQueryHookResult = ReturnType<typeof
 export type LedgerAccountExistsByCodeQueryResult = Apollo.QueryResult<LedgerAccountExistsByCodeQuery, LedgerAccountExistsByCodeQueryVariables>;
 export const LedgerAccountExistsByIdDocument = gql`
     query LedgerAccountExistsById($id: UUID!) {
-  ledgerAccount(id: $id) {
+  ledgerAccount(ledgerAccountId: $id) {
     id
   }
 }
@@ -9766,7 +9768,7 @@ export type LedgerAccountExistsByIdSuspenseQueryHookResult = ReturnType<typeof u
 export type LedgerAccountExistsByIdQueryResult = Apollo.QueryResult<LedgerAccountExistsByIdQuery, LedgerAccountExistsByIdQueryVariables>;
 export const LedgerTransactionDocument = gql`
     query LedgerTransaction($id: UUID!) {
-  ledgerTransaction(id: $id) {
+  ledgerTransaction(ledgerTransactionId: $id) {
     id
     ledgerTransactionId
     createdAt
@@ -9860,7 +9862,7 @@ export type LedgerTransactionSuspenseQueryHookResult = ReturnType<typeof useLedg
 export type LedgerTransactionQueryResult = Apollo.QueryResult<LedgerTransactionQuery, LedgerTransactionQueryVariables>;
 export const LedgerTransactionExistsByIdDocument = gql`
     query LedgerTransactionExistsById($id: UUID!) {
-  ledgerTransaction(id: $id) {
+  ledgerTransaction(ledgerTransactionId: $id) {
     id
   }
 }
@@ -9903,7 +9905,7 @@ export type LedgerTransactionExistsByIdSuspenseQueryHookResult = ReturnType<type
 export type LedgerTransactionExistsByIdQueryResult = Apollo.QueryResult<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables>;
 export const GetLiquidationDetailsDocument = gql`
     query GetLiquidationDetails($liquidationId: UUID!) {
-  liquidation(id: $liquidationId) {
+  liquidation(liquidationId: $liquidationId) {
     ...LiquidationDetails
   }
 }
@@ -10480,7 +10482,7 @@ export type CreditAccountSetOptionsSuspenseQueryHookResult = ReturnType<typeof u
 export type CreditAccountSetOptionsQueryResult = Apollo.QueryResult<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>;
 export const GetPendingCreditFacilityLayoutDetailsDocument = gql`
     query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: UUID!) {
-  pendingCreditFacility(id: $pendingCreditFacilityId) {
+  pendingCreditFacility(pendingCreditFacilityId: $pendingCreditFacilityId) {
     ...PendingCreditFacilityLayoutFragment
   }
 }
@@ -10591,7 +10593,7 @@ export type PendingCreditFacilityCompletedSubscriptionHookResult = ReturnType<ty
 export type PendingCreditFacilityCompletedSubscriptionResult = Apollo.SubscriptionResult<PendingCreditFacilityCompletedSubscription>;
 export const GetPendingCreditFacilityRepaymentPlanDocument = gql`
     query GetPendingCreditFacilityRepaymentPlan($id: UUID!) {
-  pendingCreditFacility(id: $id) {
+  pendingCreditFacility(pendingCreditFacilityId: $id) {
     id
     pendingCreditFacilityId
     repaymentPlan {
@@ -10786,7 +10788,7 @@ export type PolicyAssignCommitteeMutationResult = Apollo.MutationResult<PolicyAs
 export type PolicyAssignCommitteeMutationOptions = Apollo.BaseMutationOptions<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>;
 export const GetPolicyDetailsDocument = gql`
     query GetPolicyDetails($id: UUID!) {
-  policy(id: $id) {
+  policy(policyId: $id) {
     id
     policyId
     approvalProcessType
@@ -11091,7 +11093,7 @@ export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPe
 export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
 export const GetProspectBasicDetailsDocument = gql`
     query GetProspectBasicDetails($id: PublicId!) {
-  prospectByPublicId(id: $id) {
+  prospectByPublicId(publicId: $id) {
     ...ProspectDetailsFragment
   }
 }
@@ -11240,7 +11242,7 @@ export type ProspectsSuspenseQueryHookResult = ReturnType<typeof useProspectsSus
 export type ProspectsQueryResult = Apollo.QueryResult<ProspectsQuery, ProspectsQueryVariables>;
 export const ReportRunByIdDocument = gql`
     query ReportRunById($reportRunId: UUID!) {
-  reportRun(id: $reportRunId) {
+  reportRun(reportRunId: $reportRunId) {
     id
     reportRunId
     state
@@ -11520,7 +11522,7 @@ export type RoleRemovePermissionSetsMutationResult = Apollo.MutationResult<RoleR
 export type RoleRemovePermissionSetsMutationOptions = Apollo.BaseMutationOptions<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>;
 export const RoleDocument = gql`
     query Role($id: UUID!) {
-  role(id: $id) {
+  role(roleId: $id) {
     ...RoleFields
   }
 }
@@ -11694,7 +11696,7 @@ export type RolesSuspenseQueryHookResult = ReturnType<typeof useRolesSuspenseQue
 export type RolesQueryResult = Apollo.QueryResult<RolesQuery, RolesQueryVariables>;
 export const TermsTemplateDocument = gql`
     query TermsTemplate($id: UUID!) {
-  termsTemplate(id: $id) {
+  termsTemplate(termsTemplateId: $id) {
     ...TermsTemplateFields
   }
 }
@@ -12015,7 +12017,7 @@ export type GetTrialBalanceSuspenseQueryHookResult = ReturnType<typeof useGetTri
 export type GetTrialBalanceQueryResult = Apollo.QueryResult<GetTrialBalanceQuery, GetTrialBalanceQueryVariables>;
 export const GetUserDetailsDocument = gql`
     query GetUserDetails($id: UUID!) {
-  user(id: $id) {
+  user(userId: $id) {
     ...UserFields
   }
 }
@@ -12240,7 +12242,7 @@ export type WithdrawalConfirmMutationResult = Apollo.MutationResult<WithdrawalCo
 export type WithdrawalConfirmMutationOptions = Apollo.BaseMutationOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
 export const GetWithdrawalDetailsDocument = gql`
     query GetWithdrawalDetails($publicId: PublicId!) {
-  withdrawalByPublicId(id: $publicId) {
+  withdrawalByPublicId(publicId: $publicId) {
     ...WithdrawDetailsPageFragment
   }
 }
@@ -12613,7 +12615,7 @@ export type LoanAgreementDownloadLinkGenerateMutationResult = Apollo.MutationRes
 export type LoanAgreementDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>;
 export const LoanAgreementDocument = gql`
     query LoanAgreement($id: UUID!) {
-  loanAgreement(id: $id) {
+  loanAgreement(loanAgreementId: $id) {
     id
     status
     createdAt
@@ -12658,7 +12660,7 @@ export type LoanAgreementSuspenseQueryHookResult = ReturnType<typeof useLoanAgre
 export type LoanAgreementQueryResult = Apollo.QueryResult<LoanAgreementQuery, LoanAgreementQueryVariables>;
 export const SearchPublicIdTargetDocument = gql`
     query SearchPublicIdTarget($publicId: PublicId!) {
-  publicIdTarget(id: $publicId) {
+  publicIdTarget(publicId: $publicId) {
     __typename
     ... on Customer {
       id
@@ -12744,7 +12746,7 @@ export type SearchPublicIdTargetSuspenseQueryHookResult = ReturnType<typeof useS
 export type SearchPublicIdTargetQueryResult = Apollo.QueryResult<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables>;
 export const GetCreditFacilityPublicIdDocument = gql`
     query GetCreditFacilityPublicId($id: UUID!) {
-  creditFacility(id: $id) {
+  creditFacility(creditFacilityId: $id) {
     publicId
   }
 }

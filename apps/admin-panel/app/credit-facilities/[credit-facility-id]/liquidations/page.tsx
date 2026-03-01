@@ -19,7 +19,7 @@ gql`
   }
 
   query GetCreditFacilityLiquidations($publicId: PublicId!) {
-    creditFacilityByPublicId(id: $publicId) {
+    creditFacilityByPublicId(publicId: $publicId) {
       id
       creditFacilityId
       liquidations {

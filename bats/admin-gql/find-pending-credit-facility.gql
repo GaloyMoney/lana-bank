@@ -1,5 +1,5 @@
 query pendingCreditFacility($id: UUID!) {
-  pendingCreditFacility(id: $id) {
+  pendingCreditFacility(pendingCreditFacilityId: $id) {
     pendingCreditFacilityId
     collateralId
     status

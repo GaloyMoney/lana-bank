@@ -27,7 +27,7 @@ import { TableLoadingSkeleton } from "@/components/table-loading-skeleton"
 
 gql`
   query ReportRunById($reportRunId: UUID!) {
-    reportRun(id: $reportRunId) {
+    reportRun(reportRunId: $reportRunId) {
       id
       reportRunId
       state

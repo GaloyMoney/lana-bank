@@ -91,7 +91,7 @@ gql`
   }
 
   query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: UUID!) {
-    pendingCreditFacility(id: $pendingCreditFacilityId) {
+    pendingCreditFacility(pendingCreditFacilityId: $pendingCreditFacilityId) {
       ...PendingCreditFacilityLayoutFragment
     }
   }

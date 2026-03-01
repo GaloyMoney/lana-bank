@@ -60,7 +60,7 @@ gql`
   }
 
   query GetWithdrawalDetails($publicId: PublicId!) {
-    withdrawalByPublicId(id: $publicId) {
+    withdrawalByPublicId(publicId: $publicId) {
       ...WithdrawDetailsPageFragment
     }
   }

@@ -149,7 +149,9 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
         },
         onCompleted: (data) => {
           toast.success(t("success.created"))
-          navigate(`/terms-templates/${data.termsTemplateCreate.termsTemplate.termsId}`)
+          navigate(
+            `/terms-templates/${data.termsTemplateCreate.termsTemplate.termsTemplateId}`,
+          )
         },
       })
     } catch (error) {

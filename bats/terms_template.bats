@@ -39,7 +39,7 @@ teardown_file() {
 
   exec_admin_graphql 'terms-template-create' "$variables"
 
-  terms_template_id=$(graphql_output '.data.termsTemplateCreate.termsTemplate.termsId')
+  terms_template_id=$(graphql_output '.data.termsTemplateCreate.termsTemplate.termsTemplateId')
   [[ "$terms_template_id" != "null" ]] || exit 1
 
   cache_value 'terms_template_id' "$terms_template_id"
@@ -50,10 +50,10 @@ teardown_file() {
 
   variables=$(
     jq -n \
-    --arg id "$terms_template_id" \
+    --arg termsTemplateId "$terms_template_id" \
     '{
       input: {
-        id: $id,
+        termsTemplateId: $termsTemplateId,
         annualRate: 6.5,
         accrualCycleInterval: "END_OF_MONTH",
         accrualInterval: "END_OF_DAY",
@@ -75,7 +75,7 @@ teardown_file() {
 
   exec_admin_graphql 'terms-template-update' "$variables"
 
-  updated_id=$(graphql_output '.data.termsTemplateUpdate.termsTemplate.termsId')
+  updated_id=$(graphql_output '.data.termsTemplateUpdate.termsTemplate.termsTemplateId')
   [[ "$updated_id" == "$terms_template_id" ]] || exit 1
 
   annual_rate=$(graphql_output '.data.termsTemplateUpdate.termsTemplate.values.annualRate')
@@ -95,7 +95,7 @@ teardown_file() {
 
   exec_admin_graphql 'terms-template-get' "$variables"
 
-  retrieved_id=$(graphql_output '.data.termsTemplate.termsId')
+  retrieved_id=$(graphql_output '.data.termsTemplate.termsTemplateId')
   [[ "$retrieved_id" == "$terms_template_id" ]] || exit 1
 
   annual_rate=$(graphql_output '.data.termsTemplate.values.annualRate')

@@ -9,7 +9,7 @@ import {
 
 gql`
   query SearchPublicIdTarget($publicId: PublicId!) {
-    publicIdTarget(id: $publicId) {
+    publicIdTarget(publicId: $publicId) {
       __typename
       ... on Customer {
         id

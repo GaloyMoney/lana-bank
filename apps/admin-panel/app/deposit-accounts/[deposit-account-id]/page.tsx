@@ -38,7 +38,7 @@ gql`
   }
 
   query GetDepositAccountDetails($publicId: PublicId!, $first: Int!, $after: String) {
-    depositAccountByPublicId(id: $publicId) {
+    depositAccountByPublicId(publicId: $publicId) {
       ...DepositAccountDetailsFragment
       history(first: $first, after: $after) {
         pageInfo {

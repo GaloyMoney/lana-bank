@@ -1,5 +1,5 @@
 query liquidation($id: UUID!) {
-  liquidation(id: $id) {
+  liquidation(liquidationId: $id) {
     liquidationId
     amountReceived
     receivedProceeds {

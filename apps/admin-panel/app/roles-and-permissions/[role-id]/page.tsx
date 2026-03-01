@@ -12,7 +12,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
   query Role($id: UUID!) {
-    role(id: $id) {
+    role(roleId: $id) {
       ...RoleFields
     }
   }

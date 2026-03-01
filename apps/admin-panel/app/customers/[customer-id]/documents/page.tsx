@@ -9,7 +9,7 @@ import { useGetCustomerDocumentsQuery } from "@/lib/graphql/generated"
 
 gql`
   query GetCustomerDocuments($id: PublicId!) {
-    customerByPublicId(id: $id) {
+    customerByPublicId(publicId: $id) {
       id
       customerId
       documents {

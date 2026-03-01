@@ -31,7 +31,7 @@ gql`
   }
 
   query LedgerAccountExistsById($id: UUID!) {
-    ledgerAccount(id: $id) {
+    ledgerAccount(ledgerAccountId: $id) {
       id
     }
   }

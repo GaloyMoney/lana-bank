@@ -14,7 +14,7 @@ interface PendingCreditFacilityDetailsPageProps {
 
 gql`
   query GetPendingCreditFacilityRepaymentPlan($id: UUID!) {
-    pendingCreditFacility(id: $id) {
+    pendingCreditFacility(pendingCreditFacilityId: $id) {
       id
       pendingCreditFacilityId
       repaymentPlan {

@@ -1783,6 +1783,7 @@ type LiquidationProceedsReceived {
 
 type LoanAgreement {
 	id: ID!
+	loanAgreementId: UUID!
 	status: LoanAgreementStatus!
 	createdAt: Timestamp!
 }
@@ -2216,53 +2217,53 @@ union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdraw
 type Query {
 	me: Me!
 	dashboard: Dashboard!
-	user(id: UUID!): User
+	user(userId: UUID!): User
 	users: [User!]!
-	role(id: UUID!): Role
+	role(roleId: UUID!): Role
 	roles(first: Int!, after: String): RoleConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
-	customer(id: UUID!): Customer
+	customer(customerId: UUID!): Customer
 	customerByEmail(email: String!): Customer
-	customerByPublicId(id: PublicId!): Customer
+	customerByPublicId(publicId: PublicId!): Customer
 	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: ASC}, filter: CustomersFilter): CustomerConnection!
-	prospect(id: UUID!): Prospect
-	prospectByPublicId(id: PublicId!): Prospect
+	prospect(prospectId: UUID!): Prospect
+	prospectByPublicId(publicId: PublicId!): Prospect
 	prospects(first: Int!, after: String, stage: ProspectStage): ProspectConnection!
-	withdrawal(id: UUID!): Withdrawal
-	withdrawalByPublicId(id: PublicId!): Withdrawal
+	withdrawal(withdrawalId: UUID!): Withdrawal
+	withdrawalByPublicId(publicId: PublicId!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
-	deposit(id: UUID!): Deposit
-	depositByPublicId(id: PublicId!): Deposit
-	depositAccount(id: UUID!): DepositAccount
-	depositAccountByPublicId(id: PublicId!): DepositAccount
+	deposit(depositId: UUID!): Deposit
+	depositByPublicId(publicId: PublicId!): Deposit
+	depositAccount(depositAccountId: UUID!): DepositAccount
+	depositAccountByPublicId(publicId: PublicId!): DepositAccount
 	depositAccounts(first: Int!, after: String): DepositAccountConnection!
 	deposits(first: Int!, after: String): DepositConnection!
-	termsTemplate(id: UUID!): TermsTemplate
+	termsTemplate(termsTemplateId: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
-	creditFacility(id: UUID!): CreditFacility
-	creditFacilityProposal(id: UUID!): CreditFacilityProposal
+	creditFacility(creditFacilityId: UUID!): CreditFacility
+	creditFacilityProposal(creditFacilityProposalId: UUID!): CreditFacilityProposal
 	creditFacilityProposals(first: Int!, after: String): CreditFacilityProposalConnection!
-	pendingCreditFacility(id: UUID!): PendingCreditFacility
+	pendingCreditFacility(pendingCreditFacilityId: UUID!): PendingCreditFacility
 	pendingCreditFacilities(first: Int!, after: String): PendingCreditFacilityConnection!
-	creditFacilityByPublicId(id: PublicId!): CreditFacility
+	creditFacilityByPublicId(publicId: PublicId!): CreditFacility
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
-	disbursal(id: UUID!): CreditFacilityDisbursal
-	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
+	disbursal(disbursalId: UUID!): CreditFacilityDisbursal
+	disbursalByPublicId(publicId: PublicId!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
-	liquidation(id: UUID!): Liquidation
+	liquidation(liquidationId: UUID!): Liquidation
 	liquidations(first: Int!, after: String): LiquidationConnection!
 	custodians(first: Int!, after: String): CustodianConnection!
-	committee(id: UUID!): Committee
+	committee(committeeId: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
-	policy(id: UUID!): Policy
+	policy(policyId: UUID!): Policy
 	policies(first: Int!, after: String): PolicyConnection!
-	approvalProcess(id: UUID!): ApprovalProcess
+	approvalProcess(approvalProcessId: UUID!): ApprovalProcess
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
-	customerDocument(id: UUID!): CustomerDocument
-	ledgerAccount(id: UUID!): LedgerAccount
+	customerDocument(customerDocumentId: UUID!): CustomerDocument
+	ledgerAccount(ledgerAccountId: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
 	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
-	ledgerTransaction(id: UUID!): LedgerTransaction
+	ledgerTransaction(ledgerTransactionId: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
@@ -2279,11 +2280,11 @@ type Query {
 	depositConfig: DepositModuleConfig
 	domainConfigs(first: Int!, after: String): DomainConfigConnection!
 	creditConfig: CreditModuleConfig
-	publicIdTarget(id: PublicId!): PublicIdTarget
-	loanAgreement(id: UUID!): LoanAgreement
+	publicIdTarget(publicId: PublicId!): PublicIdTarget
+	loanAgreement(loanAgreementId: UUID!): LoanAgreement
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 	reportRuns(first: Int!, after: String): ReportRunConnection!
-	reportRun(id: UUID!): ReportRun
+	reportRun(reportRunId: UUID!): ReportRun
 }
 
 type RealtimePrice {
@@ -2503,7 +2504,7 @@ input TermsInput {
 
 type TermsTemplate {
 	id: ID!
-	termsId: UUID!
+	termsTemplateId: UUID!
 	values: TermValues!
 	createdAt: Timestamp!
 	name: String!
@@ -2531,7 +2532,7 @@ type TermsTemplateCreatePayload {
 }
 
 input TermsTemplateUpdateInput {
-	id: UUID!
+	termsTemplateId: UUID!
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
@@ -2557,7 +2558,8 @@ type Total {
 }
 
 type TransactionTemplate {
-	id: UUID!
+	id: ID!
+	transactionTemplateId: UUID!
 	code: String!
 }
 
@@ -2657,7 +2659,7 @@ type UserCreatePayload {
 }
 
 input UserUpdateRoleInput {
-	id: UUID!
+	userId: UUID!
 	roleId: UUID!
 }
 

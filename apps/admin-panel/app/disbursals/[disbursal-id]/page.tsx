@@ -17,7 +17,7 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   query GetDisbursalDetails($publicId: PublicId!) {
-    disbursalByPublicId(id: $publicId) {
+    disbursalByPublicId(publicId: $publicId) {
       id
       disbursalId
       amount

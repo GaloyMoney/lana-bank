@@ -44,7 +44,7 @@ gql`
   }
 
   query CreditFacilityLedgerAccounts($publicId: PublicId!) {
-    creditFacilityByPublicId(id: $publicId) {
+    creditFacilityByPublicId(publicId: $publicId) {
       id
       ledgerAccounts {
         facilityAccount {

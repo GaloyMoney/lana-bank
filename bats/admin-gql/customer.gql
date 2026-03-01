@@ -1,5 +1,5 @@
 query Customer($id: UUID!) {
-  customer(id: $id) {
+  customer(customerId: $id) {
     customerId
     applicantId
     level

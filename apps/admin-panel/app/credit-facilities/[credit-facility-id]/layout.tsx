@@ -143,7 +143,7 @@ gql`
   }
 
   query GetCreditFacilityLayoutDetails($publicId: PublicId!) {
-    creditFacilityByPublicId(id: $publicId) {
+    creditFacilityByPublicId(publicId: $publicId) {
       ...CreditFacilityLayoutFragment
     }
   }

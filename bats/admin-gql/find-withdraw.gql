@@ -1,5 +1,5 @@
 query withdraw($id: UUID!) {
-  withdrawal(id: $id) {
+  withdrawal(withdrawalId: $id) {
     withdrawalId
     status
   }

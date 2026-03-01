@@ -1,5 +1,5 @@
 query CustomerDocuments($customerId: UUID!) {
-  customer(id: $customerId) {
+  customer(customerId: $customerId) {
     customerId
     email
     documents {

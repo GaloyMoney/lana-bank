@@ -59,7 +59,7 @@ describe("Customers", () => {
       })
       .then(() => {
         cy.graphqlRequest<{ data: { prospectByPublicId: { prospectId: string } } }>(
-          `query ProspectByPublicId($id: PublicId!) { prospectByPublicId(id: $id) { prospectId } }`,
+          `query ProspectByPublicId($id: PublicId!) { prospectByPublicId(publicId: $id) { prospectId } }`,
           { id: testProspectPublicId },
         ).then((res) => {
           testCustomerId = res.data.prospectByPublicId.prospectId

@@ -107,10 +107,10 @@ impl Query {
     async fn customer(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        customer_id: UUID,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Customer, ctx, app.customers().find_by_id(sub, id))
+        maybe_fetch_one!(Customer, ctx, app.customers().find_by_id(sub, customer_id))
     }
 
     async fn customer_by_email(
@@ -125,10 +125,14 @@ impl Query {
     async fn customer_by_public_id(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        public_id: PublicId,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Customer, ctx, app.customers().find_by_public_id(sub, id))
+        maybe_fetch_one!(
+            Customer,
+            ctx,
+            app.customers().find_by_public_id(sub, public_id)
+        )
     }
 
     async fn customers(
@@ -164,27 +168,27 @@ impl Query {
     async fn prospect(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        prospect_id: UUID,
     ) -> async_graphql::Result<Option<Prospect>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             Prospect,
             ProspectId,
             ctx,
-            app.customers().find_prospect_by_id(sub, id)
+            app.customers().find_prospect_by_id(sub, prospect_id)
         )
     }
 
     async fn prospect_by_public_id(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        public_id: PublicId,
     ) -> async_graphql::Result<Option<Prospect>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             Prospect,
             ctx,
-            app.customers().find_prospect_by_public_id(sub, id)
+            app.customers().find_prospect_by_public_id(sub, public_id)
         )
     }
 
@@ -214,26 +218,26 @@ impl Query {
     async fn withdrawal(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        withdrawal_id: UUID,
     ) -> async_graphql::Result<Option<Withdrawal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             Withdrawal,
             ctx,
-            app.deposits().find_withdrawal_by_id(sub, id)
+            app.deposits().find_withdrawal_by_id(sub, withdrawal_id)
         )
     }
 
     async fn withdrawal_by_public_id(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        public_id: PublicId,
     ) -> async_graphql::Result<Option<Withdrawal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             Withdrawal,
             ctx,
-            app.deposits().find_withdrawal_by_public_id(sub, id)
+            app.deposits().find_withdrawal_by_public_id(sub, public_id)
         )
     }
 
@@ -256,47 +260,55 @@ impl Query {
         )
     }
 
-    async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Deposit, ctx, app.deposits().find_deposit_by_id(sub, id))
-    }
-
-    async fn deposit_by_public_id(
+    async fn deposit(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        deposit_id: UUID,
     ) -> async_graphql::Result<Option<Deposit>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             Deposit,
             ctx,
-            app.deposits().find_deposit_by_public_id(sub, id)
+            app.deposits().find_deposit_by_id(sub, deposit_id)
+        )
+    }
+
+    async fn deposit_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        public_id: PublicId,
+    ) -> async_graphql::Result<Option<Deposit>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Deposit,
+            ctx,
+            app.deposits().find_deposit_by_public_id(sub, public_id)
         )
     }
 
     async fn deposit_account(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        deposit_account_id: UUID,
     ) -> async_graphql::Result<Option<DepositAccount>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             DepositAccount,
             ctx,
-            app.deposits().find_account_by_id(sub, id)
+            app.deposits().find_account_by_id(sub, deposit_account_id)
         )
     }
 
     async fn deposit_account_by_public_id(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        public_id: PublicId,
     ) -> async_graphql::Result<Option<DepositAccount>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             DepositAccount,
             ctx,
-            app.deposits().find_account_by_public_id(sub, id)
+            app.deposits().find_account_by_public_id(sub, public_id)
         )
     }
 
@@ -366,27 +378,31 @@ impl Query {
     async fn credit_facility(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        credit_facility_id: UUID,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             CreditFacility,
             ctx,
-            app.credit().facilities().find_by_id(sub, id)
+            app.credit()
+                .facilities()
+                .find_by_id(sub, credit_facility_id)
         )
     }
 
     async fn credit_facility_proposal(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        credit_facility_proposal_id: UUID,
     ) -> async_graphql::Result<Option<CreditFacilityProposal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         maybe_fetch_one!(
             CreditFacilityProposal,
             ctx,
-            app.credit().proposals().find_by_id(sub, id)
+            app.credit()
+                .proposals()
+                .find_by_id(sub, credit_facility_proposal_id)
         )
     }
 
@@ -417,14 +433,16 @@ impl Query {
     async fn pending_credit_facility(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        pending_credit_facility_id: UUID,
     ) -> async_graphql::Result<Option<PendingCreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         maybe_fetch_one!(
             PendingCreditFacility,
             ctx,
-            app.credit().pending_credit_facilities().find_by_id(sub, id)
+            app.credit()
+                .pending_credit_facilities()
+                .find_by_id(sub, pending_credit_facility_id)
         )
     }
 
@@ -455,13 +473,13 @@ impl Query {
     async fn credit_facility_by_public_id(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        public_id: PublicId,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             CreditFacility,
             ctx,
-            app.credit().facilities().find_by_public_id(sub, id)
+            app.credit().facilities().find_by_public_id(sub, public_id)
         )
     }
 
@@ -499,26 +517,26 @@ impl Query {
     async fn disbursal(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        disbursal_id: UUID,
     ) -> async_graphql::Result<Option<CreditFacilityDisbursal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             CreditFacilityDisbursal,
             ctx,
-            app.credit().disbursals().find_by_id(sub, id)
+            app.credit().disbursals().find_by_id(sub, disbursal_id)
         )
     }
 
     async fn disbursal_by_public_id(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        public_id: PublicId,
     ) -> async_graphql::Result<Option<CreditFacilityDisbursal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             CreditFacilityDisbursal,
             ctx,
-            app.credit().disbursals().find_by_public_id(sub, id)
+            app.credit().disbursals().find_by_public_id(sub, public_id)
         )
     }
 
@@ -551,13 +569,15 @@ impl Query {
     async fn liquidation(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        liquidation_id: UUID,
     ) -> async_graphql::Result<Option<Liquidation>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             Liquidation,
             ctx,
-            app.credit().collaterals().find_liquidation_by_id(sub, id)
+            app.credit()
+                .collaterals()
+                .find_liquidation_by_id(sub, liquidation_id)
         )
     }
 
@@ -704,14 +724,14 @@ impl Query {
     async fn ledger_account(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        ledger_account_id: UUID,
     ) -> async_graphql::Result<Option<LedgerAccount>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             LedgerAccount,
             ctx,
             app.accounting()
-                .find_ledger_account_by_id(sub, CHART_REF.0, id)
+                .find_ledger_account_by_id(sub, CHART_REF.0, ledger_account_id)
         )
     }
 
@@ -751,13 +771,15 @@ impl Query {
     async fn ledger_transaction(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        ledger_transaction_id: UUID,
     ) -> async_graphql::Result<Option<LedgerTransaction>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
             LedgerTransaction,
             ctx,
-            app.accounting().ledger_transactions().find_by_id(sub, id)
+            app.accounting()
+                .ledger_transactions()
+                .find_by_id(sub, ledger_transaction_id)
         )
     }
 
@@ -1068,40 +1090,40 @@ impl Query {
     async fn public_id_target(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        public_id: PublicId,
     ) -> async_graphql::Result<Option<PublicIdTarget>> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
-        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
+        let Some(public_id_record) = app.public_ids().find_by_id(public_id).await? else {
             return Ok(None);
         };
 
-        let res = match public_id.target_type.as_str() {
+        let res = match public_id_record.target_type.as_str() {
             "customer" => self
-                .customer(ctx, public_id.target_id.into())
+                .customer(ctx, public_id_record.target_id.into())
                 .await?
                 .map(PublicIdTarget::Customer),
             "deposit_account" => self
-                .deposit_account(ctx, public_id.target_id.into())
+                .deposit_account(ctx, public_id_record.target_id.into())
                 .await?
                 .map(PublicIdTarget::DepositAccount),
             "deposit" => self
-                .deposit(ctx, public_id.target_id.into())
+                .deposit(ctx, public_id_record.target_id.into())
                 .await?
                 .map(PublicIdTarget::Deposit),
             "withdrawal" => self
-                .withdrawal(ctx, public_id.target_id.into())
+                .withdrawal(ctx, public_id_record.target_id.into())
                 .await?
                 .map(PublicIdTarget::Withdrawal),
             "credit_facility" => self
-                .credit_facility(ctx, public_id.target_id.into())
+                .credit_facility(ctx, public_id_record.target_id.into())
                 .await?
                 .map(PublicIdTarget::CreditFacility),
             "disbursal" => self
-                .disbursal(ctx, public_id.target_id.into())
+                .disbursal(ctx, public_id_record.target_id.into())
                 .await?
                 .map(PublicIdTarget::CreditFacilityDisbursal),
             "prospect" => self
-                .prospect(ctx, public_id.target_id.into())
+                .prospect(ctx, public_id_record.target_id.into())
                 .await?
                 .map(PublicIdTarget::Prospect),
             _ => None,
@@ -2787,5 +2809,73 @@ impl Subscription {
         });
 
         Ok(updates)
+    }
+}
+
+#[cfg(test)]
+mod schema_consistency_tests {
+    const SDL: &str = include_str!("schema.graphql");
+
+    #[test]
+    fn no_generic_id_args_for_single_entity_queries() {
+        let disallowed_query_args = [
+            "user(id:",
+            "role(id:",
+            "termsTemplate(id:",
+            "loanAgreement(id:",
+            "customerDocument(id:",
+            "approvalProcess(id:",
+            "committee(id:",
+            "policy(id:",
+            "reportRun(id:",
+            "customer(id:",
+            "prospect(id:",
+            "withdrawal(id:",
+            "deposit(id:",
+            "depositAccount(id:",
+            "creditFacility(id:",
+            "creditFacilityProposal(id:",
+            "pendingCreditFacility(id:",
+            "disbursal(id:",
+            "liquidation(id:",
+            "ledgerAccount(id:",
+            "ledgerTransaction(id:",
+            "ByPublicId(id:",
+            "publicIdTarget(id:",
+        ];
+
+        for disallowed in disallowed_query_args {
+            assert!(
+                !SDL.contains(disallowed),
+                "schema.graphql still contains disallowed query arg: {disallowed}"
+            );
+        }
+    }
+
+    #[test]
+    fn no_input_uses_generic_id_field_name() {
+        let mut input_name: Option<String> = None;
+
+        for line in SDL.lines() {
+            let trimmed = line.trim();
+
+            if let Some(rest) = trimmed.strip_prefix("input ") {
+                let name = rest.split_whitespace().next().expect("input has a name");
+                input_name = Some(name.to_string());
+                continue;
+            }
+
+            if let Some(current_input) = input_name.as_ref() {
+                if trimmed == "}" {
+                    input_name = None;
+                    continue;
+                }
+
+                assert!(
+                    !trimmed.starts_with("id:"),
+                    "input `{current_input}` uses generic `id` field; use explicit `<entity>Id`"
+                );
+            }
+        }
     }
 }

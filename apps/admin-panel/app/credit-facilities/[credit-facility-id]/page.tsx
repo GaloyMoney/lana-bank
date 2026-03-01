@@ -76,7 +76,7 @@ gql`
   }
 
   query GetCreditFacilityHistory($publicId: PublicId!) {
-    creditFacilityByPublicId(id: $publicId) {
+    creditFacilityByPublicId(publicId: $publicId) {
       ...CreditFacilityHistoryFragment
     }
   }

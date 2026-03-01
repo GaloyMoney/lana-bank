@@ -9,7 +9,7 @@ import { useGetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
 
 gql`
   query GetCustomerCreditFacilities($id: PublicId!) {
-    customerByPublicId(id: $id) {
+    customerByPublicId(publicId: $id) {
       id
       creditFacilities {
         id

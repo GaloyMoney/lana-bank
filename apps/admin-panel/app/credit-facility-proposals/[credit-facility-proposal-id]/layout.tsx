@@ -77,7 +77,7 @@ gql`
   }
 
   query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: UUID!) {
-    creditFacilityProposal(id: $creditFacilityProposalId) {
+    creditFacilityProposal(creditFacilityProposalId: $creditFacilityProposalId) {
       ...CreditFacilityProposalLayoutFragment
     }
   }

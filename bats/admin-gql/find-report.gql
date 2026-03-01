@@ -1,5 +1,5 @@
 query ReportRun($id: UUID!) {
-  reportRun(id: $id) {
+  reportRun(reportRunId: $id) {
     reportRunId
     state
     reports {

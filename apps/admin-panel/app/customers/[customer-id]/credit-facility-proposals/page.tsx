@@ -10,7 +10,7 @@ import { useGetCustomerCreditFacilityProposalsQuery } from "@/lib/graphql/genera
 
 gql`
   query GetCustomerCreditFacilityProposals($id: PublicId!) {
-    customerByPublicId(id: $id) {
+    customerByPublicId(publicId: $id) {
       id
       creditFacilityProposals {
         id

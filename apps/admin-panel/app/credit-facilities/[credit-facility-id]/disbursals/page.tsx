@@ -18,7 +18,7 @@ gql`
   }
 
   query GetCreditFacilityDisbursals($publicId: PublicId!) {
-    creditFacilityByPublicId(id: $publicId) {
+    creditFacilityByPublicId(publicId: $publicId) {
       id
       creditFacilityId
       disbursals {

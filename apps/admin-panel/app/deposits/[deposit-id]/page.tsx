@@ -45,7 +45,7 @@ gql`
   }
 
   query GetDepositDetails($publicId: PublicId!) {
-    depositByPublicId(id: $publicId) {
+    depositByPublicId(publicId: $publicId) {
       ...DepositDetailsPageFragment
     }
   }

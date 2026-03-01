@@ -12,7 +12,7 @@ import { useCreateContext } from "@/app/create"
 
 gql`
   query TermsTemplate($id: UUID!) {
-    termsTemplate(id: $id) {
+    termsTemplate(termsTemplateId: $id) {
       ...TermsTemplateFields
     }
   }

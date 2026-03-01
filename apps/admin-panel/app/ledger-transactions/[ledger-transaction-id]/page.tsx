@@ -24,7 +24,7 @@ import LayerLabel from "@/app/journal/layer-label"
 
 gql`
   query LedgerTransaction($id: UUID!) {
-    ledgerTransaction(id: $id) {
+    ledgerTransaction(ledgerTransactionId: $id) {
       id
       ledgerTransactionId
       createdAt

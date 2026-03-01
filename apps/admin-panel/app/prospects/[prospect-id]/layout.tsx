@@ -43,7 +43,7 @@ gql`
   }
 
   query GetProspectBasicDetails($id: PublicId!) {
-    prospectByPublicId(id: $id) {
+    prospectByPublicId(publicId: $id) {
       ...ProspectDetailsFragment
     }
   }

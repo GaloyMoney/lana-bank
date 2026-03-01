@@ -15,7 +15,7 @@ import { useCreateContext } from "@/app/create"
 
 gql`
   query GetPolicyDetails($id: UUID!) {
-    policy(id: $id) {
+    policy(policyId: $id) {
       id
       policyId
       approvalProcessType

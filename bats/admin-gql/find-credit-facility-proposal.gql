@@ -1,5 +1,5 @@
 query creditFacilityProposal($id: UUID!) {
-  creditFacilityProposal(id: $id) {
+  creditFacilityProposal(creditFacilityProposalId: $id) {
     creditFacilityProposalId
     status
   }

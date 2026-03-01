@@ -10,7 +10,7 @@ import { useGetCustomerPendingCreditFacilitiesQuery } from "@/lib/graphql/genera
 
 gql`
   query GetCustomerPendingCreditFacilities($id: PublicId!) {
-    customerByPublicId(id: $id) {
+    customerByPublicId(publicId: $id) {
       id
       pendingCreditFacilities {
         id

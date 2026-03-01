@@ -58,7 +58,7 @@ gql`
   }
 
   query GetCustomerBasicDetails($id: PublicId!) {
-    customerByPublicId(id: $id) {
+    customerByPublicId(publicId: $id) {
       ...CustomerDetailsFragment
     }
   }

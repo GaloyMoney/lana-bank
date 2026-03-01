@@ -1,5 +1,5 @@
 query CustomerAuditLog($id: UUID!) {
-  customer(id: $id) {
+  customer(customerId: $id) {
     customerId
   }
   audit(first: 100, after: null) {

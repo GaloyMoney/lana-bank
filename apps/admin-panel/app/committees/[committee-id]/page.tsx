@@ -16,7 +16,7 @@ import { useCreateContext } from "@/app/create"
 
 gql`
   query GetCommitteeDetails($id: UUID!) {
-    committee(id: $id) {
+    committee(committeeId: $id) {
       ...CommitteeFields
     }
   }

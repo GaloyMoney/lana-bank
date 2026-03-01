@@ -11,7 +11,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
   query GetUserDetails($id: UUID!) {
-    user(id: $id) {
+    user(userId: $id) {
       ...UserFields
     }
   }

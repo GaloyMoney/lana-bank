@@ -1,5 +1,5 @@
 query approvalProcess($id: UUID!) {
-  approvalProcess(id: $id) {
+  approvalProcess(approvalProcessId: $id) {
     approvalProcessId
     status
   }
