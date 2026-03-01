@@ -1,17 +1,18 @@
-//! Interest Accrual Job - State Machine
+//! Process Accrual Cycle Job - State Machine
 //!
 //! This job manages the complete interest accrual lifecycle for a credit facility.
 //! It operates as a state machine with the following states and transitions:
 //!
 //! ```text
 //! ┌─────────────────────────────────────────────────────────────────────────┐
-//! │                         InterestAccrualState                             │
+//! │                         ProcessAccrualCycleState                             │
 //! ├─────────────────────────────────────────────────────────────────────────┤
 //! │  AccruePeriod                                                            │
 //! │    • Calculate interest for current accrual period                       │
 //! │    • Record accrual to ledger                                            │
-//! │    → more periods remaining: RescheduleAt(next_period.end)               │
+//! │    • Entity save updates next_accrual_period_end column                  │
 //! │    → cycle complete: transition to AwaitObligationsSync                  │
+//! │    → otherwise: CompleteWithOp (next EndOfDay picks it up)               │
 //! ├─────────────────────────────────────────────────────────────────────────┤
 //! │  AwaitObligationsSync                                                    │
 //! │    • Wait for all facility obligations to reach current status           │
@@ -23,8 +24,8 @@
 //! │    • Finalize the interest accrual cycle                                 │
 //! │    • Create interest obligation (if accrued amount > 0)                  │
 //! │    • Record cycle completion to ledger                                   │
-//! │    → new cycle exists: spawn new job in AccruePeriod state               │
-//! │    → facility matured: complete                                          │
+//! │    • Entity save populates next_accrual_period_end for next cycle        │
+//! │    → CompleteWithOp (next EndOfDay picks up new cycle)                   │
 //! └─────────────────────────────────────────────────────────────────────────┘
 //! ```
 
@@ -65,7 +66,7 @@ use core_credit_collection::CoreCreditCollection;
 /// Each state represents a discrete domain process in the interest accrual lifecycle.
 /// This is stored in the job's execution_state and persists across reschedules.
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
-pub enum InterestAccrualState {
+pub enum ProcessAccrualCycleState {
     /// Calculate and record interest for the current accrual period.
     ///
     /// This state handles individual period accruals within a cycle.
@@ -90,21 +91,23 @@ pub enum InterestAccrualState {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct InterestAccrualJobConfig<Perms, E> {
+pub struct ProcessAccrualCycleJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
+    pub day: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> Clone for InterestAccrualJobConfig<Perms, E> {
+impl<Perms, E> Clone for ProcessAccrualCycleJobConfig<Perms, E> {
     fn clone(&self) -> Self {
         Self {
             credit_facility_id: self.credit_facility_id,
+            day: self.day,
             _phantom: std::marker::PhantomData,
         }
     }
 }
 
-pub struct InterestAccrualJobInit<Perms, E>
+pub struct ProcessAccrualCycleJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -121,7 +124,7 @@ where
     authz: Arc<Perms>,
 }
 
-impl<Perms, E> InterestAccrualJobInit<Perms, E>
+impl<Perms, E> ProcessAccrualCycleJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -158,9 +161,9 @@ where
     }
 }
 
-const INTEREST_ACCRUAL_JOB: JobType = JobType::new("task.interest-accrual");
+const PROCESS_ACCRUAL_CYCLE_JOB: JobType = JobType::new("task.process-accrual-cycle");
 
-impl<Perms, E> JobInitializer for InterestAccrualJobInit<Perms, E>
+impl<Perms, E> JobInitializer for ProcessAccrualCycleJobInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -180,29 +183,28 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    type Config = InterestAccrualJobConfig<Perms, E>;
+    type Config = ProcessAccrualCycleJobConfig<Perms, E>;
     fn job_type(&self) -> JobType {
-        INTEREST_ACCRUAL_JOB
+        PROCESS_ACCRUAL_CYCLE_JOB
     }
 
     fn init(
         &self,
         job: &Job,
-        spawner: JobSpawner<Self::Config>,
+        _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(InterestAccrualJobRunner::<Perms, E> {
+        Ok(Box::new(ProcessAccrualCycleJobRunner::<Perms, E> {
             config: job.config()?,
             collections: self.collections.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             collaterals: self.collaterals.clone(),
             ledger: self.ledger.clone(),
-            spawner,
             authz: self.authz.clone(),
         }))
     }
 }
 
-struct InterestAccrualJobRunner<Perms, E>
+struct ProcessAccrualCycleJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -212,17 +214,16 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    config: InterestAccrualJobConfig<Perms, E>,
+    config: ProcessAccrualCycleJobConfig<Perms, E>,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
     ledger: Arc<CreditLedger>,
-    spawner: InterestAccrualJobSpawner<Perms, E>,
     authz: Arc<Perms>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for InterestAccrualJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ProcessAccrualCycleJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -243,7 +244,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     #[tracing::instrument(
-        name = "interest_accrual.run",
+        name = "process_accrual_cycle.run",
         skip(self, current_job),
         fields(credit_facility_id = %self.config.credit_facility_id)
     )]
@@ -252,22 +253,22 @@ where
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let state = current_job
-            .execution_state::<InterestAccrualState>()?
+            .execution_state::<ProcessAccrualCycleState>()?
             .unwrap_or_default();
 
         tracing::debug!(?state, "Executing interest accrual state");
 
         match state {
-            InterestAccrualState::AccruePeriod => self.accrue_period(current_job).await,
-            InterestAccrualState::AwaitObligationsSync => {
+            ProcessAccrualCycleState::AccruePeriod => self.accrue_period(current_job).await,
+            ProcessAccrualCycleState::AwaitObligationsSync => {
                 self.await_obligations_sync(current_job).await
             }
-            InterestAccrualState::CompleteCycle => self.complete_cycle(current_job).await,
+            ProcessAccrualCycleState::CompleteCycle => self.complete_cycle(current_job).await,
         }
     }
 }
 
-impl<Perms, E> InterestAccrualJobRunner<Perms, E>
+impl<Perms, E> ProcessAccrualCycleJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -319,13 +320,13 @@ where
             .await?;
 
         match next_period {
-            Some(period) => {
+            Some(_) => {
                 tracing::debug!(
                     accrual_idx = %accrual_idx,
-                    next_period_end = %period.end,
-                    "Period accrued, scheduling next period"
+                    accrued_count = %accrued_count,
+                    "Period accrued, next EndOfDay will pick up remaining periods"
                 );
-                Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
+                Ok(JobCompletion::CompleteWithOp(db))
             }
             None => {
                 tracing::info!(
@@ -336,7 +337,7 @@ where
                 current_job
                     .update_execution_state_in_op(
                         &mut db,
-                        &InterestAccrualState::AwaitObligationsSync,
+                        &ProcessAccrualCycleState::AwaitObligationsSync,
                     )
                     .await?;
                 db.commit().await?;
@@ -429,7 +430,7 @@ where
 
         tracing::debug!("Obligations synced, transitioning to complete cycle");
         current_job
-            .update_execution_state(&InterestAccrualState::CompleteCycle)
+            .update_execution_state(&ProcessAccrualCycleState::CompleteCycle)
             .await?;
         self.complete_cycle(current_job).await
     }
@@ -477,35 +478,22 @@ where
             )
             .await?;
 
-        match new_cycle_data {
-            Some(NewInterestAccrualCycleData {
-                id: new_accrual_cycle_id,
-                first_accrual_end_date,
-            }) => {
-                tracing::info!(
-                    new_cycle_id = %new_accrual_cycle_id,
-                    first_accrual_end = %first_accrual_end_date,
-                    "Cycle completed, starting new cycle"
-                );
-                self.spawner
-                    .spawn_at_in_op(
-                        &mut op,
-                        new_accrual_cycle_id,
-                        InterestAccrualJobConfig::<Perms, E> {
-                            credit_facility_id: self.config.credit_facility_id,
-                            _phantom: std::marker::PhantomData,
-                        },
-                        first_accrual_end_date,
-                    )
-                    .await?;
-            }
-            None => {
-                tracing::info!(
-                    credit_facility_id = %self.config.credit_facility_id,
-                    "All interest accrual cycles completed for {}",
-                    self.config.credit_facility_id
-                );
-            }
+        if let Some(NewInterestAccrualCycleData {
+            id: new_accrual_cycle_id,
+            first_accrual_end_date,
+        }) = new_cycle_data
+        {
+            tracing::info!(
+                new_cycle_id = %new_accrual_cycle_id,
+                first_accrual_end = %first_accrual_end_date,
+                "Cycle completed, next EndOfDay will pick up new cycle"
+            );
+        } else {
+            tracing::info!(
+                credit_facility_id = %self.config.credit_facility_id,
+                "All interest accrual cycles completed for {}",
+                self.config.credit_facility_id
+            );
         }
 
         Ok(JobCompletion::CompleteWithOp(op))
@@ -564,4 +552,5 @@ where
     }
 }
 
-pub type InterestAccrualJobSpawner<Perms, E> = JobSpawner<InterestAccrualJobConfig<Perms, E>>;
+pub type ProcessAccrualCycleJobSpawner<Perms, E> =
+    JobSpawner<ProcessAccrualCycleJobConfig<Perms, E>>;

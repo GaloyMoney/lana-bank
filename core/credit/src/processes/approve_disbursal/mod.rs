@@ -16,6 +16,7 @@ use core_credit_collateral::{
 };
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
+use core_time_events::CoreTimeEvent;
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -34,7 +35,8 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     disbursals: Arc<Disbursals<Perms, E>>,
     credit_facilities: Arc<CreditFacilities<Perms, E>>,
@@ -51,7 +53,8 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -82,7 +85,8 @@ where
         + OutboxEventMarker<CoreCreditCollateralEvent>
         + OutboxEventMarker<crate::CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     pub fn new(
         disbursals: Arc<Disbursals<Perms, E>>,
