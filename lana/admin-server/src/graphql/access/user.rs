@@ -4,6 +4,7 @@ use crate::{graphql::loader::LanaDataLoader, primitives::*};
 use lana_app::access::user::User as DomainUser;
 
 use super::Role;
+pub use lana_app::access::user::UsersByCreatedAtCursor;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

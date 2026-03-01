@@ -25,9 +25,17 @@ gql`
     createdAt
   }
 
-  query Users {
-    users {
-      ...UserFields
+  query Users($first: Int!, $after: String) {
+    users(first: $first, after: $after) {
+      edges {
+        node {
+          ...UserFields
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 
@@ -41,13 +49,13 @@ gql`
 `
 
 type User = NonNullable<
-  NonNullable<ReturnType<typeof useUsersQuery>["data"]>
->["users"][number]
+  NonNullable<NonNullable<ReturnType<typeof useUsersQuery>["data"]>["users"]>["edges"]
+>[number]["node"]
 
 function UsersPage() {
   const t = useTranslations("Users")
 
-  const { data: usersList, loading } = useUsersQuery()
+  const { data: usersList, loading } = useUsersQuery({ variables: { first: 100 } })
 
   const columns: Column<User>[] = [
     {
@@ -72,7 +80,11 @@ function UsersPage() {
         </CardHeader>
         <CardContent>
           <DataTable
-            data={usersList?.users || []}
+            data={
+              usersList?.users?.edges
+                ?.map((edge) => edge?.node)
+                .filter(Boolean) as User[] || []
+            }
             columns={columns}
             loading={loading}
             emptyMessage={t("table.emptyMessage")}

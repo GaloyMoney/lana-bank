@@ -180,7 +180,8 @@ where
     pub async fn list_users(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-    ) -> Result<Vec<User>, UserError> {
+        query: es_entity::PaginatedQueryArgs<UsersByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<User, UsersByCreatedAtCursor>, UserError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -189,11 +190,9 @@ where
             )
             .await?;
 
-        Ok(self
-            .repo
-            .list_by_email(Default::default(), es_entity::ListDirection::Ascending)
-            .await?
-            .entities)
+        self.repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
     }
 
     pub async fn list_users_without_audit(
