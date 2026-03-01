@@ -85,7 +85,7 @@ job = { version = "0.6.6", features = ["es-entity"] }
 obix = { version = "0.2.14", features = ["tracing"] }
 
 aes = "0.8"
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 async-graphql = { version = "8.0.0-rc.3", default-features = false, features = [
   "dataloader",
   "chrono",
@@ -150,7 +150,7 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_yaml = "0.9.32"
 serde_json = "1.0.149"
 serde_with = "3.16.1"
-futures = "0.3.29"
+futures = "0.3.32"
 http = "1.4"
 reqwest = { version = "0.12.26", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration", "multipart"] }
 rustls = { version = "0.23", default-features = false, features = ["ring"] }
@@ -177,7 +177,7 @@ rand = "0.10"
 serial_test = { version = "3.3.1", features = ["file_locks"] }
 chacha20poly1305 = "0.10.1"
 handlebars = "6.4.0"
-inventory = "0.3.15"
+inventory = "0.3.22"
 schemars = { version = "1.2.1", features = ["derive", "chrono04", "rust_decimal1"] }
 tempfile = "3.25.0"
 p256 = "0.13.2"
@@ -185,7 +185,7 @@ paste = "1.0"
 pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 bytes = { version = "1.11", features = ["serde"] }
-keycloak = "26.4.0"
+keycloak = "26.5.200"
 
 [profile.dev]
 debug = "line-tables-only"
