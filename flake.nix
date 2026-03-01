@@ -96,7 +96,8 @@
           || pkgs.lib.hasInfix "/lib/gotenberg/config/" path
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path
-          || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path;
+          || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path
+          || pkgs.lib.hasInfix "/dev/lana-admin-cli/src/graphql/" path;
       };
 
       commonArgs = {
@@ -137,6 +138,15 @@
         // {
           pname = "lana-cli-debug";
           cargoExtraArgs = "-p lana-cli --features mock-custodian,sumsub-testing";
+          src = rustSource;
+        }
+      );
+
+      lana-admin-cli-debug = craneLib.buildPackage (
+        individualCrateArgs
+        // {
+          pname = "lana-admin-cli-debug";
+          cargoExtraArgs = "-p lana-admin-cli";
           src = rustSource;
         }
       );
@@ -293,6 +303,7 @@
         packages = {
           default = lana-cli-debug;
           lana-cli-debug = lana-cli-debug;
+          lana-admin-cli-debug = lana-admin-cli-debug;
           lana-cli-release = lana-cli-release;
 
           lana-deps = cargoArtifacts;
@@ -375,6 +386,7 @@
                 pkgs.poppler-utils
                 pkgs.libuuid
                 lana-cli-debug
+                lana-admin-cli-debug
               ];
               postBuild = ''
                 mkdir -p $out/bin
@@ -387,6 +399,7 @@
 
                 # Set environment variables needed by bats tests
                 export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
+                export LANACLI="${lana-admin-cli-debug}/bin/lana-admin-cli"
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
@@ -529,7 +542,7 @@
 
                 echo "Running cli"
                 export LANA_CONFIG="./bats/lana-bootstrap.yml"
-                ${lana-cli-bootstrap}/bin/lana-cli 2>&1 | tee server.log &
+                ${lana-cli-bootstrap}/bin/lana-cli serve 2>&1 | tee server.log &
                 echo "$!" > .server.pid
 
                 # Wait for simulation to complete by polling logs

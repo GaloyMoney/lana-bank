@@ -9,6 +9,7 @@ fail-on-warnings = []
 [dependencies]
 keycloak = { workspace = true }
 reqwest = { workspace = true }
+rustls = { workspace = true }
 serde = { workspace = true }
 uuid = { workspace = true }
 url = { workspace = true }
@@ -16,6 +17,9 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true, features = ["http", "reqwest"] }
+
+[package.metadata.cargo-machete]
+ignored = ["reqwest"]
 
 [dev-dependencies]
 tokio = { workspace = true }

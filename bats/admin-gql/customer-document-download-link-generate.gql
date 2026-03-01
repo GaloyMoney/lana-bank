@@ -1,8 +1,0 @@
-mutation CustomerDocumentDownloadLinkGenerate(
-  $input: CustomerDocumentDownloadLinksGenerateInput!
-) {
-  customerDocumentDownloadLinkGenerate(input: $input) {
-    documentId
-    link
-  }
-}

@@ -1,0 +1,114 @@
+query BalanceSheetGet($from: Date!, $until: Date) {
+  balanceSheet(from: $from, until: $until) {
+    name
+    balance {
+      __typename
+      ... on UsdLedgerAccountBalanceRange {
+        close {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+      }
+    }
+    categories {
+      name
+      balanceRange {
+        __typename
+        ... on UsdLedgerAccountBalanceRange {
+          close {
+            settled {
+              debit
+              credit
+              net
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+query TrialBalanceGet($from: Date!, $until: Date!) {
+  trialBalance(from: $from, until: $until) {
+    name
+    total {
+      usd {
+        close {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+      }
+      btc {
+        close {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+      }
+    }
+    accounts {
+      name
+      balanceRange {
+        __typename
+        ... on UsdLedgerAccountBalanceRange {
+          close {
+            settled {
+              debit
+              credit
+              net
+            }
+          }
+        }
+        ... on BtcLedgerAccountBalanceRange {
+          close {
+            settled {
+              debit
+              credit
+              net
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+query ProfitAndLossGet($from: Date!, $until: Date) {
+  profitAndLossStatement(from: $from, until: $until) {
+    name
+    total {
+      usd {
+        close {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+      }
+    }
+    categories {
+      name
+      balanceRange {
+        __typename
+        ... on UsdLedgerAccountBalanceRange {
+          close {
+            settled {
+              debit
+              credit
+              net
+            }
+          }
+        }
+      }
+    }
+  }
+}

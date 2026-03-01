@@ -1,8 +1,0 @@
-mutation WithdrawalRevert($input: WithdrawalRevertInput!) {
-  withdrawalRevert(input: $input) {
-    withdrawal {
-      withdrawalId
-      status
-    }
-  }
-}

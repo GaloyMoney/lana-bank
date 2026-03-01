@@ -1,9 +1,0 @@
-mutation DomainConfigUpdate($input: DomainConfigUpdateInput!) {
-  domainConfigUpdate(input: $input) {
-    domainConfig {
-      domainConfigId
-      key
-      value
-    }
-  }
-}

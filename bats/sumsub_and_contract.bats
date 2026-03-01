@@ -5,6 +5,7 @@ load "helpers"
 setup_file() {
   start_server
   login_superadmin
+  login_lanacli
 }
 
 teardown_file() {
@@ -12,13 +13,9 @@ teardown_file() {
 }
 
 wait_for_loan_agreement_completion() {
-  variables=$(
-    jq -n \
-      --arg loanAgreementId "$1" \
-    '{ id: $loanAgreementId }'
-  )
-  exec_admin_graphql 'find-loan-agreement' "$variables"
-  status=$(graphql_output '.data.loanAgreement.status')
+  local cli_output
+  cli_output=$("$LANACLI" --json loan-agreement find --id "$1")
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "COMPLETED" ]] || return 1
 }
 
@@ -31,49 +28,29 @@ wait_for_loan_agreement_completion() {
   telegramHandle=$(generate_email)
   customer_type="INDIVIDUAL"
 
-  variables=$(
-    jq -n \
-    --arg email "$customer_email" \
-    --arg telegramHandle "$telegramHandle" \
-    --arg customerType "$customer_type" \
-    '{
-      input: {
-        email: $email,
-        telegramHandle: $telegramHandle,
-        customerType: $customerType
-      }
-    }'
-  )
-
-  exec_admin_graphql 'prospect-create' "$variables"
-  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
+  local cli_output
+  cli_output=$("$LANACLI" --json prospect create \
+    --email "$customer_email" \
+    --telegram-handle "$telegramHandle" \
+    --customer-type "$customer_type")
+  prospect_id=$(echo "$cli_output" | jq -r '.prospectId')
 
   echo "prospect_id: $prospect_id"
-  [[ "$prospect_id" != "null" ]] || exit 1
+  [[ "$prospect_id" != "null" && -n "$prospect_id" ]] || exit 1
 
   # Create permalink (for reference and fallback testing)
-
-  variables=$(
-    jq -n \
-    --arg prospectId "$prospect_id" \
-    '{
-      input: {
-        prospectId: $prospectId
-      }
-    }'
-  )
-
-  exec_admin_graphql 'sumsub-permalink-create' "$variables"
-  url=$(graphql_output .data.sumsubPermalinkCreate.url)
+  local permalink_output
+  permalink_output=$("$LANACLI" --json sumsub permalink-create --prospect-id "$prospect_id")
+  url=$(echo "$permalink_output" | jq -r '.url')
   [[ "$url" != "null" ]] || exit 1
   echo "Created permalink: $url"
 
-  # Test complete KYC flow via GraphQL mutation
-  echo "Testing complete KYC flow via sumsubTestApplicantCreate..."
-  exec_admin_graphql 'sumsub-test-applicant-create' "$variables"
-  echo "graphql_output: $(graphql_output)"
+  # Test complete KYC flow via admin CLI command
+  echo "Testing complete KYC flow via sumsub test-applicant-create..."
+  cli_output=$("$LANACLI" --json sumsub test-applicant-create --prospect-id "$prospect_id")
+  echo "sumsub output: $cli_output"
 
-  test_applicant_id=$(graphql_output .data.sumsubTestApplicantCreate.applicantId)
+  test_applicant_id=$(echo "$cli_output" | jq -r '.applicantId')
 
   echo "Created test applicant_id: $test_applicant_id"
   [[ "$test_applicant_id" != "null" ]] || exit 1
@@ -118,21 +95,18 @@ wait_for_loan_agreement_completion() {
   # Poll until the customer exists.
   customer_id="$prospect_id"
   for i in {1..30}; do
-    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-    exec_admin_graphql 'customer' "$variables"
-    fetched_id=$(graphql_output .data.customer.customerId)
-    [[ "$fetched_id" != "null" ]] && break
+    cli_output=$("$LANACLI" --json customer get --id "$customer_id" 2>/dev/null || echo '{}')
+    fetched_id=$(echo "$cli_output" | jq -r '.customerId // empty')
+    [[ -n "$fetched_id" ]] && break
     sleep 1
   done
-  [[ "$fetched_id" != "null" ]] || exit 1
+  [[ -n "$fetched_id" ]] || exit 1
 
   # Verify the customer kyc verification after the complete KYC flow
-  variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')
-
-  exec_admin_graphql 'customer' "$variables"
-  level=$(graphql_output '.data.customer.level')
-  kyc_verification=$(graphql_output '.data.customer.kycVerification')
-  final_applicant_id=$(graphql_output '.data.customer.applicantId')
+  cli_output=$("$LANACLI" --json customer get --id "$customer_id")
+  level=$(echo "$cli_output" | jq -r '.level')
+  kyc_verification=$(echo "$cli_output" | jq -r '.kycVerification')
+  final_applicant_id=$(echo "$cli_output" | jq -r '.applicantId')
 
   # After kyc verification check
   echo "After test applicant creation - level: $level, kycVerification: $kyc_verification, applicant_id: $final_applicant_id"
@@ -144,33 +118,23 @@ wait_for_loan_agreement_completion() {
 
   # Contract/PDF generation tests - skip if Gotenberg is not available
   if [[ "${GOTENBERG:-false}" == "true" ]]; then
-    variables=$(
-      jq -n \
-        --arg customerId "$customer_id" \
-      '{ input: { customerId: $customerId } }'
-    )
+    local la_output
+    la_output=$("$LANACLI" --json loan-agreement generate --customer-id "$customer_id")
 
-    exec_admin_graphql 'loan-agreement-generate' "$variables"
-
-    loan_agreement_id=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.id')
+    loan_agreement_id=$(echo "$la_output" | jq -r '.id')
     [[ "$loan_agreement_id" != "null" ]] || exit 1
     [[ "$loan_agreement_id" != "" ]] || exit 1
 
-    status=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.status')
+    status=$(echo "$la_output" | jq -r '.status')
     [[ "$status" == "PENDING" ]] || exit 1
 
     retry 30 1 wait_for_loan_agreement_completion $loan_agreement_id
 
-    variables=$(
-      jq -n \
-        --arg loanAgreementId "$loan_agreement_id" \
-      '{ input: { loanAgreementId: $loanAgreementId } }'
-    )
+    local dl_output
+    dl_output=$("$LANACLI" --json loan-agreement download-link --loan-agreement-id "$loan_agreement_id")
 
-    exec_admin_graphql 'loan-agreement-download-link-generate' "$variables"
-
-    download_link=$(graphql_output '.data.loanAgreementDownloadLinkGenerate.link')
-    returned_loan_agreement_id=$(graphql_output '.data.loanAgreementDownloadLinkGenerate.loanAgreementId')
+    download_link=$(echo "$dl_output" | jq -r '.link')
+    returned_loan_agreement_id=$(echo "$dl_output" | jq -r '.loanAgreementId')
 
     [[ "$download_link" != "null" ]] || exit 1
     [[ "$download_link" != "" ]] || exit 1
@@ -268,15 +232,12 @@ wait_for_loan_agreement_completion() {
         "createdAtMs": "2020-02-21 13:23:19.001"
     }'
 
-  variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')
-  exec_admin_graphql 'customer' "$variables"
-
-  level=$(graphql_output '.data.customer.level')
-  kyc_verification=$(graphql_output '.data.customer.kycVerification')
+  cli_output=$("$LANACLI" --json customer get --id "$customer_id")
+  level=$(echo "$cli_output" | jq -r '.level')
+  kyc_verification=$(echo "$cli_output" | jq -r '.kycVerification')
 
   echo "After rejection webhook - level: $level, kycVerification: $kyc_verification"
   # After rejection, level should remain BASIC but kyc verification should become REJECTED
   [[ "$level" == "BASIC" ]] || exit 1
   [[ "$kyc_verification" == "REJECTED" ]] || exit 1
 }
-

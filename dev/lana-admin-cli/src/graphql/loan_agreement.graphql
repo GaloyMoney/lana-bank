@@ -1,0 +1,24 @@
+query FindLoanAgreement($id: UUID!) {
+  loanAgreement(id: $id) {
+    id
+    status
+    createdAt
+  }
+}
+
+mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
+  loanAgreementGenerate(input: $input) {
+    loanAgreement {
+      id
+      status
+      createdAt
+    }
+  }
+}
+
+mutation LoanAgreementDownloadLinkGenerate($input: LoanAgreementDownloadLinksGenerateInput!) {
+  loanAgreementDownloadLinkGenerate(input: $input) {
+    loanAgreementId
+    link
+  }
+}
