@@ -73,3 +73,4 @@ curl -X POST \
 - **Logout**: Clear all tokens on logout
 - **Transport**: Always use HTTPS for API requests
 - **Rotation**: Implement automatic token refresh before expiry
+

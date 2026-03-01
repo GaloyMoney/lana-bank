@@ -43,3 +43,4 @@ Understand the internal design of each module:
 - [Observability](observability) — OpenTelemetry, tracing, Honeycomb
 - [Audit System](audit-system) — Authorization logging and compliance
 - [Configuration](configuration) — Domain config system and macros
+
