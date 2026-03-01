@@ -15,6 +15,7 @@ use core_credit_collateral::{
     public::CoreCreditCollateralEvent,
 };
 use core_price::{CorePriceEvent, Price};
+use core_time_events::CoreTimeEvent;
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
@@ -56,7 +57,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
@@ -68,9 +70,7 @@ where
     price: Arc<Price>,
     governance: Arc<Governance<Perms, E>>,
     public_ids: Arc<PublicIds>,
-    clock: es_entity::clock::ClockHandle,
-    credit_facility_maturity_job_spawner:
-        jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
+    clock: ClockHandle,
     interest_accrual_job_spawner: jobs::interest_accrual::InterestAccrualJobSpawner<Perms, E>,
 }
 
@@ -82,7 +82,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -97,7 +98,6 @@ where
             governance: self.governance.clone(),
             public_ids: self.public_ids.clone(),
             clock: self.clock.clone(),
-            credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
             interest_accrual_job_spawner: self.interest_accrual_job_spawner.clone(),
         }
     }
@@ -126,7 +126,8 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -165,9 +166,26 @@ where
             )
             .await?;
 
-        let credit_facility_maturity_job_spawner = jobs.add_initializer(
+        let maturity_spawner = jobs.add_initializer(
             jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo.clone()),
         );
+
+        let process_maturities_spawner = jobs.add_initializer(
+            jobs::process_facility_maturities::ProcessFacilityMaturitiesJobInit::new(
+                repo.clone(),
+                maturity_spawner,
+            ),
+        );
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(jobs::end_of_day::CREDIT_FACILITY_MATURITY_END_OF_DAY),
+                jobs::end_of_day::CreditFacilityMaturityEndOfDayHandler::new(
+                    process_maturities_spawner,
+                ),
+            )
+            .await?;
 
         let interest_accrual_job_spawner = jobs.add_initializer(
             jobs::interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
@@ -213,7 +231,6 @@ where
             governance,
             public_ids,
             clock,
-            credit_facility_maturity_job_spawner,
             interest_accrual_job_spawner,
         })
     }
@@ -273,20 +290,6 @@ where
 
         self.repo
             .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        self.credit_facility_maturity_job_spawner
-            .spawn_at_in_op(
-                &mut db,
-                JobId::new(),
-                // FIXME: I don't think this is updated if/when the facility is updated
-                // if the credit product is closed earlier than expected or if is liquidated
-                jobs::credit_facility_maturity::CreditFacilityMaturityJobConfig::<E> {
-                    credit_facility_id: credit_facility.id,
-                    _phantom: std::marker::PhantomData,
-                },
-                credit_facility.matures_at(),
-            )
             .await?;
 
         let accrual_id = credit_facility

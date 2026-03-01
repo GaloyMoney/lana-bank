@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
 
 use std::sync::Arc;
 
@@ -12,11 +11,7 @@ use obix::out::OutboxEventMarker;
 use core_custody::CoreCustodyEvent;
 use core_price::CorePriceEvent;
 
-use crate::{
-    CoreCreditEvent,
-    credit_facility::{CreditFacilityError, CreditFacilityRepo},
-    primitives::*,
-};
+use crate::{CoreCreditEvent, credit_facility::CreditFacilityRepo, primitives::*};
 
 #[derive(Serialize, Deserialize)]
 pub struct CreditFacilityMaturityJobConfig<E> {
@@ -93,33 +88,6 @@ where
     repo: Arc<CreditFacilityRepo<E>>,
 }
 
-impl<E> CreditFacilityMaturityJobRunner<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.mark_as_matured",
-        skip(self),
-        fields(credit_facility_id = %credit_facility_id)
-    )]
-    async fn mark_facility_as_matured(
-        &self,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<(), CreditFacilityError> {
-        let mut facility = self.repo.find_by_id(credit_facility_id).await?;
-
-        if facility.mature().did_execute() {
-            self.repo.update(&mut facility).await?;
-        }
-
-        Ok(())
-    }
-}
-
 #[async_trait]
 impl<E> JobRunner for CreditFacilityMaturityJobRunner<E>
 where
@@ -128,13 +96,26 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
+    #[instrument(
+        name = "credit.credit_facility.mark_as_matured",
+        skip(self, current_job),
+        fields(credit_facility_id = %self.config.credit_facility_id)
+    )]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        self.mark_facility_as_matured(self.config.credit_facility_id)
+        let mut op = current_job.begin_op().await?;
+        let mut facility = self
+            .repo
+            .find_by_id_in_op(&mut op, self.config.credit_facility_id)
             .await?;
-        Ok(JobCompletion::Complete)
+
+        if facility.mature().did_execute() {
+            self.repo.update_in_op(&mut op, &mut facility).await?;
+        }
+
+        Ok(JobCompletion::CompleteWithOp(op))
     }
 }
 
