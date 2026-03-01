@@ -15,6 +15,8 @@ sources:
 
       - name: cala_balance_history
 
+      - name: cala_cumulative_effective_balances
+
       - name: core_chart_events_rollup
 
       - name: core_credit_facility_events_rollup

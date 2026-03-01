@@ -1,0 +1,29 @@
+query RunEvents($runId: ID!) {
+  logsForRun(runId: $runId) {
+    ... on EventConnection {
+      events {
+        ... on MessageEvent {
+          message
+          eventType
+        }
+        ... on ExecutionStepFailureEvent {
+          message
+          eventType
+          stepKey
+          error {
+            message
+            stack
+          }
+        }
+        ... on RunFailureEvent {
+          message
+          eventType
+          error {
+            message
+            stack
+          }
+        }
+      }
+    }
+  }
+}

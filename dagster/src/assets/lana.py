@@ -41,6 +41,7 @@ LANA_EL_TABLE_NAMES = (
     "cala_account_sets",
     "cala_accounts",
     "cala_balance_history",
+    "cala_cumulative_effective_balances",
     "inbox_events",
 )
 
