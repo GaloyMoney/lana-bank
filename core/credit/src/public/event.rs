@@ -36,6 +36,9 @@ pub enum CoreCreditEvent {
     DisbursalSettled {
         entity: PublicDisbursal,
     },
+    DisbursalApprovalConcluded {
+        entity: PublicDisbursal,
+    },
     AccrualPosted {
         entity: PublicInterestAccrualCycle,
     },

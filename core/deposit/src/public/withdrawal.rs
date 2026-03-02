@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 
 use crate::{
     primitives::{DepositAccountId, UsdCents, WithdrawalId},
-    withdrawal::Withdrawal,
+    withdrawal::{Withdrawal, WithdrawalStatus},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -14,6 +14,7 @@ pub struct PublicWithdrawal {
     pub id: WithdrawalId,
     pub deposit_account_id: DepositAccountId,
     pub amount: UsdCents,
+    pub status: WithdrawalStatus,
 }
 
 impl From<&Withdrawal> for PublicWithdrawal {
@@ -22,6 +23,7 @@ impl From<&Withdrawal> for PublicWithdrawal {
             id: entity.id,
             deposit_account_id: entity.deposit_account_id,
             amount: entity.amount,
+            status: entity.status(),
         }
     }
 }

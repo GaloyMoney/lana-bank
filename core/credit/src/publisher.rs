@@ -160,7 +160,11 @@ where
                 Settled { .. } => Some(CoreCreditEvent::DisbursalSettled {
                     entity: PublicDisbursal::from(entity),
                 }),
-
+                ApprovalProcessConcluded { .. } => {
+                    Some(CoreCreditEvent::DisbursalApprovalConcluded {
+                        entity: PublicDisbursal::from(entity),
+                    })
+                }
                 _ => None,
             })
             .collect::<Vec<_>>();

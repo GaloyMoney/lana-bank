@@ -12,5 +12,6 @@ pub enum CoreDepositEvent {
     DepositAccountCreated { entity: PublicDepositAccount },
     DepositInitialized { entity: PublicDeposit },
     WithdrawalConfirmed { entity: PublicWithdrawal },
+    WithdrawalApprovalConcluded { entity: PublicWithdrawal },
     DepositReverted { entity: PublicDeposit },
 }

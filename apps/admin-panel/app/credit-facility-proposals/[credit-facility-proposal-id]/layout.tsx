@@ -108,7 +108,7 @@ export default function CreditFacilityProposalLayout({
 
   useCreditFacilityProposalConcludedSubscription(
     data?.creditFacilityProposal &&
-      data?.creditFacilityProposal?.status ===
+      data.creditFacilityProposal.status ===
         CreditFacilityProposalStatus.PendingApproval
       ? { variables: { creditFacilityProposalId: proposalId } }
       : { skip: true },

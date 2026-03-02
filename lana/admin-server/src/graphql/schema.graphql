@@ -1366,6 +1366,11 @@ enum DepositStatus {
 	REVERTED
 }
 
+type DisbursalApprovalConcludedPayload {
+	status: DisbursalStatus!
+	disbursal: CreditFacilityDisbursal!
+}
+
 type DisbursalEntry {
 	recordedAt: Timestamp!
 	disbursal: CreditFacilityDisbursal!
@@ -2467,6 +2472,8 @@ type Subscription {
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!
+	withdrawalApprovalConcluded(withdrawalId: UUID!): WithdrawalApprovalConcludedPayload!
+	disbursalApprovalConcluded(disbursalId: UUID!): DisbursalApprovalConcludedPayload!
 	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
 	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
 	realtimePriceUpdated: RealtimePrice!
@@ -2720,6 +2727,11 @@ type Withdrawal {
 	approvalProcess: ApprovalProcess!
 	account: DepositAccount!
 	ledgerTransactions: [LedgerTransaction!]!
+}
+
+type WithdrawalApprovalConcludedPayload {
+	status: WithdrawalStatus!
+	withdrawal: Withdrawal!
 }
 
 input WithdrawalCancelInput {
