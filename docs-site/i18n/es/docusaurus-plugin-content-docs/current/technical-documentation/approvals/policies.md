@@ -270,12 +270,58 @@ Todas las modificaciones a políticas se registran en el sistema de auditoría:
 - Cuándo se realizó
 - Valores anteriores y nuevos
 
-## Recorrido en Panel de Administración: Asignar Comité y Resolver Acciones
+## Recorrido en Panel de Administración: Assign Committee and Resolve Actions
 
-### 1) Asignar comité a política
+### 1) Assign committee to policy
 
-**Paso 12.** Abre la página de políticas.
+**Paso 12.** Open policies page.
 
-![Visitar página de políticas](/img/screenshots/current/es/governance.cy.ts/12_step-visit-policies-page.png)
+![Visit policies page](/img/screenshots/current/es/governance.cy.ts/12_step-visit-policies-page.png)
 
-**Paso 13.** Selecciona una política.
+**Paso 13.** Select a policy.
+
+![Select policy](/img/screenshots/current/es/governance.cy.ts/13_step-select-policy.png)
+
+**Paso 14.** Assign committee and threshold.
+
+![Assign committee to policy](/img/screenshots/current/es/governance.cy.ts/14_step-assign-committee-to-policy.png)
+
+**Paso 15.** Verify assignment success.
+
+![Verify committee assigned](/img/screenshots/current/es/governance.cy.ts/15_step-verify-committee-assigned.png)
+
+### 2) Review pending actions
+
+**Paso 16.** Open actions queue.
+
+![Actions page](/img/screenshots/current/es/governance.cy.ts/16_step-view-actions-page.png)
+
+**Paso 17.** Confirm pending request appears.
+
+![Pending withdrawal visible](/img/screenshots/current/es/governance.cy.ts/17_step-verify-pending-withdrawal.png)
+
+### 3) Approve or deny process
+
+**Paso 18.** Open request details for decision.
+
+![Withdrawal details for approval](/img/screenshots/current/es/governance.cy.ts/18_step-visit-withdrawal-details.png)
+
+**Paso 19.** Click **Approve**.
+
+![Click approve](/img/screenshots/current/es/governance.cy.ts/19_step-click-approve-button.png)
+
+**Paso 20.** Verify approval success and state transition.
+
+![Approval success](/img/screenshots/current/es/governance.cy.ts/20_step-verify-approval-success.png)
+
+**Paso 21.** Open request for denial flow.
+
+![Visit withdrawal for denial](/img/screenshots/current/es/governance.cy.ts/21_step-visit-withdrawal-for-denial.png)
+
+**Paso 22.** Click **Deny** and provide reason.
+
+![Click deny](/img/screenshots/current/es/governance.cy.ts/22_step-click-deny-button.png)
+
+**Paso 23.** Verify denial success and terminal status.
+
+![Denial success](/img/screenshots/current/es/governance.cy.ts/23_step-verify-denial-success.png)

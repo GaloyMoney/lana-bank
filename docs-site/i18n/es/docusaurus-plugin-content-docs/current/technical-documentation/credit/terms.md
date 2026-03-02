@@ -121,26 +121,26 @@ La calidad de la plantilla impacta aprobación, activación y monitoreo de riesg
 
 **Paso 13.** Verifica que la plantilla esté en la lista.
 
-![Plantilla en la lista](/img/screenshots/current/en/terms-templates.cy.ts/13_terms_template_in_list.png)
+![Plantilla en la lista](/img/screenshots/current/es/terms-templates.cy.ts/13_terms_template_in_list.png)
 
 ### B) Actualizar plantilla
 
 **Paso 14.** Abre los detalles de la plantilla.
 
-![Detalles de la plantilla](/img/screenshots/current/en/terms-templates.cy.ts/14_terms_template_details.png)
+![Detalles de la plantilla](/img/screenshots/current/es/terms-templates.cy.ts/14_terms_template_details.png)
 
 **Paso 15.** Haz clic en **Actualizar**.
 
-![Clic en actualizar plantilla](/img/screenshots/current/en/terms-templates.cy.ts/15_click_update_button.png)
+![Clic en actualizar plantilla](/img/screenshots/current/es/terms-templates.cy.ts/15_click_update_button.png)
 
 **Paso 16.** Modifica el/los campo(s) seleccionado(s) (ejemplo: tasa anual).
 
-![Actualizar tasa anual](/img/screenshots/current/en/terms-templates.cy.ts/16_update_annual_rate.png)
+![Actualizar tasa anual](/img/screenshots/current/es/terms-templates.cy.ts/16_update_annual_rate.png)
 
 **Paso 17.** Envía los cambios.
 
-![Enviar actualización de plantilla](/img/screenshots/current/en/terms-templates.cy.ts/17_submit_update.png)
+![Enviar actualización de plantilla](/img/screenshots/current/es/terms-templates.cy.ts/17_submit_update.png)
 
 **Paso 18.** Verifica el mensaje de éxito de la actualización.
 
-![Actualización de plantilla exitosa](/img/screenshots/current/en/terms-templates.cy.ts/18_update_success.png)
+![Actualización de plantilla exitosa](/img/screenshots/current/es/terms-templates.cy.ts/18_update_success.png)

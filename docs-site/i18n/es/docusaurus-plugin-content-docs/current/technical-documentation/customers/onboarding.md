@@ -186,29 +186,62 @@ Si falla el aprovisionamiento:
 | Iniciar KYC | Comenzar verificación | CUSTOMER_UPDATE |
 | Desactivar | Suspender cuenta | CUSTOMER_UPDATE |
 
-## Recorrido en Panel de Administración: Creación de Cliente y KYC
+## Recorrido en Panel de Administración: Customer Creation and KYC
 
-Este recorrido refleja el flujo operativo usado en los manuales de Cypress y coincide con el
-ciclo de vida de cliente en dominio (crear -> verificar -> activar).
+This walkthrough reflects the operator flow used in Cypress manuals and aligns with the customer
+domain lifecycle (create -> verify -> activate).
 
-### 1) Crear y validar datos base del cliente
+### 1) Create and verify customer basics
 
-**Paso 1.** Abre la lista de clientes.
+**Paso 1.** Open the customers list.
 
-![Lista de clientes](/img/screenshots/current/es/customers.cy.ts/2_list_all_prospects.png)
+![Customers list](/img/screenshots/current/es/customers.cy.ts/2_list_all_prospects.png)
 
-**Paso 2.** Haz clic en **Crear**.
+**Paso 2.** Click **Create**.
 
-![Botón crear cliente](/img/screenshots/current/es/customers.cy.ts/3_click_create_button.png)
+![Click create customer](/img/screenshots/current/es/customers.cy.ts/3_click_create_button.png)
 
-**Paso 3.** Se abre el formulario de creación con el campo de email listo.
+**Paso 3.** The customer creation form opens with the email input field ready.
 
-![Formulario de creación de cliente](/img/screenshots/current/es/customers.cy.ts/4_verify_email_input_visible.png)
+![Customer creation form](/img/screenshots/current/es/customers.cy.ts/4_verify_email_input_visible.png)
 
-**Paso 4.** Ingresa un correo único.
+**Paso 4.** Enter a unique customer email.
 
-![Ingresar correo](/img/screenshots/current/es/customers.cy.ts/5_enter_email.png)
+![Enter customer email](/img/screenshots/current/es/customers.cy.ts/5_enter_email.png)
 
-**Paso 5.** Ingresa un ID de Telegram único (si aplica en tu operación).
+**Paso 5.** Enter a unique Telegram ID (if used by your process).
 
-![Ingresar Telegram ID](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_handle.png)
+![Enter telegram id](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_handle.png)
+
+**Paso 6.** Review details before submission.
+
+![Review customer details](/img/screenshots/current/es/customers.cy.ts/7_click_review_details.png)
+
+**Paso 7.** Verify the confirmation dialog showing the entered customer details.
+
+![Verify customer details before submit](/img/screenshots/current/es/customers.cy.ts/8_verify_details.png)
+
+**Paso 8.** Click **Confirm** to create the customer.
+
+![Confirm customer creation](/img/screenshots/current/es/customers.cy.ts/9_click_confirm_submit.png)
+
+**Paso 9.** Confirm the customer detail page and identity fields.
+
+![Customer details page](/img/screenshots/current/es/customers.cy.ts/10_verify_email.png)
+
+**Paso 10.** Verify the customer appears in list views.
+
+![Customer visible in list](/img/screenshots/current/es/customers.cy.ts/11_verify_customer_in_list.png)
+
+### 2) Start and monitor KYC
+
+The system integrates with Sumsub. Operators generate the verification link, then monitor status
+changes driven by webhook updates.
+
+**Paso 11.** Open customer KYC section and generate verification link.
+
+![Customer KYC detail section](/img/screenshots/current/es/customers.cy.ts/14_prospect_kyc_details_page.png)
+
+**Paso 12.** Confirm KYC link was created.
+
+![KYC link created](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)

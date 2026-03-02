@@ -84,3 +84,46 @@ Después de este asiento, las cuentas de pérdidas y ganancias comienzan el sigu
 ### Irreversibilidad
 
 Al igual que los cierres mensuales, el cierre del ejercicio fiscal es irreversible. Una vez completado, el asiento de cierre de fin de año no puede revertirse ni modificarse. Los estados financieros del año cerrado son definitivos.
+
+Al igual que los cierres mensuales, el cierre del ejercicio fiscal es irreversible. Una vez completado, el asiento de cierre de fin de año no se puede revertir ni modificar. Los estados financieros del año cerrado son definitivos.
+
+## Apertura del siguiente ejercicio fiscal
+
+Después de cerrar un ejercicio fiscal, el siguiente ejercicio fiscal debe abrirse explícitamente antes de que se puedan registrar transacciones en el nuevo período. Esta es una decisión de diseño intencional que requiere una decisión consciente para avanzar el calendario contable.
+
+El nuevo ejercicio fiscal comienza el día después de la fecha de cierre del año anterior y abarca doce meses. Hasta que se abra, el sistema rechazará cualquier transacción con fechas efectivas en el nuevo período.
+
+### Resumen del flujo de trabajo
+
+```mermaid
+flowchart LR
+    A[Inicializar primer ejercicio fiscal] --> B[Operar durante el año]
+    B --> C[Cerrar meses 1-12 secuencialmente]
+    C --> D[Cerrar ejercicio fiscal]
+    D --> E[Abrir siguiente ejercicio fiscal]
+    E --> B
+```
+
+Este ciclo se repite anualmente. Cada ejercicio fiscal proporciona un límite claro para la presentación de informes financieros y garantiza que los libros del banco se cierren y trasladen adecuadamente a intervalos regulares.
+
+```mermaid
+flowchart LR
+    A[Initialize first fiscal year] --> B[Operate during year]
+    B --> C[Close months 1-12 sequentially]
+    C --> D[Close fiscal year]
+    D --> E[Open next fiscal year]
+    E --> B
+```
+
+Este ciclo se repite anualmente. Cada año fiscal proporciona un límite claro para la presentación de informes financieros y garantiza que los libros del banco se cierren y se trasladen adecuadamente a intervalos regulares.
+
+```mermaid
+flowchart LR
+    A[Initialize first fiscal year] --> B[Operate during year]
+    B --> C[Close months 1-12 sequentially]
+    C --> D[Close fiscal year]
+    D --> E[Open next fiscal year]
+    E --> B
+```
+
+Este ciclo se repite anualmente. Cada año fiscal proporciona un límite claro para la presentación de informes financieros y garantiza que los libros del banco se cierren y se trasladen adecuadamente a intervalos regulares.

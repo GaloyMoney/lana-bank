@@ -283,3 +283,18 @@ Segregación de responsabilidad de comandos y consultas:
 - Rutas de lectura optimizadas
 - Operaciones de escritura separadas
 - Consistencia eventual cuando sea apropiado
+
+Segregación de responsabilidad de comandos y consultas:
+- Rutas de lectura optimizadas
+- Operaciones de escritura separadas
+- Consistencia eventual cuando sea apropiado
+
+Segregación de responsabilidad de comandos y consultas:
+- Rutas de lectura optimizadas
+- Operaciones de escritura separadas
+- Consistencia eventual cuando sea apropiado
+
+Segregación de responsabilidad de comandos y consultas:
+- Rutas de lectura optimizadas
+- Operaciones de escritura separadas
+- Consistencia eventual cuando sea apropiado

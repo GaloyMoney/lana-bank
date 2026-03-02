@@ -246,3 +246,53 @@ query GetCommitteeDecisions($committeeId: ID!, $first: Int) {
 ```
 
 ## Permisos Requeridos
+
+## Recorrido en Panel de Administración: Create Committee and Add Members
+
+### 1) Create committee
+
+**Paso 1.** Visit committees page.
+
+![Visit committees page](/img/screenshots/current/es/governance.cy.ts/1_step-visit-committees.png)
+
+**Paso 2.** Click **Create Committee**.
+
+![Click create committee](/img/screenshots/current/es/governance.cy.ts/2_step-click-create-committee-button.png)
+
+**Paso 3.** Enter committee name.
+
+![Fill committee name](/img/screenshots/current/es/governance.cy.ts/3_step-fill-committee-name.png)
+
+**Paso 4.** Submit committee creation.
+
+![Submit committee creation](/img/screenshots/current/es/governance.cy.ts/4_step-submit-committee-creation.png)
+
+**Paso 5.** Verify success.
+
+![Committee created successfully](/img/screenshots/current/es/governance.cy.ts/5_step-committee-created-successfully.png)
+
+**Paso 6.** Confirm committee appears in list.
+
+![Committee list](/img/screenshots/current/es/governance.cy.ts/6_step-view-committees-list.png)
+
+### 2) Add member
+
+**Paso 7.** Open committee details.
+
+![Committee details](/img/screenshots/current/es/governance.cy.ts/7_step-visit-committee-details.png)
+
+**Paso 8.** Click **Add Member**.
+
+![Add member button](/img/screenshots/current/es/governance.cy.ts/8_step-click-add-member-button.png)
+
+**Paso 9.** Select role/member mapping.
+
+![Select admin role](/img/screenshots/current/es/governance.cy.ts/9_step-select-admin-role.png)
+
+**Paso 10.** Submit member addition.
+
+![Submit add member](/img/screenshots/current/es/governance.cy.ts/10_step-submit-add-member.png)
+
+**Paso 11.** Verify member is added successfully.
+
+![Verify member added](/img/screenshots/current/es/governance.cy.ts/11_step-verify-member-added.png)

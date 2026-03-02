@@ -164,13 +164,24 @@ Cerrar desactiva permanentemente una cuenta de depósito. Esta acción no puede 
 - [Operaciones de Depósito](operations) - Depósitos y retiros
 - [Libro Mayor](ledger) - Resumen de conjuntos de cuentas y plantillas de transacción
 
-## Recorrido en Panel de Administración: Alta de Cuenta de Depósito
+## Recorrido en Panel de Administración: Deposit Account Setup
 
-Las cuentas de depósito son prerequisito para operar transacciones. En onboarding, el operador puede
-necesitar crearlas desde el perfil del cliente cuando no existen.
+Deposit accounts are required before transaction operations can start. In onboarding flows, the
+operator may need to create one from the customer profile when none exists yet.
 
-**Paso 1.** Detecta ausencia de cuenta en el banner del detalle del cliente.
+**Paso 1.** Detect missing deposit account from customer detail banner.
 
-![Banner sin cuenta de depósito](/img/screenshots/current/es/customers.cy.ts/customer_no_deposit_account_banner.png)
+![No deposit account banner](/img/screenshots/current/es/customers.cy.ts/customer_no_deposit_account_banner.png)
 
-**Paso 2.** Abre el diálogo para crear la cuenta.
+**Paso 2.** Open the create deposit account dialog.
+
+![Create deposit account dialog](/img/screenshots/current/es/customers.cy.ts/customer_create_deposit_account_dialog.png)
+
+**Paso 3.** Confirm deposit account creation succeeds.
+
+![Deposit account created](/img/screenshots/current/es/customers.cy.ts/customer_deposit_account_created.png)
+
+Operational checks after creation:
+- account status is `ACTIVE`,
+- customer-to-account association is correct,
+- account is available for deposit/withdrawal initiation.
