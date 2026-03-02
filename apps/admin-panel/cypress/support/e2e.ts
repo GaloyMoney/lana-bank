@@ -18,22 +18,23 @@
 import "./commands"
 import { t } from "./translation"
 
-// Skip remaining tests in a spec file after the first failure.
+// Skip remaining tests in a spec file once a test has exhausted all retries.
 // This avoids wasting time on sequential tests that depend on prior state.
 let hasFailedInSpec = false
-
-Cypress.on("test:before:run", () => {
-  // reset flag at the start of each spec file is handled by the module scope
-})
+let failedTestTitle: string | null = null
 
 afterEach(function () {
   if (this.currentTest?.state === "failed") {
-    hasFailedInSpec = true
+    if (Cypress.currentRetry >= this.currentTest.retries()) {
+      hasFailedInSpec = true
+      failedTestTitle = this.currentTest.title
+    }
   }
 })
 
 beforeEach(function () {
-  if (hasFailedInSpec) {
+  // Only skip subsequent tests, not retries of the failed test itself
+  if (hasFailedInSpec && this.currentTest?.title !== failedTestTitle) {
     this.skip()
   }
 })
@@ -68,8 +69,12 @@ Cypress.on("uncaught:exception", (err) => {
 })
 
 const testLanguage = Cypress.env("TEST_LANGUAGE")
+let keycloakReady = false
 beforeEach(() => {
-  cy.waitForKeycloak()
+  if (!keycloakReady) {
+    cy.waitForKeycloak()
+    keycloakReady = true
+  }
   cy.session(
     "loginSession",
     () => {

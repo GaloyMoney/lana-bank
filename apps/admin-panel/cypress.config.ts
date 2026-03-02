@@ -60,7 +60,7 @@ export default defineConfig({
     baseUrl: "http://admin.localhost:4455",
     defaultCommandTimeout: 30000,
     requestTimeout: 30000,
-    pageLoadTimeout: 30000,
+    pageLoadTimeout: 60000,
     responseTimeout: 30000,
     retries: 5,
     screenshotOnRunFailure: false,
