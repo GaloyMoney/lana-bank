@@ -1,7 +1,7 @@
 mutation customerDocumentAttach($file: Upload!, $customerId: String!) {
   customerDocumentAttach(input: { file: $file, customerId: $customerId }) {
     document {
-      documentId
+      customerDocumentId
       customerId
       filename
     }

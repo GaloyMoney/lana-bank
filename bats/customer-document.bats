@@ -34,7 +34,7 @@ teardown_file() {
 
   # Execute the GraphQL mutation for file upload
   response=$(exec_admin_graphql_upload "customer-document-attach" "$variables" "$temp_file")
-  document_id=$(echo "$response" | jq -r '.data.customerDocumentAttach.document.documentId')
+  document_id=$(echo "$response" | jq -r '.data.customerDocumentAttach.document.customerDocumentId')
   [[ "$document_id" != null ]] || exit 1
   
   rm "$temp_file"
@@ -46,7 +46,7 @@ teardown_file() {
     }')
 
   exec_admin_graphql 'customer-document' "$variables"
-  fetched_document_id=$(graphql_output .data.customerDocument.documentId)
+  fetched_document_id=$(graphql_output .data.customerDocument.customerDocumentId)
   [[ "$fetched_document_id" == "$document_id" ]] || exit 1
 
   fetched_customer_id=$(graphql_output .data.customerDocument.customerId)
@@ -64,7 +64,7 @@ teardown_file() {
   documents_count=$(graphql_output '.data.customer.documents | length')
   [[ "$documents_count" -ge 1 ]] || exit 1
 
-  first_document_id=$(graphql_output '.data.customer.documents[0].documentId')
+  first_document_id=$(graphql_output '.data.customer.documents[0].customerDocumentId')
   [[ "$first_document_id" == "$document_id" ]] || exit 1
 
   # Generate download link for the document

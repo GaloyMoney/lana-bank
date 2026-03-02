@@ -40,7 +40,7 @@ type AccountingBaseConfigOutput {
 
 type AccountingCsvDocument {
 	id: ID!
-	documentId: UUID!
+	accountingCsvDocumentId: UUID!
 	ledgerAccountId: UUID!
 	status: DocumentStatus!
 	createdAt: Timestamp!
@@ -250,7 +250,7 @@ type ChartNode {
 
 type ChartOfAccounts {
 	id: ID!
-	chartId: UUID!
+	chartOfAccountsId: UUID!
 	name: String!
 	children: [ChartNode!]!
 	accountingBaseConfig: AccountingBaseConfigOutput
@@ -548,7 +548,7 @@ type CreditFacilityConnection {
 
 type CreditFacilityDisbursal {
 	id: ID!
-	disbursalId: UUID!
+	creditFacilityDisbursalId: UUID!
 	amount: UsdCents!
 	status: DisbursalStatus!
 	createdAt: Timestamp!
@@ -688,7 +688,7 @@ input CreditFacilityPartialPaymentWithDateRecordInput {
 
 type CreditFacilityPaymentAllocation {
 	id: ID!
-	paymentAllocationId: UUID!
+	creditFacilityPaymentAllocationId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
@@ -1020,7 +1020,7 @@ type CustomerConnection {
 
 type CustomerDocument {
 	id: ID!
-	documentId: UUID!
+	customerDocumentId: UUID!
 	customerId: UUID!
 	status: DocumentStatus!
 	filename: String!
@@ -1577,7 +1577,7 @@ enum InterestInterval {
 
 type JournalEntry {
 	id: ID!
-	entryId: UUID!
+	journalEntryId: UUID!
 	txId: UUID!
 	amount: JournalEntryAmount!
 	direction: DebitOrCredit!

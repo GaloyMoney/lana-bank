@@ -106,7 +106,7 @@ gql`
         cursor
         node {
           id
-          entryId
+          journalEntryId
           txId
           entryType
           amount {

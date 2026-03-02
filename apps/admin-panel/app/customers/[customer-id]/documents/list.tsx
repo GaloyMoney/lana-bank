@@ -121,7 +121,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
 
   const columns: Column<DocumentType>[] = [
     {
-      key: "documentId",
+      key: "customerDocumentId",
       header: t("columns.id"),
     },
     {
@@ -129,7 +129,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
       header: t("columns.fileName"),
     },
     {
-      key: "documentId",
+      key: "customerDocumentId",
       header: "",
       render: (_, document) => (
         <div className="flex justify-end space-x-2">
@@ -137,11 +137,11 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
             variant="outline"
             onClick={(e) => {
               e.stopPropagation()
-              openFile(document.documentId)
+              openFile(document.customerDocumentId)
             }}
-            disabled={linkLoading[document.documentId]}
+            disabled={linkLoading[document.customerDocumentId]}
           >
-            {linkLoading[document.documentId] ? (
+            {linkLoading[document.customerDocumentId] ? (
               <CgSpinner className="animate-spin h-5 w-5" />
             ) : (
               t("buttons.view")
@@ -151,11 +151,11 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
             variant="ghost"
             onClick={(e) => {
               e.stopPropagation()
-              deleteDocument(document.documentId)
+              deleteDocument(document.customerDocumentId)
             }}
-            disabled={deleteLoading[document.documentId]}
+            disabled={deleteLoading[document.customerDocumentId]}
           >
-            {deleteLoading[document.documentId] ? (
+            {deleteLoading[document.customerDocumentId] ? (
               <CgSpinner className="animate-spin h-5 w-5" />
             ) : (
               t("buttons.delete")

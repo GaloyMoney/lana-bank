@@ -30,7 +30,7 @@ gql`
   query AccountEntryCsv($ledgerAccountId: UUID!) {
     accountEntryCsv(ledgerAccountId: $ledgerAccountId) {
       id
-      documentId
+      accountingCsvDocumentId
       status
       createdAt
     }
@@ -40,7 +40,7 @@ gql`
     ledgerAccountCsvCreate(input: $input) {
       accountingCsvDocument {
         id
-        documentId
+        accountingCsvDocumentId
         status
         createdAt
       }
@@ -144,7 +144,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
       const result = await generateDownloadLink({
         variables: {
           input: {
-            documentId: currentCsv.documentId,
+            documentId: currentCsv.accountingCsvDocumentId,
           },
         },
       })

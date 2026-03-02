@@ -26,7 +26,7 @@ gql`
     creditFacilityDisbursalInitiate(input: $input) {
       disbursal {
         id
-        disbursalId
+        creditFacilityDisbursalId
         publicId
         amount
         status

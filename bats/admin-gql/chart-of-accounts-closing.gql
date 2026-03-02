@@ -1,6 +1,6 @@
 query ChartOfAccountsClosing {
   chartOfAccounts {
-    chartId
+    chartOfAccountsId
     name
   }
 }

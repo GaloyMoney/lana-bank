@@ -54,7 +54,7 @@ gql`
       }
       entries {
         id
-        entryId
+        journalEntryId
         entryType
         amount {
           __typename

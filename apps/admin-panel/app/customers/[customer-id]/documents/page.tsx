@@ -15,7 +15,7 @@ gql`
       documents {
         id
         filename
-        documentId
+        customerDocumentId
       }
     }
   }

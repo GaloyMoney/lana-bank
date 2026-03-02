@@ -83,7 +83,7 @@ type CreditFacilityCollateralizationUpdated {
 
 type CreditFacilityDisbursal {
 	id: ID!
-	disbursalId: UUID!
+	creditFacilityDisbursalId: UUID!
 	amount: UsdCents!
 	status: DisbursalStatus!
 	createdAt: Timestamp!
@@ -115,7 +115,7 @@ type CreditFacilityInterestAccrued {
 
 type CreditFacilityPaymentAllocation {
 	id: ID!
-	paymentAllocationId: UUID!
+	creditFacilityPaymentAllocationId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!

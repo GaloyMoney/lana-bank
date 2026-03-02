@@ -20,7 +20,7 @@ gql`
   mutation ChartOfAccountsCsvImportWithBaseConfig($input: ChartOfAccountsCsvImportWithBaseConfigInput!) {
     chartOfAccountsCsvImportWithBaseConfig(input: $input) {
       chartOfAccounts {
-        chartId
+        chartOfAccountsId
       }
     }
   }
@@ -78,7 +78,7 @@ const ChartOfAccountsUpload = () => {
           },
         },
       })
-      if (result.data?.chartOfAccountsCsvImportWithBaseConfig.chartOfAccounts.chartId) {
+      if (result.data?.chartOfAccountsCsvImportWithBaseConfig.chartOfAccounts.chartOfAccountsId) {
         toast.success(t("successDescription"))
         resetUpload()
       } else {

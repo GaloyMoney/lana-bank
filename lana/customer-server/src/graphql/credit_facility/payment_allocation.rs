@@ -8,7 +8,7 @@ pub use lana_app::credit::PaymentAllocation as DomainPaymentAllocation;
 #[graphql(complex)]
 pub struct CreditFacilityPaymentAllocation {
     id: ID,
-    payment_allocation_id: UUID,
+    credit_facility_payment_allocation_id: UUID,
     amount: UsdCents,
     created_at: Timestamp,
 
@@ -20,7 +20,7 @@ impl From<DomainPaymentAllocation> for CreditFacilityPaymentAllocation {
     fn from(allocation: DomainPaymentAllocation) -> Self {
         Self {
             id: allocation.id.to_global_id(),
-            payment_allocation_id: UUID::from(allocation.id),
+            credit_facility_payment_allocation_id: UUID::from(allocation.id),
             amount: allocation.amount,
             created_at: allocation.created_at().into(),
             entity: Arc::new(allocation),

@@ -1,7 +1,7 @@
 query AccountEntryCsv($ledgerAccountId: UUID!) {
   accountEntryCsv(ledgerAccountId: $ledgerAccountId) {
     id
-    documentId
+    accountingCsvDocumentId
     ledgerAccountId
     status
     createdAt

@@ -43,7 +43,7 @@ gql`
         cursor
         node {
           id
-          entryId
+          journalEntryId
           entryType
           description
           direction
@@ -343,7 +343,7 @@ const JournalPage: React.FC = () => {
                 {displayData.map((entry, index) => {
                   const isFirst = isFirstInGroup(displayData, index)
                   return (
-                    <React.Fragment key={entry.entryId}>
+                    <React.Fragment key={entry.journalEntryId}>
                       {isFirst && index > 0 && (
                         <TableRow className="h-3">
                           <TableCell
