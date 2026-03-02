@@ -235,6 +235,13 @@ type BtcLedgerAccountBalanceRange {
 	close: BtcLedgerAccountBalance!
 }
 
+type BuildInfo {
+	version: String!
+	buildProfile: String!
+	buildTarget: String!
+	enabledFeatures: [String!]!
+}
+
 scalar CVLPctValue
 
 type CancelledWithdrawalEntry {
@@ -2233,6 +2240,7 @@ scalar PublicId
 union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
+	buildInfo: BuildInfo!
 	me: Me!
 	dashboard: Dashboard!
 	user(id: UUID!): User

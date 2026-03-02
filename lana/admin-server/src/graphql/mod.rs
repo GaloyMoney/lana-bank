@@ -2,6 +2,7 @@ mod accounting;
 mod approval_process;
 mod approval_rules;
 mod audit;
+mod build_info;
 mod committee;
 mod contract_creation;
 mod credit_config;
@@ -34,14 +35,19 @@ mod schema;
 
 use async_graphql::*;
 
+pub use build_info::BuildInfo;
 use loader::LanaLoader;
 pub use schema::*;
 
 use lana_app::app::LanaApp;
 
-pub fn schema(app: Option<LanaApp>) -> Schema<Query, Mutation, Subscription> {
-    let mut schema_builder =
-        Schema::build(Query, Mutation, Subscription).extension(extensions::Tracing);
+pub fn schema(
+    app: Option<LanaApp>,
+    build_info: BuildInfo,
+) -> Schema<Query, Mutation, Subscription> {
+    let mut schema_builder = Schema::build(Query, Mutation, Subscription)
+        .extension(extensions::Tracing)
+        .data(build_info);
 
     if let Some(app) = app {
         schema_builder = schema_builder.data(LanaLoader::new(&app)).data(app);
