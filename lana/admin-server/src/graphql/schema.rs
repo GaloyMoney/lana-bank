@@ -23,16 +23,21 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    access::*, accounting::*, approval_process::*, audit::*, committee::*, contract_creation::*,
-    credit_config::*, credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*,
-    deposit_config::*, document::*, domain_config::*, loader::*, me::*, policy::*, price::*,
-    prospect::*, public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
+    access::*, accounting::*, approval_process::*, audit::*, build_info::BuildInfo, committee::*,
+    contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, domain_config::*, loader::*, me::*,
+    policy::*, price::*, prospect::*, public_id::*, reports::*, sumsub::*, terms_template::*,
+    withdrawal::*,
 };
 
 pub struct Query;
 
 #[Object]
 impl Query {
+    async fn build_info(&self, ctx: &Context<'_>) -> BuildInfo {
+        ctx.data_unchecked::<BuildInfo>().clone()
+    }
+
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<MeUser> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let user = Arc::new(app.access().users().find_for_subject(sub).await?);

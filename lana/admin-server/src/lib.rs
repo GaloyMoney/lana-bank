@@ -29,7 +29,12 @@ use std::sync::Arc;
 use std::future::Future;
 
 #[instrument(name = "admin_server.run", skip_all)]
-pub async fn run<S>(config: AdminServerConfig, app: LanaApp, signal: S) -> anyhow::Result<()>
+pub async fn run<S>(
+    config: AdminServerConfig,
+    app: LanaApp,
+    enabled_features: Vec<String>,
+    signal: S,
+) -> anyhow::Result<()>
 where
     S: Future<Output = ()> + Send + 'static,
 {
@@ -41,7 +46,8 @@ where
     tokio::spawn(async move {
         decoder.refresh_keys_periodically().await;
     });
-    let schema = graphql::schema(Some(app.clone()));
+    let build_info = graphql::BuildInfo::new(enabled_features);
+    let schema = graphql::schema(Some(app.clone()), build_info);
 
     let cors = CorsLayer::permissive();
 

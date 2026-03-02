@@ -265,6 +265,14 @@ export type BtcLedgerAccountBalanceRange = {
   periodActivity: BtcLedgerAccountBalance;
 };
 
+export type BuildInfo = {
+  __typename?: 'BuildInfo';
+  buildProfile: Scalars['String']['output'];
+  buildTarget: Scalars['String']['output'];
+  enabledFeatures: Array<Scalars['String']['output']>;
+  version: Scalars['String']['output'];
+};
+
 export type CancelledWithdrawalEntry = {
   __typename?: 'CancelledWithdrawalEntry';
   recordedAt: Scalars['Timestamp']['output'];
@@ -2510,6 +2518,7 @@ export type Query = {
   audit: AuditEntryConnection;
   auditSubjects: Array<Scalars['AuditSubjectId']['output']>;
   balanceSheet: BalanceSheet;
+  buildInfo: BuildInfo;
   chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;

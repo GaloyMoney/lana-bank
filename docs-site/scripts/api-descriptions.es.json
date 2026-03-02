@@ -5,6 +5,7 @@
   },
   "admin": {
     "queries": {
+      "buildInfo": "Devuelve la version de compilacion, perfil y plataforma objetivo del servidor en ejecucion",
       "me": "Devuelve la informacion del usuario autenticado actual y los elementos de navegacion visibles",
       "dashboard": "Obtiene estadisticas del panel incluyendo facilidades activas, facilidades pendientes, monto total desembolsado y colateral total",
       "user": "Obtiene un usuario especifico por su identificador unico",

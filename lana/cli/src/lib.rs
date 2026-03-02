@@ -209,11 +209,17 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let admin_app = app.clone();
     let mut admin_shutdown = shutdown_recv.resubscribe();
 
+    let enabled_features = BuildInfo::get().enabled_features;
     server_handles.push(tokio::spawn(async move {
         let _ = admin_error_send.try_send(
-            admin_server::run(config.admin_server, admin_app, async move {
-                let _ = admin_shutdown.recv().await;
-            })
+            admin_server::run(
+                config.admin_server,
+                admin_app,
+                enabled_features,
+                async move {
+                    let _ = admin_shutdown.recv().await;
+                },
+            )
             .await
             .context("Admin server error"),
         );
