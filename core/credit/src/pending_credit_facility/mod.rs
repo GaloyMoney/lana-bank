@@ -166,27 +166,23 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "credit.pending_credit_facility.transition_from_proposal",
-        skip(self, credit_facility_proposal_id),
+        name = "credit.pending_credit_facility.transition_from_proposal_in_op",
+        skip(self, db, credit_facility_proposal_id),
         fields(pending_credit_facility_id = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty)
     )]
-    pub async fn transition_from_proposal(
+    pub async fn transition_from_proposal_in_op(
         &self,
+        db: &mut es_entity::DbOp<'_>,
         credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
         approved: bool,
     ) -> Result<Option<CreditFacilityProposal>, PendingCreditFacilityError> {
-        let mut db = self.repo.begin_op().await?;
-
         let id = credit_facility_proposal_id.into();
         tracing::Span::current()
             .record("credit_facility_proposal_id", tracing::field::display(&id));
 
-        match self.proposals.approve_in_op(&mut db, id, approved).await? {
+        match self.proposals.approve_in_op(db, id, approved).await? {
             ProposalApprovalOutcome::AlreadyApplied => Ok(None),
-            ProposalApprovalOutcome::Rejected(proposal) => {
-                db.commit().await?;
-                Ok(Some(proposal))
-            }
+            ProposalApprovalOutcome::Rejected(proposal) => Ok(Some(proposal)),
             ProposalApprovalOutcome::Approved {
                 new_pending_facility,
                 custodian_id,
@@ -195,13 +191,13 @@ where
                 let wallet_id = if let Some(custodian_id) = custodian_id {
                     #[cfg(feature = "mock-custodian")]
                     if custodian_id.is_mock_custodian() {
-                        self.custody.ensure_mock_custodian_in_op(&mut db).await?;
+                        self.custody.ensure_mock_custodian_in_op(db).await?;
                     }
 
                     let wallet = self
                         .custody
                         .create_wallet_in_op(
-                            &mut db,
+                            db,
                             custodian_id,
                             &format!("CF {}", new_pending_facility.id),
                         )
@@ -214,7 +210,7 @@ where
 
                 self.collaterals
                     .create_in_op(
-                        &mut db,
+                        db,
                         new_pending_facility.collateral_id,
                         new_pending_facility.id.into(),
                         wallet_id,
@@ -227,22 +223,18 @@ where
                     "pending_credit_facility_id",
                     tracing::field::display(&new_pending_facility.id),
                 );
-                let pending_credit_facility = self
-                    .repo
-                    .create_in_op(&mut db, new_pending_facility)
-                    .await?;
+                let pending_credit_facility =
+                    self.repo.create_in_op(db, new_pending_facility).await?;
 
                 self.ledger
                     .handle_pending_facility_creation_in_op(
-                        &mut db,
+                        db,
                         &pending_credit_facility,
                         &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
                             crate::primitives::PENDING_FACILITY_CREATION,
                         ),
                     )
                     .await?;
-
-                db.commit().await?;
 
                 Ok(Some(proposal))
             }

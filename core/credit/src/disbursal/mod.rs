@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+pub(crate) mod jobs;
 mod repo;
 
 use std::sync::Arc;

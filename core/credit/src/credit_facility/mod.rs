@@ -1,7 +1,7 @@
 mod entity;
 pub mod error;
 pub mod interest_accrual_cycle;
-mod jobs;
+pub(crate) mod jobs;
 mod repo;
 
 use std::sync::Arc;
@@ -223,17 +223,16 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.credit_facility.activate", skip(self), fields(credit_facility_id = %credit_facility_id))]
-    pub(super) async fn activate(
+    #[instrument(name = "credit.credit_facility.activate_in_op", skip(self, db), fields(credit_facility_id = %credit_facility_id))]
+    pub(super) async fn activate_in_op(
         &self,
+        db: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
     ) -> Result<(), CreditFacilityError> {
-        let mut db = self.repo.begin_op().await?;
-
         self.authz
             .audit()
             .record_system_entry_in_op(
-                &mut db,
+                db,
                 CREDIT_FACILITY_ACTIVATION,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
@@ -242,7 +241,7 @@ where
 
         let (mut new_credit_facility_builder, initial_disbursal) = match self
             .pending_credit_facilities
-            .complete_in_op(&mut db, credit_facility_id.into())
+            .complete_in_op(db, credit_facility_id.into())
             .await?
         {
             PendingCreditFacilityCompletionOutcome::Completed {
@@ -256,7 +255,7 @@ where
 
         let public_id = self
             .public_ids
-            .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, credit_facility_id)
+            .create_in_op(db, CREDIT_FACILITY_REF_TARGET, credit_facility_id)
             .await?;
 
         let new_credit_facility = new_credit_facility_builder
@@ -264,20 +263,18 @@ where
             .build()
             .expect("Could not build NewCreditFacility");
 
-        let mut credit_facility = self.repo.create_in_op(&mut db, new_credit_facility).await?;
+        let mut credit_facility = self.repo.create_in_op(db, new_credit_facility).await?;
 
         let periods = credit_facility
             .start_interest_accrual_cycle()?
             .expect("start_interest_accrual_cycle always returns Executed")
             .expect("first accrual");
 
-        self.repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
+        self.repo.update_in_op(db, &mut credit_facility).await?;
 
         self.credit_facility_maturity_job_spawner
             .spawn_at_in_op(
-                &mut db,
+                db,
                 JobId::new(),
                 // FIXME: I don't think this is updated if/when the facility is updated
                 // if the credit product is closed earlier than expected or if is liquidated
@@ -296,7 +293,7 @@ where
 
         self.interest_accrual_job_spawner
             .spawn_at_in_op(
-                &mut db,
+                db,
                 accrual_id,
                 jobs::interest_accrual::InterestAccrualJobConfig::<Perms, E> {
                     credit_facility_id,
@@ -309,11 +306,7 @@ where
         let activation_data = if let Some(mut new_disbursal_builder) = initial_disbursal {
             let public_id = self
                 .public_ids
-                .create_in_op(
-                    &mut db,
-                    DISBURSAL_REF_TARGET,
-                    new_disbursal_builder.unwrap_id(),
-                )
+                .create_in_op(db, DISBURSAL_REF_TARGET, new_disbursal_builder.unwrap_id())
                 .await?;
             let new_disbursal = new_disbursal_builder
                 .public_id(public_id.id)
@@ -322,7 +315,7 @@ where
             let disbursal = self
                 .disbursals
                 .create_pre_approved_disbursal_in_op(
-                    &mut db,
+                    db,
                     self.clock.now().date_naive(),
                     new_disbursal,
                 )
@@ -338,14 +331,13 @@ where
 
         self.ledger
             .handle_activation_in_op(
-                &mut db,
+                db,
                 activation_data,
                 &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
                     CREDIT_FACILITY_ACTIVATION,
                 ),
             )
             .await?;
-        db.commit().await?;
 
         Ok(())
     }
