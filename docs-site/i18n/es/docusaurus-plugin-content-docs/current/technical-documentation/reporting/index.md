@@ -145,3 +145,8 @@ Lista de verificación:
 - el informe ejecutado aparece en la lista,
 - las actualizaciones de estado se reflejan en la interfaz,
 - los enlaces de descarga se generan solo cuando el estado de ejecución es exitoso.
+
+Lista de verificación:
+- la ejecución del informe aparece en la lista,
+- las actualizaciones de estado se reflejan en la interfaz,
+- los enlaces de descarga se generan solo cuando el estado de ejecución es exitoso.
