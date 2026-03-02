@@ -58,9 +58,8 @@ Analyze the PR diff and categorize:
 
 ### API changes
 
-1. Regenerate the GraphQL schema if it changed: `make sdl`
-2. Add or update operation descriptions in `docs-site/scripts/api-descriptions.json`
-3. For new operations, write a clear English description. For removed operations, keep stale entries — versioned docs may still reference them.
+1. Add or update operation descriptions in `docs-site/scripts/api-descriptions.json`
+2. For new operations, write a clear English description. For removed operations, keep stale entries — versioned docs may still reference them.
 
 ### Domain event changes
 
@@ -73,7 +72,7 @@ Analyze the PR diff and categorize:
 
 ### Domain/feature changes
 
-- Update relevant pages under `docs-site/docs/` — focus on `for-operators/`, `for-developers/`, and `for-platform-engineers/` sections
+- Update the relevant pages under `docs-site/docs/` that describe the changed functionality
 - If a new concept or workflow was introduced, create a new doc page
 
 ### New doc pages
