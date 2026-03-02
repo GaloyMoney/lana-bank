@@ -22,7 +22,7 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 gql`
   fragment DisbursalDetailsPageFragment on CreditFacilityDisbursal {
     id
-    disbursalId
+    creditFacilityDisbursalId
     amount
     createdAt
     status
@@ -87,7 +87,7 @@ function DisbursalPage({
   useDisbursalApprovalConcludedSubscription(
     data?.disbursalByPublicId &&
       data.disbursalByPublicId.status === DisbursalStatus.New
-      ? { variables: { disbursalId: data.disbursalByPublicId.disbursalId } }
+      ? { variables: { disbursalId: data.disbursalByPublicId.creditFacilityDisbursalId } }
       : { skip: true },
   )
 
