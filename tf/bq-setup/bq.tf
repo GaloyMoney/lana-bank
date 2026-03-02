@@ -62,6 +62,26 @@ resource "google_bigquery_dataset_iam_member" "dbt_additional_owners" {
   }
 }
 
+resource "google_bigquery_dataset" "staging" {
+  project                    = local.gcp_project
+  dataset_id                 = local.staging_dataset_id
+  friendly_name              = "dlt staging for ${local.name_prefix}"
+  description                = "Staging dataset used by dlt for staging-optimized replace strategy"
+  location                   = local.location
+  delete_contents_on_destroy = true
+}
+
+resource "google_bigquery_dataset_iam_member" "staging_owner_sa" {
+  project    = local.gcp_project
+  dataset_id = google_bigquery_dataset.staging.dataset_id
+  role       = "roles/bigquery.dataOwner"
+  member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
+
+  lifecycle {
+    replace_triggered_by = [google_bigquery_dataset.staging.id]
+  }
+}
+
 resource "google_bigquery_dataset_access" "view_access" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
   project    = local.gcp_project

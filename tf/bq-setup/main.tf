@@ -37,6 +37,7 @@ locals {
   git_token_secret_id = "${var.name_prefix}-git-token"
 
   dbt_dataset_name     = replace("dbt_${local.name_prefix}", "-", "_")
+  staging_dataset_id   = "${replace(local.name_prefix, "-", "_")}_dataset_staging"
   location             = "US"
   docs_bucket_name     = "${var.name_prefix}-lana-documents"
   force_destroy_bucket = var.force_destroy_bucket
