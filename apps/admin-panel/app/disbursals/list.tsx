@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -7,7 +8,12 @@ import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import { DisbursalStatusBadge } from "./status-badge"
 
-import { CreditFacilityDisbursal, useDisbursalsQuery } from "@/lib/graphql/generated"
+import {
+  CreditFacilityDisbursal,
+  DisbursalStatus,
+  DisbursalsFilter,
+  useDisbursalsQuery,
+} from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
@@ -17,8 +23,8 @@ import PaginatedTable, {
 import Balance from "@/components/balance/balance"
 
 gql`
-  query Disbursals($first: Int!, $after: String) {
-    disbursals(first: $first, after: $after) {
+  query Disbursals($first: Int!, $after: String, $filter: DisbursalsFilter) {
+    disbursals(first: $first, after: $after, filter: $filter) {
       edges {
         node {
           id
@@ -47,9 +53,12 @@ gql`
 
 const Disbursals = () => {
   const t = useTranslations("Disbursals")
+  const [filter, setFilter] = useState<DisbursalsFilter | null>(null)
+
   const { data, loading, error, fetchMore } = useDisbursalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      filter,
     },
   })
 
@@ -59,6 +68,7 @@ const Disbursals = () => {
       label: t("table.headers.status"),
       labelClassName: "w-[15%]",
       render: (status) => <DisbursalStatusBadge status={status} />,
+      filterValues: Object.values(DisbursalStatus),
     },
     {
       key: "creditFacility",
@@ -92,6 +102,10 @@ const Disbursals = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(disbursal) => `/disbursals/${disbursal.publicId}`}
+        onFilter={(filters) => {
+          const f = filters as DisbursalsFilter
+          setFilter(Object.keys(f).length > 0 ? f : null)
+        }}
       />
     </div>
   )
