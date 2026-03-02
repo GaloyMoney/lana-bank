@@ -121,4 +121,27 @@ where
 
         Ok(proposal)
     }
+
+    #[record_error_severity]
+    #[instrument(name = "credit_facility.approval.execute_in_op",
+        skip(self, op, credit_facility_proposal_id),
+        fields(credit_facility_proposal_id = tracing::field::Empty))
+     ]
+    pub async fn execute_approve_credit_facility_proposal_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        credit_facility_proposal_id: CreditFacilityProposalId,
+        approved: bool,
+    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
+        tracing::Span::current().record(
+            "credit_facility_proposal_id",
+            tracing::field::display(&credit_facility_proposal_id),
+        );
+        let proposal = self
+            .pending_credit_facilities
+            .transition_from_proposal_in_op(op, credit_facility_proposal_id, approved)
+            .await?;
+
+        Ok(proposal)
+    }
 }

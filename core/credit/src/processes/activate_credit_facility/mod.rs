@@ -116,4 +116,18 @@ where
         self.credit_facilities.activate(id.into()).await?;
         Ok(())
     }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "credit.credit_facility.activation.execute_in_op",
+        skip(self, op)
+    )]
+    pub async fn execute_activate_credit_facility_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        id: CreditFacilityId,
+    ) -> Result<(), CoreCreditError> {
+        self.credit_facilities.activate_in_op(op, id).await?;
+        Ok(())
+    }
 }

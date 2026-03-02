@@ -139,11 +139,15 @@ where
     )]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let mut op = current_job.begin_op().await?;
         self.process
-            .execute_activate_credit_facility(self.config.pending_credit_facility_id)
+            .execute_activate_credit_facility_in_op(
+                &mut op,
+                self.config.pending_credit_facility_id.into(),
+            )
             .await?;
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(op))
     }
 }
