@@ -240,6 +240,18 @@ impl DomainConfig {
         })
     }
 
+    pub fn effective_value(&self) -> serde_json::Value {
+        if let Some(value) = self.current_stored_value() {
+            return value.plain_or_null();
+        }
+        if self.encrypted {
+            return serde_json::Value::Null;
+        }
+        crate::registry::maybe_find_by_key(self.key.as_str())
+            .and_then(|spec| (spec.default_json)())
+            .unwrap_or(serde_json::Value::Null)
+    }
+
     pub(crate) fn assert_compatible<C: ConfigSpec>(entity: &Self) -> Result<(), DomainConfigError> {
         let expected_type = <C::Kind as ValueKind>::TYPE;
         if entity.config_type != expected_type {

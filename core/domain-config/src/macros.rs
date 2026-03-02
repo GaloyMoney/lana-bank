@@ -36,6 +36,10 @@ macro_rules! __define_config_spec {
                 config_type: <$kind as $crate::ValueKind>::TYPE,
                 encrypted: $encrypted,
                 validate_json: <$name as $crate::ConfigSpec>::validate_json,
+                default_json: || {
+                    <$name as $crate::ConfigSpec>::default_value()
+                        .and_then(|v| <$kind as $crate::ValueKind>::encode(&v).ok())
+                },
             }
         }
     };
@@ -71,6 +75,7 @@ macro_rules! __define_config_spec {
                 config_type: <$kind as $crate::ValueKind>::TYPE,
                 encrypted: $encrypted,
                 validate_json: <$name as $crate::ConfigSpec>::validate_json,
+                default_json: || None,
             }
         }
     };

@@ -64,10 +64,7 @@ impl DomainConfig {
     }
 
     async fn value(&self) -> Json {
-        match self.entity.current_stored_value() {
-            Some(stored) => Json::from(stored.plain_or_null()),
-            None => Json::from(serde_json::Value::Null),
-        }
+        Json::from(self.entity.effective_value())
     }
 
     async fn is_set(&self) -> bool {
