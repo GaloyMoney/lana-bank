@@ -116,7 +116,7 @@ export const makeClient = ({
       Query: {
         fields: {
           customers: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
-          prospects: { ...relayStylePagination(), keyArgs: ["stage"] },
+          prospects: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
           creditFacilities: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
           creditFacilityProposals: {
             ...relayStylePagination(),

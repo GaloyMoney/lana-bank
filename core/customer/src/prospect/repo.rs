@@ -13,7 +13,11 @@ use super::{entity::*, error::*, publisher::*};
 #[es_repo(
     entity = "Prospect",
     err = "ProspectError",
-    columns(party_id(ty = "PartyId", list_by), public_id(ty = "PublicId", list_by),),
+    columns(
+        party_id(ty = "PartyId", list_by),
+        public_id(ty = "PublicId", list_by),
+        stage(ty = "ProspectStage", list_for)
+    ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
@@ -75,6 +79,44 @@ impl From<(ProspectsSortBy, &Prospect)> for prospect_cursor::ProspectsCursor {
             ProspectsSortBy::PartyId => {
                 prospect_cursor::ProspectsByPartyIdCursor::from(prospect).into()
             }
+        }
+    }
+}
+
+mod prospect_stage_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use crate::primitives::ProspectStage;
+
+    impl Type<Postgres> for ProspectStage {
+        fn type_info() -> PgTypeInfo {
+            <String as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <String as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for ProspectStage {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for ProspectStage {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
+        }
+    }
+
+    impl PgHasArrayType for ProspectStage {
+        fn array_type_info() -> PgTypeInfo {
+            <String as sqlx::postgres::PgHasArrayType>::array_type_info()
         }
     }
 }

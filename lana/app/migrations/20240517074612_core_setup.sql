@@ -146,6 +146,7 @@ CREATE TABLE core_prospects (
   id UUID PRIMARY KEY,
   party_id UUID NOT NULL REFERENCES core_parties(id),
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
+  stage VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
