@@ -44,8 +44,9 @@ trap cleanup EXIT
 mkdir -p "$ES_DIR"
 
 # Create symlinks for Lingo.dev locale layout
-ln -sf ../docs "$LINGO_DIR/en"
-ln -sf ../i18n/es/docusaurus-plugin-content-docs/current "$LINGO_DIR/es"
+# -n prevents following existing symlinks (avoids creating nested artifacts like docs/docs)
+ln -sfn ../docs "$LINGO_DIR/en"
+ln -sfn ../i18n/es/docusaurus-plugin-content-docs/current "$LINGO_DIR/es"
 
 # ── Snapshot ES walkthrough sections before Lingo.dev can mangle them ──
 ES_WALKTHROUGH_SNAPSHOT="$(mktemp -d)"
