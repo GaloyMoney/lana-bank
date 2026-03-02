@@ -1315,6 +1315,8 @@ checksums:
     BalanceSheet/description: 3025ff334feb2d3790244d58a9a40eb3
     BalanceSheet/noData: 81e91b979968615c55f9c0701fa9bbe3
     BalanceSheet/total: f60dc0a14e9b1bace656c644de25de5b
+    BalanceSheet/asOf: 7c9af3cf9e8fb4e9bc5f8f9bf8530123
+    BalanceSheet/apply: 0f03e8e3752eb120bf8ea0b8f8f5d244
     BalanceSheet/columns/assets: 63b7f2a516d939c1bbecaa26843da7e8
     BalanceSheet/columns/liabilitiesAndEquity: 3c539b763602d4adf850240e8809ea6f
     BalanceSheet/categories/Assets: 97163b0aa35e30b36bb724428f7f8724
