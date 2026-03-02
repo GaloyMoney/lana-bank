@@ -206,7 +206,7 @@ const BalanceSheetView = ({
       <CardContent>
         <div className="mb-2 flex w-fit flex-wrap items-center gap-2 rounded-md">
           <div>
-            <Label>{t("asOf")}</Label>
+            <Label>{t("date")}</Label>
             <AsOfDateSelector asOf={asOf} onDateChange={setAsOf} />
           </div>
           <div className="flex h-14 items-center">

@@ -2216,7 +2216,7 @@
   "BalanceSheet": {
     "title": "Balance General",
     "description": "Un estado financiero que muestra los activos, pasivos y patrimonio de la empresa en un momento específico.",
-    "asOf": "A la fecha",
+    "date": "A la fecha",
     "apply": "Aplicar",
     "noData": "Sin datos",
     "total": "Total",

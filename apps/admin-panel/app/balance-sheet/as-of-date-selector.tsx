@@ -47,7 +47,7 @@ export const AsOfDateSelector = ({ asOf, onDateChange }: AsOfDateSelectorProps) 
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <div className="cursor-pointer rounded-md border bg-muted p-2 px-4 text-sm">
-          {selectedDate ? formatDate(selectedDate, { includeTime: false }) : t("asOf")}
+          {selectedDate ? formatDate(selectedDate, { includeTime: false }) : t("date")}
         </div>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
