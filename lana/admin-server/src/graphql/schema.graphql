@@ -770,6 +770,10 @@ enum CreditFacilityProposalStatus {
 	DENIED
 }
 
+input CreditFacilityProposalsFilter {
+	status: CreditFacilityProposalStatus
+}
+
 type CreditFacilityRepaymentAmountReceived {
 	cents: UsdCents!
 	recordedAt: Timestamp!
@@ -1940,6 +1944,10 @@ type PaymentsUnapplied {
 	usdBalance: UsdCents!
 }
 
+input PendingCreditFacilitiesFilter {
+	status: PendingCreditFacilityStatus
+}
+
 type PendingCreditFacility {
 	id: ID!
 	pendingCreditFacilityId: UUID!
@@ -2247,9 +2255,9 @@ type Query {
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
 	creditFacilityProposal(id: UUID!): CreditFacilityProposal
-	creditFacilityProposals(first: Int!, after: String): CreditFacilityProposalConnection!
+	creditFacilityProposals(first: Int!, after: String, filter: CreditFacilityProposalsFilter): CreditFacilityProposalConnection!
 	pendingCreditFacility(id: UUID!): PendingCreditFacility
-	pendingCreditFacilities(first: Int!, after: String): PendingCreditFacilityConnection!
+	pendingCreditFacilities(first: Int!, after: String, filter: PendingCreditFacilitiesFilter): PendingCreditFacilityConnection!
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal

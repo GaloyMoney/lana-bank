@@ -229,6 +229,8 @@ pub struct NewCreditFacilityProposal {
     pub(super) disbursal_credit_account_id: CalaAccountId,
     terms: TermValues,
     amount: UsdCents,
+    #[builder(setter(skip), default)]
+    pub(super) status: CreditFacilityProposalStatus,
 }
 
 impl NewCreditFacilityProposal {
