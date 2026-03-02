@@ -1,7 +1,7 @@
 ---
 id: authentication-architecture
 title: Arquitectura de Autenticación
-sidebar_position: 5
+sidebar_position: 4
 ---
 
 # Autenticación y Autorización
@@ -96,7 +96,9 @@ El sistema utiliza dos realms de Keycloak separados para mantener límites de se
 ### Configuración de Keycloak
 
 ```yaml
+
 # docker-compose.yml
+
 keycloak:
   environment:
     KC_DB: postgres
@@ -123,7 +125,9 @@ Oathkeeper actúa como proxy inverso que valida tokens JWT antes de reenviar sol
 ### Configuración de Reglas
 
 ```yaml
+
 # oathkeeper-rules.yaml
+
 - id: admin-graphql
   match:
     url: http://admin.localhost:4455/graphql
@@ -268,48 +272,12 @@ El sistema usa Control de Acceso Basado en Roles implementado con Casbin.
 ### Definición de Políticas
 
 ```csv
+
 # Modelo RBAC
+
 p, admin, credit_facility, create
 p, admin, credit_facility, approve
 p, operator, credit_facility, read
 p, operator, deposit_account, create
 p, customer, own_account, read
 ```
-
-### Verificación de Permisos
-
-```rust
-// Ejemplo de verificación de autorización
-pub async fn create_facility(
-    &self,
-    subject: &Subject,
-    input: CreateFacilityInput,
-) -> Result<CreditFacility, Error> {
-    self.authz
-        .enforce(subject, Object::CreditFacility, Action::Create)
-        .await?;
-
-    // Lógica de negocio...
-}
-```
-
-## Consideraciones de Seguridad
-
-### Seguridad de Tokens JWT
-
-- Tokens firmados con RS256 (RSA + SHA-256)
-- Tiempo de expiración configurado (15 minutos típico)
-- Refresh tokens para sesiones prolongadas
-- Validación de audiencia y emisor
-
-### HTTPS en Producción
-
-- Todo el tráfico debe usar HTTPS
-- Certificados TLS válidos requeridos
-- HSTS habilitado
-
-### Separación de Realms
-
-- Realms completamente aislados
-- Diferentes claves de firma por realm
-- Políticas de contraseña independientes

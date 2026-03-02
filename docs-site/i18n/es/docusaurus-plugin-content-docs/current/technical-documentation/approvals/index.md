@@ -159,6 +159,3 @@ roles agrupan permission sets y los permisos efectivos se componen por unión.
 ![Actualizar roles](/img/screenshots/current/es/user.cy.ts/9_update_roles.png)
 
 **Paso 10.** Verifica éxito de actualización.
-
-![Verificar actualización de roles](/img/screenshots/current/es/user.cy.ts/10_verify_update.png)
-

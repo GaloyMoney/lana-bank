@@ -70,7 +70,9 @@ This must be run after any changes to `async-graphql` resolvers in Rust.
 ### 2. Generate TypeScript Types
 
 ```yaml
+
 # codegen.yml
+
 schema:
   - http://admin.localhost:4455/graphql:
       headers:

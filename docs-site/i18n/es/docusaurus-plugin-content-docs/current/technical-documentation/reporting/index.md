@@ -141,3 +141,7 @@ Checklist de verificación:
 - el estado se actualiza en UI,
 - los enlaces de descarga se generan solo cuando la corrida finaliza con éxito.
 
+Lista de verificación:
+- el informe ejecutado aparece en la lista,
+- las actualizaciones de estado se reflejan en la interfaz,
+- los enlaces de descarga se generan solo cuando el estado de ejecución es exitoso.

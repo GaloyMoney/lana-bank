@@ -444,24 +444,3 @@ impl AuditAnalytics {
 ```
 
 ## Retención y Archivado
-
-### Política de Retención
-
-```sql
--- Archivar entradas antiguas (ejecutar periódicamente)
-INSERT INTO audit_entries_archive
-SELECT * FROM audit_entries
-WHERE created_at < NOW() - INTERVAL '2 years';
-
-DELETE FROM audit_entries
-WHERE created_at < NOW() - INTERVAL '2 years';
-```
-
-### Configuración
-
-```yaml
-audit:
-  retention_days: 730  # 2 años
-  archive_enabled: true
-  archive_destination: "gs://lana-audit-archive"
-```

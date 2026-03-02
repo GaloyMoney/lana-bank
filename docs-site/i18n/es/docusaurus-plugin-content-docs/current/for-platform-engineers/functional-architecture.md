@@ -3,7 +3,9 @@ id: functional-architecture
 title: Arquitectura Funcional
 sidebar_label: Arquitectura Funcional
 sidebar_position: 1
-description: Documentación técnica de la arquitectura funcional de Lana Bank, incluyendo arquitectura de aplicación, integraciones, seguridad e infraestructura.
+description: Documentación técnica de la arquitectura funcional de Lana Bank,
+  incluyendo arquitectura de aplicación, integraciones, seguridad e
+  infraestructura.
 ---
 
 # Arquitectura Funcional de Lana Bank

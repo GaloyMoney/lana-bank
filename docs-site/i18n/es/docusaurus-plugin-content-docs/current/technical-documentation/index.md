@@ -86,4 +86,3 @@ Generación de informes para gestión y cumplimiento:
 ## ¿Necesitas Ayuda?
 
 Para detalles técnicos sobre las APIs subyacentes, consulta la [Guía del Desarrollador Interno](../for-internal-developers/).
-

@@ -212,37 +212,3 @@ ciclo de vida de cliente en dominio (crear -> verificar -> activar).
 **Paso 5.** Ingresa un ID de Telegram único (si aplica en tu operación).
 
 ![Ingresar Telegram ID](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_handle.png)
-
-**Paso 6.** Revisa los datos antes del envío.
-
-![Revisar datos del cliente](/img/screenshots/current/es/customers.cy.ts/7_click_review_details.png)
-
-**Paso 7.** Verifica el diálogo de confirmación con los datos ingresados.
-
-![Verificar datos antes de confirmar](/img/screenshots/current/es/customers.cy.ts/8_verify_details.png)
-
-**Paso 8.** Haz clic en **Confirmar** para crear el cliente.
-
-![Confirmar creación de cliente](/img/screenshots/current/es/customers.cy.ts/9_click_confirm_submit.png)
-
-**Paso 9.** Confirma la pantalla de detalle del cliente.
-
-![Detalle del cliente](/img/screenshots/current/es/customers.cy.ts/10_verify_email.png)
-
-**Paso 10.** Verifica que el cliente aparece en listados.
-
-![Cliente en lista](/img/screenshots/current/es/customers.cy.ts/11_verify_customer_in_list.png)
-
-### 2) Iniciar y monitorear KYC
-
-El sistema se integra con Sumsub. El operador genera el enlace y monitorea cambios de estado
-alimentados por webhooks.
-
-**Paso 11.** Abre la sección KYC y crea el enlace de verificación.
-
-![Sección KYC del cliente](/img/screenshots/current/es/customers.cy.ts/14_prospect_kyc_details_page.png)
-
-**Paso 12.** Confirma que el enlace KYC fue generado.
-
-![Enlace KYC creado](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)
-

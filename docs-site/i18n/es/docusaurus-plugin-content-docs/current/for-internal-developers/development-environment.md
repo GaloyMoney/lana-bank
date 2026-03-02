@@ -43,10 +43,13 @@ cargo sqlx migrate run
 ### 4. Iniciar la Aplicacion
 
 ```bash
+
 # Ejecutar todos los servidores
+
 cargo run
 
 # O usar Tilt para desarrollo interactivo
+
 make dev-up
 ```
 
@@ -65,35 +68,45 @@ make dev-up
 Desarrollo interactivo con recompilacion automatica:
 
 ```bash
+
 # Iniciar Tilt
+
 make dev-up
 
 # Abrir la interfaz de Tilt
+
 # http://localhost:10350
 
 # Detener Tilt
+
 make dev-down
 ```
 
 ## Acceso a la Base de Datos
 
 ```bash
+
 # Conectar a PostgreSQL
+
 psql -h localhost -p 5433 -U lana -d lana
 
 # Reiniciar la base de datos
+
 make reset-deps
 ```
 
 ## Desarrollo Frontend
 
 ```bash
+
 # Admin Panel
+
 cd apps/admin-panel
 pnpm install
 pnpm dev
 
 # Customer Portal
+
 cd apps/customer-portal
 pnpm install
 pnpm dev
@@ -102,7 +115,9 @@ pnpm dev
 ## Variables de Entorno
 
 ```bash
+
 # .env.local
+
 DATABASE_URL=postgres://lana:lana@localhost:5433/lana
 KEYCLOAK_URL=http://localhost:8081
 OATHKEEPER_URL=http://localhost:4455
@@ -120,10 +135,13 @@ OATHKEEPER_URL=http://localhost:4455
 ### Conflictos de Puerto
 
 ```bash
+
 # Verificar que esta usando un puerto
+
 lsof -i :5433
 
 # Terminar el proceso
+
 kill -9 <PID>
 ```
 
@@ -137,9 +155,12 @@ cargo sqlx migrate run
 ### Problemas de Cache
 
 ```bash
+
 # Limpiar cache de Rust
+
 cargo clean
 
 # Limpiar cache de pnpm
+
 pnpm store prune
 ```

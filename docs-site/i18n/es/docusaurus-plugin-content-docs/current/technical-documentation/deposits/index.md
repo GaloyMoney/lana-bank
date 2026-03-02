@@ -174,14 +174,3 @@ necesitar crearlas desde el perfil del cliente cuando no existen.
 ![Banner sin cuenta de depósito](/img/screenshots/current/es/customers.cy.ts/customer_no_deposit_account_banner.png)
 
 **Paso 2.** Abre el diálogo para crear la cuenta.
-
-![Diálogo crear cuenta de depósito](/img/screenshots/current/es/customers.cy.ts/customer_create_deposit_account_dialog.png)
-
-**Paso 3.** Confirma creación exitosa.
-
-![Cuenta de depósito creada](/img/screenshots/current/es/customers.cy.ts/customer_deposit_account_created.png)
-
-Verificaciones operativas posteriores:
-- estado de cuenta en `ACTIVE`,
-- relación cliente-cuenta correcta,
-- cuenta disponible para iniciar depósitos y retiros.

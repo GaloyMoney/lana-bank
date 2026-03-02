@@ -250,3 +250,31 @@ El sistema puede desplegarse como:
 | Observabilidad | OpenTelemetry |
 | Build | Nix, Cargo |
 | Orquestación | Kubernetes, Helm |
+
+```mermaid
+graph LR
+    EVT["Domain Event"] --> OUT["Outbox Table"] --> PROC["Event Processor"] --> DEP["Dependent Domains"] --> NOTIF["External Notifications"]
+```
+
+## Decisiones arquitectónicas clave
+
+### Event sourcing
+
+Todos los cambios de estado se capturan como eventos:
+- Registro de auditoría completo
+- Consultas temporales
+- Capacidad de reproducción de eventos
+
+### Arquitectura hexagonal
+
+Separación clara de responsabilidades:
+- Lógica de dominio aislada de la infraestructura
+- Patrón adaptador para servicios externos
+- Lógica de negocio testeable
+
+### Patrón CQRS
+
+Segregación de responsabilidad de comandos y consultas:
+- Rutas de lectura optimizadas
+- Operaciones de escritura separadas
+- Consistencia eventual cuando sea apropiado

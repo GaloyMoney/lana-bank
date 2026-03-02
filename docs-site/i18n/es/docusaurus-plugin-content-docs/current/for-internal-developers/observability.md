@@ -1,7 +1,7 @@
 ---
 id: observability
 title: Trazabilidad y Observabilidad
-sidebar_position: 8
+sidebar_position: 11
 ---
 
 # Trazabilidad y Observabilidad
@@ -371,7 +371,9 @@ pub fn record_error(error: &impl std::error::Error) {
 ### Configuración del Colector OTEL
 
 ```yaml
+
 # dev/otel-agent-config.yaml
+
 receivers:
   otlp:
     protocols:
@@ -405,68 +407,4 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [prometheus]
-```
-
-## Integración en Servicios
-
-### Servidores GraphQL
-
-```rust
-// lana/admin-server/src/lib.rs
-pub async fn run(config: ServerConfig, app: Arc<LanaApp>) -> Result<(), Error> {
-    // Inicializar trazado
-    init_tracer(TracingConfig {
-        service_name: "admin-server".to_string(),
-        service_version: env!("CARGO_PKG_VERSION").to_string(),
-        otlp_endpoint: config.otlp_endpoint.clone(),
-    })?;
-
-    // Configurar router con middleware de trazado
-    let app = Router::new()
-        .route("/graphql", post(graphql_handler))
-        .layer(TraceLayer::new_for_http());
-
-    axum::Server::bind(&config.bind_address)
-        .serve(app.into_make_service())
-        .await
-}
-```
-
-### Sistema de Trabajos
-
-```rust
-// lib/job/src/dispatcher.rs
-impl JobDispatcher {
-    async fn execute_job(&self, job: CurrentJob) {
-        // Restaurar contexto de traza
-        let parent_context = job.trace_context
-            .as_ref()
-            .map(|tc| tc.restore())
-            .unwrap_or_else(Context::current);
-
-        let span = info_span!(
-            "job.execute",
-            job.type = %job.job_type,
-            job.id = %job.id,
-            job.attempt = job.attempt_index
-        );
-        span.set_parent(parent_context);
-
-        span.in_scope(|| {
-            self.runner.run(job)
-        }).await
-    }
-}
-```
-
-## Desarrollo Local
-
-En desarrollo con Tilt, las trazas se pueden visualizar en Jaeger:
-
-```bash
-# Jaeger UI disponible en
-http://localhost:16686
-
-# Prometheus métricas en
-http://localhost:9090
 ```

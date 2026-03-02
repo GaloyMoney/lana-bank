@@ -275,7 +275,9 @@ Cepler tiene algunos conceptos centrales:
 Aquí hay una versión simplificada de la configuración de Cepler para lana-bank:
 
 ```yaml
+
 # cepler/lana-bank.yml
+
 deployment: lana-bank
 environments:
   gcp-galoy-staging:
@@ -358,7 +360,9 @@ El módulo base en `modules/lana-bank/` define la lógica común de despliegue. 
 Por ejemplo, staging habilita el tiempo artificial (útil para probar características dependientes del tiempo como el devengo de intereses) y apunta a un dominio de staging:
 
 ```hcl
+
 # gcp/galoy-staging/lana-bank/main.tf
+
 module "lana-bank" {
   source                 = "../../../modules/lana-bank/"
   lana_domain            = "staging.lana.galoy.io"
@@ -370,7 +374,9 @@ module "lana-bank" {
 Mientras que producción deshabilita el tiempo artificial y usa el dominio real:
 
 ```hcl
+
 # gcp/volcano-production/lana-bank/main.tf
+
 module "lana-bank" {
   source                 = "../../../modules/lana-bank/"
   lana_domain            = "app.lana.galoy.io"
@@ -387,7 +393,9 @@ El módulo de base de datos (`lana-bank-gcp-pg`) aprovisiona tres instancias Pos
 La configuración se ve así:
 
 ```yaml
+
 # vendir.yml (simplified)
+
 directories:
   - path: modules/lana-bank/vendor/lana-bank
     contents:

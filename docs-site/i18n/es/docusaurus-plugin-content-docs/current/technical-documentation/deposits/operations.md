@@ -312,38 +312,3 @@ Este flujo muestra la creación y gestión operativa de depósitos y retiros.
 **Paso 12.** Verifica retiro en lista principal.
 
 ![Retiro en lista](/img/screenshots/current/es/transactions.cy.ts/12_withdrawal_in_list.png)
-
-**Paso 13.** Verifica retiro en historial del cliente.
-
-![Retiro en historial](/img/screenshots/current/es/transactions.cy.ts/13_withdrawal_in_transactions.png)
-
-### C) Gestionar resultado del retiro
-
-#### Cancelar retiro pendiente
-
-**Paso 14.** Haz clic en **Cancelar**.
-
-![Botón cancelar retiro](/img/screenshots/current/es/transactions.cy.ts/14_withdrawal_cancel_button.png)
-
-**Paso 15.** Confirma cancelación.
-
-![Confirmar cancelación](/img/screenshots/current/es/transactions.cy.ts/15_withdrawal_cancel_confirm.png)
-
-**Paso 16.** Verifica estado cancelado.
-
-![Estado retiro cancelado](/img/screenshots/current/es/transactions.cy.ts/16_withdrawal_cancelled_status.png)
-
-#### Aprobar retiro pendiente
-
-**Paso 17.** Haz clic en **Aprobar**.
-
-![Botón aprobar retiro](/img/screenshots/current/es/transactions.cy.ts/17_withdrawal_approve_button.png)
-
-**Paso 18.** Confirma aprobación.
-
-![Confirmar aprobación](/img/screenshots/current/es/transactions.cy.ts/18_withdrawal_approve_confirm.png)
-
-**Paso 19.** Verifica estado aprobado/confirmado.
-
-![Estado retiro aprobado](/img/screenshots/current/es/transactions.cy.ts/19_withdrawal_approved_status.png)
-

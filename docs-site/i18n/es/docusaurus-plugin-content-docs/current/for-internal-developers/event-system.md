@@ -1,7 +1,7 @@
 ---
 id: event-system
 title: Sistema de Eventos
-sidebar_position: 6
+sidebar_position: 8
 ---
 
 # Sistema de Eventos y Patrón Outbox
@@ -353,80 +353,5 @@ impl Job for CollateralSyncJob {
         }
         Ok(())
     }
-}
-```
-
-## Garantías de Confiabilidad
-
-### Consistencia Transaccional
-
-Los eventos y datos de negocio se persisten en la misma transacción:
-
-```rust
-pub async fn activate_facility(
-    &self,
-    facility_id: CreditFacilityId,
-) -> Result<(), Error> {
-    let mut db_op = self.pool.begin().await?;
-
-    // Cargar entidad
-    let mut facility = self.repo.find(&facility_id, &mut db_op).await?;
-
-    // Ejecutar lógica de negocio
-    facility.activate()?;
-
-    // Guardar entidad (eventos incluidos)
-    self.repo.update(&mut facility, &mut db_op).await?;
-
-    // Publicar eventos de dominio (mismo tx)
-    self.publisher.publish(facility.events(), &mut db_op).await?;
-
-    // Commit atómico
-    db_op.commit().await?;
-
-    Ok(())
-}
-```
-
-### Ordenación de Eventos
-
-Los eventos se procesan en orden usando la columna `sequence`:
-
-```rust
-pub async fn poll(&self, after_sequence: i64, limit: i32) -> Result<Vec<OutboxEvent>, Error> {
-    sqlx::query_as!(
-        OutboxEvent,
-        r#"
-        SELECT * FROM outbox_events
-        WHERE sequence > $1
-        ORDER BY sequence ASC
-        LIMIT $2
-        "#,
-        after_sequence,
-        limit
-    )
-    .fetch_all(&self.pool)
-    .await
-}
-```
-
-### Idempotencia
-
-Los consumidores deben ser idempotentes ya que los eventos pueden reprocesarse:
-
-```rust
-pub async fn handle_event(&self, event: &CoreCreditEvent) -> Result<(), Error> {
-    // Verificar si ya se procesó
-    if self.was_processed(event.sequence).await? {
-        return Ok(());
-    }
-
-    // Procesar evento
-    self.process(event).await?;
-
-    // Marcar como procesado
-    self.mark_processed(event.sequence).await?;
-
-    Ok(())
 }
 ```

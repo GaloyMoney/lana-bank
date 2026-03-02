@@ -1,7 +1,7 @@
 ---
 id: infrastructure-services
 title: Servicios de Infraestructura
-sidebar_position: 11
+sidebar_position: 10
 ---
 
 # Servicios de Infraestructura
@@ -135,7 +135,9 @@ impl AuthzService {
 #### Modelo Casbin
 
 ```conf
+
 # model.conf
+
 [request_definition]
 r = sub, obj, act
 
@@ -219,175 +221,3 @@ impl JobRegistry {
 ```
 
 ### Trazado y Observabilidad (tracing-utils)
-
-Proporciona integración con OpenTelemetry para trazabilidad distribuida.
-
-```rust
-// lib/tracing-utils/src/lib.rs
-pub fn init_tracer(config: TracingConfig) -> Result<(), TracingError> {
-    let tracer = opentelemetry_otlp::new_pipeline()
-        .tracing()
-        .with_exporter(
-            opentelemetry_otlp::new_exporter()
-                .tonic()
-                .with_endpoint(&config.otlp_endpoint),
-        )
-        .with_trace_config(
-            opentelemetry::sdk::trace::config()
-                .with_sampler(Sampler::AlwaysOn)
-                .with_resource(Resource::new(vec![
-                    KeyValue::new("service.name", config.service_name),
-                ])),
-        )
-        .install_batch(opentelemetry::runtime::Tokio)?;
-
-    tracing_subscriber::registry()
-        .with(EnvFilter::from_default_env())
-        .with(tracing_opentelemetry::layer().with_tracer(tracer))
-        .with(tracing_subscriber::fmt::layer())
-        .init();
-
-    Ok(())
-}
-```
-
-### Almacenamiento en la Nube (cloud-storage)
-
-Abstracción para almacenamiento de archivos (documentos, reportes).
-
-```rust
-// lib/cloud-storage/src/lib.rs
-#[async_trait]
-pub trait StorageProvider: Send + Sync {
-    async fn upload(&self, key: &str, data: &[u8]) -> Result<StorageUrl, StorageError>;
-    async fn download(&self, key: &str) -> Result<Vec<u8>, StorageError>;
-    async fn delete(&self, key: &str) -> Result<(), StorageError>;
-    async fn get_signed_url(&self, key: &str, expiry: Duration) -> Result<String, StorageError>;
-}
-
-pub struct GcsProvider {
-    client: cloud_storage::Client,
-    bucket: String,
-}
-
-pub struct S3Provider {
-    client: aws_sdk_s3::Client,
-    bucket: String,
-}
-```
-
-## Patrones de Integración
-
-### Patrón de Uso Típico
-
-```rust
-// En un servicio de dominio
-impl CreditFacilities {
-    pub async fn create_facility(
-        &self,
-        subject: &Subject,
-        input: CreateFacilityInput,
-    ) -> Result<CreditFacility, Error> {
-        // 1. Autorización
-        self.authz.enforce(subject, Object::CreditFacility, Action::Create).await?;
-
-        // 2. Lógica de negocio
-        let facility = CreditFacility::new(input)?;
-
-        // 3. Persistencia
-        let mut db_op = self.pool.begin().await?;
-        self.repo.create(&facility, &mut db_op).await?;
-
-        // 4. Publicar eventos
-        self.publisher.publish(&facility.events(), &mut db_op).await?;
-
-        // 5. Registrar auditoría
-        self.audit.record(
-            subject,
-            Action::Create,
-            Object::CreditFacility(facility.id),
-            Outcome::Success,
-        ).await?;
-
-        db_op.commit().await?;
-        Ok(facility)
-    }
-}
-```
-
-### Gráfico de Dependencias
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         lana-app                                │
-└─────────────────────────────────────────────────────────────────┘
-         │
-         ├──────────────────────────────────────────────────┐
-         ▼                                                  ▼
-┌─────────────────┐                              ┌─────────────────┐
-│  core-credit    │──────────┐                   │  core-deposit   │
-└─────────────────┘          │                   └─────────────────┘
-         │                   │                            │
-         │                   ▼                            │
-         │          ┌─────────────────┐                   │
-         │          │  core-accounting│                   │
-         │          └─────────────────┘                   │
-         │                   │                            │
-         └───────────────────┼────────────────────────────┘
-                             │
-                             ▼
-         ┌───────────────────┼───────────────────┐
-         │                   │                   │
-         ▼                   ▼                   ▼
-    ┌─────────┐        ┌─────────┐        ┌─────────┐
-    │  audit  │        │  authz  │        │  outbox │
-    └─────────┘        └─────────┘        └─────────┘
-         │                   │                   │
-         └───────────────────┼───────────────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │   PostgreSQL    │
-                    └─────────────────┘
-```
-
-## Responsabilidades de Componentes
-
-| Componente | Responsabilidad | Dependencias |
-|------------|-----------------|--------------|
-| audit | Registro inmutable de acciones | PostgreSQL, tracing-utils |
-| authz | Control de acceso RBAC | PostgreSQL (políticas Casbin) |
-| outbox | Publicación confiable de eventos | PostgreSQL |
-| job | Procesamiento en segundo plano | PostgreSQL, tracing-utils |
-| tracing-utils | Trazabilidad distribuida | OpenTelemetry |
-| cloud-storage | Almacenamiento de archivos | GCS/S3 |
-
-## Configuración y Features
-
-### Feature Flags
-
-```toml
-# lib/audit/Cargo.toml
-[features]
-default = []
-graphql = ["async-graphql"]
-
-# lib/authz/Cargo.toml
-[features]
-default = []
-postgres-adapter = ["sqlx"]
-
-# lib/outbox/Cargo.toml
-[features]
-default = []
-test-helpers = []
-```
-
-### Variables de Entorno
-
-| Variable | Servicio | Propósito |
-|----------|----------|-----------|
-| DATABASE_URL | Todos | Conexión PostgreSQL |
-| OTEL_EXPORTER_OTLP_ENDPOINT | tracing-utils | Endpoint OTEL |
-| GCS_BUCKET | cloud-storage | Bucket de GCS |
-| AWS_S3_BUCKET | cloud-storage | Bucket de S3 |
