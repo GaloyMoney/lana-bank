@@ -16,4 +16,5 @@ def create_bigquery_destination(credentials: dict) -> dlt.destinations.bigquery:
         credentials=credentials,
         project_id=credentials["project_id"],
         location="US",
+        replace_strategy="staging-optimized",
     )
