@@ -1313,6 +1313,7 @@ checksums:
     FiscalYears/monthClosures/table/headers/closedAt: ed4ea281800cacd4a9e76d79dce89428
     BalanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
     BalanceSheet/description: 3025ff334feb2d3790244d58a9a40eb3
+    BalanceSheet/asOfDate: 2fb71b039e5083fc341411cc5974732f
     BalanceSheet/noData: 81e91b979968615c55f9c0701fa9bbe3
     BalanceSheet/total: f60dc0a14e9b1bace656c644de25de5b
     BalanceSheet/columns/assets: 63b7f2a516d939c1bbecaa26843da7e8
