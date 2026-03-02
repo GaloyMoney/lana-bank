@@ -26,8 +26,52 @@ use rust_decimal_macros::dec;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
-    let pool = sqlx::PgPool::connect(&pg_con).await?;
+    let pool = sqlx::pool::PoolOptions::new()
+        .max_connections(20)
+        .connect(&pg_con)
+        .await?;
     Ok(pool)
+}
+
+/// Remove stale job rows that can prevent outbox handlers from running.
+///
+/// Between test runs the poller process dies but the database persists.
+/// Leftover rows block `spawn_unique` from creating fresh handler jobs,
+/// so the new poller never picks them up.
+pub async fn cleanup_stale_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
+    sqlx::query(
+        "DELETE FROM job_executions
+         WHERE state = 'pending'
+           AND job_type IN ('task.process-accrual-cycle', 'task.collect-facilities-for-accrual', 'task.credit-facility-maturity')",
+    )
+    .execute(pool)
+    .await?;
+
+    // Delete all outbox handler jobs from prior test runs. These can be:
+    // - 'running' from a dead poller (test exited without shutdown)
+    // - 'pending' with execute_at far in the future (shutdown after
+    //   artificial time advancement set execute_at = clock.now())
+    // Either way, spawn_unique silently catches the duplicate and the new
+    // poller can never claim the job, so the handler never runs.
+    //
+    // Must delete from all three tables: job_executions and job_events
+    // first (FK children), then jobs (FK parent). The `jobs` table has a
+    // UNIQUE index on job_type when unique_per_type = true. If we only
+    // delete job_executions, spawn_unique hits the unique constraint on
+    // the stale `jobs` row, silently catches the duplicate, and never
+    // creates a new execution.
+    sqlx::query("DELETE FROM job_executions WHERE job_type LIKE 'outbox.%'")
+        .execute(pool)
+        .await?;
+    sqlx::query(
+        "DELETE FROM job_events WHERE id IN (SELECT id FROM jobs WHERE job_type LIKE 'outbox.%')",
+    )
+    .execute(pool)
+    .await?;
+    sqlx::query("DELETE FROM jobs WHERE job_type LIKE 'outbox.%'")
+        .execute(pool)
+        .await?;
+    Ok(())
 }
 
 pub async fn init_domain_configs(
@@ -500,6 +544,7 @@ pub fn test_terms() -> TermValues {
 
 pub async fn setup() -> anyhow::Result<TestContext> {
     let pool = init_pool().await?;
+    cleanup_stale_jobs(&pool).await?;
     let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
     let outbox =

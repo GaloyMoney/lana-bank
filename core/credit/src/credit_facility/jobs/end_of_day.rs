@@ -1,7 +1,5 @@
 use tracing::{Span, instrument};
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
 use core_time_events::CoreTimeEvent;
 use job::JobType;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
@@ -9,38 +7,24 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 use super::collect_facilities_for_accrual::{
     CollectFacilitiesForAccrualJobConfig, CollectFacilitiesForAccrualJobSpawner,
 };
-use crate::{CoreCreditEvent, primitives::*};
 
 pub const ACCRUAL_END_OF_DAY: JobType = JobType::new("outbox.accrual-end-of-day");
 
-pub struct FacilityEndOfDayHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreTimeEvent>,
-{
-    collect_facilities_for_accrual: CollectFacilitiesForAccrualJobSpawner<Perms, E>,
+pub struct FacilityEndOfDayHandler {
+    collect_facilities_for_accrual: CollectFacilitiesForAccrualJobSpawner,
 }
 
-impl<Perms, E> FacilityEndOfDayHandler<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreTimeEvent>,
-{
-    pub fn new(
-        collect_facilities_for_accrual: CollectFacilitiesForAccrualJobSpawner<Perms, E>,
-    ) -> Self {
+impl FacilityEndOfDayHandler {
+    pub fn new(collect_facilities_for_accrual: CollectFacilitiesForAccrualJobSpawner) -> Self {
         Self {
             collect_facilities_for_accrual,
         }
     }
 }
 
-impl<Perms, E> OutboxEventHandler<E> for FacilityEndOfDayHandler<Perms, E>
+impl<E> OutboxEventHandler<E> for FacilityEndOfDayHandler
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     #[instrument(name = "accrual.end_of_day.process_message", parent = None, skip(self, op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
@@ -57,10 +41,7 @@ where
                 .spawn_in_op(
                     op,
                     job::JobId::new(),
-                    CollectFacilitiesForAccrualJobConfig {
-                        day: *day,
-                        _phantom: std::marker::PhantomData,
-                    },
+                    CollectFacilitiesForAccrualJobConfig { day: *day },
                 )
                 .await?;
         }

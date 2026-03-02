@@ -24,7 +24,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
     sqlx::PgPool,
 )> {
     let pool = helpers::init_pool().await?;
-    cleanup_stale_task_jobs(&pool).await?;
+    helpers::cleanup_stale_jobs(&pool).await?;
     let (clock, clock_ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
     let outbox = obix::Outbox::<helpers::event::DummyEvent>::init(
@@ -54,10 +54,6 @@ async fn setup_with_clock_control() -> anyhow::Result<(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
             .clock(clock.clone())
-            .poller_config(job::JobPollerConfig {
-                job_lost_interval: Duration::from_secs(2),
-                ..Default::default()
-            })
             .build()
             .unwrap(),
     )
@@ -349,17 +345,6 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     // eligible in subsequent realtime tests.
     clock_ctrl.transition_to_realtime();
     ctx.jobs.shutdown().await?;
-    cleanup_stale_task_jobs(&pool).await?;
-    Ok(())
-}
-
-async fn cleanup_stale_task_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
-    sqlx::query(
-        "DELETE FROM job_executions
-         WHERE state = 'pending'
-           AND job_type IN ('task.process-accrual-cycle', 'task.collect-facilities-for-accrual', 'task.credit-facility-maturity')",
-    )
-    .execute(pool)
-    .await?;
+    helpers::cleanup_stale_jobs(&pool).await?;
     Ok(())
 }

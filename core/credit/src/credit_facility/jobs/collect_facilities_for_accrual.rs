@@ -2,53 +2,36 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_time_events::CoreTimeEvent;
 use job::*;
 use obix::out::OutboxEventMarker;
 
 use super::process_accrual_cycle::{ProcessAccrualCycleJobConfig, ProcessAccrualCycleJobSpawner};
-use crate::{
-    CoreCreditEvent, CreditFacilityId, credit_facility::CreditFacilityRepo, primitives::*,
-};
+use crate::{CoreCreditEvent, CreditFacilityId, credit_facility::CreditFacilityRepo};
 
 const COLLECT_FACILITIES_FOR_ACCRUAL_JOB: JobType =
     JobType::new("task.collect-facilities-for-accrual");
 const PAGE_SIZE: i64 = 100;
 
-#[derive(Serialize, Deserialize)]
-pub struct CollectFacilitiesForAccrualJobConfig<Perms, E> {
+#[derive(Clone, Serialize, Deserialize)]
+pub struct CollectFacilitiesForAccrualJobConfig {
     pub day: chrono::NaiveDate,
-    pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> Clone for CollectFacilitiesForAccrualJobConfig<Perms, E> {
-    fn clone(&self) -> Self {
-        Self {
-            day: self.day,
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-
-pub struct CollectFacilitiesForAccrualJobInit<Perms, E>
+pub struct CollectFacilitiesForAccrualJobInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     credit_facility_repo: CreditFacilityRepo<E>,
-    process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner<Perms, E>,
+    process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
 }
 
-impl<Perms, E> CollectFacilitiesForAccrualJobInit<Perms, E>
+impl<E> CollectFacilitiesForAccrualJobInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
         credit_facility_repo: &CreditFacilityRepo<E>,
-        process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner<Perms, E>,
+        process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
     ) -> Self {
         Self {
             credit_facility_repo: credit_facility_repo.clone(),
@@ -57,14 +40,11 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for CollectFacilitiesForAccrualJobInit<Perms, E>
+impl<E> JobInitializer for CollectFacilitiesForAccrualJobInit<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Config = CollectFacilitiesForAccrualJobConfig<Perms, E>;
+    type Config = CollectFacilitiesForAccrualJobConfig;
 
     fn job_type(&self) -> JobType {
         COLLECT_FACILITIES_FOR_ACCRUAL_JOB
@@ -83,14 +63,13 @@ where
     }
 }
 
-struct CollectFacilitiesForAccrualJobRunner<Perms, E>
+struct CollectFacilitiesForAccrualJobRunner<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: CollectFacilitiesForAccrualJobConfig<Perms, E>,
+    config: CollectFacilitiesForAccrualJobConfig,
     credit_facility_repo: CreditFacilityRepo<E>,
-    process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner<Perms, E>,
+    process_accrual_cycle_spawner: ProcessAccrualCycleJobSpawner,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -99,12 +78,9 @@ struct CollectFacilitiesForAccrualState {
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CollectFacilitiesForAccrualJobRunner<Perms, E>
+impl<E> JobRunner for CollectFacilitiesForAccrualJobRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreTimeEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
     #[instrument(
         name = "credit.credit_facility.collect_facilities_for_accrual_job",
@@ -138,9 +114,8 @@ where
                 .map(|(id, _)| {
                     JobSpec::new(
                         JobId::new(),
-                        ProcessAccrualCycleJobConfig::<Perms, E> {
+                        ProcessAccrualCycleJobConfig {
                             credit_facility_id: *id,
-                            _phantom: std::marker::PhantomData,
                         },
                     )
                     .queue_id(id.to_string())
@@ -163,5 +138,4 @@ where
     }
 }
 
-pub type CollectFacilitiesForAccrualJobSpawner<Perms, E> =
-    JobSpawner<CollectFacilitiesForAccrualJobConfig<Perms, E>>;
+pub type CollectFacilitiesForAccrualJobSpawner = JobSpawner<CollectFacilitiesForAccrualJobConfig>;

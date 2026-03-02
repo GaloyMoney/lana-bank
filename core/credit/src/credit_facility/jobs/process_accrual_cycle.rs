@@ -90,19 +90,9 @@ pub enum ProcessAccrualCycleState {
     CompleteCycle,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct ProcessAccrualCycleJobConfig<Perms, E> {
+#[derive(Clone, Serialize, Deserialize)]
+pub struct ProcessAccrualCycleJobConfig {
     pub credit_facility_id: CreditFacilityId,
-    pub _phantom: std::marker::PhantomData<(Perms, E)>,
-}
-
-impl<Perms, E> Clone for ProcessAccrualCycleJobConfig<Perms, E> {
-    fn clone(&self) -> Self {
-        Self {
-            credit_facility_id: self.credit_facility_id,
-            _phantom: std::marker::PhantomData,
-        }
-    }
 }
 
 pub struct ProcessAccrualCycleJobInit<Perms, E>
@@ -181,7 +171,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    type Config = ProcessAccrualCycleJobConfig<Perms, E>;
+    type Config = ProcessAccrualCycleJobConfig;
     fn job_type(&self) -> JobType {
         PROCESS_ACCRUAL_CYCLE_JOB
     }
@@ -191,7 +181,7 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ProcessAccrualCycleJobRunner::<Perms, E> {
+        Ok(Box::new(ProcessAccrualCycleJobRunner {
             config: job.config()?,
             collections: self.collections.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
@@ -212,7 +202,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    config: ProcessAccrualCycleJobConfig<Perms, E>,
+    config: ProcessAccrualCycleJobConfig,
     collections: Arc<CoreCreditCollection<Perms, E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
@@ -550,5 +540,4 @@ where
     }
 }
 
-pub type ProcessAccrualCycleJobSpawner<Perms, E> =
-    JobSpawner<ProcessAccrualCycleJobConfig<Perms, E>>;
+pub type ProcessAccrualCycleJobSpawner = JobSpawner<ProcessAccrualCycleJobConfig>;
