@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
@@ -27,14 +27,19 @@ export const getInitialAsOfDate = (): string => toDateString(new Date())
 
 export const AsOfDateSelector = ({ asOf, onDateChange }: AsOfDateSelectorProps) => {
   const t = useTranslations("BalanceSheet")
+  const appliedDate = useMemo(() => parseDateString(asOf), [asOf])
   const [isOpen, setIsOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(parseDateString(asOf))
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(appliedDate)
 
   const today = useMemo(() => {
     const date = new Date()
     date.setHours(0, 0, 0, 0)
     return date
   }, [])
+
+  useEffect(() => {
+    setSelectedDate(appliedDate)
+  }, [appliedDate])
 
   const handleSubmit = () => {
     if (selectedDate) {
@@ -43,11 +48,18 @@ export const AsOfDateSelector = ({ asOf, onDateChange }: AsOfDateSelectorProps) 
     }
   }
 
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open)
+    if (!open) {
+      setSelectedDate(appliedDate)
+    }
+  }
+
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <div className="cursor-pointer rounded-md border bg-muted p-2 px-4 text-sm">
-          {selectedDate ? formatDate(selectedDate, { includeTime: false }) : t("date")}
+          {formatDate(appliedDate, { includeTime: false })}
         </div>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
