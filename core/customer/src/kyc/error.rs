@@ -44,7 +44,8 @@ impl ErrorSeverity for KycError {
             Self::InboxError(_) => Level::ERROR,
             Self::KycLevelParseError(_) => Level::ERROR,
             Self::ReviewAnswerParseError(_) => Level::ERROR,
-            Self::SumsubError(_) => Level::ERROR,
+            Self::SumsubError(sumsub::SumsubError::ApiError { code: 404, .. }) => Level::WARN,
+            Self::SumsubError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::DomainConfigError(_) => Level::ERROR,
         }
