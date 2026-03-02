@@ -78,10 +78,10 @@ fn parse_schema(content: &str) -> Vec<SchemaBlock> {
             }
 
             // Only parse fields at depth 1 (direct children)
-            if brace_depth == 1 {
-                if let Some(field) = try_parse_field(trimmed, line_number) {
-                    block.fields.push(field);
-                }
+            if brace_depth == 1
+                && let Some(field) = try_parse_field(trimmed, line_number)
+            {
+                block.fields.push(field);
             }
         }
     }
