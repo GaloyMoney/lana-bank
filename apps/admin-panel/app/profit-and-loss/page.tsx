@@ -21,7 +21,7 @@ import {
   useProfitAndLossStatementQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import { getInitialDateRange, DateRange } from "@/components/date-range-picker"
+import { getYtdDateRange, DateRange } from "@/components/date-range-picker"
 import { ReportFilters } from "@/components/report-filters"
 import { ReportLayer } from "@/components/report-filters/selectors"
 
@@ -119,7 +119,7 @@ interface ProfitAndLossProps {
 }
 
 export default function ProfitAndLossStatementPage() {
-  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
+  const [dateRange, setDateRange] = useState<DateRange>(getYtdDateRange)
   const handleDateChange = useCallback((newDateRange: DateRange) => {
     setDateRange(newDateRange)
   }, [])
