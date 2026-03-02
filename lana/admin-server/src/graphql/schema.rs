@@ -447,7 +447,7 @@ impl Query {
         let filter = DomainPendingCreditFacilitiesFilters {
             status: filter.as_ref().and_then(|f| f.status),
             customer_id: None,
-            collateralization_state: None,
+            collateralization_state: filter.as_ref().and_then(|f| f.collateralization_state),
         };
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(

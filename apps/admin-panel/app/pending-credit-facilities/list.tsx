@@ -12,6 +12,7 @@ import { PendingFacilityCollateralizationStateLabel } from "./label"
 import {
   PendingCreditFacility,
   PendingCreditFacilityStatus,
+  PendingCreditFacilityCollateralizationState,
   PendingCreditFacilitiesFilter,
   usePendingCreditFacilitiesQuery,
 } from "@/lib/graphql/generated"
@@ -117,6 +118,7 @@ const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] =>
     label: t("table.headers.collateralizationState"),
     labelClassName: "w-[15%]",
     render: (state) => <PendingFacilityCollateralizationStateLabel state={state} />,
+    filterValues: Object.values(PendingCreditFacilityCollateralizationState),
   },
   {
     key: "createdAt",
