@@ -1,20 +1,20 @@
-use keycloak_client::KeycloakClient;
 use tracing::{Span, instrument};
 
 use core_customer::CoreCustomerEvent;
+use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use job::JobType;
+use super::UpdateUserEmailConfig;
 
 pub const SYNC_EMAIL_JOB: JobType = JobType::new("outbox.sync-email-job");
 
 pub struct SyncEmailHandler {
-    keycloak_client: KeycloakClient,
+    update_user_email: JobSpawner<UpdateUserEmailConfig>,
 }
 
 impl SyncEmailHandler {
-    pub fn new(keycloak_client: KeycloakClient) -> Self {
-        Self { keycloak_client }
+    pub fn new(update_user_email: JobSpawner<UpdateUserEmailConfig>) -> Self {
+        Self { update_user_email }
     }
 }
 
@@ -22,10 +22,10 @@ impl<E> OutboxEventHandler<E> for SyncEmailHandler
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    #[instrument(name = "customer_sync.sync_email_job.process_message", parent = None, skip(self, _op, event), fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "customer_sync.sync_email_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn handle_persistent(
         &self,
-        _op: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         event: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if let Some(e @ CoreCustomerEvent::PartyEmailUpdated { entity }) = event.as_event() {
@@ -33,8 +33,16 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
 
-            self.keycloak_client
-                .update_user_email(entity.id.into(), entity.email.clone())
+            self.update_user_email
+                .spawn_with_queue_id_in_op(
+                    op,
+                    JobId::new(),
+                    UpdateUserEmailConfig {
+                        party_id: entity.id,
+                        email: entity.email.clone(),
+                    },
+                    entity.id.to_string(),
+                )
                 .await?;
         }
         Ok(())

@@ -355,11 +355,15 @@ where
         );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
+        let execute_approve_disbursal_spawner = jobs.add_initializer(
+            ExecuteApproveDisbursalJobInitializer::new(approve_disbursal_arc.as_ref()),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(DISBURSAL_APPROVE_JOB),
-                DisbursalApprovalHandler::new(approve_disbursal_arc.as_ref()),
+                DisbursalApprovalHandler::new(execute_approve_disbursal_spawner),
             )
             .await?;
 
