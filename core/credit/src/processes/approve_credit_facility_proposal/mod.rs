@@ -101,28 +101,6 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit_facility.approval.execute",
-        skip(self, credit_facility_proposal_id),
-        fields(credit_facility_proposal_id = tracing::field::Empty))
-     ]
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
-    pub async fn execute_approve_credit_facility_proposal(
-        &self,
-        credit_facility_proposal_id: impl es_entity::RetryableInto<CreditFacilityProposalId>,
-        approved: bool,
-    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
-        let id = credit_facility_proposal_id.into();
-        tracing::Span::current()
-            .record("credit_facility_proposal_id", tracing::field::display(&id));
-        let proposal = self
-            .pending_credit_facilities
-            .transition_from_proposal(id, approved)
-            .await?;
-
-        Ok(proposal)
-    }
-
-    #[record_error_severity]
     #[instrument(name = "credit_facility.approval.execute_in_op",
         skip(self, op, credit_facility_proposal_id),
         fields(credit_facility_proposal_id = tracing::field::Empty))

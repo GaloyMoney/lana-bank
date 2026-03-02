@@ -107,17 +107,6 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.credit_facility.activation.execute", skip(self))]
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
-    pub async fn execute_activate_credit_facility(
-        &self,
-        id: impl es_entity::RetryableInto<CreditFacilityId>,
-    ) -> Result<(), CoreCreditError> {
-        self.credit_facilities.activate(id.into()).await?;
-        Ok(())
-    }
-
-    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.activation.execute_in_op",
         skip(self, op)

@@ -163,25 +163,6 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "credit.pending_credit_facility.transition_from_proposal",
-        skip(self, credit_facility_proposal_id),
-        fields(pending_credit_facility_id = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty)
-    )]
-    pub async fn transition_from_proposal(
-        &self,
-        credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
-        approved: bool,
-    ) -> Result<Option<CreditFacilityProposal>, PendingCreditFacilityError> {
-        let mut db = self.repo.begin_op().await?;
-        let result = self
-            .transition_from_proposal_in_op(&mut db, credit_facility_proposal_id, approved)
-            .await?;
-        db.commit().await?;
-        Ok(result)
-    }
-
-    #[record_error_severity]
-    #[instrument(
         name = "credit.pending_credit_facility.transition_from_proposal_in_op",
         skip(self, db, credit_facility_proposal_id),
         fields(pending_credit_facility_id = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty)

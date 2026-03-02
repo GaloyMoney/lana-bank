@@ -223,18 +223,6 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.credit_facility.activate", skip(self), fields(credit_facility_id = %credit_facility_id))]
-    pub(super) async fn activate(
-        &self,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<(), CreditFacilityError> {
-        let mut db = self.repo.begin_op().await?;
-        self.activate_in_op(&mut db, credit_facility_id).await?;
-        db.commit().await?;
-        Ok(())
-    }
-
-    #[record_error_severity]
     #[instrument(name = "credit.credit_facility.activate_in_op", skip(self, db), fields(credit_facility_id = %credit_facility_id))]
     pub(super) async fn activate_in_op(
         &self,
