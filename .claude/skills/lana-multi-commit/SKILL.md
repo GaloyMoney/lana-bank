@@ -70,7 +70,7 @@ For each commit in a multi-commit plan:
 
 ### Why This Matters
 
-1. **Each commit must compile independently** - If you make all changes first, intermediate commits may not compile
+1. **Each commit must compile independently** - Many files are generated programmatically (e.g., GraphQL schema, SQLx cache, Apollo codegen). If checks aren't run before each commit, these generated files won't get updated. This breaks the build because these files serve as a boundary between backend and frontend, and CI ensures they stay in sync with the codebase.
 2. **Easier to debug** - If a check fails, you know exactly which change caused it
 3. **Cleaner git history** - Each commit is atomic and self-contained
 4. **Easier code review** - Reviewers can understand changes incrementally
