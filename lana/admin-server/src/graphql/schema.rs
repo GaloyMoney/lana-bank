@@ -464,6 +464,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default)] sort: PendingCreditFacilitiesSort,
         filter: Option<PendingCreditFacilitiesFilter>,
     ) -> async_graphql::Result<
         Connection<PendingCreditFacilitiesCursor, PendingCreditFacility, EmptyFields, EmptyFields>,
@@ -477,14 +478,14 @@ impl Query {
         list_with_combo_cursor!(
             PendingCreditFacilitiesCursor,
             PendingCreditFacility,
-            DomainPendingCreditFacilitiesSortBy::CreatedAt,
+            DomainPendingCreditFacilitiesSortBy::from(sort),
             ctx,
             after,
             first,
             |query| app
                 .credit()
                 .pending_credit_facilities()
-                .list(sub, query, filter)
+                .list(sub, query, filter, sort.into())
         )
     }
 

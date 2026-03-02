@@ -299,6 +299,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<PendingCreditFacilitiesCursor>,
         filter: PendingCreditFacilitiesFilters,
+        sort: es_entity::Sort<PendingCreditFacilitiesSortBy>,
     ) -> Result<
         es_entity::PaginatedQueryRet<PendingCreditFacility, PendingCreditFacilitiesCursor>,
         PendingCreditFacilityError,
@@ -311,16 +312,7 @@ where
             )
             .await?;
 
-        self.repo
-            .list_for_filters(
-                filter,
-                es_entity::Sort {
-                    by: PendingCreditFacilitiesSortBy::CreatedAt,
-                    direction: es_entity::ListDirection::Descending,
-                },
-                query,
-            )
-            .await
+        self.repo.list_for_filters(filter, sort, query).await
     }
 
     #[record_error_severity]
