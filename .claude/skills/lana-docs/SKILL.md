@@ -66,9 +66,9 @@ Analyze the PR diff and categorize:
 1. Add or update event descriptions in `docs-site/scripts/event-descriptions.json`
 2. Regenerate event docs:
    ```bash
-   cd docs-site && pnpm run generate-events-docs
+   cd docs-site && pnpm run generate-events-docs -- --locale en
    ```
-   This produces both English and Spanish output (Spanish uses the existing `event-descriptions.es.json` which lingo.dev maintains).
+   This updates English output only; Spanish is handled by lingo.dev after merge.
 
 ### Domain/feature changes
 

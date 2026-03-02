@@ -276,6 +276,17 @@ ${t.contact_note || 'For integration details, contact the platform team.'}
  * Main function
  */
 function main() {
+  const localeIndex = process.argv.indexOf('--locale');
+  let locales = ['en', 'es'];
+  if (localeIndex !== -1) {
+    const localeValue = process.argv[localeIndex + 1];
+    if (!localeValue || !['en', 'es'].includes(localeValue)) {
+      console.error('Error: --locale must be either "en" or "es".');
+      process.exit(1);
+    }
+    locales = [localeValue];
+  }
+
   // Check if schema exists
   if (!fs.existsSync(SCHEMA_PATH)) {
     console.error(`Error: Schema file not found at ${SCHEMA_PATH}`);
@@ -286,39 +297,41 @@ function main() {
   // Load schema
   const schema = JSON.parse(fs.readFileSync(SCHEMA_PATH, 'utf-8'));
 
-  // Load descriptions
-  let descriptionsEn = {};
-  let descriptionsEs = {};
+  if (locales.includes('en')) {
+    let descriptionsEn = {};
+    if (fs.existsSync(DESCRIPTIONS_EN_PATH)) {
+      descriptionsEn = JSON.parse(fs.readFileSync(DESCRIPTIONS_EN_PATH, 'utf-8'));
+    } else {
+      console.warn(`Warning: English descriptions file not found at ${DESCRIPTIONS_EN_PATH}`);
+    }
 
-  if (fs.existsSync(DESCRIPTIONS_EN_PATH)) {
-    descriptionsEn = JSON.parse(fs.readFileSync(DESCRIPTIONS_EN_PATH, 'utf-8'));
-  } else {
-    console.warn(`Warning: English descriptions file not found at ${DESCRIPTIONS_EN_PATH}`);
+    // Generate English docs
+    console.log('Generating English documentation...');
+    const mdEn = generateMarkdown(schema, descriptionsEn, 'en');
+    fs.writeFileSync(OUTPUT_EN_PATH, mdEn);
+    console.log(`Written: ${OUTPUT_EN_PATH}`);
   }
 
-  if (fs.existsSync(DESCRIPTIONS_ES_PATH)) {
-    descriptionsEs = JSON.parse(fs.readFileSync(DESCRIPTIONS_ES_PATH, 'utf-8'));
-  } else {
-    console.warn(`Warning: Spanish descriptions file not found at ${DESCRIPTIONS_ES_PATH}`);
+  if (locales.includes('es')) {
+    let descriptionsEs = {};
+    if (fs.existsSync(DESCRIPTIONS_ES_PATH)) {
+      descriptionsEs = JSON.parse(fs.readFileSync(DESCRIPTIONS_ES_PATH, 'utf-8'));
+    } else {
+      console.warn(`Warning: Spanish descriptions file not found at ${DESCRIPTIONS_ES_PATH}`);
+    }
+
+    // Generate Spanish docs
+    console.log('Generating Spanish documentation...');
+    const mdEs = generateMarkdown(schema, descriptionsEs, 'es');
+
+    // Ensure directory exists
+    const esDir = path.dirname(OUTPUT_ES_PATH);
+    if (!fs.existsSync(esDir)) {
+      fs.mkdirSync(esDir, { recursive: true });
+    }
+    fs.writeFileSync(OUTPUT_ES_PATH, mdEs);
+    console.log(`Written: ${OUTPUT_ES_PATH}`);
   }
-
-  // Generate English docs
-  console.log('Generating English documentation...');
-  const mdEn = generateMarkdown(schema, descriptionsEn, 'en');
-  fs.writeFileSync(OUTPUT_EN_PATH, mdEn);
-  console.log(`Written: ${OUTPUT_EN_PATH}`);
-
-  // Generate Spanish docs
-  console.log('Generating Spanish documentation...');
-  const mdEs = generateMarkdown(schema, descriptionsEs, 'es');
-
-  // Ensure directory exists
-  const esDir = path.dirname(OUTPUT_ES_PATH);
-  if (!fs.existsSync(esDir)) {
-    fs.mkdirSync(esDir, { recursive: true });
-  }
-  fs.writeFileSync(OUTPUT_ES_PATH, mdEs);
-  console.log(`Written: ${OUTPUT_ES_PATH}`);
 
   console.log('Done!');
 }
