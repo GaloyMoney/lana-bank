@@ -11,7 +11,6 @@ mod history;
 pub mod ledger;
 mod pending_credit_facility;
 mod primitives;
-mod processes;
 pub mod public;
 mod publisher;
 mod repayment_plan;
@@ -46,8 +45,16 @@ pub use chart_of_accounts_integration::{
     error::ChartOfAccountsIntegrationError,
 };
 pub use credit_facility::error::CreditFacilityError;
+pub use credit_facility::jobs::activate::*;
+pub use credit_facility::jobs::activate_handler::*;
+pub use credit_facility::jobs::allocate_payment::*;
+pub use credit_facility::jobs::allocate_payment_handler::*;
 pub use credit_facility::*;
+pub use credit_facility_proposal::jobs::approve::*;
+pub use credit_facility_proposal::jobs::approve_handler::*;
 pub use credit_facility_proposal::*;
+pub use disbursal::jobs::approve::*;
+pub use disbursal::jobs::approve_handler::*;
 pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
 use for_subject::CreditFacilitiesForSubject;
@@ -55,10 +62,6 @@ pub use history::*;
 pub use ledger::*;
 pub use pending_credit_facility::*;
 pub use primitives::*;
-pub use processes::{
-    activate_credit_facility::*, allocate_credit_facility_payment::*,
-    approve_credit_facility_proposal::*, approve_disbursal::*,
-};
 pub use public::*;
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
@@ -105,10 +108,7 @@ where
     ledger: Arc<CreditLedger>,
     price: Arc<Price>,
     domain_configs: ExposedDomainConfigsReadOnly,
-    approve_disbursal: Arc<ApproveDisbursal<Perms, E>>,
-    approve_proposal: Arc<ApproveCreditFacilityProposal<Perms, E>>,
     cala: Arc<CalaLedger>,
-    activate_credit_facility: Arc<ActivateCreditFacility<Perms, E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
     custody: Arc<CoreCustody<Perms, E>>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
@@ -148,9 +148,6 @@ where
             price: self.price.clone(),
             domain_configs: self.domain_configs.clone(),
             cala: self.cala.clone(),
-            approve_disbursal: self.approve_disbursal.clone(),
-            approve_proposal: self.approve_proposal.clone(),
-            activate_credit_facility: self.activate_credit_facility.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             public_ids: self.public_ids.clone(),
         }
@@ -305,49 +302,6 @@ where
         let repayment_plans_arc =
             Arc::new(RepaymentPlans::init(pool, outbox, jobs, authz_arc.clone()).await?);
 
-        let audit_arc = Arc::new(authz.audit().clone());
-
-        let approve_disbursal = ApproveDisbursal::new(
-            disbursals_arc.clone(),
-            facilities_arc.clone(),
-            governance_arc.clone(),
-            ledger_arc.clone(),
-            clock.clone(),
-        );
-        let approve_disbursal_arc = Arc::new(approve_disbursal);
-
-        let approve_proposal = ApproveCreditFacilityProposal::new(
-            proposals_arc.clone(),
-            pending_credit_facilities_arc.clone(),
-            audit_arc.clone(),
-            governance_arc.clone(),
-        );
-        let approve_proposal_arc = Arc::new(approve_proposal);
-
-        let activate_credit_facility = ActivateCreditFacility::new(
-            facilities_arc.clone(),
-            disbursals_arc.clone(),
-            ledger_arc.clone(),
-            price_arc.clone(),
-            audit_arc.clone(),
-            public_ids_arc.clone(),
-        );
-        let activate_credit_facility_arc = Arc::new(activate_credit_facility);
-
-        let allocate_credit_facility_payment =
-            AllocateCreditFacilityPayment::new(collections_arc.clone());
-        let allocate_credit_facility_payment_arc = Arc::new(allocate_credit_facility_payment);
-
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(ALLOCATE_CREDIT_FACILITY_PAYMENT),
-                AllocateCreditFacilityPaymentHandler::new(
-                    allocate_credit_facility_payment_arc.as_ref(),
-                ),
-            )
-            .await?;
-
         let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(
             authz_arc.clone(),
             ledger_arc.clone(),
@@ -355,8 +309,24 @@ where
         );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
+        // Register allocate payment handler + command job
+        let allocate_payment_spawner =
+            jobs.add_initializer(AllocatePaymentJobInitializer::new(collections_arc.clone()));
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(ALLOCATE_CREDIT_FACILITY_PAYMENT),
+                AllocateCreditFacilityPaymentHandler::new(allocate_payment_spawner),
+            )
+            .await?;
+
+        // Register approve disbursal handler + command job
         let approve_disbursal_spawner = jobs.add_initializer(ApproveDisbursalJobInitializer::new(
-            approve_disbursal_arc.as_ref(),
+            disbursals_arc.clone(),
+            facilities_arc.clone(),
+            ledger_arc.clone(),
+            clock.clone(),
         ));
 
         outbox
@@ -367,8 +337,9 @@ where
             )
             .await?;
 
+        // Register activate credit facility handler + command job
         let activate_cf_spawner = jobs.add_initializer(ActivateCreditFacilityJobInitializer::new(
-            activate_credit_facility_arc.as_ref(),
+            facilities_arc.clone(),
         ));
 
         outbox
@@ -379,8 +350,9 @@ where
             )
             .await?;
 
+        // Register approve credit facility proposal handler + command job
         let approve_proposal_spawner = jobs.add_initializer(
-            ApproveCreditFacilityProposalJobInitializer::new(approve_proposal_arc.as_ref()),
+            ApproveCreditFacilityProposalJobInitializer::new(pending_credit_facilities_arc.clone()),
         );
 
         outbox
@@ -409,9 +381,6 @@ where
             price: price_arc,
             domain_configs: domain_configs.clone(),
             cala: cala_arc,
-            approve_disbursal: approve_disbursal_arc,
-            approve_proposal: approve_proposal_arc,
-            activate_credit_facility: activate_credit_facility_arc,
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
             public_ids: public_ids_arc,
         })

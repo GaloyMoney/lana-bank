@@ -1,7 +1,7 @@
 mod entity;
 pub mod error;
 pub mod interest_accrual_cycle;
-mod jobs;
+pub(crate) mod jobs;
 mod repo;
 
 use std::sync::Arc;

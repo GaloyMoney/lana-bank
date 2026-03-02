@@ -1,6 +1,7 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -11,69 +12,14 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
-    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
-    PendingCreditFacilityCollateralizationState, PendingCreditFacilityId,
+    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject, PendingCreditFacilityId,
+    credit_facility::CreditFacilities,
 };
-
-use super::ActivateCreditFacility;
-
-pub const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("outbox.credit-facility-activation");
-
-pub struct CreditFacilityActivationHandler {
-    activate_credit_facility: JobSpawner<ActivateCreditFacilityConfig>,
-}
-
-impl CreditFacilityActivationHandler {
-    pub fn new(activate_credit_facility: JobSpawner<ActivateCreditFacilityConfig>) -> Self {
-        Self {
-            activate_credit_facility,
-        }
-    }
-}
-
-impl<E> OutboxEventHandler<E> for CreditFacilityActivationHandler
-where
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    #[instrument(name = "core_credit.credit_facility_activation_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, pending_credit_facility_id = tracing::field::Empty))]
-    async fn handle_persistent(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        event: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        use CoreCreditEvent::*;
-
-        if let Some(e @ PendingCreditFacilityCollateralizationChanged { entity }) = event.as_event()
-            && entity.collateralization.state
-                == PendingCreditFacilityCollateralizationState::FullyCollateralized
-        {
-            event.inject_trace_parent();
-            Span::current().record("handled", true);
-            Span::current().record(
-                "pending_credit_facility_id",
-                tracing::field::display(entity.id),
-            );
-            Span::current().record("event_type", e.as_ref());
-
-            self.activate_credit_facility
-                .spawn_with_queue_id_in_op(
-                    op,
-                    JobId::new(),
-                    ActivateCreditFacilityConfig {
-                        pending_credit_facility_id: entity.id,
-                    },
-                    entity.id.to_string(),
-                )
-                .await?;
-        }
-        Ok(())
-    }
-}
 
 pub const ACTIVATE_CREDIT_FACILITY_COMMAND: JobType =
     JobType::new("command.credit.activate-credit-facility");
@@ -94,7 +40,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    process: ActivateCreditFacility<Perms, E>,
+    credit_facilities: Arc<CreditFacilities<Perms, E>>,
 }
 
 impl<Perms, E> ActivateCreditFacilityJobInitializer<Perms, E>
@@ -107,10 +53,8 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    pub fn new(process: &ActivateCreditFacility<Perms, E>) -> Self {
-        Self {
-            process: process.clone(),
-        }
+    pub fn new(credit_facilities: Arc<CreditFacilities<Perms, E>>) -> Self {
+        Self { credit_facilities }
     }
 }
 
@@ -147,7 +91,7 @@ where
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(ActivateCreditFacilityJobRunner {
             config: job.config()?,
-            process: self.process.clone(),
+            credit_facilities: self.credit_facilities.clone(),
         }))
     }
 }
@@ -163,7 +107,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     config: ActivateCreditFacilityConfig,
-    process: ActivateCreditFacility<Perms, E>,
+    credit_facilities: Arc<CreditFacilities<Perms, E>>,
 }
 
 #[async_trait]
@@ -194,11 +138,8 @@ where
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut op = current_job.begin_op().await?;
-        self.process
-            .execute_activate_credit_facility_in_op(
-                &mut op,
-                self.config.pending_credit_facility_id.into(),
-            )
+        self.credit_facilities
+            .activate_in_op(&mut op, self.config.pending_credit_facility_id.into())
             .await?;
         Ok(JobCompletion::CompleteWithOp(op))
     }
