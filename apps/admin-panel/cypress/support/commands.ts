@@ -108,8 +108,8 @@ Cypress.Commands.add(
 )
 
 Cypress.Commands.add("takeScreenshot", (filename): Cypress.Chainable<null> => {
-  cy.get('[data-testid="loading-skeleton"]', { timeout: 30000 }).should("not.exist")
-  cy.get('[data-testid="global-loader"]', { timeout: 30000 }).should("not.exist")
+  cy.get('[data-testid="loading-skeleton"]').should("not.exist")
+  cy.get('[data-testid="global-loader"]').should("not.exist")
   cy.screenshot(filename, { capture: "viewport", overwrite: true })
   return cy.wrap(null)
 })
@@ -356,9 +356,7 @@ Cypress.Commands.add("uploadChartOfAccounts", () => {
         cy.takeScreenshot("1_chart_of_account_upload")
         if (hasUploadButton || hasDropzoneText) {
           cy.get('input[type="file"]').attachFile("coa.csv", { force: true })
-          cy.contains("button", new RegExp(t(COA + ".upload.upload"), "i"), {
-            timeout: 5000,
-          }).click()
+          cy.contains("button", new RegExp(t(COA + ".upload.upload"), "i")).click()
         }
       })
     })

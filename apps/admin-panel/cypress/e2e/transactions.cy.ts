@@ -33,7 +33,6 @@ describe("Transactions Deposit and Withdraw", () => {
 
   it("should create a Deposit", () => {
     cy.visit(`/deposit-accounts/${depositAccountPublicId}`)
-    cy.wait(1000)
 
     cy.get('[data-testid="global-create-button"]').click()
     cy.takeScreenshot("1_deposit_create_button")
@@ -60,14 +59,13 @@ describe("Transactions Deposit and Withdraw", () => {
 
   it("should show newly created Deposit in deposit account page", () => {
     cy.visit(`/deposit-accounts/${depositAccountPublicId}`)
-    cy.get("table", { timeout: 10000 }).should("exist")
+    cy.get("table").should("exist")
     cy.contains(`$${depositAmount.toLocaleString()}.00`).should("be.visible")
     cy.takeScreenshot("7_deposit_in_transactions")
   })
 
   it("should create Withdraw", () => {
     cy.visit(`/deposit-accounts/${depositAccountPublicId}`)
-    cy.wait(1000)
 
     cy.get('[data-testid="global-create-button"]').click()
     cy.takeScreenshot("8_withdrawal_create_button")
@@ -96,7 +94,7 @@ describe("Transactions Deposit and Withdraw", () => {
 
   it("should show newly created Withdraw in deposit account page", () => {
     cy.visit(`/deposit-accounts/${depositAccountPublicId}`)
-    cy.get("table", { timeout: 10000 }).should("exist")
+    cy.get("table").should("exist")
     cy.contains(`$${withdrawAmount.toLocaleString()}.00`).should("be.visible")
     cy.takeScreenshot("13_withdrawal_in_transactions")
   })
@@ -108,8 +106,7 @@ describe("Transactions Deposit and Withdraw", () => {
       cy.initiateWithdrawal(withdrawAmount, depositAccountId).then(
         (withdrawalPublicId) => {
           cy.visit(`/withdrawals/${withdrawalPublicId}`)
-          cy.wait(1000)
-          cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
+          cy.get("[data-testid=withdrawal-status-badge]").should("be.visible").then((badge) => {
             if (badge.text() === t(W + ".WithdrawalStatus.pending_approval")) {
               // case when we have policy attached for withdrawal no ss needed here
               cy.get('[data-testid="approval-process-deny-button"]').click()
@@ -146,8 +143,8 @@ describe("Transactions Deposit and Withdraw", () => {
       cy.initiateWithdrawal(withdrawAmount, depositAccountId).then(
         (withdrawalPublicId) => {
           cy.visit(`/withdrawals/${withdrawalPublicId}`)
-          cy.wait(1000)
           cy.get("[data-testid=withdrawal-status-badge]")
+            .should("be.visible")
             .then((badge) => {
               // case when we have policy attached for withdrawal no ss needed here
               if (badge.text() === t(W + ".WithdrawalStatus.pending_approval")) {

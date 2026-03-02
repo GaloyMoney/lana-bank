@@ -18,6 +18,26 @@
 import "./commands"
 import { t } from "./translation"
 
+// Skip remaining tests in a spec file after the first failure.
+// This avoids wasting time on sequential tests that depend on prior state.
+let hasFailedInSpec = false
+
+Cypress.on("test:before:run", () => {
+  // reset flag at the start of each spec file is handled by the module scope
+})
+
+afterEach(function () {
+  if (this.currentTest?.state === "failed") {
+    hasFailedInSpec = true
+  }
+})
+
+beforeEach(function () {
+  if (hasFailedInSpec) {
+    this.skip()
+  }
+})
+
 Cypress.on("window:before:load", (win) => {
   const style = win.document.createElement("style")
   style.innerHTML = `
@@ -56,9 +76,7 @@ beforeEach(() => {
       cy.KcLogin("admin@galoy.io")
       cy.setCookie("NEXT_LOCALE", testLanguage)
       cy.visit("/dashboard")
-      cy.contains(t("Sidebar.navItems.dashboard"), {
-        timeout: 60000,
-      })
+      cy.contains(t("Sidebar.navItems.dashboard"))
     },
     {
       cacheAcrossSpecs: true,

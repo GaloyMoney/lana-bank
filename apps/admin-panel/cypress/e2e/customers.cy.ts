@@ -145,7 +145,7 @@ describe("Customers", () => {
     })
 
     // Wait for subscription-driven UI transition: prospect stage becomes converted.
-    cy.get('[data-testid="prospect-stage-badge"]', { timeout: 30000 })
+    cy.get('[data-testid="prospect-stage-badge"]')
       .should("be.visible")
       .invoke("text")
       .should("eq", t("Prospects.stage.converted"))
