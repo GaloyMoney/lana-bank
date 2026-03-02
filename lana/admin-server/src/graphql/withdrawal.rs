@@ -85,6 +85,26 @@ impl Withdrawal {
     }
 }
 
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct WithdrawalApprovalConcludedPayload {
+    pub status: WithdrawalStatus,
+    #[graphql(skip)]
+    pub withdrawal_id: WithdrawalId,
+}
+
+#[ComplexObject]
+impl WithdrawalApprovalConcludedPayload {
+    async fn withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<Withdrawal> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let withdrawal = loader
+            .load_one(self.withdrawal_id)
+            .await?
+            .expect("withdrawal not found");
+        Ok(withdrawal)
+    }
+}
+
 #[derive(InputObject)]
 pub struct WithdrawalInitiateInput {
     pub deposit_account_id: UUID,

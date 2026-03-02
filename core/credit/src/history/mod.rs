@@ -118,6 +118,7 @@ impl CreditFacilityHistory {
             PendingCreditFacilityCompleted { .. } => {}
             FacilityCompleted { .. } => {}
             PartialLiquidationInitiated { .. } => {}
+            DisbursalApprovalConcluded { .. } => {}
         }
     }
 

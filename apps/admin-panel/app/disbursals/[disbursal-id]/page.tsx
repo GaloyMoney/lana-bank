@@ -10,46 +10,63 @@ import { DisbursalDetailsCard } from "./details"
 import { VotersCard } from "./voters"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
-import { useGetDisbursalDetailsQuery } from "@/lib/graphql/generated"
+import {
+  useGetDisbursalDetailsQuery,
+  useDisbursalApprovalConcludedSubscription,
+  DisbursalStatus,
+} from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
-  query GetDisbursalDetails($publicId: PublicId!) {
-    disbursalByPublicId(id: $publicId) {
+  fragment DisbursalDetailsPageFragment on CreditFacilityDisbursal {
+    id
+    disbursalId
+    amount
+    createdAt
+    status
+    publicId
+    ledgerTransactions {
+      ...LedgerTransactionFields
+    }
+    creditFacility {
       id
-      disbursalId
-      amount
-      createdAt
+      creditFacilityId
+      facilityAmount
       status
       publicId
-      ledgerTransactions {
-        ...LedgerTransactionFields
-      }
-      creditFacility {
+      customer {
         id
-        creditFacilityId
-        facilityAmount
-        status
+        email
+        customerId
         publicId
-        customer {
+        depositAccount {
           id
-          email
-          customerId
           publicId
-          depositAccount {
-            id
-            publicId
-            balance {
-              settled
-              pending
-            }
+          balance {
+            settled
+            pending
           }
         }
       }
-      approvalProcess {
-        ...ApprovalProcessFields
+    }
+    approvalProcess {
+      ...ApprovalProcessFields
+    }
+  }
+
+  query GetDisbursalDetails($publicId: PublicId!) {
+    disbursalByPublicId(id: $publicId) {
+      ...DisbursalDetailsPageFragment
+    }
+  }
+
+  subscription disbursalApprovalConcluded($disbursalId: UUID!) {
+    disbursalApprovalConcluded(disbursalId: $disbursalId) {
+      status
+      disbursal {
+        ...DisbursalDetailsPageFragment
       }
     }
   }
@@ -66,6 +83,14 @@ function DisbursalPage({
   const { data, loading, error } = useGetDisbursalDetailsQuery({
     variables: { publicId },
   })
+
+  useDisbursalApprovalConcludedSubscription(
+    data?.disbursalByPublicId &&
+      data.disbursalByPublicId.status === DisbursalStatus.New
+      ? { variables: { disbursalId: data.disbursalByPublicId.disbursalId } }
+      : { skip: true },
+  )
+
   const { setDisbursal } = useCreateContext()
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")

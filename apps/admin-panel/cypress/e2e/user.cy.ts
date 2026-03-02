@@ -18,7 +18,6 @@ describe(t(U + ".title"), () => {
     userEmail = `t${Date.now().toString().slice(-6)}@example.com`
 
     cy.visit(`/users`)
-    cy.wait(1000)
     cy.takeScreenshot("1_users_list")
 
     cy.get('[data-testid="global-create-button"]').click()
@@ -51,14 +50,12 @@ describe(t(U + ".title"), () => {
 
   it("should show newly created user in the list", () => {
     cy.visit("/users")
-    cy.wait(1000)
     cy.contains(userEmail).should("be.visible")
     cy.takeScreenshot("7_view_in_list")
   })
 
   it("Can update user roles", () => {
     cy.visit(`/users/${userId}`)
-    cy.wait(1000)
     cy.takeScreenshot("8_manage_roles")
 
     cy.get('[data-testid="user-details-manage-role"]').click()

@@ -8,7 +8,7 @@ use money::UsdCents;
 pub use crate::disbursal::DisbursalSettlement;
 use crate::{
     disbursal::Disbursal,
-    primitives::{CreditFacilityId, DisbursalId},
+    primitives::{CreditFacilityId, DisbursalId, DisbursalStatus},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,6 +17,7 @@ pub struct PublicDisbursal {
     pub id: DisbursalId,
     pub credit_facility_id: CreditFacilityId,
     pub amount: UsdCents,
+    pub status: DisbursalStatus,
     pub settlement: Option<DisbursalSettlement>,
 }
 
@@ -26,6 +27,7 @@ impl From<&Disbursal> for PublicDisbursal {
             id: entity.id,
             credit_facility_id: entity.facility_id,
             amount: entity.amount,
+            status: entity.status(),
             settlement: entity.settlement(),
         }
     }

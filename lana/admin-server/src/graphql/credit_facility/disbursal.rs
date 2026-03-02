@@ -75,6 +75,26 @@ impl CreditFacilityDisbursal {
     }
 }
 
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct DisbursalApprovalConcludedPayload {
+    pub status: DisbursalStatus,
+    #[graphql(skip)]
+    pub disbursal_id: DisbursalId,
+}
+
+#[ComplexObject]
+impl DisbursalApprovalConcludedPayload {
+    async fn disbursal(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityDisbursal> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let disbursal = loader
+            .load_one(self.disbursal_id)
+            .await?
+            .expect("disbursal not found");
+        Ok(disbursal)
+    }
+}
+
 #[derive(InputObject)]
 pub struct CreditFacilityDisbursalInitiateInput {
     pub credit_facility_id: UUID,

@@ -191,23 +191,16 @@ describe("credit facility", () => {
     cy.takeScreenshot("08_customer_approval_button")
     cy.get('[data-testid="customer-approval-approve-button"]').click()
 
-    cy.wait(2000).then(() => {
-      cy.takeScreenshot("09_customer_approval_dialog")
-      cy.get('[data-testid="customer-approval-dialog-approve-button"]')
-        .should("exist")
-        .should("be.visible")
-        .click()
-      cy.wait(2000)
-      cy.reload()
-    })
+    cy.takeScreenshot("09_customer_approval_dialog")
+    cy.get('[data-testid="customer-approval-dialog-approve-button"]')
+      .should("be.visible")
+      .click()
   })
 
   it("should verify proposal is pending internal approval after customer acceptance", () => {
     const proposalUuid = Cypress.env("creditFacilityProposalId")
     expect(proposalUuid).to.exist
     cy.visit(`/credit-facility-proposals/${proposalUuid}`)
-    cy.wait(2000)
-    cy.reload()
     cy.get("[data-testid=proposal-status-badge]")
       .should("be.visible")
       .invoke("text")
@@ -220,28 +213,21 @@ describe("credit facility", () => {
     expect(proposalUuid).to.exist
 
     cy.visit(`/credit-facility-proposals/${proposalUuid}`)
-    cy.reload()
 
     cy.get('[data-testid="approval-process-approve-button"]').should("be.visible")
     cy.takeScreenshot("11_approve_proposal_button")
     cy.get('[data-testid="approval-process-approve-button"]').click()
 
-    cy.wait(2000).then(() => {
-      cy.takeScreenshot("12_approve_proposal_dialog")
-      cy.get('[data-testid="approval-process-dialog-approve-button"]')
-        .should("exist")
-        .should("be.visible")
-        .click()
-      cy.wait(2000)
-    })
+    cy.takeScreenshot("12_approve_proposal_dialog")
+    cy.get('[data-testid="approval-process-dialog-approve-button"]')
+      .should("be.visible")
+      .click()
   })
 
   it("should verify proposal approved status", () => {
     const proposalUuid = Cypress.env("creditFacilityProposalId")
     expect(proposalUuid).to.exist
     cy.visit(`/credit-facility-proposals/${proposalUuid}`)
-    cy.wait(2000)
-    cy.reload()
     cy.get("[data-testid=proposal-status-badge]")
       .should("be.visible")
       .invoke("text")
@@ -282,7 +268,6 @@ describe("credit facility", () => {
     expect(pendingUuid).to.exist
 
     cy.visit(`/pending-credit-facilities/${pendingUuid}`)
-    cy.wait(2000)
 
     cy.get('[data-testid="collateral-to-reach-target"]')
       .scrollIntoView()
@@ -321,7 +306,6 @@ describe("credit facility", () => {
     cy.get('[data-testid="confirm-update-button"]')
       .should("be.visible")
       .click()
-      .wait(2000)
     cy.takeScreenshot("18_collateral_updated")
   })
 
@@ -329,8 +313,6 @@ describe("credit facility", () => {
     const pendingUuid = Cypress.env("pendingCreditFacilityId")
     expect(pendingUuid).to.exist
     cy.visit(`/pending-credit-facilities/${pendingUuid}`)
-    cy.wait(2000)
-    cy.reload()
     cy.get("[data-testid=pending-status-badge]")
       .should("be.visible")
       .invoke("text")
@@ -397,23 +379,17 @@ describe("credit facility", () => {
 
     cy.takeScreenshot("26_disbursal_page")
 
-    cy.reload()
     cy.get('[data-testid="disbursal-approve-button"]').should("be.visible").click()
-    cy.wait(2000).then(() => {
-      cy.takeScreenshot("27_approve")
-      cy.get('[data-testid="approval-process-dialog-approve-button"]')
-        .should("be.visible")
-        .click()
+    cy.takeScreenshot("27_approve")
+    cy.get('[data-testid="approval-process-dialog-approve-button"]')
+      .should("be.visible")
+      .click()
 
-      cy.wait(2000).then(() => {
-        cy.reload()
-        cy.get('[data-testid="disbursal-status-badge"]')
-          .should("be.visible")
-          .invoke("text")
-          .should("eq", t(Disbursals + ".DisbursalStatus.confirmed"))
-        cy.takeScreenshot("28_verify_disbursal_status_confirmed")
-      })
-    })
+    cy.get('[data-testid="disbursal-status-badge"]')
+      .should("be.visible")
+      .invoke("text")
+      .should("eq", t(Disbursals + ".DisbursalStatus.confirmed"))
+    cy.takeScreenshot("28_verify_disbursal_status_confirmed")
   })
 
   it("should show disbursal in the list page", () => {

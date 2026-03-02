@@ -1,7 +1,5 @@
 import { defineConfig } from "cypress"
 
-const multiplier = 10
-
 export default defineConfig({
   e2e: {
     setupNodeEvents(on) {
@@ -60,9 +58,10 @@ export default defineConfig({
       "cypress/e2e/deposit-accounts.cy.ts",
     ],
     baseUrl: "http://admin.localhost:4455",
-    defaultCommandTimeout: 4000 * multiplier,
-    requestTimeout: 5000 * multiplier,
-    pageLoadTimeout: 60000 * multiplier,
+    defaultCommandTimeout: 30000,
+    requestTimeout: 30000,
+    pageLoadTimeout: 60000,
+    responseTimeout: 30000,
     retries: 5,
     screenshotOnRunFailure: false,
     experimentalMemoryManagement: true,

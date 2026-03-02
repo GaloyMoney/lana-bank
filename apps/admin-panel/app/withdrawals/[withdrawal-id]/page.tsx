@@ -8,7 +8,11 @@ import LedgerTransactions from "../../../components/ledger-transactions"
 
 import WithdrawalDetailsCard from "./details"
 
-import { useGetWithdrawalDetailsQuery } from "@/lib/graphql/generated"
+import {
+  useGetWithdrawalDetailsQuery,
+  useWithdrawalApprovalConcludedSubscription,
+  WithdrawalStatus,
+} from "@/lib/graphql/generated"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
@@ -64,6 +68,15 @@ gql`
       ...WithdrawDetailsPageFragment
     }
   }
+
+  subscription withdrawalApprovalConcluded($withdrawalId: UUID!) {
+    withdrawalApprovalConcluded(withdrawalId: $withdrawalId) {
+      status
+      withdrawal {
+        ...WithdrawDetailsPageFragment
+      }
+    }
+  }
 `
 
 function WithdrawalPage({
@@ -81,6 +94,13 @@ function WithdrawalPage({
   const { data, loading, error } = useGetWithdrawalDetailsQuery({
     variables: { publicId },
   })
+
+  useWithdrawalApprovalConcludedSubscription(
+    data?.withdrawalByPublicId &&
+      data.withdrawalByPublicId.status === WithdrawalStatus.PendingApproval
+      ? { variables: { withdrawalId: data.withdrawalByPublicId.withdrawalId } }
+      : { skip: true },
+  )
 
   useEffect(() => {
     data?.withdrawalByPublicId && setWithdraw(data?.withdrawalByPublicId)

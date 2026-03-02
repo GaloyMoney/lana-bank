@@ -68,6 +68,11 @@ where
                 Confirmed { .. } => Some(CoreDepositEvent::WithdrawalConfirmed {
                     entity: PublicWithdrawal::from(entity),
                 }),
+                ApprovalProcessConcluded { .. } => {
+                    Some(CoreDepositEvent::WithdrawalApprovalConcluded {
+                        entity: PublicWithdrawal::from(entity),
+                    })
+                }
                 _ => None,
             })
             .collect::<Vec<_>>();

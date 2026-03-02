@@ -53,7 +53,7 @@ make setup-db
 echo "Starting core server..."
 export LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
 nix build .
-nohup nix run . -- --config ./bats/lana.yml > "$LOG_FILE" 2>&1 &
+nohup nix run . -- --config ./bats/lana.yml --set time.type=realtime > "$LOG_FILE" 2>&1 &
 echo $! > "$CORE_PID_FILE"
 
 # Wait for core server

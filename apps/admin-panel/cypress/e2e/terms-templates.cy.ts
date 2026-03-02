@@ -87,14 +87,12 @@ describe("Terms Template", () => {
 
   it("should show newly created terms template in the list", () => {
     cy.visit("/terms-templates")
-    cy.wait(1000)
     cy.contains(templateName).should("be.visible")
     cy.takeScreenshot("13_terms_template_in_list")
   })
 
   it("should update the terms template", () => {
     cy.visit(`/terms-templates/${templateId}`)
-    cy.wait(1000)
     cy.takeScreenshot("14_terms_template_details")
 
     cy.get('[data-testid="terms-template-update-button"]').click()

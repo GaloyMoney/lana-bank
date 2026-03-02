@@ -18,6 +18,27 @@
 import "./commands"
 import { t } from "./translation"
 
+// Skip remaining tests in a spec file once a test has exhausted all retries.
+// This avoids wasting time on sequential tests that depend on prior state.
+let hasFailedInSpec = false
+let failedTestTitle: string | null = null
+
+afterEach(function () {
+  if (this.currentTest?.state === "failed") {
+    if (Cypress.currentRetry >= this.currentTest.retries()) {
+      hasFailedInSpec = true
+      failedTestTitle = this.currentTest.title
+    }
+  }
+})
+
+beforeEach(function () {
+  // Only skip subsequent tests, not retries of the failed test itself
+  if (hasFailedInSpec && this.currentTest?.title !== failedTestTitle) {
+    this.skip()
+  }
+})
+
 Cypress.on("window:before:load", (win) => {
   const style = win.document.createElement("style")
   style.innerHTML = `
@@ -48,17 +69,19 @@ Cypress.on("uncaught:exception", (err) => {
 })
 
 const testLanguage = Cypress.env("TEST_LANGUAGE")
+let keycloakReady = false
 beforeEach(() => {
-  cy.waitForKeycloak()
+  if (!keycloakReady) {
+    cy.waitForKeycloak()
+    keycloakReady = true
+  }
   cy.session(
     "loginSession",
     () => {
       cy.KcLogin("admin@galoy.io")
       cy.setCookie("NEXT_LOCALE", testLanguage)
       cy.visit("/dashboard")
-      cy.contains(t("Sidebar.navItems.dashboard"), {
-        timeout: 60000,
-      })
+      cy.contains(t("Sidebar.navItems.dashboard"))
     },
     {
       cacheAcrossSpecs: true,

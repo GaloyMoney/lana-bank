@@ -9,6 +9,7 @@ use obix::out::OutboxEventMarker;
 use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
 use lana_app::customer::{CoreCustomerEvent, prospect_cursor::ProspectsByCreatedAtCursor};
+use lana_app::deposit::CoreDepositEvent;
 use lana_app::price::CorePriceEvent;
 use lana_app::report::CoreReportEvent;
 use lana_app::{
@@ -2709,6 +2710,73 @@ impl Subscription {
                 {
                     Some(CreditFacilityProposalConcludedPayload {
                         credit_facility_proposal_id,
+                        status: entity.status,
+                    })
+                }
+                _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
+    async fn withdrawal_approval_concluded(
+        &self,
+        ctx: &Context<'_>,
+        withdrawal_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = WithdrawalApprovalConcludedPayload>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let withdrawal_id = WithdrawalId::from(withdrawal_id);
+
+        app.deposits()
+            .find_withdrawal_by_id(sub, withdrawal_id)
+            .await?
+            .ok_or_else(|| Error::new("Withdrawal not found"))?;
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreDepositEvent = payload.as_event()?;
+            match event {
+                CoreDepositEvent::WithdrawalApprovalConcluded { entity }
+                    if entity.id == withdrawal_id =>
+                {
+                    Some(WithdrawalApprovalConcludedPayload {
+                        withdrawal_id,
+                        status: entity.status,
+                    })
+                }
+                _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
+    async fn disbursal_approval_concluded(
+        &self,
+        ctx: &Context<'_>,
+        disbursal_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = DisbursalApprovalConcludedPayload>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let disbursal_id = DisbursalId::from(disbursal_id);
+
+        app.credit()
+            .disbursals()
+            .find_by_id(sub, disbursal_id)
+            .await?
+            .ok_or_else(|| Error::new("Disbursal not found"))?;
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreCreditEvent = payload.as_event()?;
+            match event {
+                CoreCreditEvent::DisbursalApprovalConcluded { entity }
+                    if entity.id == disbursal_id =>
+                {
+                    Some(DisbursalApprovalConcludedPayload {
+                        disbursal_id,
                         status: entity.status,
                     })
                 }
