@@ -7,6 +7,10 @@
         "BACKEND_TYPE": "jaeger",
         "BACKEND_URL": "http://localhost:16686"
       }
+    },
+    "honeycomb": {
+      "type": "http",
+      "url": "https://mcp.honeycomb.io/mcp"
     }
   }
 }
