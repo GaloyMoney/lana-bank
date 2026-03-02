@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -9,6 +10,8 @@ import { CreditFacilityProposalStatusBadge } from "./status-badge"
 
 import {
   CreditFacilityProposal,
+  CreditFacilityProposalStatus,
+  CreditFacilityProposalsFilter,
   useCreditFacilityProposalsQuery,
 } from "@/lib/graphql/generated"
 
@@ -20,8 +23,8 @@ import PaginatedTable, {
 import Balance from "@/components/balance/balance"
 
 gql`
-  query CreditFacilityProposals($first: Int!, $after: String) {
-    creditFacilityProposals(first: $first, after: $after) {
+  query CreditFacilityProposals($first: Int!, $after: String, $filter: CreditFacilityProposalsFilter) {
+    creditFacilityProposals(first: $first, after: $after, filter: $filter) {
       edges {
         cursor
         node {
@@ -47,10 +50,12 @@ gql`
 const CreditFacilityProposals = () => {
   const t = useTranslations("CreditFacilityProposals")
   const commonT = useTranslations("Common")
+  const [filter, setFilter] = useState<CreditFacilityProposalsFilter | null>(null)
 
   const { data, loading, error, fetchMore } = useCreditFacilityProposalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      filter,
     },
   })
 
@@ -66,6 +71,10 @@ const CreditFacilityProposals = () => {
         navigateTo={(proposal) =>
           `/credit-facility-proposals/${proposal.creditFacilityProposalId}`
         }
+        onFilter={(filters) => {
+          const f = filters as CreditFacilityProposalsFilter
+          setFilter(Object.keys(f).length > 0 ? f : null)
+        }}
       />
     </div>
   )
@@ -79,6 +88,7 @@ const columns = (t: (key: string) => string): Column<CreditFacilityProposal>[] =
     label: t("table.headers.status"),
     labelClassName: "w-[20%]",
     render: (status) => <CreditFacilityProposalStatusBadge status={status} />,
+    filterValues: Object.values(CreditFacilityProposalStatus),
   },
   {
     key: "customer",
