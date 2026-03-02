@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -10,6 +11,8 @@ import { PendingFacilityCollateralizationStateLabel } from "./label"
 
 import {
   PendingCreditFacility,
+  PendingCreditFacilityStatus,
+  PendingCreditFacilitiesFilter,
   usePendingCreditFacilitiesQuery,
 } from "@/lib/graphql/generated"
 
@@ -21,8 +24,8 @@ import PaginatedTable, {
 import Balance from "@/components/balance/balance"
 
 gql`
-  query PendingCreditFacilities($first: Int!, $after: String) {
-    pendingCreditFacilities(first: $first, after: $after) {
+  query PendingCreditFacilities($first: Int!, $after: String, $filter: PendingCreditFacilitiesFilter) {
+    pendingCreditFacilities(first: $first, after: $after, filter: $filter) {
       edges {
         cursor
         node {
@@ -51,10 +54,12 @@ gql`
 
 const PendingCreditFacilities = () => {
   const t = useTranslations("PendingCreditFacilities")
+  const [filter, setFilter] = useState<PendingCreditFacilitiesFilter | null>(null)
 
   const { data, loading, error, fetchMore } = usePendingCreditFacilitiesQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      filter,
     },
   })
 
@@ -70,6 +75,10 @@ const PendingCreditFacilities = () => {
         navigateTo={(pending) =>
           `/pending-credit-facilities/${pending.pendingCreditFacilityId}`
         }
+        onFilter={(filters) => {
+          const f = filters as PendingCreditFacilitiesFilter
+          setFilter(Object.keys(f).length > 0 ? f : null)
+        }}
       />
     </div>
   )
@@ -83,6 +92,7 @@ const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] =>
     label: t("table.headers.status"),
     labelClassName: "w-[17%]",
     render: (status) => <PendingCreditFacilityStatusBadge status={status} />,
+    filterValues: Object.values(PendingCreditFacilityStatus),
   },
   {
     key: "customer",

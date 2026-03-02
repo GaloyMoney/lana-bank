@@ -36,7 +36,10 @@ pub use entity::{
 };
 use error::*;
 use repo::PendingCreditFacilityRepo;
-pub use repo::pending_credit_facility_cursor::*;
+pub use repo::{
+    PendingCreditFacilitiesFilters, PendingCreditFacilitiesSortBy,
+    pending_credit_facility_cursor::*,
+};
 
 pub enum PendingCreditFacilityCompletionOutcome {
     Ignored,
@@ -302,12 +305,10 @@ where
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<PendingCreditFacilitiesByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<PendingCreditFacilitiesCursor>,
+        filter: PendingCreditFacilitiesFilters,
     ) -> Result<
-        es_entity::PaginatedQueryRet<
-            PendingCreditFacility,
-            PendingCreditFacilitiesByCreatedAtCursor,
-        >,
+        es_entity::PaginatedQueryRet<PendingCreditFacility, PendingCreditFacilitiesCursor>,
         PendingCreditFacilityError,
     > {
         self.authz
@@ -319,7 +320,14 @@ where
             .await?;
 
         self.repo
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .list_for_filters(
+                filter,
+                es_entity::Sort {
+                    by: PendingCreditFacilitiesSortBy::CreatedAt,
+                    direction: es_entity::ListDirection::Descending,
+                },
+                query,
+            )
             .await
     }
 

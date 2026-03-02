@@ -11,7 +11,10 @@ use super::{
 };
 
 pub use lana_app::credit::{
-    PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility as DomainPendingCreditFacility,
+    PendingCreditFacilitiesCursor,
+    PendingCreditFacilitiesFilters as DomainPendingCreditFacilitiesFilters,
+    PendingCreditFacilitiesSortBy as DomainPendingCreditFacilitiesSortBy,
+    PendingCreditFacility as DomainPendingCreditFacility,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -93,6 +96,11 @@ impl PendingCreditFacility {
             .expect("process not found");
         Ok(process)
     }
+}
+
+#[derive(InputObject)]
+pub struct PendingCreditFacilitiesFilter {
+    pub status: Option<PendingCreditFacilityStatus>,
 }
 
 impl From<DomainPendingCreditFacility> for PendingCreditFacility {

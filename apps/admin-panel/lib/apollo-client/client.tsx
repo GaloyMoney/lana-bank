@@ -118,8 +118,14 @@ export const makeClient = ({
           customers: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
           prospects: { ...relayStylePagination(), keyArgs: ["stage"] },
           creditFacilities: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
-          creditFacilityProposals: relayStylePagination(),
-          pendingCreditFacilities: relayStylePagination(),
+          creditFacilityProposals: {
+            ...relayStylePagination(),
+            keyArgs: ["filter"],
+          },
+          pendingCreditFacilities: {
+            ...relayStylePagination(),
+            keyArgs: ["filter"],
+          },
           creditFacilitiesForStatus: {
             ...relayStylePagination(),
             keyArgs: ["sort", "status"],

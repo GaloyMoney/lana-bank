@@ -17,7 +17,10 @@ use crate::{CoreCreditEvent, pending_credit_facility::NewPendingCreditFacility, 
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
 use repo::CreditFacilityProposalRepo;
-pub use repo::credit_facility_proposal_cursor::*;
+pub use repo::{
+    CreditFacilityProposalsFilters, CreditFacilityProposalsSortBy,
+    credit_facility_proposal_cursor::*,
+};
 
 pub enum ProposalApprovalOutcome {
     Rejected(CreditFacilityProposal),
@@ -210,16 +213,14 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.pending_credit_facility.list", skip(self))]
+    #[instrument(name = "credit.credit_facility_proposals.list", skip(self))]
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<CreditFacilityProposalsByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<CreditFacilityProposalsCursor>,
+        filter: CreditFacilityProposalsFilters,
     ) -> Result<
-        es_entity::PaginatedQueryRet<
-            CreditFacilityProposal,
-            CreditFacilityProposalsByCreatedAtCursor,
-        >,
+        es_entity::PaginatedQueryRet<CreditFacilityProposal, CreditFacilityProposalsCursor>,
         CreditFacilityProposalError,
     > {
         self.authz
@@ -231,7 +232,14 @@ where
             .await?;
 
         self.repo
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .list_for_filters(
+                filter,
+                es_entity::Sort {
+                    by: CreditFacilityProposalsSortBy::CreatedAt,
+                    direction: es_entity::ListDirection::Descending,
+                },
+                query,
+            )
             .await
     }
 

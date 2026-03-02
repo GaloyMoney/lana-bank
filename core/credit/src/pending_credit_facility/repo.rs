@@ -30,6 +30,11 @@ use super::{entity::*, error::PendingCreditFacilityError};
             list_for,
             update(accessor = "last_collateralization_state()")
         ),
+        status(
+            ty = "PendingCreditFacilityStatus",
+            list_for,
+            update(accessor = "status()")
+        ),
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -79,5 +84,71 @@ where
         self.publisher
             .publish_pending_credit_facility_in_op(op, entity, new_events)
             .await
+    }
+}
+
+impl From<(PendingCreditFacilitiesSortBy, &PendingCreditFacility)>
+    for pending_credit_facility_cursor::PendingCreditFacilitiesCursor
+{
+    fn from(facility_with_sort: (PendingCreditFacilitiesSortBy, &PendingCreditFacility)) -> Self {
+        let (sort, facility) = facility_with_sort;
+        match sort {
+            PendingCreditFacilitiesSortBy::CreatedAt => {
+                pending_credit_facility_cursor::PendingCreditFacilitiesByCreatedAtCursor::from(
+                    facility,
+                )
+                .into()
+            }
+            PendingCreditFacilitiesSortBy::Id => {
+                pending_credit_facility_cursor::PendingCreditFacilitiesByIdCursor::from(facility)
+                    .into()
+            }
+            PendingCreditFacilitiesSortBy::ApprovalProcessId => {
+                pending_credit_facility_cursor::PendingCreditFacilitiesByApprovalProcessIdCursor::from(facility)
+                    .into()
+            }
+            PendingCreditFacilitiesSortBy::CollateralizationRatio => {
+                pending_credit_facility_cursor::PendingCreditFacilitiesByCollateralizationRatioCursor::from(facility)
+                    .into()
+            }
+        }
+    }
+}
+
+mod pending_status_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use crate::primitives::PendingCreditFacilityStatus;
+
+    impl Type<Postgres> for PendingCreditFacilityStatus {
+        fn type_info() -> PgTypeInfo {
+            <String as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <String as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for PendingCreditFacilityStatus {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for PendingCreditFacilityStatus {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
+        }
+    }
+
+    impl PgHasArrayType for PendingCreditFacilityStatus {
+        fn array_type_info() -> PgTypeInfo {
+            <String as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
     }
 }

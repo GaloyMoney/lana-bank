@@ -13,8 +13,9 @@ use crate::{
 use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry};
 
 pub use lana_app::credit::{
-    CreditFacilityProposal as DomainCreditFacilityProposal,
-    CreditFacilityProposalsByCreatedAtCursor,
+    CreditFacilityProposal as DomainCreditFacilityProposal, CreditFacilityProposalsCursor,
+    CreditFacilityProposalsFilters as DomainCreditFacilityProposalsFilters,
+    CreditFacilityProposalsSortBy as DomainCreditFacilityProposalsSortBy,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -123,6 +124,11 @@ impl CreditFacilityProposalConcludedPayload {
             .expect("credit facility proposal not found");
         Ok(proposal)
     }
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilityProposalsFilter {
+    pub status: Option<CreditFacilityProposalStatus>,
 }
 
 #[derive(InputObject)]

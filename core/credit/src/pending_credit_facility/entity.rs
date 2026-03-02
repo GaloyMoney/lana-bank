@@ -365,6 +365,8 @@ pub struct NewPendingCreditFacility {
     pub(super) collateral_id: CollateralId,
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: PendingCreditFacilityCollateralizationState,
+    #[builder(setter(skip), default)]
+    pub(super) status: PendingCreditFacilityStatus,
     pub(super) account_ids: PendingCreditFacilityAccountIds,
     #[builder(setter(into))]
     disbursal_credit_account_id: CalaAccountId,

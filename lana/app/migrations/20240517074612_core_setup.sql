@@ -314,6 +314,7 @@ CREATE TABLE core_credit_facility_proposals (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES core_customers(id),
   approval_process_id UUID DEFAULT NULL REFERENCES core_approval_processes(id),
+  status VARCHAR NOT NULL DEFAULT 'PendingCustomerApproval',
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -335,6 +336,7 @@ CREATE TABLE core_pending_credit_facilities (
   collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
+  status VARCHAR NOT NULL DEFAULT 'PendingCollateralization',
   created_at TIMESTAMPTZ NOT NULL
 );
 

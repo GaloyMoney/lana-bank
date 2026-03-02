@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT created_at, id FROM core_credit_facility_proposals WHERE COALESCE(customer_id = $1, $1 IS NULL) AND (COALESCE((created_at, id) < ($4, $3), $3 IS NULL)) ORDER BY created_at DESC, id DESC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_credit_facility_proposal_events e ON i.id = e.id ORDER BY i.created_at desc, i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT created_at, id FROM core_credit_facility_proposals WHERE COALESCE(customer_id = $1, $1 IS NULL) AND COALESCE(status = $2, $2 IS NULL) AND (COALESCE((created_at, id) < ($5, $4), $4 IS NULL)) ORDER BY created_at DESC, id DESC LIMIT $3) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $6 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_credit_facility_proposal_events e ON i.id = e.id ORDER BY i.created_at desc, i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -32,6 +32,7 @@
     "parameters": {
       "Left": [
         "Uuid",
+        "Text",
         "Int8",
         "Uuid",
         "Timestamptz",
@@ -46,5 +47,5 @@
       false
     ]
   },
-  "hash": "8e77e42c33eb1758a7547f8bc69590beb070d11d94054fa33c4d719e8b921005"
+  "hash": "3118cb6bc8a756fe9e37315bf6cdeb69a9a48abb6afdffd8977c82191103368b"
 }

@@ -797,6 +797,10 @@ export enum CreditFacilityProposalStatus {
   PendingCustomerApproval = 'PENDING_CUSTOMER_APPROVAL'
 }
 
+export type CreditFacilityProposalsFilter = {
+  status?: InputMaybe<CreditFacilityProposalStatus>;
+};
+
 export type CreditFacilityRepaymentAmountReceived = {
   __typename?: 'CreditFacilityRepaymentAmountReceived';
   cents: Scalars['UsdCents']['output'];
@@ -2236,6 +2240,10 @@ export type PaymentsUnapplied = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type PendingCreditFacilitiesFilter = {
+  status?: InputMaybe<PendingCreditFacilityStatus>;
+};
+
 export type PendingCreditFacility = {
   __typename?: 'PendingCreditFacility';
   approvalProcess: ApprovalProcess;
@@ -2631,6 +2639,7 @@ export type QueryCreditFacilityProposalArgs = {
 
 export type QueryCreditFacilityProposalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<CreditFacilityProposalsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -2790,6 +2799,7 @@ export type QueryLoanAgreementArgs = {
 
 export type QueryPendingCreditFacilitiesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<PendingCreditFacilitiesFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -3952,6 +3962,7 @@ export type CreditFacilityProposalCreateMutation = { __typename?: 'Mutation', cr
 export type CreditFacilityProposalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<CreditFacilityProposalsFilter>;
 }>;
 
 
@@ -4552,6 +4563,7 @@ export type PendingCollateralUpdateMutation = { __typename?: 'Mutation', collate
 export type PendingCreditFacilitiesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<PendingCreditFacilitiesFilter>;
 }>;
 
 
@@ -7681,8 +7693,8 @@ export type CreditFacilityProposalCreateMutationHookResult = ReturnType<typeof u
 export type CreditFacilityProposalCreateMutationResult = Apollo.MutationResult<CreditFacilityProposalCreateMutation>;
 export type CreditFacilityProposalCreateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityProposalCreateMutation, CreditFacilityProposalCreateMutationVariables>;
 export const CreditFacilityProposalsDocument = gql`
-    query CreditFacilityProposals($first: Int!, $after: String) {
-  creditFacilityProposals(first: $first, after: $after) {
+    query CreditFacilityProposals($first: Int!, $after: String, $filter: CreditFacilityProposalsFilter) {
+  creditFacilityProposals(first: $first, after: $after, filter: $filter) {
     edges {
       cursor
       node {
@@ -7719,6 +7731,7 @@ export const CreditFacilityProposalsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
@@ -10693,8 +10706,8 @@ export type PendingCollateralUpdateMutationHookResult = ReturnType<typeof usePen
 export type PendingCollateralUpdateMutationResult = Apollo.MutationResult<PendingCollateralUpdateMutation>;
 export type PendingCollateralUpdateMutationOptions = Apollo.BaseMutationOptions<PendingCollateralUpdateMutation, PendingCollateralUpdateMutationVariables>;
 export const PendingCreditFacilitiesDocument = gql`
-    query PendingCreditFacilities($first: Int!, $after: String) {
-  pendingCreditFacilities(first: $first, after: $after) {
+    query PendingCreditFacilities($first: Int!, $after: String, $filter: PendingCreditFacilitiesFilter) {
+  pendingCreditFacilities(first: $first, after: $after, filter: $filter) {
     edges {
       cursor
       node {
@@ -10735,6 +10748,7 @@ export const PendingCreditFacilitiesDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */

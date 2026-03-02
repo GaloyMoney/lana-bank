@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE core_credit_facility_proposals SET approval_process_id = $2, status = $3 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5d14573139f18b3ccf6bdddbd8cde0e322d8f15a28fb3170c7f4445438ec2417"
+}

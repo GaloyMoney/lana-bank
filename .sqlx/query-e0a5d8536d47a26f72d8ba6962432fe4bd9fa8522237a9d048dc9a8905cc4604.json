@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT created_at, id FROM core_pending_credit_facilities WHERE COALESCE(customer_id = $1, $1 IS NULL) AND COALESCE(collateralization_state = $2, $2 IS NULL) AND (COALESCE((created_at, id) > ($5, $4), $4 IS NULL)) ORDER BY created_at ASC, id ASC LIMIT $3) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $6 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_pending_credit_facility_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT approval_process_id, id FROM core_pending_credit_facilities WHERE COALESCE(customer_id = $1, $1 IS NULL) AND COALESCE(collateralization_state = $2, $2 IS NULL) AND COALESCE(status = $3, $3 IS NULL) AND (COALESCE((approval_process_id, id) < ($6, $5), $5 IS NULL)) ORDER BY approval_process_id DESC, id DESC LIMIT $4) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $7 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_pending_credit_facility_events e ON i.id = e.id ORDER BY i.approval_process_id desc, i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -33,9 +33,10 @@
       "Left": [
         "Uuid",
         "Text",
+        "Text",
         "Int8",
         "Uuid",
-        "Timestamptz",
+        "Uuid",
         "Bool"
       ]
     },
@@ -47,5 +48,5 @@
       false
     ]
   },
-  "hash": "1b672d64943b3e8dad2426517f7d6991cf1e0d153034d159afdc06af39cc41f1"
+  "hash": "e0a5d8536d47a26f72d8ba6962432fe4bd9fa8522237a9d048dc9a8905cc4604"
 }
