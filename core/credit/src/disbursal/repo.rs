@@ -23,7 +23,8 @@ use super::{entity::*, error::DisbursalError};
         ),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         concluded_tx_id(ty = "Option<LedgerTxId>", create(persist = false)),
-        public_id(ty = "PublicId", list_by)
+        public_id(ty = "PublicId", list_by),
+        status(ty = "DisbursalStatus", list_for, update(accessor = "status()"))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -73,6 +74,44 @@ where
         self.publisher
             .publish_disbursal_in_op(op, entity, new_events)
             .await
+    }
+}
+
+mod disbursal_status_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use crate::primitives::DisbursalStatus;
+
+    impl Type<Postgres> for DisbursalStatus {
+        fn type_info() -> PgTypeInfo {
+            <String as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <String as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for DisbursalStatus {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for DisbursalStatus {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
+        }
+    }
+
+    impl PgHasArrayType for DisbursalStatus {
+        fn array_type_info() -> PgTypeInfo {
+            <String as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
     }
 }
 

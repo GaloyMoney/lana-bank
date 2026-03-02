@@ -434,6 +434,7 @@ CREATE TABLE core_disbursals (
   obligation_id UUID DEFAULT NULL REFERENCES core_obligations(id),
   concluded_tx_id UUID DEFAULT NULL,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
+  status VARCHAR NOT NULL DEFAULT 'New',
   created_at TIMESTAMPTZ NOT NULL
 );
 

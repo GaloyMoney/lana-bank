@@ -544,10 +544,14 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        filter: Option<DisbursalsFilter>,
     ) -> async_graphql::Result<
         Connection<DisbursalsCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
     > {
-        let filter = DisbursalsFilters::default();
+        let filter = DisbursalsFilters {
+            status: filter.as_ref().and_then(|f| f.status),
+            ..Default::default()
+        };
 
         let sort = Sort {
             by: DomainDisbursalsSortBy::CreatedAt,

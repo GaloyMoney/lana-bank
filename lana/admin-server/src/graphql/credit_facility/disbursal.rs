@@ -101,3 +101,8 @@ pub struct CreditFacilityDisbursalInitiateInput {
     pub amount: UsdCents,
 }
 crate::mutation_payload! { CreditFacilityDisbursalInitiatePayload, disbursal: CreditFacilityDisbursal }
+
+#[derive(InputObject)]
+pub struct DisbursalsFilter {
+    pub status: Option<DisbursalStatus>,
+}
