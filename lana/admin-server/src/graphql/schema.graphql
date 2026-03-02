@@ -2220,19 +2220,6 @@ type ProspectKycUpdatedPayload {
 	prospect: Prospect!
 }
 
-input ProspectsFilter {
-	stage: ProspectStage
-}
-
-input ProspectsSort {
-	by: ProspectsSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
-}
-
-enum ProspectsSortBy {
-	CREATED_AT
-}
-
 enum ProspectStage {
 	NEW
 	KYC_STARTED
@@ -2246,6 +2233,19 @@ enum ProspectStatus {
 	OPEN
 	CONVERTED
 	CLOSED
+}
+
+input ProspectsFilter {
+	stage: ProspectStage
+}
+
+input ProspectsSort {
+	by: ProspectsSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum ProspectsSortBy {
+	CREATED_AT
 }
 
 scalar PublicId
