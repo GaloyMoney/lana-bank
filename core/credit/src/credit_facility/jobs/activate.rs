@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -12,14 +13,17 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use obix::out::OutboxEventMarker;
+use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 use tracing_macros::record_error_severity;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
-    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject, PendingCreditFacilityId,
+    CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
+    PendingCreditFacilityCollateralizationState, PendingCreditFacilityId,
     credit_facility::CreditFacilities,
 };
+
+pub const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("outbox.credit-facility-activation");
 
 pub const ACTIVATE_CREDIT_FACILITY_COMMAND: JobType =
     JobType::new("command.credit.activate-credit-facility");
@@ -142,5 +146,56 @@ where
             .activate_in_op(&mut op, self.config.pending_credit_facility_id.into())
             .await?;
         Ok(JobCompletion::CompleteWithOp(op))
+    }
+}
+
+pub struct CreditFacilityActivationHandler {
+    activate_credit_facility: JobSpawner<ActivateCreditFacilityConfig>,
+}
+
+impl CreditFacilityActivationHandler {
+    pub fn new(activate_credit_facility: JobSpawner<ActivateCreditFacilityConfig>) -> Self {
+        Self {
+            activate_credit_facility,
+        }
+    }
+}
+
+impl<E> OutboxEventHandler<E> for CreditFacilityActivationHandler
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    #[instrument(name = "core_credit.credit_facility_activation_job.process_message", parent = None, skip_all, fields(seq = %event.sequence, handled = false, event_type = tracing::field::Empty, pending_credit_facility_id = tracing::field::Empty))]
+    async fn handle_persistent(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        event: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        use CoreCreditEvent::*;
+
+        if let Some(e @ PendingCreditFacilityCollateralizationChanged { entity }) = event.as_event()
+            && entity.collateralization.state
+                == PendingCreditFacilityCollateralizationState::FullyCollateralized
+        {
+            event.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record(
+                "pending_credit_facility_id",
+                tracing::field::display(entity.id),
+            );
+            Span::current().record("event_type", e.as_ref());
+
+            self.activate_credit_facility
+                .spawn_with_queue_id_in_op(
+                    op,
+                    JobId::new(),
+                    ActivateCreditFacilityConfig {
+                        pending_credit_facility_id: entity.id,
+                    },
+                    entity.id.to_string(),
+                )
+                .await?;
+        }
+        Ok(())
     }
 }

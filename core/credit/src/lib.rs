@@ -46,15 +46,11 @@ pub use chart_of_accounts_integration::{
 };
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::jobs::activate::*;
-pub use credit_facility::jobs::activate_handler::*;
 pub use credit_facility::jobs::allocate_payment::*;
-pub use credit_facility::jobs::allocate_payment_handler::*;
 pub use credit_facility::*;
 pub use credit_facility_proposal::jobs::approve::*;
-pub use credit_facility_proposal::jobs::approve_handler::*;
 pub use credit_facility_proposal::*;
 pub use disbursal::jobs::approve::*;
-pub use disbursal::jobs::approve_handler::*;
 pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
 use for_subject::CreditFacilitiesForSubject;
