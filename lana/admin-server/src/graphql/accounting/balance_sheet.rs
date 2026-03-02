@@ -1,12 +1,11 @@
 use async_graphql::*;
 use chrono::NaiveDate;
 
-use lana_app::{
-    accounting::ledger_account::LedgerAccount as DomainLedgerAccount,
-    balance_sheet::BalanceSheet as DomainBalanceSheet,
+use lana_app::balance_sheet::{
+    BalanceSheet as DomainBalanceSheet, BalanceSheetAccountSet as DomainBalanceSheetAccountSet,
 };
 
-use super::{AccountCode, LedgerAccountBalanceRange};
+use super::{AccountCode, LedgerAccountBalanceByCurrency};
 use crate::{
     graphql::loader::{BalanceSheetAccountSetKey, LanaDataLoader},
     primitives::*,
@@ -20,34 +19,31 @@ pub struct BalanceSheet {
     #[graphql(skip)]
     entity: Arc<DomainBalanceSheet>,
     #[graphql(skip)]
-    from: NaiveDate,
-    #[graphql(skip)]
-    until: Option<NaiveDate>,
+    as_of: NaiveDate,
 }
 
 impl BalanceSheet {
-    pub fn new(
-        balance_sheet: DomainBalanceSheet,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
-    ) -> Self {
+    pub fn new(balance_sheet: DomainBalanceSheet, as_of: NaiveDate) -> Self {
         Self {
             name: balance_sheet.name.to_string(),
             entity: Arc::new(balance_sheet),
-            from,
-            until,
+            as_of,
         }
     }
 }
 
 #[ComplexObject]
 impl BalanceSheet {
-    async fn balance(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
-        if let Some(balance) = self.entity.btc_balance_range.as_ref() {
-            Ok(Some(balance).into())
-        } else {
-            Ok(self.entity.usd_balance_range.as_ref().into())
-        }
+    async fn assets_balance(&self) -> async_graphql::Result<LedgerAccountBalanceByCurrency> {
+        Ok((&self.entity.assets).into())
+    }
+
+    async fn liabilities_balance(&self) -> async_graphql::Result<LedgerAccountBalanceByCurrency> {
+        Ok((&self.entity.liabilities).into())
+    }
+
+    async fn equity_balance(&self) -> async_graphql::Result<LedgerAccountBalanceByCurrency> {
+        Ok((&self.entity.equity).into())
     }
 
     async fn categories(
@@ -62,8 +58,7 @@ impl BalanceSheet {
             .copied()
             .map(|id| BalanceSheetAccountSetKey {
                 id,
-                from: self.from,
-                until: self.until,
+                as_of: self.as_of,
             })
             .collect::<Vec<_>>();
         let categories = loader.load_many(keys.clone()).await?;
@@ -84,35 +79,28 @@ pub struct BalanceSheetAccountSet {
     name: String,
 
     #[graphql(skip)]
-    entity: Arc<DomainLedgerAccount>,
+    entity: Arc<DomainBalanceSheetAccountSet>,
     #[graphql(skip)]
-    from: NaiveDate,
-    #[graphql(skip)]
-    until: Option<NaiveDate>,
+    as_of: NaiveDate,
 }
 
 impl BalanceSheetAccount {
-    pub fn new(account: DomainLedgerAccount, from: NaiveDate, until: Option<NaiveDate>) -> Self {
+    pub fn new(account: DomainBalanceSheetAccountSet, as_of: NaiveDate) -> Self {
         Self {
             balance_sheet_account_id: account.id.to_global_id(),
             ledger_account_id: UUID::from(account.id),
             code: account.code.as_ref().map(|code| code.into()),
             name: account.name.clone(),
             entity: Arc::new(account),
-            from,
-            until,
+            as_of,
         }
     }
 }
 
 #[ComplexObject]
 impl BalanceSheetAccount {
-    async fn balance_range(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
-        if let Some(balance) = self.entity.btc_balance_range.as_ref() {
-            Ok(Some(balance).into())
-        } else {
-            Ok(self.entity.usd_balance_range.as_ref().into())
-        }
+    async fn balance(&self) -> async_graphql::Result<LedgerAccountBalanceByCurrency> {
+        Ok((&self.entity.balance).into())
     }
 
     async fn children(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<BalanceSheetAccount>> {
@@ -124,8 +112,7 @@ impl BalanceSheetAccount {
             .copied()
             .map(|id| BalanceSheetAccountSetKey {
                 id,
-                from: self.from,
-                until: self.until,
+                as_of: self.as_of,
             })
             .collect::<Vec<_>>();
         let children = loader.load_many(keys.clone()).await?;

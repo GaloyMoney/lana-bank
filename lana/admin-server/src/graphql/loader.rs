@@ -38,8 +38,7 @@ pub const CHART_REF: ChartRef = ChartRef(lana_app::accounting_init::constants::C
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct BalanceSheetAccountSetKey {
     pub id: LedgerAccountId,
-    pub from: NaiveDate,
-    pub until: Option<NaiveDate>,
+    pub as_of: NaiveDate,
 }
 
 pub type LanaDataLoader = DataLoader<LanaLoader>;
@@ -541,22 +540,19 @@ impl Loader<BalanceSheetAccountSetKey> for LanaLoader {
     )]
     async fn load(
         &self,
-        keys: &[BalanceSheetAccountSetKey],
-    ) -> Result<HashMap<BalanceSheetAccountSetKey, BalanceSheetAccount>, Self::Error> {
+        keys: &[BalanceSheetAccountKey],
+    ) -> Result<HashMap<BalanceSheetAccountKey, BalanceSheetAccount>, Self::Error> {
         let mut keys_by_scope: HashMap<
             (NaiveDate, Option<NaiveDate>),
             Vec<BalanceSheetAccountSetKey>,
         > = HashMap::new();
         for key in keys {
-            keys_by_scope
-                .entry((key.from, key.until))
-                .or_default()
-                .push(*key);
+            keys_by_scope.entry(key.as_of).or_default().push(*key);
         }
 
         let mut result = HashMap::new();
 
-        for ((from, until), scoped_keys) in keys_by_scope {
+        for (as_of, scoped_keys) in keys_by_scope {
             let ids = scoped_keys
                 .iter()
                 .map(|key| key.id)
@@ -564,16 +560,16 @@ impl Loader<BalanceSheetAccountSetKey> for LanaLoader {
                 .into_iter()
                 .collect::<Vec<_>>();
 
-            let accounts: HashMap<_, lana_app::accounting::ledger_account::LedgerAccount> = self
+            let accounts: HashMap<_, lana_app::balance_sheet::BalanceSheetAccountSet> = self
                 .app
                 .accounting()
-                .find_all_ledger_accounts_in_range(CHART_REF.0, &ids, from, until)
+                .find_all_ledger_accounts_in_range(CHART_REF.0, &ids, as_of, Some(as_of))
                 .await
                 .map_err(Arc::new)?;
 
             for key in scoped_keys {
                 if let Some(account) = accounts.get(&key.id).cloned() {
-                    result.insert(key, BalanceSheetAccount::new(account, from, until));
+                    result.insert(key, BalanceSheetAccount::new(account, as_of));
                 }
             }
         }

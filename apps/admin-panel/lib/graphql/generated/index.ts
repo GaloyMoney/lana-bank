@@ -235,7 +235,6 @@ export type BalanceSheetAccount = {
   balanceSheetAccountId: Scalars['ID']['output'];
   children: Array<BalanceSheetAccount>;
   code?: Maybe<Scalars['AccountCode']['output']>;
-  ledgerAccountId: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -1311,10 +1310,6 @@ export type DepositAccountUnfreezePayload = {
   account: DepositAccount;
 };
 
-export type DepositAccountsFilter = {
-  status?: InputMaybe<DepositAccountStatus>;
-};
-
 export type DepositConnection = {
   __typename?: 'DepositConnection';
   /** A list of edges. */
@@ -1404,10 +1399,6 @@ export enum DepositStatus {
   Reverted = 'REVERTED'
 }
 
-export type DepositsFilter = {
-  status?: InputMaybe<DepositStatus>;
-};
-
 export type DisbursalApprovalConcludedPayload = {
   __typename?: 'DisbursalApprovalConcludedPayload';
   disbursal: CreditFacilityDisbursal;
@@ -1431,10 +1422,6 @@ export enum DisbursalStatus {
   Denied = 'DENIED',
   New = 'NEW'
 }
-
-export type DisbursalsFilter = {
-  status?: InputMaybe<DisbursalStatus>;
-};
 
 export type Disbursed = {
   __typename?: 'Disbursed';
@@ -1710,6 +1697,12 @@ export type LedgerAccount = {
 export type LedgerAccountHistoryArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+export type LedgerAccountBalanceByCurrency = {
+  __typename?: 'LedgerAccountBalanceByCurrency';
+  btc: BtcLedgerAccountBalance;
+  usd: UsdLedgerAccountBalance;
 };
 
 export type LedgerAccountBalanceRange = BtcLedgerAccountBalanceRange | UsdLedgerAccountBalanceRange;
@@ -2286,7 +2279,6 @@ export type PaymentsUnapplied = {
 };
 
 export type PendingCreditFacilitiesFilter = {
-  collateralizationState?: InputMaybe<PendingCreditFacilityCollateralizationState>;
   status?: InputMaybe<PendingCreditFacilityStatus>;
 };
 
@@ -2549,19 +2541,6 @@ export enum ProspectStatus {
   Open = 'OPEN'
 }
 
-export type ProspectsFilter = {
-  stage?: InputMaybe<ProspectStage>;
-};
-
-export type ProspectsSort = {
-  by?: ProspectsSortBy;
-  direction?: SortDirection;
-};
-
-export enum ProspectsSortBy {
-  CreatedAt = 'CREATED_AT'
-}
-
 export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Prospect | Withdrawal;
 
 export type Query = {
@@ -2667,8 +2646,7 @@ export type QueryAuditArgs = {
 
 
 export type QueryBalanceSheetArgs = {
-  from: Scalars['Date']['input'];
-  until?: InputMaybe<Scalars['Date']['input']>;
+  asOf: Scalars['Date']['input'];
 };
 
 
@@ -2765,7 +2743,6 @@ export type QueryDepositAccountByPublicIdArgs = {
 
 export type QueryDepositAccountsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DepositAccountsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -2777,7 +2754,6 @@ export type QueryDepositByPublicIdArgs = {
 
 export type QueryDepositsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DepositsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -2799,7 +2775,6 @@ export type QueryDisbursalByPublicIdArgs = {
 
 export type QueryDisbursalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DisbursalsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -2918,9 +2893,8 @@ export type QueryProspectByPublicIdArgs = {
 
 export type QueryProspectsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<ProspectsFilter>;
   first: Scalars['Int']['input'];
-  sort?: InputMaybe<ProspectsSort>;
+  stage?: InputMaybe<ProspectStage>;
 };
 
 
@@ -2985,7 +2959,6 @@ export type QueryWithdrawalByPublicIdArgs = {
 
 export type QueryWithdrawalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<WithdrawalsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -3520,10 +3493,6 @@ export enum WithdrawalStatus {
   Reverted = 'REVERTED'
 }
 
-export type WithdrawalsFilter = {
-  status?: InputMaybe<WithdrawalStatus>;
-};
-
 export type ApprovalProcessFieldsFragment = { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
     | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
     | { __typename?: 'SystemApproval', autoApprove: boolean }
@@ -3580,11 +3549,11 @@ export type AuditSubjectsQueryVariables = Exact<{ [key: string]: never; }>;
 export type AuditSubjectsQuery = { __typename?: 'Query', auditSubjects: Array<string> };
 
 export type BalanceSheetQueryVariables = Exact<{
-  from: Scalars['Date']['input'];
-  until?: InputMaybe<Scalars['Date']['input']>;
+  asOf: Scalars['Date']['input'];
 }>;
 
 
+<<<<<<< HEAD
 export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet: { __typename?: 'BalanceSheet', name: string, balance:
       | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
@@ -3610,6 +3579,9 @@ export type BtcBalanceFragmentFragment = { __typename?: 'BtcLedgerAccountBalance
 export type UsdLedgerBalanceRangeFragmentFragment = { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } };
 
 export type BtcLedgerBalanceRangeFragmentFragment = { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } };
+=======
+export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet: { __typename?: 'BalanceSheet', name: string, assetsBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, liabilitiesBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, equityBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, categories: Array<{ __typename?: 'BalanceSheetAccountSet', balanceSheetAccountSetId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, children: Array<{ __typename?: 'BalanceSheetAccountSet', balanceSheetAccountSetId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } }> }> } };
+>>>>>>> c09306068 (refactor: point-in-time balance sheet query)
 
 export type ChartOfAccountsForLedgerQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4232,7 +4204,6 @@ export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: 
 export type DepositAccountsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DepositAccountsFilter>;
 }>;
 
 
@@ -4266,7 +4237,6 @@ export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, deposi
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DepositsFilter>;
 }>;
 
 
@@ -4329,7 +4299,6 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
 export type DisbursalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DisbursalsFilter>;
 }>;
 
 
@@ -4739,6 +4708,14 @@ export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossS
           | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
          }> }> } };
 
+export type UsdLedgerBalanceRangeFragmentFragment = { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } };
+
+export type BtcLedgerBalanceRangeFragmentFragment = { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } };
+
+export type UsdBalanceFragmentFragment = { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } };
+
+export type BtcBalanceFragmentFragment = { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } };
+
 export type ProspectCloseMutationVariables = Exact<{
   input: ProspectCloseInput;
 }>;
@@ -4786,8 +4763,7 @@ export type ProspectCreateMutation = { __typename?: 'Mutation', prospectCreate: 
 export type ProspectsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
-  sort?: InputMaybe<ProspectsSort>;
-  filter?: InputMaybe<ProspectsFilter>;
+  stage?: InputMaybe<ProspectStage>;
 }>;
 
 
@@ -5076,7 +5052,6 @@ export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', id: string, 
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<WithdrawalsFilter>;
 }>;
 
 
@@ -6542,13 +6517,62 @@ export type AuditSubjectsLazyQueryHookResult = ReturnType<typeof useAuditSubject
 export type AuditSubjectsSuspenseQueryHookResult = ReturnType<typeof useAuditSubjectsSuspenseQuery>;
 export type AuditSubjectsQueryResult = Apollo.QueryResult<AuditSubjectsQuery, AuditSubjectsQueryVariables>;
 export const BalanceSheetDocument = gql`
-    query BalanceSheet($from: Date!, $until: Date) {
-  balanceSheet(from: $from, until: $until) {
+    query BalanceSheet($asOf: Date!) {
+  balanceSheet(asOf: $asOf) {
     name
-    balance {
-      __typename
-      ...UsdLedgerBalanceRangeFragment
-      ...BtcLedgerBalanceRangeFragment
+    assetsBalance {
+      usd {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
+      btc {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
+    }
+    liabilitiesBalance {
+      usd {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
+      btc {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
+    }
+    equityBalance {
+      usd {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
+      btc {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
     }
     categories {
 <<<<<<< HEAD
@@ -6559,10 +6583,23 @@ export const BalanceSheetDocument = gql`
 >>>>>>> db69a3b6b (fix(admin-panel): use ledgerAccountId in balance sheet links)
       name
       code
-      balanceRange {
-        __typename
-        ...UsdLedgerBalanceRangeFragment
-        ...BtcLedgerBalanceRangeFragment
+      balance {
+        usd {
+          settled {
+            net
+          }
+          pending {
+            net
+          }
+        }
+        btc {
+          settled {
+            net
+          }
+          pending {
+            net
+          }
+        }
       }
       children {
 <<<<<<< HEAD
@@ -6573,17 +6610,29 @@ export const BalanceSheetDocument = gql`
 >>>>>>> db69a3b6b (fix(admin-panel): use ledgerAccountId in balance sheet links)
         name
         code
-        balanceRange {
-          __typename
-          ...UsdLedgerBalanceRangeFragment
-          ...BtcLedgerBalanceRangeFragment
+        balance {
+          usd {
+            settled {
+              net
+            }
+            pending {
+              net
+            }
+          }
+          btc {
+            settled {
+              net
+            }
+            pending {
+              net
+            }
+          }
         }
       }
     }
   }
 }
-    ${UsdLedgerBalanceRangeFragmentFragmentDoc}
-${BtcLedgerBalanceRangeFragmentFragmentDoc}`;
+    `;
 
 /**
  * __useBalanceSheetQuery__
@@ -6597,8 +6646,7 @@ ${BtcLedgerBalanceRangeFragmentFragmentDoc}`;
  * @example
  * const { data, loading, error } = useBalanceSheetQuery({
  *   variables: {
- *      from: // value for 'from'
- *      until: // value for 'until'
+ *      asOf: // value for 'asOf'
  *   },
  * });
  */
@@ -8871,8 +8919,8 @@ export type DepositAccountCreateMutationHookResult = ReturnType<typeof useDeposi
 export type DepositAccountCreateMutationResult = Apollo.MutationResult<DepositAccountCreateMutation>;
 export type DepositAccountCreateMutationOptions = Apollo.BaseMutationOptions<DepositAccountCreateMutation, DepositAccountCreateMutationVariables>;
 export const DepositAccountsDocument = gql`
-    query DepositAccounts($first: Int!, $after: String, $filter: DepositAccountsFilter) {
-  depositAccounts(first: $first, after: $after, filter: $filter) {
+    query DepositAccounts($first: Int!, $after: String) {
+  depositAccounts(first: $first, after: $after) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -8903,7 +8951,6 @@ export const DepositAccountsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
- *      filter: // value for 'filter'
  *   },
  * });
  */
@@ -9059,8 +9106,8 @@ export type CreateDepositMutationHookResult = ReturnType<typeof useCreateDeposit
 export type CreateDepositMutationResult = Apollo.MutationResult<CreateDepositMutation>;
 export type CreateDepositMutationOptions = Apollo.BaseMutationOptions<CreateDepositMutation, CreateDepositMutationVariables>;
 export const DepositsDocument = gql`
-    query Deposits($first: Int!, $after: String, $filter: DepositsFilter) {
-  deposits(first: $first, after: $after, filter: $filter) {
+    query Deposits($first: Int!, $after: String) {
+  deposits(first: $first, after: $after) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -9091,7 +9138,6 @@ export const DepositsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
- *      filter: // value for 'filter'
  *   },
  * });
  */
@@ -9241,8 +9287,8 @@ export type CreditFacilityDisbursalInitiateMutationHookResult = ReturnType<typeo
 export type CreditFacilityDisbursalInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursalInitiateMutation>;
 export type CreditFacilityDisbursalInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 export const DisbursalsDocument = gql`
-    query Disbursals($first: Int!, $after: String, $filter: DisbursalsFilter) {
-  disbursals(first: $first, after: $after, filter: $filter) {
+    query Disbursals($first: Int!, $after: String) {
+  disbursals(first: $first, after: $after) {
     edges {
       node {
         id
@@ -9283,7 +9329,6 @@ export const DisbursalsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
- *      filter: // value for 'filter'
  *   },
  * });
  */
@@ -11441,8 +11486,8 @@ export type ProspectCreateMutationHookResult = ReturnType<typeof useProspectCrea
 export type ProspectCreateMutationResult = Apollo.MutationResult<ProspectCreateMutation>;
 export type ProspectCreateMutationOptions = Apollo.BaseMutationOptions<ProspectCreateMutation, ProspectCreateMutationVariables>;
 export const ProspectsDocument = gql`
-    query Prospects($first: Int!, $after: String, $sort: ProspectsSort, $filter: ProspectsFilter) {
-  prospects(first: $first, after: $after, sort: $sort, filter: $filter) {
+    query Prospects($first: Int!, $after: String, $stage: ProspectStage) {
+  prospects(first: $first, after: $after, stage: $stage) {
     edges {
       node {
         id
@@ -11482,8 +11527,7 @@ export const ProspectsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
- *      sort: // value for 'sort'
- *      filter: // value for 'filter'
+ *      stage: // value for 'stage'
  *   },
  * });
  */
@@ -12668,8 +12712,8 @@ export type WithdrawalInitiateMutationHookResult = ReturnType<typeof useWithdraw
 export type WithdrawalInitiateMutationResult = Apollo.MutationResult<WithdrawalInitiateMutation>;
 export type WithdrawalInitiateMutationOptions = Apollo.BaseMutationOptions<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
 export const WithdrawalsDocument = gql`
-    query Withdrawals($first: Int!, $after: String, $filter: WithdrawalsFilter) {
-  withdrawals(first: $first, after: $after, filter: $filter) {
+    query Withdrawals($first: Int!, $after: String) {
+  withdrawals(first: $first, after: $after) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -12700,7 +12744,6 @@ export const WithdrawalsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
- *      filter: // value for 'filter'
  *   },
  * });
  */

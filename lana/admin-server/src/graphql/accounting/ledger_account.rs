@@ -191,6 +191,21 @@ pub(super) enum LedgerAccountBalanceRange {
     Btc(BtcLedgerAccountBalanceRange),
 }
 
+#[derive(SimpleObject, Default)]
+pub(super) struct LedgerAccountBalanceByCurrency {
+    pub usd: UsdLedgerAccountBalance,
+    pub btc: BtcLedgerAccountBalance,
+}
+
+impl From<&lana_app::balance_sheet::AccountCategoryBalance> for LedgerAccountBalanceByCurrency {
+    fn from(balance: &lana_app::balance_sheet::AccountCategoryBalance) -> Self {
+        Self {
+            usd: UsdLedgerAccountBalance::from(balance.usd.as_ref()),
+            btc: BtcLedgerAccountBalance::from(balance.btc.as_ref()),
+        }
+    }
+}
+
 #[derive(SimpleObject)]
 pub(super) struct LedgerAccountBalanceRangeByCurrency {
     pub usd: UsdLedgerAccountBalanceRange,

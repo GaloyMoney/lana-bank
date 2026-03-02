@@ -2190,6 +2190,16 @@ export const mockLedgerAccount = (overrides?: Partial<LedgerAccount>, _relations
     };
 };
 
+export const mockLedgerAccountBalanceByCurrency = (overrides?: Partial<LedgerAccountBalanceByCurrency>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LedgerAccountBalanceByCurrency' } & LedgerAccountBalanceByCurrency => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LedgerAccountBalanceByCurrency');
+    return {
+        __typename: 'LedgerAccountBalanceByCurrency',
+        btc: overrides && overrides.hasOwnProperty('btc') ? overrides.btc! : relationshipsToOmit.has('BtcLedgerAccountBalance') ? {} as BtcLedgerAccountBalance : mockBtcLedgerAccountBalance({}, relationshipsToOmit),
+        usd: overrides && overrides.hasOwnProperty('usd') ? overrides.usd! : relationshipsToOmit.has('UsdLedgerAccountBalance') ? {} as UsdLedgerAccountBalance : mockUsdLedgerAccountBalance({}, relationshipsToOmit),
+    };
+};
+
 export const mockLedgerAccountBalanceRangeByCurrency = (overrides?: Partial<LedgerAccountBalanceRangeByCurrency>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LedgerAccountBalanceRangeByCurrency' } & LedgerAccountBalanceRangeByCurrency => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('LedgerAccountBalanceRangeByCurrency');
