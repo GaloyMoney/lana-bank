@@ -1,7 +1,8 @@
+#[allow(clippy::module_inception)]
+mod approve_disbursal;
 mod disbursal_approval;
-mod job;
 
-pub use job::*;
+pub use approve_disbursal::*;
 
 use std::sync::Arc;
 
