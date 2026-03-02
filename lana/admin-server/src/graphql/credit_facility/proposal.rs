@@ -10,7 +10,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry};
+use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry, Sort, SortDirection};
 
 pub use lana_app::credit::{
     CreditFacilityProposal as DomainCreditFacilityProposal, CreditFacilityProposalsCursor,
@@ -129,6 +129,45 @@ impl CreditFacilityProposalConcludedPayload {
 #[derive(InputObject)]
 pub struct CreditFacilityProposalsFilter {
     pub status: Option<CreditFacilityProposalStatus>,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum CreditFacilityProposalsSortBy {
+    #[default]
+    CreatedAt,
+}
+
+impl From<CreditFacilityProposalsSortBy> for DomainCreditFacilityProposalsSortBy {
+    fn from(by: CreditFacilityProposalsSortBy) -> Self {
+        match by {
+            CreditFacilityProposalsSortBy::CreatedAt => {
+                DomainCreditFacilityProposalsSortBy::CreatedAt
+            }
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct CreditFacilityProposalsSort {
+    #[graphql(default)]
+    pub by: CreditFacilityProposalsSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<CreditFacilityProposalsSort> for Sort<DomainCreditFacilityProposalsSortBy> {
+    fn from(sort: CreditFacilityProposalsSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<CreditFacilityProposalsSort> for DomainCreditFacilityProposalsSortBy {
+    fn from(sort: CreditFacilityProposalsSort) -> Self {
+        sort.by.into()
+    }
 }
 
 #[derive(InputObject)]
