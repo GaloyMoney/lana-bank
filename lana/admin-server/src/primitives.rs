@@ -84,6 +84,11 @@ impl From<audit::AuditEntryId> for AuditEntryId {
         Self(value)
     }
 }
+impl std::fmt::Display for AuditEntryId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -132,7 +137,7 @@ impl_to_global_id! {
     DisbursalId,
     LiquidationId,
     PaymentId,
-    audit::AuditEntryId,
+    AuditEntryId,
     DocumentId,
     CustomerDocumentId,
     PolicyId,
