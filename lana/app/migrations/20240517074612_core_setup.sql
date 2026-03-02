@@ -455,9 +455,13 @@ CREATE TABLE core_interest_accrual_cycles (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   idx INT NOT NULL,
+  next_accrual_period_end DATE,
   created_at TIMESTAMPTZ NOT NULL,
   UNIQUE(credit_facility_id, idx)
 );
+CREATE INDEX idx_interest_accrual_cycles_next_period_end
+  ON core_interest_accrual_cycles (next_accrual_period_end)
+  WHERE next_accrual_period_end IS NOT NULL;
 
 CREATE TABLE core_interest_accrual_cycle_events (
   id UUID NOT NULL REFERENCES core_interest_accrual_cycles(id),
