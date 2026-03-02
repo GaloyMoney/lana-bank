@@ -5,17 +5,19 @@ use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{CoreCreditEvent, PendingCreditFacilityCollateralizationState};
 
-use super::ExecuteActivateCreditFacilityConfig;
+use super::ActivateCreditFacilityConfig;
 
 pub const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("outbox.credit-facility-activation");
 
 pub struct CreditFacilityActivationHandler {
-    execute_activate: JobSpawner<ExecuteActivateCreditFacilityConfig>,
+    activate_credit_facility: JobSpawner<ActivateCreditFacilityConfig>,
 }
 
 impl CreditFacilityActivationHandler {
-    pub fn new(execute_activate: JobSpawner<ExecuteActivateCreditFacilityConfig>) -> Self {
-        Self { execute_activate }
+    pub fn new(activate_credit_facility: JobSpawner<ActivateCreditFacilityConfig>) -> Self {
+        Self {
+            activate_credit_facility,
+        }
     }
 }
 
@@ -43,11 +45,11 @@ where
             );
             Span::current().record("event_type", e.as_ref());
 
-            self.execute_activate
+            self.activate_credit_facility
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    ExecuteActivateCreditFacilityConfig {
+                    ActivateCreditFacilityConfig {
                         pending_credit_facility_id: entity.id,
                     },
                     entity.id.to_string(),

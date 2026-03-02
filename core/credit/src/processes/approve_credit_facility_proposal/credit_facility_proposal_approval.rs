@@ -4,18 +4,22 @@ use governance::GovernanceEvent;
 use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use super::ExecuteApproveCreditFacilityProposalConfig;
+use super::ApproveCreditFacilityProposalConfig;
 
 pub const CREDIT_FACILITY_PROPOSAL_APPROVE_JOB: JobType =
     JobType::new("outbox.credit-facility-proposal-approval");
 
 pub struct CreditFacilityProposalApprovalHandler {
-    execute_approve: JobSpawner<ExecuteApproveCreditFacilityProposalConfig>,
+    approve_credit_facility_proposal: JobSpawner<ApproveCreditFacilityProposalConfig>,
 }
 
 impl CreditFacilityProposalApprovalHandler {
-    pub fn new(execute_approve: JobSpawner<ExecuteApproveCreditFacilityProposalConfig>) -> Self {
-        Self { execute_approve }
+    pub fn new(
+        approve_credit_facility_proposal: JobSpawner<ApproveCreditFacilityProposalConfig>,
+    ) -> Self {
+        Self {
+            approve_credit_facility_proposal,
+        }
     }
 }
 
@@ -40,11 +44,11 @@ where
                 tracing::field::display(entity.id),
             );
             Span::current().record("process_type", entity.process_type.to_string());
-            self.execute_approve
+            self.approve_credit_facility_proposal
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    ExecuteApproveCreditFacilityProposalConfig {
+                    ApproveCreditFacilityProposalConfig {
                         approval_process_id: entity.id,
                         approved: entity.status.is_approved(),
                     },

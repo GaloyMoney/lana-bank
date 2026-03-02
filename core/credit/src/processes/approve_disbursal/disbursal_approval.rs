@@ -4,19 +4,17 @@ use governance::GovernanceEvent;
 use job::{JobId, JobSpawner, JobType};
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
-use super::ExecuteApproveDisbursalConfig;
+use super::ApproveDisbursalConfig;
 
 pub const DISBURSAL_APPROVE_JOB: JobType = JobType::new("outbox.disbursal-approval");
 
 pub struct DisbursalApprovalHandler {
-    execute_approve_disbursal: JobSpawner<ExecuteApproveDisbursalConfig>,
+    approve_disbursal: JobSpawner<ApproveDisbursalConfig>,
 }
 
 impl DisbursalApprovalHandler {
-    pub fn new(execute_approve_disbursal: JobSpawner<ExecuteApproveDisbursalConfig>) -> Self {
-        Self {
-            execute_approve_disbursal,
-        }
+    pub fn new(approve_disbursal: JobSpawner<ApproveDisbursalConfig>) -> Self {
+        Self { approve_disbursal }
     }
 }
 
@@ -37,11 +35,11 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", e.as_ref());
             Span::current().record("process_type", entity.process_type.to_string());
-            self.execute_approve_disbursal
+            self.approve_disbursal
                 .spawn_with_queue_id_in_op(
                     op,
                     JobId::new(),
-                    ExecuteApproveDisbursalConfig {
+                    ApproveDisbursalConfig {
                         approval_process_id: entity.id,
                         approved: entity.status.is_approved(),
                     },

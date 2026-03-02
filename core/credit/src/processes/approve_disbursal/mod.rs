@@ -1,7 +1,7 @@
+mod approve_disbursal;
 mod disbursal_approval;
-mod execute_approve_disbursal;
 
-pub use execute_approve_disbursal::*;
+pub use approve_disbursal::*;
 
 use std::sync::Arc;
 

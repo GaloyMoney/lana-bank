@@ -355,39 +355,39 @@ where
         );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
-        let execute_approve_disbursal_spawner = jobs.add_initializer(
-            ExecuteApproveDisbursalJobInitializer::new(approve_disbursal_arc.as_ref()),
-        );
+        let approve_disbursal_spawner = jobs.add_initializer(ApproveDisbursalJobInitializer::new(
+            approve_disbursal_arc.as_ref(),
+        ));
 
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(DISBURSAL_APPROVE_JOB),
-                DisbursalApprovalHandler::new(execute_approve_disbursal_spawner),
+                DisbursalApprovalHandler::new(approve_disbursal_spawner),
             )
             .await?;
 
-        let execute_activate_cf_spawner = jobs.add_initializer(
-            ExecuteActivateCreditFacilityJobInitializer::new(activate_credit_facility_arc.as_ref()),
-        );
+        let activate_cf_spawner = jobs.add_initializer(ActivateCreditFacilityJobInitializer::new(
+            activate_credit_facility_arc.as_ref(),
+        ));
 
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CREDIT_FACILITY_ACTIVATE),
-                CreditFacilityActivationHandler::new(execute_activate_cf_spawner),
+                CreditFacilityActivationHandler::new(activate_cf_spawner),
             )
             .await?;
 
-        let execute_approve_proposal_spawner = jobs.add_initializer(
-            ExecuteApproveCreditFacilityProposalJobInitializer::new(approve_proposal_arc.as_ref()),
+        let approve_proposal_spawner = jobs.add_initializer(
+            ApproveCreditFacilityProposalJobInitializer::new(approve_proposal_arc.as_ref()),
         );
 
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CREDIT_FACILITY_PROPOSAL_APPROVE_JOB),
-                CreditFacilityProposalApprovalHandler::new(execute_approve_proposal_spawner),
+                CreditFacilityProposalApprovalHandler::new(approve_proposal_spawner),
             )
             .await?;
 

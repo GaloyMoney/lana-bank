@@ -3,6 +3,9 @@ use serde::{Deserialize, Serialize};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_credit_collateral::{
+    CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
+};
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 use governance::{ApprovalProcessId, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -10,28 +13,24 @@ use job::*;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use core_credit_collateral::{
-    CoreCreditCollateralAction, CoreCreditCollateralObject, public::CoreCreditCollateralEvent,
-};
-
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
     CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
 };
 
-use super::ApproveDisbursal;
+use super::ApproveCreditFacilityProposal;
 
-pub const EXECUTE_APPROVE_DISBURSAL_COMMAND: JobType =
-    JobType::new("command.credit.execute-approve-disbursal");
+pub const APPROVE_CREDIT_FACILITY_PROPOSAL_COMMAND: JobType =
+    JobType::new("command.credit.approve-credit-facility-proposal");
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct ExecuteApproveDisbursalConfig {
+pub struct ApproveCreditFacilityProposalConfig {
     pub approval_process_id: ApprovalProcessId,
     pub approved: bool,
 }
 
-pub struct ExecuteApproveDisbursalJobInitializer<Perms, E>
+pub struct ApproveCreditFacilityProposalJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -41,10 +40,10 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    process: ApproveDisbursal<Perms, E>,
+    process: ApproveCreditFacilityProposal<Perms, E>,
 }
 
-impl<Perms, E> ExecuteApproveDisbursalJobInitializer<Perms, E>
+impl<Perms, E> ApproveCreditFacilityProposalJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -54,14 +53,14 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    pub fn new(process: &ApproveDisbursal<Perms, E>) -> Self {
+    pub fn new(process: &ApproveCreditFacilityProposal<Perms, E>) -> Self {
         Self {
             process: process.clone(),
         }
     }
 }
 
-impl<Perms, E> JobInitializer for ExecuteApproveDisbursalJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for ApproveCreditFacilityProposalJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -81,10 +80,10 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    type Config = ExecuteApproveDisbursalConfig;
+    type Config = ApproveCreditFacilityProposalConfig;
 
     fn job_type(&self) -> JobType {
-        EXECUTE_APPROVE_DISBURSAL_COMMAND
+        APPROVE_CREDIT_FACILITY_PROPOSAL_COMMAND
     }
 
     fn init(
@@ -92,14 +91,14 @@ where
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ExecuteApproveDisbursalJobRunner {
+        Ok(Box::new(ApproveCreditFacilityProposalJobRunner {
             config: job.config()?,
             process: self.process.clone(),
         }))
     }
 }
 
-pub struct ExecuteApproveDisbursalJobRunner<Perms, E>
+pub struct ApproveCreditFacilityProposalJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -109,12 +108,12 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    config: ExecuteApproveDisbursalConfig,
-    process: ApproveDisbursal<Perms, E>,
+    config: ApproveCreditFacilityProposalConfig,
+    process: ApproveCreditFacilityProposal<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ExecuteApproveDisbursalJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ApproveCreditFacilityProposalJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
@@ -135,14 +134,17 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     #[record_error_severity]
-    #[tracing::instrument(name = "credit.execute_approve_disbursal.process_command", skip_all)]
+    #[tracing::instrument(
+        name = "credit.approve_credit_facility_proposal.process_command",
+        skip_all
+    )]
     async fn run(
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut op = current_job.begin_op().await?;
         self.process
-            .execute_approve_disbursal_in_op(
+            .execute_approve_credit_facility_proposal_in_op(
                 &mut op,
                 self.config.approval_process_id.into(),
                 self.config.approved,

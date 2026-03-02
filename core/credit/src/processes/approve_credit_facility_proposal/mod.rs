@@ -1,8 +1,8 @@
+mod approve_credit_facility_proposal;
 mod credit_facility_proposal_approval;
-mod execute_approve_credit_facility_proposal;
 
+pub use approve_credit_facility_proposal::*;
 pub use credit_facility_proposal_approval::*;
-pub use execute_approve_credit_facility_proposal::*;
 
 use std::sync::Arc;
 

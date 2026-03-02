@@ -1,8 +1,8 @@
+mod activate_credit_facility;
 mod credit_facility_activation;
-mod execute_activate_credit_facility;
 
+pub use activate_credit_facility::*;
 pub use credit_facility_activation::*;
-pub use execute_activate_credit_facility::*;
 
 use std::sync::Arc;
 
