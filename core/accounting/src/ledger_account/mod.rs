@@ -165,6 +165,31 @@ where
 
     #[record_error_severity]
     #[instrument(
+        name = "core_accounting.ledger_account.find_all_in_range",
+        skip(self, chart)
+    )]
+    pub async fn find_all_in_range<T: From<LedgerAccount>>(
+        &self,
+        chart: &Chart,
+        ids: &[LedgerAccountId],
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
+    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
+        let accounts = self
+            .ledger
+            .load_ledger_accounts_in_range(ids, from, until)
+            .await?;
+        let mut res = HashMap::new();
+        for (k, mut v) in accounts.into_iter() {
+            self.populate_ancestors(chart, &mut v).await?;
+            self.populate_children(chart, &mut v).await?;
+            res.insert(k, v.into());
+        }
+        Ok(res)
+    }
+
+    #[record_error_severity]
+    #[instrument(
         name = "core_accounting.ledger_account.list_all_account_flattened",
         skip(self, chart)
     )]

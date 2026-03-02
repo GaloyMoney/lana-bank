@@ -200,7 +200,15 @@ scalar AuditSubjectId
 type BalanceSheet {
 	name: String!
 	balance: LedgerAccountBalanceRange!
-	categories: [LedgerAccount!]!
+	categories: [BalanceSheetAccountSet!]!
+}
+
+type BalanceSheetAccountSet {
+	id: ID!
+	code: AccountCode
+	name: String!
+	balanceRange: LedgerAccountBalanceRange!
+	children: [BalanceSheetAccountSet!]!
 }
 
 input BitgoConfig {

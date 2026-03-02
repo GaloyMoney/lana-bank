@@ -3,6 +3,7 @@ use tracing::instrument;
 
 use std::collections::HashMap;
 
+use chrono::NaiveDate;
 use domain_config::{DomainConfigError, DomainConfigId};
 use lana_app::{
     access::{error::CoreAccessError, user::error::UserError},
@@ -33,6 +34,13 @@ use super::{
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ChartRef(pub &'static str);
 pub const CHART_REF: ChartRef = ChartRef(lana_app::accounting_init::constants::CHART_REF);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct BalanceSheetAccountSetKey {
+    pub id: LedgerAccountId,
+    pub from: NaiveDate,
+    pub until: Option<NaiveDate>,
+}
 
 pub type LanaDataLoader = DataLoader<LanaLoader>;
 pub struct LanaLoader {
@@ -518,6 +526,59 @@ impl Loader<LedgerAccountId> for LanaLoader {
             .find_all_ledger_accounts(CHART_REF.0, keys)
             .await
             .map_err(Arc::new)
+    }
+}
+
+impl Loader<BalanceSheetAccountSetKey> for LanaLoader {
+    type Value = BalanceSheetAccountSet;
+    type Error = Arc<lana_app::accounting::error::CoreAccountingError>;
+
+    #[instrument(
+        name = "loader.balance_sheet_account_sets",
+        skip(self),
+        fields(count = keys.len()),
+        err
+    )]
+    async fn load(
+        &self,
+        keys: &[BalanceSheetAccountSetKey],
+    ) -> Result<HashMap<BalanceSheetAccountSetKey, BalanceSheetAccountSet>, Self::Error> {
+        let mut keys_by_scope: HashMap<
+            (NaiveDate, Option<NaiveDate>),
+            Vec<BalanceSheetAccountSetKey>,
+        > = HashMap::new();
+        for key in keys {
+            keys_by_scope
+                .entry((key.from, key.until))
+                .or_default()
+                .push(*key);
+        }
+
+        let mut result = HashMap::new();
+
+        for ((from, until), scoped_keys) in keys_by_scope {
+            let ids = scoped_keys
+                .iter()
+                .map(|key| key.id)
+                .collect::<std::collections::HashSet<_>>()
+                .into_iter()
+                .collect::<Vec<_>>();
+
+            let accounts: HashMap<_, lana_app::accounting::ledger_account::LedgerAccount> = self
+                .app
+                .accounting()
+                .find_all_ledger_accounts_in_range(CHART_REF.0, &ids, from, until)
+                .await
+                .map_err(Arc::new)?;
+
+            for key in scoped_keys {
+                if let Some(account) = accounts.get(&key.id).cloned() {
+                    result.insert(key, BalanceSheetAccountSet::new(account, from, until));
+                }
+            }
+        }
+
+        Ok(result)
     }
 }
 

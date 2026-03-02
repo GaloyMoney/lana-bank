@@ -273,7 +273,20 @@ export const mockBalanceSheet = (overrides?: Partial<BalanceSheet>, _relationshi
     return {
         __typename: 'BalanceSheet',
         balance: overrides && overrides.hasOwnProperty('balance') ? overrides.balance! : relationshipsToOmit.has('BtcLedgerAccountBalanceRange') ? {} as BtcLedgerAccountBalanceRange : mockBtcLedgerAccountBalanceRange({}, relationshipsToOmit),
-        categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : [relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit)],
+        categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : [relationshipsToOmit.has('BalanceSheetAccountSet') ? {} as BalanceSheetAccountSet : mockBalanceSheetAccountSet({}, relationshipsToOmit)],
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+    };
+};
+
+export const mockBalanceSheetAccountSet = (overrides?: Partial<BalanceSheetAccountSet>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'BalanceSheetAccountSet' } & BalanceSheetAccountSet => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('BalanceSheetAccountSet');
+    return {
+        __typename: 'BalanceSheetAccountSet',
+        balanceRange: overrides && overrides.hasOwnProperty('balanceRange') ? overrides.balanceRange! : relationshipsToOmit.has('BtcLedgerAccountBalanceRange') ? {} as BtcLedgerAccountBalanceRange : mockBtcLedgerAccountBalanceRange({}, relationshipsToOmit),
+        children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('BalanceSheetAccountSet') ? {} as BalanceSheetAccountSet : mockBalanceSheetAccountSet({}, relationshipsToOmit)],
+        code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };

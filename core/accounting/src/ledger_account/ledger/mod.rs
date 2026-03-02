@@ -274,6 +274,73 @@ impl LedgerAccountLedger {
         Ok(result)
     }
 
+    pub async fn load_ledger_accounts_in_range(
+        &self,
+        ids: &[LedgerAccountId],
+        from: NaiveDate,
+        until: Option<NaiveDate>,
+    ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, LedgerAccountLedgerError> {
+        let account_set_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
+        let account_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
+        let balance_ids = ids
+            .iter()
+            .flat_map(|id| {
+                [
+                    (self.journal_id, (*id).into(), Currency::USD),
+                    (self.journal_id, (*id).into(), Currency::BTC),
+                ]
+            })
+            .collect::<Vec<_>>();
+
+        let mut op = self.cala.begin_operation().await?;
+
+        let account_sets = self
+            .cala
+            .account_sets()
+            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids)
+            .await?;
+        let accounts = self
+            .cala
+            .accounts()
+            .find_all_in_op::<Account>(&mut op, &account_ids)
+            .await?;
+
+        op.commit().await?;
+
+        let mut balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&balance_ids, from, until)
+            .await?;
+
+        let mut result = HashMap::new();
+
+        for (id, account_set) in account_sets {
+            let account_id: LedgerAccountId = id.into();
+            let account_balances =
+                BalanceRanges::extract_from_balances(&mut balances, self.journal_id, account_id);
+
+            let ledger_account = LedgerAccount::from((account_set, account_balances));
+            result.insert(account_id, ledger_account);
+        }
+
+        for (id, account) in accounts {
+            let account_id: LedgerAccountId = id.into();
+            if result.contains_key(&account_id) {
+                continue;
+            }
+
+            let account_balances =
+                BalanceRanges::extract_from_balances(&mut balances, self.journal_id, account_id);
+
+            let ledger_account = LedgerAccount::from((account, account_balances));
+            result.insert(account_id, ledger_account);
+        }
+
+        Ok(result)
+    }
+
     pub async fn load_account_sets_in_range(
         &self,
         ids: &[LedgerAccountId],
