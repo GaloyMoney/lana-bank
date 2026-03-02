@@ -188,6 +188,7 @@ const PaginatedTable = <T,>({
       newDirection = "DESC"
     }
     setSortState({ column: columnKey, direction: newDirection })
+    setCurrentPage(1)
     onSort && onSort(columnKey, newDirection)
   }
 
@@ -199,6 +200,7 @@ const PaginatedTable = <T,>({
       delete next[columnKey]
     }
     setFilterState(next)
+    setCurrentPage(1)
     onFilter && onFilter(next)
   }
 
@@ -453,7 +455,10 @@ const PaginatedTable = <T,>({
             variant="outline"
             size="sm"
             onClick={handleNextPage}
-            disabled={displayData.length < pageSize && !data?.pageInfo.hasNextPage}
+            disabled={
+              !data?.pageInfo.hasNextPage &&
+              (data?.edges.length || 0) <= currentPage * pageSize
+            }
           >
             <HiChevronRight className="h-4 w-4" />
           </Button>
@@ -668,7 +673,9 @@ const PaginatedTable = <T,>({
             size="sm"
             onClick={handleNextPage}
             disabled={
-              !loading && displayData.length < pageSize && !data?.pageInfo.hasNextPage
+              !loading &&
+              !data?.pageInfo.hasNextPage &&
+              (data?.edges.length || 0) <= currentPage * pageSize
             }
           >
             <HiChevronRight className="h-4 w-4" />

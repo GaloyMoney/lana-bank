@@ -116,7 +116,10 @@ export const makeClient = ({
       Query: {
         fields: {
           customers: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
+          prospects: { ...relayStylePagination(), keyArgs: ["stage"] },
           creditFacilities: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
+          creditFacilityProposals: relayStylePagination(),
+          pendingCreditFacilities: relayStylePagination(),
           creditFacilitiesForStatus: {
             ...relayStylePagination(),
             keyArgs: ["sort", "status"],
@@ -125,10 +128,16 @@ export const makeClient = ({
             ...relayStylePagination(),
             keyArgs: ["sort", "collateralizationState"],
           },
+          disbursals: relayStylePagination(),
+          liquidations: relayStylePagination(),
           deposits: relayStylePagination(),
           withdrawals: relayStylePagination(),
+          depositAccounts: relayStylePagination(),
           loans: relayStylePagination(),
+          custodians: relayStylePagination(),
           committees: relayStylePagination(),
+          policies: relayStylePagination(),
+          fiscalYears: relayStylePagination(),
           audit: relayStylePagination(),
           generalLedgerEntries: relayStylePagination(),
           journalEntries: relayStylePagination(),
