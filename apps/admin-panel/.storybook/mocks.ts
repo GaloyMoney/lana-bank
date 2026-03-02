@@ -2,7 +2,7 @@ export const regularChartOfAccountsMockData = JSON.parse(`{
     "data": {
         "newChartOfAccounts": {
             "id": "Chart:df8b2978-8e96-4da9-90f9-ff0b6a213d06",
-            "chartId": "df8b2978-8e96-4da9-90f9-ff0b6a213d06",
+            "chartOfAccountsId": "df8b2978-8e96-4da9-90f9-ff0b6a213d06",
             "name": "Chart of Accounts",
             "children": [
                 {

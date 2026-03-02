@@ -55,7 +55,7 @@ wait_for_csv_export_completion() {
   )
 
   exec_admin_graphql 'ledger-account-csv-create' "$variables"
-  document_id=$(graphql_output '.data.ledgerAccountCsvCreate.accountingCsvDocument.documentId')
+  document_id=$(graphql_output '.data.ledgerAccountCsvCreate.accountingCsvDocument.accountingCsvDocumentId')
   [[ "$document_id" != "null" ]] || exit 1
 
   # Wait for the async CSV generation job to complete

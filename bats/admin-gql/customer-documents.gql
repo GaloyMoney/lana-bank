@@ -3,7 +3,7 @@ query CustomerDocuments($customerId: UUID!) {
     customerId
     email
     documents {
-      documentId
+      customerDocumentId
       customerId
       filename
       status

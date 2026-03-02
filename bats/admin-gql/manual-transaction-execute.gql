@@ -6,7 +6,7 @@ mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
       effective
       description
       entries {
-        entryId
+        journalEntryId
         txId
       }
     }

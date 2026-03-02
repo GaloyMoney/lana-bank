@@ -39,7 +39,7 @@ gql`
 
   fragment ChartOfAccountsFields on ChartOfAccounts {
     id
-    chartId
+    chartOfAccountsId
     name
     children {
       ...ChartAccountBase

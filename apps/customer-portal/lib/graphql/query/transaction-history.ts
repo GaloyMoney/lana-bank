@@ -62,7 +62,7 @@ gql`
                   recordedAt
                   disbursal {
                     id
-                    disbursalId
+                    creditFacilityDisbursalId
                     amount
                     createdAt
                     status
@@ -72,7 +72,7 @@ gql`
                   recordedAt
                   payment {
                     id
-                    paymentAllocationId
+                    creditFacilityPaymentAllocationId
                     amount
                     createdAt
                   }

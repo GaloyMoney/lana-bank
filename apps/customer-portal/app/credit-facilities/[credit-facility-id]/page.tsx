@@ -40,7 +40,7 @@ gql`
       maturesAt
       disbursals {
         id
-        disbursalId
+        creditFacilityDisbursalId
         amount
         status
         createdAt

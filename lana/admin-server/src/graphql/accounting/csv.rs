@@ -1,9 +1,8 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-pub use lana_app::{
-    accounting::csv::AccountingCsvDocumentId,
-    document::{Document as DomainDocument, DocumentStatus, GeneratedDocumentDownloadLink},
+pub use lana_app::document::{
+    Document as DomainDocument, DocumentStatus, GeneratedDocumentDownloadLink,
 };
 use std::sync::Arc;
 
@@ -11,7 +10,7 @@ use std::sync::Arc;
 #[graphql(complex)]
 pub struct AccountingCsvDocument {
     id: ID,
-    document_id: UUID,
+    accounting_csv_document_id: UUID,
     ledger_account_id: UUID,
     status: DocumentStatus,
     created_at: Timestamp,
@@ -20,17 +19,11 @@ pub struct AccountingCsvDocument {
     pub entity: Arc<DomainDocument>,
 }
 
-impl AccountingCsvDocument {
-    pub fn accounting_csv_document_id(&self) -> AccountingCsvDocumentId {
-        AccountingCsvDocumentId::from(self.entity.id)
-    }
-}
-
 impl From<DomainDocument> for AccountingCsvDocument {
     fn from(document: DomainDocument) -> Self {
         Self {
             id: document.id.to_global_id(),
-            document_id: UUID::from(document.id),
+            accounting_csv_document_id: UUID::from(document.id),
             ledger_account_id: UUID::from(document.reference_id),
             status: document.status,
             created_at: document.created_at().into(),

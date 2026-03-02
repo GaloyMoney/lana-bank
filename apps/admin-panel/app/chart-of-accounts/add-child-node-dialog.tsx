@@ -30,7 +30,7 @@ gql`
   query ChartOfAccountsForLedger {
     chartOfAccounts {
       id
-      chartId
+      chartOfAccountsId
       name
     }
   }
@@ -104,7 +104,7 @@ export const AddChildNodeDialog: React.FC<AddChildNodeDialogProps> = ({
       return
     }
 
-    if (!chartData?.chartOfAccounts?.chartId) {
+    if (!chartData?.chartOfAccounts?.chartOfAccountsId) {
       setError(t("errors.chartNotFound"))
       return
     }

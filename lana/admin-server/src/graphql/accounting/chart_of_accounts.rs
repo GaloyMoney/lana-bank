@@ -12,7 +12,7 @@ use lana_app::primitives::{AccountingBaseConfig, DebitOrCredit};
 #[graphql(complex)]
 pub struct ChartOfAccounts {
     id: ID,
-    chart_id: UUID,
+    chart_of_accounts_id: UUID,
     name: String,
 
     #[graphql(skip)]
@@ -23,7 +23,7 @@ impl From<DomainChart> for ChartOfAccounts {
     fn from(chart: DomainChart) -> Self {
         ChartOfAccounts {
             id: chart.id.to_global_id(),
-            chart_id: UUID::from(chart.id),
+            chart_of_accounts_id: UUID::from(chart.id),
             name: chart.name.to_string(),
             entity: Arc::new(chart),
         }

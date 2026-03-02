@@ -10,7 +10,7 @@ import { useGetCreditFacilityDisbursalsQuery } from "@/lib/graphql/generated"
 gql`
   fragment DisbursalOnFacilityPage on CreditFacilityDisbursal {
     id
-    disbursalId
+    creditFacilityDisbursalId
     publicId
     amount
     status

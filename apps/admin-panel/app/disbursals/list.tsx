@@ -22,7 +22,7 @@ gql`
       edges {
         node {
           id
-          disbursalId
+          creditFacilityDisbursalId
           publicId
           amount
           createdAt

@@ -3,7 +3,7 @@ mutation ChartOfAccountsAddChildNode(
 ) {
   chartOfAccountsAddChildNode(input: $input) {
     chartOfAccounts {
-      chartId
+      chartOfAccountsId
       name
       children {
         ...child

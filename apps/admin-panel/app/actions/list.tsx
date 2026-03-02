@@ -58,7 +58,7 @@ gql`
             }
             ... on CreditFacilityDisbursal {
               id
-              disbursalId
+              creditFacilityDisbursalId
               publicId
               creditFacility {
                 publicId

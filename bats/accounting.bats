@@ -17,7 +17,7 @@ teardown_file() {
 
 @test "accounting: imported CSV file from seed into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
-  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+  chart_id=$(graphql_output '.data.chartOfAccounts.chartOfAccountsId')
   assets_code=$(graphql_output '
     .data.chartOfAccounts.children[]
     | select(.name == "Assets")
@@ -188,7 +188,7 @@ teardown_file() {
 
 @test "accounting: can import CSV file into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
-  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+  chart_id=$(graphql_output '.data.chartOfAccounts.chartOfAccountsId')
 
   temp_file=$(mktemp)
   new_root_code=$((RANDOM % 100 + 900))
@@ -207,7 +207,7 @@ teardown_file() {
   )
 
   response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import' "$variables" "$temp_file" "input.file")
-  payload_chart_id=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.chartOfAccounts.chartId')
+  payload_chart_id=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.chartOfAccounts.chartOfAccountsId')
   [[ "$payload_chart_id" == "$chart_id" ]] || exit 1
 
   exec_admin_graphql 'chart-of-accounts'

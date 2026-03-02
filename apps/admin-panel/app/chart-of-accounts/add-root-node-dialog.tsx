@@ -86,7 +86,7 @@ export const AddRootNodeDialog: React.FC<AddRootNodeDialogProps> = ({
       return
     }
 
-    if (!chartData?.chartOfAccounts?.chartId) {
+    if (!chartData?.chartOfAccounts?.chartOfAccountsId) {
       setError(t("errors.chartNotFound"))
       return
     }

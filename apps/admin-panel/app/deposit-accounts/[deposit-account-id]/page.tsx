@@ -97,7 +97,7 @@ gql`
               recordedAt
               disbursal {
                 id
-                disbursalId
+                creditFacilityDisbursalId
                 publicId
                 amount
                 createdAt
@@ -109,7 +109,7 @@ gql`
               recordedAt
               payment {
                 id
-                paymentAllocationId
+                creditFacilityPaymentAllocationId
                 amount
                 createdAt
               }

@@ -1,7 +1,7 @@
 mutation ChartOfAccountsAddRootNode($input: ChartOfAccountsAddRootNodeInput!) {
   chartOfAccountsAddRootNode(input: $input) {
     chartOfAccounts {
-      chartId
+      chartOfAccountsId
       name
       children {
         ...child
