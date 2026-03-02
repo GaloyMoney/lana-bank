@@ -1,8 +1,5 @@
-#[allow(clippy::module_inception)]
-mod approve_disbursal;
-mod disbursal_approval;
-
-pub use approve_disbursal::*;
+mod job;
+pub use job::*;
 
 use std::sync::Arc;
 
@@ -27,7 +24,6 @@ use crate::{
     credit_facility::CreditFacilities, ledger::CreditLedger, primitives::DisbursalId,
 };
 
-pub use disbursal_approval::*;
 pub const APPROVE_DISBURSAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursal");
 
 pub struct ApproveDisbursal<Perms, E>

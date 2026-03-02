@@ -1,9 +1,5 @@
-#[allow(clippy::module_inception)]
-mod approve_credit_facility_proposal;
-mod credit_facility_proposal_approval;
-
-pub use approve_credit_facility_proposal::*;
-pub use credit_facility_proposal_approval::*;
+mod job;
+pub use job::*;
 
 use std::sync::Arc;
 
