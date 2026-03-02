@@ -7,7 +7,7 @@ use money::{Satoshis, UsdCents};
 
 use crate::{LiquidationId, SecuredLoanId};
 
-use super::PublicCollateral;
+use super::{PublicCollateral, PublicLiquidation};
 
 #[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
@@ -17,13 +17,16 @@ pub enum CoreCreditCollateralEvent {
         entity: PublicCollateral,
     },
     LiquidationCollateralSentOut {
-        liquidation_id: LiquidationId,
-        secured_loan_id: SecuredLoanId,
-        amount: Satoshis,
-        ledger_tx_id: LedgerTxId,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
+        entity: PublicLiquidation,
     },
+    // LiquidationCollateralSentOut {
+    //     liquidation_id: LiquidationId,
+    //     secured_loan_id: SecuredLoanId,
+    //     amount: Satoshis,
+    //     ledger_tx_id: LedgerTxId,
+    //     recorded_at: DateTime<Utc>,
+    //     effective: chrono::NaiveDate,
+    // },
     LiquidationProceedsReceived {
         liquidation_id: LiquidationId,
         secured_loan_id: SecuredLoanId,

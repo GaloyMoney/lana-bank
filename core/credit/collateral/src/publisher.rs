@@ -5,7 +5,7 @@ use tracing::instrument;
 use crate::{
     entity::{Collateral, CollateralEvent},
     error::CollateralError,
-    public::{CoreCreditCollateralEvent, PublicCollateral},
+    public::{CoreCreditCollateralEvent, PublicCollateral, PublicLiquidation},
 };
 
 pub struct CollateralPublisher<E>
@@ -64,12 +64,19 @@ where
                         entity: PublicCollateral::from(entity),
                     },
                     CoreCreditCollateralEvent::LiquidationCollateralSentOut {
-                        liquidation_id: *liquidation_id,
-                        secured_loan_id: entity.secured_loan_id,
-                        amount: *abs_diff,
-                        ledger_tx_id: *ledger_tx_id,
-                        recorded_at: event.recorded_at,
-                        effective: event.recorded_at.date_naive(),
+                        entity: PublicLiquidation {
+                            id: *liquidation_id,
+                            collateral_id: entity.id,
+                            secured_loan_id: entity.secured_loan_id,
+                            total_received: todo!(),
+                            total_sent: todo!(),
+                            adjustment: todo!(),
+                        }, // liquidation_id: *liquidation_id,
+                           // secured_loan_id: entity.secured_loan_id,
+                           // amount: *abs_diff,
+                           // ledger_tx_id: *ledger_tx_id,
+                           // recorded_at: event.recorded_at,
+                           // effective: event.recorded_at.date_naive(),
                     },
                 ],
                 LiquidationProceedsReceived {
