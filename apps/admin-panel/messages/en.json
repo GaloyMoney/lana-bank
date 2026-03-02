@@ -2216,6 +2216,7 @@
   "BalanceSheet": {
     "title": "Balance Sheet",
     "description": "A financial statement showing the company's assets, liabilities, and equity at a specific point in time.",
+    "asOfDate": "As of date",
     "noData": "No data",
     "total": "Total",
     "columns": {

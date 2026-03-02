@@ -1,6 +1,6 @@
 "use client"
 import { gql } from "@apollo/client"
-import { useState, useCallback, useMemo } from "react"
+import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 
 import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
@@ -14,18 +14,22 @@ import {
 } from "@lana/web/ui/card"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
+import { Label } from "@lana/web/ui/label"
+import { Separator } from "@lana/web/ui/separator"
+import { Calendar } from "@lana/web/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@lana/web/ui/popover"
+import { formatDate } from "@lana/web/utils"
 
 import { Account } from "./account"
 
 import { BalanceSheetQuery, useBalanceSheetQuery } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import { getInitialDateRange, DateRange } from "@/components/date-range-picker"
-import { ReportFilters } from "@/components/report-filters"
-import { ReportLayer } from "@/components/report-filters/selectors"
+import { CurrencySelection, LayerSelection, ReportLayer } from "@/components/report-filters/selectors"
+import { getCurrentLocalDate } from "@/lib/utils"
 
 gql`
-  query BalanceSheet($from: Date!, $until: Date) {
-    balanceSheet(from: $from, until: $until) {
+  query BalanceSheet($at: Date!) {
+    balanceSheet(at: $at) {
       name
       balance {
         __typename
@@ -106,15 +110,18 @@ gql`
   }
 `
 
+const toDateString = (date: Date): string => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
 export default function BalanceSheetPage() {
-  const initialDateRange = useMemo(() => getInitialDateRange(), [])
-  const [dateRange, setDateRange] = useState<DateRange>(initialDateRange)
-  const handleDateChange = useCallback((newDateRange: DateRange) => {
-    setDateRange(newDateRange)
-  }, [])
+  const [at, setAt] = useState<string>(() => getCurrentLocalDate())
 
   const { data, loading, error } = useBalanceSheetQuery({
-    variables: dateRange,
+    variables: { at },
     fetchPolicy: "cache-and-network",
   })
 
@@ -124,8 +131,8 @@ export default function BalanceSheetPage() {
         data={data?.balanceSheet}
         loading={loading && !data}
         error={error}
-        dateRange={dateRange}
-        setDateRange={handleDateChange}
+        at={at}
+        setAt={setAt}
       />
     </>
   )
@@ -135,20 +142,32 @@ interface BalanceSheetProps {
   data?: BalanceSheetQuery["balanceSheet"]
   loading: boolean
   error: Error | undefined
-  dateRange: DateRange
-  setDateRange: (dateRange: DateRange) => void
+  at: string
+  setAt: (at: string) => void
 }
 
 const BalanceSheet = ({
   data,
   loading,
   error,
-  dateRange,
-  setDateRange,
+  at,
+  setAt,
 }: BalanceSheetProps) => {
   const t = useTranslations("BalanceSheet")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<ReportLayer>("settled")
+  const [isOpen, setIsOpen] = useState(false)
+
+  const today = useMemo(() => {
+    const date = new Date()
+    date.setHours(0, 0, 0, 0)
+    return date
+  }, [])
+
+  const selectedDate = useMemo(() => {
+    const [year, month, day] = at.split("-").map(Number)
+    return new Date(year, month - 1, day)
+  }, [at])
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
@@ -168,14 +187,45 @@ const BalanceSheet = ({
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ReportFilters
-          dateRange={dateRange}
-          onDateChange={setDateRange}
-          currency={currency}
-          onCurrencyChange={setCurrency}
-          layer={layer}
-          onLayerChange={setLayer}
-        />
+        <div className="flex items-center rounded-md flex-wrap w-fit gap-2 mb-2">
+          <div>
+            <Label>{t("asOfDate")}</Label>
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+              <PopoverTrigger asChild>
+                <div className="rounded-md bg-input-text p-2 px-4 text-sm border cursor-pointer bg-muted">
+                  {formatDate(selectedDate, { includeTime: false })}
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setAt(toDateString(date))
+                      setIsOpen(false)
+                    }
+                  }}
+                  defaultMonth={selectedDate}
+                  disabled={(date) => date > today}
+                  captionLayout="dropdown"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="flex items-center h-14">
+            <Separator orientation="vertical" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <CurrencySelection currency={currency} setCurrency={setCurrency} />
+          </div>
+          <div className="flex items-center h-14">
+            <Separator orientation="vertical" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <LayerSelection layer={layer} setLayer={setLayer} />
+          </div>
+        </div>
 
         {loading || !data?.balance ? (
           <Skeleton className="h-96 w-full" />

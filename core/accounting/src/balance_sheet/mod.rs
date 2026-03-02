@@ -117,8 +117,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
+        at: NaiveDate,
     ) -> Result<BalanceSheet, BalanceSheetError> {
         self.authz
             .enforce_permission(
@@ -130,7 +129,7 @@ where
 
         Ok(self
             .balance_sheet_ledger
-            .get_balance_sheet(reference, from, until)
+            .get_balance_sheet(reference, at)
             .await?)
     }
 }

@@ -15,8 +15,8 @@ teardown_file() {
   skip
   variables=$(
     jq -n \
-    --arg from "$(from_utc)" \
-    '{ from: $from }'
+    --arg at "$(naive_now)" \
+    '{ at: $at }'
   )
   exec_admin_graphql 'balance-sheet' "$variables"
   assets_usd_before=$(graphql_output \
@@ -45,8 +45,8 @@ teardown_file() {
 
   variables=$(
     jq -n \
-    --arg from "$(from_utc)" \
-    '{ from: $from }'
+    --arg at "$(naive_now)" \
+    '{ at: $at }'
   )
   exec_admin_graphql 'balance-sheet' "$variables"
   assets_usd=$(graphql_output \

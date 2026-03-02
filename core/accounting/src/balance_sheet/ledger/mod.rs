@@ -153,12 +153,11 @@ impl BalanceSheetLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "bs_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), from = %from, until = ?until))]
+    #[instrument(name = "bs_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), at = %at))]
     async fn get_balances_by_id(
         &self,
         all_account_set_ids: Vec<AccountSetId>,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
+        at: NaiveDate,
     ) -> Result<HashMap<BalanceId, CalaBalanceRange>, BalanceSheetLedgerError> {
         let balance_ids = all_account_set_ids
             .iter()
@@ -173,7 +172,7 @@ impl BalanceSheetLedger {
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&balance_ids, from, until)
+            .find_all_in_range(&balance_ids, at, Some(at))
             .await?;
 
         Ok(res)
@@ -340,15 +339,12 @@ impl BalanceSheetLedger {
     pub async fn get_balance_sheet(
         &self,
         reference: String,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
+        at: NaiveDate,
     ) -> Result<BalanceSheet, BalanceSheetLedgerError> {
         let ids = self.get_ids_from_reference(reference).await?;
         let all_account_set_ids = vec![ids.id, ids.assets, ids.liabilities, ids.equity];
 
-        let mut balances_by_id = self
-            .get_balances_by_id(all_account_set_ids, from, until)
-            .await?;
+        let mut balances_by_id = self.get_balances_by_id(all_account_set_ids, at).await?;
 
         let (account, balances) = self
             .get_account_set_with_balances(ids.id, &mut balances_by_id)

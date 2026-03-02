@@ -1,5 +1,5 @@
-query BalanceSheet($from: Timestamp!) {
-  balanceSheet(from: $from) {
+query BalanceSheet($at: Date!) {
+  balanceSheet(at: $at) {
     name
     balance {
       ...amountsByCurrency

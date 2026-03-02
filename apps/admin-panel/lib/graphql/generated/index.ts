@@ -2584,8 +2584,7 @@ export type QueryAuditArgs = {
 
 
 export type QueryBalanceSheetArgs = {
-  from: Scalars['Date']['input'];
-  until?: InputMaybe<Scalars['Date']['input']>;
+  at: Scalars['Date']['input'];
 };
 
 
@@ -3460,8 +3459,7 @@ export type AuditSubjectsQueryVariables = Exact<{ [key: string]: never; }>;
 export type AuditSubjectsQuery = { __typename?: 'Query', auditSubjects: Array<string> };
 
 export type BalanceSheetQueryVariables = Exact<{
-  from: Scalars['Date']['input'];
-  until?: InputMaybe<Scalars['Date']['input']>;
+  at: Scalars['Date']['input'];
 }>;
 
 
@@ -6336,8 +6334,8 @@ export type AuditSubjectsLazyQueryHookResult = ReturnType<typeof useAuditSubject
 export type AuditSubjectsSuspenseQueryHookResult = ReturnType<typeof useAuditSubjectsSuspenseQuery>;
 export type AuditSubjectsQueryResult = Apollo.QueryResult<AuditSubjectsQuery, AuditSubjectsQueryVariables>;
 export const BalanceSheetDocument = gql`
-    query BalanceSheet($from: Date!, $until: Date) {
-  balanceSheet(from: $from, until: $until) {
+    query BalanceSheet($at: Date!) {
+  balanceSheet(at: $at) {
     name
     balance {
       __typename
@@ -6381,8 +6379,7 @@ ${BtcLedgerBalanceRangeFragmentFragmentDoc}`;
  * @example
  * const { data, loading, error } = useBalanceSheetQuery({
  *   variables: {
- *      from: // value for 'from'
- *      until: // value for 'until'
+ *      at: // value for 'at'
  *   },
  * });
  */

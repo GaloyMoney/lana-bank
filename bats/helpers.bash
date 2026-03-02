@@ -530,8 +530,8 @@ create_deposit_account_for_customer() {
 assert_balance_sheet_balanced() {
   variables=$(
     jq -n \
-      --arg from "$(from_utc)" \
-      '{ from: $from }'
+      --arg at "$(naive_now)" \
+      '{ at: $at }'
   )
   exec_admin_graphql 'balance-sheet' "$variables"
   echo $(graphql_output)
