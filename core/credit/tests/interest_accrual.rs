@@ -54,6 +54,10 @@ async fn setup_with_clock_control() -> anyhow::Result<(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
             .clock(clock.clone())
+            .poller_config(job::JobPollerConfig {
+                job_lost_interval: Duration::from_secs(2),
+                ..Default::default()
+            })
             .build()
             .unwrap(),
     )
