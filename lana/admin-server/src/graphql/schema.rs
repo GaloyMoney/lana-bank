@@ -8,7 +8,7 @@ use obix::out::OutboxEventMarker;
 
 use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
-use lana_app::customer::prospect_cursor::ProspectsByCreatedAtCursor;
+use lana_app::customer::{CoreCustomerEvent, prospect_cursor::ProspectsByCreatedAtCursor};
 use lana_app::price::CorePriceEvent;
 use lana_app::report::CoreReportEvent;
 use lana_app::{
@@ -2564,6 +2564,43 @@ pub struct Subscription;
 
 #[Subscription]
 impl Subscription {
+    async fn prospect_kyc_updated(
+        &self,
+        ctx: &Context<'_>,
+        prospect_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = ProspectKycUpdatedPayload>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let prospect_id = ProspectId::from(prospect_id);
+
+        app.customers()
+            .find_prospect_by_id(sub, prospect_id)
+            .await?
+            .ok_or_else(|| Error::new("Prospect not found"))?;
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreCustomerEvent = payload.as_event()?;
+
+            match event {
+                CoreCustomerEvent::ProspectKycStarted { entity }
+                | CoreCustomerEvent::ProspectKycPending { entity }
+                | CoreCustomerEvent::ProspectKycDeclined { entity }
+                | CoreCustomerEvent::ProspectConverted { entity }
+                    if entity.id == prospect_id =>
+                {
+                    Some(ProspectKycUpdatedPayload {
+                        prospect_id: entity.id,
+                        kyc_status: entity.kyc_status,
+                    })
+                }
+                _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
     async fn pending_credit_facility_collateralization_updated(
         &self,
         ctx: &Context<'_>,

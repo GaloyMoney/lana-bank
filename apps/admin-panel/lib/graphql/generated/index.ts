@@ -2465,6 +2465,12 @@ export type ProspectEdge = {
   node: Prospect;
 };
 
+export type ProspectKycUpdatedPayload = {
+  __typename?: 'ProspectKycUpdatedPayload';
+  kycStatus: KycStatus;
+  prospect: Prospect;
+};
+
 export enum ProspectStage {
   Closed = 'CLOSED',
   Converted = 'CONVERTED',
@@ -3051,6 +3057,7 @@ export type Subscription = {
   ledgerAccountCsvExportUploaded: LedgerAccountCsvExportUploadedPayload;
   pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
   pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
+  prospectKycUpdated: ProspectKycUpdatedPayload;
   realtimePriceUpdated: RealtimePrice;
   reportRunUpdated: ReportRunUpdatedPayload;
 };
@@ -3078,6 +3085,11 @@ export type SubscriptionPendingCreditFacilityCollateralizationUpdatedArgs = {
 
 export type SubscriptionPendingCreditFacilityCompletedArgs = {
   pendingCreditFacilityId: Scalars['UUID']['input'];
+};
+
+
+export type SubscriptionProspectKycUpdatedArgs = {
+  prospectId: Scalars['UUID']['input'];
 };
 
 export type SumsubPermalinkCreateInput = {
@@ -4619,6 +4631,13 @@ export type GetProspectBasicDetailsQueryVariables = Exact<{
 
 
 export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: any | null, customerType: CustomerType, createdAt: any, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } | null };
+
+export type ProspectKycUpdatedSubscriptionVariables = Exact<{
+  prospectId: Scalars['UUID']['input'];
+}>;
+
+
+export type ProspectKycUpdatedSubscription = { __typename?: 'Subscription', prospectKycUpdated: { __typename?: 'ProspectKycUpdatedPayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: any | null, customerType: CustomerType, createdAt: any, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
 
 export type ProspectCreateMutationVariables = Exact<{
   input: ProspectCreateInput;
@@ -11134,6 +11153,38 @@ export type GetProspectBasicDetailsQueryHookResult = ReturnType<typeof useGetPro
 export type GetProspectBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsLazyQuery>;
 export type GetProspectBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetProspectBasicDetailsSuspenseQuery>;
 export type GetProspectBasicDetailsQueryResult = Apollo.QueryResult<GetProspectBasicDetailsQuery, GetProspectBasicDetailsQueryVariables>;
+export const ProspectKycUpdatedDocument = gql`
+    subscription ProspectKycUpdated($prospectId: UUID!) {
+  prospectKycUpdated(prospectId: $prospectId) {
+    prospect {
+      ...ProspectDetailsFragment
+    }
+  }
+}
+    ${ProspectDetailsFragmentFragmentDoc}`;
+
+/**
+ * __useProspectKycUpdatedSubscription__
+ *
+ * To run a query within a React component, call `useProspectKycUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useProspectKycUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProspectKycUpdatedSubscription({
+ *   variables: {
+ *      prospectId: // value for 'prospectId'
+ *   },
+ * });
+ */
+export function useProspectKycUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<ProspectKycUpdatedSubscription, ProspectKycUpdatedSubscriptionVariables> & ({ variables: ProspectKycUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<ProspectKycUpdatedSubscription, ProspectKycUpdatedSubscriptionVariables>(ProspectKycUpdatedDocument, options);
+      }
+export type ProspectKycUpdatedSubscriptionHookResult = ReturnType<typeof useProspectKycUpdatedSubscription>;
+export type ProspectKycUpdatedSubscriptionResult = Apollo.SubscriptionResult<ProspectKycUpdatedSubscription>;
 export const ProspectCreateDocument = gql`
     mutation ProspectCreate($input: ProspectCreateInput!) {
   prospectCreate(input: $input) {

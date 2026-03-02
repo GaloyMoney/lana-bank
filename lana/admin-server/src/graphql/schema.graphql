@@ -2195,6 +2195,11 @@ type ProspectEdge {
 	cursor: String!
 }
 
+type ProspectKycUpdatedPayload {
+	kycStatus: KycStatus!
+	prospect: Prospect!
+}
+
 enum ProspectStage {
 	NEW
 	KYC_STARTED
@@ -2450,6 +2455,7 @@ enum SortDirection {
 }
 
 type Subscription {
+	prospectKycUpdated(prospectId: UUID!): ProspectKycUpdatedPayload!
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!

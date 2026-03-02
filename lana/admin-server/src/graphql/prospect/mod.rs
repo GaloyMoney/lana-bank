@@ -115,6 +115,26 @@ impl Prospect {
     }
 }
 
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct ProspectKycUpdatedPayload {
+    pub kyc_status: KycStatus,
+    #[graphql(skip)]
+    pub prospect_id: ProspectId,
+}
+
+#[ComplexObject]
+impl ProspectKycUpdatedPayload {
+    async fn prospect(&self, ctx: &Context<'_>) -> async_graphql::Result<Prospect> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let prospect = loader
+            .load_one(self.prospect_id)
+            .await?
+            .expect("Prospect not found");
+        Ok(prospect)
+    }
+}
+
 #[derive(InputObject)]
 pub struct ProspectCreateInput {
     pub email: String,

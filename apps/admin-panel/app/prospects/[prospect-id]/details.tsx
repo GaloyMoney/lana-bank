@@ -47,6 +47,7 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
     {
       label: t("labels.stage"),
       value: <ProspectStageBadge stage={prospect.stage} />,
+      valueTestId: "prospect-stage-badge",
     },
     {
       label: t("labels.email"),

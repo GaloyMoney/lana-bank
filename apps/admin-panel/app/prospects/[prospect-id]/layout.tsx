@@ -7,7 +7,10 @@ import { useTranslations } from "next-intl"
 import { ProspectDetailsCard } from "./details"
 import { ProspectKycStatus } from "./kyc-status"
 
-import { useGetProspectBasicDetailsQuery } from "@/lib/graphql/generated"
+import {
+  useGetProspectBasicDetailsQuery,
+  useProspectKycUpdatedSubscription,
+} from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { PublicIdBadge } from "@/components/public-id-badge"
@@ -47,6 +50,14 @@ gql`
       ...ProspectDetailsFragment
     }
   }
+
+  subscription ProspectKycUpdated($prospectId: UUID!) {
+    prospectKycUpdated(prospectId: $prospectId) {
+      prospect {
+        ...ProspectDetailsFragment
+      }
+    }
+  }
 `
 
 export default function ProspectLayout({
@@ -66,6 +77,12 @@ export default function ProspectLayout({
   const { data, loading, error } = useGetProspectBasicDetailsQuery({
     variables: { id: prospectId },
   })
+
+  useProspectKycUpdatedSubscription(
+    data?.prospectByPublicId?.prospectId
+      ? { variables: { prospectId: data.prospectByPublicId.prospectId } }
+      : { skip: true },
+  )
 
   useEffect(() => {
     if (data?.prospectByPublicId) {
