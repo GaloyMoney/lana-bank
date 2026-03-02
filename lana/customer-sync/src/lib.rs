@@ -76,11 +76,15 @@ where
     ) -> Result<Self, CustomerSyncError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak.clone());
 
+        let create_keycloak_user_spawner = jobs.add_initializer(
+            CreateKeycloakUserJobInitializer::new(keycloak_client.clone()),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_SYNC_CREATE_KEYCLOAK_USER),
-                CreateKeycloakUserHandler::new(keycloak_client.clone()),
+                SyncPartyKeycloakHandler::new(create_keycloak_user_spawner),
             )
             .await?;
 

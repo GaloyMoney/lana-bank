@@ -1,4 +1,8 @@
-mod job;
+mod credit_facility_activation;
+mod execute_activate_credit_facility;
+
+pub use credit_facility_activation::*;
+pub use execute_activate_credit_facility::*;
 
 use std::sync::Arc;
 
@@ -15,8 +19,6 @@ use core_price::{CorePriceEvent, Price};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 use public_id::PublicIds;
-
-pub use job::*;
 
 use crate::{
     CoreCreditEvent,

@@ -367,19 +367,27 @@ where
             )
             .await?;
 
+        let execute_activate_cf_spawner = jobs.add_initializer(
+            ExecuteActivateCreditFacilityJobInitializer::new(activate_credit_facility_arc.as_ref()),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CREDIT_FACILITY_ACTIVATE),
-                CreditFacilityActivationHandler::new(activate_credit_facility_arc.as_ref()),
+                CreditFacilityActivationHandler::new(execute_activate_cf_spawner),
             )
             .await?;
+
+        let execute_approve_proposal_spawner = jobs.add_initializer(
+            ExecuteApproveCreditFacilityProposalJobInitializer::new(approve_proposal_arc.as_ref()),
+        );
 
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CREDIT_FACILITY_PROPOSAL_APPROVE_JOB),
-                CreditFacilityProposalApprovalHandler::new(approve_proposal_arc.as_ref()),
+                CreditFacilityProposalApprovalHandler::new(execute_approve_proposal_spawner),
             )
             .await?;
 
