@@ -152,7 +152,7 @@ serde_json = "1.0.149"
 serde_with = "3.16.1"
 futures = "0.3.32"
 http = "1.4"
-reqwest = { version = "0.12.26", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration", "multipart"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "charset", "http2", "multipart"] }
 rustls = { version = "0.23", default-features = false, features = ["ring"] }
 url = { version = "2.5", features = ["serde"] }
 rust_decimal_macros = "1.40.0"
