@@ -12,6 +12,8 @@ import {
   CreditFacilityProposal,
   CreditFacilityProposalStatus,
   CreditFacilityProposalsFilter,
+  CreditFacilityProposalsSort,
+  SortDirection,
   useCreditFacilityProposalsQuery,
 } from "@/lib/graphql/generated"
 
@@ -21,10 +23,11 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
-  query CreditFacilityProposals($first: Int!, $after: String, $filter: CreditFacilityProposalsFilter) {
-    creditFacilityProposals(first: $first, after: $after, filter: $filter) {
+  query CreditFacilityProposals($first: Int!, $after: String, $sort: CreditFacilityProposalsSort, $filter: CreditFacilityProposalsFilter) {
+    creditFacilityProposals(first: $first, after: $after, sort: $sort, filter: $filter) {
       edges {
         cursor
         node {
@@ -50,11 +53,13 @@ gql`
 const CreditFacilityProposals = () => {
   const t = useTranslations("CreditFacilityProposals")
   const commonT = useTranslations("Common")
+  const [sortBy, setSortBy] = useState<CreditFacilityProposalsSort | null>(null)
   const [filter, setFilter] = useState<CreditFacilityProposalsFilter | null>(null)
 
   const { data, loading, error, fetchMore } = useCreditFacilityProposalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
       filter,
     },
   })
@@ -71,6 +76,12 @@ const CreditFacilityProposals = () => {
         navigateTo={(proposal) =>
           `/credit-facility-proposals/${proposal.creditFacilityProposalId}`
         }
+        onSort={(column, direction) => {
+          setSortBy({
+            by: camelToScreamingSnake(column) as CreditFacilityProposalsSort["by"],
+            direction: direction as SortDirection,
+          })
+        }}
         onFilter={(filters) => {
           const f = filters as CreditFacilityProposalsFilter
           setFilter(Object.keys(f).length > 0 ? f : null)
@@ -107,5 +118,6 @@ const columns = (t: (key: string) => string): Column<CreditFacilityProposal>[] =
     label: t("table.headers.createdAt"),
     labelClassName: "w-[15%]",
     render: (date) => <DateWithTooltip value={date} />,
+    sortable: true,
   },
 ]

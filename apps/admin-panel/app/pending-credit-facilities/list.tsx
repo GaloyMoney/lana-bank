@@ -14,6 +14,8 @@ import {
   PendingCreditFacilityStatus,
   PendingCreditFacilityCollateralizationState,
   PendingCreditFacilitiesFilter,
+  PendingCreditFacilitiesSort,
+  SortDirection,
   usePendingCreditFacilitiesQuery,
 } from "@/lib/graphql/generated"
 
@@ -23,10 +25,11 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
-  query PendingCreditFacilities($first: Int!, $after: String, $filter: PendingCreditFacilitiesFilter) {
-    pendingCreditFacilities(first: $first, after: $after, filter: $filter) {
+  query PendingCreditFacilities($first: Int!, $after: String, $sort: PendingCreditFacilitiesSort, $filter: PendingCreditFacilitiesFilter) {
+    pendingCreditFacilities(first: $first, after: $after, sort: $sort, filter: $filter) {
       edges {
         cursor
         node {
@@ -55,11 +58,13 @@ gql`
 
 const PendingCreditFacilities = () => {
   const t = useTranslations("PendingCreditFacilities")
+  const [sortBy, setSortBy] = useState<PendingCreditFacilitiesSort | null>(null)
   const [filter, setFilter] = useState<PendingCreditFacilitiesFilter | null>(null)
 
   const { data, loading, error, fetchMore } = usePendingCreditFacilitiesQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
       filter,
     },
   })
@@ -76,6 +81,12 @@ const PendingCreditFacilities = () => {
         navigateTo={(pending) =>
           `/pending-credit-facilities/${pending.pendingCreditFacilityId}`
         }
+        onSort={(column, direction) => {
+          setSortBy({
+            by: camelToScreamingSnake(column) as PendingCreditFacilitiesSort["by"],
+            direction: direction as SortDirection,
+          })
+        }}
         onFilter={(filters) => {
           const f = filters as PendingCreditFacilitiesFilter
           setFilter(Object.keys(f).length > 0 ? f : null)
@@ -125,5 +136,6 @@ const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] =>
     label: t("table.headers.createdAt"),
     labelClassName: "w-[10%]",
     render: (date) => <DateWithTooltip value={date} />,
+    sortable: true,
   },
 ]
