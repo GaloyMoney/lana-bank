@@ -154,6 +154,7 @@ report_jobs:
   - norm: nrp_51
     id: "01_saldo_cuenta"
     friendly_name: "saldo_cuenta"
+    supports_as_of: true
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_saldo_cuenta

@@ -53,11 +53,18 @@ class BaseTableFetcher(ABC):
     """Interface for fetching tabular data from a data source."""
 
     @abstractmethod
-    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+    def fetch_table_contents(
+        self,
+        table_name: str,
+        as_of_date: str | None = None,
+        supports_as_of: bool = False,
+    ) -> TabularReportContents:
         """Fetch table contents and return them as TabularReportContents.
 
         Args:
             table_name: Name of the table to fetch.
+            as_of_date: Optional date string to filter daily tables.
+            supports_as_of: Whether this report uses daily tables.
 
         Returns:
             TabularReportContents with field names and records.
@@ -89,16 +96,32 @@ class BigQueryTableFetcher(BaseTableFetcher):
             project=self.project_id, credentials=credentials
         )
 
-    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+    def fetch_table_contents(
+        self,
+        table_name: str,
+        as_of_date: str | None = None,
+        supports_as_of: bool = False,
+    ) -> TabularReportContents:
         """Fetch all rows from a BigQuery table.
 
         Args:
             table_name: Name of the table (without dataset prefix).
+            as_of_date: Optional date string to filter daily tables.
+            supports_as_of: Whether this report uses daily tables.
 
         Returns:
             TabularReportContents with field names and records.
         """
-        query = f"SELECT * FROM `{self.project_id}.{self.dataset}.{table_name}`;"
+        if supports_as_of:
+            daily_table = f"{table_name}_daily"
+            fqn = f"`{self.project_id}.{self.dataset}.{daily_table}`"
+            if as_of_date:
+                query = f"SELECT * EXCEPT(as_of_date) FROM {fqn} WHERE as_of_date = '{as_of_date}';"
+            else:
+                query = f"SELECT * EXCEPT(as_of_date) FROM {fqn} WHERE as_of_date = (SELECT MAX(as_of_date) FROM {fqn});"
+        else:
+            query = f"SELECT * FROM `{self.project_id}.{self.dataset}.{table_name}`;"
+
         query_job = self._bq_client.query(query)
         rows = query_job.result()
 
@@ -169,6 +192,7 @@ def load_report_jobs_from_yaml(
                 id=report_job["id"],
                 friendly_name=report_job["friendly_name"],
                 file_output_configs=output_configs,
+                supports_as_of=report_job.get("supports_as_of", False),
             )
         )
 
