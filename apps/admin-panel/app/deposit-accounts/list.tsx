@@ -1,11 +1,17 @@
 "use client"
 
+import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { DepositAccountStatusBadge } from "./status-badge"
 
-import { DepositAccount, useDepositAccountsQuery } from "@/lib/graphql/generated"
+import {
+  DepositAccount,
+  DepositAccountStatus,
+  DepositAccountsFilter,
+  useDepositAccountsQuery,
+} from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
@@ -32,8 +38,8 @@ gql`
     }
   }
 
-  query DepositAccounts($first: Int!, $after: String) {
-    depositAccounts(first: $first, after: $after) {
+  query DepositAccounts($first: Int!, $after: String, $filter: DepositAccountsFilter) {
+    depositAccounts(first: $first, after: $after, filter: $filter) {
       pageInfo {
         hasPreviousPage
         hasNextPage
@@ -52,9 +58,12 @@ gql`
 
 const DepositAccounts = () => {
   const t = useTranslations("DepositAccounts.table")
+  const [filter, setFilter] = useState<DepositAccountsFilter | null>(null)
+
   const { data, loading, error, fetchMore } = useDepositAccountsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      filter,
     },
   })
 
@@ -68,6 +77,10 @@ const DepositAccounts = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(depositAccount) => `/deposit-accounts/${depositAccount.publicId}`}
+        onFilter={(filters) => {
+          const f = filters as DepositAccountsFilter
+          setFilter(Object.keys(f).length > 0 ? f : null)
+        }}
       />
     </div>
   )
@@ -100,5 +113,6 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<DepositAccount>[
     key: "status",
     label: t("headers.status"),
     render: (status) => <DepositAccountStatusBadge status={status} />,
+    filterValues: Object.values(DepositAccountStatus),
   },
 ]
