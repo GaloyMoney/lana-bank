@@ -1402,6 +1402,16 @@ export type DepositsFilter = {
   status?: InputMaybe<DepositStatus>;
 };
 
+export type DepositsSort = {
+  by?: DepositsSortBy;
+  direction?: SortDirection;
+};
+
+export enum DepositsSortBy {
+  Amount = 'AMOUNT',
+  CreatedAt = 'CREATED_AT'
+}
+
 export type DisbursalApprovalConcludedPayload = {
   __typename?: 'DisbursalApprovalConcludedPayload';
   disbursal: CreditFacilityDisbursal;
@@ -2775,6 +2785,7 @@ export type QueryDepositsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<DepositsFilter>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<DepositsSort>;
 };
 
 
@@ -4230,6 +4241,7 @@ export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, deposi
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<DepositsSort>;
   filter?: InputMaybe<DepositsFilter>;
 }>;
 
@@ -9062,8 +9074,8 @@ export type CreateDepositMutationHookResult = ReturnType<typeof useCreateDeposit
 export type CreateDepositMutationResult = Apollo.MutationResult<CreateDepositMutation>;
 export type CreateDepositMutationOptions = Apollo.BaseMutationOptions<CreateDepositMutation, CreateDepositMutationVariables>;
 export const DepositsDocument = gql`
-    query Deposits($first: Int!, $after: String, $filter: DepositsFilter) {
-  deposits(first: $first, after: $after, filter: $filter) {
+    query Deposits($first: Int!, $after: String, $sort: DepositsSort, $filter: DepositsFilter) {
+  deposits(first: $first, after: $after, sort: $sort, filter: $filter) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -9094,6 +9106,7 @@ export const DepositsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *      filter: // value for 'filter'
  *   },
  * });

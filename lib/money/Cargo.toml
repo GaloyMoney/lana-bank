@@ -13,8 +13,10 @@ tracing-utils.workspace = true
 
 async-graphql = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
+sqlx = { workspace = true, optional = true }
 
 [features]
 fail-on-warnings = []
 graphql = ["dep:async-graphql"]
 json-schema = ["dep:schemars"]
+sqlx = ["dep:sqlx"]
