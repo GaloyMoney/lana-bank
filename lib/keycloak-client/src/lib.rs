@@ -26,6 +26,7 @@ impl KeycloakClient {
     }
 
     fn get_client(&self) -> KeycloakAdmin<KeycloakServiceAccountAdminTokenRetriever> {
+        let _ = rustls::crypto::ring::default_provider().install_default();
         let http_client = Client::builder()
             .default_headers(tracing_utils::http::inject_trace_reqwest())
             .build()

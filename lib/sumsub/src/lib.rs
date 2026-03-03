@@ -34,6 +34,7 @@ pub struct SumsubClient {
 
 impl SumsubClient {
     pub fn new(config: &SumsubConfig) -> Self {
+        let _ = rustls::crypto::ring::default_provider().install_default();
         Self {
             client: ReqwestClient::builder()
                 .use_rustls_tls()

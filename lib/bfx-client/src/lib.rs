@@ -16,6 +16,7 @@ pub struct BfxClient {
 
 impl BfxClient {
     pub fn new() -> Self {
+        let _ = rustls::crypto::ring::default_provider().install_default();
         BfxClient {
             client: ReqwestClient::builder()
                 .use_rustls_tls()

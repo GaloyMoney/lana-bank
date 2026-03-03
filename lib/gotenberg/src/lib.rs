@@ -24,6 +24,7 @@ pub struct GotenbergClient {
 impl GotenbergClient {
     /// Create a new Gotenberg client
     pub fn new(config: GotenbergConfig) -> Self {
+        let _ = rustls::crypto::ring::default_provider().install_default();
         let client = reqwest::Client::builder()
             .default_headers(tracing_utils::http::inject_trace_reqwest())
             .build()
