@@ -32,7 +32,7 @@ use std::future::Future;
 pub async fn run<S>(
     config: AdminServerConfig,
     app: LanaApp,
-    enabled_features: Vec<String>,
+    build_info: impl Into<graphql::BuildInfo>,
     signal: S,
 ) -> anyhow::Result<()>
 where
@@ -46,8 +46,7 @@ where
     tokio::spawn(async move {
         decoder.refresh_keys_periodically().await;
     });
-    let build_info = graphql::BuildInfo::new(enabled_features);
-    let schema = graphql::schema(Some(app.clone()), build_info);
+    let schema = graphql::schema(Some(app.clone()), build_info.into());
 
     let cors = CorsLayer::permissive();
 

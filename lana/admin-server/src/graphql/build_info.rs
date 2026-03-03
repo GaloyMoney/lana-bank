@@ -9,11 +9,16 @@ pub struct BuildInfo {
 }
 
 impl BuildInfo {
-    pub fn new(enabled_features: Vec<String>) -> Self {
+    pub fn new(
+        version: String,
+        build_profile: String,
+        build_target: String,
+        enabled_features: Vec<String>,
+    ) -> Self {
         Self {
-            version: env!("BUILD_VERSION").to_string(),
-            build_profile: env!("BUILD_PROFILE").to_string(),
-            build_target: env!("BUILD_TARGET").to_string(),
+            version,
+            build_profile,
+            build_target,
             enabled_features,
         }
     }
@@ -21,6 +26,11 @@ impl BuildInfo {
 
 impl Default for BuildInfo {
     fn default() -> Self {
-        Self::new(Vec::new())
+        Self::new(
+            "unknown".to_string(),
+            "unknown".to_string(),
+            "unknown".to_string(),
+            Vec::new(),
+        )
     }
 }
