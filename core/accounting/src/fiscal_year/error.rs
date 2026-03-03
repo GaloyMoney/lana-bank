@@ -45,13 +45,13 @@ impl ErrorSeverity for FiscalYearError {
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartOfAccountsError(e) => e.severity(),
-            Self::LastMonthNotClosed => Level::ERROR,
+            Self::LastMonthNotClosed => Level::WARN,
             Self::AllMonthsAlreadyClosed => Level::ERROR,
             Self::AlreadyOpened => Level::ERROR,
             Self::FiscalYearNotInitializedForChart(_) => Level::ERROR,
             Self::FiscalYearWithInvalidOpenedAsOf(_) => Level::ERROR,
             Self::InvalidYearString(_) => Level::WARN,
-            Self::MonthHasNotEnded => Level::ERROR,
+            Self::MonthHasNotEnded => Level::WARN,
         }
     }
 }
