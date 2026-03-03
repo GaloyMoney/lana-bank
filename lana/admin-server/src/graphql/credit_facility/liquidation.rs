@@ -2,6 +2,7 @@ use async_graphql::*;
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 pub use lana_app::credit::Liquidation as DomainLiquidation;
+pub use lana_app::credit::LiquidationsFilters as DomainLiquidationsFilters;
 
 use super::Collateral;
 
@@ -81,4 +82,9 @@ impl Liquidation {
             .expect("Collateral not found");
         Ok(collateral)
     }
+}
+
+#[derive(InputObject)]
+pub struct LiquidationsFilter {
+    pub completed: Option<bool>,
 }

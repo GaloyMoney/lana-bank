@@ -1798,6 +1798,10 @@ export type LiquidationProceedsReceived = {
   ledgerTxId: Scalars['UUID']['output'];
 };
 
+export type LiquidationsFilter = {
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type Loan = {
   __typename?: 'Loan';
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
@@ -2832,6 +2836,7 @@ export type QueryLiquidationArgs = {
 
 export type QueryLiquidationsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<LiquidationsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -4522,6 +4527,7 @@ export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', id: st
 export type LiquidationsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<LiquidationsFilter>;
 }>;
 
 
@@ -10190,8 +10196,8 @@ export type CollateralRecordProceedsFromLiquidationMutationHookResult = ReturnTy
 export type CollateralRecordProceedsFromLiquidationMutationResult = Apollo.MutationResult<CollateralRecordProceedsFromLiquidationMutation>;
 export type CollateralRecordProceedsFromLiquidationMutationOptions = Apollo.BaseMutationOptions<CollateralRecordProceedsFromLiquidationMutation, CollateralRecordProceedsFromLiquidationMutationVariables>;
 export const LiquidationsDocument = gql`
-    query Liquidations($first: Int!, $after: String) {
-  liquidations(first: $first, after: $after) {
+    query Liquidations($first: Int!, $after: String, $filter: LiquidationsFilter) {
+  liquidations(first: $first, after: $after, filter: $filter) {
     edges {
       node {
         ...LiquidationListFields
@@ -10222,6 +10228,7 @@ export const LiquidationsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */

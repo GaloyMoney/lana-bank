@@ -92,13 +92,21 @@ where
 
     pub async fn list_liquidations(
         &self,
-        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByIdCursor>,
+        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsCursor>,
+        filter: LiquidationsFilters,
     ) -> Result<
-        es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsByIdCursor>,
+        es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsCursor>,
         LiquidationError,
     > {
         self.liquidations
-            .list_by_id(query, es_entity::ListDirection::Descending)
+            .list_for_filters(
+                filter,
+                es_entity::Sort {
+                    by: LiquidationsSortBy::CreatedAt,
+                    direction: es_entity::ListDirection::Descending,
+                },
+                query,
+            )
             .await
     }
 
@@ -137,6 +145,7 @@ where
         ),
         completed(
             ty = "bool",
+            list_for,
             create(persist = false),
             update(accessor = "is_completed()")
         )
@@ -162,6 +171,20 @@ impl LiquidationRepo {
         Self {
             pool: pool.clone(),
             clock,
+        }
+    }
+}
+
+impl From<(LiquidationsSortBy, &Liquidation)> for liquidation_cursor::LiquidationsCursor {
+    fn from(liquidation_with_sort: (LiquidationsSortBy, &Liquidation)) -> Self {
+        let (sort, liquidation) = liquidation_with_sort;
+        match sort {
+            LiquidationsSortBy::CreatedAt => {
+                liquidation_cursor::LiquidationsByCreatedAtCursor::from(liquidation).into()
+            }
+            LiquidationsSortBy::Id => {
+                liquidation_cursor::LiquidationsByIdCursor::from(liquidation).into()
+            }
         }
     }
 }

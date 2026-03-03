@@ -1809,6 +1809,10 @@ type LiquidationProceedsReceived {
 	ledgerTxId: UUID!
 }
 
+input LiquidationsFilter {
+	completed: Boolean
+}
+
 type LoanAgreement {
 	id: ID!
 	loanAgreementId: UUID!
@@ -2303,7 +2307,7 @@ type Query {
 	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String, filter: DisbursalsFilter): CreditFacilityDisbursalConnection!
 	liquidation(id: UUID!): Liquidation
-	liquidations(first: Int!, after: String): LiquidationConnection!
+	liquidations(first: Int!, after: String, filter: LiquidationsFilter): LiquidationConnection!
 	custodians(first: Int!, after: String): CustodianConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!

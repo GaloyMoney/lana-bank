@@ -41,7 +41,7 @@ pub use {
     liquidation::Liquidation,
     primitives::*,
     public::CoreCreditCollateralEvent,
-    repo::liquidation_cursor,
+    repo::{LiquidationsFilters, LiquidationsSortBy, liquidation_cursor},
 };
 
 #[cfg(feature = "json-schema")]
@@ -490,9 +490,10 @@ where
     pub async fn list_liquidations(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByIdCursor>,
+        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsCursor>,
+        filter: LiquidationsFilters,
     ) -> Result<
-        es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsByIdCursor>,
+        es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsCursor>,
         CollateralError,
     > {
         self.authz
@@ -503,7 +504,7 @@ where
             )
             .await?;
 
-        Ok(self.repo.list_liquidations(query).await?)
+        Ok(self.repo.list_liquidations(query, filter).await?)
     }
 }
 

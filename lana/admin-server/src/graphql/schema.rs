@@ -17,7 +17,9 @@ use lana_app::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
-    credit::LiquidationsByIdCursor,
+    credit::{
+        LiquidationsSortBy as DomainLiquidationsSortBy, liquidation_cursor::LiquidationsCursor,
+    },
 };
 
 use crate::primitives::*;
@@ -602,17 +604,25 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<LiquidationsByIdCursor, Liquidation, EmptyFields, EmptyFields>,
-    > {
+        filter: Option<LiquidationsFilter>,
+    ) -> async_graphql::Result<Connection<LiquidationsCursor, Liquidation, EmptyFields, EmptyFields>>
+    {
+        let filter = DomainLiquidationsFilters {
+            completed: filter.and_then(|f| f.completed),
+            ..Default::default()
+        };
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            LiquidationsByIdCursor,
+        list_with_combo_cursor!(
+            LiquidationsCursor,
             Liquidation,
+            DomainLiquidationsSortBy::CreatedAt,
             ctx,
             after,
             first,
-            |query| app.credit().collaterals().list_liquidations(sub, query)
+            |query| app
+                .credit()
+                .collaterals()
+                .list_liquidations(sub, query, filter)
         )
     }
 

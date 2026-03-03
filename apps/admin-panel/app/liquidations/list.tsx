@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -14,7 +16,11 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
 import { PublicIdBadge } from "@/components/public-id-badge"
-import { Liquidation, useLiquidationsQuery } from "@/lib/graphql/generated"
+import {
+  Liquidation,
+  LiquidationsFilter,
+  useLiquidationsQuery,
+} from "@/lib/graphql/generated"
 
 gql`
   fragment LiquidationListFields on Liquidation {
@@ -32,8 +38,8 @@ gql`
     }
   }
 
-  query Liquidations($first: Int!, $after: String) {
-    liquidations(first: $first, after: $after) {
+  query Liquidations($first: Int!, $after: String, $filter: LiquidationsFilter) {
+    liquidations(first: $first, after: $after, filter: $filter) {
       edges {
         node {
           ...LiquidationListFields
@@ -52,14 +58,18 @@ gql`
 
 const LiquidationsList = () => {
   const t = useTranslations("Liquidations")
+  const [filter, setFilter] = useState<LiquidationsFilter | null>(null)
+
   const { data, loading, error, fetchMore } = useLiquidationsQuery({
-    variables: { first: DEFAULT_PAGESIZE },
+    variables: { first: DEFAULT_PAGESIZE, filter },
   })
 
   const columns: Column<Liquidation>[] = [
     {
       key: "completed",
       label: t("table.headers.status"),
+      filterValues: [true, false],
+      filterLabel: (completed) => <LiquidationStatusBadge completed={completed} plain />,
       render: (completed) => <LiquidationStatusBadge completed={completed} />,
     },
     {
@@ -101,6 +111,10 @@ const LiquidationsList = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(liquidation) => `/liquidations/${liquidation.liquidationId}`}
+        onFilter={(filters) => {
+          const f = filters as LiquidationsFilter
+          setFilter(Object.keys(f).length > 0 ? f : null)
+        }}
       />
     </div>
   )
