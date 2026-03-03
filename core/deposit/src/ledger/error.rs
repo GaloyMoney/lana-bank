@@ -50,6 +50,9 @@ impl ErrorSeverity for DepositLedgerError {
             Self::CalaBalance(_) => Level::ERROR,
             Self::CalaTransaction(_) => Level::ERROR,
             Self::CalaEntry(_) => Level::ERROR,
+            Self::CalaVelocity(cala_ledger::velocity::error::VelocityError::Enforcement(_)) => {
+                Level::WARN
+            }
             Self::CalaVelocity(_) => Level::ERROR,
             Self::ConversionError(e) => e.severity(),
             Self::MissingTxMetadata => Level::WARN,

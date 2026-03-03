@@ -26,6 +26,9 @@ impl ErrorSeverity for ChartLedgerError {
             Self::Sqlx(_) => Level::ERROR,
             Self::CalaLedger(_) => Level::ERROR,
             Self::CalaAccountSet(_) => Level::ERROR,
+            Self::Velocity(cala_ledger::velocity::error::VelocityError::Enforcement(_)) => {
+                Level::WARN
+            }
             Self::Velocity(_) => Level::ERROR,
             Self::CalaBalance(_) => Level::ERROR,
             Self::CalaAccount(_) => Level::ERROR,

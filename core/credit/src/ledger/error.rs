@@ -42,6 +42,9 @@ impl ErrorSeverity for CreditLedgerError {
             Self::CalaTxTemplate(_) => Level::ERROR,
             Self::CalaBalance(_) => Level::ERROR,
             Self::ConversionError(e) => e.severity(),
+            Self::CalaVelocity(cala_ledger::velocity::error::VelocityError::Enforcement(_)) => {
+                Level::WARN
+            }
             Self::CalaVelocity(_) => Level::ERROR,
             Self::ChartLookupError(e) => e.severity(),
             Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,
