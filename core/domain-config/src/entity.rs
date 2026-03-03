@@ -42,7 +42,6 @@ pub struct DomainConfig {
     pub config_type: ConfigType,
     pub visibility: Visibility,
     pub encrypted: bool,
-    pub default_value: Option<serde_json::Value>,
     events: EntityEvents<DomainConfigEvent>,
 }
 
@@ -231,28 +230,18 @@ impl DomainConfig {
         }
     }
 
-    /// Returns the current stored value from the event stream.
+    /// Returns the current stored value from the event stream,
+    /// falling back to the default from the Initialized event if nothing is stored.
     pub fn current_stored_value(&self) -> Option<DomainConfigValue> {
         self.events.iter_all().rev().find_map(|event| match event {
             DomainConfigEvent::KeyRotated { value } => {
                 Some(DomainConfigValue::Encrypted(value.clone()))
             }
             DomainConfigEvent::Updated { value } => Some(value.clone()),
-            _ => None,
+            DomainConfigEvent::Initialized { default_value, .. } => default_value
+                .as_ref()
+                .map(|v| DomainConfigValue::plain(v.clone())),
         })
-    }
-
-    pub fn effective_value(&self) -> serde_json::Value {
-        if let Some(stored) = self.current_stored_value() {
-            return stored.plain_or_null();
-        }
-        // incase a default(plaintext) is set for encrypted configs
-        if self.encrypted {
-            return serde_json::Value::Null;
-        }
-        self.default_value
-            .clone()
-            .unwrap_or(serde_json::Value::Null)
     }
 
     pub(crate) fn assert_compatible<C: ConfigSpec>(entity: &Self) -> Result<(), DomainConfigError> {
@@ -326,7 +315,6 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
                     config_type,
                     visibility,
                     encrypted,
-                    default_value,
                     ..
                 } => {
                     builder = builder
@@ -334,8 +322,7 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
                         .key(key.clone())
                         .config_type(*config_type)
                         .visibility(*visibility)
-                        .encrypted(*encrypted)
-                        .default_value(default_value.clone());
+                        .encrypted(*encrypted);
                 }
                 DomainConfigEvent::Updated { .. } => {}
                 DomainConfigEvent::KeyRotated { .. } => {}
