@@ -1,10 +1,3 @@
-{{
-    config(
-        materialized="table",
-        unique_key=["journal_id", "account_id", "currency", "effective", "version"],
-    )
-}}
-
 with
     raw as (select * from {{ source("lana", "cala_cumulative_effective_balances") }}),
 
