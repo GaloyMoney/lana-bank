@@ -12,3 +12,9 @@ models:
       - name: currency
         tests:
           - not_null
+      - name: settled_cr
+        tests:
+          - not_null
+      - name: settled_dr
+        tests:
+          - not_null
