@@ -492,6 +492,7 @@ async fn seed_registered(repo: &DomainConfigRepo) -> Result<(), DomainConfigErro
                 spec.visibility,
                 spec.encrypted,
             )
+            .default_value((spec.default_json)())
             .build()?;
         match repo.create(new).await {
             Ok(_) => {}

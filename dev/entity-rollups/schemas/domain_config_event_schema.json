@@ -94,6 +94,16 @@
         "config_type": {
           "$ref": "#/$defs/ConfigType"
         },
+        "default_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DomainConfigValue"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "encrypted": {
           "type": "boolean"
         },

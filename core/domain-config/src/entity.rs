@@ -24,6 +24,7 @@ pub enum DomainConfigEvent {
         config_type: ConfigType,
         visibility: Visibility,
         encrypted: bool,
+        default_value: Option<DomainConfigValue>,
     },
     Updated {
         value: DomainConfigValue,
@@ -229,14 +230,15 @@ impl DomainConfig {
         }
     }
 
-    /// Returns the current stored value from the event stream.
+    /// Returns the current stored value from the event stream,
+    /// falling back to the default from the Initialized event if nothing is stored.
     pub fn current_stored_value(&self) -> Option<DomainConfigValue> {
         self.events.iter_all().rev().find_map(|event| match event {
             DomainConfigEvent::KeyRotated { value } => {
                 Some(DomainConfigValue::Encrypted(value.clone()))
             }
             DomainConfigEvent::Updated { value } => Some(value.clone()),
-            _ => None,
+            DomainConfigEvent::Initialized { default_value, .. } => default_value.clone(),
         })
     }
 
@@ -337,6 +339,8 @@ pub struct NewDomainConfig {
     pub(super) visibility: Visibility,
     #[builder(default)]
     pub(super) encrypted: bool,
+    #[builder(default)]
+    pub(super) default_value: Option<DomainConfigValue>,
 }
 
 impl NewDomainConfig {
@@ -372,6 +376,7 @@ impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
             config_type: self.config_type,
             visibility: self.visibility,
             encrypted: self.encrypted,
+            default_value: self.default_value,
         }];
 
         EntityEvents::init(self.id, events)

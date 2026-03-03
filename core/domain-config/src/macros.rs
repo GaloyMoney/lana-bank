@@ -36,6 +36,9 @@ macro_rules! __define_config_spec {
                 config_type: <$kind as $crate::ValueKind>::TYPE,
                 encrypted: $encrypted,
                 validate_json: <$name as $crate::ConfigSpec>::validate_json,
+                default_json: || <$name as $crate::ConfigSpec>::default_value()
+                    .and_then(|v| <$kind as $crate::ValueKind>::encode(&v).ok())
+                    .map($crate::DomainConfigValue::plain),
             }
         }
     };
@@ -71,6 +74,7 @@ macro_rules! __define_config_spec {
                 config_type: <$kind as $crate::ValueKind>::TYPE,
                 encrypted: $encrypted,
                 validate_json: <$name as $crate::ConfigSpec>::validate_json,
+                default_json: || None,
             }
         }
     };
@@ -80,6 +84,13 @@ macro_rules! __define_config_spec {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __with_encrypted {
+    // encrypted: true with default — not allowed
+    (
+        [$($prefix:tt)*]
+        encrypted: true; default: $($rest:tt)*
+    ) => {
+        ::core::compile_error!("Encrypted domain configs cannot have a `default:` value");
+    };
     // encrypted: true
     (
         [$($prefix:tt)*]

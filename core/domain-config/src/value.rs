@@ -23,7 +23,7 @@ impl DomainConfigValue {
     }
 
     /// Create a new plaintext value.
-    pub(crate) fn plain(value: serde_json::Value) -> Self {
+    pub fn plain(value: serde_json::Value) -> Self {
         Self::Plain { value }
     }
 
