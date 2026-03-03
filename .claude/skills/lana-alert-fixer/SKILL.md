@@ -17,7 +17,8 @@ Parse the user-provided context for:
 - **Error messages** (the actual error text from logs or alert descriptions)
 - **Error type names** (e.g., `CreditFacilityError`, `DepositError`)
 - **Operation names** (e.g., `approve_credit_facility`, `complete_deposit`)
-- **Alert source** (Honeycomb, PagerDuty, Grafana, dashboard links)
+
+The alert context may come as free-text descriptions or as structured span/trace attributes. When structured data is present, extract useful fields such as exception messages, file paths, line numbers, module names, operation/span names, targets, and severity levels — these can directly guide the code search in Step 2.
 
 Summarize what error is firing and present it to the user before proceeding.
 
