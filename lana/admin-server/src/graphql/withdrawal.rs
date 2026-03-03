@@ -8,7 +8,11 @@ use super::{
 };
 
 pub use lana_app::{
-    deposit::{Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor},
+    deposit::{
+        Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsCursor,
+        WithdrawalsFilters as DomainWithdrawalsFilters,
+        WithdrawalsSortBy as DomainWithdrawalsSortBy,
+    },
     public_id::PublicId,
 };
 
@@ -130,3 +134,8 @@ pub struct WithdrawalRevertInput {
     pub withdrawal_id: UUID,
 }
 crate::mutation_payload! { WithdrawalRevertPayload, withdrawal: Withdrawal }
+
+#[derive(InputObject)]
+pub struct WithdrawalsFilter {
+    pub status: Option<WithdrawalStatus>,
+}
