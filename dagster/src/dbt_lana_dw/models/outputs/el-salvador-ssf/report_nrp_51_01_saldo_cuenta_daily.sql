@@ -2,7 +2,6 @@
     config(
         materialized="table",
         partition_by={"field": "as_of_date", "data_type": "date"},
-        cluster_by=["id_codigo_cuenta"],
     )
 }}
 
