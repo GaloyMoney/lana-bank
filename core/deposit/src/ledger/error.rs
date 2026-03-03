@@ -38,12 +38,27 @@ pub enum DepositLedgerError {
     JournalIdMismatch,
 }
 
+impl DepositLedgerError {
+    pub fn account_exists(&self) -> bool {
+        matches!(
+            self,
+            Self::CalaAccount(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists,)
+        )
+    }
+}
+
 impl ErrorSeverity for DepositLedgerError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
             Self::CalaLedger(_) => Level::ERROR,
-            Self::CalaAccount(_) => Level::ERROR,
+            Self::CalaAccount(_) => {
+                if self.account_exists() {
+                    Level::INFO
+                } else {
+                    Level::ERROR
+                }
+            }
             Self::AccountSetError(_) => Level::ERROR,
             Self::CalaJournal(_) => Level::ERROR,
             Self::CalaTxTemplate(_) => Level::ERROR,
