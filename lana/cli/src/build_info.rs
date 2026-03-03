@@ -48,3 +48,17 @@ impl Default for BuildInfo {
         Self::get()
     }
 }
+
+// Orphan rules prevent `impl From<BuildInfo> for admin_server::graphql::BuildInfo`
+// since neither the trait nor the target type is local, so we implement `Into` directly.
+#[allow(clippy::from_over_into)]
+impl Into<admin_server::graphql::BuildInfo> for BuildInfo {
+    fn into(self) -> admin_server::graphql::BuildInfo {
+        admin_server::graphql::BuildInfo::new(
+            self.version,
+            self.build_profile,
+            self.build_target,
+            self.enabled_features,
+        )
+    }
+}
