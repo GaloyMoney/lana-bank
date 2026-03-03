@@ -36,7 +36,7 @@ pub struct ChartRef(pub &'static str);
 pub const CHART_REF: ChartRef = ChartRef(lana_app::accounting_init::constants::CHART_REF);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct BalanceSheetAccountSetKey {
+pub struct BalanceSheetAccountKey {
     pub id: LedgerAccountId,
     pub as_of: NaiveDate,
 }
@@ -528,7 +528,7 @@ impl Loader<LedgerAccountId> for LanaLoader {
     }
 }
 
-impl Loader<BalanceSheetAccountSetKey> for LanaLoader {
+impl Loader<BalanceSheetAccountKey> for LanaLoader {
     type Value = BalanceSheetAccount;
     type Error = Arc<lana_app::accounting::error::CoreAccountingError>;
 
@@ -542,10 +542,7 @@ impl Loader<BalanceSheetAccountSetKey> for LanaLoader {
         &self,
         keys: &[BalanceSheetAccountKey],
     ) -> Result<HashMap<BalanceSheetAccountKey, BalanceSheetAccount>, Self::Error> {
-        let mut keys_by_scope: HashMap<
-            (NaiveDate, Option<NaiveDate>),
-            Vec<BalanceSheetAccountSetKey>,
-        > = HashMap::new();
+        let mut keys_by_scope: HashMap<NaiveDate, Vec<BalanceSheetAccountKey>> = HashMap::new();
         for key in keys {
             keys_by_scope.entry(key.as_of).or_default().push(*key);
         }

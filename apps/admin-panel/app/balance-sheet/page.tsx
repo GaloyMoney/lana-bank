@@ -109,12 +109,8 @@ gql`
           }
         }
         children {
-<<<<<<< HEAD
           balanceSheetAccountId
-=======
-          balanceSheetAccountSetId
           ledgerAccountId
->>>>>>> db69a3b6b (fix(admin-panel): use ledgerAccountId in balance sheet links)
           name
           code
           balance {

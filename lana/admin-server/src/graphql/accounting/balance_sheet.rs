@@ -7,7 +7,7 @@ use lana_app::balance_sheet::{
 
 use super::{AccountCode, LedgerAccountBalanceByCurrency};
 use crate::{
-    graphql::loader::{BalanceSheetAccountSetKey, LanaDataLoader},
+    graphql::loader::{BalanceSheetAccountKey, LanaDataLoader},
     primitives::*,
 };
 
@@ -56,7 +56,7 @@ impl BalanceSheet {
             .category_ids
             .iter()
             .copied()
-            .map(|id| BalanceSheetAccountSetKey {
+            .map(|id| BalanceSheetAccountKey {
                 id,
                 as_of: self.as_of,
             })
@@ -72,7 +72,7 @@ impl BalanceSheet {
 
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
-pub struct BalanceSheetAccountSet {
+pub struct BalanceSheetAccount {
     balance_sheet_account_id: ID,
     ledger_account_id: UUID,
     code: Option<AccountCode>,
@@ -110,7 +110,7 @@ impl BalanceSheetAccount {
             .children_ids
             .iter()
             .copied()
-            .map(|id| BalanceSheetAccountSetKey {
+            .map(|id| BalanceSheetAccountKey {
                 id,
                 as_of: self.as_of,
             })
