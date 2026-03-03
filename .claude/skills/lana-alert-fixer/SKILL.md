@@ -11,20 +11,9 @@ Structured workflow for investigating an alert, determining if it's a false posi
 
 $ARGUMENTS
 
-## Step 1: Understand the Alert
+## Step 1: Find the Code Path
 
-Parse the user-provided context for:
-- **Error messages** (the actual error text from logs or alert descriptions)
-- **Error type names** (e.g., `CreditFacilityError`, `DepositError`)
-- **Operation names** (e.g., `approve_credit_facility`, `complete_deposit`)
-
-The alert context may come as free-text descriptions or as structured span/trace attributes. When structured data is present, extract useful fields such as exception messages, file paths, line numbers, module names, operation/span names, targets, and severity levels — these can directly guide the code search in Step 2.
-
-Summarize what error is firing and present it to the user before proceeding.
-
-If the context is too vague to investigate (no error messages, no error types, no operation names), ask the user for more details.
-
-## Step 2: Find the Code Path
+First, understand the user-provided alert context — it may come as free-text descriptions or as structured span/trace attributes (exception messages, file paths, line numbers, module names, operation names). If the context is too vague to investigate, ask the user for more details before searching.
 
 Using the error messages, error types, and operation names from the alert context:
 
@@ -38,7 +27,7 @@ Key files to check:
 - `core/<module>/src/<submodule>/mod.rs` — use cases that call the failing operation
 - `lib/tracing-utils/src/error_severity.rs` — the `ErrorSeverity` trait definition
 
-## Step 3: Classify the Error
+## Step 2: Classify the Error
 
 Based on the investigation, classify as:
 
@@ -59,11 +48,11 @@ The error indicates something is actually broken. Indicators:
 
 Present your classification and rationale to the user before applying any fix.
 
-## Step 4: Apply the Fix
+## Step 3: Apply the Fix
 
 ### For False Positives: Lower the Severity
 
-Change the error variant's severity from `Level::ERROR` to `Level::WARN` in the `impl ErrorSeverity` match arm.
+Change the error variant's severity from `Level::ERROR` to `Level::WARN` or `Level::INFO` in the `impl ErrorSeverity` match arm.
 
 **Simple case** — the entire variant is a false positive:
 ```rust
@@ -91,7 +80,7 @@ Self::WrappedError(e) => e.severity(),
 
 Fix the underlying issue in the application code. The fix depends on the specific problem — it could be a logic fix, a missing state check, an error handling improvement, etc.
 
-## Step 5: Commit
+## Step 4: Commit
 
 Create a local commit with a conventional commit message that explains:
 - **What alert** was firing
@@ -120,6 +109,5 @@ Do NOT push or create a PR — only commit locally.
 ## Constraints
 
 - **Never modify the alerting system or alerting trigger.** The fix is always in the application code — either lowering a severity level or fixing a bug. The alerting trigger (`error.level=ERROR`) must not be changed.
-- **Only lower severity for genuinely false-positive errors.** The investigation in Steps 2-3 must confirm the error is handled gracefully before downgrading. Never blindly silence alerts.
-- **Use the `ErrorSeverity` trait exclusively.** Do not change `tracing::error!` calls to `tracing::warn!`, suppress logging, or work around the severity system in any other way. The `impl ErrorSeverity` match arm is the single correct mechanism.
+- **Only lower severity for genuinely false-positive errors.** The investigation in Steps 1-2 must confirm the error is handled gracefully before downgrading. Never blindly silence alerts.
 - **Commit locally only.** Do not push, create PRs, or trigger CI.
