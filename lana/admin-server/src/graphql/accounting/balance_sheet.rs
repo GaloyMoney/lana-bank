@@ -113,10 +113,7 @@ impl BalanceSheetAccount {
         }
     }
 
-    async fn children(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<BalanceSheetAccount>> {
+    async fn children(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<BalanceSheetAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let keys = self
             .entity
