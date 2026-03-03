@@ -12,16 +12,11 @@ with
         select
             json_value(values, "$.account_id") as account_id,
             json_value(values, "$.currency") as currency,
-            cast(
-                json_value(values, "$.settled.cr_balance") as numeric
-            ) as settled_cr,
-            cast(
-                json_value(values, "$.settled.dr_balance") as numeric
-            ) as settled_dr,
+            cast(json_value(values, "$.settled.cr_balance") as numeric) as settled_cr,
+            cast(json_value(values, "$.settled.dr_balance") as numeric) as settled_dr,
             row_number() over (
                 partition by
-                    json_value(values, "$.account_id"),
-                    json_value(values, "$.currency")
+                    json_value(values, "$.account_id"), json_value(values, "$.currency")
                 order by version desc
             ) as rn
         from {{ ref("stg_account_balances") }}
