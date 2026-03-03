@@ -19,13 +19,14 @@ Using the error messages, error types, and operation names from the alert contex
 
 1. **Find the error type**: Search for the error message text in `error.rs` files or in the code that constructs the error. Identify the error enum and specific variant producing this error.
 2. **Find the `ErrorSeverity` impl**: Locate the `impl ErrorSeverity for XxxError` block in the relevant `error.rs`. Check what severity level the current variant maps to — it should be `Level::ERROR` if it's triggering alerts.
-3. **Find the call site**: Search for `#[instrument]` annotations, function names matching the operation, and use cases that return this error. Read the handler or use case that triggers this error path.
+3. **Find the call site**: Search for `#[instrument]` and `#[record_error_severity]` annotations, function names matching the operation, and use cases that return this error. Read the handler or use case that triggers this error path.
 4. **Understand error handling**: Determine whether the error is caught and handled gracefully (returns a user-friendly response, no data loss) or propagates unhandled.
 
 Key files to check:
 - `core/<module>/src/<submodule>/error.rs` — error enum + `ErrorSeverity` impl
 - `core/<module>/src/<submodule>/mod.rs` — use cases that call the failing operation
 - `lib/tracing-utils/src/error_severity.rs` — the `ErrorSeverity` trait definition
+- `lib/tracing-macros/src/lib.rs` — the `#[record_error_severity]` proc macro that records error severity on spans
 
 ## Step 2: Classify the Error
 
