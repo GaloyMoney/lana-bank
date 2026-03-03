@@ -52,7 +52,7 @@ Present your classification and rationale to the user before applying any fix.
 
 ### For False Positives: Lower the Severity
 
-Change the error variant's severity from `Level::ERROR` to `Level::WARN` or `Level::INFO` in the `impl ErrorSeverity` match arm.
+Change the error variant's severity from `Level::ERROR` to `Level::WARN` or `Level::INFO` in the `impl ErrorSeverity` match arm. This is USUALLY the strategy, since this is a general pattern we follow in the code base.
 
 **Simple case** — the entire variant is a false positive:
 ```rust
@@ -86,28 +86,8 @@ Create a local commit with a conventional commit message that explains:
 - **What alert** was firing
 - **Why** the change was made (false positive rationale or bug description)
 
-Examples:
-```
-fix: downgrade FacilityNotActive severity for business precondition errors
-
-The alert fires when a user attempts an operation on an inactive facility.
-This is a normal business precondition — the API returns an appropriate error
-response and no data is affected. Lowering from ERROR to WARN to stop
-false-positive alerts.
-```
-
-```
-fix: handle race condition in deposit sync that caused duplicate entries
-
-The alert fires due to an unhandled concurrent modification error when two
-sync operations run simultaneously. Added idempotency check to prevent
-duplicate deposit records.
-```
-
-Do NOT push or create a PR — only commit locally.
-
 ## Constraints
 
 - **Never modify the alerting system or alerting trigger.** The fix is always in the application code — either lowering a severity level or fixing a bug. The alerting trigger (`error.level=ERROR`) must not be changed.
 - **Only lower severity for genuinely false-positive errors.** The investigation in Steps 1-2 must confirm the error is handled gracefully before downgrading. Never blindly silence alerts.
-- **Commit locally only.** Do not push, create PRs, or trigger CI.
+- **Commit locally only.** Do not push, create PRs, or trigger CI, unless specifically instructed to do so.
