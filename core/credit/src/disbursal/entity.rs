@@ -304,6 +304,8 @@ pub struct NewDisbursal {
     pub(super) liquidation_date: Option<EffectiveDate>,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
+    #[builder(setter(skip), default)]
+    pub(super) status: DisbursalStatus,
 }
 
 impl NewDisbursalBuilder {

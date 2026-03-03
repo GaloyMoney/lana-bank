@@ -1405,6 +1405,10 @@ export enum DisbursalStatus {
   New = 'NEW'
 }
 
+export type DisbursalsFilter = {
+  status?: InputMaybe<DisbursalStatus>;
+};
+
 export type Disbursed = {
   __typename?: 'Disbursed';
   outstanding: Outstanding;
@@ -2756,6 +2760,7 @@ export type QueryDisbursalByPublicIdArgs = {
 
 export type QueryDisbursalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<DisbursalsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -4269,6 +4274,7 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
 export type DisbursalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<DisbursalsFilter>;
 }>;
 
 
@@ -9160,8 +9166,8 @@ export type CreditFacilityDisbursalInitiateMutationHookResult = ReturnType<typeo
 export type CreditFacilityDisbursalInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursalInitiateMutation>;
 export type CreditFacilityDisbursalInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 export const DisbursalsDocument = gql`
-    query Disbursals($first: Int!, $after: String) {
-  disbursals(first: $first, after: $after) {
+    query Disbursals($first: Int!, $after: String, $filter: DisbursalsFilter) {
+  disbursals(first: $first, after: $after, filter: $filter) {
     edges {
       node {
         id
@@ -9202,6 +9208,7 @@ export const DisbursalsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */

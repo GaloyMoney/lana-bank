@@ -460,10 +460,22 @@ pub enum PendingCreditFacilityStatus {
     Completed,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Default,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum DisbursalStatus {
+    #[default]
     New,
     Approved,
     Denied,
