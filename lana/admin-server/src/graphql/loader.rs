@@ -530,7 +530,7 @@ impl Loader<LedgerAccountId> for LanaLoader {
 }
 
 impl Loader<BalanceSheetAccountSetKey> for LanaLoader {
-    type Value = BalanceSheetAccountSet;
+    type Value = BalanceSheetAccount;
     type Error = Arc<lana_app::accounting::error::CoreAccountingError>;
 
     #[instrument(
@@ -542,7 +542,7 @@ impl Loader<BalanceSheetAccountSetKey> for LanaLoader {
     async fn load(
         &self,
         keys: &[BalanceSheetAccountSetKey],
-    ) -> Result<HashMap<BalanceSheetAccountSetKey, BalanceSheetAccountSet>, Self::Error> {
+    ) -> Result<HashMap<BalanceSheetAccountSetKey, BalanceSheetAccount>, Self::Error> {
         let mut keys_by_scope: HashMap<
             (NaiveDate, Option<NaiveDate>),
             Vec<BalanceSheetAccountSetKey>,
@@ -573,7 +573,7 @@ impl Loader<BalanceSheetAccountSetKey> for LanaLoader {
 
             for key in scoped_keys {
                 if let Some(account) = accounts.get(&key.id).cloned() {
-                    result.insert(key, BalanceSheetAccountSet::new(account, from, until));
+                    result.insert(key, BalanceSheetAccount::new(account, from, until));
                 }
             }
         }

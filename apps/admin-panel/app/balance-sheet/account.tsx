@@ -33,12 +33,12 @@ export const Account = ({ account, currency, depth = 0, layer }: AccountProps) =
   }
 
   const handleRowClick = () => {
-    router.push(`/ledger-accounts/${account.code || account.balanceSheetAccountSetId}`)
+    router.push(`/ledger-accounts/${account.code || account.balanceSheetAccountId}`)
   }
 
   return (
     <TableRow
-      key={account.balanceSheetAccountSetId}
+      key={account.balanceSheetAccountId}
       className="cursor-pointer hover:bg-muted/50"
       onClick={handleRowClick}
     >

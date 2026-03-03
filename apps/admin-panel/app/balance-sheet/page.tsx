@@ -33,7 +33,7 @@ gql`
         ...BtcLedgerBalanceRangeFragment
       }
       categories {
-        balanceSheetAccountSetId
+        balanceSheetAccountId
         name
         code
         balanceRange {
@@ -42,7 +42,7 @@ gql`
           ...BtcLedgerBalanceRangeFragment
         }
         children {
-          balanceSheetAccountSetId
+          balanceSheetAccountId
           name
           code
           balanceRange {
@@ -228,7 +228,7 @@ function BalanceSheetColumn({
         <TableBody>
           {categories.map((category) => (
             <CategoryRow
-              key={category.balanceSheetAccountSetId}
+              key={category.balanceSheetAccountId}
               category={category}
               currency={currency}
               layer={layer}
@@ -278,7 +278,7 @@ function CategoryRow({ category, currency, layer }: CategoryRowProps) {
       </TableRow>
       {category.children?.map((child) => (
         <Account
-          key={child.balanceSheetAccountSetId}
+          key={child.balanceSheetAccountId}
           account={child}
           currency={currency}
           layer={layer}

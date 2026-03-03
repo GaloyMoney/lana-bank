@@ -53,7 +53,7 @@ impl BalanceSheet {
     async fn categories(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<BalanceSheetAccountSet>> {
+    ) -> async_graphql::Result<Vec<BalanceSheetAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let keys = self
             .entity
@@ -77,8 +77,8 @@ impl BalanceSheet {
 
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
-pub struct BalanceSheetAccountSet {
-    balance_sheet_account_set_id: ID,
+pub struct BalanceSheetAccount {
+    balance_sheet_account_id: ID,
     code: Option<AccountCode>,
     name: String,
 
@@ -90,10 +90,10 @@ pub struct BalanceSheetAccountSet {
     until: Option<NaiveDate>,
 }
 
-impl BalanceSheetAccountSet {
+impl BalanceSheetAccount {
     pub fn new(account: DomainLedgerAccount, from: NaiveDate, until: Option<NaiveDate>) -> Self {
         Self {
-            balance_sheet_account_set_id: account.id.to_global_id(),
+            balance_sheet_account_id: account.id.to_global_id(),
             code: account.code.as_ref().map(|code| code.into()),
             name: account.name.clone(),
             entity: Arc::new(account),
@@ -104,7 +104,7 @@ impl BalanceSheetAccountSet {
 }
 
 #[ComplexObject]
-impl BalanceSheetAccountSet {
+impl BalanceSheetAccount {
     async fn balance_range(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
         if let Some(balance) = self.entity.btc_balance_range.as_ref() {
             Ok(Some(balance).into())
@@ -116,7 +116,7 @@ impl BalanceSheetAccountSet {
     async fn children(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<BalanceSheetAccountSet>> {
+    ) -> async_graphql::Result<Vec<BalanceSheetAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let keys = self
             .entity
