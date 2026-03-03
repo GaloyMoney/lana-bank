@@ -8,7 +8,6 @@ use core_credit_collateral::{
 };
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
-use core_time_events::CoreTimeEvent;
 
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
@@ -23,8 +22,7 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<CorePriceEvent>,
 {
     customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -56,8 +54,7 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

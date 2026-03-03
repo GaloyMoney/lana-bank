@@ -57,8 +57,7 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
@@ -82,8 +81,7 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<CorePriceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -126,8 +124,7 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -144,7 +141,10 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
         collaterals: Arc<core_credit_collateral::Collaterals<Perms, E>>,
-    ) -> Result<Self, CreditFacilityError> {
+    ) -> Result<Self, CreditFacilityError>
+    where
+        E: OutboxEventMarker<CoreTimeEvent>,
+    {
         let repo = Arc::new(CreditFacilityRepo::new(pool, publisher, clock.clone()));
 
         outbox
