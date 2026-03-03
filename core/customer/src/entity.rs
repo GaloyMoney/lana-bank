@@ -21,8 +21,7 @@ pub enum CustomerEvent {
         email: Option<String>,
         #[serde(default)]
         telegram_handle: Option<String>,
-        #[serde(default)]
-        customer_type: Option<CustomerType>,
+        customer_type: CustomerType,
         activity: Activity,
         public_id: PublicId,
         applicant_id: String,
@@ -54,6 +53,7 @@ pub enum CustomerEvent {
 pub struct Customer {
     pub id: CustomerId,
     pub party_id: PartyId,
+    pub customer_type: CustomerType,
     pub kyc_verification: KycVerification,
     pub activity: Activity,
     pub level: KycLevel,
@@ -116,6 +116,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 CustomerEvent::Initialized {
                     id,
                     party_id,
+                    customer_type,
                     activity,
                     public_id,
                     applicant_id,
@@ -125,6 +126,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 } => {
                     builder = builder
                         .id(*id)
+                        .customer_type(*customer_type)
                         .activity(*activity)
                         .public_id(public_id.clone())
                         .level(*level)
@@ -159,6 +161,7 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(crate) id: CustomerId,
     pub(crate) party_id: PartyId,
+    pub(crate) customer_type: CustomerType,
     pub(crate) kyc_verification: KycVerification,
     pub(crate) activity: Activity,
     #[builder(setter(into))]
@@ -183,7 +186,7 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 party_id: Some(self.party_id),
                 email: None,
                 telegram_handle: None,
-                customer_type: None,
+                customer_type: self.customer_type,
                 activity: self.activity,
                 public_id: self.public_id,
                 applicant_id: self.applicant_id,
