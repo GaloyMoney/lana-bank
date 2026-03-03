@@ -34,6 +34,7 @@ gql`
       }
       categories {
         balanceSheetAccountId
+        ledgerAccountId
         name
         code
         balanceRange {
@@ -42,7 +43,12 @@ gql`
           ...BtcLedgerBalanceRangeFragment
         }
         children {
+<<<<<<< HEAD
           balanceSheetAccountId
+=======
+          balanceSheetAccountSetId
+          ledgerAccountId
+>>>>>>> db69a3b6b (fix(admin-panel): use ledgerAccountId in balance sheet links)
           name
           code
           balanceRange {

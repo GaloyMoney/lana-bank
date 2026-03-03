@@ -287,6 +287,7 @@ export const mockBalanceSheetAccount = (overrides?: Partial<BalanceSheetAccount>
         balanceSheetAccountId: overrides && overrides.hasOwnProperty('balanceSheetAccountId') ? overrides.balanceSheetAccountId! : faker.string.uuid(),
         children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('BalanceSheetAccount') ? {} as BalanceSheetAccount : mockBalanceSheetAccount({}, relationshipsToOmit)],
         code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
+        ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };

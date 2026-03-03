@@ -33,7 +33,7 @@ export const Account = ({ account, currency, depth = 0, layer }: AccountProps) =
   }
 
   const handleRowClick = () => {
-    router.push(`/ledger-accounts/${account.code || account.balanceSheetAccountId}`)
+    router.push(`/ledger-accounts/${account.code || account.ledgerAccountId}`)
   }
 
   return (

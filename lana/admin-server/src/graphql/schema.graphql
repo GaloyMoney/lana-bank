@@ -203,8 +203,9 @@ type BalanceSheet {
 	categories: [BalanceSheetAccount!]!
 }
 
-type BalanceSheetAccount {
+type BalanceSheetAccountSet {
 	balanceSheetAccountId: ID!
+	ledgerAccountId: UUID!
 	code: AccountCode
 	name: String!
 	balanceRange: LedgerAccountBalanceRange!
