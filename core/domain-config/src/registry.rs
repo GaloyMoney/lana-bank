@@ -1,4 +1,4 @@
-use crate::{ConfigType, Visibility};
+use crate::{ConfigType, Visibility, value::DomainConfigValue};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ConfigSpecEntry {
@@ -7,7 +7,7 @@ pub struct ConfigSpecEntry {
     pub config_type: ConfigType,
     pub encrypted: bool,
     pub validate_json: fn(&serde_json::Value) -> Result<(), crate::DomainConfigError>,
-    pub default_json: fn() -> Option<serde_json::Value>,
+    pub default_json: fn() -> Option<DomainConfigValue>,
 }
 
 inventory::collect!(ConfigSpecEntry);

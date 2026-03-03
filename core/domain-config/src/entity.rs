@@ -24,7 +24,7 @@ pub enum DomainConfigEvent {
         config_type: ConfigType,
         visibility: Visibility,
         encrypted: bool,
-        default_value: Option<serde_json::Value>,
+        default_value: Option<DomainConfigValue>,
     },
     Updated {
         value: DomainConfigValue,
@@ -238,9 +238,7 @@ impl DomainConfig {
                 Some(DomainConfigValue::Encrypted(value.clone()))
             }
             DomainConfigEvent::Updated { value } => Some(value.clone()),
-            DomainConfigEvent::Initialized { default_value, .. } => default_value
-                .as_ref()
-                .map(|v| DomainConfigValue::plain(v.clone())),
+            DomainConfigEvent::Initialized { default_value, .. } => default_value.clone(),
         })
     }
 
@@ -342,7 +340,7 @@ pub struct NewDomainConfig {
     #[builder(default)]
     pub(super) encrypted: bool,
     #[builder(default)]
-    pub(super) default_value: Option<serde_json::Value>,
+    pub(super) default_value: Option<DomainConfigValue>,
 }
 
 impl NewDomainConfig {

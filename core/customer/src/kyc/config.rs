@@ -6,7 +6,6 @@ define_exposed_config! {
     spec {
         key: "sumsub-api-key";
         encrypted: true;
-        default: || Some(String::new());
     }
 }
 
@@ -16,6 +15,5 @@ define_exposed_config! {
     spec {
         key: "sumsub-api-secret";
         encrypted: true;
-        default: || Some(String::new());
     }
 }
