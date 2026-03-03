@@ -186,6 +186,7 @@ where
         let new_prospect = prospect::NewProspect::builder()
             .id(prospect_id)
             .party_id(party_id)
+            .customer_type(customer_type)
             .public_id(public_id.id)
             .build()
             .expect("Could not build prospect");

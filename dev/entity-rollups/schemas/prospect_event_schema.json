@@ -70,15 +70,7 @@
     {
       "properties": {
         "customer_type": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/CustomerType"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
+          "$ref": "#/$defs/CustomerType"
         },
         "email": {
           "default": null,
@@ -120,6 +112,7 @@
       "required": [
         "type",
         "id",
+        "customer_type",
         "public_id",
         "stage"
       ],

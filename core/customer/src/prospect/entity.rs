@@ -22,8 +22,7 @@ pub enum ProspectEvent {
         email: Option<String>,
         #[serde(default)]
         telegram_handle: Option<String>,
-        #[serde(default)]
-        customer_type: Option<CustomerType>,
+        customer_type: CustomerType,
         public_id: PublicId,
         stage: ProspectStage,
     },
@@ -67,6 +66,7 @@ pub enum ProspectEvent {
 pub struct Prospect {
     pub id: ProspectId,
     pub party_id: PartyId,
+    pub customer_type: CustomerType,
     #[builder(default)]
     pub status: ProspectStatus,
     #[builder(default)]
@@ -192,6 +192,7 @@ impl Prospect {
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
             .party_id(self.party_id)
+            .customer_type(self.customer_type)
             .public_id(self.public_id.clone())
             .applicant_id(applicant_id)
             .kyc_verification(KycVerification::Verified)
@@ -218,6 +219,7 @@ impl Prospect {
         let new_customer = NewCustomer::builder()
             .id(CustomerId::from(self.id))
             .party_id(self.party_id)
+            .customer_type(self.customer_type)
             .public_id(self.public_id.clone())
             .applicant_id("manual-conversion")
             .kyc_verification(KycVerification::NoKyc)
@@ -283,12 +285,14 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                 ProspectEvent::Initialized {
                     id,
                     party_id,
+                    customer_type,
                     public_id,
                     stage,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
+                        .customer_type(*customer_type)
                         .public_id(public_id.clone())
                         .level(KycLevel::NotKyced)
                         .stage(*stage);
@@ -348,6 +352,7 @@ pub struct NewProspect {
     #[builder(setter(into))]
     pub(super) id: ProspectId,
     pub(super) party_id: PartyId,
+    pub(super) customer_type: CustomerType,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     #[builder(default)]
@@ -369,7 +374,7 @@ impl IntoEvents<ProspectEvent> for NewProspect {
                 party_id: Some(self.party_id),
                 email: None,
                 telegram_handle: None,
-                customer_type: None,
+                customer_type: self.customer_type,
                 public_id: self.public_id,
                 stage: self.stage,
             }],
@@ -391,7 +396,7 @@ mod tests {
                 party_id: Some(party_id),
                 email: None,
                 telegram_handle: None,
-                customer_type: None,
+                customer_type: CustomerType::Individual,
                 public_id: PublicId::new("test-public-id"),
                 stage: ProspectStage::New,
             }],
