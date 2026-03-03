@@ -87,6 +87,7 @@ const DEFAULT_CACHE_DURATION: u64 = 30 * 60;
 
 impl RemoteJwksDecoder {
     pub fn new(jwks_url: Url, aud: &str) -> Self {
+        let _ = rustls::crypto::ring::default_provider().install_default();
         let mut validation = Validation::new(Algorithm::RS256);
         validation.set_audience(&[aud]);
 

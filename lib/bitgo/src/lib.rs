@@ -44,6 +44,7 @@ impl BitgoClient {
             directory_config.production_url
         };
 
+        let _ = rustls::crypto::ring::default_provider().install_default();
         Ok(Self {
             http_client: Client::new(),
             long_lived_token: config.long_lived_token,

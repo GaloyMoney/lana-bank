@@ -9,6 +9,7 @@ fail-on-warnings = []
 [dependencies]
 keycloak = { workspace = true }
 reqwest = { workspace = true }
+rustls = { workspace = true }
 serde = { workspace = true }
 uuid = { workspace = true }
 url = { workspace = true }

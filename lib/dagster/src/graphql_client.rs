@@ -167,6 +167,7 @@ pub struct GraphqlClient {
 
 impl GraphqlClient {
     pub fn new(config: DagsterConfig) -> Self {
+        let _ = rustls::crypto::ring::default_provider().install_default();
         Self {
             http: Client::new(),
             config,
