@@ -1,6 +1,6 @@
 ---
 name: lana-alert-fixer
-description: Use proactively when the user asks to investigate, debug, or fix an alert. Triggers on keywords like "alert", "investigate alert", "fix alert", "silence alert", "false positive", or when the user shares trace IDs or error messages from an alerting system.
+description: Use proactively when the user asks to investigate, debug, or fix an alert. Triggers on keywords like "alert", "investigate alert", "fix alert", "silence alert", "false positive", or when the user shares error messages from an alerting system.
 ---
 
 # Investigate and Fix Alert
@@ -14,42 +14,30 @@ $ARGUMENTS
 ## Step 1: Understand the Alert
 
 Parse the user-provided context for:
-- **Trace IDs** (hex strings like `abc123def456...`)
 - **Error messages** (the actual error text from logs or alert descriptions)
-- **Operation/span names** (e.g., `lana_app::credit::approve`)
+- **Error type names** (e.g., `CreditFacilityError`, `DepositError`)
+- **Operation names** (e.g., `approve_credit_facility`, `complete_deposit`)
 - **Alert source** (Honeycomb, PagerDuty, Grafana, dashboard links)
 
 Summarize what error is firing and present it to the user before proceeding.
 
-If the context is too vague to investigate (no trace IDs, no error messages, no span names), ask the user for more details.
+If the context is too vague to investigate (no error messages, no error types, no operation names), ask the user for more details.
 
-## Step 2: Investigate Traces
+## Step 2: Find the Code Path
 
-Delegate trace investigation to the `lana-trace-analyzer` subagent using the Agent tool with `subagent_type: "lana-trace-analyzer"`. Ask it to:
+Using the error messages, error types, and operation names from the alert context:
 
-1. Find the error spans matching the alert (using trace IDs, error messages, or operation names from Step 1)
-2. Extract: error message text, operation/span names, service name, timestamps, frequency
-3. Return example trace IDs for the failing spans
-
-Do NOT query the OpenTelemetry backend directly — always delegate to the subagent.
-
-If the subagent finds no matching traces, inform the user and ask whether the alert might be stale or from a different time window.
-
-## Step 3: Cross-Reference with Code
-
-Using the span names, operation names, and error messages from the trace investigation:
-
-1. **Find the code path**: Search for the span/operation name in the codebase (look for `#[instrument]` annotations, `tracing::info_span!`, function names matching the operation)
-2. **Find the error type**: Identify the error enum and specific variant producing this error. Search for the error message text in `error.rs` files or in the code that constructs the error.
-3. **Find the `ErrorSeverity` impl**: Locate the `impl ErrorSeverity for XxxError` block in the relevant `error.rs`. Check what severity level the current variant maps to — it should be `Level::ERROR` if it's triggering alerts.
-4. **Understand the call site**: Read the use case or handler that triggers this error path. Determine whether the error is caught and handled gracefully (returns a user-friendly response, no data loss) or propagates unhandled.
+1. **Find the error type**: Search for the error message text in `error.rs` files or in the code that constructs the error. Identify the error enum and specific variant producing this error.
+2. **Find the `ErrorSeverity` impl**: Locate the `impl ErrorSeverity for XxxError` block in the relevant `error.rs`. Check what severity level the current variant maps to — it should be `Level::ERROR` if it's triggering alerts.
+3. **Find the call site**: Search for `#[instrument]` annotations, function names matching the operation, and use cases that return this error. Read the handler or use case that triggers this error path.
+4. **Understand error handling**: Determine whether the error is caught and handled gracefully (returns a user-friendly response, no data loss) or propagates unhandled.
 
 Key files to check:
 - `core/<module>/src/<submodule>/error.rs` — error enum + `ErrorSeverity` impl
 - `core/<module>/src/<submodule>/mod.rs` — use cases that call the failing operation
 - `lib/tracing-utils/src/error_severity.rs` — the `ErrorSeverity` trait definition
 
-## Step 4: Classify the Error
+## Step 3: Classify the Error
 
 Based on the investigation, classify as:
 
@@ -70,7 +58,7 @@ The error indicates something is actually broken. Indicators:
 
 Present your classification and rationale to the user before applying any fix.
 
-## Step 5: Apply the Fix
+## Step 4: Apply the Fix
 
 ### For False Positives: Lower the Severity
 
@@ -102,7 +90,7 @@ Self::WrappedError(e) => e.severity(),
 
 Fix the underlying issue in the application code. The fix depends on the specific problem — it could be a logic fix, a missing state check, an error handling improvement, etc.
 
-## Step 6: Commit
+## Step 5: Commit
 
 Create a local commit with a conventional commit message that explains:
 - **What alert** was firing
@@ -131,7 +119,6 @@ Do NOT push or create a PR — only commit locally.
 ## Constraints
 
 - **Never modify the alerting system or alerting trigger.** The fix is always in the application code — either lowering a severity level or fixing a bug. The alerting trigger (`error.level=ERROR`) must not be changed.
-- **Only lower severity for genuinely false-positive errors.** The investigation in Steps 2-4 must confirm the error is handled gracefully before downgrading. Never blindly silence alerts.
+- **Only lower severity for genuinely false-positive errors.** The investigation in Steps 2-3 must confirm the error is handled gracefully before downgrading. Never blindly silence alerts.
 - **Use the `ErrorSeverity` trait exclusively.** Do not change `tracing::error!` calls to `tracing::warn!`, suppress logging, or work around the severity system in any other way. The `impl ErrorSeverity` match arm is the single correct mechanism.
-- **Delegate trace queries to `lana-trace-analyzer`.** Do not query the OpenTelemetry backend directly.
 - **Commit locally only.** Do not push, create PRs, or trigger CI.
