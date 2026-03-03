@@ -1,5 +1,3 @@
-{{ config(materialized="view") }}
-
 with
 
     set_hierarchy_strings as (
