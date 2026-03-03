@@ -11,15 +11,11 @@ with
 select account_set_id, member_account_id as member_id, "Account" as member_type
 
 from {{ ref("stg_account_set_member_accounts") }}
-where
-    created_at
-    >= (select initialized_recorded_at from chart_initialized_at)
+where created_at >= (select initialized_recorded_at from chart_initialized_at)
 
 union all
 
 select account_set_id, member_account_set_id as member_id, "AccountSet" as member_type
 
 from {{ ref("stg_account_set_member_account_sets") }}
-where
-    created_at
-    >= (select initialized_recorded_at from chart_initialized_at)
+where created_at >= (select initialized_recorded_at from chart_initialized_at)

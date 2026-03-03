@@ -24,8 +24,6 @@ select
 
 from {{ ref("stg_account_balances") }}
 
-where
-    recorded_at
-    >= (select initialized_recorded_at from chart_initialized_at)
+where recorded_at >= (select initialized_recorded_at from chart_initialized_at)
 
 group by account_id, currency

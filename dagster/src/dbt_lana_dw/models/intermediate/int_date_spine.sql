@@ -13,7 +13,9 @@ with
     cumulative_effective_balances as (
         select effective
         from {{ ref("stg_cumulative_effective_balances") }}
-        where effective >= date((select initialized_recorded_at from chart_initialized_at))
+        where
+            effective
+            >= date((select initialized_recorded_at from chart_initialized_at))
     ),
 
     bounds as (

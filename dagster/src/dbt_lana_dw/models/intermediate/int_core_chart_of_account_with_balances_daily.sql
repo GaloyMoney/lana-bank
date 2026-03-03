@@ -1,6 +1,4 @@
-{{
-    config(materialized="view")
-}}
+{{ config(materialized="view") }}
 
 with
     chart as (select * from {{ ref("int_core_chart_of_accounts") }}),
