@@ -17,9 +17,7 @@ with
             code as account_code
 
         from {{ ref("stg_accounts") }}
-        where
-            created_at
-            >= (select initialized_recorded_at from chart_initialized_at)
+        where created_at >= (select initialized_recorded_at from chart_initialized_at)
 
     ),
 

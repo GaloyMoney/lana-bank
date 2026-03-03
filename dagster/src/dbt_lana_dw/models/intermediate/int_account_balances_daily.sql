@@ -20,7 +20,8 @@ with
         select account_id, currency, effective, version, all_time_version, `values`
         from {{ ref("stg_cumulative_effective_balances") }}
         where
-            effective >= date((select initialized_recorded_at from chart_initialized_at))
+            effective
+            >= date((select initialized_recorded_at from chart_initialized_at))
     ),
 
     account_currencies as (
