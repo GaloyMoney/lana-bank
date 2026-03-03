@@ -113,6 +113,11 @@ export const makeClient = ({
           history: relayStylePagination(),
         },
       },
+      DepositAccount: {
+        fields: {
+          history: relayStylePagination(),
+        },
+      },
       Query: {
         fields: {
           customers: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
@@ -156,11 +161,17 @@ export const makeClient = ({
           committees: relayStylePagination(),
           policies: relayStylePagination(),
           fiscalYears: relayStylePagination(),
-          audit: relayStylePagination(),
+          audit: {
+            ...relayStylePagination(),
+            keyArgs: ["subject", "authorized", "object", "action"],
+          },
           generalLedgerEntries: relayStylePagination(),
           journalEntries: relayStylePagination(),
           transactionTemplates: relayStylePagination(),
-          ledgerTransactionsForTemplateCode: relayStylePagination(),
+          ledgerTransactionsForTemplateCode: {
+            ...relayStylePagination(),
+            keyArgs: ["templateCode"],
+          },
           reportRuns: relayStylePagination(),
         },
       },
