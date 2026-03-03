@@ -15,6 +15,11 @@ export type DateRange = {
   until: string
 }
 
+const parseLocalDate = (date: string): Date => {
+  const [year, month, day] = date.split("-").map(Number)
+  return new Date(year, month - 1, day)
+}
+
 type DateRangeSelectorProps = {
   initialDateRange: DateRange
   onDateChange: (dateRange: DateRange) => void
@@ -205,10 +210,10 @@ export const DateRangeSelector = ({
   const [dateRange, setDateRange] = useState<DateRange>(initialDateRange)
 
   const [selectedFrom, setSelectedFrom] = useState<Date | undefined>(
-    parseDateString(initialDateRange.from),
+    parseLocalDate(initialDateRange.from),
   )
   const [selectedTo, setSelectedTo] = useState<Date | undefined>(
-    parseDateString(initialDateRange.until),
+    parseLocalDate(initialDateRange.until),
   )
 
   const today = useMemo(() => {
