@@ -96,9 +96,12 @@ where
             .unwrap_or_default();
 
         loop {
+            let mut op = current_job.begin_op().await?;
+
             let rows = self
                 .credit_facility_repo
-                .list_facility_ids_eligible_for_accrual(
+                .list_facility_ids_eligible_for_accrual_in_op(
+                    &mut op,
                     self.config.day,
                     state.last_cursor,
                     PAGE_SIZE,
@@ -122,7 +125,6 @@ where
                 })
                 .collect();
 
-            let mut op = current_job.begin_op().await?;
             self.process_accrual_cycle_spawner
                 .spawn_all_in_op(&mut op, specs)
                 .await?;

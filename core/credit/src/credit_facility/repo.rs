@@ -94,8 +94,9 @@ where
             .await
     }
 
-    pub async fn list_facility_ids_eligible_for_accrual(
+    pub async fn list_facility_ids_eligible_for_accrual_in_op(
         &self,
+        op: &mut es_entity::DbOp<'_>,
         day: chrono::NaiveDate,
         after: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
         limit: i64,
@@ -104,6 +105,7 @@ where
             Some((ts, id)) => (Some(ts), Some(id)),
             None => (None, None),
         };
+        let tx = op.tx_mut();
         let rows = sqlx::query!(
             r#"SELECT cf.id AS "id: CreditFacilityId", cf.created_at
                FROM core_credit_facilities cf
@@ -118,7 +120,7 @@ where
             after_id as Option<CreditFacilityId>,
             limit,
         )
-        .fetch_all(self.pool())
+        .fetch_all(&mut **tx)
         .await?;
         Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }
