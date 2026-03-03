@@ -196,6 +196,148 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "core_accounting.find_all_charts_authorized", skip(self))]
+    pub async fn find_all_charts_authorized<T: From<Chart>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[ChartId],
+    ) -> Result<HashMap<ChartId, T>, CoreAccountingError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_LIST,
+            )
+            .await?;
+        Ok(self.chart_of_accounts.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.find_all_charts_by_reference_authorized",
+        skip(self)
+    )]
+    pub async fn find_all_charts_by_reference_authorized(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        refs: &[&str],
+    ) -> Result<HashMap<String, Chart>, CoreAccountingError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_LIST,
+            )
+            .await?;
+        let mut res = HashMap::new();
+        for r in refs {
+            if let Some(chart) = self.chart_of_accounts.maybe_find_by_reference(r).await? {
+                res.insert(r.to_string(), chart);
+            }
+        }
+        Ok(res)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.find_all_ledger_accounts_authorized",
+        skip(self)
+    )]
+    pub async fn find_all_ledger_accounts_authorized<T: From<LedgerAccount>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        ids: &[LedgerAccountId],
+    ) -> Result<HashMap<LedgerAccountId, T>, CoreAccountingError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_ledger_accounts(),
+                CoreAccountingAction::LEDGER_ACCOUNT_READ,
+            )
+            .await?;
+        self.find_all_ledger_accounts(chart_ref, ids).await
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.find_all_ledger_transactions_authorized",
+        skip(self)
+    )]
+    pub async fn find_all_ledger_transactions_authorized<
+        T: From<LedgerTransaction<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>>,
+    >(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[LedgerTransactionId],
+    ) -> Result<HashMap<LedgerTransactionId, T>, CoreAccountingError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_ledger_transactions(),
+                CoreAccountingAction::LEDGER_TRANSACTION_READ,
+            )
+            .await?;
+        Ok(self.ledger_transactions.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.find_all_transaction_templates_authorized",
+        skip(self)
+    )]
+    pub async fn find_all_transaction_templates_authorized<
+        T: From<transaction_templates::TransactionTemplate>,
+    >(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[TransactionTemplateId],
+    ) -> Result<HashMap<TransactionTemplateId, T>, CoreAccountingError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_transaction_templates(),
+                CoreAccountingAction::TRANSACTION_TEMPLATE_LIST,
+            )
+            .await?;
+        Ok(self.transaction_templates.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.find_all_csv_documents_authorized", skip(self))]
+    pub async fn find_all_csv_documents_authorized<T: From<document_storage::Document>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[csv::AccountingCsvDocumentId],
+    ) -> Result<HashMap<csv::AccountingCsvDocumentId, T>, CoreAccountingError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_accounting_csvs(),
+                CoreAccountingAction::ACCOUNTING_CSV_READ,
+            )
+            .await?;
+        Ok(self.csvs.find_all_documents(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.find_all_fiscal_years_authorized", skip(self))]
+    pub async fn find_all_fiscal_years_authorized<T: From<FiscalYear>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[FiscalYearId],
+    ) -> Result<HashMap<FiscalYearId, T>, CoreAccountingError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_READ,
+            )
+            .await?;
+        Ok(self.fiscal_year.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self))]
     pub async fn find_ledger_account_by_id(
         &self,

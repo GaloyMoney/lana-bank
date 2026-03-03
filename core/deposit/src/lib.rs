@@ -931,6 +931,23 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "deposit.find_all_withdrawals_authorized", skip(self))]
+    pub async fn find_all_withdrawals_authorized<T: From<Withdrawal>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[WithdrawalId],
+    ) -> Result<std::collections::HashMap<WithdrawalId, T>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_READ,
+            )
+            .await?;
+        Ok(self.withdrawals.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "deposit.find_all_deposits", skip(self))]
     pub async fn find_all_deposits<T: From<Deposit>>(
         &self,
@@ -940,11 +957,45 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "deposit.find_all_deposits_authorized", skip(self))]
+    pub async fn find_all_deposits_authorized<T: From<Deposit>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[DepositId],
+    ) -> Result<std::collections::HashMap<DepositId, T>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposits(),
+                CoreDepositAction::DEPOSIT_READ,
+            )
+            .await?;
+        Ok(self.deposits.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "deposit.find_all_deposit_accounts", skip(self))]
     pub async fn find_all_deposit_accounts<T: From<DepositAccount>>(
         &self,
         ids: &[DepositAccountId],
     ) -> Result<std::collections::HashMap<DepositAccountId, T>, CoreDepositError> {
+        Ok(self.deposit_accounts.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_all_deposit_accounts_authorized", skip(self))]
+    pub async fn find_all_deposit_accounts_authorized<T: From<DepositAccount>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[DepositAccountId],
+    ) -> Result<std::collections::HashMap<DepositAccountId, T>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+            )
+            .await?;
         Ok(self.deposit_accounts.find_all(ids).await?)
     }
 

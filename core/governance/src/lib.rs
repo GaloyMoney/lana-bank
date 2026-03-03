@@ -218,6 +218,23 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "governance.find_all_policies_authorized", skip(self))]
+    pub async fn find_all_policies_authorized<T: From<Policy>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[PolicyId],
+    ) -> Result<HashMap<PolicyId, T>, GovernanceError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                GovernanceObject::all_policies(),
+                GovernanceAction::POLICY_READ,
+            )
+            .await?;
+        Ok(self.policy_repo.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "governance.start_process_in_op", skip(self, db))]
     pub async fn start_process_in_op(
         &self,
@@ -510,6 +527,23 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "governance.find_all_committees_authorized", skip(self))]
+    pub async fn find_all_committees_authorized<T: From<Committee>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[CommitteeId],
+    ) -> Result<HashMap<CommitteeId, T>, GovernanceError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                GovernanceObject::all_committees(),
+                GovernanceAction::COMMITTEE_READ,
+            )
+            .await?;
+        Ok(self.committee_repo.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "governance.find_approval_process_by_id", skip(self))]
     pub async fn find_approval_process_by_id(
         &self,
@@ -567,6 +601,23 @@ where
         &self,
         ids: &[ApprovalProcessId],
     ) -> Result<HashMap<ApprovalProcessId, T>, GovernanceError> {
+        Ok(self.process_repo.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "governance.find_all_approval_processes_authorized", skip(self))]
+    pub async fn find_all_approval_processes_authorized<T: From<ApprovalProcess>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[ApprovalProcessId],
+    ) -> Result<HashMap<ApprovalProcessId, T>, GovernanceError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                GovernanceObject::all_approval_processes(),
+                GovernanceAction::APPROVAL_PROCESS_READ,
+            )
+            .await?;
         Ok(self.process_repo.find_all(ids).await?)
     }
 

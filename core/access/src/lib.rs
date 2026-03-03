@@ -345,6 +345,23 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "access.find_all_roles_authorized", skip(self))]
+    pub async fn find_all_roles_authorized<T: From<Role>>(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        ids: &[RoleId],
+    ) -> Result<std::collections::HashMap<RoleId, T>, CoreAccessError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_roles(),
+                CoreAccessAction::ROLE_READ,
+            )
+            .await?;
+        Ok(self.roles.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "access.list_permission_sets", skip(self))]
     pub async fn list_permission_sets(
         &self,
@@ -389,6 +406,23 @@ where
         &self,
         ids: &[PermissionSetId],
     ) -> Result<std::collections::HashMap<PermissionSetId, T>, CoreAccessError> {
+        Ok(self.permission_sets.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "access.find_all_permission_sets_authorized", skip(self))]
+    pub async fn find_all_permission_sets_authorized<T: From<PermissionSet>>(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        ids: &[PermissionSetId],
+    ) -> Result<std::collections::HashMap<PermissionSetId, T>, CoreAccessError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_permission_sets(),
+                CoreAccessAction::PERMISSION_SET_LIST,
+            )
+            .await?;
         Ok(self.permission_sets.find_all(ids).await?)
     }
 

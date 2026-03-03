@@ -418,6 +418,113 @@ where
         self.repayment_plans.as_ref()
     }
 
+    #[record_error_severity]
+    #[instrument(name = "credit.find_all_facilities_authorized", skip(self))]
+    pub async fn find_all_facilities_authorized<T: From<CreditFacility>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[CreditFacilityId],
+    ) -> Result<std::collections::HashMap<CreditFacilityId, T>, CoreCreditError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        Ok(self.facilities.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "credit.find_all_pending_credit_facilities_authorized",
+        skip(self)
+    )]
+    pub async fn find_all_pending_credit_facilities_authorized<T: From<PendingCreditFacility>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[PendingCreditFacilityId],
+    ) -> Result<std::collections::HashMap<PendingCreditFacilityId, T>, CoreCreditError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        Ok(self.pending_credit_facilities.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.find_all_proposals_authorized", skip(self))]
+    pub async fn find_all_proposals_authorized<T: From<CreditFacilityProposal>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[CreditFacilityProposalId],
+    ) -> Result<std::collections::HashMap<CreditFacilityProposalId, T>, CoreCreditError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        Ok(self.credit_facility_proposals.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.find_all_disbursals_authorized", skip(self))]
+    pub async fn find_all_disbursals_authorized<T: From<Disbursal>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[DisbursalId],
+    ) -> Result<std::collections::HashMap<DisbursalId, T>, CoreCreditError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_disbursals(),
+                CoreCreditAction::DISBURSAL_READ,
+            )
+            .await?;
+        Ok(self.disbursals.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.find_all_collaterals_authorized", skip(self))]
+    pub async fn find_all_collaterals_authorized<T: From<core_credit_collateral::Collateral>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[core_credit_collateral::CollateralId],
+    ) -> Result<std::collections::HashMap<core_credit_collateral::CollateralId, T>, CoreCreditError>
+    {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        Ok(self.collaterals.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.find_all_liquidations_authorized", skip(self))]
+    pub async fn find_all_liquidations_authorized<T: From<core_credit_collateral::Liquidation>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[core_credit_collateral::LiquidationId],
+    ) -> Result<std::collections::HashMap<core_credit_collateral::LiquidationId, T>, CoreCreditError>
+    {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        Ok(self.collaterals.find_all_liquidations(ids).await?)
+    }
+
     pub async fn subject_can_create(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

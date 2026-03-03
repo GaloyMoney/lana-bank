@@ -176,6 +176,23 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "core_access.find_all_authorized", skip(self))]
+    pub async fn find_all_authorized<T: From<User>>(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        ids: &[UserId],
+    ) -> Result<HashMap<UserId, T>, UserError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_READ,
+            )
+            .await?;
+        self.repo.find_all(ids).await
+    }
+
+    #[record_error_severity]
     #[instrument(name = "core_access.list_users", skip(self))]
     pub async fn list_users(
         &self,

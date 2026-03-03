@@ -132,11 +132,48 @@ where
     }
 
     #[record_error_severity]
+    #[tracing::instrument(name = "report.find_all_reports_authorized", skip(self), fields(count = ids.len()))]
+    pub async fn find_all_reports_authorized(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[ReportId],
+    ) -> Result<std::collections::HashMap<ReportId, Report>, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
+        self.reports.find_all(ids).await.map_err(ReportError::from)
+    }
+
+    #[record_error_severity]
     #[tracing::instrument(name = "report.find_all_report_runs", skip(self), fields(count = ids.len()))]
     pub async fn find_all_report_runs(
         &self,
         ids: &[ReportRunId],
     ) -> Result<std::collections::HashMap<ReportRunId, ReportRun>, ReportError> {
+        self.report_runs
+            .find_all(ids)
+            .await
+            .map_err(ReportError::from)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.find_all_report_runs_authorized", skip(self), fields(count = ids.len()))]
+    pub async fn find_all_report_runs_authorized(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[ReportRunId],
+    ) -> Result<std::collections::HashMap<ReportRunId, ReportRun>, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
         self.report_runs
             .find_all(ids)
             .await

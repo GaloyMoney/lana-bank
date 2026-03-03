@@ -14,7 +14,7 @@ use tracing::instrument;
 
 use crate::{
     AdminJwtClaims,
-    graphql::{Mutation, Query, Subscription},
+    graphql::{LanaLoader, Mutation, Query, Subscription},
     primitives::AdminAuthContext,
 };
 use jwks_utils::Claims;
@@ -39,6 +39,7 @@ type Schema = async_graphql::Schema<Query, Mutation, Subscription>;
 #[es_entity::es_event_context]
 pub async fn graphql_sse_post(
     schema: Extension<Schema>,
+    app: Extension<lana_app::app::LanaApp>,
     Claims(jwt_claims): Claims<AdminJwtClaims>,
     body: Result<Json<Request>, JsonRejection>,
 ) -> impl IntoResponse {
@@ -61,7 +62,13 @@ pub async fn graphql_sse_post(
             match uuid::Uuid::parse_str(&jwt_claims.subject) {
                 Ok(id) => {
                     tracing::Span::current().record("user.id", tracing::field::debug(&id));
-                    Executor::execute_stream(&*schema, req.data(AdminAuthContext::new(id)), None)
+                    let auth_context = AdminAuthContext::new(id);
+                    Executor::execute_stream(
+                        &*schema,
+                        req.data(LanaLoader::new(&app, &auth_context.sub))
+                            .data(auth_context),
+                        None,
+                    )
                 }
                 Err(e) => {
                     tracing::error!(

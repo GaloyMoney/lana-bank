@@ -36,7 +36,7 @@ mod schema;
 use async_graphql::*;
 
 pub use build_info::BuildInfo;
-use loader::LanaLoader;
+pub(crate) use loader::LanaLoader;
 pub use schema::*;
 
 use lana_app::app::LanaApp;
@@ -50,7 +50,7 @@ pub fn schema(
         .data(build_info);
 
     if let Some(app) = app {
-        schema_builder = schema_builder.data(LanaLoader::new(&app)).data(app);
+        schema_builder = schema_builder.data(app);
     }
 
     schema_builder.finish()
