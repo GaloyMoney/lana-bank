@@ -813,6 +813,23 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.find_all_authorized", skip(self))]
+    pub async fn find_all_authorized<T: From<Customer>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[CustomerId],
+    ) -> Result<HashMap<CustomerId, T>, CustomerError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_customers(),
+                CoreCustomerAction::CUSTOMER_READ,
+            )
+            .await?;
+        self.repo.find_all(ids).await
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.find_all_prospects", skip(self))]
     pub async fn find_all_prospects<T: From<Prospect>>(
         &self,
