@@ -253,17 +253,22 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<WithdrawalsByCreatedAtCursor, Withdrawal, EmptyFields, EmptyFields>,
-    > {
+        filter: Option<WithdrawalsFilter>,
+    ) -> async_graphql::Result<Connection<WithdrawalsCursor, Withdrawal, EmptyFields, EmptyFields>>
+    {
+        let filter = DomainWithdrawalsFilters {
+            status: filter.as_ref().and_then(|f| f.status),
+            ..Default::default()
+        };
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            WithdrawalsByCreatedAtCursor,
+        list_with_combo_cursor!(
+            WithdrawalsCursor,
             Withdrawal,
+            DomainWithdrawalsSortBy::CreatedAt,
             ctx,
             after,
             first,
-            |query| app.deposits().list_withdrawals(sub, query)
+            |query| app.deposits().list_withdrawals(sub, query, filter)
         )
     }
 
@@ -335,17 +340,21 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<DepositsByCreatedAtCursor, Deposit, EmptyFields, EmptyFields>,
-    > {
+        filter: Option<DepositsFilter>,
+    ) -> async_graphql::Result<Connection<DepositsCursor, Deposit, EmptyFields, EmptyFields>> {
+        let filter = DomainDepositsFilters {
+            status: filter.as_ref().and_then(|f| f.status),
+            ..Default::default()
+        };
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            DepositsByCreatedAtCursor,
+        list_with_combo_cursor!(
+            DepositsCursor,
             Deposit,
+            DomainDepositsSortBy::CreatedAt,
             ctx,
             after,
             first,
-            |query| app.deposits().list_deposits(sub, query)
+            |query| app.deposits().list_deposits(sub, query, filter)
         )
     }
 

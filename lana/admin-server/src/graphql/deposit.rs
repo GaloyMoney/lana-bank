@@ -8,8 +8,8 @@ pub use super::deposit_account::DepositAccount;
 
 pub use lana_app::{
     deposit::{
-        Deposit as DomainDeposit, DepositAccountsByCreatedAtCursor, DepositStatus,
-        DepositsByCreatedAtCursor,
+        Deposit as DomainDeposit, DepositAccountsByCreatedAtCursor, DepositStatus, DepositsCursor,
+        DepositsFilters as DomainDepositsFilters, DepositsSortBy as DomainDepositsSortBy,
     },
     public_id::PublicId,
 };
@@ -113,3 +113,8 @@ pub struct DepositAccountCloseInput {
     pub deposit_account_id: UUID,
 }
 crate::mutation_payload! { DepositAccountClosePayload, account: DepositAccount }
+
+#[derive(InputObject)]
+pub struct DepositsFilter {
+    pub status: Option<DepositStatus>,
+}

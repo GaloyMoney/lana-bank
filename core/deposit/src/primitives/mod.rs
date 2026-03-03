@@ -430,10 +430,22 @@ impl From<CustomerType> for DepositAccountType {
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    Default,
+    Serialize,
+    Deserialize,
+    Eq,
+    PartialEq,
+    strum::Display,
+    strum::EnumString,
+)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum DepositStatus {
+    #[default]
     Confirmed,
     Reverted,
 }

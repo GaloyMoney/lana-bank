@@ -142,6 +142,8 @@ pub struct NewDeposit {
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     reference: Option<String>,
+    #[builder(setter(skip), default)]
+    pub(super) status: DepositStatus,
 }
 
 impl NewDeposit {

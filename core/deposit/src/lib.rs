@@ -37,7 +37,9 @@ pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, error::ChartOfAccountsIntegrationError,
 };
 use deposit::*;
-pub use deposit::{Deposit, DepositsByCreatedAtCursor};
+pub use deposit::{
+    Deposit, DepositsByCreatedAtCursor, DepositsCursor, DepositsFilters, DepositsSortBy,
+};
 pub use deposit_account_balance::DepositAccountBalance;
 pub use domain_config::RequireVerifiedCustomerForAccount;
 use error::*;
@@ -53,7 +55,10 @@ use processes::approval::{
 pub use public::*;
 use publisher::DepositPublisher;
 use withdrawal::*;
-pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
+pub use withdrawal::{
+    Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor, WithdrawalsCursor,
+    WithdrawalsFilters, WithdrawalsSortBy,
+};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -945,11 +950,9 @@ where
     pub async fn list_withdrawals(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<WithdrawalsByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<Withdrawal, WithdrawalsByCreatedAtCursor>,
-        CoreDepositError,
-    > {
+        query: es_entity::PaginatedQueryArgs<WithdrawalsCursor>,
+        filter: WithdrawalsFilters,
+    ) -> Result<es_entity::PaginatedQueryRet<Withdrawal, WithdrawalsCursor>, CoreDepositError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -959,7 +962,14 @@ where
             .await?;
         Ok(self
             .withdrawals
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .list_for_filters(
+                filter,
+                es_entity::Sort {
+                    by: WithdrawalsSortBy::CreatedAt,
+                    direction: es_entity::ListDirection::Descending,
+                },
+                query,
+            )
             .await?)
     }
 
@@ -968,9 +978,9 @@ where
     pub async fn list_deposits(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<DepositsByCreatedAtCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<Deposit, DepositsByCreatedAtCursor>, CoreDepositError>
-    {
+        query: es_entity::PaginatedQueryArgs<DepositsCursor>,
+        filter: DepositsFilters,
+    ) -> Result<es_entity::PaginatedQueryRet<Deposit, DepositsCursor>, CoreDepositError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -980,7 +990,14 @@ where
             .await?;
         Ok(self
             .deposits
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .list_for_filters(
+                filter,
+                es_entity::Sort {
+                    by: DepositsSortBy::CreatedAt,
+                    direction: es_entity::ListDirection::Descending,
+                },
+                query,
+            )
             .await?)
     }
 

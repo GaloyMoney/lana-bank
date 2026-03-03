@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT public_id, id FROM core_withdrawals WHERE COALESCE(deposit_account_id = $1, $1 IS NULL) AND (COALESCE((public_id, id) > ($4, $3), $3 IS NULL)) ORDER BY public_id ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_withdrawal_events e ON i.id = e.id ORDER BY i.public_id asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT status, id FROM core_withdrawals WHERE ((status = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_withdrawal_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,10 +31,9 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
+        "Text",
         "Int8",
         "Uuid",
-        "Text",
         "Bool"
       ]
     },
@@ -46,5 +45,5 @@
       false
     ]
   },
-  "hash": "15e9b66272d7b1dccb70f0b45f2586ac8db7dcf1fe3b8fda284f2ef64b0223e2"
+  "hash": "6d4998ef1f9d5b6f81b7cdc6a2b4b6024fad19fc4ea76c39907b5bb8bb89db23"
 }
