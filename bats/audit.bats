@@ -19,7 +19,7 @@ teardown_file() {
   edges_length=$(graphql_output '.data.audit.edges | length')
   [[ "$edges_length" -eq 1 ]] || exit 1
 
-  action=$(graphql_output '.data.audit.edges[-1].node.action')
+  action=$(graphql_output '.data.audit.edges[0].node.action')
   [[ "$action" == "audit:audit:list" ]] || exit 1
 
 
@@ -27,7 +27,7 @@ teardown_file() {
   edges_length=$(graphql_output '.data.audit.edges | length')
   [[ "$edges_length" -eq 2 ]] || exit 1
 
-  action=$(graphql_output '.data.audit.edges[-1].node.action')
+  action=$(graphql_output '.data.audit.edges[0].node.action')
   [[ "$action" == "audit:audit:list" ]] || exit 1
 
   end_cursor=$(graphql_output '.data.audit.pageInfo.endCursor')
