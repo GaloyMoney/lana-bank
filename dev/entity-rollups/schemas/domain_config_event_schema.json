@@ -94,6 +94,7 @@
         "config_type": {
           "$ref": "#/$defs/ConfigType"
         },
+        "default_value": true,
         "encrypted": {
           "type": "boolean"
         },

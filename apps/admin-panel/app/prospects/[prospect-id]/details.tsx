@@ -38,8 +38,7 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
   const requireVerifiedCustomer = domainConfigsData?.domainConfigs.nodes.find(
     (c) => c.key === "require-verified-customer-for-account",
   )
-  const showConvertButton =
-    requireVerifiedCustomer?.isSet && String(requireVerifiedCustomer.value) === "false"
+  const showConvertButton = String(requireVerifiedCustomer?.value) === "false"
 
   const personalInfo = prospect.personalInfo
 

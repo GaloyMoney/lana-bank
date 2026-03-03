@@ -24,6 +24,7 @@ pub enum DomainConfigEvent {
         config_type: ConfigType,
         visibility: Visibility,
         encrypted: bool,
+        default_value: Option<serde_json::Value>,
     },
     Updated {
         value: DomainConfigValue,
@@ -41,6 +42,7 @@ pub struct DomainConfig {
     pub config_type: ConfigType,
     pub visibility: Visibility,
     pub encrypted: bool,
+    pub default_value: Option<serde_json::Value>,
     events: EntityEvents<DomainConfigEvent>,
 }
 
@@ -240,6 +242,19 @@ impl DomainConfig {
         })
     }
 
+    pub fn effective_value(&self) -> serde_json::Value {
+        if let Some(stored) = self.current_stored_value() {
+            return stored.plain_or_null();
+        }
+        // incase a default(plaintext) is set for encrypted configs
+        if self.encrypted {
+            return serde_json::Value::Null;
+        }
+        self.default_value
+            .clone()
+            .unwrap_or(serde_json::Value::Null)
+    }
+
     pub(crate) fn assert_compatible<C: ConfigSpec>(entity: &Self) -> Result<(), DomainConfigError> {
         let expected_type = <C::Kind as ValueKind>::TYPE;
         if entity.config_type != expected_type {
@@ -311,6 +326,7 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
                     config_type,
                     visibility,
                     encrypted,
+                    default_value,
                     ..
                 } => {
                     builder = builder
@@ -318,7 +334,8 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
                         .key(key.clone())
                         .config_type(*config_type)
                         .visibility(*visibility)
-                        .encrypted(*encrypted);
+                        .encrypted(*encrypted)
+                        .default_value(default_value.clone());
                 }
                 DomainConfigEvent::Updated { .. } => {}
                 DomainConfigEvent::KeyRotated { .. } => {}
@@ -337,6 +354,8 @@ pub struct NewDomainConfig {
     pub(super) visibility: Visibility,
     #[builder(default)]
     pub(super) encrypted: bool,
+    #[builder(default)]
+    pub(super) default_value: Option<serde_json::Value>,
 }
 
 impl NewDomainConfig {
@@ -372,6 +391,7 @@ impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
             config_type: self.config_type,
             visibility: self.visibility,
             encrypted: self.encrypted,
+            default_value: self.default_value,
         }];
 
         EntityEvents::init(self.id, events)
