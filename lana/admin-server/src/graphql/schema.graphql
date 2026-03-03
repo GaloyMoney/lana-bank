@@ -781,6 +781,15 @@ input CreditFacilityProposalsFilter {
 	status: CreditFacilityProposalStatus
 }
 
+input CreditFacilityProposalsSort {
+	by: CreditFacilityProposalsSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum CreditFacilityProposalsSortBy {
+	CREATED_AT
+}
+
 type CreditFacilityRepaymentAmountReceived {
 	cents: UsdCents!
 	recordedAt: Timestamp!
@@ -1973,6 +1982,15 @@ input PendingCreditFacilitiesFilter {
 	collateralizationState: PendingCreditFacilityCollateralizationState
 }
 
+input PendingCreditFacilitiesSort {
+	by: PendingCreditFacilitiesSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum PendingCreditFacilitiesSortBy {
+	CREATED_AT
+}
+
 type PendingCreditFacility {
 	id: ID!
 	pendingCreditFacilityId: UUID!
@@ -2294,9 +2312,9 @@ type Query {
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
 	creditFacilityProposal(id: UUID!): CreditFacilityProposal
-	creditFacilityProposals(first: Int!, after: String, filter: CreditFacilityProposalsFilter): CreditFacilityProposalConnection!
+	creditFacilityProposals(first: Int!, after: String, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilityProposalsFilter): CreditFacilityProposalConnection!
 	pendingCreditFacility(id: UUID!): PendingCreditFacility
-	pendingCreditFacilities(first: Int!, after: String, filter: PendingCreditFacilitiesFilter): PendingCreditFacilityConnection!
+	pendingCreditFacilities(first: Int!, after: String, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: PendingCreditFacilitiesFilter): PendingCreditFacilityConnection!
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal

@@ -809,6 +809,15 @@ export type CreditFacilityProposalsFilter = {
   status?: InputMaybe<CreditFacilityProposalStatus>;
 };
 
+export type CreditFacilityProposalsSort = {
+  by?: CreditFacilityProposalsSortBy;
+  direction?: SortDirection;
+};
+
+export enum CreditFacilityProposalsSortBy {
+  CreatedAt = 'CREATED_AT'
+}
+
 export type CreditFacilityRepaymentAmountReceived = {
   __typename?: 'CreditFacilityRepaymentAmountReceived';
   cents: Scalars['UsdCents']['output'];
@@ -2271,6 +2280,15 @@ export type PendingCreditFacilitiesFilter = {
   status?: InputMaybe<PendingCreditFacilityStatus>;
 };
 
+export type PendingCreditFacilitiesSort = {
+  by?: PendingCreditFacilitiesSortBy;
+  direction?: SortDirection;
+};
+
+export enum PendingCreditFacilitiesSortBy {
+  CreatedAt = 'CREATED_AT'
+}
+
 export type PendingCreditFacility = {
   __typename?: 'PendingCreditFacility';
   approvalProcess: ApprovalProcess;
@@ -2682,6 +2700,7 @@ export type QueryCreditFacilityProposalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<CreditFacilityProposalsFilter>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<CreditFacilityProposalsSort>;
 };
 
 
@@ -2845,6 +2864,7 @@ export type QueryPendingCreditFacilitiesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<PendingCreditFacilitiesFilter>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<PendingCreditFacilitiesSort>;
 };
 
 
@@ -4030,6 +4050,7 @@ export type CreditFacilityProposalCreateMutation = { __typename?: 'Mutation', cr
 export type CreditFacilityProposalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<CreditFacilityProposalsSort>;
   filter?: InputMaybe<CreditFacilityProposalsFilter>;
 }>;
 
@@ -4649,6 +4670,7 @@ export type PendingCollateralUpdateMutation = { __typename?: 'Mutation', collate
 export type PendingCreditFacilitiesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<PendingCreditFacilitiesSort>;
   filter?: InputMaybe<PendingCreditFacilitiesFilter>;
 }>;
 
@@ -7829,8 +7851,13 @@ export type CreditFacilityProposalCreateMutationHookResult = ReturnType<typeof u
 export type CreditFacilityProposalCreateMutationResult = Apollo.MutationResult<CreditFacilityProposalCreateMutation>;
 export type CreditFacilityProposalCreateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityProposalCreateMutation, CreditFacilityProposalCreateMutationVariables>;
 export const CreditFacilityProposalsDocument = gql`
-    query CreditFacilityProposals($first: Int!, $after: String, $filter: CreditFacilityProposalsFilter) {
-  creditFacilityProposals(first: $first, after: $after, filter: $filter) {
+    query CreditFacilityProposals($first: Int!, $after: String, $sort: CreditFacilityProposalsSort, $filter: CreditFacilityProposalsFilter) {
+  creditFacilityProposals(
+    first: $first
+    after: $after
+    sort: $sort
+    filter: $filter
+  ) {
     edges {
       cursor
       node {
@@ -7867,6 +7894,7 @@ export const CreditFacilityProposalsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *      filter: // value for 'filter'
  *   },
  * });
@@ -10845,8 +10873,13 @@ export type PendingCollateralUpdateMutationHookResult = ReturnType<typeof usePen
 export type PendingCollateralUpdateMutationResult = Apollo.MutationResult<PendingCollateralUpdateMutation>;
 export type PendingCollateralUpdateMutationOptions = Apollo.BaseMutationOptions<PendingCollateralUpdateMutation, PendingCollateralUpdateMutationVariables>;
 export const PendingCreditFacilitiesDocument = gql`
-    query PendingCreditFacilities($first: Int!, $after: String, $filter: PendingCreditFacilitiesFilter) {
-  pendingCreditFacilities(first: $first, after: $after, filter: $filter) {
+    query PendingCreditFacilities($first: Int!, $after: String, $sort: PendingCreditFacilitiesSort, $filter: PendingCreditFacilitiesFilter) {
+  pendingCreditFacilities(
+    first: $first
+    after: $after
+    sort: $sort
+    filter: $filter
+  ) {
     edges {
       cursor
       node {
@@ -10887,6 +10920,7 @@ export const PendingCreditFacilitiesDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *      filter: // value for 'filter'
  *   },
  * });

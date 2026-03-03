@@ -421,6 +421,9 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(CreditFacilityProposalsSort::default())")] sort: Option<
+            CreditFacilityProposalsSort,
+        >,
         filter: Option<CreditFacilityProposalsFilter>,
     ) -> async_graphql::Result<
         Connection<CreditFacilityProposalsCursor, CreditFacilityProposal, EmptyFields, EmptyFields>,
@@ -429,15 +432,19 @@ impl Query {
             status: filter.as_ref().and_then(|f| f.status),
             customer_id: None,
         };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             CreditFacilityProposalsCursor,
             CreditFacilityProposal,
-            DomainCreditFacilityProposalsSortBy::CreatedAt,
+            DomainCreditFacilityProposalsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.credit().proposals().list(sub, query, filter)
+            |query| app
+                .credit()
+                .proposals()
+                .list(sub, query, filter, sort.into())
         )
     }
 
@@ -460,6 +467,9 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(PendingCreditFacilitiesSort::default())")] sort: Option<
+            PendingCreditFacilitiesSort,
+        >,
         filter: Option<PendingCreditFacilitiesFilter>,
     ) -> async_graphql::Result<
         Connection<PendingCreditFacilitiesCursor, PendingCreditFacility, EmptyFields, EmptyFields>,
@@ -469,18 +479,19 @@ impl Query {
             customer_id: None,
             collateralization_state: filter.as_ref().and_then(|f| f.collateralization_state),
         };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             PendingCreditFacilitiesCursor,
             PendingCreditFacility,
-            DomainPendingCreditFacilitiesSortBy::CreatedAt,
+            DomainPendingCreditFacilitiesSortBy::from(sort),
             ctx,
             after,
             first,
             |query| app
                 .credit()
                 .pending_credit_facilities()
-                .list(sub, query, filter)
+                .list(sub, query, filter, sort.into())
         )
     }
 

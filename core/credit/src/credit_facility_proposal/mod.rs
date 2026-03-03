@@ -220,6 +220,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CreditFacilityProposalsCursor>,
         filter: CreditFacilityProposalsFilters,
+        sort: es_entity::Sort<CreditFacilityProposalsSortBy>,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacilityProposal, CreditFacilityProposalsCursor>,
         CreditFacilityProposalError,
@@ -232,16 +233,7 @@ where
             )
             .await?;
 
-        self.repo
-            .list_for_filters(
-                filter,
-                es_entity::Sort {
-                    by: CreditFacilityProposalsSortBy::CreatedAt,
-                    direction: es_entity::ListDirection::Descending,
-                },
-                query,
-            )
-            .await
+        self.repo.list_for_filters(filter, sort, query).await
     }
 
     #[record_error_severity]

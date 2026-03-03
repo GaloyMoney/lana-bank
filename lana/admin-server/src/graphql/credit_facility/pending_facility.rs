@@ -7,7 +7,7 @@ use crate::{
 
 use super::{
     ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry,
-    PendingCreditFacilityCollateralizationUpdated,
+    PendingCreditFacilityCollateralizationUpdated, Sort, SortDirection,
 };
 
 pub use lana_app::credit::{
@@ -102,6 +102,45 @@ impl PendingCreditFacility {
 pub struct PendingCreditFacilitiesFilter {
     pub status: Option<PendingCreditFacilityStatus>,
     pub collateralization_state: Option<PendingCreditFacilityCollateralizationState>,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum PendingCreditFacilitiesSortBy {
+    #[default]
+    CreatedAt,
+}
+
+impl From<PendingCreditFacilitiesSortBy> for DomainPendingCreditFacilitiesSortBy {
+    fn from(by: PendingCreditFacilitiesSortBy) -> Self {
+        match by {
+            PendingCreditFacilitiesSortBy::CreatedAt => {
+                DomainPendingCreditFacilitiesSortBy::CreatedAt
+            }
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct PendingCreditFacilitiesSort {
+    #[graphql(default)]
+    pub by: PendingCreditFacilitiesSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<PendingCreditFacilitiesSort> for Sort<DomainPendingCreditFacilitiesSortBy> {
+    fn from(sort: PendingCreditFacilitiesSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<PendingCreditFacilitiesSort> for DomainPendingCreditFacilitiesSortBy {
+    fn from(sort: PendingCreditFacilitiesSort) -> Self {
+        sort.by.into()
+    }
 }
 
 impl From<DomainPendingCreditFacility> for PendingCreditFacility {
