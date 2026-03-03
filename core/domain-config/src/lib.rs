@@ -368,7 +368,7 @@ where
                     .current_stored_value()
                     .map(|v| v.plain_or_null())
                     .or_else(|| {
-                        crate::registry::maybe_find_by_key(entity.key.as_str())
+                        registry::maybe_find_by_key(entity.key.as_str())
                             .and_then(|entry| (entry.default_json)())
                     })
                     .unwrap_or(serde_json::Value::Null);
