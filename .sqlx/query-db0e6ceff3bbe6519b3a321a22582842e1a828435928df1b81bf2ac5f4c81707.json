@@ -1,16 +1,17 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE core_deposits SET reference = $2, public_id = $3 WHERE id = $1",
+  "query": "UPDATE core_deposits SET reference = $2, public_id = $3, status = $4 WHERE id = $1",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
         "Uuid",
         "Varchar",
+        "Varchar",
         "Varchar"
       ]
     },
     "nullable": []
   },
-  "hash": "5b612e1e9eeb910fa49e3751950229f206fadb7d43c0dc4da9a9cc6ddd1d488d"
+  "hash": "db0e6ceff3bbe6519b3a321a22582842e1a828435928df1b81bf2ac5f4c81707"
 }

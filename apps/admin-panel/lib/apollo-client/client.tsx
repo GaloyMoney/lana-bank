@@ -139,8 +139,14 @@ export const makeClient = ({
             keyArgs: ["filter"],
           },
           liquidations: relayStylePagination(),
-          deposits: relayStylePagination(),
-          withdrawals: relayStylePagination(),
+          deposits: {
+            ...relayStylePagination(),
+            keyArgs: ["filter"],
+          },
+          withdrawals: {
+            ...relayStylePagination(),
+            keyArgs: ["filter"],
+          },
           depositAccounts: relayStylePagination(),
           loans: relayStylePagination(),
           custodians: relayStylePagination(),

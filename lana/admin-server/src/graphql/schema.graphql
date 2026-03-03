@@ -1373,6 +1373,10 @@ enum DepositStatus {
 	REVERTED
 }
 
+input DepositsFilter {
+	status: DepositStatus
+}
+
 type DisbursalApprovalConcludedPayload {
 	status: DisbursalStatus!
 	disbursal: CreditFacilityDisbursal!
@@ -2275,13 +2279,13 @@ type Query {
 	prospects(first: Int!, after: String, sort: ProspectsSort = {by: CREATED_AT, direction: ASC}, filter: ProspectsFilter): ProspectConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawalByPublicId(id: PublicId!): Withdrawal
-	withdrawals(first: Int!, after: String): WithdrawalConnection!
+	withdrawals(first: Int!, after: String, filter: WithdrawalsFilter): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
 	depositByPublicId(id: PublicId!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	depositAccountByPublicId(id: PublicId!): DepositAccount
 	depositAccounts(first: Int!, after: String): DepositAccountConnection!
-	deposits(first: Int!, after: String): DepositConnection!
+	deposits(first: Int!, after: String, filter: DepositsFilter): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
@@ -2835,6 +2839,10 @@ enum WithdrawalStatus {
 	DENIED
 	CANCELLED
 	REVERTED
+}
+
+input WithdrawalsFilter {
+	status: WithdrawalStatus
 }
 
 """

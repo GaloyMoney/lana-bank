@@ -6,5 +6,6 @@ pub use entity::Deposit;
 #[cfg(feature = "json-schema")]
 pub use entity::DepositEvent;
 pub(crate) use entity::*;
-pub use repo::deposit_cursor::DepositsByCreatedAtCursor;
+pub use repo::deposit_cursor::{DepositsByCreatedAtCursor, DepositsCursor};
 pub(crate) use repo::*;
+pub use repo::{DepositsFilters, DepositsSortBy};

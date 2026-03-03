@@ -11,10 +11,22 @@ use crate::primitives::{
 
 use super::error::WithdrawalError;
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    Default,
+    Serialize,
+    Deserialize,
+    Eq,
+    PartialEq,
+    strum::Display,
+    strum::EnumString,
+)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum WithdrawalStatus {
+    #[default]
     PendingApproval,
     PendingConfirmation,
     Confirmed,
@@ -301,6 +313,8 @@ pub struct NewWithdrawal {
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     reference: Option<String>,
+    #[builder(setter(skip), default)]
+    pub(super) status: WithdrawalStatus,
 }
 
 impl NewWithdrawal {

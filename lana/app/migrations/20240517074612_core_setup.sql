@@ -182,6 +182,7 @@ CREATE TABLE core_deposits (
   deposit_account_id UUID NOT NULL REFERENCES core_deposit_accounts(id),
   reference VARCHAR NOT NULL UNIQUE,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
+  status VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -202,6 +203,7 @@ CREATE TABLE core_withdrawals (
   cancelled_tx_id UUID DEFAULT NULL,
   reference VARCHAR NOT NULL UNIQUE,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
+  status VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

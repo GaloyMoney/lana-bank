@@ -1,11 +1,17 @@
 "use client"
 
+import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { WithdrawalStatusBadge } from "./status-badge"
 
-import { Withdrawal, useWithdrawalsQuery } from "@/lib/graphql/generated"
+import {
+  Withdrawal,
+  WithdrawalStatus,
+  WithdrawalsFilter,
+  useWithdrawalsQuery,
+} from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
@@ -32,8 +38,8 @@ gql`
     }
   }
 
-  query Withdrawals($first: Int!, $after: String) {
-    withdrawals(first: $first, after: $after) {
+  query Withdrawals($first: Int!, $after: String, $filter: WithdrawalsFilter) {
+    withdrawals(first: $first, after: $after, filter: $filter) {
       pageInfo {
         hasPreviousPage
         hasNextPage
@@ -52,9 +58,12 @@ gql`
 
 const Withdrawals = () => {
   const t = useTranslations("Withdrawals.table")
+  const [filter, setFilter] = useState<WithdrawalsFilter | null>(null)
+
   const { data, loading, error, fetchMore } = useWithdrawalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      filter,
     },
   })
 
@@ -68,6 +77,10 @@ const Withdrawals = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(withdrawal) => `/withdrawals/${withdrawal.publicId}`}
+        onFilter={(filters) => {
+          const f = filters as WithdrawalsFilter
+          setFilter(Object.keys(f).length > 0 ? f : null)
+        }}
       />
     </div>
   )
@@ -101,5 +114,6 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] =>
     key: "status",
     label: t("headers.status"),
     render: (status) => <WithdrawalStatusBadge status={status} />,
+    filterValues: Object.values(WithdrawalStatus),
   },
 ]
