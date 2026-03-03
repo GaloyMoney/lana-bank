@@ -37,12 +37,16 @@ pub const CHART_REF: ChartRef = ChartRef(lana_app::accounting_init::constants::C
 pub type LanaDataLoader = DataLoader<LanaLoader>;
 pub struct LanaLoader {
     pub app: LanaApp,
+    sub: Subject,
 }
 
 impl LanaLoader {
-    pub fn new(app: &LanaApp) -> LanaDataLoader {
+    pub fn new(app: &LanaApp, sub: &Subject) -> LanaDataLoader {
         DataLoader::new(
-            Self { app: app.clone() },
+            Self {
+                app: app.clone(),
+                sub: sub.clone(),
+            },
             async_graphql::runtime::TokioSpawner::current(),
             async_graphql::runtime::TokioTimer::default(),
         )
@@ -188,7 +192,11 @@ impl Loader<CustomerId> for LanaLoader {
         &self,
         keys: &[CustomerId],
     ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
-        self.app.customers().find_all(keys).await.map_err(Arc::new)
+        self.app
+            .customers()
+            .find_all_authorized(&self.sub, keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

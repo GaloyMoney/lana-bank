@@ -22,6 +22,7 @@ use jwks_utils::{Claims, JwtDecoderState, RemoteJwksDecoder};
 use lana_app::app::LanaApp;
 
 pub use config::*;
+use graphql::LanaLoader;
 use primitives::*;
 
 use std::sync::Arc;
@@ -110,6 +111,7 @@ pub struct AdminJwtClaims {
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
     schema: Extension<Schema<graphql::Query, graphql::Mutation, graphql::Subscription>>,
+    app: Extension<LanaApp>,
     Claims(jwt_claims): Claims<AdminJwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
@@ -151,6 +153,7 @@ pub async fn graphql_handler(
     };
 
     let auth_context = AdminAuthContext::new(id);
+    req = req.data(LanaLoader::new(&app, &auth_context.sub));
     req = req.data(auth_context);
 
     let response = schema.execute(req).await;
