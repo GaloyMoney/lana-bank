@@ -321,17 +321,23 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        filter: Option<DepositAccountsFilter>,
     ) -> async_graphql::Result<
-        Connection<DepositAccountsByCreatedAtCursor, DepositAccount, EmptyFields, EmptyFields>,
+        Connection<DepositAccountsCursor, DepositAccount, EmptyFields, EmptyFields>,
     > {
+        let filter = DomainDepositAccountsFilters {
+            status: filter.as_ref().and_then(|f| f.status),
+            ..Default::default()
+        };
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            DepositAccountsByCreatedAtCursor,
+        list_with_combo_cursor!(
+            DepositAccountsCursor,
             DepositAccount,
+            DomainDepositAccountsSortBy::CreatedAt,
             ctx,
             after,
             first,
-            |query| app.deposits().list_accounts(sub, query)
+            |query| app.deposits().list_accounts(sub, query, filter)
         )
     }
 

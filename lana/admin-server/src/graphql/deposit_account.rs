@@ -174,3 +174,8 @@ impl DepositAccount {
         }
     }
 }
+
+#[derive(InputObject)]
+pub struct DepositAccountsFilter {
+    pub status: Option<DepositAccountStatus>,
+}

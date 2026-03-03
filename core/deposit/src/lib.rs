@@ -31,7 +31,10 @@ use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use public_id::PublicIds;
 
 use account::*;
-pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor, error::DepositAccountError};
+pub use account::{
+    DepositAccount, DepositAccountsByCreatedAtCursor, DepositAccountsCursor,
+    DepositAccountsFilters, DepositAccountsSortBy, error::DepositAccountError,
+};
 use chart_of_accounts_integration::ChartOfAccountsIntegrations;
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, error::ChartOfAccountsIntegrationError,
@@ -1006,11 +1009,10 @@ where
     pub async fn list_accounts(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<DepositAccountsByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<DepositAccount, DepositAccountsByCreatedAtCursor>,
-        CoreDepositError,
-    > {
+        query: es_entity::PaginatedQueryArgs<DepositAccountsCursor>,
+        filter: DepositAccountsFilters,
+    ) -> Result<es_entity::PaginatedQueryRet<DepositAccount, DepositAccountsCursor>, CoreDepositError>
+    {
         self.authz
             .enforce_permission(
                 sub,
@@ -1020,7 +1022,14 @@ where
             .await?;
         Ok(self
             .deposit_accounts
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .list_for_filters(
+                filter,
+                es_entity::Sort {
+                    by: DepositAccountsSortBy::CreatedAt,
+                    direction: es_entity::ListDirection::Descending,
+                },
+                query,
+            )
             .await?)
     }
 

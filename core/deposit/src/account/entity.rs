@@ -181,6 +181,8 @@ pub struct NewDepositAccount {
     pub(super) account_ids: DepositAccountLedgerAccountIds,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
+    #[builder(setter(skip), default)]
+    pub(super) status: DepositAccountStatus,
 }
 
 impl NewDepositAccount {

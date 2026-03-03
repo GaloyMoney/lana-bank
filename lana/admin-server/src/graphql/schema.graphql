@@ -1279,6 +1279,10 @@ type DepositAccountUnfreezePayload {
 	account: DepositAccount!
 }
 
+input DepositAccountsFilter {
+	status: DepositAccountStatus
+}
+
 type DepositConnection {
 	"""
 	Information to aid in pagination.
@@ -2284,7 +2288,7 @@ type Query {
 	depositByPublicId(id: PublicId!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	depositAccountByPublicId(id: PublicId!): DepositAccount
-	depositAccounts(first: Int!, after: String): DepositAccountConnection!
+	depositAccounts(first: Int!, after: String, filter: DepositAccountsFilter): DepositAccountConnection!
 	deposits(first: Int!, after: String, filter: DepositsFilter): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!

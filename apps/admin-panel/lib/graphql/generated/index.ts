@@ -1292,6 +1292,10 @@ export type DepositAccountUnfreezePayload = {
   account: DepositAccount;
 };
 
+export type DepositAccountsFilter = {
+  status?: InputMaybe<DepositAccountStatus>;
+};
+
 export type DepositConnection = {
   __typename?: 'DepositConnection';
   /** A list of edges. */
@@ -2732,6 +2736,7 @@ export type QueryDepositAccountByPublicIdArgs = {
 
 export type QueryDepositAccountsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<DepositAccountsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -4189,6 +4194,7 @@ export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: 
 export type DepositAccountsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<DepositAccountsFilter>;
 }>;
 
 
@@ -8810,8 +8816,8 @@ export type DepositAccountCreateMutationHookResult = ReturnType<typeof useDeposi
 export type DepositAccountCreateMutationResult = Apollo.MutationResult<DepositAccountCreateMutation>;
 export type DepositAccountCreateMutationOptions = Apollo.BaseMutationOptions<DepositAccountCreateMutation, DepositAccountCreateMutationVariables>;
 export const DepositAccountsDocument = gql`
-    query DepositAccounts($first: Int!, $after: String) {
-  depositAccounts(first: $first, after: $after) {
+    query DepositAccounts($first: Int!, $after: String, $filter: DepositAccountsFilter) {
+  depositAccounts(first: $first, after: $after, filter: $filter) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -8842,6 +8848,7 @@ export const DepositAccountsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
