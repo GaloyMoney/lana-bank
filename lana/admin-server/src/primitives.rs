@@ -41,7 +41,11 @@ pub use es_entity::graphql::UUID;
 #[derive(Clone, Copy, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Timestamp(chrono::DateTime<chrono::Utc>);
-scalar!(Timestamp);
+scalar!(
+    Timestamp,
+    "Timestamp",
+    "An ISO 8601 UTC timestamp (e.g., 2024-01-15T09:30:00Z). Always in UTC."
+);
 impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
     fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
         Self(value)
@@ -57,7 +61,11 @@ impl Timestamp {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Date(chrono::NaiveDate);
-scalar!(Date);
+scalar!(
+    Date,
+    "Date",
+    "An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design."
+);
 impl From<chrono::NaiveDate> for Date {
     fn from(value: chrono::NaiveDate) -> Self {
         Self(value)

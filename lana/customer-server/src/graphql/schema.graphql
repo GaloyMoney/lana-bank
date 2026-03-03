@@ -181,6 +181,9 @@ enum CustomerType {
 	NON_DOMICILED_COMPANY
 }
 
+"""
+An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design.
+"""
 scalar Date
 
 type Deposit {
@@ -392,6 +395,9 @@ type TermValues {
 	initialCvl: CVLPct!
 }
 
+"""
+An ISO 8601 UTC timestamp (e.g., 2024-01-15T09:30:00Z). Always in UTC.
+"""
 scalar Timestamp
 
 type Total {

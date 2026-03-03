@@ -192,19 +192,13 @@ impl InterestInterval {
                 Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0)
                     .single()
                     .expect("should return a valid date time")
-                    - chrono::Duration::seconds(1)
+                    - chrono::Duration::nanoseconds(1)
             }
-            InterestInterval::EndOfDay => Utc
-                .with_ymd_and_hms(
-                    current_date.year(),
-                    current_date.month(),
-                    current_date.day(),
-                    23,
-                    59,
-                    59,
-                )
-                .single()
-                .expect("should return a valid date time"),
+            InterestInterval::EndOfDay => current_date
+                .date_naive()
+                .and_hms_nano_opt(23, 59, 59, 999_999_999)
+                .expect("should return a valid date time")
+                .and_utc(),
         }
     }
 }
@@ -586,7 +580,9 @@ mod test {
 
     #[test]
     fn end_date_starting_at_month_interval() {
-        let expected_end_date = "2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap();
+        let expected_end_date = "2024-12-31T23:59:59.999999999Z"
+            .parse::<DateTime<Utc>>()
+            .unwrap();
 
         let start_of_month = "2024-12-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
         assert_eq!(
@@ -600,7 +596,9 @@ mod test {
             expected_end_date
         );
 
-        let end_of_month = "2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap();
+        let end_of_month = "2024-12-31T23:59:59.999999999Z"
+            .parse::<DateTime<Utc>>()
+            .unwrap();
         assert_eq!(
             InterestInterval::EndOfMonth.end_date_starting_at(end_of_month),
             expected_end_date
@@ -609,7 +607,9 @@ mod test {
 
     #[test]
     fn end_date_starting_at_day_interval() {
-        let expected_end_date = "2024-12-03T23:59:59Z".parse::<DateTime<Utc>>().unwrap();
+        let expected_end_date = "2024-12-03T23:59:59.999999999Z"
+            .parse::<DateTime<Utc>>()
+            .unwrap();
 
         let start_of_day = "2024-12-03T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
         assert_eq!(
@@ -623,7 +623,9 @@ mod test {
             expected_end_date
         );
 
-        let end_of_day = "2024-12-03T23:59:59Z".parse::<DateTime<Utc>>().unwrap();
+        let end_of_day = "2024-12-03T23:59:59.999999999Z"
+            .parse::<DateTime<Utc>>()
+            .unwrap();
         assert_eq!(
             InterestInterval::EndOfDay.end_date_starting_at(end_of_day),
             expected_end_date

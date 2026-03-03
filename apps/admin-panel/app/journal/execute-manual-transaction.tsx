@@ -209,7 +209,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                 id="effective"
                 name="effective"
                 type="date"
-                value={formValues.effective}
+                value={formValues.effective ?? ""}
                 onChange={handleChange}
                 disabled={isLoading}
                 data-testid="execute-manual-transaction-effective-date-input"

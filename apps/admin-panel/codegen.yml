@@ -21,6 +21,8 @@ generates:
     config:
       scalars:
         UUID: string
+        Date: string
+        Timestamp: string
         UsdCents: "types#UsdCents"
         Satoshis: "types#Satoshis"
         SignedUsdCents: "types#SignedUsdCents"
