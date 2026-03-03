@@ -7,7 +7,12 @@ import { useTranslations } from "next-intl"
 
 import { ProspectStageBadge } from "./prospect-stage-badge"
 
-import { Prospect, ProspectStage, useProspectsQuery } from "@/lib/graphql/generated"
+import {
+  Prospect,
+  ProspectStage,
+  ProspectsFilter,
+  useProspectsQuery,
+} from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
@@ -16,8 +21,13 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 
 gql`
-  query Prospects($first: Int!, $after: String, $stage: ProspectStage) {
-    prospects(first: $first, after: $after, stage: $stage) {
+  query Prospects(
+    $first: Int!
+    $after: String
+    $sort: ProspectsSort
+    $filter: ProspectsFilter
+  ) {
+    prospects(first: $first, after: $after, sort: $sort, filter: $filter) {
       edges {
         node {
           id
@@ -45,12 +55,12 @@ gql`
 
 const ProspectsList = () => {
   const t = useTranslations("Prospects")
-  const [stageFilter, setStageFilter] = useState<ProspectStage | undefined>(undefined)
+  const [filter, setFilter] = useState<ProspectsFilter | null>(null)
 
   const { data, loading, error, fetchMore } = useProspectsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
-      stage: stageFilter,
+      filter,
     },
   })
 
@@ -89,7 +99,8 @@ const ProspectsList = () => {
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(prospect) => `/prospects/${prospect.publicId}`}
         onFilter={(filters) => {
-          setStageFilter(filters.stage as ProspectStage)
+          const f = filters as ProspectsFilter
+          setFilter(Object.keys(f).length > 0 ? f : null)
         }}
       />
     </div>

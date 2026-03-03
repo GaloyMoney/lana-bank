@@ -33,7 +33,7 @@ pub use entity::Customer;
 use error::*;
 pub use party::{Party, PartyRepo};
 pub use primitives::*;
-pub use prospect::{Prospect, ProspectRepo, ProspectsSortBy, prospect_cursor};
+pub use prospect::{Prospect, ProspectRepo, ProspectsFilters, ProspectsSortBy, prospect_cursor};
 pub use public::*;
 pub use repo::{CustomerRepo, CustomersFilters, CustomersSortBy, Sort, customer_cursor::*};
 
@@ -783,14 +783,11 @@ where
     pub async fn list_prospects(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<prospect::prospect_cursor::ProspectsByCreatedAtCursor>,
-        direction: es_entity::ListDirection,
-        stage: Option<ProspectStage>,
+        query: es_entity::PaginatedQueryArgs<prospect::prospect_cursor::ProspectsCursor>,
+        filter: prospect::ProspectsFilters,
+        sort: impl Into<Sort<ProspectsSortBy>> + std::fmt::Debug,
     ) -> Result<
-        es_entity::PaginatedQueryRet<
-            Prospect,
-            prospect::prospect_cursor::ProspectsByCreatedAtCursor,
-        >,
+        es_entity::PaginatedQueryRet<Prospect, prospect::prospect_cursor::ProspectsCursor>,
         CustomerError,
     > {
         self.authz
@@ -800,14 +797,10 @@ where
                 CoreCustomerAction::PROSPECT_LIST,
             )
             .await?;
-        let mut result = self
+        Ok(self
             .prospect_repo
-            .list_by_created_at(query, direction)
-            .await?;
-        if let Some(stage) = stage {
-            result.entities.retain(|p| p.stage == stage);
-        }
-        Ok(result)
+            .list_for_filters(filter, sort.into(), query)
+            .await?)
     }
 
     #[record_error_severity]

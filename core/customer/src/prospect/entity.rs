@@ -350,6 +350,8 @@ pub struct NewProspect {
     pub(super) party_id: PartyId,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
+    #[builder(default)]
+    pub(super) stage: ProspectStage,
 }
 
 impl NewProspect {
@@ -369,7 +371,7 @@ impl IntoEvents<ProspectEvent> for NewProspect {
                 telegram_handle: None,
                 customer_type: None,
                 public_id: self.public_id,
-                stage: ProspectStage::New,
+                stage: self.stage,
             }],
         )
     }

@@ -5,4 +5,4 @@ pub mod repo;
 
 pub use entity::*;
 pub use error::*;
-pub use repo::{ProspectRepo, ProspectsSortBy, Sort, prospect_cursor};
+pub use repo::{ProspectRepo, ProspectsFilters, ProspectsSortBy, Sort, prospect_cursor};

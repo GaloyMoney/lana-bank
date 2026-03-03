@@ -2508,6 +2508,19 @@ export enum ProspectStatus {
   Open = 'OPEN'
 }
 
+export type ProspectsFilter = {
+  stage?: InputMaybe<ProspectStage>;
+};
+
+export type ProspectsSort = {
+  by?: ProspectsSortBy;
+  direction?: SortDirection;
+};
+
+export enum ProspectsSortBy {
+  CreatedAt = 'CREATED_AT'
+}
+
 export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Prospect | Withdrawal;
 
 export type Query = {
@@ -2859,8 +2872,9 @@ export type QueryProspectByPublicIdArgs = {
 
 export type QueryProspectsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<ProspectsFilter>;
   first: Scalars['Int']['input'];
-  stage?: InputMaybe<ProspectStage>;
+  sort?: InputMaybe<ProspectsSort>;
 };
 
 
@@ -4709,7 +4723,8 @@ export type ProspectCreateMutation = { __typename?: 'Mutation', prospectCreate: 
 export type ProspectsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
-  stage?: InputMaybe<ProspectStage>;
+  sort?: InputMaybe<ProspectsSort>;
+  filter?: InputMaybe<ProspectsFilter>;
 }>;
 
 
@@ -11337,8 +11352,8 @@ export type ProspectCreateMutationHookResult = ReturnType<typeof useProspectCrea
 export type ProspectCreateMutationResult = Apollo.MutationResult<ProspectCreateMutation>;
 export type ProspectCreateMutationOptions = Apollo.BaseMutationOptions<ProspectCreateMutation, ProspectCreateMutationVariables>;
 export const ProspectsDocument = gql`
-    query Prospects($first: Int!, $after: String, $stage: ProspectStage) {
-  prospects(first: $first, after: $after, stage: $stage) {
+    query Prospects($first: Int!, $after: String, $sort: ProspectsSort, $filter: ProspectsFilter) {
+  prospects(first: $first, after: $after, sort: $sort, filter: $filter) {
     edges {
       node {
         id
@@ -11378,7 +11393,8 @@ export const ProspectsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
- *      stage: // value for 'stage'
+ *      sort: // value for 'sort'
+ *      filter: // value for 'filter'
  *   },
  * });
  */

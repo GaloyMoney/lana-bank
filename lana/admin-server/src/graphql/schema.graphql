@@ -2235,6 +2235,19 @@ enum ProspectStatus {
 	CLOSED
 }
 
+input ProspectsFilter {
+	stage: ProspectStage
+}
+
+input ProspectsSort {
+	by: ProspectsSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum ProspectsSortBy {
+	CREATED_AT
+}
+
 scalar PublicId
 
 union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
@@ -2254,7 +2267,7 @@ type Query {
 	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: ASC}, filter: CustomersFilter): CustomerConnection!
 	prospect(id: UUID!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect
-	prospects(first: Int!, after: String, stage: ProspectStage): ProspectConnection!
+	prospects(first: Int!, after: String, sort: ProspectsSort = {by: CREATED_AT, direction: ASC}, filter: ProspectsFilter): ProspectConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawalByPublicId(id: PublicId!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!

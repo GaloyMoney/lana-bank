@@ -3,11 +3,14 @@ use async_graphql::*;
 use crate::primitives::*;
 use lana_app::public_id::PublicId;
 
-use super::loader::LanaDataLoader;
+use super::{loader::LanaDataLoader, primitives::SortDirection};
 
-pub use lana_app::customer::Prospect as DomainProspect;
 use lana_app::customer::{
     CustomerType, KycLevel, KycStatus, PersonalInfo, ProspectStage, ProspectStatus,
+};
+pub use lana_app::customer::{
+    Prospect as DomainProspect, ProspectsFilters as DomainProspectsFilters,
+    ProspectsSortBy as DomainProspectsSortBy, Sort,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -154,3 +157,45 @@ pub struct ProspectConvertInput {
     pub prospect_id: UUID,
 }
 crate::mutation_payload! { ProspectConvertPayload, customer: super::customer::Customer }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ProspectsSortBy {
+    #[default]
+    CreatedAt,
+}
+
+impl From<ProspectsSortBy> for DomainProspectsSortBy {
+    fn from(by: ProspectsSortBy) -> Self {
+        match by {
+            ProspectsSortBy::CreatedAt => DomainProspectsSortBy::CreatedAt,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Clone, Copy)]
+pub struct ProspectsSort {
+    #[graphql(default)]
+    pub by: ProspectsSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<ProspectsSort> for DomainProspectsSortBy {
+    fn from(sort: ProspectsSort) -> Self {
+        sort.by.into()
+    }
+}
+
+impl From<ProspectsSort> for Sort<DomainProspectsSortBy> {
+    fn from(sort: ProspectsSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct ProspectsFilter {
+    pub stage: Option<ProspectStage>,
+}
