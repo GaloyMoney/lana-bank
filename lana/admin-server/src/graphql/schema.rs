@@ -421,7 +421,9 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-        #[graphql(default)] sort: CreditFacilityProposalsSort,
+        #[graphql(default_with = "Some(CreditFacilityProposalsSort::default())")] sort: Option<
+            CreditFacilityProposalsSort,
+        >,
         filter: Option<CreditFacilityProposalsFilter>,
     ) -> async_graphql::Result<
         Connection<CreditFacilityProposalsCursor, CreditFacilityProposal, EmptyFields, EmptyFields>,
@@ -430,6 +432,7 @@ impl Query {
             status: filter.as_ref().and_then(|f| f.status),
             customer_id: None,
         };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             CreditFacilityProposalsCursor,
@@ -464,7 +467,9 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-        #[graphql(default)] sort: PendingCreditFacilitiesSort,
+        #[graphql(default_with = "Some(PendingCreditFacilitiesSort::default())")] sort: Option<
+            PendingCreditFacilitiesSort,
+        >,
         filter: Option<PendingCreditFacilitiesFilter>,
     ) -> async_graphql::Result<
         Connection<PendingCreditFacilitiesCursor, PendingCreditFacility, EmptyFields, EmptyFields>,
@@ -474,6 +479,7 @@ impl Query {
             customer_id: None,
             collateralization_state: filter.as_ref().and_then(|f| f.collateralization_state),
         };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             PendingCreditFacilitiesCursor,
