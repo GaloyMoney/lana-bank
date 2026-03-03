@@ -2613,8 +2613,8 @@ impl Subscription {
             .await?
             .ok_or_else(|| Error::new("Prospect not found"))?;
 
-        let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
             let event: &CoreCustomerEvent = payload.as_event()?;
 
@@ -2634,7 +2634,7 @@ impl Subscription {
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 
     async fn pending_credit_facility_collateralization_updated(
@@ -2651,8 +2651,8 @@ impl Subscription {
             .find_by_id(sub, pending_credit_facility_id)
             .await?;
 
-        let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |message| async move {
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |message| async move {
             let payload = message.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
@@ -2675,7 +2675,7 @@ impl Subscription {
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 
     async fn pending_credit_facility_completed(
@@ -2691,8 +2691,8 @@ impl Subscription {
             .find_by_id(sub, pending_credit_facility_id)
             .await?;
 
-        let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
@@ -2711,7 +2711,7 @@ impl Subscription {
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 
     async fn credit_facility_proposal_concluded(
@@ -2729,8 +2729,8 @@ impl Subscription {
             .await?
             .ok_or_else(|| Error::new("Credit facility proposal not found"))?;
 
-        let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
@@ -2746,7 +2746,7 @@ impl Subscription {
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 
     async fn withdrawal_approval_concluded(
@@ -2762,8 +2762,8 @@ impl Subscription {
             .await?
             .ok_or_else(|| Error::new("Withdrawal not found"))?;
 
-        let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
             let event: &CoreDepositEvent = payload.as_event()?;
             match event {
@@ -2779,7 +2779,7 @@ impl Subscription {
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 
     async fn disbursal_approval_concluded(
@@ -2796,8 +2796,8 @@ impl Subscription {
             .await?
             .ok_or_else(|| Error::new("Disbursal not found"))?;
 
-        let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |event| async move {
             let payload = event.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
@@ -2813,7 +2813,7 @@ impl Subscription {
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 
     async fn credit_facility_collateralization_updated(
@@ -2829,8 +2829,8 @@ impl Subscription {
             .find_by_id(sub, credit_facility_id)
             .await?;
 
-        let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |message| async move {
+        let outbox_stream = app.outbox().listen_persisted(None);
+        let filtered_stream = outbox_stream.filter_map(move |message| async move {
             let payload = message.payload.as_ref()?;
             let event: &CoreCreditEvent = payload.as_event()?;
             match event {
@@ -2855,7 +2855,7 @@ impl Subscription {
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 
     async fn ledger_account_csv_export_uploaded(
@@ -2871,8 +2871,8 @@ impl Subscription {
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
 
-        let stream = app.outbox().listen_ephemeral();
-        let updates = stream.filter_map(move |event| async move {
+        let outbox_stream = app.outbox().listen_ephemeral();
+        let filtered_stream = outbox_stream.filter_map(move |event| async move {
             let event: &CoreAccountingEvent = event.payload.as_event()?;
             match event {
                 CoreAccountingEvent::LedgerAccountCsvExportUploaded {
@@ -2887,7 +2887,7 @@ impl Subscription {
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 
     async fn realtime_price_updated(
@@ -2896,15 +2896,15 @@ impl Subscription {
     ) -> async_graphql::Result<impl Stream<Item = RealtimePrice>> {
         let app = ctx.data_unchecked::<LanaApp>();
 
-        let stream = app.outbox().listen_ephemeral();
-        let updates = stream.filter_map(move |event| async move {
+        let outbox_stream = app.outbox().listen_ephemeral();
+        let filtered_stream = outbox_stream.filter_map(move |event| async move {
             let event: &CorePriceEvent = event.payload.as_event()?;
             match event {
                 CorePriceEvent::PriceUpdated { price, .. } => Some(RealtimePrice::from(*price)),
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 
     async fn report_run_updated(
@@ -2913,8 +2913,8 @@ impl Subscription {
     ) -> async_graphql::Result<impl Stream<Item = ReportRunUpdatedPayload>> {
         let app = ctx.data_unchecked::<LanaApp>();
 
-        let stream = app.outbox().listen_ephemeral();
-        let updates = stream.filter_map(move |event| async move {
+        let outbox_stream = app.outbox().listen_ephemeral();
+        let filtered_stream = outbox_stream.filter_map(move |event| async move {
             let event: &CoreReportEvent = event.payload.as_event()?;
             match event {
                 CoreReportEvent::ReportRunCreated { entity }
@@ -2926,6 +2926,6 @@ impl Subscription {
             }
         });
 
-        Ok(updates)
+        Ok(filtered_stream)
     }
 }
