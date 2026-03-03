@@ -184,6 +184,7 @@ CREATE TABLE core_deposits (
   reference VARCHAR NOT NULL UNIQUE,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   status VARCHAR NOT NULL,
+  amount BIGINT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

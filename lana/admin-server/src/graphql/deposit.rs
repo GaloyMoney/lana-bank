@@ -1,8 +1,9 @@
 use async_graphql::*;
+use es_entity::Sort;
 
 use crate::{graphql::accounting::LedgerTransaction, primitives::*};
 
-use super::loader::LanaDataLoader;
+use super::{loader::LanaDataLoader, primitives::SortDirection};
 
 pub use super::deposit_account::{DepositAccount, DepositAccountsFilter};
 
@@ -119,4 +120,43 @@ crate::mutation_payload! { DepositAccountClosePayload, account: DepositAccount }
 #[derive(InputObject)]
 pub struct DepositsFilter {
     pub status: Option<DepositStatus>,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DepositsSortBy {
+    #[default]
+    CreatedAt,
+    Amount,
+}
+
+impl From<DepositsSortBy> for DomainDepositsSortBy {
+    fn from(by: DepositsSortBy) -> Self {
+        match by {
+            DepositsSortBy::CreatedAt => DomainDepositsSortBy::CreatedAt,
+            DepositsSortBy::Amount => DomainDepositsSortBy::Amount,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct DepositsSort {
+    #[graphql(default)]
+    pub by: DepositsSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<DepositsSort> for Sort<DomainDepositsSortBy> {
+    fn from(sort: DepositsSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<DepositsSort> for DomainDepositsSortBy {
+    fn from(sort: DepositsSort) -> Self {
+        sort.by.into()
+    }
 }

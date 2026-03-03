@@ -1398,6 +1398,16 @@ input DepositsFilter {
 	status: DepositStatus
 }
 
+input DepositsSort {
+	by: DepositsSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum DepositsSortBy {
+	CREATED_AT
+	AMOUNT
+}
+
 type DisbursalApprovalConcludedPayload {
 	status: DisbursalStatus!
 	disbursal: CreditFacilityDisbursal!
@@ -2315,7 +2325,7 @@ type Query {
 	depositAccount(id: UUID!): DepositAccount
 	depositAccountByPublicId(id: PublicId!): DepositAccount
 	depositAccounts(first: Int!, after: String, filter: DepositAccountsFilter): DepositAccountConnection!
-	deposits(first: Int!, after: String, filter: DepositsFilter): DepositConnection!
+	deposits(first: Int!, after: String, sort: DepositsSort = {by: CREATED_AT, direction: ASC}, filter: DepositsFilter): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility

@@ -3857,6 +3857,7 @@ dependencies = [
  "rust_decimal_macros",
  "schemars 1.2.1",
  "serde",
+ "sqlx",
  "thiserror 2.0.18",
  "tracing",
  "tracing-utils",

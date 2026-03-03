@@ -17,7 +17,7 @@ json-schema = [
 ]
 
 [dependencies]
-money = { workspace = true }
+money = { workspace = true, features = ["sqlx"] }
 permission-sets-macro = { workspace = true }
 governance = { workspace = true }
 core-customer = { workspace = true }
