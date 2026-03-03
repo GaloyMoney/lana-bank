@@ -1958,6 +1958,7 @@ type PaymentsUnapplied {
 
 input PendingCreditFacilitiesFilter {
 	status: PendingCreditFacilityStatus
+	collateralizationState: PendingCreditFacilityCollateralizationState
 }
 
 type PendingCreditFacility {

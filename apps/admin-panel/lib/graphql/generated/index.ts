@@ -2255,6 +2255,7 @@ export type PaymentsUnapplied = {
 };
 
 export type PendingCreditFacilitiesFilter = {
+  collateralizationState?: InputMaybe<PendingCreditFacilityCollateralizationState>;
   status?: InputMaybe<PendingCreditFacilityStatus>;
 };
 

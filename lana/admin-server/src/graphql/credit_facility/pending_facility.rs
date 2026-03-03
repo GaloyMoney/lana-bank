@@ -101,6 +101,7 @@ impl PendingCreditFacility {
 #[derive(InputObject)]
 pub struct PendingCreditFacilitiesFilter {
     pub status: Option<PendingCreditFacilityStatus>,
+    pub collateralization_state: Option<PendingCreditFacilityCollateralizationState>,
 }
 
 impl From<DomainPendingCreditFacility> for PendingCreditFacility {

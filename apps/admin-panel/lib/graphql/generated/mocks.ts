@@ -2491,6 +2491,7 @@ export const mockPendingCreditFacilitiesFilter = (overrides?: Partial<PendingCre
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('PendingCreditFacilitiesFilter');
     return {
+        collateralizationState: overrides && overrides.hasOwnProperty('collateralizationState') ? overrides.collateralizationState! : PendingCreditFacilityCollateralizationState.FullyCollateralized,
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : PendingCreditFacilityStatus.Completed,
     };
 };
