@@ -19,10 +19,12 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
-  Date: { input: any; output: any; }
+  /** An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design. */
+  Date: { input: string; output: string; }
   OneTimeFeeRatePct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
-  Timestamp: { input: any; output: any; }
+  /** An ISO 8601 UTC timestamp (e.g., 2024-01-15T09:30:00Z). Always in UTC. */
+  Timestamp: { input: string; output: string; }
   UUID: { input: any; output: any; }
   UsdCents: { input: any; output: any; }
 };
@@ -486,22 +488,22 @@ export type GetCreditFacilityQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: any, maturesAt: any, currentCvl: any, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, history: Array<
-      | { __typename?: 'CreditFacilityApproved', cents: any, recordedAt: any, txId: any, effective: any }
-      | { __typename?: 'CreditFacilityCollateralSentOut', amount: any, recordedAt: any, txId: any, effective: any }
-      | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, direction: CollateralDirection, txId: any, effective: any }
-      | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any, effective: any }
-      | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any, effective: any }
-      | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any, effective: any }
-      | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number, effective: any }
-      | { __typename?: 'CreditFacilityRepaymentAmountReceived', cents: any, recordedAt: any, txId: any, effective: any }
-      | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: any, price: any, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
+export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, maturesAt: string, currentCvl: any, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: any, amount: any, status: DisbursalStatus, createdAt: string }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: string, dueAt: string }>, history: Array<
+      | { __typename?: 'CreditFacilityApproved', cents: any, recordedAt: string, txId: any, effective: string }
+      | { __typename?: 'CreditFacilityCollateralSentOut', amount: any, recordedAt: string, txId: any, effective: string }
+      | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: string, direction: CollateralDirection, txId: any, effective: string }
+      | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: string, price: any, effective: string }
+      | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: string, txId: any, effective: string }
+      | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: string, txId: any, effective: string }
+      | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: string, txId: any, days: number, effective: string }
+      | { __typename?: 'CreditFacilityRepaymentAmountReceived', cents: any, recordedAt: string, txId: any, effective: string }
+      | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: any, price: any, recordedAt: string, effective: string, pendingState: PendingCreditFacilityCollateralizationState }
     > } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', id: string, customerId: any, kycVerification: KycVerification, level: KycLevel, createdAt: any, email: string, telegramHandle: string, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: any, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }> } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', id: string, customerId: any, kycVerification: KycVerification, level: KycLevel, createdAt: string, email: string, telegramHandle: string, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: string, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: string, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }> } } };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -515,14 +517,14 @@ export type GetTransactionHistoryQueryVariables = Exact<{
 
 
 export type GetTransactionHistoryQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', depositAccount: { __typename?: 'DepositAccount', history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
-              | { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } }
-              | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string } }
-              | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: any, amount: any, createdAt: any, status: DisbursalStatus } }
-              | { __typename?: 'FreezeEntry', recordedAt: any, amount: any }
-              | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, creditFacilityPaymentAllocationId: any, amount: any, createdAt: any } }
-              | { __typename?: 'UnfreezeEntry', recordedAt: any, amount: any }
+              | { __typename?: 'CancelledWithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus } }
+              | { __typename?: 'DepositEntry', recordedAt: string, deposit: { __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: string, reference: string } }
+              | { __typename?: 'DisbursalEntry', recordedAt: string, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: any, amount: any, createdAt: string, status: DisbursalStatus } }
+              | { __typename?: 'FreezeEntry', recordedAt: string, amount: any }
+              | { __typename?: 'PaymentEntry', recordedAt: string, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, creditFacilityPaymentAllocationId: any, amount: any, createdAt: string } }
+              | { __typename?: 'UnfreezeEntry', recordedAt: string, amount: any }
               | { __typename?: 'UnknownEntry' }
-              | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } }
+              | { __typename?: 'WithdrawalEntry', recordedAt: string, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus } }
              }> } } } } };
 
 

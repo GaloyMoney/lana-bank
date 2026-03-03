@@ -82,7 +82,7 @@ const ReportRunPage = ({ params }: ReportRunPageProps) => {
         <div className="flex flex-col gap-1">
           <CardTitle>
             {t("title", {
-              date: formatDate(date, { includeTime: true }),
+              date: date ? formatDate(date, { includeTime: true }) : "",
             })}
           </CardTitle>
           {data?.reportRun?.state && (

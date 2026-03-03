@@ -27,12 +27,16 @@ impl From<EffectiveDate> for chrono::NaiveDate {
 }
 
 impl EffectiveDate {
+    /// Returns the last representable instant of this calendar day in UTC.
+    ///
+    /// Uses nanosecond precision (23:59:59.999_999_999) to minimize the gap
+    /// before midnight, avoiding the previous 1-second gap at 23:59:59.
     pub fn end_of_day(&self) -> DateTime<Utc> {
         Utc.from_utc_datetime(
             &self
                 .0
-                .and_hms_opt(23, 59, 59)
-                .expect("23:59:59 was invalid"),
+                .and_hms_nano_opt(23, 59, 59, 999_999_999)
+                .expect("23:59:59.999999999 was invalid"),
         )
     }
 

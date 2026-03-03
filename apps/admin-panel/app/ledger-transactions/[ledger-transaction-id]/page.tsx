@@ -119,13 +119,17 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
           },
           {
             label: t("details.createdAt"),
-            value: formatDate(data?.ledgerTransaction?.createdAt),
+            value: data?.ledgerTransaction?.createdAt
+              ? formatDate(data.ledgerTransaction.createdAt)
+              : undefined,
           },
           {
             label: t("details.effective"),
-            value: formatDate(data?.ledgerTransaction?.effective, {
-              includeTime: false,
-            }),
+            value: data?.ledgerTransaction?.effective
+              ? formatDate(data.ledgerTransaction.effective, {
+                  includeTime: false,
+                })
+              : undefined,
           },
           {
             label: t("details.initiatedBy"),

@@ -1148,6 +1148,9 @@ type Dashboard {
 	totalCollateral: Satoshis!
 }
 
+"""
+An ISO 8601 calendar date without time or timezone (e.g., 2024-01-15). Represents a business date; timezone-naive by design.
+"""
 scalar Date
 
 enum DebitOrCredit {
@@ -2632,6 +2635,9 @@ type TermsTemplateUpdatePayload {
 	termsTemplate: TermsTemplate!
 }
 
+"""
+An ISO 8601 UTC timestamp (e.g., 2024-01-15T09:30:00Z). Always in UTC.
+"""
 scalar Timestamp
 
 type Total {

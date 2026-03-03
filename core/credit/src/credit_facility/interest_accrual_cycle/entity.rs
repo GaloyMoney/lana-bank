@@ -375,7 +375,7 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
 mod test {
     #![allow(clippy::inconsistent_digit_grouping)]
 
-    use chrono::{Datelike, TimeZone, Utc};
+    use chrono::{Datelike, TimeZone, Timelike, Utc};
     use rust_decimal_macros::dec;
 
     use crate::{
@@ -622,6 +622,8 @@ mod test {
         let start = start.date_naive();
         let end_of_day = Utc
             .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
+            .unwrap()
+            .with_nanosecond(999_999_999)
             .unwrap();
         assert_eq!(period.end, end_of_day);
 
@@ -638,6 +640,8 @@ mod test {
         let end_day = end.day();
         let mut expected_end_of_day = Utc
             .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
+            .unwrap()
+            .with_nanosecond(999_999_999)
             .unwrap();
         let mut accrual_cycle_data: Option<InterestAccrualCycleData> = None;
         for _ in start_day..(end_day + 1) {
@@ -676,6 +680,8 @@ mod test {
 
         let mut expected_end_of_day = Utc
             .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
+            .unwrap()
+            .with_nanosecond(999_999_999)
             .unwrap();
         for _ in start_day..(end_day + 1) {
             let InterestAccrualData { period, .. } = accrual
