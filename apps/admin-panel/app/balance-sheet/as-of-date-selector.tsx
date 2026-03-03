@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 
+import { ChevronDownIcon } from "lucide-react"
+
 import { Button } from "@lana/web/ui/button"
 import { Calendar } from "@lana/web/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@lana/web/ui/popover"
@@ -58,8 +60,9 @@ export const AsOfDateSelector = ({ asOf, onDateChange }: AsOfDateSelectorProps) 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <div className="cursor-pointer rounded-md border bg-muted p-2 px-4 text-sm">
+        <div className="flex cursor-pointer items-center gap-2 rounded-md border bg-muted p-2 px-4 text-sm">
           {formatDate(appliedDate, { includeTime: false })}
+          <ChevronDownIcon className="size-4 opacity-50" />
         </div>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
