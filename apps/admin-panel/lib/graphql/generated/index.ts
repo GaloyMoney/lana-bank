@@ -1381,6 +1381,10 @@ export enum DepositStatus {
   Reverted = 'REVERTED'
 }
 
+export type DepositsFilter = {
+  status?: InputMaybe<DepositStatus>;
+};
+
 export type DisbursalApprovalConcludedPayload = {
   __typename?: 'DisbursalApprovalConcludedPayload';
   disbursal: CreditFacilityDisbursal;
@@ -2739,6 +2743,7 @@ export type QueryDepositByPublicIdArgs = {
 
 export type QueryDepositsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<DepositsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -2945,6 +2950,7 @@ export type QueryWithdrawalByPublicIdArgs = {
 
 export type QueryWithdrawalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<WithdrawalsFilter>;
   first: Scalars['Int']['input'];
 };
 
@@ -3478,6 +3484,10 @@ export enum WithdrawalStatus {
   PendingConfirmation = 'PENDING_CONFIRMATION',
   Reverted = 'REVERTED'
 }
+
+export type WithdrawalsFilter = {
+  status?: InputMaybe<WithdrawalStatus>;
+};
 
 export type ApprovalProcessFieldsFragment = { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
     | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
@@ -4212,6 +4222,7 @@ export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, deposi
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<DepositsFilter>;
 }>;
 
 
@@ -5020,6 +5031,7 @@ export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', id: string, 
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<WithdrawalsFilter>;
 }>;
 
 
@@ -8985,8 +8997,8 @@ export type CreateDepositMutationHookResult = ReturnType<typeof useCreateDeposit
 export type CreateDepositMutationResult = Apollo.MutationResult<CreateDepositMutation>;
 export type CreateDepositMutationOptions = Apollo.BaseMutationOptions<CreateDepositMutation, CreateDepositMutationVariables>;
 export const DepositsDocument = gql`
-    query Deposits($first: Int!, $after: String) {
-  deposits(first: $first, after: $after) {
+    query Deposits($first: Int!, $after: String, $filter: DepositsFilter) {
+  deposits(first: $first, after: $after, filter: $filter) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -9017,6 +9029,7 @@ export const DepositsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
@@ -12587,8 +12600,8 @@ export type WithdrawalInitiateMutationHookResult = ReturnType<typeof useWithdraw
 export type WithdrawalInitiateMutationResult = Apollo.MutationResult<WithdrawalInitiateMutation>;
 export type WithdrawalInitiateMutationOptions = Apollo.BaseMutationOptions<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
 export const WithdrawalsDocument = gql`
-    query Withdrawals($first: Int!, $after: String) {
-  withdrawals(first: $first, after: $after) {
+    query Withdrawals($first: Int!, $after: String, $filter: WithdrawalsFilter) {
+  withdrawals(first: $first, after: $after, filter: $filter) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -12619,6 +12632,7 @@ export const WithdrawalsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
