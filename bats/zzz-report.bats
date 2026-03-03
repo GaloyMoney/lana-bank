@@ -51,7 +51,7 @@ wait_for_report_run_complete() {
   [[ "$run_id" != "null" && -n "$run_id" ]] || exit 1
 
   # Wait for the report run to reach a terminal state (up to ~8 minutes)
-  retry 240 2 wait_for_report_run_complete "$run_id"
+  retry 144 5 wait_for_report_run_complete "$run_id"
 
   # Fetch completed run details
   variables=$(jq -n --arg id "$run_id" '{ id: $id }')
