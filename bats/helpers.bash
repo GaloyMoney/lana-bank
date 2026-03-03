@@ -306,21 +306,6 @@ exec_dagster_graphql() {
     "${DAGSTER_URL:-http://localhost:3000/graphql}"
 }
 
-exec_dagster_graphql_status() {
-  local query_name=$1
-  local variables=${2:-"{}"}
-  local run_cmd="${BATS_TEST_DIRNAME:+run}"
-  local operation_name=$(gql_dagster_operation_name "$query_name")
-  local payload
-
-  payload=$(graphql_payload "$(gql_dagster_query $query_name)" "$variables" "$operation_name")
-
-  ${run_cmd} curl -s -o /dev/null -w "%{http_code}" -X POST \
-    -H "Content-Type: application/json" \
-    -d "$payload" \
-    "${DAGSTER_URL:-http://localhost:3000/graphql}"
-}
-
 dagster_validate_json() {
   if ! echo "$output" | jq . >/dev/null 2>&1; then
     echo "Dagster GraphQL did not return valid JSON: $output"
