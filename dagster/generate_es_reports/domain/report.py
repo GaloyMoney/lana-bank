@@ -192,11 +192,13 @@ class ReportJobDefinition:
         id: str,
         friendly_name: str,
         file_output_configs: tuple[BaseFileOutputConfig, ...],
+        supports_as_of: bool = False,
     ):
         self.norm = norm
         self.id = id
         self.friendly_name = friendly_name
         self.file_output_configs = file_output_configs
+        self.supports_as_of = supports_as_of
 
     @property
     def source_table_name(self) -> str:

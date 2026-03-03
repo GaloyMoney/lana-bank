@@ -21,6 +21,10 @@ from src.resources import (
 )
 
 
+class FileReportConfig(dg.Config):
+    as_of_date: Optional[str] = None
+
+
 class ReportFile(TypedDict):
     """Represents a single file in a report."""
 
@@ -79,7 +83,12 @@ def _build_file_report_specs_and_lookup() -> Tuple[
                 ]
             )
 
-            dbt_dep = get_dbt_asset_key_for_table(report_job.source_table_name)
+            dbt_table = (
+                f"{report_job.source_table_name}_daily"
+                if report_job.supports_as_of
+                else report_job.source_table_name
+            )
+            dbt_dep = get_dbt_asset_key_for_table(dbt_table)
             deps = [dbt_dep] if dbt_dep else []
 
             specs.append(
@@ -110,6 +119,7 @@ def _process_single_asset(
     run_id: str,
     log,
     otel_parent_ctx,
+    as_of_date: str | None = None,
 ) -> Tuple[dg.AssetKey, dict]:
     """Fetch, format, and upload a single report file.
 
@@ -131,8 +141,12 @@ def _process_single_asset(
             dataset=dataset,
         )
 
-        def fetch_table(table_name: str):
-            contents = fetcher.fetch_table_contents(table_name)
+        def fetch_table(
+            table_name: str, as_of_date: str | None = None, supports_as_of: bool = False
+        ):
+            contents = fetcher.fetch_table_contents(
+                table_name, as_of_date, supports_as_of
+            )
             return (contents.fields, contents.records)
 
         result = generate_single_report(
@@ -144,6 +158,8 @@ def _process_single_asset(
             file_output_config=file_config,
             run_id=run_id,
             log=log,
+            as_of_date=as_of_date,
+            supports_as_of=report_job.supports_as_of,
         )
         return asset_key, result
 
@@ -190,7 +206,7 @@ def create_file_report_multi_asset():
         can_subset=True,
         required_resource_keys={RESOURCE_KEY_FILE_REPORTS_BUCKET, RESOURCE_KEY_DW_BQ},
     )
-    def file_report_assets(context: dg.AssetExecutionContext):
+    def file_report_assets(context: dg.AssetExecutionContext, config: FileReportConfig):
         from opentelemetry import context as otel_context
 
         dw_bq = context.resources.dw_bq
@@ -228,6 +244,7 @@ def create_file_report_multi_asset():
                         run_id=context.run_id,
                         log=context.log.info,
                         otel_parent_ctx=batch_ctx,
+                        as_of_date=config.as_of_date,
                     ): k
                     for k in context.selected_asset_keys
                 }
