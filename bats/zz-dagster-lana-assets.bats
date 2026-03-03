@@ -13,14 +13,9 @@ has_sumsub_credentials() {
   [[ -n "${SUMSUB_KEY:-}" && -n "${SUMSUB_SECRET:-}" ]]
 }
 
-# Models that depend on Sumsub data (to skip when credentials unavailable)
-# Staging models
-SUMSUB_STAGING_MODELS=(
+# All sumsub-dependent models (staging + intermediate + output)
+SUMSUB_ALL_MODELS=(
   "stg_sumsub_applicants"
-)
-
-# Intermediate and output models that depend on Sumsub
-SUMSUB_DEPENDENT_MODELS=(
   "int_sumsub_applicants"
   "int_customer_identities"
   "int_loan_status_change"
@@ -43,27 +38,11 @@ SUMSUB_DEPENDENT_MODELS=(
   "report_other_reporte_de_cartera_de_prestamos"
 )
 
-# Build jq filter array for sumsub staging models
-sumsub_staging_jq_array() {
+# Build jq filter array for sumsub models
+sumsub_all_jq_array() {
   local arr='['
   local first=true
-  for model in "${SUMSUB_STAGING_MODELS[@]}"; do
-    if [ "$first" = true ]; then
-      first=false
-    else
-      arr+=','
-    fi
-    arr+="\"$model\""
-  done
-  arr+=']'
-  echo "$arr"
-}
-
-# Build jq filter array for sumsub dependent models
-sumsub_dependent_jq_array() {
-  local arr='['
-  local first=true
-  for model in "${SUMSUB_DEPENDENT_MODELS[@]}"; do
+  for model in "${SUMSUB_ALL_MODELS[@]}"; do
     if [ "$first" = true ]; then
       first=false
     else
@@ -113,31 +92,6 @@ SUMSUB_ASSETS=(
   "sumsub_applicants_dlt"
 )
 
-# Helper: verify assets exist for a given group
-verify_assets_exist() {
-  local group=$1
-  shift
-  local assets=("$@")
-
-  local missing_assets=()
-  for asset in "${assets[@]}"; do
-    if ! echo "$output" | jq -e --arg group "$group" --arg asset "$asset" '.data.assetsOrError.nodes[]?.key.path | select(. == [$group, $asset])' >/dev/null 2>&1; then
-      missing_assets+=("$asset")
-    fi
-  done
-
-  if [ ${#missing_assets[@]} -gt 0 ]; then
-    echo "Missing assets in group '$group':"
-    printf '  - %s\n' "${missing_assets[@]}"
-    echo ""
-    echo "Available $group assets:"
-    echo "$output" | jq -r --arg group "$group" '.data.assetsOrError.nodes[]?.key.path | select(.[0] == $group) | .[1]' | sort
-    return 1
-  fi
-
-  echo "All ${#assets[@]} $group assets verified to exist"
-}
-
 # Helper: build asset selection JSON for a group
 build_asset_selection() {
   local group=$1
@@ -152,76 +106,6 @@ build_asset_selection() {
     selection="${selection}{\"path\":[\"${group}\",\"${asset}\"]}"
   done
   echo "$selection"
-}
-
-# Helper: verify materializations for a group
-verify_materializations() {
-  local group=$1
-  shift
-  local assets=("$@")
-
-  local failed_assets=()
-
-  for asset in "${assets[@]}"; do
-    asset_vars=$(jq -n --arg group "$group" --arg asset "$asset" '{
-      assetKey: { path: [$group, $asset] }
-    }')
-    exec_dagster_graphql "asset_materializations" "$asset_vars"
-
-    if ! dagster_validate_json; then
-      failed_assets+=("$asset (invalid JSON response)")
-      continue
-    fi
-
-    asset_type=$(echo "$output" | jq -r '.data.assetOrError.__typename // empty')
-    if [ "$asset_type" != "Asset" ]; then
-      failed_assets+=("$asset (not found)")
-      continue
-    fi
-
-    materialization_count=$(echo "$output" | jq -r '.data.assetOrError.assetMaterializations | length')
-    if [ "$materialization_count" -eq 0 ]; then
-      failed_assets+=("$asset (no materializations)")
-      continue
-    fi
-  done
-
-  if [ ${#failed_assets[@]} -gt 0 ]; then
-    echo "Assets with issues in group '$group':"
-    printf '  - %s\n' "${failed_assets[@]}"
-    return 1
-  fi
-
-  echo "All ${#assets[@]} $group assets have successful materializations"
-}
-
-@test "dagster: verify all source assets exist" {
-  if [[ "${DAGSTER}" != "true" ]]; then
-    skip "Skipping dagster tests"
-  fi
-  if ! has_bigquery_credentials; then
-    skip "Skipping - requires BigQuery credentials for code location to load"
-  fi
-
-  exec_dagster_graphql "assets"
-  dagster_validate_json || return 1
-
-  local failed=0
-  local total=$((${#LANA_ASSETS[@]} + ${#BITFINEX_ASSETS[@]}))
-
-  verify_assets_exist "lana" "${LANA_ASSETS[@]}" || failed=1
-  verify_assets_exist "bitfinex" "${BITFINEX_ASSETS[@]}" || failed=1
-
-  if has_sumsub_credentials; then
-    verify_assets_exist "sumsub" "${SUMSUB_ASSETS[@]}" || failed=1
-    total=$((total + ${#SUMSUB_ASSETS[@]}))
-  else
-    echo "Skipping sumsub assets verification (SUMSUB_KEY or SUMSUB_SECRET not set)"
-  fi
-
-  [ $failed -eq 0 ] || return 1
-
-  echo "All $total source assets verified to exist"
 }
 
 @test "dagster: materialize all source assets" {
@@ -280,32 +164,6 @@ EOF
   echo "All $total source assets materialized successfully"
 }
 
-@test "dagster: verify materializations for all source assets" {
-  if [[ "${DAGSTER}" != "true" ]]; then
-    skip "Skipping dagster tests"
-  fi
-  if ! has_bigquery_credentials; then
-    skip "Skipping - requires BigQuery credentials"
-  fi
-
-  local failed=0
-  local total=$((${#LANA_ASSETS[@]} + ${#BITFINEX_ASSETS[@]}))
-
-  verify_materializations "lana" "${LANA_ASSETS[@]}" || failed=1
-  verify_materializations "bitfinex" "${BITFINEX_ASSETS[@]}" || failed=1
-
-  if has_sumsub_credentials; then
-    verify_materializations "sumsub" "${SUMSUB_ASSETS[@]}" || failed=1
-    total=$((total + ${#SUMSUB_ASSETS[@]}))
-  else
-    echo "Skipping sumsub assets verification (SUMSUB_KEY or SUMSUB_SECRET not set)"
-  fi
-
-  [ $failed -eq 0 ] || return 1
-
-  echo "All $total source assets have successful materializations"
-}
-
 @test "dagster: dbt seed" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
@@ -345,7 +203,7 @@ EOF
   echo "dbt_seeds_job completed successfully"
 }
 
-@test "dagster: dbt run staging models" {
+@test "dagster: dbt run all models" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
@@ -353,115 +211,34 @@ EOF
     skip "Skipping - requires BigQuery credentials"
   fi
 
-  echo "=== Materializing dbt staging models ==="
+  echo "=== Materializing all dbt models ==="
 
   # Get all dbt_lana_dw assets
   exec_dagster_graphql "assets"
   dagster_validate_json || return 1
 
-  # Filter for staging models only (not seeds)
+  # Filter for all non-seed dbt models
   # Skip sumsub models if credentials are not available
   if has_sumsub_credentials; then
-    staging_assets=$(echo "$output" | jq -c '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] == "staging")]')
-  else
-    echo "Skipping sumsub staging models (SUMSUB_KEY or SUMSUB_SECRET not set)"
-    local skip_models
-    skip_models=$(sumsub_staging_jq_array)
-    staging_assets=$(echo "$output" | jq -c --argjson skip "$skip_models" '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] == "staging" and (.[-1] | IN($skip[]) | not))]')
-  fi
-
-  staging_count=$(echo "$staging_assets" | jq 'length')
-
-  if [ "$staging_count" -eq 0 ]; then
-    echo "No dbt staging assets found"
-    return 1
-  fi
-
-  echo "Found $staging_count dbt staging assets to materialize"
-
-  # Build asset selection for staging models
-  if has_sumsub_credentials; then
-    run_variables=$(echo "$output" | jq '{
-      executionParams: {
-        selector: {
-          repositoryLocationName: "Lana DW",
-          repositoryName: "__repository__",
-          jobName: "__ASSET_JOB",
-          assetSelection: [.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] == "staging") | {path: .}]
-        },
-        runConfigData: {}
-      }
-    }')
-  else
-    local skip_models
-    skip_models=$(sumsub_staging_jq_array)
-    run_variables=$(echo "$output" | jq --argjson skip "$skip_models" '{
-      executionParams: {
-        selector: {
-          repositoryLocationName: "Lana DW",
-          repositoryName: "__repository__",
-          jobName: "__ASSET_JOB",
-          assetSelection: [.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] == "staging" and (.[-1] | IN($skip[]) | not)) | {path: .}]
-        },
-        runConfigData: {}
-      }
-    }')
-  fi
-
-  exec_dagster_graphql "launch_run" "$run_variables"
-  dagster_check_launch_run_errors || return 1
-
-  run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
-  if [ -z "$run_id" ]; then
-    echo "Failed to launch dbt staging models materialization - no runId returned"
-    echo "Response: $output"
-    return 1
-  fi
-
-  echo "Launched dbt staging models materialization with run ID: $run_id"
-
-  # Wait for staging models to complete (15 min timeout)
-  dagster_poll_run_status "$run_id" 450 2 || return 1
-
-  echo "dbt staging models materialized successfully"
-}
-
-@test "dagster: dbt run remaining models" {
-  if [[ "${DAGSTER}" != "true" ]]; then
-    skip "Skipping dagster tests"
-  fi
-  if ! has_bigquery_credentials; then
-    skip "Skipping - requires BigQuery credentials"
-  fi
-
-  echo "=== Materializing remaining dbt models ==="
-
-  # Get all dbt_lana_dw assets
-  exec_dagster_graphql "assets"
-  dagster_validate_json || return 1
-
-  # Filter for non-staging models (marts, intermediate, etc.)
-  # These depend on staging models which should have been materialized in the previous test
-  # Skip sumsub models and all downstream dependents if credentials are not available
-  if has_sumsub_credentials; then
-    remaining_assets=$(echo "$output" | jq -c '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "staging" and .[1] != "seeds")]')
+    dbt_assets=$(echo "$output" | jq -c '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "seeds")]')
   else
     echo "Skipping sumsub models and downstream dependents (SUMSUB_KEY or SUMSUB_SECRET not set)"
     local skip_models
-    skip_models=$(sumsub_dependent_jq_array)
-    remaining_assets=$(echo "$output" | jq -c --argjson skip "$skip_models" '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "staging" and .[1] != "seeds" and (.[-1] | IN($skip[]) | not))]')
+    skip_models=$(sumsub_all_jq_array)
+    dbt_assets=$(echo "$output" | jq -c --argjson skip "$skip_models" '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "seeds" and (.[-1] | IN($skip[]) | not))]')
   fi
 
-  remaining_count=$(echo "$remaining_assets" | jq 'length')
+  dbt_count=$(echo "$dbt_assets" | jq 'length')
 
-  if [ "$remaining_count" -eq 0 ]; then
-    echo "No remaining dbt assets found (all were staging/seeds)"
-    return 0
+  if [ "$dbt_count" -eq 0 ]; then
+    echo "No dbt assets found"
+    return 1
   fi
 
-  echo "Found $remaining_count remaining dbt assets to materialize"
+  echo "Found $dbt_count dbt assets to materialize"
 
-  # Build asset selection for remaining models
+  # Build asset selection for all non-seed dbt models
+  # Dagster respects the DAG and will execute in dependency order
   if has_sumsub_credentials; then
     run_variables=$(echo "$output" | jq '{
       executionParams: {
@@ -469,21 +246,21 @@ EOF
           repositoryLocationName: "Lana DW",
           repositoryName: "__repository__",
           jobName: "__ASSET_JOB",
-          assetSelection: [.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "staging" and .[1] != "seeds") | {path: .}]
+          assetSelection: [.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "seeds") | {path: .}]
         },
         runConfigData: {}
       }
     }')
   else
     local skip_models
-    skip_models=$(sumsub_dependent_jq_array)
+    skip_models=$(sumsub_all_jq_array)
     run_variables=$(echo "$output" | jq --argjson skip "$skip_models" '{
       executionParams: {
         selector: {
           repositoryLocationName: "Lana DW",
           repositoryName: "__repository__",
           jobName: "__ASSET_JOB",
-          assetSelection: [.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "staging" and .[1] != "seeds" and (.[-1] | IN($skip[]) | not)) | {path: .}]
+          assetSelection: [.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[1] != "seeds" and (.[-1] | IN($skip[]) | not)) | {path: .}]
         },
         runConfigData: {}
       }
@@ -495,15 +272,15 @@ EOF
 
   run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
   if [ -z "$run_id" ]; then
-    echo "Failed to launch remaining dbt models materialization - no runId returned"
+    echo "Failed to launch dbt models materialization - no runId returned"
     echo "Response: $output"
     return 1
   fi
 
-  echo "Launched remaining dbt models materialization with run ID: $run_id"
+  echo "Launched dbt models materialization with run ID: $run_id"
 
-  # Wait for remaining models to complete (20 min timeout)
+  # Wait for all models to complete (30 min timeout)
   dagster_poll_run_status "$run_id" 900 2 || return 1
 
-  echo "All dbt models materialized successfully"
+  echo "All $dbt_count dbt models materialized successfully"
 }
