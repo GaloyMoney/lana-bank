@@ -25,9 +25,7 @@ type ProspectDetailsCardProps = {
   prospect: NonNullable<GetProspectBasicDetailsQuery["prospectByPublicId"]>
 }
 
-export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
-  prospect,
-}) => {
+export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({ prospect }) => {
   const t = useTranslations("Prospects.ProspectDetails.details")
   const [openCloseDialog, setOpenCloseDialog] = useState(false)
   const [openConvertDialog, setOpenConvertDialog] = useState(false)
@@ -38,7 +36,7 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
   const requireVerifiedCustomer = domainConfigsData?.domainConfigs.nodes.find(
     (c) => c.key === "require-verified-customer-for-account",
   )
-  const showConvertButton = String(requireVerifiedCustomer?.value) === "false"
+  const showConvertButton = requireVerifiedCustomer?.value === false
 
   const personalInfo = prospect.personalInfo
 
@@ -97,7 +95,8 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({
           <ArrowRight className="h-4 w-4 ml-2" />
         </Link>
       </Button>
-    ) : prospect.stage !== ProspectStage.Converted && prospect.stage !== ProspectStage.Closed ? (
+    ) : prospect.stage !== ProspectStage.Converted &&
+      prospect.stage !== ProspectStage.Closed ? (
       <div className="flex gap-2">
         {showConvertButton && (
           <Button
