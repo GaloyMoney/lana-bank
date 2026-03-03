@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_deposit_accounts WHERE COALESCE(account_holder_id = $1, $1 IS NULL) AND (COALESCE(id > $3, true)) ORDER BY id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_deposit_account_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT status, id FROM core_deposit_accounts WHERE ((status = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_deposit_account_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,7 +31,7 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
+        "Text",
         "Int8",
         "Uuid",
         "Bool"
@@ -45,5 +45,5 @@
       false
     ]
   },
-  "hash": "97d108d2dc2c8d49bd9a3e63393b235f22629b321d57d3d91e5c31804529a6b5"
+  "hash": "1273b2fb9408f60d8a5fb5bd6e7d664345a8cbfecea44ffc0b3444360e6d8bc7"
 }

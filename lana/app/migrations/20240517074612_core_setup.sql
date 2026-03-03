@@ -164,6 +164,7 @@ CREATE TABLE core_deposit_accounts (
   id UUID PRIMARY KEY,
   account_holder_id UUID NOT NULL,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
+  status VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

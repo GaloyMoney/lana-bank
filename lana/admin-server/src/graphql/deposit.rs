@@ -4,11 +4,13 @@ use crate::{graphql::accounting::LedgerTransaction, primitives::*};
 
 use super::loader::LanaDataLoader;
 
-pub use super::deposit_account::DepositAccount;
+pub use super::deposit_account::{DepositAccount, DepositAccountsFilter};
 
 pub use lana_app::{
     deposit::{
-        Deposit as DomainDeposit, DepositAccountsByCreatedAtCursor, DepositStatus, DepositsCursor,
+        Deposit as DomainDeposit, DepositAccountsCursor,
+        DepositAccountsFilters as DomainDepositAccountsFilters,
+        DepositAccountsSortBy as DomainDepositAccountsSortBy, DepositStatus, DepositsCursor,
         DepositsFilters as DomainDepositsFilters, DepositsSortBy as DomainDepositsSortBy,
     },
     public_id::PublicId,

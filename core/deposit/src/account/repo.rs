@@ -5,7 +5,7 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    primitives::{DepositAccountHolderId, DepositAccountId, PublicId},
+    primitives::{DepositAccountHolderId, DepositAccountId, DepositAccountStatus, PublicId},
     public::CoreDepositEvent,
     publisher::DepositPublisher,
 };
@@ -22,7 +22,8 @@ use super::{entity::*, error::*};
             list_for(by(created_at, id)),
             update(persist = false)
         ),
-        public_id(ty = "PublicId", list_by)
+        public_id(ty = "PublicId", list_by),
+        status(ty = "DepositAccountStatus", list_for, update(accessor = "status"))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -70,5 +71,62 @@ where
         self.publisher
             .publish_deposit_account_in_op(op, entity, new_events)
             .await
+    }
+}
+
+impl From<(DepositAccountsSortBy, &DepositAccount)>
+    for deposit_account_cursor::DepositAccountsCursor
+{
+    fn from(account_with_sort: (DepositAccountsSortBy, &DepositAccount)) -> Self {
+        let (sort, account) = account_with_sort;
+        match sort {
+            DepositAccountsSortBy::CreatedAt => {
+                deposit_account_cursor::DepositAccountsByCreatedAtCursor::from(account).into()
+            }
+            DepositAccountsSortBy::Id => {
+                deposit_account_cursor::DepositAccountsByIdCursor::from(account).into()
+            }
+            DepositAccountsSortBy::PublicId => {
+                deposit_account_cursor::DepositAccountsByPublicIdCursor::from(account).into()
+            }
+        }
+    }
+}
+
+mod deposit_account_status_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use crate::primitives::DepositAccountStatus;
+
+    impl Type<Postgres> for DepositAccountStatus {
+        fn type_info() -> PgTypeInfo {
+            <String as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <String as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for DepositAccountStatus {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for DepositAccountStatus {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
+        }
+    }
+
+    impl PgHasArrayType for DepositAccountStatus {
+        fn array_type_info() -> PgTypeInfo {
+            <String as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
     }
 }
