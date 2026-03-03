@@ -171,6 +171,17 @@ pub mod event_schema {
     pub use crate::entity::DomainConfigEvent;
 }
 
+pub struct ResolvedDomainConfig {
+    pub entity: DomainConfig,
+    pub value: serde_json::Value,
+}
+
+impl From<&ResolvedDomainConfig> for DomainConfigsByKeyCursor {
+    fn from(value: &ResolvedDomainConfig) -> Self {
+        DomainConfigsByKeyCursor::from(&value.entity)
+    }
+}
+
 #[derive(Clone)]
 pub struct InternalDomainConfigs {
     repo: Arc<DomainConfigRepo>,
@@ -337,17 +348,39 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DomainConfigsByKeyCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<DomainConfig, DomainConfigsByKeyCursor>,
+        es_entity::PaginatedQueryRet<ResolvedDomainConfig, DomainConfigsByKeyCursor>,
         DomainConfigError,
     > {
         self.ensure_read_permission(sub).await?;
-        self.repo
+        let result = self
+            .repo
             .list_for_visibility_by_key(
                 Visibility::Exposed,
                 query,
                 es_entity::ListDirection::Ascending,
             )
-            .await
+            .await?;
+        let resolved_configs = result
+            .entities
+            .into_iter()
+            .map(|entity| {
+                let value = entity
+                    .current_stored_value()
+                    .map(|v| v.plain_or_null())
+                    .or_else(|| {
+                        crate::registry::maybe_find_by_key(entity.key.as_str())
+                            .and_then(|entry| (entry.default_json)())
+                    })
+                    .unwrap_or(serde_json::Value::Null);
+                ResolvedDomainConfig { entity, value }
+            })
+            .collect();
+
+        Ok(es_entity::PaginatedQueryRet {
+            entities: resolved_configs,
+            has_next_page: result.has_next_page,
+            end_cursor: result.end_cursor,
+        })
     }
 
     /// This is a GraphQL batch loader helper (no subject parameter), so it mirrors our common

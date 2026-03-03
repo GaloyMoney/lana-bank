@@ -1,6 +1,8 @@
 use async_graphql::*;
 
-use domain_config::{ConfigType as DomainConfigType, DomainConfig as DomainConfigEntity};
+use domain_config::{
+    ConfigType as DomainConfigType, DomainConfig as DomainConfigEntity, ResolvedDomainConfig,
+};
 
 use crate::{graphql::primitives::Json, primitives::*};
 
@@ -43,15 +45,35 @@ pub struct DomainConfig {
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainConfigEntity>,
+    #[graphql(skip)]
+    effective_value: serde_json::Value,
+}
+
+impl From<ResolvedDomainConfig> for DomainConfig {
+    fn from(view: ResolvedDomainConfig) -> Self {
+        Self {
+            id: view.entity.id.to_global_id(),
+            domain_config_id: UUID::from(view.entity.id),
+            config_type: view.entity.config_type.into(),
+            encrypted: view.entity.encrypted,
+            effective_value: view.value,
+            entity: Arc::new(view.entity),
+        }
+    }
 }
 
 impl From<DomainConfigEntity> for DomainConfig {
     fn from(config: DomainConfigEntity) -> Self {
+        let effective_value = config
+            .current_stored_value()
+            .map(|v| v.plain_or_null())
+            .unwrap_or(serde_json::Value::Null);
         Self {
             id: config.id.to_global_id(),
             domain_config_id: UUID::from(config.id),
             config_type: config.config_type.into(),
             encrypted: config.encrypted,
+            effective_value,
             entity: Arc::new(config),
         }
     }
@@ -64,10 +86,7 @@ impl DomainConfig {
     }
 
     async fn value(&self) -> Json {
-        match self.entity.current_stored_value() {
-            Some(stored) => Json::from(stored.plain_or_null()),
-            None => Json::from(serde_json::Value::Null),
-        }
+        Json::from(self.effective_value.clone())
     }
 
     async fn is_set(&self) -> bool {
