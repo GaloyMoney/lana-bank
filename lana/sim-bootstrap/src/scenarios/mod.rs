@@ -1,3 +1,4 @@
+mod deposit_scenarios;
 mod disbursal_different_months;
 mod interest_late;
 mod interest_under_payment;
@@ -46,6 +47,8 @@ pub async fn run(
     .await?;
     interest_under_payment::interest_under_payment_scenario(sub.clone(), app, &clock, &clock_ctrl)
         .await?;
+
+    deposit_scenarios::run(sub, app).await?;
 
     Ok(())
 }

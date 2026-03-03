@@ -1,7 +1,10 @@
+use std::time::Duration;
+
 use lana_app::{
     app::LanaApp,
     customer::{CustomerId, CustomerType},
-    primitives::{DepositAccountId, Subject, UsdCents},
+    deposit::Withdrawal,
+    primitives::{DepositAccountId, Subject, UsdCents, WithdrawalId},
     terms::{DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, TermValues},
 };
 use rust_decimal_macros::dec;
@@ -131,4 +134,40 @@ pub fn std_terms_12m() -> TermValues {
         .disbursal_policy(DisbursalPolicy::MultipleDisbursal)
         .build()
         .expect("std_terms_12m builder should be valid")
+}
+
+#[tracing::instrument(
+    name = "sim_bootstrap.helpers.approve_and_confirm_withdrawal",
+    skip(app),
+    err
+)]
+pub async fn approve_and_confirm_withdrawal(
+    sub: &Subject,
+    app: &LanaApp,
+    withdrawal_id: WithdrawalId,
+) -> anyhow::Result<Withdrawal> {
+    for attempt in 1..=100 {
+        let current = app
+            .deposits()
+            .find_withdrawal_by_id(sub, withdrawal_id)
+            .await?
+            .expect("withdrawal not found");
+
+        if current.is_approved_or_denied() == Some(true) {
+            break;
+        }
+        if current.is_approved_or_denied() == Some(false) {
+            anyhow::bail!("withdrawal approval was denied");
+        }
+        if attempt == 100 {
+            anyhow::bail!("withdrawal approval not processed in time");
+        }
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+
+    let confirmed = app
+        .deposits()
+        .confirm_withdrawal(sub, withdrawal_id)
+        .await?;
+    Ok(confirmed)
 }
