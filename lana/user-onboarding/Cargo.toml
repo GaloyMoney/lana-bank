@@ -15,6 +15,7 @@ core-access = { workspace = true }
 
 obix = { workspace = true }
 job = { workspace = true }
+command-job = { workspace = true }
 keycloak-client = { workspace = true }
 
 async-trait = { workspace = true }

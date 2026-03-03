@@ -1,20 +1,21 @@
 use tracing::{Span, instrument};
 
-use job::{JobId, JobSpawner, JobType};
+use command_job::CommandJobSpawner;
+use job::JobType;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_customer::CoreCustomerEvent;
 
-use super::activate_holder_account::ActivateHolderAccountConfig;
+use super::activate_holder_account::ActivateHolderAccountCommand;
 
 pub const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("outbox.customer-active-sync");
 
 pub struct CustomerActiveSyncHandler {
-    activate_holder_account: JobSpawner<ActivateHolderAccountConfig>,
+    activate_holder_account: CommandJobSpawner<ActivateHolderAccountCommand>,
 }
 
 impl CustomerActiveSyncHandler {
-    pub fn new(activate_holder_account: JobSpawner<ActivateHolderAccountConfig>) -> Self {
+    pub fn new(activate_holder_account: CommandJobSpawner<ActivateHolderAccountCommand>) -> Self {
         Self {
             activate_holder_account,
         }
@@ -37,13 +38,11 @@ where
             Span::current().record("event_type", e.as_ref());
 
             self.activate_holder_account
-                .spawn_with_queue_id_in_op(
+                .spawn_in_op(
                     op,
-                    JobId::new(),
-                    ActivateHolderAccountConfig {
+                    ActivateHolderAccountCommand {
                         customer_id: entity.id,
                     },
-                    entity.id.to_string(),
                 )
                 .await?;
         }
