@@ -471,6 +471,23 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "core_custody.find_all_custodians_authorized", skip(self))]
+    pub async fn find_all_custodians_authorized<T: From<Custodian>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[CustodianId],
+    ) -> Result<HashMap<CustodianId, T>, CoreCustodyError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCustodyObject::all_custodians(),
+                CoreCustodyAction::CUSTODIAN_LIST,
+            )
+            .await?;
+        Ok(self.custodians.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "core_custody.list_custodians", skip(self))]
     pub async fn list_custodians(
         &self,

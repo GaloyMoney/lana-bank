@@ -351,8 +351,8 @@ where
     }
 
     /// This is a GraphQL batch loader helper (no subject parameter), so it mirrors our common
-    /// pattern where DataLoader “find_all” methods are auth-free and are only called after a
-    /// higher‑level, subject‑aware endpoint has already enforced access. In practice it’s used for
+    /// pattern where DataLoader "find_all" methods are auth-free and are only called after a
+    /// higher-level, subject-aware endpoint has already enforced access. In practice it’s used for
     /// GraphQL field loading, which doesn’t carry subject into the loader.
     #[record_error_severity]
     #[instrument(name = "domain_config.find_all_exposed", skip(self))]
@@ -360,6 +360,17 @@ where
         &self,
         ids: &[DomainConfigId],
     ) -> Result<HashMap<DomainConfigId, T>, DomainConfigError> {
+        self.repo.find_all_exposed(ids).await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.find_all_authorized", skip(self))]
+    pub async fn find_all_authorized<T: From<DomainConfig>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[DomainConfigId],
+    ) -> Result<HashMap<DomainConfigId, T>, DomainConfigError> {
+        self.ensure_read_permission(sub).await?;
         self.repo.find_all_exposed(ids).await
     }
 

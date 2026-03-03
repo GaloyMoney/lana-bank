@@ -838,11 +838,45 @@ where
         Ok(self.prospect_repo.find_all(ids).await?)
     }
 
+    #[record_error_severity]
+    #[instrument(name = "customer.find_all_prospects_authorized", skip(self))]
+    pub async fn find_all_prospects_authorized<T: From<Prospect>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[ProspectId],
+    ) -> Result<HashMap<ProspectId, T>, CustomerError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_prospects(),
+                CoreCustomerAction::PROSPECT_READ,
+            )
+            .await?;
+        Ok(self.prospect_repo.find_all(ids).await?)
+    }
+
     #[instrument(name = "customer.find_all_parties", skip(self))]
     pub async fn find_all_parties<T: From<Party>>(
         &self,
         ids: &[PartyId],
     ) -> Result<HashMap<PartyId, T>, CustomerError> {
+        Ok(self.party_repo.find_all(ids).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_all_parties_authorized", skip(self))]
+    pub async fn find_all_parties_authorized<T: From<Party>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[PartyId],
+    ) -> Result<HashMap<PartyId, T>, CustomerError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_parties(),
+                CoreCustomerAction::PARTY_READ,
+            )
+            .await?;
         Ok(self.party_repo.find_all(ids).await?)
     }
 
@@ -1063,6 +1097,23 @@ where
             .collect();
 
         Ok(result)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_all_documents_authorized", skip(self))]
+    pub async fn find_all_documents_authorized<T: From<Document>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[CustomerDocumentId],
+    ) -> Result<HashMap<CustomerDocumentId, T>, CustomerError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_customer_documents(),
+                CoreCustomerAction::CUSTOMER_DOCUMENT_READ,
+            )
+            .await?;
+        self.find_all_documents(ids).await
     }
 
     #[record_error_severity]

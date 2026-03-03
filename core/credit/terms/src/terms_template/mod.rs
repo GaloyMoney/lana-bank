@@ -159,4 +159,24 @@ where
     ) -> Result<HashMap<TermsTemplateId, T>, TermsTemplateError> {
         self.repo.find_all(ids).await
     }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_credit_terms.terms_template.find_all_authorized",
+        skip(self)
+    )]
+    pub async fn find_all_authorized<T: From<TermsTemplate>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        ids: &[TermsTemplateId],
+    ) -> Result<HashMap<TermsTemplateId, T>, TermsTemplateError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditTermsObject::all_terms_templates(),
+                CoreCreditTermsAction::TERMS_TEMPLATE_READ,
+            )
+            .await?;
+        self.repo.find_all(ids).await
+    }
 }

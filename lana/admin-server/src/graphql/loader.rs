@@ -7,12 +7,8 @@ use domain_config::{DomainConfigError, DomainConfigId};
 use lana_app::{
     access::{error::CoreAccessError, user::error::UserError},
     accounting::{
-        Chart, FiscalYearId, LedgerAccountId, TransactionTemplateId,
-        chart_of_accounts::error::ChartOfAccountsError,
-        csv::{AccountingCsvDocumentId, error::AccountingCsvExportError},
-        fiscal_year::error::FiscalYearError,
-        ledger_transaction::error::LedgerTransactionError,
-        transaction_templates::error::TransactionTemplateError,
+        Chart, FiscalYearId, LedgerAccountId, TransactionTemplateId, csv::AccountingCsvDocumentId,
+        error::CoreAccountingError,
     },
     app::LanaApp,
     custody::error::CoreCustodyError,
@@ -64,7 +60,7 @@ impl Loader<UserId> for LanaLoader {
         self.app
             .access()
             .users()
-            .find_all(keys)
+            .find_all_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -81,7 +77,7 @@ impl Loader<PermissionSetId> for LanaLoader {
     ) -> Result<HashMap<PermissionSetId, PermissionSet>, Self::Error> {
         self.app
             .access()
-            .find_all_permission_sets(keys)
+            .find_all_permission_sets_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -95,7 +91,7 @@ impl Loader<RoleId> for LanaLoader {
     async fn load(&self, keys: &[RoleId]) -> Result<HashMap<RoleId, Role>, Self::Error> {
         self.app
             .access()
-            .find_all_roles(keys)
+            .find_all_roles_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -112,7 +108,7 @@ impl Loader<CustodianId> for LanaLoader {
     ) -> Result<HashMap<CustodianId, Custodian>, Self::Error> {
         self.app
             .custody()
-            .find_all_custodians(keys)
+            .find_all_custodians_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -129,7 +125,7 @@ impl Loader<CommitteeId> for LanaLoader {
     ) -> Result<HashMap<CommitteeId, Committee>, Self::Error> {
         self.app
             .governance()
-            .find_all_committees(keys)
+            .find_all_committees_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -143,7 +139,7 @@ impl Loader<PolicyId> for LanaLoader {
     async fn load(&self, keys: &[PolicyId]) -> Result<HashMap<PolicyId, Policy>, Self::Error> {
         self.app
             .governance()
-            .find_all_policies(keys)
+            .find_all_policies_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -160,7 +156,7 @@ impl Loader<ApprovalProcessId> for LanaLoader {
     ) -> Result<HashMap<ApprovalProcessId, ApprovalProcess>, Self::Error> {
         self.app
             .governance()
-            .find_all_approval_processes(keys)
+            .find_all_approval_processes_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -177,7 +173,7 @@ impl Loader<CustomerDocumentId> for LanaLoader {
     ) -> Result<HashMap<CustomerDocumentId, CustomerDocument>, Self::Error> {
         self.app
             .customers()
-            .find_all_documents(keys)
+            .find_all_documents_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -211,7 +207,7 @@ impl Loader<ProspectId> for LanaLoader {
     ) -> Result<HashMap<ProspectId, Prospect>, Self::Error> {
         self.app
             .customers()
-            .find_all_prospects(keys)
+            .find_all_prospects_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -225,7 +221,7 @@ impl Loader<PartyId> for LanaLoader {
     async fn load(&self, keys: &[PartyId]) -> Result<HashMap<PartyId, Arc<Party>>, Self::Error> {
         self.app
             .customers()
-            .find_all_parties(keys)
+            .find_all_parties_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -242,7 +238,7 @@ impl Loader<DomainConfigId> for LanaLoader {
     ) -> Result<HashMap<DomainConfigId, DomainConfig>, Self::Error> {
         self.app
             .exposed_domain_configs()
-            .find_all(keys)
+            .find_all_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -250,20 +246,20 @@ impl Loader<DomainConfigId> for LanaLoader {
 
 impl Loader<ChartRef> for LanaLoader {
     type Value = Arc<Chart>;
-    type Error = Arc<ChartOfAccountsError>;
+    type Error = Arc<CoreAccountingError>;
 
     #[instrument(name = "loader.chart_refs", skip(self), fields(count = keys.len()), err)]
     async fn load(&self, keys: &[ChartRef]) -> Result<HashMap<ChartRef, Arc<Chart>>, Self::Error> {
+        let refs: Vec<&str> = keys.iter().map(|k| k.0).collect();
+        let mut charts = self
+            .app
+            .accounting()
+            .find_all_charts_by_reference_authorized(&self.sub, &refs)
+            .await
+            .map_err(Arc::new)?;
         let mut res = HashMap::new();
         for key in keys {
-            if let Some(chart) = self
-                .app
-                .accounting()
-                .chart_of_accounts()
-                .maybe_find_by_reference(key.0)
-                .await
-                .map_err(Arc::new)?
-            {
+            if let Some(chart) = charts.remove(key.0) {
                 res.insert(key.clone(), Arc::new(chart));
             }
         }
@@ -273,7 +269,7 @@ impl Loader<ChartRef> for LanaLoader {
 
 impl Loader<ChartId> for LanaLoader {
     type Value = ChartOfAccounts;
-    type Error = Arc<ChartOfAccountsError>;
+    type Error = Arc<CoreAccountingError>;
 
     #[instrument(name = "loader.charts", skip(self), fields(count = keys.len()), err)]
     async fn load(
@@ -282,8 +278,7 @@ impl Loader<ChartId> for LanaLoader {
     ) -> Result<HashMap<ChartId, ChartOfAccounts>, Self::Error> {
         self.app
             .accounting()
-            .chart_of_accounts()
-            .find_all(keys)
+            .find_all_charts_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -300,7 +295,7 @@ impl Loader<WithdrawalId> for LanaLoader {
     ) -> Result<HashMap<WithdrawalId, Withdrawal>, Self::Error> {
         self.app
             .deposits()
-            .find_all_withdrawals(keys)
+            .find_all_withdrawals_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -314,7 +309,7 @@ impl Loader<DepositId> for LanaLoader {
     async fn load(&self, keys: &[DepositId]) -> Result<HashMap<DepositId, Deposit>, Self::Error> {
         self.app
             .deposits()
-            .find_all_deposits(keys)
+            .find_all_deposits_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -331,7 +326,7 @@ impl Loader<DepositAccountId> for LanaLoader {
     ) -> Result<HashMap<DepositAccountId, DepositAccount>, Self::Error> {
         self.app
             .deposits()
-            .find_all_deposit_accounts(keys)
+            .find_all_deposit_accounts_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -339,7 +334,7 @@ impl Loader<DepositAccountId> for LanaLoader {
 
 impl Loader<LedgerTransactionId> for LanaLoader {
     type Value = LedgerTransaction;
-    type Error = Arc<LedgerTransactionError>;
+    type Error = Arc<CoreAccountingError>;
 
     #[instrument(name = "loader.ledger_transactions", skip(self), fields(count = keys.len()), err)]
     async fn load(
@@ -348,8 +343,7 @@ impl Loader<LedgerTransactionId> for LanaLoader {
     ) -> Result<HashMap<LedgerTransactionId, Self::Value>, Self::Error> {
         self.app
             .accounting()
-            .ledger_transactions()
-            .find_all(keys)
+            .find_all_ledger_transactions_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -357,7 +351,7 @@ impl Loader<LedgerTransactionId> for LanaLoader {
 
 impl Loader<TransactionTemplateId> for LanaLoader {
     type Value = TransactionTemplate;
-    type Error = Arc<TransactionTemplateError>;
+    type Error = Arc<CoreAccountingError>;
 
     #[instrument(name = "loader.transaction_templates", skip(self), fields(count = keys.len()), err)]
     async fn load(
@@ -366,8 +360,7 @@ impl Loader<TransactionTemplateId> for LanaLoader {
     ) -> Result<HashMap<TransactionTemplateId, Self::Value>, Self::Error> {
         self.app
             .accounting()
-            .transaction_templates()
-            .find_all(keys)
+            .find_all_transaction_templates_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -384,7 +377,7 @@ impl Loader<TermsTemplateId> for LanaLoader {
     ) -> Result<HashMap<TermsTemplateId, TermsTemplate>, Self::Error> {
         self.app
             .terms_templates()
-            .find_all(keys)
+            .find_all_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -401,10 +394,9 @@ impl Loader<PendingCreditFacilityId> for LanaLoader {
     ) -> Result<HashMap<PendingCreditFacilityId, PendingCreditFacility>, Self::Error> {
         self.app
             .credit()
-            .pending_credit_facilities()
-            .find_all(keys)
+            .find_all_pending_credit_facilities_authorized(&self.sub, keys)
             .await
-            .map_err(|e| Arc::new(e.into()))
+            .map_err(Arc::new)
     }
 }
 
@@ -419,10 +411,9 @@ impl Loader<CreditFacilityId> for LanaLoader {
     ) -> Result<HashMap<CreditFacilityId, CreditFacility>, Self::Error> {
         self.app
             .credit()
-            .facilities()
-            .find_all(keys)
+            .find_all_facilities_authorized(&self.sub, keys)
             .await
-            .map_err(|e| Arc::new(e.into()))
+            .map_err(Arc::new)
     }
 }
 
@@ -437,10 +428,9 @@ impl Loader<CreditFacilityProposalId> for LanaLoader {
     ) -> Result<HashMap<CreditFacilityProposalId, CreditFacilityProposal>, Self::Error> {
         self.app
             .credit()
-            .proposals()
-            .find_all(keys)
+            .find_all_proposals_authorized(&self.sub, keys)
             .await
-            .map_err(|e| Arc::new(e.into()))
+            .map_err(Arc::new)
     }
 }
 
@@ -455,10 +445,9 @@ impl Loader<CollateralId> for LanaLoader {
     ) -> Result<HashMap<CollateralId, Collateral>, Self::Error> {
         self.app
             .credit()
-            .collaterals()
-            .find_all(keys)
+            .find_all_collaterals_authorized(&self.sub, keys)
             .await
-            .map_err(|e| Arc::new(e.into()))
+            .map_err(Arc::new)
     }
 }
 
@@ -487,10 +476,9 @@ impl Loader<DisbursalId> for LanaLoader {
     ) -> Result<HashMap<DisbursalId, CreditFacilityDisbursal>, Self::Error> {
         self.app
             .credit()
-            .disbursals()
-            .find_all(keys)
+            .find_all_disbursals_authorized(&self.sub, keys)
             .await
-            .map_err(|e| Arc::new(e.into()))
+            .map_err(Arc::new)
     }
 }
 
@@ -505,10 +493,9 @@ impl Loader<LiquidationId> for LanaLoader {
     ) -> Result<HashMap<LiquidationId, Liquidation>, Self::Error> {
         self.app
             .credit()
-            .collaterals()
-            .find_all_liquidations(keys)
+            .find_all_liquidations_authorized(&self.sub, keys)
             .await
-            .map_err(|e| Arc::new(e.into()))
+            .map_err(Arc::new)
     }
 }
 
@@ -523,7 +510,7 @@ impl Loader<LedgerAccountId> for LanaLoader {
     ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, Self::Error> {
         self.app
             .accounting()
-            .find_all_ledger_accounts(CHART_REF.0, keys)
+            .find_all_ledger_accounts_authorized(&self.sub, CHART_REF.0, keys)
             .await
             .map_err(Arc::new)
     }
@@ -531,7 +518,7 @@ impl Loader<LedgerAccountId> for LanaLoader {
 
 impl Loader<AccountingCsvDocumentId> for LanaLoader {
     type Value = AccountingCsvDocument;
-    type Error = Arc<AccountingCsvExportError>;
+    type Error = Arc<CoreAccountingError>;
 
     #[instrument(name = "loader.accounting_csv_documents", skip(self), fields(count = keys.len()), err)]
     async fn load(
@@ -540,8 +527,7 @@ impl Loader<AccountingCsvDocumentId> for LanaLoader {
     ) -> Result<HashMap<AccountingCsvDocumentId, AccountingCsvDocument>, Self::Error> {
         self.app
             .accounting()
-            .csvs()
-            .find_all_documents::<AccountingCsvDocument>(keys)
+            .find_all_csv_documents_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }
@@ -556,7 +542,7 @@ impl Loader<ReportId> for LanaLoader {
         let reports = self
             .app
             .reports()
-            .find_all_reports(keys)
+            .find_all_reports_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)?;
         Ok(reports.into_iter().map(|(k, v)| (k, v.into())).collect())
@@ -575,7 +561,7 @@ impl Loader<ReportRunId> for LanaLoader {
         let report_runs = self
             .app
             .reports()
-            .find_all_report_runs(keys)
+            .find_all_report_runs_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)?;
         Ok(report_runs
@@ -587,7 +573,7 @@ impl Loader<ReportRunId> for LanaLoader {
 
 impl Loader<FiscalYearId> for LanaLoader {
     type Value = FiscalYear;
-    type Error = Arc<FiscalYearError>;
+    type Error = Arc<CoreAccountingError>;
 
     async fn load(
         &self,
@@ -595,8 +581,7 @@ impl Loader<FiscalYearId> for LanaLoader {
     ) -> Result<HashMap<FiscalYearId, FiscalYear>, Self::Error> {
         self.app
             .accounting()
-            .fiscal_year()
-            .find_all(keys)
+            .find_all_fiscal_years_authorized(&self.sub, keys)
             .await
             .map_err(Arc::new)
     }

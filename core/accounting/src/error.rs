@@ -12,12 +12,18 @@ pub enum CoreAccountingError {
     ManualTransactionError(#[from] super::manual_transaction::error::ManualTransactionError),
     #[error("CoreAccountingError - LedgerTransaction: {0}")]
     LedgerTransactionError(#[from] super::ledger_transaction::error::LedgerTransactionError),
+    #[error("CoreAccountingError - TransactionTemplate: {0}")]
+    TransactionTemplateError(#[from] super::transaction_templates::error::TransactionTemplateError),
+    #[error("CoreAccountingError - AccountingCsvExport: {0}")]
+    AccountingCsvExportError(#[from] super::csv::error::AccountingCsvExportError),
     #[error("CoreAccountingError - AccountCodeParseError: {0}")]
     AccountCodeParseError(#[from] super::AccountCodeParseError),
     #[error("CoreAccountingError - TrialBalanceError: {0}")]
     TrialBalance(#[from] super::trial_balance::error::TrialBalanceError),
     #[error("CoreAccountingError - FiscalYearError: {0}")]
     FiscalYearError(#[from] super::fiscal_year::error::FiscalYearError),
+    #[error("CoreAccountingError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreAccountingError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
     #[error("CoreAccountingError - BalanceSheetLedgerError: {0}")]
@@ -36,9 +42,12 @@ impl ErrorSeverity for CoreAccountingError {
             Self::LedgerAccountError(e) => e.severity(),
             Self::ManualTransactionError(e) => e.severity(),
             Self::LedgerTransactionError(e) => e.severity(),
+            Self::TransactionTemplateError(e) => e.severity(),
+            Self::AccountingCsvExportError(e) => e.severity(),
             Self::AccountCodeParseError(e) => e.severity(),
             Self::TrialBalance(e) => e.severity(),
             Self::FiscalYearError(e) => e.severity(),
+            Self::AuthorizationError(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,
             Self::BalanceSheetLedgerError(e) => e.severity(),
             Self::ProfitAndLossLedgerError(e) => e.severity(),
