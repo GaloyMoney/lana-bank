@@ -26,7 +26,7 @@ pub enum RoleEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 #[allow(dead_code)]
 pub struct Role {
     pub id: RoleId,
@@ -86,7 +86,7 @@ impl Role {
 }
 
 impl TryFromEvents<RoleEvent> for Role {
-    fn try_from_events(events: EntityEvents<RoleEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<RoleEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = RoleBuilder::default();
         let mut new_permission_sets = HashSet::new();
 

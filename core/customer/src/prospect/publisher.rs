@@ -1,6 +1,6 @@
 use obix::out::{Outbox, OutboxEventMarker};
 
-use super::{entity::*, error::*};
+use super::entity::*;
 use crate::public::*;
 
 pub struct ProspectPublisher<E>
@@ -36,7 +36,7 @@ where
         db: &mut impl es_entity::AtomicOperation,
         entity: &Prospect,
         new_events: es_entity::LastPersisted<'_, ProspectEvent>,
-    ) -> Result<(), ProspectError> {
+    ) -> Result<(), sqlx::Error> {
         use ProspectEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {

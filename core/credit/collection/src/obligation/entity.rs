@@ -83,7 +83,7 @@ pub enum ObligationEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Obligation {
     pub id: ObligationId,
     pub tx_id: LedgerTxId,
@@ -378,7 +378,9 @@ impl Obligation {
 }
 
 impl TryFromEvents<ObligationEvent> for Obligation {
-    fn try_from_events(events: EntityEvents<ObligationEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<ObligationEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = ObligationBuilder::default();
         for event in events.iter_all() {
             match event {

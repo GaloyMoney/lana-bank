@@ -35,7 +35,7 @@ pub enum DepositAccountEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct DepositAccount {
     pub id: DepositAccountId,
     pub account_holder_id: DepositAccountHolderId,
@@ -134,7 +134,9 @@ impl DepositAccount {
 }
 
 impl TryFromEvents<DepositAccountEvent> for DepositAccount {
-    fn try_from_events(events: EntityEvents<DepositAccountEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<DepositAccountEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = DepositAccountBuilder::default();
         for event in events.iter_all() {
             match event {

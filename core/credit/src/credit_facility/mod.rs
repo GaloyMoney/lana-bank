@@ -392,7 +392,7 @@ where
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        self.repo.find_by_id(id.into()).await
+        Ok(self.repo.find_by_id(id.into()).await?)
     }
 
     pub async fn find_by_id_without_audit_in_op(
@@ -400,7 +400,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        self.repo.find_by_id_in_op(op, id.into()).await
+        Ok(self.repo.find_by_id_in_op(op, id.into()).await?)
     }
 
     #[record_error_severity]
@@ -424,7 +424,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_id(id).await
+        Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
     #[record_error_severity]
@@ -448,7 +448,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_public_id(public_id).await
+        Ok(self.repo.maybe_find_by_public_id(public_id).await?)
     }
 
     #[record_error_severity]
@@ -470,7 +470,10 @@ where
                 CoreCreditAction::CREDIT_FACILITY_LIST,
             )
             .await?;
-        self.repo.list_for_filters(filter, sort.into(), query).await
+        Ok(self
+            .repo
+            .list_for_filters(filter, sort.into(), query)
+            .await?)
     }
 
     pub(super) async fn list_by_collateralization_ratio_without_audit(
@@ -484,9 +487,10 @@ where
         >,
         CreditFacilityError,
     > {
-        self.repo
+        Ok(self
+            .repo
             .list_by_collateralization_ratio(query, direction.into())
-            .await
+            .await?)
     }
 
     #[record_error_severity]
@@ -524,7 +528,7 @@ where
         &self,
         ids: &[CreditFacilityId],
     ) -> Result<std::collections::HashMap<CreditFacilityId, T>, CreditFacilityError> {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -549,9 +553,10 @@ where
             )
             .await?;
 
-        self.repo
+        Ok(self
+            .repo
             .list_for_customer_id_by_created_at(customer_id, query, direction)
-            .await
+            .await?)
     }
 
     #[record_error_severity]

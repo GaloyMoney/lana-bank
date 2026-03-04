@@ -49,7 +49,7 @@ pub enum DocumentEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Document {
     pub id: DocumentId,
     pub filename: String,
@@ -116,7 +116,7 @@ impl Document {
 }
 
 impl TryFromEvents<DocumentEvent> for Document {
-    fn try_from_events(events: EntityEvents<DocumentEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<DocumentEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = DocumentBuilder::default();
 
         for event in events.iter_all() {
@@ -160,7 +160,7 @@ impl TryFromEvents<DocumentEvent> for Document {
 }
 
 #[derive(Debug, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct NewDocument {
     #[builder(setter(into))]
     pub(super) id: DocumentId,

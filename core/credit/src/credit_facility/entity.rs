@@ -175,7 +175,7 @@ impl From<(InterestAccrualCycleData, CreditFacilityLedgerAccountIds)>
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct CreditFacility {
     pub id: CreditFacilityId,
     pub pending_credit_facility_id: PendingCreditFacilityId,
@@ -766,7 +766,9 @@ impl CreditFacility {
 }
 
 impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
-    fn try_from_events(events: EntityEvents<CreditFacilityEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<CreditFacilityEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = CreditFacilityBuilder::default();
         for event in events.iter_all() {
             match event {

@@ -11,7 +11,6 @@ use crate::primitives::{ChartId, FiscalYearId};
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "FiscalYear",
-    err = "FiscalYearError",
     columns(
         chart_id(ty = "ChartId", update(persist = false), list_for(by(created_at))),
         reference(ty = "String", create(accessor = "reference()")),
@@ -44,7 +43,7 @@ impl FiscalYearRepo {
         let reference = FiscalYearReference::try_new(chart_id, year)?;
         match self.find_by_reference(reference).await {
             Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
+            Err(e) => Err(e.into()),
             Ok(res) => Ok(Some(res)),
         }
     }

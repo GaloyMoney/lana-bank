@@ -1,24 +1,30 @@
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+pub use super::repo::{WalletCreateError, WalletFindError, WalletModifyError, WalletQueryError};
+
 #[derive(thiserror::Error, Debug)]
 pub enum WalletError {
     #[error("WalletError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("WalletError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("WalletError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("WalletError - Create: {0}")]
+    Create(#[from] WalletCreateError),
+    #[error("WalletError - Modify: {0}")]
+    Modify(#[from] WalletModifyError),
+    #[error("WalletError - Find: {0}")]
+    Find(#[from] WalletFindError),
+    #[error("WalletError - Query: {0}")]
+    Query(#[from] WalletQueryError),
 }
-
-es_entity::from_es_entity_error!(WalletError);
 
 impl ErrorSeverity for WalletError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
         }
     }
 }

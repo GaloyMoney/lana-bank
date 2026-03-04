@@ -4,12 +4,11 @@ use es_entity::*;
 
 use crate::primitives::*;
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "Report",
-    err = "ReportError",
     columns(
         external_id(ty = "String"),
         run_id(ty = "ReportRunId", list_for(by(created_at)))

@@ -74,7 +74,7 @@ pub enum WithdrawalEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Withdrawal {
     pub id: WithdrawalId,
     pub deposit_account_id: DepositAccountId,
@@ -268,7 +268,9 @@ impl Withdrawal {
 }
 
 impl TryFromEvents<WithdrawalEvent> for Withdrawal {
-    fn try_from_events(events: EntityEvents<WithdrawalEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<WithdrawalEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = WithdrawalBuilder::default();
         for event in events.iter_all() {
             match event {

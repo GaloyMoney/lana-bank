@@ -2,14 +2,23 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use super::repo::{
+    DepositAccountCreateError, DepositAccountFindError, DepositAccountModifyError,
+    DepositAccountQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum DepositAccountError {
     #[error("DepositAccountError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("DepositAccountError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("DepositAccountError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("DepositAccountError - Create: {0}")]
+    Create(#[from] DepositAccountCreateError),
+    #[error("DepositAccountError - Modify: {0}")]
+    Modify(#[from] DepositAccountModifyError),
+    #[error("DepositAccountError - Find: {0}")]
+    Find(#[from] DepositAccountFindError),
+    #[error("DepositAccountError - Query: {0}")]
+    Query(#[from] DepositAccountQueryError),
     #[error("DepositAccountError - CannotFreezeInactiveAccount: {0}")]
     CannotFreezeInactiveAccount(crate::DepositAccountId),
     #[error("DepositAccountError - CannotUpdateClosedAccount: {0}")]
@@ -20,14 +29,14 @@ pub enum DepositAccountError {
     BalanceIsNotZero,
 }
 
-es_entity::from_es_entity_error!(DepositAccountError);
-
 impl ErrorSeverity for DepositAccountError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::CannotFreezeInactiveAccount(_) => Level::WARN,
             Self::CannotUpdateClosedAccount(_) => Level::WARN,
             Self::CannotUpdateFrozenAccount(_) => Level::WARN,

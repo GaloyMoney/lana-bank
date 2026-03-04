@@ -2,10 +2,15 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use crate::custodian::error::{
+    CustodianCreateError, CustodianFindError, CustodianModifyError, CustodianQueryError,
+};
+use crate::wallet::error::{
+    WalletCreateError, WalletFindError, WalletModifyError, WalletQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum CoreCustodyError {
-    #[error("CustodianError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
     #[error("CoreCustodyError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreCustodyError - AuditError: {0}")]
@@ -22,12 +27,57 @@ pub enum CoreCustodyError {
     InboxError(#[from] obix::inbox::InboxError),
 }
 
-es_entity::from_es_entity_error!(CoreCustodyError);
+impl From<CustodianCreateError> for CoreCustodyError {
+    fn from(e: CustodianCreateError) -> Self {
+        Self::Custodian(e.into())
+    }
+}
+
+impl From<CustodianFindError> for CoreCustodyError {
+    fn from(e: CustodianFindError) -> Self {
+        Self::Custodian(e.into())
+    }
+}
+
+impl From<CustodianModifyError> for CoreCustodyError {
+    fn from(e: CustodianModifyError) -> Self {
+        Self::Custodian(e.into())
+    }
+}
+
+impl From<CustodianQueryError> for CoreCustodyError {
+    fn from(e: CustodianQueryError) -> Self {
+        Self::Custodian(e.into())
+    }
+}
+
+impl From<WalletCreateError> for CoreCustodyError {
+    fn from(e: WalletCreateError) -> Self {
+        Self::Wallet(e.into())
+    }
+}
+
+impl From<WalletFindError> for CoreCustodyError {
+    fn from(e: WalletFindError) -> Self {
+        Self::Wallet(e.into())
+    }
+}
+
+impl From<WalletModifyError> for CoreCustodyError {
+    fn from(e: WalletModifyError) -> Self {
+        Self::Wallet(e.into())
+    }
+}
+
+impl From<WalletQueryError> for CoreCustodyError {
+    fn from(e: WalletQueryError) -> Self {
+        Self::Wallet(e.into())
+    }
+}
 
 impl ErrorSeverity for CoreCustodyError {
     fn severity(&self) -> Level {
         match self {
-            Self::EsEntityError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,

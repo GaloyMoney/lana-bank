@@ -2,14 +2,23 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use super::repo::{
+    PendingCreditFacilityCreateError, PendingCreditFacilityFindError,
+    PendingCreditFacilityModifyError, PendingCreditFacilityQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum PendingCreditFacilityError {
     #[error("PendingCreditFacilityError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("PendingCreditFacilityError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("PendingCreditFacilityError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("PendingCreditFacilityError - Create: {0}")]
+    Create(#[from] PendingCreditFacilityCreateError),
+    #[error("PendingCreditFacilityError - Modify: {0}")]
+    Modify(#[from] PendingCreditFacilityModifyError),
+    #[error("PendingCreditFacilityError - Find: {0}")]
+    Find(#[from] PendingCreditFacilityFindError),
+    #[error("PendingCreditFacilityError - Query: {0}")]
+    Query(#[from] PendingCreditFacilityQueryError),
     #[error("PendingCreditFacilityError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("PendingCreditFacilityError - LedgerError: {0}")]
@@ -42,8 +51,10 @@ impl ErrorSeverity for PendingCreditFacilityError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::GovernanceError(e) => e.severity(),
             Self::LedgerError(e) => e.severity(),
             Self::PriceError(e) => e.severity(),
@@ -59,5 +70,3 @@ impl ErrorSeverity for PendingCreditFacilityError {
         }
     }
 }
-
-es_entity::from_es_entity_error!(PendingCreditFacilityError);

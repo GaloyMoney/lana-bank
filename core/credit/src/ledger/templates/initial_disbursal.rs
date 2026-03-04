@@ -196,7 +196,7 @@ impl InitialDisbursal {
             .build()
             .expect("Couldn't build template");
         match ledger.tx_templates().create(template).await {
-            Err(TxTemplateError::DuplicateCode) => Ok(()),
+            Err(TxTemplateError::DuplicateCode(_)) => Ok(()),
             Err(e) => Err(e.into()),
             Ok(_) => Ok(()),
         }

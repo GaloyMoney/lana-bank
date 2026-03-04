@@ -7,12 +7,11 @@ use obix::out::OutboxEventMarker;
 
 use crate::{primitives::*, public::CoreCustomerEvent};
 
-use super::{entity::*, error::*, publisher::*};
+use super::{entity::*, publisher::*};
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Party",
-    err = "PartyError",
     columns(email(ty = "String", list_by), telegram_handle(ty = "String", list_by),),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -56,7 +55,7 @@ where
         db: &mut impl es_entity::AtomicOperation,
         entity: &Party,
         new_events: es_entity::LastPersisted<'_, PartyEvent>,
-    ) -> Result<(), PartyError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher.publish_in_op(db, entity, new_events).await
     }
 }

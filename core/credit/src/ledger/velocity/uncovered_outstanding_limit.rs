@@ -36,7 +36,7 @@ impl UncoveredOutstandingLimit {
             .expect("velocity limit");
 
         match ledger.velocities().create_limit(limit).await {
-            Err(cala_ledger::velocity::error::VelocityError::LimitIdAlreadyExists) => {
+            Err(cala_ledger::velocity::error::VelocityError::LimitIdAlreadyExists(_)) => {
                 Ok(UNCOVERED_OUTSTANDING_LIMIT_ID.into())
             }
             Err(e) => Err(e.into()),

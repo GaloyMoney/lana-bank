@@ -128,7 +128,7 @@ where
         &self,
         ids: &[ReportId],
     ) -> Result<std::collections::HashMap<ReportId, Report>, ReportError> {
-        self.reports.find_all(ids).await.map_err(ReportError::from)
+        Ok(self.reports.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -145,7 +145,7 @@ where
                 CoreReportAction::REPORT_READ,
             )
             .await?;
-        self.reports.find_all(ids).await.map_err(ReportError::from)
+        Ok(self.reports.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -154,10 +154,7 @@ where
         &self,
         ids: &[ReportRunId],
     ) -> Result<std::collections::HashMap<ReportRunId, ReportRun>, ReportError> {
-        self.report_runs
-            .find_all(ids)
-            .await
-            .map_err(ReportError::from)
+        Ok(self.report_runs.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -174,10 +171,7 @@ where
                 CoreReportAction::REPORT_READ,
             )
             .await?;
-        self.report_runs
-            .find_all(ids)
-            .await
-            .map_err(ReportError::from)
+        Ok(self.report_runs.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -216,15 +210,15 @@ where
             )
             .await?;
 
-        Ok(self
+        let result = self
             .reports
             .list_for_run_id_by_created_at(
                 run_id,
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )
-            .await?
-            .entities)
+            .await?;
+        Ok(result.entities)
     }
 
     #[record_error_severity]

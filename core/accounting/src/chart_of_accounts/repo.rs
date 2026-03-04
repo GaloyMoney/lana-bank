@@ -7,12 +7,11 @@ use crate::primitives::ChartId;
 use crate::primitives::ChartNodeId;
 
 use super::chart_node::*;
-use super::{entity::*, error::ChartOfAccountsError};
+use super::entity::*;
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "ChartNode",
-    err = "ChartOfAccountsError",
     columns(chart_id(ty = "ChartId", update(persist = false), parent)),
     tbl_prefix = "core"
 )]
@@ -34,7 +33,6 @@ impl ChartNodeRepo {
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "Chart",
-    err = "ChartOfAccountsError",
     columns(reference(ty = "String")),
     tbl_prefix = "core"
 )]

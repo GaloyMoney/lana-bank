@@ -27,7 +27,7 @@ pub enum PermissionSetEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct PermissionSet {
     pub id: PermissionSetId,
     pub name: String,
@@ -63,7 +63,9 @@ impl PermissionSet {
 }
 
 impl TryFromEvents<PermissionSetEvent> for PermissionSet {
-    fn try_from_events(events: EntityEvents<PermissionSetEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<PermissionSetEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = PermissionSetBuilder::default();
 
         for event in events.iter_all() {
@@ -79,7 +81,7 @@ impl TryFromEvents<PermissionSetEvent> for PermissionSet {
 }
 
 #[derive(Debug, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct NewPermissionSet {
     #[builder(setter(into))]
     pub(super) id: PermissionSetId,

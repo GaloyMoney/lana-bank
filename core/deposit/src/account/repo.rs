@@ -10,12 +10,11 @@ use crate::{
     publisher::DepositPublisher,
 };
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "DepositAccount",
-    err = "DepositAccountError",
     columns(
         account_holder_id(
             ty = "DepositAccountHolderId",
@@ -67,7 +66,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &DepositAccount,
         new_events: es_entity::LastPersisted<'_, DepositAccountEvent>,
-    ) -> Result<(), DepositAccountError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_deposit_account_in_op(op, entity, new_events)
             .await

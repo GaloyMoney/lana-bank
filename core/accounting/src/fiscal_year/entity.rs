@@ -35,7 +35,7 @@ pub enum FiscalYearEvent {
 }
 
 #[derive(EsEntity, Builder, Clone)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct FiscalYear {
     pub id: FiscalYearId,
     pub chart_id: ChartId,
@@ -195,7 +195,9 @@ impl FiscalYear {
 }
 
 impl TryFromEvents<FiscalYearEvent> for FiscalYear {
-    fn try_from_events(events: EntityEvents<FiscalYearEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<FiscalYearEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = FiscalYearBuilder::default();
 
         for event in events.iter_all() {

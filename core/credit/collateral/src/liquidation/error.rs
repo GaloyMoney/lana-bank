@@ -2,14 +2,22 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use crate::repo::{
+    LiquidationCreateError, LiquidationFindError, LiquidationModifyError, LiquidationQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum LiquidationError {
     #[error("LiquidationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("LiquidationError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("LiquidationError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("LiquidationError - Create: {0}")]
+    Create(#[from] LiquidationCreateError),
+    #[error("LiquidationError - Modify: {0}")]
+    Modify(#[from] LiquidationModifyError),
+    #[error("LiquidationError - Find: {0}")]
+    Find(#[from] LiquidationFindError),
+    #[error("LiquidationError - Query: {0}")]
+    Query(#[from] LiquidationQueryError),
     #[error("LiquidationError - AlreadySatisfied")]
     AlreadySatisfied,
     #[error("LiquidationError - AlreadyCompleted")]
@@ -20,14 +28,14 @@ pub enum LiquidationError {
     JobError(#[from] job::error::JobError),
 }
 
-es_entity::from_es_entity_error!(LiquidationError);
-
 impl ErrorSeverity for LiquidationError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::AlreadySatisfied | Self::AlreadyCompleted => Level::WARN,
             Self::AuthorizationError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,

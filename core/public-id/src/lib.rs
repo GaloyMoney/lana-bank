@@ -85,7 +85,7 @@ impl PublicIds {
         &self,
         id: impl Into<PublicId> + std::fmt::Debug,
     ) -> Result<Option<PublicIdEntity>, PublicIdError> {
-        self.repo.maybe_find_by_id(id.into()).await
+        Ok(self.repo.maybe_find_by_id(id.into()).await?)
     }
 
     #[record_error_severity]
@@ -94,6 +94,6 @@ impl PublicIds {
         &self,
         ids: &[PublicId],
     ) -> Result<HashMap<PublicId, T>, PublicIdError> {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 }

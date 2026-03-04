@@ -105,7 +105,7 @@ where
         role_id: impl Into<RoleId> + std::fmt::Debug,
     ) -> Result<User, CoreAccessError> {
         let role_id = role_id.into();
-        let role = self.roles.find_by_id(role_id).await?;
+        let role: Role = self.roles.find_by_id(role_id).await?;
 
         if role.is_superuser() {
             return Err(CoreAccessError::AuthorizationError(
@@ -280,7 +280,7 @@ where
                 CoreAccessAction::ROLE_LIST,
             )
             .await?;
-        self.roles.find_by_name(name).await
+        Ok(self.roles.find_by_name(name).await?)
     }
 
     #[record_error_severity]
@@ -438,11 +438,7 @@ where
             .await?;
         for id in permission_set_ids {
             if !permission_sets.contains_key(id) {
-                return Err(CoreAccessError::PermissionSetError(
-                    permission_set::PermissionSetError::EsEntityError(
-                        es_entity::EsEntityError::NotFound,
-                    ),
-                ));
+                return Err(CoreAccessError::PermissionSetNotFound(*id));
             }
         }
 

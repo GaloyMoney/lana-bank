@@ -44,7 +44,7 @@ pub enum CreditFacilityProposalEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct CreditFacilityProposal {
     pub id: CreditFacilityProposalId,
     pub customer_id: CustomerId,
@@ -181,7 +181,7 @@ impl CreditFacilityProposal {
 impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
     fn try_from_events(
         events: EntityEvents<CreditFacilityProposalEvent>,
-    ) -> Result<Self, EsEntityError> {
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = CreditFacilityProposalBuilder::default();
         for event in events.iter_all() {
             match event {

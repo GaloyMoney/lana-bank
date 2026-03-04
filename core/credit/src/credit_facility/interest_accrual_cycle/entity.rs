@@ -43,7 +43,7 @@ pub enum InterestAccrualCycleEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct InterestAccrualCycle {
     pub id: InterestAccrualCycleId,
     pub credit_facility_id: CreditFacilityId,
@@ -80,7 +80,7 @@ pub(crate) struct InterestAccrualData {
 impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
     fn try_from_events(
         events: EntityEvents<InterestAccrualCycleEvent>,
-    ) -> Result<Self, EsEntityError> {
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = InterestAccrualCycleBuilder::default();
         for event in events.iter_all() {
             match event {

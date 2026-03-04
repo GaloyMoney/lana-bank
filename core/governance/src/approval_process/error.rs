@@ -2,24 +2,33 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+pub use super::repo::{
+    ApprovalProcessCreateError, ApprovalProcessFindError, ApprovalProcessModifyError,
+    ApprovalProcessQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum ApprovalProcessError {
     #[error("ApprovalProcessError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("ApprovalProcessError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("ApprovalProcessError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("ApprovalProcessError - Create: {0}")]
+    Create(#[from] ApprovalProcessCreateError),
+    #[error("ApprovalProcessError - Modify: {0}")]
+    Modify(#[from] ApprovalProcessModifyError),
+    #[error("ApprovalProcessError - Find: {0}")]
+    Find(#[from] ApprovalProcessFindError),
+    #[error("ApprovalProcessError - Query: {0}")]
+    Query(#[from] ApprovalProcessQueryError),
 }
-
-es_entity::from_es_entity_error!(ApprovalProcessError);
 
 impl ErrorSeverity for ApprovalProcessError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
         }
     }
 }

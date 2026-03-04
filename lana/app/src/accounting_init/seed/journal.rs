@@ -13,7 +13,7 @@ pub(crate) async fn init(cala: &CalaLedger) -> Result<JournalInit, AccountingIni
         .expect("new journal");
 
     match cala.journals().create(new_journal).await {
-        Err(cala_ledger::journal::error::JournalError::CodeAlreadyExists) => {
+        Err(cala_ledger::journal::error::JournalError::CodeAlreadyExists(_)) => {
             let journal = cala
                 .journals()
                 .find_by_code(LANA_JOURNAL_CODE.to_string())

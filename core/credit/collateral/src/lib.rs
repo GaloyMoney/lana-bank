@@ -150,14 +150,14 @@ where
         &self,
         ids: &[CollateralId],
     ) -> Result<HashMap<CollateralId, T>, CollateralError> {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     pub async fn find_by_id_without_audit(
         &self,
         id: CollateralId,
     ) -> Result<Collateral, CollateralError> {
-        self.repo.find_by_id(id).await
+        Ok(self.repo.find_by_id(id).await?)
     }
 
     pub async fn find_by_id_without_audit_in_op(
@@ -165,7 +165,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         id: CollateralId,
     ) -> Result<Collateral, CollateralError> {
-        self.repo.find_by_id_in_op(op, id).await
+        Ok(self.repo.find_by_id_in_op(op, id).await?)
     }
 
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CollateralError> {
@@ -236,7 +236,7 @@ where
             .build()
             .expect("all fields for new collateral provided");
 
-        self.repo.create_in_op(db, new_collateral).await
+        Ok(self.repo.create_in_op(db, new_collateral).await?)
     }
 
     pub async fn subject_can_update_collateral(

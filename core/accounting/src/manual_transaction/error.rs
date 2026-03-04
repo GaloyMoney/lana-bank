@@ -4,14 +4,23 @@ use tracing_utils::ErrorSeverity;
 
 use crate::chart_of_accounts;
 
+use super::repo::{
+    ManualTransactionCreateError, ManualTransactionFindError, ManualTransactionModifyError,
+    ManualTransactionQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum ManualTransactionError {
     #[error("ManualTransactionError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("ManualTransactionError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("ManualTransactionError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("ManualTransactionError - Create: {0}")]
+    Create(#[from] ManualTransactionCreateError),
+    #[error("ManualTransactionError - Modify: {0}")]
+    Modify(#[from] ManualTransactionModifyError),
+    #[error("ManualTransactionError - Find: {0}")]
+    Find(#[from] ManualTransactionFindError),
+    #[error("ManualTransactionError - Query: {0}")]
+    Query(#[from] ManualTransactionQueryError),
     #[error("ManualTransactionError - ManualTransactionLedgerError: {0}")]
     ManualTransactionLedgerError(#[from] super::ledger::error::ManualTransactionLedgerError),
     #[error("ManualTransactionError - AuthorizationError: {0}")]
@@ -20,14 +29,14 @@ pub enum ManualTransactionError {
     ChartOfAccountsError(#[from] chart_of_accounts::error::ChartOfAccountsError),
 }
 
-es_entity::from_es_entity_error!(ManualTransactionError);
-
 impl ErrorSeverity for ManualTransactionError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::ManualTransactionLedgerError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartOfAccountsError(e) => e.severity(),

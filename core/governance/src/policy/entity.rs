@@ -24,7 +24,7 @@ pub enum PolicyEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Policy {
     pub id: PolicyId,
     pub process_type: ApprovalProcessType,
@@ -92,7 +92,7 @@ impl Policy {
 }
 
 impl TryFromEvents<PolicyEvent> for Policy {
-    fn try_from_events(events: EntityEvents<PolicyEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<PolicyEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = PolicyBuilder::default();
         for event in events.iter_all() {
             match event {

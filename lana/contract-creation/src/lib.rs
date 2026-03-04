@@ -156,7 +156,9 @@ where
 
         match self.document_storage.find_by_id(document_id).await {
             Ok(document) => Ok(Some(LoanAgreement::from(document))),
-            Err(e) if e.was_not_found() => Ok(None),
+            Err(document_storage::error::DocumentStorageError::Find(e)) if e.was_not_found() => {
+                Ok(None)
+            }
             Err(e) => Err(e.into()),
         }
     }

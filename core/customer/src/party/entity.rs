@@ -30,7 +30,7 @@ pub enum PartyEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Party {
     pub id: PartyId,
     pub email: String,
@@ -90,7 +90,7 @@ impl Party {
 }
 
 impl TryFromEvents<PartyEvent> for Party {
-    fn try_from_events(events: EntityEvents<PartyEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<PartyEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = PartyBuilder::default();
 
         for event in events.iter_all() {

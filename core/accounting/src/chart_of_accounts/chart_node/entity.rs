@@ -29,7 +29,7 @@ pub enum ChartNodeEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct ChartNode {
     pub id: ChartNodeId,
     pub chart_id: ChartId,
@@ -99,7 +99,7 @@ impl ChartNode {
 }
 
 impl TryFromEvents<ChartNodeEvent> for ChartNode {
-    fn try_from_events(events: EntityEvents<ChartNodeEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<ChartNodeEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = ChartNodeBuilder::default();
         let mut children = Vec::new();
 

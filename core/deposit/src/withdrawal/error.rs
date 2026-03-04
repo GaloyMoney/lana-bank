@@ -4,14 +4,22 @@ use tracing_utils::ErrorSeverity;
 
 use crate::primitives::WithdrawalId;
 
+use super::repo::{
+    WithdrawalCreateError, WithdrawalFindError, WithdrawalModifyError, WithdrawalQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum WithdrawalError {
     #[error("WithdrawalError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("WithdrawalError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("WithdrawalError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("WithdrawalError - Create: {0}")]
+    Create(#[from] WithdrawalCreateError),
+    #[error("WithdrawalError - Modify: {0}")]
+    Modify(#[from] WithdrawalModifyError),
+    #[error("WithdrawalError - Find: {0}")]
+    Find(#[from] WithdrawalFindError),
+    #[error("WithdrawalError - Query: {0}")]
+    Query(#[from] WithdrawalQueryError),
     #[error("WithdrawalError - DepositLedgerError: {0}")]
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("WithdrawalError - AlreadyConfirmed: {0}")]
@@ -26,14 +34,14 @@ pub enum WithdrawalError {
     NotConfirmed(WithdrawalId),
 }
 
-es_entity::from_es_entity_error!(WithdrawalError);
-
 impl ErrorSeverity for WithdrawalError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::DepositLedgerError(_) => Level::ERROR,
             Self::AlreadyConfirmed(_) => Level::WARN,
             Self::AlreadyCancelled(_) => Level::WARN,

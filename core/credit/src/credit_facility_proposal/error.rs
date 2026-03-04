@@ -2,14 +2,23 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use super::repo::{
+    CreditFacilityProposalCreateError, CreditFacilityProposalFindError,
+    CreditFacilityProposalModifyError, CreditFacilityProposalQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum CreditFacilityProposalError {
     #[error("CreditFacilityProposalError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CreditFacilityProposalError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("CreditFacilityProposalError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("CreditFacilityProposalError - Create: {0}")]
+    Create(#[from] CreditFacilityProposalCreateError),
+    #[error("CreditFacilityProposalError - Modify: {0}")]
+    Modify(#[from] CreditFacilityProposalModifyError),
+    #[error("CreditFacilityProposalError - Find: {0}")]
+    Find(#[from] CreditFacilityProposalFindError),
+    #[error("CreditFacilityProposalError - Query: {0}")]
+    Query(#[from] CreditFacilityProposalQueryError),
     #[error("CreditFacilityProposalError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CreditFacilityProposalError - LedgerError: {0}")]
@@ -28,14 +37,14 @@ pub enum CreditFacilityProposalError {
     AuditError(#[from] audit::error::AuditError),
 }
 
-es_entity::from_es_entity_error!(CreditFacilityProposalError);
-
 impl ErrorSeverity for CreditFacilityProposalError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::GovernanceError(e) => e.severity(),
             Self::LedgerError(e) => e.severity(),
             Self::PriceError(e) => e.severity(),

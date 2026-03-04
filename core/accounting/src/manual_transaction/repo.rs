@@ -5,12 +5,11 @@ use es_entity::*;
 
 use crate::primitives::{CalaTxId, ManualTransactionId};
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "ManualTransaction",
-    err = "ManualTransactionError",
     columns(
         reference(ty = "String", create(accessor = "reference()")),
         ledger_transaction_id(ty = "CalaTxId")

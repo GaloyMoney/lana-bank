@@ -26,7 +26,7 @@ pub enum PaymentEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Payment {
     pub id: PaymentId,
     pub ledger_tx_id: LedgerTxId,
@@ -41,7 +41,7 @@ pub struct Payment {
 }
 
 impl TryFromEvents<PaymentEvent> for Payment {
-    fn try_from_events(events: EntityEvents<PaymentEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<PaymentEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = PaymentBuilder::default();
         for event in events.iter_all() {
             match event {

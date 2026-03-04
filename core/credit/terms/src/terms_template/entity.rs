@@ -24,7 +24,7 @@ pub enum TermsTemplateEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct TermsTemplate {
     pub id: TermsTemplateId,
     pub name: String,
@@ -52,7 +52,9 @@ impl TermsTemplate {
 }
 
 impl TryFromEvents<TermsTemplateEvent> for TermsTemplate {
-    fn try_from_events(events: EntityEvents<TermsTemplateEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<TermsTemplateEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = TermsTemplateBuilder::default();
 
         for event in events.iter_all() {

@@ -7,3 +7,7 @@ pub use entity::PaymentAllocation;
 pub use entity::PaymentAllocationEvent;
 pub(crate) use entity::*;
 pub(crate) use repo::PaymentAllocationRepo;
+pub(crate) use repo::{
+    PaymentAllocationCreateError, PaymentAllocationFindError, PaymentAllocationModifyError,
+    PaymentAllocationQueryError,
+};

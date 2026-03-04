@@ -10,7 +10,6 @@ use super::{entity::*, error::*};
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "Custodian",
-    err = "CustodianError",
     columns(name(ty = "String", list_by), provider(ty = "String", find_by)),
     tbl_prefix = "core"
 )]

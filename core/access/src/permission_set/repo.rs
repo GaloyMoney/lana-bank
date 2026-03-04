@@ -5,12 +5,11 @@ use es_entity::*;
 
 use crate::primitives::*;
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "PermissionSet",
-    err = "PermissionSetError",
     columns(name(ty = "String", list_by)),
     tbl_prefix = "core"
 )]

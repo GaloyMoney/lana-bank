@@ -5,12 +5,11 @@ use obix::out::OutboxEventMarker;
 
 use crate::{CoreReportEvent, primitives::*, publisher::ReportPublisher};
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "ReportRun",
-    err = "ReportRunError",
     columns(external_id(ty = "String")),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -41,7 +40,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &ReportRun,
         new_events: es_entity::LastPersisted<'_, ReportRunEvent>,
-    ) -> Result<(), ReportRunError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_report_run_in_op(op, entity, new_events)
             .await

@@ -3,12 +3,11 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use super::{TermsTemplateId, entity::*, error::*};
+use super::{TermsTemplateId, entity::*};
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "TermsTemplate",
-    err = "TermsTemplateError",
     columns(name(ty = "String", list_by)),
     tbl_prefix = "core"
 )]

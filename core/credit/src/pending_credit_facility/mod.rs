@@ -312,7 +312,7 @@ where
             )
             .await?;
 
-        self.repo.list_for_filters(filter, sort, query).await
+        Ok(self.repo.list_for_filters(filter, sort, query).await?)
     }
 
     #[record_error_severity]
@@ -353,7 +353,7 @@ where
         ids: &[PendingCreditFacilityId],
     ) -> Result<std::collections::HashMap<PendingCreditFacilityId, T>, PendingCreditFacilityError>
     {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -378,7 +378,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_id(id).await
+        Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
     pub async fn collateral(

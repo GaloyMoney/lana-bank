@@ -130,8 +130,8 @@ where
             .await?;
         match self.repo.find_by_id(id.into()).await {
             Ok(template) => Ok(Some(template)),
-            Err(TermsTemplateError::CouldNotFindById(_)) => Ok(None),
-            Err(e) => Err(e),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
         }
     }
 
@@ -157,7 +157,7 @@ where
         &self,
         ids: &[TermsTemplateId],
     ) -> Result<HashMap<TermsTemplateId, T>, TermsTemplateError> {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -177,6 +177,6 @@ where
                 CoreCreditTermsAction::TERMS_TEMPLATE_READ,
             )
             .await?;
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 }

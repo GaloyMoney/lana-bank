@@ -35,7 +35,7 @@ pub enum DomainConfigEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct DomainConfig {
     pub id: DomainConfigId,
     pub key: DomainConfigKey,
@@ -302,7 +302,9 @@ impl DomainConfig {
 }
 
 impl TryFromEvents<DomainConfigEvent> for DomainConfig {
-    fn try_from_events(events: EntityEvents<DomainConfigEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<DomainConfigEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = DomainConfigBuilder::default();
 
         for event in events.iter_all() {

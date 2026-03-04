@@ -2,7 +2,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     CoreCustodyEvent, PublicWallet,
-    wallet::{Wallet, WalletEvent, error::WalletError},
+    wallet::{Wallet, WalletEvent},
 };
 
 pub struct CustodyPublisher<E>
@@ -38,7 +38,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &Wallet,
         new_events: es_entity::LastPersisted<'_, WalletEvent>,
-    ) -> Result<(), WalletError> {
+    ) -> Result<(), sqlx::Error> {
         use WalletEvent::*;
         let events = new_events
             .filter_map(|event| match &event.event {

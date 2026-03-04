@@ -129,7 +129,7 @@ where
         self.authz
             .enforce_permission(sub, CoreAccessObject::user(id), CoreAccessAction::USER_READ)
             .await?;
-        self.repo.find_by_id(id).await
+        Ok(self.repo.find_by_id(id).await?)
     }
 
     #[record_error_severity]
@@ -143,7 +143,7 @@ where
         self.authz
             .enforce_permission(sub, CoreAccessObject::user(id), CoreAccessAction::USER_READ)
             .await?;
-        self.repo.maybe_find_by_id(id).await
+        Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
     #[record_error_severity]
@@ -163,7 +163,7 @@ where
                 .await?;
         }
 
-        self.repo.maybe_find_by_email(email.as_str()).await
+        Ok(self.repo.maybe_find_by_email(email.as_str()).await?)
     }
 
     #[record_error_severity]
@@ -172,7 +172,7 @@ where
         &self,
         ids: &[UserId],
     ) -> Result<HashMap<UserId, T>, UserError> {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -189,7 +189,7 @@ where
                 CoreAccessAction::USER_READ,
             )
             .await?;
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -218,7 +218,7 @@ where
         query: es_entity::PaginatedQueryArgs<UsersByCreatedAtCursor>,
         direction: es_entity::ListDirection,
     ) -> Result<es_entity::PaginatedQueryRet<User, UsersByCreatedAtCursor>, UserError> {
-        self.repo.list_by_created_at(query, direction).await
+        Ok(self.repo.list_by_created_at(query, direction).await?)
     }
 
     pub async fn subject_can_update_role_of_user(
@@ -250,7 +250,7 @@ where
             .await?
             .expect("audit info missing");
 
-        let mut user = self.repo.find_by_id(id).await?;
+        let mut user: User = self.repo.find_by_id(id).await?;
 
         if let Idempotent::Executed(previous) = user.update_role(role) {
             self.authz

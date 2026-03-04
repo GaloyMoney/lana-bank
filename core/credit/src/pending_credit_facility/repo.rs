@@ -3,17 +3,15 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
 use core_credit_collateral::CollateralId;
 
-use super::{entity::*, error::PendingCreditFacilityError};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "PendingCreditFacility",
-    err = "PendingCreditFacilityError",
     columns(
         customer_id(ty = "CustomerId", list_for(by(created_at)), update(persist = false)),
         credit_facility_proposal_id(ty = "CreditFacilityProposalId", update(persist = false)),
@@ -73,14 +71,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[tracing::instrument(name = "pending_credit_facility.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &PendingCreditFacility,
         new_events: es_entity::LastPersisted<'_, PendingCreditFacilityEvent>,
-    ) -> Result<(), PendingCreditFacilityError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_pending_credit_facility_in_op(op, entity, new_events)
             .await

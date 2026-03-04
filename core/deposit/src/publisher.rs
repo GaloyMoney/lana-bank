@@ -2,9 +2,9 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     CoreDepositEvent, PublicDeposit, PublicDepositAccount, PublicWithdrawal,
-    account::{DepositAccount, DepositAccountEvent, error::DepositAccountError},
-    deposit::{Deposit, DepositEvent, error::DepositError},
-    withdrawal::{Withdrawal, WithdrawalEvent, error::WithdrawalError},
+    account::{DepositAccount, DepositAccountEvent},
+    deposit::{Deposit, DepositEvent},
+    withdrawal::{Withdrawal, WithdrawalEvent},
 };
 
 pub struct DepositPublisher<E>
@@ -40,7 +40,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &DepositAccount,
         new_events: es_entity::LastPersisted<'_, DepositAccountEvent>,
-    ) -> Result<(), DepositAccountError> {
+    ) -> Result<(), sqlx::Error> {
         use DepositAccountEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
@@ -61,7 +61,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &Withdrawal,
         new_events: es_entity::LastPersisted<'_, WithdrawalEvent>,
-    ) -> Result<(), WithdrawalError> {
+    ) -> Result<(), sqlx::Error> {
         use WithdrawalEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
@@ -87,7 +87,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &Deposit,
         new_events: es_entity::LastPersisted<'_, DepositEvent>,
-    ) -> Result<(), DepositError> {
+    ) -> Result<(), sqlx::Error> {
         use DepositEvent::*;
         let publish_events = new_events
             .map(|event| match &event.event {

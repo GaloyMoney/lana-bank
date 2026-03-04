@@ -62,7 +62,7 @@ pub enum ProspectEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Prospect {
     pub id: ProspectId,
     pub party_id: PartyId,
@@ -277,7 +277,7 @@ impl Prospect {
 }
 
 impl TryFromEvents<ProspectEvent> for Prospect {
-    fn try_from_events(events: EntityEvents<ProspectEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<ProspectEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = ProspectBuilder::default();
 
         for event in events.iter_all() {

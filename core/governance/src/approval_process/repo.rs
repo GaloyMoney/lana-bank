@@ -5,12 +5,11 @@ use es_entity::*;
 
 use crate::primitives::*;
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "ApprovalProcess",
-    err = "ApprovalProcessError",
     columns(
         process_type(ty = "ApprovalProcessType"),
         committee_id(
