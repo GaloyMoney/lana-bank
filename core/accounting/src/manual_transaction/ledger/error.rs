@@ -16,6 +16,9 @@ impl ErrorSeverity for ManualTransactionLedgerError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
+            Self::CalaLedger(cala_ledger::error::LedgerError::VelocityError(
+                cala_ledger::velocity::error::VelocityError::Enforcement(_),
+            )) => Level::WARN,
             Self::CalaLedger(_) => Level::ERROR,
             Self::CalaTxTemplate(_) => Level::ERROR,
         }

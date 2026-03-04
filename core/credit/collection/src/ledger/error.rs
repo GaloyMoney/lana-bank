@@ -22,6 +22,9 @@ impl ErrorSeverity for CollectionLedgerError {
             Self::Sqlx(_) => Level::ERROR,
             Self::CalaLedger(_) => Level::ERROR,
             Self::CalaTxTemplate(_) => Level::ERROR,
+            Self::CalaVelocity(cala_ledger::velocity::error::VelocityError::Enforcement(_)) => {
+                Level::WARN
+            }
             Self::CalaVelocity(_) => Level::ERROR,
             Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,
         }
