@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    Ident, ItemFn, ReturnType, Token, Type, parse::Parse, parse::ParseStream, parse_macro_input,
+    parse::Parse, parse::ParseStream, parse_macro_input, Ident, ItemFn, ReturnType, Token, Type,
 };
 
 /// Arguments for the `observe_error` macro.
