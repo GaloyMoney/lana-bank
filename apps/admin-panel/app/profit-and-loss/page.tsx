@@ -38,7 +38,8 @@ gql`
         }
       }
       categories {
-        id
+        profitAndLossAccountId
+        ledgerAccountId
         name
         code
         balanceRange {
@@ -47,7 +48,8 @@ gql`
           ...BtcLedgerBalanceRangeFragment
         }
         children {
-          id
+          profitAndLossAccountId
+          ledgerAccountId
           name
           code
           balanceRange {
@@ -195,7 +197,7 @@ const ProfitAndLossStatement = ({
                   }
                   return (
                     <CategoryRow
-                      key={category.id}
+                      key={category.profitAndLossAccountId}
                       category={category}
                       currency={currency}
                       layer={layer}
@@ -260,7 +262,7 @@ const CategoryRow = ({ category, currency, layer, endingBalance }: CategoryRowPr
           >["categories"][0]["children"][number],
         ) => (
           <Account
-            key={child.id}
+            key={child.profitAndLossAccountId}
             account={child}
             currency={currency}
             depth={1}

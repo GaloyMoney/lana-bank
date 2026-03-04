@@ -2846,12 +2846,26 @@ export const mockPolicyEdge = (overrides?: Partial<PolicyEdge>, _relationshipsTo
     };
 };
 
+export const mockProfitAndLossAccount = (overrides?: Partial<ProfitAndLossAccount>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ProfitAndLossAccount' } & ProfitAndLossAccount => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('ProfitAndLossAccount');
+    return {
+        __typename: 'ProfitAndLossAccount',
+        balanceRange: overrides && overrides.hasOwnProperty('balanceRange') ? overrides.balanceRange! : relationshipsToOmit.has('BtcLedgerAccountBalanceRange') ? {} as BtcLedgerAccountBalanceRange : mockBtcLedgerAccountBalanceRange({}, relationshipsToOmit),
+        children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('ProfitAndLossAccount') ? {} as ProfitAndLossAccount : mockProfitAndLossAccount({}, relationshipsToOmit)],
+        code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
+        ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        profitAndLossAccountId: overrides && overrides.hasOwnProperty('profitAndLossAccountId') ? overrides.profitAndLossAccountId! : faker.string.uuid(),
+    };
+};
+
 export const mockProfitAndLossStatement = (overrides?: Partial<ProfitAndLossStatement>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ProfitAndLossStatement' } & ProfitAndLossStatement => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ProfitAndLossStatement');
     return {
         __typename: 'ProfitAndLossStatement',
-        categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : [relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit)],
+        categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : [relationshipsToOmit.has('ProfitAndLossAccount') ? {} as ProfitAndLossAccount : mockProfitAndLossAccount({}, relationshipsToOmit)],
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         total: overrides && overrides.hasOwnProperty('total') ? overrides.total! : relationshipsToOmit.has('LedgerAccountBalanceRangeByCurrency') ? {} as LedgerAccountBalanceRangeByCurrency : mockLedgerAccountBalanceRangeByCurrency({}, relationshipsToOmit),
     };
