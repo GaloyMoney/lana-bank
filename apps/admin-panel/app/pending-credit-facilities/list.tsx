@@ -117,6 +117,7 @@ const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] =>
     label: t("table.headers.facilityAmount"),
     labelClassName: "w-[15%]",
     render: (amount) => <Balance amount={amount} currency="usd" />,
+    sortable: true,
   },
   {
     key: "collateral",

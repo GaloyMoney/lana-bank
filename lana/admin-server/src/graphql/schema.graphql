@@ -2021,6 +2021,7 @@ input PendingCreditFacilitiesSort {
 
 enum PendingCreditFacilitiesSortBy {
 	CREATED_AT
+	FACILITY_AMOUNT
 }
 
 type PendingCreditFacility {

@@ -2302,7 +2302,8 @@ export type PendingCreditFacilitiesSort = {
 };
 
 export enum PendingCreditFacilitiesSortBy {
-  CreatedAt = 'CREATED_AT'
+  CreatedAt = 'CREATED_AT',
+  FacilityAmount = 'FACILITY_AMOUNT'
 }
 
 export type PendingCreditFacility = {

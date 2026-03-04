@@ -346,6 +346,7 @@ CREATE TABLE core_pending_credit_facilities (
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
   status VARCHAR NOT NULL DEFAULT 'PendingCollateralization',
+  amount BIGINT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

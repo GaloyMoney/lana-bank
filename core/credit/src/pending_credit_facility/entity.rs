@@ -371,7 +371,7 @@ pub struct NewPendingCreditFacility {
     #[builder(setter(into))]
     disbursal_credit_account_id: CalaAccountId,
     terms: TermValues,
-    amount: UsdCents,
+    pub(super) amount: UsdCents,
 }
 
 impl NewPendingCreditFacility {
