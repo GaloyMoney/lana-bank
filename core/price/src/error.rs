@@ -23,8 +23,4 @@ impl ErrorSeverity for PriceError {
             Self::PriceUnavailable => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

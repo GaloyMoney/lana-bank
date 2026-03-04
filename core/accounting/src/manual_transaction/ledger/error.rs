@@ -23,8 +23,4 @@ impl ErrorSeverity for ManualTransactionLedgerError {
             Self::CalaTxTemplate(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

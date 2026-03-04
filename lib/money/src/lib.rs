@@ -97,10 +97,6 @@ impl ErrorSeverity for ConversionError {
             Self::Overflow => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]

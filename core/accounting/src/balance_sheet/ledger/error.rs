@@ -46,8 +46,4 @@ impl ErrorSeverity for BalanceSheetLedgerError {
             Self::NotFound(_) => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

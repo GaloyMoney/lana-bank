@@ -43,8 +43,4 @@ impl ErrorSeverity for BfxClientError {
             Self::RequestParametersError { .. } => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

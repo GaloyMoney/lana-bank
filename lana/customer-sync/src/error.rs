@@ -20,8 +20,4 @@ impl ErrorSeverity for CustomerSyncError {
             Self::RegisterEventHandler(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

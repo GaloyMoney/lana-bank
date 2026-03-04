@@ -23,8 +23,4 @@ impl ErrorSeverity for CreditFacilityHistoryError {
             Self::AuthorizationError(e) => e.severity(),
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

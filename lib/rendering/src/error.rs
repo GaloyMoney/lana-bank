@@ -23,8 +23,4 @@ impl ErrorSeverity for RenderingError {
             Self::Gotenberg(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

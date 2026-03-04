@@ -108,10 +108,7 @@ pub fn observe_error(args: TokenStream, input: TokenStream) -> TokenStream {
 
     // Build aggregate alert check (common to both modes)
     let aggregate_check = quote! {
-        let __variant_name = {
-            use ::tracing_utils::ErrorSeverity;
-            __e.variant_name()
-        };
+        let __variant_name: &'static str = (&*__e).into();
         #aggregate_threshold
         let __agg_key = format!("{}::{}::{}", module_path!(), #fn_name, __variant_name);
         if ::tracing_utils::rate_tracker::should_trigger_aggregate_alert(&__agg_key, __threshold, __window) {

@@ -38,8 +38,4 @@ impl ErrorSeverity for StorageClientError {
             Self::Other(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

@@ -171,8 +171,4 @@ impl ErrorSeverity for CoreDepositError {
             Self::CustomerNotVerified => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

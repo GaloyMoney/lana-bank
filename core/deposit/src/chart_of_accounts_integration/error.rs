@@ -35,8 +35,4 @@ impl ErrorSeverity for ChartOfAccountsIntegrationError {
             Self::Sqlx(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

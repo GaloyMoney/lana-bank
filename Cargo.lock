@@ -6551,6 +6551,7 @@ name = "tracing-macros"
 version = "0.1.0"
 dependencies = [
  "quote",
+ "strum 0.28.0",
  "syn 2.0.117",
  "thiserror 2.0.18",
  "tokio",

@@ -108,8 +108,4 @@ impl ErrorSeverity for CustomerError {
             Self::PartyError(e) => e.severity(),
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

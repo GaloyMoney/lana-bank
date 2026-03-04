@@ -17,8 +17,4 @@ impl ErrorSeverity for TimeEventsError {
             Self::JobError(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

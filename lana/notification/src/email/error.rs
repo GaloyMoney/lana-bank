@@ -42,8 +42,4 @@ impl ErrorSeverity for EmailError {
             Self::CreditFacility(e) => e.severity(),
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

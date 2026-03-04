@@ -20,8 +20,4 @@ impl ErrorSeverity for SmtpError {
             Self::Address(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

@@ -33,8 +33,4 @@ impl ErrorSeverity for KomainuError {
             Self::InvalidWebhookSignature(_) => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

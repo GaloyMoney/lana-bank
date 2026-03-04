@@ -26,8 +26,4 @@ impl ErrorSeverity for CollateralLedgerError {
             Self::CalaAccountSet(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

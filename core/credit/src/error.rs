@@ -109,8 +109,4 @@ impl ErrorSeverity for CoreCreditError {
             Self::DomainConfigError(e) => e.severity(),
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

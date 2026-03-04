@@ -64,8 +64,4 @@ impl ErrorSeverity for DepositLedgerError {
             Self::JournalIdMismatch => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

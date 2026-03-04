@@ -34,8 +34,4 @@ impl ErrorSeverity for ProfitAndLossStatementError {
             Self::AccountingBaseConfigNotFound => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

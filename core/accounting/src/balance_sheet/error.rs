@@ -32,8 +32,4 @@ impl ErrorSeverity for BalanceSheetError {
             Self::AccountingBaseConfigNotFound => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

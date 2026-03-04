@@ -29,8 +29,4 @@ impl ErrorSeverity for CollectionLedgerError {
             Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

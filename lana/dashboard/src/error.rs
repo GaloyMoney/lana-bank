@@ -23,8 +23,4 @@ impl ErrorSeverity for DashboardError {
             Self::RegisterEventHandler(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

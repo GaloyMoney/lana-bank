@@ -20,8 +20,4 @@ impl ErrorSeverity for DagsterError {
             Self::ApiError => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

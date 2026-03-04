@@ -107,8 +107,4 @@ impl ErrorSeverity for ApplicationError {
             Self::TimeEventsError(e) => e.severity(),
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

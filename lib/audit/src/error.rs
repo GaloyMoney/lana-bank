@@ -23,8 +23,4 @@ impl ErrorSeverity for AuditError {
             Self::ActionParseError(_) => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

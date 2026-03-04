@@ -17,8 +17,4 @@ impl ErrorSeverity for EncryptionError {
             Self::Deserialization(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

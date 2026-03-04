@@ -43,8 +43,4 @@ impl ErrorSeverity for TrialBalanceLedgerError {
             Self::AccountCodeParseError(e) => e.severity(),
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

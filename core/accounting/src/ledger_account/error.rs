@@ -17,8 +17,4 @@ impl ErrorSeverity for LedgerAccountError {
             Self::LedgerAccountLedgerError(e) => e.severity(),
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

@@ -53,8 +53,4 @@ impl ErrorSeverity for CoreAccountingError {
             Self::ProfitAndLossLedgerError(e) => e.severity(),
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

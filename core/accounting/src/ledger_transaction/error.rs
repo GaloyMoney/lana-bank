@@ -38,8 +38,4 @@ impl ErrorSeverity for LedgerTransactionError {
             Self::InitiatedByParse(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

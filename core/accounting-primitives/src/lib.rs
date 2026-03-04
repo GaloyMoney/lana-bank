@@ -107,10 +107,6 @@ impl ErrorSeverity for AccountCodeParseError {
             Self::InvalidParent => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }
 
 #[derive(Error, Debug, strum::IntoStaticStr)]
@@ -124,10 +120,6 @@ impl ErrorSeverity for AccountCodeError {
         match self {
             Self::InvalidParent => Level::WARN,
         }
-    }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
     }
 }
 
@@ -331,10 +323,6 @@ impl ErrorSeverity for AccountingBaseConfigError {
             Self::RetainedEarningsCodeNotChildOfEquity(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -518,9 +506,5 @@ impl ErrorSeverity for ChartLookupError {
         match self {
             Self::InvalidAccountCategory { .. } => Level::ERROR,
         }
-    }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
     }
 }

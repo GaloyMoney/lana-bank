@@ -26,8 +26,4 @@ impl ErrorSeverity for KeycloakClientError {
             Self::MultipleUsersFound(_) => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

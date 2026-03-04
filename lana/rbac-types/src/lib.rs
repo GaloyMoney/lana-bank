@@ -84,10 +84,6 @@ impl ErrorSeverity for ParseSubjectError {
             Self::InvalidSubjectFormat => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }
 
 impl From<UserId> for Subject {

@@ -50,8 +50,4 @@ impl ErrorSeverity for CustodianClientError {
             }
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

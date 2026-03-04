@@ -19,8 +19,4 @@ impl ErrorSeverity for TracingError {
             Self::OtelSdk(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

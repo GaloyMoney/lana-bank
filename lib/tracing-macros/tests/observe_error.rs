@@ -5,7 +5,7 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, strum::IntoStaticStr)]
 enum TestError {
     #[error("Critical error")]
     Critical,
@@ -21,14 +21,6 @@ impl ErrorSeverity for TestError {
             TestError::Critical => tracing::Level::ERROR,
             TestError::Warning => tracing::Level::WARN,
             TestError::Info => tracing::Level::INFO,
-        }
-    }
-
-    fn variant_name(&self) -> &'static str {
-        match self {
-            TestError::Critical => "Critical",
-            TestError::Warning => "Warning",
-            TestError::Info => "Info",
         }
     }
 }

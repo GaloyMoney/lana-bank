@@ -62,8 +62,4 @@ impl ErrorSeverity for ReportError {
             Self::NotFound => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

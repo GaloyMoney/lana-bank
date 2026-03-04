@@ -22,10 +22,6 @@ impl ErrorSeverity for CsvParseError {
             Self::AccountCodeError(e) => e.severity(),
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }
 
 pub struct CsvParser {

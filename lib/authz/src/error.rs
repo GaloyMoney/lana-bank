@@ -44,8 +44,4 @@ impl ErrorSeverity for AuthorizationError {
             Self::RoleParseError(_) => Level::WARN,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

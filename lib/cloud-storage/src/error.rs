@@ -17,8 +17,4 @@ impl ErrorSeverity for StorageError {
             Self::LocalStorageNotConfigured => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }

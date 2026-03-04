@@ -50,8 +50,4 @@ impl ErrorSeverity for KycError {
             Self::DomainConfigError(_) => Level::ERROR,
         }
     }
-
-    fn variant_name(&self) -> &'static str {
-        self.into()
-    }
 }
