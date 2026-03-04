@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum StorageClientError {
     #[error("Google Cloud Storage error: {0}")]
     Gcs(#[from] google_cloud_storage::Error),
@@ -37,5 +37,9 @@ impl ErrorSeverity for StorageClientError {
             Self::InvalidPath => Level::WARN,
             Self::Other(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

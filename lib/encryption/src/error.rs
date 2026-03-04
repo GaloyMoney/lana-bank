@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum EncryptionError {
     #[error("EncryptionError - Decryption")]
     Decryption,
@@ -16,5 +16,9 @@ impl ErrorSeverity for EncryptionError {
             Self::Decryption => Level::ERROR,
             Self::Deserialization(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

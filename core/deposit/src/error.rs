@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CoreDepositError {
     #[error("CoreDepositError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -170,5 +170,9 @@ impl ErrorSeverity for CoreDepositError {
             Self::DomainConfigError(e) => e.severity(),
             Self::CustomerNotVerified => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

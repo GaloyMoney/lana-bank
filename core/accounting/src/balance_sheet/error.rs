@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum BalanceSheetError {
     #[error("BalanceSheetError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -31,5 +31,9 @@ impl ErrorSeverity for BalanceSheetError {
             Self::ChartIdMismatch => Level::ERROR,
             Self::AccountingBaseConfigNotFound => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

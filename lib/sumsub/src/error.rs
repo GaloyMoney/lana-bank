@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum SumsubError {
     #[error("SumsubError - ReqwestError: {0}")]
     ReqwestError(#[from] reqwest::Error),
@@ -25,5 +25,9 @@ impl ErrorSeverity for SumsubError {
             Self::ApiError { .. } => Level::ERROR,
             Self::InvalidResponse(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

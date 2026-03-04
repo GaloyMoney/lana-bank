@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum SmtpError {
     #[error("SmtpError - Transport: {0}")]
     Transport(#[from] lettre::transport::smtp::Error),
@@ -19,5 +19,9 @@ impl ErrorSeverity for SmtpError {
             Self::Lettre(_) => Level::ERROR,
             Self::Address(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

@@ -79,7 +79,7 @@ impl SignedSatoshis {
         self.0
     }
 }
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ConversionError {
     #[error("ConversionError - DecimalError: {0}")]
     DecimalError(#[from] rust_decimal::Error),
@@ -96,6 +96,10 @@ impl ErrorSeverity for ConversionError {
             Self::UnexpectedNegativeNumber(_) => Level::WARN,
             Self::Overflow => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }
 

@@ -4,7 +4,7 @@ use tracing_utils::ErrorSeverity;
 
 use super::cvl::CVLPct;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum TermsError {
     #[error(
         "LoanTermsError - InvalidFutureDateComparisonForAccrualDate: {1} is after accrual date {0}"
@@ -31,5 +31,9 @@ impl ErrorSeverity for TermsError {
             Self::MarginCallBelowLiquidationLimit(_, _) => Level::WARN,
             Self::UninitializedField(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

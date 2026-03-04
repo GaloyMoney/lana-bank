@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum DagsterError {
     #[error("DagsterError - Reqwest: {0}")]
     Reqwest(#[from] reqwest::Error),
@@ -19,5 +19,9 @@ impl ErrorSeverity for DagsterError {
             Self::SerdeJson(_) => Level::ERROR,
             Self::ApiError => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

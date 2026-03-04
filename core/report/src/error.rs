@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ReportError {
     #[error("ReportError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -61,5 +61,9 @@ impl ErrorSeverity for ReportError {
             Self::DagsterError(e) => e.severity(),
             Self::NotFound => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

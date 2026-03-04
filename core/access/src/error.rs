@@ -10,7 +10,7 @@ use super::permission_set::error::{
 };
 use super::role::error::{RoleCreateError, RoleFindError, RoleModifyError, RoleQueryError};
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CoreAccessError {
     #[error("CoreAccessError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

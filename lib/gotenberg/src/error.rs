@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum GotenbergError {
     #[error("GotenbergError - HTTP error: {0}")]
     Http(#[from] reqwest::Error),
@@ -19,5 +19,9 @@ impl ErrorSeverity for GotenbergError {
             Self::Multipart(_) => Level::ERROR,
             Self::Server(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

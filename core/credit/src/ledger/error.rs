@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CreditLedgerError {
     #[error("CreditLedgerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -51,5 +51,9 @@ impl ErrorSeverity for CreditLedgerError {
             Self::JournalIdMismatch => Level::ERROR,
             Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

@@ -12,6 +12,7 @@ fail-on-warnings = []
 
 chrono = { workspace = true }
 thiserror = { workspace = true }
+strum = { workspace = true }
 tracing-utils = { workspace = true }
 reqwest = { workspace = true }
 rustls = { workspace = true }

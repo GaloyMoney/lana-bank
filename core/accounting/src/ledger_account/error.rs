@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum LedgerAccountError {
     #[error("LedgerAccountError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
@@ -16,5 +16,9 @@ impl ErrorSeverity for LedgerAccountError {
             Self::AuthorizationError(e) => e.severity(),
             Self::LedgerAccountLedgerError(e) => e.severity(),
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

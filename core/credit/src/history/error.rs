@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CreditFacilityHistoryError {
     #[error("CreditFacilityHistoryError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -22,5 +22,9 @@ impl ErrorSeverity for CreditFacilityHistoryError {
             Self::RegisterEventHandler(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

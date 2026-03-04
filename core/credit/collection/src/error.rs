@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CoreCreditCollectionError {
     #[error("CoreCreditCollectionError - ObligationError: {0}")]
     ObligationError(#[from] crate::obligation::error::ObligationError),
@@ -25,5 +25,9 @@ impl ErrorSeverity for CoreCreditCollectionError {
             Self::CollectionLedgerError(e) => e.severity(),
             Self::RegisterEventHandler(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

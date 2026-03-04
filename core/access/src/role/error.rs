@@ -4,7 +4,7 @@ use tracing_utils::ErrorSeverity;
 
 pub use super::repo::{RoleCreateError, RoleFindError, RoleModifyError, RoleQueryError};
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum RoleError {
     #[error("RoleError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

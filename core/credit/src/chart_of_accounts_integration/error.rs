@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ChartOfAccountsIntegrationError {
     #[error("ChartOfAccountsIntegrationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
@@ -34,5 +34,9 @@ impl ErrorSeverity for ChartOfAccountsIntegrationError {
             Self::DomainConfigError(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

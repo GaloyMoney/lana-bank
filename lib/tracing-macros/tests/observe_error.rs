@@ -1,8 +1,8 @@
 use std::sync::{Arc, Mutex};
 use tracing::subscriber::with_default;
 use tracing_macros::observe_error;
-use tracing_subscriber::Registry;
 use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::Registry;
 use tracing_utils::ErrorSeverity;
 
 #[derive(Debug, thiserror::Error)]
@@ -147,13 +147,11 @@ fn inner_mode_caps_error_severity_to_warn() {
         tracing::Level::WARN,
         "ERROR should be capped to WARN in inner mode"
     );
-    assert!(
-        primary
-            .error_msg
-            .as_ref()
-            .unwrap()
-            .contains("Critical error")
-    );
+    assert!(primary
+        .error_msg
+        .as_ref()
+        .unwrap()
+        .contains("Critical error"));
     assert_eq!(primary.error_layer.as_deref(), Some("\"inner\""));
 }
 
@@ -174,13 +172,11 @@ fn inner_mode_preserves_warn_severity() {
     let recorded = events.lock().unwrap();
     let primary = &recorded[0];
     assert_eq!(primary.level, tracing::Level::WARN);
-    assert!(
-        primary
-            .error_msg
-            .as_ref()
-            .unwrap()
-            .contains("Warning error")
-    );
+    assert!(primary
+        .error_msg
+        .as_ref()
+        .unwrap()
+        .contains("Warning error"));
     assert_eq!(primary.error_layer.as_deref(), Some("\"inner\""));
 }
 
@@ -227,13 +223,11 @@ fn boundary_mode_preserves_error_severity() {
         tracing::Level::ERROR,
         "boundary mode should preserve ERROR severity"
     );
-    assert!(
-        primary
-            .error_msg
-            .as_ref()
-            .unwrap()
-            .contains("Critical error")
-    );
+    assert!(primary
+        .error_msg
+        .as_ref()
+        .unwrap()
+        .contains("Critical error"));
     assert_eq!(primary.error_boundary, Some(true));
     assert!(primary.error_use_case.is_some());
 }

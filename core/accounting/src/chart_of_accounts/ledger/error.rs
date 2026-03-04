@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ChartLedgerError {
     #[error("ChartLedgerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -34,5 +34,9 @@ impl ErrorSeverity for ChartLedgerError {
             Self::CalaAccount(_) => Level::ERROR,
             Self::TxTemplateError(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

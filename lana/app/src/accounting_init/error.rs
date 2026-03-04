@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AccountingInitError {
     #[error("AccountingInitError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -64,5 +64,9 @@ impl ErrorSeverity for AccountingInitError {
             Self::CoreAccountingError(e) => e.severity(),
             Self::DepositChartOfAccountsIntegrationError(e) => e.severity(),
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

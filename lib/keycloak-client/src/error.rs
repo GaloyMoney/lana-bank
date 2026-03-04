@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum KeycloakClientError {
     #[error("KeycloakClientError - Parse error: {0}")]
     ParseError(String),
@@ -25,5 +25,9 @@ impl ErrorSeverity for KeycloakClientError {
             Self::UserNotFound(_) => Level::WARN,
             Self::MultipleUsersFound(_) => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

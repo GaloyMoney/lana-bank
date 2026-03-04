@@ -4,7 +4,7 @@ use axum::{
 };
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum JwksError {
     #[error("JwksError - NoKeyAvailable")]
     NoKeyAvailable,

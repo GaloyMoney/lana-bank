@@ -4,7 +4,7 @@ use tracing_utils::ErrorSeverity;
 
 use super::repo::{DepositCreateError, DepositFindError, DepositModifyError, DepositQueryError};
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum DepositError {
     #[error("DepositError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

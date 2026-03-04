@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum KomainuError {
     #[error("KomainuError - ReqwestError: {0}")]
     ReqwestError(#[from] reqwest::Error),
@@ -32,5 +32,9 @@ impl ErrorSeverity for KomainuError {
             Self::MissingWebhookHeaders => Level::WARN,
             Self::InvalidWebhookSignature(_) => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use tracing_utils::{ErrorSeverity, Level};
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum TimeEventsError {
     #[error("TimeEventsError - DomainConfigError: {0}")]
     DomainConfig(#[from] domain_config::DomainConfigError),
@@ -16,5 +16,9 @@ impl ErrorSeverity for TimeEventsError {
             Self::DomainConfig(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

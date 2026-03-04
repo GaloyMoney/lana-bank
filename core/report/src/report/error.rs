@@ -4,7 +4,7 @@ use tracing_utils::ErrorSeverity;
 
 use super::repo::{ReportCreateError, ReportFindError, ReportModifyError, ReportQueryError};
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ReportError {
     #[error("ReportError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

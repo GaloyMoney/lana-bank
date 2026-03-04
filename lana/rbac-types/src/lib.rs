@@ -66,7 +66,7 @@ impl std::str::FromStr for Subject {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, strum::IntoStaticStr)]
 pub enum ParseSubjectError {
     #[error("ParseSubjectError - Strum: {0}")]
     Strum(#[from] strum::ParseError),
@@ -83,6 +83,10 @@ impl ErrorSeverity for ParseSubjectError {
             Self::Uuid(_) => Level::WARN,
             Self::InvalidSubjectFormat => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }
 

@@ -89,7 +89,7 @@ pub enum AccountCodeSectionParseError {
     NonDigit,
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AccountCodeParseError {
     #[error("AccountCodeParseError - Empty")]
     Empty,
@@ -107,9 +107,13 @@ impl ErrorSeverity for AccountCodeParseError {
             Self::InvalidParent => Level::WARN,
         }
     }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
+    }
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AccountCodeError {
     #[error("AccountCodeError - InvalidParent")]
     InvalidParent,
@@ -120,6 +124,10 @@ impl ErrorSeverity for AccountCodeError {
         match self {
             Self::InvalidParent => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }
 
@@ -305,7 +313,7 @@ impl Display for AccountCode {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AccountingBaseConfigError {
     #[error("AccountingBaseConfigError - DuplicateAccountCode: {0}")]
     DuplicateAccountCode(String),
@@ -322,6 +330,10 @@ impl ErrorSeverity for AccountingBaseConfigError {
             Self::AccountCodeNotTopLevel(_) => Level::ERROR,
             Self::RetainedEarningsCodeNotChildOfEquity(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }
 
@@ -492,7 +504,7 @@ pub trait ChartLookup: Send + Sync {
 }
 
 /// Error for chart lookup failures during account set resolution.
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ChartLookupError {
     #[error("InvalidAccountCategory: code {code} is not in category {category:?}")]
     InvalidAccountCategory {
@@ -506,5 +518,9 @@ impl ErrorSeverity for ChartLookupError {
         match self {
             Self::InvalidAccountCategory { .. } => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

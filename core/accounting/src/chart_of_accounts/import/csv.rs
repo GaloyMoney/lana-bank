@@ -10,7 +10,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CsvParseError {
     #[error("CsvParseError - AccountCodeError")]
     AccountCodeError(#[from] AccountCodeError),
@@ -21,6 +21,10 @@ impl ErrorSeverity for CsvParseError {
         match self {
             Self::AccountCodeError(e) => e.severity(),
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }
 

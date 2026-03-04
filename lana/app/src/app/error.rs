@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ApplicationError {
     #[error("ApplicationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -106,5 +106,9 @@ impl ErrorSeverity for ApplicationError {
             Self::ClosedOrFrozenAccount => Level::WARN,
             Self::TimeEventsError(e) => e.severity(),
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

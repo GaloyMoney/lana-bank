@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum RenderingError {
     #[error("Render error: {0}")]
     Render(#[from] handlebars::RenderError),
@@ -22,5 +22,9 @@ impl ErrorSeverity for RenderingError {
             Self::InvalidTemplateData(_) => Level::ERROR,
             Self::Gotenberg(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

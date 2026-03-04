@@ -8,7 +8,7 @@ use super::repo::{
     FiscalYearCreateError, FiscalYearFindError, FiscalYearModifyError, FiscalYearQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum FiscalYearError {
     #[error("FiscalYearError - Sqlx: {0}")]
     Sqlx(sqlx::Error),

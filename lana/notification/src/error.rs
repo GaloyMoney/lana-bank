@@ -5,7 +5,7 @@ use tracing_utils::ErrorSeverity;
 use crate::email::error::EmailError;
 use ::job::error::JobError;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum NotificationError {
     #[error("NotificationError - Email: {0}")]
     Email(#[from] EmailError),
@@ -28,5 +28,9 @@ impl ErrorSeverity for NotificationError {
             Self::Authorization(e) => e.severity(),
             Self::RegisterEventHandler(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

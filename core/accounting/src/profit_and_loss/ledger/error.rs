@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ProfitAndLossStatementLedgerError {
     #[error("ProfitAndLossStatementLedgerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -45,5 +45,9 @@ impl ErrorSeverity for ProfitAndLossStatementLedgerError {
             Self::NonAccountSetMemberTypeFound => Level::ERROR,
             Self::NotFound(_) => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

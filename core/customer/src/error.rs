@@ -12,7 +12,7 @@ use crate::{
     repo::{CustomerCreateError, CustomerFindError, CustomerModifyError, CustomerQueryError},
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CustomerError {
     #[error("CustomerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -107,5 +107,9 @@ impl ErrorSeverity for CustomerError {
             Self::ProspectError(e) => e.severity(),
             Self::PartyError(e) => e.severity(),
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

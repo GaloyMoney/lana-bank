@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum LedgerTransactionError {
     #[error("LedgerTransactionError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -37,5 +37,9 @@ impl ErrorSeverity for LedgerTransactionError {
             Self::MetadataError(_) => Level::ERROR,
             Self::InitiatedByParse(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

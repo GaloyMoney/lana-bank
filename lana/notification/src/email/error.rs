@@ -3,7 +3,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum EmailError {
     #[error("EmailError - SmtpError: {0}")]
     Smtp(#[from] smtp_client::SmtpError),
@@ -41,5 +41,9 @@ impl ErrorSeverity for EmailError {
             Self::Obligation(e) => e.severity(),
             Self::CreditFacility(e) => e.severity(),
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

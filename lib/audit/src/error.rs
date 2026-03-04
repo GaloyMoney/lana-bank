@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AuditError {
     #[error("AuditError - Sqlx: {0} asht")]
     Sqlx(#[from] sqlx::Error),
@@ -22,5 +22,9 @@ impl ErrorSeverity for AuditError {
             Self::ObjectParseError(_) => Level::WARN,
             Self::ActionParseError(_) => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

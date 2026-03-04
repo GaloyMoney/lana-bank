@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum TrialBalanceLedgerError {
     #[error("TrialBalanceLedgerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
@@ -42,5 +42,9 @@ impl ErrorSeverity for TrialBalanceLedgerError {
             Self::NonAccountSetMemberTypeFound => Level::ERROR,
             Self::AccountCodeParseError(e) => e.severity(),
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

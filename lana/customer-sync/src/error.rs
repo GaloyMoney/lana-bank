@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CustomerSyncError {
     #[error("CustomerSyncError - JobError: {0}")]
     Job(#[from] ::job::error::JobError),
@@ -19,5 +19,9 @@ impl ErrorSeverity for CustomerSyncError {
             Self::KeycloakClient(e) => e.severity(),
             Self::RegisterEventHandler(_) => Level::ERROR,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

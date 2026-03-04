@@ -3,7 +3,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AuthorizationError {
     #[error("AuthorizationError - CasbinError: {0}")]
     Casbin(CasbinError),
@@ -43,5 +43,9 @@ impl ErrorSeverity for AuthorizationError {
             Self::AuditError(e) => e.severity(),
             Self::RoleParseError(_) => Level::WARN,
         }
+    }
+
+    fn variant_name(&self) -> &'static str {
+        self.into()
     }
 }

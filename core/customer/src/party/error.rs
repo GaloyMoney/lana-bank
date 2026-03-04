@@ -4,7 +4,7 @@ use tracing_utils::ErrorSeverity;
 
 use super::repo::{PartyCreateError, PartyFindError, PartyModifyError, PartyQueryError};
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum PartyError {
     #[error("PartyError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
