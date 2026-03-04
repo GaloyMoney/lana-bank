@@ -3,7 +3,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use super::{config::DagsterConfig, error::DagsterError};
 
@@ -174,7 +174,7 @@ impl GraphqlClient {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "dagster.graphql_client.file_reports_runs", skip(self))]
     pub async fn file_reports_runs(
         &self,
@@ -237,7 +237,7 @@ query FileReportsRuns($limit: Int!, $cursor: String, $pipelineName: String) {
         Ok(response_data)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "dagster.graphql_client.get_logs_for_run", skip(self))]
     pub async fn get_logs_for_run(&self, run_id: &str) -> Result<Vec<Report>, DagsterError> {
         let query = r#"
@@ -311,7 +311,7 @@ query GetLogsForRun($runId: ID!) {
         Ok(reports)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "dagster.graphql_client.trigger_file_report_run", skip(self))]
     pub async fn trigger_file_report_run(&self) -> Result<LaunchPipelineResponse, DagsterError> {
         let query = r#"

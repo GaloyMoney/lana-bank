@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::primitives::CreditFacilityId;
 
@@ -16,7 +16,7 @@ impl HistoryRepo {
         Self { pool: pool.clone() }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "credit_facility_history.persist_in_tx", skip_all)]
     pub async fn persist_in_tx(
         &self,
@@ -40,7 +40,7 @@ impl HistoryRepo {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "credit_facility_history.load", skip_all)]
     pub async fn load(
         &self,

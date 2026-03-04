@@ -2,7 +2,7 @@ pub mod error;
 pub mod response;
 
 use reqwest::Client as ReqwestClient;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use error::BfxClientError;
 pub use response::{BfxErrorResponse, BtcUsdTick};
@@ -25,7 +25,7 @@ impl BfxClient {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "bfx.btc_usd_tick", skip(self), fields(url, response))]
     pub async fn btc_usd_tick(&self) -> Result<BtcUsdTick, BfxClientError> {
         let url = format!("{BASE_URL}ticker/tBTCUSD");

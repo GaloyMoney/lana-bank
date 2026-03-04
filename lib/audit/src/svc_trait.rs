@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use std::{collections::HashMap, fmt, str::FromStr};
 
@@ -31,7 +31,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         self.record_entry(&subject, object, action, true).await
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "audit.record_entry", skip_all)]
     async fn record_entry(
         &self,
@@ -80,7 +80,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
             .await
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "audit.record_entry_in_op", skip_all)]
     async fn record_entry_in_op(
         &self,
@@ -115,7 +115,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         Ok(ret)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "audit.list", skip_all)]
     async fn list(
         &self,
@@ -195,7 +195,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "audit.find_all", skip_all)]
     async fn find_all<T: From<AuditEntry<Self::Subject, Self::Object, Self::Action>>>(
         &self,
@@ -239,7 +239,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         Ok(audit_entries)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "audit.list_subjects", skip_all)]
     async fn list_subjects(&self) -> Result<Vec<String>, AuditError> {
         let rows = sqlx::query_scalar!(
