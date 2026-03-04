@@ -1,3 +1,54 @@
+## [0.45.0] - 2026-03-04
+
+### 🚀 Features
+
+- Add status filtering to proposals and pending facilities (#4054)
+- Add --set flag for CLI config overrides (#3968)
+- Expose build version info via admin GraphQL API (#4052)
+- Add collateralization state filter to pending credit facilities (#4070)
+- Add status filtering to disbursals list   (#4056)
+- Add status filtering for deposits and withdrawals (#4071)
+- Add status filtering for deposit accounts (#4074)
+- Add column sorting to proposals and pending facilities (#4066)
+
+### 🐛 Bug Fixes
+
+- Standardize admin GraphQL ID contract (#4035)
+- Flaky cypress customer tests (#4008)
+- Downgrade SumSub 404 error severity from ERROR to WARN (#4047)
+- Pagination (#4049)
+- Use consistent AuditEntry global ID prefix (#4063)
+- Standardize GraphQL ID naming for all entity types (#4038)
+- Prospect list query (#4053)
+- Downgrade FiscalYearError severity for business validation errors (#4073)
+- Pagination for filtered list (#4080)
+- *(deposit)* Downgrade ExternalIdAlreadyExists severity from ERROR to INFO (#4083)
+- Consistent domain config values in ui (#4086)
+- Use balance sheet specific loader (#4055)
+- Improve date/timestamp handling in GraphQL layer (#4092)
+
+### 🚜 Refactor
+
+- Break up 3 event handlers into handler + command job (#4010)
+- Break up 4 more event handlers into handler + command job (#4044)
+- *(admin-server)* Remove duplicate build.rs, inject build info from CLI at runtime (#4078)
+- Rename subscription stream variables for clarity (#4076)
+- Make customer_type non-optional in Customer and Prospect entities (#4090)
+- *(admin-server)* Scope DataLoader per-request instead of globally (#4075)
+
+### ⚙️ Miscellaneous Tasks
+
+- Allow netlify commit alias deploy to fail gracefully (#4017)
+- Release 0.44.0 [ci skip] (#4020)
+- Downgrade error to warn in OTEL (#4001)
+- Symlink .agents/skills to .claude/skills for Codex compatibility (#4025)
+- Strip symbols from release binary (#4029)
+- Add claude docs skills (#3707)
+- Improve cypress test reliability (#4045)
+- Add lana-multi-commit skill for staged commit workflows (#4064)
+- Remove aws-lc-sys from dependency tree (#4068)
+- Change bq strategy (#4051)
+- Add lana-alert-fixer skill for investigating and fixing alerts (#4081)
 ## [0.44.0] - 2026-02-27
 
 ### 🚀 Features
