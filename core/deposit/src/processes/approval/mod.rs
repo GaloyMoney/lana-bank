@@ -4,7 +4,7 @@ mod withdraw_approval;
 use authz::PermissionCheck;
 use governance::{ApprovalProcessType, GovernanceAction, GovernanceEvent, GovernanceObject};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use audit::{AuditSvc, SystemSubject};
 use governance::Governance;
@@ -71,7 +71,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_deposit.withdrawal_approval.execute", skip(self, op))]
     pub async fn execute_withdrawal_approval_in_op(
         &self,

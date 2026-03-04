@@ -6,7 +6,7 @@ mod repo;
 
 use std::sync::Arc;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
@@ -241,7 +241,7 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.credit_facility.activate_in_op", skip(self, db), fields(credit_facility_id = %credit_facility_id))]
     pub(super) async fn activate_in_op(
         &self,
@@ -344,7 +344,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility.complete_in_op",
         skip(self, db),
@@ -403,7 +403,7 @@ where
         Ok(self.repo.find_by_id_in_op(op, id.into()).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility.find_by_id",
         skip(self, credit_facility_id),
@@ -427,7 +427,7 @@ where
         Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility.find_by_public_id",
         skip(self, public_id),
@@ -451,7 +451,7 @@ where
         Ok(self.repo.maybe_find_by_public_id(public_id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.credit_facility.list", skip(self))]
     pub async fn list(
         &self,
@@ -493,7 +493,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility.list_by_collateralization_ratio",
         skip(self)
@@ -522,7 +522,7 @@ where
             .await
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.credit_facility.find_all", skip(self))]
     pub async fn find_all<T: From<CreditFacility>>(
         &self,
@@ -531,7 +531,7 @@ where
         Ok(self.repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.credit_facility.list_for_customer", skip(self),fields(customer_id = %customer_id))]
     pub(super) async fn list_for_customer(
         &self,
@@ -559,7 +559,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.credit_facility.balance", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty))]
     pub async fn balance(
         &self,

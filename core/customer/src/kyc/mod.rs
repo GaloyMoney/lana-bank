@@ -8,7 +8,7 @@ pub use sumsub::testing_utils as sumsub_testing_utils;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -144,7 +144,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "kyc.process_payload",
         skip(self),
@@ -456,7 +456,7 @@ where
         &self.sumsub_client
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "kyc.handle_callback", skip_all)]
     pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), KycError> {
         // Extract a unique idempotency key from the payload
@@ -485,7 +485,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "kyc.create_verification_link", skip(self))]
     pub async fn create_verification_link(
         &self,
@@ -516,7 +516,7 @@ where
         Ok(response)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "kyc.get_applicant_info_without_audit", skip(self))]
     pub async fn get_applicant_info_without_audit(
         &self,
@@ -539,7 +539,7 @@ where
     /// Creates a complete test applicant with documents and approval for testing purposes
     /// This method executes the full KYC flow automatically using predefined test data
     #[cfg(feature = "sumsub-testing")]
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "kyc.create_complete_test_applicant", skip(self))]
     pub async fn create_complete_test_applicant(
         &self,

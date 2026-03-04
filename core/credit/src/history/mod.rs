@@ -12,7 +12,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_credit_collateral::public::CoreCreditCollateralEvent;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionEvent, CoreCreditEvent, CoreCreditObject,
@@ -237,7 +237,7 @@ where
         Ok(Self { repo, authz })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.history", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty))]
     pub async fn find_for_credit_facility_id<T: From<CreditFacilityHistoryEntry>>(
         &self,

@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{error::*, values::*};
 
@@ -16,7 +16,7 @@ impl DashboardRepo {
         Self { pool: pool.clone() }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "dashboard.persist_in_tx", skip_all)]
     pub async fn persist_in_tx(
         &self,
@@ -39,7 +39,7 @@ impl DashboardRepo {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "dashboard.load", skip_all)]
     pub async fn load(&self) -> Result<DashboardValues, DashboardError> {
         let row = sqlx::query!(

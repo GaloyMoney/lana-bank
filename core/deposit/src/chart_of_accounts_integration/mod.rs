@@ -8,7 +8,7 @@ use authz::PermissionCheck;
 use core_accounting_primitives::ChartLookup;
 use domain_config::InternalDomainConfigs;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{CoreDepositAction, CoreDepositObject, ledger::DepositLedger};
 
@@ -56,7 +56,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit.chart_of_accounts_integrations.get_config", skip(self))]
     pub async fn get_config(
         &self,
@@ -76,7 +76,7 @@ where
         Ok(config.maybe_value().map(|meta| meta.config))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit.chart_of_accounts_integrations.set_config",
         skip(self, chart)

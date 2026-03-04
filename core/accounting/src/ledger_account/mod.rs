@@ -9,7 +9,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::journal::{JournalEntry, JournalEntryCursor};
 use crate::{
@@ -46,7 +46,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.ledger_account.history", skip(self))]
     pub async fn history(
         &self,
@@ -67,7 +67,7 @@ where
         Ok(self.ledger.ledger_account_history(id, args).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.ledger_account.complete_history", skip(self))]
     pub(crate) async fn complete_history(
         &self,
@@ -98,7 +98,7 @@ where
         Ok(all_entries)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.ledger_account.find_by_id", skip(self, chart))]
     pub async fn find_by_id(
         &self,
@@ -118,7 +118,7 @@ where
         Ok(accounts.remove(&id))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.ledger_account.find_by_id", skip(self, chart))]
     pub async fn find_by_code(
         &self,
@@ -146,7 +146,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.ledger_account.find_all", skip(self, chart))]
     pub async fn find_all<T: From<LedgerAccount>>(
         &self,
@@ -163,7 +163,7 @@ where
         Ok(res)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.ledger_account.find_all_in_range",
         skip(self, chart)
@@ -188,7 +188,7 @@ where
         Ok(res)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.ledger_account.list_all_account_flattened",
         skip(self, chart)
@@ -232,7 +232,7 @@ where
     /// Pushes into `account`'s `ancestor_ids` ancestors from the chart of account. The ancestors
     /// are pushed in ascending order, the root of the chart of accounts is pushed last. `account`
     /// itself is not pushed.
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.ledger_account.populate_ancestors",
         skip(self, chart, account)
@@ -256,7 +256,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.ledger_account.populate_children",
         skip(self, chart, account)

@@ -7,7 +7,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chrono::NaiveDate;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{
     AccountCode, LedgerAccountId,
@@ -71,7 +71,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.balance_sheet.create", skip(self, name), fields(balance_sheet_name = %name))]
     pub async fn create_balance_sheet(&self, name: String) -> Result<(), BalanceSheetError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
@@ -96,7 +96,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.balance_sheet.link_chart_account_sets_in_op",
         skip(self, op, resolved)
@@ -112,7 +112,7 @@ where
             .await
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.balance_sheet.balance_sheet", skip(self))]
     pub async fn balance_sheet(
         &self,

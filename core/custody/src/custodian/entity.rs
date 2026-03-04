@@ -4,7 +4,7 @@ use es_entity::*;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use encryption::{Encrypted, EncryptionKey};
 
@@ -111,7 +111,7 @@ impl Custodian {
         Ok(Idempotent::Executed(()))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "custody.custodian_client", skip(self, key), fields(custodian_id = %self.id))]
     pub fn custodian_client(
         self,

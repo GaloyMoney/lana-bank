@@ -8,7 +8,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::{Idempotent, PaginatedQueryArgs};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{
     ClockHandle, FiscalYearId,
@@ -66,7 +66,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.fiscal_year.init_for_chart"
         skip(self),
@@ -116,7 +116,7 @@ where
         Ok(fiscal_year)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.fiscal_year.open_next", skip(self))]
     pub async fn open_next(
         &self,
@@ -145,7 +145,7 @@ where
         Ok(next_fiscal_year)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.fiscal_year.close", skip(self))]
     pub async fn close(
         &self,
@@ -181,7 +181,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.fiscal_year.close_month", skip(self))]
     pub async fn close_month(
         &self,
@@ -210,7 +210,7 @@ where
         Ok(fiscal_year)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.fiscal_years.list_for_chart_id", skip(self))]
     pub async fn list_for_chart_id(
         &self,
@@ -235,7 +235,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.fiscal_year.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
@@ -254,7 +254,7 @@ where
         Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.fiscal_year.find_by_chart_id_and_year",
         skip(self)
@@ -278,7 +278,7 @@ where
             .await
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self))]
     pub async fn find_all<T: From<FiscalYear>>(
         &self,

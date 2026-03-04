@@ -18,7 +18,7 @@ use authz::PermissionCheck;
 use error::CreditFacilityRepaymentPlanError;
 use jobs::credit_facility_repayment_plan;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use entry::*;
 pub use repo::RepaymentPlanRepo;
@@ -364,7 +364,7 @@ where
         Ok(Self { repo, authz })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.repayment_plan", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty))]
     pub async fn find_for_credit_facility_id<T: From<CreditFacilityRepaymentPlanEntry>>(
         &self,

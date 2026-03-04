@@ -3,7 +3,7 @@ mod komainu;
 
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
 use encryption::{Encrypted, EncryptionKey};
@@ -36,7 +36,7 @@ pub enum CustodianConfig {
 }
 
 impl CustodianConfig {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "custody.custodian_client", skip(self))]
     pub fn custodian_client(
         self,
