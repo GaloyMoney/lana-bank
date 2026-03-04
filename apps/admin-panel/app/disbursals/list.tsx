@@ -12,6 +12,8 @@ import {
   CreditFacilityDisbursal,
   DisbursalStatus,
   DisbursalsFilter,
+  DisbursalsSort,
+  SortDirection,
   useDisbursalsQuery,
 } from "@/lib/graphql/generated"
 
@@ -21,10 +23,11 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
-  query Disbursals($first: Int!, $after: String, $filter: DisbursalsFilter) {
-    disbursals(first: $first, after: $after, filter: $filter) {
+  query Disbursals($first: Int!, $after: String, $sort: DisbursalsSort, $filter: DisbursalsFilter) {
+    disbursals(first: $first, after: $after, sort: $sort, filter: $filter) {
       edges {
         node {
           id
@@ -53,11 +56,13 @@ gql`
 
 const Disbursals = () => {
   const t = useTranslations("Disbursals")
+  const [sortBy, setSortBy] = useState<DisbursalsSort | null>(null)
   const [filter, setFilter] = useState<DisbursalsFilter | null>(null)
 
   const { data, loading, error, fetchMore } = useDisbursalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
       filter,
     },
   })
@@ -83,12 +88,14 @@ const Disbursals = () => {
       label: t("table.headers.amount"),
       labelClassName: "w-[25%]",
       render: (amount) => <Balance amount={amount} currency="usd" />,
+      sortable: true,
     },
     {
       key: "createdAt",
       label: t("table.headers.createdAt"),
       labelClassName: "w-[25%]",
       render: (date) => <DateWithTooltip value={date} />,
+      sortable: true,
     },
   ]
 
@@ -102,6 +109,12 @@ const Disbursals = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(disbursal) => `/disbursals/${disbursal.publicId}`}
+        onSort={(column, direction) => {
+          setSortBy({
+            by: camelToScreamingSnake(column) as DisbursalsSort["by"],
+            direction: direction as SortDirection,
+          })
+        }}
         onFilter={(filters) => {
           const f = filters as DisbursalsFilter
           setFilter(Object.keys(f).length > 0 ? f : null)

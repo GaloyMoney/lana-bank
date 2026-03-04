@@ -444,6 +444,7 @@ CREATE TABLE core_disbursals (
   concluded_tx_id UUID DEFAULT NULL,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   status VARCHAR NOT NULL DEFAULT 'New',
+  amount BIGINT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

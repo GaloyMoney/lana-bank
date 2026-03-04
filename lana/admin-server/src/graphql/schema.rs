@@ -586,6 +586,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(DisbursalsSort::default())")] sort: Option<DisbursalsSort>,
         filter: Option<DisbursalsFilter>,
     ) -> async_graphql::Result<
         Connection<DisbursalsCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
@@ -595,19 +596,20 @@ impl Query {
             ..Default::default()
         };
 
-        let sort = Sort {
-            by: DomainDisbursalsSortBy::CreatedAt,
-            direction: ListDirection::Descending,
-        };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             DisbursalsCursor,
             CreditFacilityDisbursal,
-            sort.by,
+            DomainDisbursalsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| { app.credit().disbursals().list(sub, query, filter, sort) }
+            |query| {
+                app.credit()
+                    .disbursals()
+                    .list(sub, query, filter, Sort::from(sort))
+            }
         )
     }
 

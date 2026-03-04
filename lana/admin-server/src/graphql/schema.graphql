@@ -1443,6 +1443,16 @@ input DisbursalsFilter {
 	status: DisbursalStatus
 }
 
+input DisbursalsSort {
+	by: DisbursalsSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum DisbursalsSortBy {
+	CREATED_AT
+	AMOUNT
+}
+
 type Disbursed {
 	total: Total!
 	outstanding: Outstanding!
@@ -2354,7 +2364,7 @@ type Query {
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
-	disbursals(first: Int!, after: String, filter: DisbursalsFilter): CreditFacilityDisbursalConnection!
+	disbursals(first: Int!, after: String, sort: DisbursalsSort = {by: CREATED_AT, direction: ASC}, filter: DisbursalsFilter): CreditFacilityDisbursalConnection!
 	liquidation(id: UUID!): Liquidation
 	liquidations(first: Int!, after: String): LiquidationConnection!
 	custodians(first: Int!, after: String): CustodianConnection!
