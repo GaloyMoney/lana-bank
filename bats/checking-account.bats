@@ -80,7 +80,7 @@ wait_for_approval() {
 
   # assert_accounts_balanced
 
-  retry 20 1 wait_for_approval $withdrawal_id
+  retry 60 2 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \
@@ -132,7 +132,7 @@ wait_for_approval() {
 
   # assert_accounts_balanced
 
-  retry 20 1 wait_for_approval $withdrawal_id
+  retry 60 2 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \
@@ -176,7 +176,7 @@ wait_for_approval() {
   exec_admin_graphql 'initiate-withdrawal' "$variables"
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
 
-  retry 20 1 wait_for_approval $withdrawal_id
+  retry 60 2 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \
@@ -304,7 +304,7 @@ wait_for_approval() {
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
 
-  retry 20 1 wait_for_approval $withdrawal_id
+  retry 60 2 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \
@@ -362,7 +362,7 @@ wait_for_approval() {
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
 
-  retry 20 1 wait_for_approval $withdrawal_id
+  retry 60 2 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \

@@ -3,14 +3,13 @@ use authz::PermissionCheck;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 
+use super::*;
+use crate::history::CreditFacilityHistoryEntry;
 use core_credit_collateral::{
     Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
 };
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
-
-use super::*;
-use crate::history::CreditFacilityHistoryEntry;
 
 use core_credit_collection::{CoreCreditCollection, PaymentAllocation};
 

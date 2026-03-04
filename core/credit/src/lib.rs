@@ -89,8 +89,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Arc<Perms>,
     credit_facility_proposals: Arc<CreditFacilityProposals<Perms, E>>,
@@ -122,8 +121,7 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -171,8 +169,7 @@ where
         + OutboxEventMarker<CoreCreditCollectionEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[record_error_severity]
     #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id))]
@@ -190,7 +187,10 @@ where
         public_ids: &PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
         internal_domain_configs: &InternalDomainConfigs,
-    ) -> Result<Self, CoreCreditError> {
+    ) -> Result<Self, CoreCreditError>
+    where
+        E: OutboxEventMarker<CoreTimeEvent>,
+    {
         let clock = jobs.clock().clone();
 
         // Create Arc-wrapped versions of parameters once
