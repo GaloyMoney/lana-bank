@@ -94,7 +94,7 @@ where
         db: &mut es_entity::DbOp<'_>,
         new_proposal: NewCreditFacilityProposal,
     ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
-        self.repo.create_in_op(db, new_proposal).await
+        Ok(self.repo.create_in_op(db, new_proposal).await?)
     }
 
     #[record_error_severity]
@@ -186,7 +186,7 @@ where
         ids: &[CreditFacilityProposalId],
     ) -> Result<std::collections::HashMap<CreditFacilityProposalId, T>, CreditFacilityProposalError>
     {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -210,7 +210,7 @@ where
                 CoreCreditAction::CREDIT_FACILITY_READ,
             )
             .await?;
-        self.repo.maybe_find_by_id(id).await
+        Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
     #[record_error_severity]
@@ -233,7 +233,7 @@ where
             )
             .await?;
 
-        self.repo.list_for_filters(filter, sort, query).await
+        Ok(self.repo.list_for_filters(filter, sort, query).await?)
     }
 
     #[record_error_severity]

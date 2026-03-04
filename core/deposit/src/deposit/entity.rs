@@ -39,7 +39,7 @@ pub struct DepositReversalData {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Deposit {
     pub id: DepositId,
     pub deposit_account_id: DepositAccountId,
@@ -102,7 +102,7 @@ impl Deposit {
 }
 
 impl TryFromEvents<DepositEvent> for Deposit {
-    fn try_from_events(events: EntityEvents<DepositEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<DepositEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = DepositBuilder::default();
         for event in events.iter_all() {
             match event {

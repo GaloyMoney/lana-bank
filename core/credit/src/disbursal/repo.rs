@@ -3,16 +3,14 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
-use super::{entity::*, error::DisbursalError};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Disbursal",
-    err = "DisbursalError",
     columns(
         credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
         obligation_id(
@@ -63,14 +61,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[tracing::instrument(name = "disbursal.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Disbursal,
         new_events: es_entity::LastPersisted<'_, DisbursalEvent>,
-    ) -> Result<(), DisbursalError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_disbursal_in_op(op, entity, new_events)
             .await

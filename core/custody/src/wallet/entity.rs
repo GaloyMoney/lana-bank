@@ -37,7 +37,7 @@ pub enum WalletEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Wallet {
     pub id: WalletId,
     pub custodian_id: CustodianId,
@@ -83,7 +83,7 @@ impl Wallet {
 }
 
 impl TryFromEvents<WalletEvent> for Wallet {
-    fn try_from_events(events: EntityEvents<WalletEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<WalletEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = WalletBuilder::default();
         for event in events.iter_all() {
             if let WalletEvent::Initialized {

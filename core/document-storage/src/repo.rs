@@ -5,12 +5,11 @@ use es_entity::*;
 
 use crate::primitives::*;
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Document",
-    err = "DocumentStorageError",
     columns(reference_id(ty = "ReferenceId", list_for(by(created_at)), update(persist = false))),
     tbl_prefix = "core",
     delete = "soft_without_queries"

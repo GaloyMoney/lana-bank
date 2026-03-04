@@ -33,7 +33,7 @@ pub enum LiquidationEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Liquidation {
     pub id: LiquidationId,
     pub collateral_id: CollateralId,
@@ -125,7 +125,9 @@ impl Liquidation {
 }
 
 impl TryFromEvents<LiquidationEvent> for Liquidation {
-    fn try_from_events(events: EntityEvents<LiquidationEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<LiquidationEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = LiquidationBuilder::default();
 
         let mut amount_sent = Default::default();

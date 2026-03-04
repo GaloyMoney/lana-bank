@@ -2,8 +2,8 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     CoreAccessEvent, PublicRole, PublicUser,
-    role::{Role, RoleEvent, error::RoleError},
-    user::{User, UserEvent, error::UserError},
+    role::{Role, RoleEvent},
+    user::{User, UserEvent},
 };
 
 pub struct UserPublisher<E>
@@ -39,7 +39,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &User,
         new_events: es_entity::LastPersisted<'_, UserEvent>,
-    ) -> Result<(), UserError> {
+    ) -> Result<(), sqlx::Error> {
         let events = new_events
             .filter_map(|event| match &event.event {
                 UserEvent::Initialized { .. } => Some(CoreAccessEvent::UserCreated {
@@ -59,7 +59,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &Role,
         new_events: es_entity::LastPersisted<'_, RoleEvent>,
-    ) -> Result<(), RoleError> {
+    ) -> Result<(), sqlx::Error> {
         let events = new_events
             .filter_map(|event| match &event.event {
                 RoleEvent::Initialized { .. } => Some(CoreAccessEvent::RoleCreated {

@@ -29,7 +29,7 @@ pub enum CustodianEvent {
 }
 
 #[derive(EsEntity, Builder, Clone)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Custodian {
     pub id: CustodianId,
     encrypted_custodian_config: Encrypted,
@@ -125,7 +125,7 @@ impl Custodian {
 }
 
 impl TryFromEvents<CustodianEvent> for Custodian {
-    fn try_from_events(events: EntityEvents<CustodianEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<CustodianEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = CustodianBuilder::default();
 
         for event in events.iter_all() {

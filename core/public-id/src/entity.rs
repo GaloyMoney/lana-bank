@@ -24,7 +24,7 @@ pub enum PublicIdEntityEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct PublicIdEntity {
     pub id: PublicId,
     pub target_id: PublicIdTargetId,
@@ -64,7 +64,9 @@ impl PublicIdEntity {
 }
 
 impl TryFromEvents<PublicIdEntityEvent> for PublicIdEntity {
-    fn try_from_events(events: EntityEvents<PublicIdEntityEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<PublicIdEntityEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = PublicIdEntityBuilder::default();
 
         for event in events.iter_all() {
@@ -95,7 +97,7 @@ impl TryFromEvents<PublicIdEntityEvent> for PublicIdEntity {
 }
 
 #[derive(Debug, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct NewPublicIdEntity {
     #[builder(setter(into))]
     pub(super) id: PublicId,

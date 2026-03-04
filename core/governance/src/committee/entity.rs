@@ -20,7 +20,7 @@ pub enum CommitteeEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Committee {
     pub id: CommitteeId,
     pub name: String,
@@ -80,7 +80,7 @@ impl Committee {
 }
 
 impl TryFromEvents<CommitteeEvent> for Committee {
-    fn try_from_events(events: EntityEvents<CommitteeEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<CommitteeEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = CommitteeBuilder::default();
         for event in events.iter_all() {
             match event {

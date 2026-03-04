@@ -1,4 +1,4 @@
-use crate::report_run::{ReportRun, ReportRunError, ReportRunEvent};
+use crate::report_run::{ReportRun, ReportRunEvent};
 use crate::{CoreReportEvent, PublicReportRun, REPORT_RUN_EVENT_TYPE};
 use obix::out::{Outbox, OutboxEventMarker};
 
@@ -36,7 +36,7 @@ where
         db: &mut impl es_entity::AtomicOperation,
         entity: &ReportRun,
         new_events: es_entity::LastPersisted<'_, ReportRunEvent>,
-    ) -> Result<(), ReportRunError> {
+    ) -> Result<(), sqlx::Error> {
         use ReportRunEvent::*;
         for event in new_events {
             let publish_event = match &event.event {

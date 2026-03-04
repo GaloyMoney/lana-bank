@@ -6,8 +6,6 @@ use tracing_utils::ErrorSeverity;
 pub enum CoreDepositError {
     #[error("CoreDepositError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CoreDepositError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
     #[error("CoreDepositError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreDepositError - AuthorizationError: {0}")]
@@ -58,14 +56,86 @@ pub enum CoreDepositError {
     CustomerNotVerified,
 }
 
-es_entity::from_es_entity_error!(CoreDepositError);
+// Two-hop From impls: repo typed errors -> sub-module error -> CoreDepositError
+
+impl From<crate::account::DepositAccountCreateError> for CoreDepositError {
+    fn from(e: crate::account::DepositAccountCreateError) -> Self {
+        Self::DepositAccountError(e.into())
+    }
+}
+
+impl From<crate::account::DepositAccountFindError> for CoreDepositError {
+    fn from(e: crate::account::DepositAccountFindError) -> Self {
+        Self::DepositAccountError(e.into())
+    }
+}
+
+impl From<crate::account::DepositAccountModifyError> for CoreDepositError {
+    fn from(e: crate::account::DepositAccountModifyError) -> Self {
+        Self::DepositAccountError(e.into())
+    }
+}
+
+impl From<crate::account::DepositAccountQueryError> for CoreDepositError {
+    fn from(e: crate::account::DepositAccountQueryError) -> Self {
+        Self::DepositAccountError(e.into())
+    }
+}
+
+impl From<crate::deposit::DepositCreateError> for CoreDepositError {
+    fn from(e: crate::deposit::DepositCreateError) -> Self {
+        Self::DepositError(e.into())
+    }
+}
+
+impl From<crate::deposit::DepositFindError> for CoreDepositError {
+    fn from(e: crate::deposit::DepositFindError) -> Self {
+        Self::DepositError(e.into())
+    }
+}
+
+impl From<crate::deposit::DepositModifyError> for CoreDepositError {
+    fn from(e: crate::deposit::DepositModifyError) -> Self {
+        Self::DepositError(e.into())
+    }
+}
+
+impl From<crate::deposit::DepositQueryError> for CoreDepositError {
+    fn from(e: crate::deposit::DepositQueryError) -> Self {
+        Self::DepositError(e.into())
+    }
+}
+
+impl From<crate::withdrawal::WithdrawalCreateError> for CoreDepositError {
+    fn from(e: crate::withdrawal::WithdrawalCreateError) -> Self {
+        Self::WithdrawalError(e.into())
+    }
+}
+
+impl From<crate::withdrawal::WithdrawalFindError> for CoreDepositError {
+    fn from(e: crate::withdrawal::WithdrawalFindError) -> Self {
+        Self::WithdrawalError(e.into())
+    }
+}
+
+impl From<crate::withdrawal::WithdrawalModifyError> for CoreDepositError {
+    fn from(e: crate::withdrawal::WithdrawalModifyError) -> Self {
+        Self::WithdrawalError(e.into())
+    }
+}
+
+impl From<crate::withdrawal::WithdrawalQueryError> for CoreDepositError {
+    fn from(e: crate::withdrawal::WithdrawalQueryError) -> Self {
+        Self::WithdrawalError(e.into())
+    }
+}
 
 impl CoreDepositError {
     pub fn is_account_already_exists(&self) -> bool {
         matches!(
             self,
             Self::DepositLedgerError(crate::ledger::error::DepositLedgerError::CalaAccount(
-                cala_ledger::account::error::AccountError::ExternalIdAlreadyExists
+                cala_ledger::account::error::AccountError::ExternalIdAlreadyExists(_)
             ))
         )
     }
@@ -75,7 +145,6 @@ impl ErrorSeverity for CoreDepositError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::DepositAccountError(e) => e.severity(),

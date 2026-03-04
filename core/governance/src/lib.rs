@@ -106,7 +106,12 @@ where
             .build()
             .expect("Could not build new policy");
 
-        match self.policy_repo.create_in_op(&mut db, new_policy).await {
+        match self
+            .policy_repo
+            .create_in_op(&mut db, new_policy)
+            .await
+            .map_err(PolicyError::from)
+        {
             Ok(policy) => {
                 db.commit().await?;
                 Ok(policy)
@@ -135,10 +140,7 @@ where
             )
             .await?;
 
-        self.policy_repo
-            .maybe_find_by_id(policy_id)
-            .await
-            .map_err(GovernanceError::PolicyError)
+        Ok(self.policy_repo.maybe_find_by_id(policy_id).await?)
     }
 
     #[record_error_severity]
@@ -481,10 +483,7 @@ where
             )
             .await?;
 
-        self.committee_repo
-            .maybe_find_by_id(committee_id)
-            .await
-            .map_err(GovernanceError::CommitteeError)
+        Ok(self.committee_repo.maybe_find_by_id(committee_id).await?)
     }
 
     #[record_error_severity]
@@ -559,10 +558,7 @@ where
             )
             .await?;
 
-        self.process_repo
-            .maybe_find_by_id(process_id)
-            .await
-            .map_err(GovernanceError::ApprovalProcessError)
+        Ok(self.process_repo.maybe_find_by_id(process_id).await?)
     }
 
     #[record_error_severity]

@@ -401,7 +401,7 @@ impl CreditLedger {
                 return Err(CreditLedgerError::JournalIdMismatch);
             }
             Ok(account_set) => return Ok(account_set.id),
-            Err(e) if e.was_not_found() => (),
+            Err(cala_ledger::account_set::error::AccountSetError::CouldNotFindByExternalId(_)) => {}
             Err(e) => return Err(e.into()),
         };
 
@@ -417,7 +417,7 @@ impl CreditLedger {
             .expect("Could not build new account set");
         match cala.account_sets().create(new_account_set).await {
             Ok(set) => Ok(set.id),
-            Err(cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists) => {
+            Err(cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists(_)) => {
                 Ok(cala.account_sets().find_by_external_id(reference).await?.id)
             }
 
@@ -491,7 +491,7 @@ impl CreditLedger {
 
                 id
             }
-            Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
+            Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists(_)) => {
                 op.commit().await?;
                 cala.accounts().find_by_external_id(reference).await?.id
             }
@@ -1154,7 +1154,7 @@ impl CreditLedger {
             .expect("build control");
 
         match cala.velocities().create_control(control).await {
-            Err(cala_ledger::velocity::error::VelocityError::ControlIdAlreadyExists) => Ok(id),
+            Err(cala_ledger::velocity::error::VelocityError::ControlIdAlreadyExists(_)) => Ok(id),
             Err(e) => Err(e.into()),
             Ok(control) => Ok(control.id()),
         }

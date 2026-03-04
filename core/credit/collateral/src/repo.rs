@@ -4,7 +4,6 @@ use sqlx::PgPool;
 use core_custody::WalletId as CustodyWalletId;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
 
 use crate::{
     CollateralId, LiquidationId, public::CoreCreditCollateralEvent, publisher::CollateralPublisher,
@@ -12,14 +11,12 @@ use crate::{
 
 use super::{
     entity::*,
-    error::*,
-    liquidation::{Liquidation, LiquidationError, LiquidationEvent},
+    liquidation::{Liquidation, LiquidationEvent},
 };
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Collateral",
-    err = "CollateralError",
     columns(custody_wallet_id(ty = "Option<CustodyWalletId>", update(persist = false))),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -50,14 +47,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[tracing::instrument(name = "collateral.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Collateral,
         new_events: es_entity::LastPersisted<'_, CollateralEvent>,
-    ) -> Result<(), CollateralError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_collateral_in_op(op, entity, new_events)
             .await
@@ -72,7 +68,7 @@ where
             Liquidation,
             liquidation_cursor::LiquidationsByCreatedAtCursor,
         >,
-        LiquidationError,
+        LiquidationQueryError,
     > {
         self.liquidations
             .list_for_collateral_id_by_created_at(
@@ -86,7 +82,7 @@ where
     pub async fn find_liquidation_by_id(
         &self,
         liquidation_id: LiquidationId,
-    ) -> Result<Option<Liquidation>, LiquidationError> {
+    ) -> Result<Option<Liquidation>, LiquidationQueryError> {
         self.liquidations.maybe_find_by_id(liquidation_id).await
     }
 
@@ -95,7 +91,7 @@ where
         query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByIdCursor>,
     ) -> Result<
         es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsByIdCursor>,
-        LiquidationError,
+        LiquidationQueryError,
     > {
         self.liquidations
             .list_by_id(query, es_entity::ListDirection::Descending)
@@ -105,7 +101,7 @@ where
     pub async fn find_all_liquidations<T: From<Liquidation>>(
         &self,
         ids: &[LiquidationId],
-    ) -> Result<std::collections::HashMap<LiquidationId, T>, LiquidationError> {
+    ) -> Result<std::collections::HashMap<LiquidationId, T>, LiquidationQueryError> {
         self.liquidations.find_all(ids).await
     }
 }
@@ -127,7 +123,6 @@ where
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Liquidation",
-    err = "LiquidationError",
     columns(
         collateral_id(
             ty = "CollateralId",

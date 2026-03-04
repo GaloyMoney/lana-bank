@@ -18,7 +18,6 @@ persistence = []
 anyhow = { workspace = true }
 axum = { workspace = true, optional = true }
 axum-extra = { workspace = true }
-es-entity = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }

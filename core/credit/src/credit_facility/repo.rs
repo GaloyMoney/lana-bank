@@ -4,22 +4,16 @@ use sqlx::PgPool;
 use es_entity::*;
 pub use es_entity::{ListDirection, Sort};
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
 
 use core_credit_collateral::CollateralId;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
 
-use super::{
-    entity::*,
-    error::CreditFacilityError,
-    interest_accrual_cycle::{error::InterestAccrualCycleError, *},
-};
+use super::{entity::*, interest_accrual_cycle::*};
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "CreditFacility",
-    err = "CreditFacilityError",
     columns(
         customer_id(ty = "CustomerId", list_for(by(created_at)), update(persist = false)),
         collateral_id(ty = "CollateralId", update(persist = false)),
@@ -50,7 +44,7 @@ where
     clock: ClockHandle,
 
     #[es_repo(nested)]
-    interest_accruals: InterestAccrualRepo<E>,
+    interest_accruals: InterestAccrualCycleRepo<E>,
 }
 
 impl<E> Clone for CreditFacilityRepo<E>
@@ -72,7 +66,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
-        let interest_accruals = InterestAccrualRepo::new(pool, publisher, clock.clone());
+        let interest_accruals = InterestAccrualCycleRepo::new(pool, publisher, clock.clone());
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
@@ -81,14 +75,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[tracing::instrument(name = "credit_facility.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacility,
         new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
-    ) -> Result<(), CreditFacilityError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_facility_in_op(op, entity, new_events)
             .await
@@ -100,7 +93,8 @@ where
         day: chrono::NaiveDate,
         after: Option<(chrono::DateTime<chrono::Utc>, CreditFacilityId)>,
         limit: i64,
-    ) -> Result<Vec<(CreditFacilityId, chrono::DateTime<chrono::Utc>)>, CreditFacilityError> {
+    ) -> Result<Vec<(CreditFacilityId, chrono::DateTime<chrono::Utc>)>, CreditFacilityQueryError>
+    {
         let (after_created_at, after_id) = match after {
             Some((ts, id)) => (Some(ts), Some(id)),
             None => (None, None),
@@ -125,13 +119,12 @@ where
         Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }
 
-    #[record_error_severity]
     #[tracing::instrument(name = "credit_facility.find_by_custody_wallet", skip_all)]
     pub async fn find_by_custody_wallet(
         &self,
         wallet_id: CustodyWalletId,
-    ) -> Result<CreditFacility, CreditFacilityError> {
-        es_query!(
+    ) -> Result<Option<CreditFacility>, CreditFacilityFindError> {
+        Ok(es_query!(
             tbl_prefix = "core",
             r#"
                 SELECT cf.id FROM core_credit_facilities cf
@@ -139,15 +132,14 @@ where
                 WHERE co.custody_wallet_id = $1"#,
             wallet_id as CustodyWalletId
         )
-        .fetch_one(&mut self.pool().begin().await?)
-        .await
+        .fetch_optional(&mut self.pool().begin().await?)
+        .await?)
     }
 }
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "InterestAccrualCycle",
-    err = "InterestAccrualCycleError",
     columns(
         credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for, parent),
         idx(ty = "InterestAccrualCycleIdx", update(persist = false), list_by),
@@ -160,7 +152,7 @@ where
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]
-pub(super) struct InterestAccrualRepo<E>
+pub(super) struct InterestAccrualCycleRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -169,7 +161,7 @@ where
     clock: ClockHandle,
 }
 
-impl<E> Clone for InterestAccrualRepo<E>
+impl<E> Clone for InterestAccrualCycleRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -182,7 +174,7 @@ where
     }
 }
 
-impl<E> InterestAccrualRepo<E>
+impl<E> InterestAccrualCycleRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -194,14 +186,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[tracing::instrument(name = "interest_accrual_cycle.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &InterestAccrualCycle,
         new_events: es_entity::LastPersisted<'_, InterestAccrualCycleEvent>,
-    ) -> Result<(), InterestAccrualCycleError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_interest_accrual_cycle_in_op(op, entity, new_events)
             .await

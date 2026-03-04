@@ -1,22 +1,14 @@
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
 
 use crate::{
     credit_facility::{
         CreditFacility, CreditFacilityEvent,
-        error::CreditFacilityError,
-        interest_accrual_cycle::{
-            InterestAccrualCycle, InterestAccrualCycleEvent, error::InterestAccrualCycleError,
-        },
+        interest_accrual_cycle::{InterestAccrualCycle, InterestAccrualCycleEvent},
     },
-    credit_facility_proposal::{
-        CreditFacilityProposal, CreditFacilityProposalEvent, error::CreditFacilityProposalError,
-    },
-    disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
-    pending_credit_facility::{
-        PendingCreditFacility, PendingCreditFacilityEvent, error::PendingCreditFacilityError,
-    },
+    credit_facility_proposal::{CreditFacilityProposal, CreditFacilityProposalEvent},
+    disbursal::{Disbursal, DisbursalEvent},
+    pending_credit_facility::{PendingCreditFacility, PendingCreditFacilityEvent},
     public::*,
 };
 
@@ -48,14 +40,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[instrument(name = "credit.publisher.publish_facility_in_op", skip_all)]
     pub async fn publish_facility_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacility,
         new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
-    ) -> Result<(), CreditFacilityError> {
+    ) -> Result<(), sqlx::Error> {
         use CreditFacilityEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
@@ -75,7 +66,6 @@ where
                         entity: PublicCreditFacility::from(entity),
                     })
                 }
-
                 _ => None,
             })
             .collect::<Vec<_>>();
@@ -85,14 +75,38 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[instrument(
+        name = "credit.publisher.publish_interest_accrual_cycle_in_op",
+        skip_all
+    )]
+    pub async fn publish_interest_accrual_cycle_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        entity: &InterestAccrualCycle,
+        new_events: es_entity::LastPersisted<'_, InterestAccrualCycleEvent>,
+    ) -> Result<(), sqlx::Error> {
+        use InterestAccrualCycleEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                InterestAccrualsPosted { .. } => Some(CoreCreditEvent::AccrualPosted {
+                    entity: PublicInterestAccrualCycle::from(entity),
+                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(op, publish_events)
+            .await?;
+        Ok(())
+    }
+
     #[instrument(name = "credit.publisher.publish_proposal_in_op", skip_all)]
     pub async fn publish_proposal_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacilityProposal,
         new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
-    ) -> Result<(), CreditFacilityProposalError> {
+    ) -> Result<(), sqlx::Error> {
         use CreditFacilityProposalEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
@@ -114,7 +128,6 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
     #[instrument(
         name = "credit.publisher.publish_pending_credit_facility_in_op",
         skip_all
@@ -124,7 +137,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &PendingCreditFacility,
         new_events: es_entity::LastPersisted<'_, PendingCreditFacilityEvent>,
-    ) -> Result<(), PendingCreditFacilityError> {
+    ) -> Result<(), sqlx::Error> {
         use PendingCreditFacilityEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
@@ -146,14 +159,13 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
     #[instrument(name = "credit.publisher.publish_disbursal_in_op", skip_all)]
     pub async fn publish_disbursal_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Disbursal,
         new_events: es_entity::LastPersisted<'_, DisbursalEvent>,
-    ) -> Result<(), DisbursalError> {
+    ) -> Result<(), sqlx::Error> {
         use DisbursalEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
@@ -165,33 +177,6 @@ where
                         entity: PublicDisbursal::from(entity),
                     })
                 }
-                _ => None,
-            })
-            .collect::<Vec<_>>();
-        self.outbox
-            .publish_all_persisted(op, publish_events)
-            .await?;
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.publisher.publish_interest_accrual_cycle_in_op",
-        skip_all
-    )]
-    pub async fn publish_interest_accrual_cycle_in_op(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        entity: &InterestAccrualCycle,
-        new_events: es_entity::LastPersisted<'_, InterestAccrualCycleEvent>,
-    ) -> Result<(), InterestAccrualCycleError> {
-        use InterestAccrualCycleEvent::*;
-        let publish_events = new_events
-            .filter_map(|event| match &event.event {
-                InterestAccrualsPosted { .. } => Some(CoreCreditEvent::AccrualPosted {
-                    entity: PublicInterestAccrualCycle::from(entity),
-                }),
-
                 _ => None,
             })
             .collect::<Vec<_>>();

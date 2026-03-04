@@ -4,7 +4,6 @@ use tracing::instrument;
 
 use crate::{
     entity::{Collateral, CollateralEvent},
-    error::CollateralError,
     public::{CoreCreditCollateralEvent, PublicCollateral},
 };
 
@@ -45,7 +44,7 @@ where
         op: &mut impl AtomicOperation,
         entity: &Collateral,
         new_events: es_entity::LastPersisted<'_, CollateralEvent>,
-    ) -> Result<(), CollateralError> {
+    ) -> Result<(), sqlx::Error> {
         use CollateralEvent::*;
         let events = new_events
             .flat_map(|event| match &event.event {

@@ -7,12 +7,11 @@ use obix::out::OutboxEventMarker;
 use crate::primitives::WalletId;
 use crate::{CoreCustodyEvent, publisher::CustodyPublisher};
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Wallet",
-    err = "WalletError",
     columns(external_wallet_id(ty = "str", find_by)),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -43,7 +42,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &Wallet,
         new_events: es_entity::LastPersisted<'_, WalletEvent>,
-    ) -> Result<(), WalletError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_wallet_in_op(op, entity, new_events)
             .await

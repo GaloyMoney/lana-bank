@@ -535,7 +535,7 @@ impl ChartLedger {
             .create_in_op(op, new_template)
             .await
         {
-            Err(TxTemplateError::DuplicateCode) => Ok(code),
+            Err(TxTemplateError::DuplicateCode(_)) => Ok(code),
             Err(e) => Err(e),
             Ok(template) => Ok(template.into_values().code),
         }

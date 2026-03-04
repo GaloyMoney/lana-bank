@@ -163,7 +163,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_id(id).await
+        Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
     pub(super) async fn find_by_concluded_tx_id_without_audit(
@@ -171,7 +171,7 @@ where
         tx_id: impl Into<crate::primitives::LedgerTxId> + std::fmt::Debug,
     ) -> Result<Disbursal, DisbursalError> {
         let tx_id = tx_id.into();
-        self.repo.find_by_concluded_tx_id(Some(tx_id)).await
+        Ok(self.repo.find_by_concluded_tx_id(Some(tx_id)).await?)
     }
 
     #[record_error_severity]
@@ -209,7 +209,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_public_id(public_id.into()).await
+        Ok(self.repo.maybe_find_by_public_id(public_id.into()).await?)
     }
 
     pub(super) async fn conclude_approval_process_in_op(
@@ -289,7 +289,8 @@ where
         es_entity::PaginatedQueryRet<Disbursal, disbursal_cursor::DisbursalsCursor>,
         DisbursalError,
     > {
-        self.repo
+        Ok(self
+            .repo
             .list_for_filters(
                 DisbursalsFilters {
                     credit_facility_id: Some(id),
@@ -298,7 +299,7 @@ where
                 sort.into(),
                 query,
             )
-            .await
+            .await?)
     }
 
     #[record_error_severity]
@@ -307,6 +308,6 @@ where
         &self,
         ids: &[DisbursalId],
     ) -> Result<std::collections::HashMap<DisbursalId, T>, DisbursalError> {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 }

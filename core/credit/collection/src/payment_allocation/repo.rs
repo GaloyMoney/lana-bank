@@ -3,18 +3,16 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
 
 use crate::primitives::*;
 
 use crate::{public::CoreCreditCollectionEvent, publisher::CollectionPublisher};
 
-use super::{entity::*, error::PaymentAllocationError};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "PaymentAllocation",
-    err = "PaymentAllocationError",
     columns(
         beneficiary_id(ty = "BeneficiaryId", list_for, update(persist = false)),
         payment_id(ty = "PaymentId", list_for, update(persist = false)),
@@ -57,14 +55,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[tracing::instrument(name = "payment_allocation.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &PaymentAllocation,
         new_events: es_entity::LastPersisted<'_, PaymentAllocationEvent>,
-    ) -> Result<(), PaymentAllocationError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_payment_allocation_in_op(op, entity, new_events)
             .await

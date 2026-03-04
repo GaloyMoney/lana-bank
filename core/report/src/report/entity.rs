@@ -30,7 +30,7 @@ pub enum ReportEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Report {
     pub id: ReportId,
     pub run_id: ReportRunId,
@@ -50,7 +50,7 @@ impl Report {
 }
 
 impl TryFromEvents<ReportEvent> for Report {
-    fn try_from_events(events: EntityEvents<ReportEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<ReportEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = ReportBuilder::default();
 
         for event in events.iter_all() {

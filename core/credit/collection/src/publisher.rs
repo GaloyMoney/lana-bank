@@ -1,14 +1,11 @@
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
 
 use crate::{
     CoreCreditCollectionEvent, PublicObligation, PublicPayment, PublicPaymentAllocation,
-    obligation::{Obligation, ObligationEvent, error::ObligationError},
-    payment::{Payment, PaymentEvent, error::PaymentError},
-    payment_allocation::{
-        PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
-    },
+    obligation::{Obligation, ObligationEvent},
+    payment::{Payment, PaymentEvent},
+    payment_allocation::{PaymentAllocation, PaymentAllocationEvent},
 };
 
 pub struct CollectionPublisher<E>
@@ -39,14 +36,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[instrument(name = "collection.publisher.publish_payment_in_op", skip_all)]
     pub async fn publish_payment_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Payment,
         new_events: es_entity::LastPersisted<'_, PaymentEvent>,
-    ) -> Result<(), PaymentError> {
+    ) -> Result<(), sqlx::Error> {
         use PaymentEvent::*;
         let publish_events = new_events
             .map(|event| match &event.event {
@@ -61,7 +57,6 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
     #[instrument(
         name = "collection.publisher.publish_payment_allocation_in_op",
         skip_all
@@ -71,7 +66,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &PaymentAllocation,
         new_events: es_entity::LastPersisted<'_, PaymentAllocationEvent>,
-    ) -> Result<(), PaymentAllocationError> {
+    ) -> Result<(), sqlx::Error> {
         use PaymentAllocationEvent::*;
         let publish_events = new_events
             .map(|event| match &event.event {
@@ -86,14 +81,13 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
     #[instrument(name = "collection.publisher.publish_obligation_in_op", skip_all)]
     pub async fn publish_obligation_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Obligation,
         new_events: es_entity::LastPersisted<'_, ObligationEvent>,
-    ) -> Result<(), ObligationError> {
+    ) -> Result<(), sqlx::Error> {
         use ObligationEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {

@@ -34,7 +34,7 @@ pub enum ApprovalProcessEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct ApprovalProcess {
     pub id: ApprovalProcessId,
     pub process_type: ApprovalProcessType,
@@ -210,7 +210,9 @@ impl ApprovalProcess {
 }
 
 impl TryFromEvents<ApprovalProcessEvent> for ApprovalProcess {
-    fn try_from_events(events: EntityEvents<ApprovalProcessEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<ApprovalProcessEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = ApprovalProcessBuilder::default();
         for event in events.iter_all() {
             match event {

@@ -2,16 +2,28 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use crate::{party, prospect};
+use crate::{
+    party,
+    party::repo::{PartyCreateError, PartyFindError, PartyModifyError, PartyQueryError},
+    prospect,
+    prospect::repo::{
+        ProspectCreateError, ProspectFindError, ProspectModifyError, ProspectQueryError,
+    },
+    repo::{CustomerCreateError, CustomerFindError, CustomerModifyError, CustomerQueryError},
+};
 
 #[derive(Error, Debug)]
 pub enum CustomerError {
     #[error("CustomerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CustomerError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("CustomerError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("CustomerError - Create: {0}")]
+    Create(#[from] CustomerCreateError),
+    #[error("CustomerError - Modify: {0}")]
+    Modify(#[from] CustomerModifyError),
+    #[error("CustomerError - Find: {0}")]
+    Find(#[from] CustomerFindError),
+    #[error("CustomerError - Query: {0}")]
+    Query(#[from] CustomerQueryError),
     #[error("CustomerError - UnexpectedCurrency")]
     UnexpectedCurrency,
     #[error("CustomerError - AuthorizationError: {0}")]
@@ -30,14 +42,62 @@ pub enum CustomerError {
     PartyError(#[from] party::PartyError),
 }
 
-es_entity::from_es_entity_error!(CustomerError);
+impl From<ProspectCreateError> for CustomerError {
+    fn from(e: ProspectCreateError) -> Self {
+        Self::ProspectError(e.into())
+    }
+}
+
+impl From<ProspectFindError> for CustomerError {
+    fn from(e: ProspectFindError) -> Self {
+        Self::ProspectError(e.into())
+    }
+}
+
+impl From<ProspectModifyError> for CustomerError {
+    fn from(e: ProspectModifyError) -> Self {
+        Self::ProspectError(e.into())
+    }
+}
+
+impl From<ProspectQueryError> for CustomerError {
+    fn from(e: ProspectQueryError) -> Self {
+        Self::ProspectError(e.into())
+    }
+}
+
+impl From<PartyCreateError> for CustomerError {
+    fn from(e: PartyCreateError) -> Self {
+        Self::PartyError(e.into())
+    }
+}
+
+impl From<PartyFindError> for CustomerError {
+    fn from(e: PartyFindError) -> Self {
+        Self::PartyError(e.into())
+    }
+}
+
+impl From<PartyModifyError> for CustomerError {
+    fn from(e: PartyModifyError) -> Self {
+        Self::PartyError(e.into())
+    }
+}
+
+impl From<PartyQueryError> for CustomerError {
+    fn from(e: PartyQueryError) -> Self {
+        Self::PartyError(e.into())
+    }
+}
 
 impl ErrorSeverity for CustomerError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::UnexpectedCurrency => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),

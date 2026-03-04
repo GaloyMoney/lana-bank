@@ -23,7 +23,7 @@ impl BalanceSheetLedgerError {
         matches!(
             self,
             Self::CalaAccountSet(
-                cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists,
+                cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists(_),
             )
         )
     }

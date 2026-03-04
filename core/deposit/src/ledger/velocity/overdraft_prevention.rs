@@ -35,7 +35,7 @@ impl OverdraftPrevention {
             .expect("velocity limit");
 
         match ledger.velocities().create_limit(limit).await {
-            Err(cala_ledger::velocity::error::VelocityError::LimitIdAlreadyExists) => {
+            Err(cala_ledger::velocity::error::VelocityError::LimitIdAlreadyExists(_)) => {
                 Ok(OVERDRAFT_PREVENTION_ID.into())
             }
             Err(e) => Err(e.into()),

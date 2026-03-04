@@ -341,13 +341,14 @@ where
         DomainConfigError,
     > {
         self.ensure_read_permission(sub).await?;
-        self.repo
+        Ok(self
+            .repo
             .list_for_visibility_by_key(
                 Visibility::Exposed,
                 query,
                 es_entity::ListDirection::Ascending,
             )
-            .await
+            .await?)
     }
 
     /// This is a GraphQL batch loader helper (no subject parameter), so it mirrors our common
@@ -507,8 +508,8 @@ async fn seed_registered(repo: &DomainConfigRepo) -> Result<(), DomainConfigErro
             .build()?;
         match repo.create(new).await {
             Ok(_) => {}
-            Err(DomainConfigError::DuplicateKey) => continue,
-            Err(err) => return Err(err),
+            Err(e) if e.was_duplicate() => continue,
+            Err(err) => return Err(err.into()),
         }
     }
 

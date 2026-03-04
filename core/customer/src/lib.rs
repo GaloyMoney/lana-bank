@@ -211,7 +211,7 @@ where
         CustomerId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
         let id = CustomerId::try_from(sub).map_err(|_| CustomerError::SubjectIsNotCustomer)?;
-        self.repo.find_by_id(id).await
+        Ok(self.repo.find_by_id(id).await?)
     }
 
     #[record_error_severity]
@@ -230,7 +230,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_id(id).await
+        Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
     #[record_error_severity]
@@ -239,7 +239,7 @@ where
         &self,
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
-        self.repo.find_by_id(id.into()).await
+        Ok(self.repo.find_by_id(id.into()).await?)
     }
 
     #[record_error_severity]
@@ -249,7 +249,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
-        self.repo.find_by_id_in_op(op, id.into()).await
+        Ok(self.repo.find_by_id_in_op(op, id.into()).await?)
     }
 
     #[record_error_severity]
@@ -269,7 +269,7 @@ where
 
         let party = self.party_repo.maybe_find_by_email(email).await?;
         match party {
-            Some(party) => self.repo.maybe_find_by_party_id(party.id).await,
+            Some(party) => Ok(self.repo.maybe_find_by_party_id(party.id).await?),
             None => Ok(None),
         }
     }
@@ -289,7 +289,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_public_id(public_id.into()).await
+        Ok(self.repo.maybe_find_by_public_id(public_id.into()).await?)
     }
 
     #[record_error_severity]
@@ -308,7 +308,10 @@ where
                 CoreCustomerAction::CUSTOMER_LIST,
             )
             .await?;
-        self.repo.list_for_filters(filter, sort.into(), query).await
+        Ok(self
+            .repo
+            .list_for_filters(filter, sort.into(), query)
+            .await?)
     }
 
     #[record_error_severity]
@@ -810,7 +813,7 @@ where
         &self,
         ids: &[CustomerId],
     ) -> Result<HashMap<CustomerId, T>, CustomerError> {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -827,7 +830,7 @@ where
                 CoreCustomerAction::CUSTOMER_READ,
             )
             .await?;
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[record_error_severity]
@@ -1077,7 +1080,9 @@ where
 
         match self.document_storage.find_by_id(customer_document_id).await {
             Ok(document) => Ok(Some(document)),
-            Err(e) if e.was_not_found() => Ok(None),
+            Err(document_storage::error::DocumentStorageError::Find(e)) if e.was_not_found() => {
+                Ok(None)
+            }
             Err(e) => Err(e.into()),
         }
     }

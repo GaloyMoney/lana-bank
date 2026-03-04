@@ -67,7 +67,7 @@ pub enum CollateralEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Collateral {
     pub id: CollateralId,
     pub secured_loan_id: SecuredLoanId,
@@ -356,7 +356,9 @@ impl NewCollateral {
 }
 
 impl TryFromEvents<CollateralEvent> for Collateral {
-    fn try_from_events(events: EntityEvents<CollateralEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(
+        events: EntityEvents<CollateralEvent>,
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = CollateralBuilder::default();
 
         for event in events.iter_all() {

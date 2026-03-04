@@ -5,12 +5,11 @@ use es_entity::*;
 
 use crate::primitives::*;
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "Policy",
-    err = "PolicyError",
     columns(
         process_type(ty = "ApprovalProcessType"),
         committee_id(
@@ -68,10 +67,10 @@ mod tests {
             .build()
             .expect("Could not build new policy");
         let res = repo.create(new_policy).await;
-        assert!(matches!(
-            res,
-            Err(PolicyError::DuplicateApprovalProcessType)
-        ));
+        assert!(
+            res.as_ref()
+                .is_err_and(|e| e.was_duplicate_by(PolicyColumn::ProcessType))
+        );
 
         Ok(())
     }

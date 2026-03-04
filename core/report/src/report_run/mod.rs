@@ -11,4 +11,6 @@ pub(crate) use entity::ReportRunEvent;
 pub use error::ReportRunError;
 pub use repo::ReportRunRepo;
 
+pub(crate) use repo::{ReportRunFindError, ReportRunQueryError};
+
 pub use repo::report_run_cursor::*;

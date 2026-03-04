@@ -21,7 +21,7 @@ pub enum ManualTransactionEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct ManualTransaction {
     pub id: ManualTransactionId,
     pub reference: String,
@@ -41,7 +41,7 @@ impl ManualTransaction {
 impl TryFromEvents<ManualTransactionEvent> for ManualTransaction {
     fn try_from_events(
         events: EntityEvents<ManualTransactionEvent>,
-    ) -> Result<Self, EsEntityError> {
+    ) -> Result<Self, EntityHydrationError> {
         let mut builder = ManualTransactionBuilder::default();
         for event in events.iter_all() {
             match event {

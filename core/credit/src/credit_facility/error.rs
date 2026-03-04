@@ -4,14 +4,23 @@ use tracing_utils::ErrorSeverity;
 
 use money::{Satoshis, UsdCents};
 
+use super::repo::{
+    CreditFacilityCreateError, CreditFacilityFindError, CreditFacilityModifyError,
+    CreditFacilityQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {
     #[error("CreditFacilityError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CreditFacilityError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("FacilityError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("CreditFacilityError - Create: {0}")]
+    Create(#[from] CreditFacilityCreateError),
+    #[error("CreditFacilityError - Modify: {0}")]
+    Modify(#[from] CreditFacilityModifyError),
+    #[error("CreditFacilityError - Find: {0}")]
+    Find(#[from] CreditFacilityFindError),
+    #[error("CreditFacilityError - Query: {0}")]
+    Query(#[from] CreditFacilityQueryError),
     #[error("CreditFacilityError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error("CreditFacilityError - InterestAccrualCycleError: {0}")]
@@ -88,12 +97,30 @@ pub enum CreditFacilityError {
     CollateralError(#[from] core_credit_collateral::error::CollateralError),
 }
 
+impl CreditFacilityError {
+    pub fn was_concurrent_modification(&self) -> bool {
+        matches!(
+            self,
+            Self::Create(e) if e.was_concurrent_modification()
+        ) || matches!(
+            self,
+            Self::Modify(e) if e.was_concurrent_modification()
+        )
+    }
+
+    pub fn was_not_found(&self) -> bool {
+        matches!(self, Self::Find(e) if e.was_not_found())
+    }
+}
+
 impl ErrorSeverity for CreditFacilityError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::ConversionError(e) => e.severity(),
             Self::InterestAccrualCycleError(e) => e.severity(),
             Self::DisbursalError(e) => e.severity(),
@@ -130,5 +157,3 @@ impl ErrorSeverity for CreditFacilityError {
         }
     }
 }
-
-es_entity::from_es_entity_error!(CreditFacilityError);

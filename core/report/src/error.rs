@@ -6,10 +6,6 @@ use tracing_utils::ErrorSeverity;
 pub enum ReportError {
     #[error("ReportError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("ReportError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("ReportError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("ReportError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ReportError - AuditError: ${0}")]
@@ -28,14 +24,34 @@ pub enum ReportError {
     NotFound,
 }
 
-es_entity::from_es_entity_error!(ReportError);
+impl From<crate::report::ReportFindError> for ReportError {
+    fn from(e: crate::report::ReportFindError) -> Self {
+        ReportError::ReportError(crate::report::error::ReportError::from(e))
+    }
+}
+
+impl From<crate::report::ReportQueryError> for ReportError {
+    fn from(e: crate::report::ReportQueryError) -> Self {
+        ReportError::ReportError(crate::report::error::ReportError::from(e))
+    }
+}
+
+impl From<crate::report_run::ReportRunFindError> for ReportError {
+    fn from(e: crate::report_run::ReportRunFindError) -> Self {
+        ReportError::ReportRunError(crate::report_run::error::ReportRunError::from(e))
+    }
+}
+
+impl From<crate::report_run::ReportRunQueryError> for ReportError {
+    fn from(e: crate::report_run::ReportRunQueryError) -> Self {
+        ReportError::ReportRunError(crate::report_run::error::ReportRunError::from(e))
+    }
+}
 
 impl ErrorSeverity for ReportError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,

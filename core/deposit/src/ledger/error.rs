@@ -44,7 +44,7 @@ impl ErrorSeverity for DepositLedgerError {
             Self::Sqlx(_) => Level::ERROR,
             Self::CalaLedger(_) => Level::ERROR,
             Self::CalaAccount(
-                cala_ledger::account::error::AccountError::ExternalIdAlreadyExists,
+                cala_ledger::account::error::AccountError::ExternalIdAlreadyExists(_),
             ) => Level::INFO,
             Self::CalaAccount(_) => Level::ERROR,
             Self::AccountSetError(_) => Level::ERROR,

@@ -3,16 +3,14 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
 
-use super::{entity::*, error::CreditFacilityProposalError};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "CreditFacilityProposal",
-    err = "CreditFacilityProposalError",
     columns(
         customer_id(ty = "CustomerId", list_for(by(created_at)), update(persist = false)),
         approval_process_id(ty = "Option<ApprovalProcessId>", list_by, create(persist = "false")),
@@ -59,14 +57,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[tracing::instrument(name = "credit_facility_proposal.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacilityProposal,
         new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
-    ) -> Result<(), CreditFacilityProposalError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_proposal_in_op(op, entity, new_events)
             .await

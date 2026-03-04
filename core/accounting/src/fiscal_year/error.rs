@@ -4,16 +4,24 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use super::repo::{
+    FiscalYearCreateError, FiscalYearFindError, FiscalYearModifyError, FiscalYearQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum FiscalYearError {
     #[error("FiscalYearError - Sqlx: {0}")]
     Sqlx(sqlx::Error),
     #[error("FiscalYearError - ParseIntError: {0}")]
     ParseIntError(#[from] std::num::ParseIntError),
-    #[error("FiscalYearError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("FiscalYearError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("FiscalYearError - Create: {0}")]
+    Create(FiscalYearCreateError),
+    #[error("FiscalYearError - Modify: {0}")]
+    Modify(#[from] FiscalYearModifyError),
+    #[error("FiscalYearError - Find: {0}")]
+    Find(#[from] FiscalYearFindError),
+    #[error("FiscalYearError - Query: {0}")]
+    Query(#[from] FiscalYearQueryError),
     #[error("FiscalYearError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
@@ -34,15 +42,15 @@ pub enum FiscalYearError {
     InvalidYearString(String),
 }
 
-es_entity::from_es_entity_error!(FiscalYearError);
-
 impl ErrorSeverity for FiscalYearError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
             Self::ParseIntError(_) => Level::WARN,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartOfAccountsError(e) => e.severity(),
             Self::LastMonthNotClosed => Level::WARN,
@@ -64,5 +72,14 @@ impl From<sqlx::Error> for FiscalYearError {
             return Self::AlreadyOpened;
         }
         Self::Sqlx(error)
+    }
+}
+
+impl From<FiscalYearCreateError> for FiscalYearError {
+    fn from(error: FiscalYearCreateError) -> Self {
+        if error.was_duplicate() {
+            return Self::AlreadyOpened;
+        }
+        Self::Create(error)
     }
 }

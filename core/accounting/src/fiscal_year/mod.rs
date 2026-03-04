@@ -229,9 +229,10 @@ where
             )
             .await?;
 
-        self.repo
+        Ok(self
+            .repo
             .list_for_chart_id_by_created_at(chart_id, query, es_entity::ListDirection::Descending)
-            .await
+            .await?)
     }
 
     #[record_error_severity]
@@ -250,7 +251,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_id(id).await
+        Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
     #[record_error_severity]
@@ -283,7 +284,7 @@ where
         &self,
         ids: &[FiscalYearId],
     ) -> Result<std::collections::HashMap<FiscalYearId, T>, FiscalYearError> {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     async fn find_latest_for_chart(

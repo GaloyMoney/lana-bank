@@ -178,7 +178,7 @@ where
                 .await?;
                 Ok(Some(cf))
             }
-            Err(e) if e.was_not_found() => Ok(None),
+            Err(CreditFacilityError::Find(ref inner)) if inner.was_not_found() => Ok(None),
             Err(e) => Err(e.into()),
         }
     }

@@ -5,15 +5,10 @@ use es_entity::*;
 
 use crate::primitives::CommitteeId;
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo, Clone)]
-#[es_repo(
-    entity = "Committee",
-    err = "CommitteeError",
-    columns(name = "String"),
-    tbl_prefix = "core"
-)]
+#[es_repo(entity = "Committee", columns(name = "String"), tbl_prefix = "core")]
 pub struct CommitteeRepo {
     #[allow(dead_code)]
     pool: PgPool,

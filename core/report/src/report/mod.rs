@@ -9,4 +9,6 @@ pub use entity::ReportEvent;
 pub use error::ReportError;
 pub use repo::ReportRepo;
 
+pub(crate) use repo::{ReportFindError, ReportQueryError};
+
 pub use repo::report_cursor::*;

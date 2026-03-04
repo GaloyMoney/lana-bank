@@ -4,6 +4,10 @@ use tracing_utils::ErrorSeverity;
 
 use crate::entity::NewDomainConfigBuilderError;
 
+use super::repo::{
+    DomainConfigCreateError, DomainConfigFindError, DomainConfigModifyError, DomainConfigQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum DomainConfigError {
     #[error("DomainConfigError - Invalid Key: {0}")]
@@ -24,10 +28,14 @@ pub enum DomainConfigError {
     Serde(#[from] serde_json::Error),
     #[error("DomainConfigError - Sqlx: {0}")]
     Sqlx(sqlx::Error),
-    #[error("DomainConfigError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("DomainConfigError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("DomainConfigError - Create: {0}")]
+    Create(DomainConfigCreateError),
+    #[error("DomainConfigError - Modify: {0}")]
+    Modify(#[from] DomainConfigModifyError),
+    #[error("DomainConfigError - Find: {0}")]
+    Find(#[from] DomainConfigFindError),
+    #[error("DomainConfigError - Query: {0}")]
+    Query(#[from] DomainConfigQueryError),
     #[error("DomainConfigError - NewDomainConfigBuilderError: {0}")]
     BuildError(#[from] NewDomainConfigBuilderError),
     #[error("DomainConfigError - AuthorizationError: {0}")]
@@ -35,8 +43,6 @@ pub enum DomainConfigError {
     #[error("DomainConfigError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
 }
-
-es_entity::from_es_entity_error!(DomainConfigError);
 
 impl From<sqlx::Error> for DomainConfigError {
     fn from(error: sqlx::Error) -> Self {
@@ -47,6 +53,15 @@ impl From<sqlx::Error> for DomainConfigError {
             return Self::DuplicateKey;
         }
         Self::Sqlx(error)
+    }
+}
+
+impl From<DomainConfigCreateError> for DomainConfigError {
+    fn from(error: DomainConfigCreateError) -> Self {
+        if error.was_duplicate() {
+            return Self::DuplicateKey;
+        }
+        Self::Create(error)
     }
 }
 
@@ -62,8 +77,10 @@ impl ErrorSeverity for DomainConfigError {
             Self::StaleEncryptionKey => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::BuildError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),

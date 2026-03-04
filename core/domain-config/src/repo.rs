@@ -12,7 +12,6 @@ use crate::{
 #[es_repo(
     entity = "DomainConfig",
     id = "DomainConfigId",
-    err = "DomainConfigError",
     columns(
         key(ty = "DomainConfigKey", list_by),
         visibility(ty = "Visibility", list_for(by(key)), update(persist = false)),

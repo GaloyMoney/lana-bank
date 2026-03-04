@@ -44,7 +44,7 @@ pub enum DisbursalEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Disbursal {
     pub id: DisbursalId,
     pub approval_process_id: ApprovalProcessId,
@@ -63,7 +63,7 @@ pub struct Disbursal {
 }
 
 impl TryFromEvents<DisbursalEvent> for Disbursal {
-    fn try_from_events(events: EntityEvents<DisbursalEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<DisbursalEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = DisbursalBuilder::default();
         for event in events.iter_all() {
             match event {

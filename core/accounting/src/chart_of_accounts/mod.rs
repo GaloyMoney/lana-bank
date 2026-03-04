@@ -418,7 +418,7 @@ where
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<Chart, ChartOfAccountsError> {
-        self.repo.find_by_id(id.into()).await
+        Ok(self.repo.find_by_id(id.into()).await?)
     }
 
     #[record_error_severity]
@@ -430,7 +430,7 @@ where
         &self,
         reference: &str,
     ) -> Result<Option<Chart>, ChartOfAccountsError> {
-        self.repo.maybe_find_by_reference(reference).await
+        Ok(self.repo.maybe_find_by_reference(reference).await?)
     }
 
     #[record_error_severity]
@@ -486,7 +486,7 @@ where
         &self,
         ids: &[ChartId],
     ) -> Result<std::collections::HashMap<ChartId, T>, ChartOfAccountsError> {
-        self.repo.find_all(ids).await
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[record_error_severity]

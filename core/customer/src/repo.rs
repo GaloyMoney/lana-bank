@@ -7,12 +7,11 @@ use obix::out::OutboxEventMarker;
 
 use crate::{primitives::*, public::CoreCustomerEvent, publisher::*};
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Customer",
-    err = "CustomerError",
     columns(
         party_id(ty = "PartyId", list_by),
         kyc_verification(ty = "KycVerification", list_for),
@@ -61,7 +60,7 @@ where
         db: &mut impl es_entity::AtomicOperation,
         entity: &Customer,
         new_events: es_entity::LastPersisted<'_, CustomerEvent>,
-    ) -> Result<(), CustomerError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher.publish_in_op(db, entity, new_events).await
     }
 }

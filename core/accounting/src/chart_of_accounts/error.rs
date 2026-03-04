@@ -2,14 +2,31 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use super::repo::{
+    ChartCreateError, ChartFindError, ChartModifyError, ChartNodeCreateError, ChartNodeFindError,
+    ChartNodeModifyError, ChartNodeQueryError, ChartQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum ChartOfAccountsError {
     #[error("ChartOfAccountsError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("ChartOfAccountsError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("ChartOfAccountsError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("ChartOfAccountsError - Create: {0}")]
+    Create(#[from] ChartCreateError),
+    #[error("ChartOfAccountsError - Modify: {0}")]
+    Modify(#[from] ChartModifyError),
+    #[error("ChartOfAccountsError - Find: {0}")]
+    Find(#[from] ChartFindError),
+    #[error("ChartOfAccountsError - Query: {0}")]
+    Query(#[from] ChartQueryError),
+    #[error("ChartOfAccountsError - ChartNodeCreate: {0}")]
+    ChartNodeCreate(#[from] ChartNodeCreateError),
+    #[error("ChartOfAccountsError - ChartNodeModify: {0}")]
+    ChartNodeModify(#[from] ChartNodeModifyError),
+    #[error("ChartOfAccountsError - ChartNodeFind: {0}")]
+    ChartNodeFind(#[from] ChartNodeFindError),
+    #[error("ChartOfAccountsError - ChartNodeQuery: {0}")]
+    ChartNodeQuery(#[from] ChartNodeQueryError),
     #[error("ChartOfAccountsError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ChartOfAccountsError - CodeNotFoundInChart: {0}")]
@@ -44,14 +61,18 @@ pub enum ChartOfAccountsError {
     AccountCategoryNotSupported(crate::primitives::AccountCategory),
 }
 
-es_entity::from_es_entity_error!(ChartOfAccountsError);
-
 impl ErrorSeverity for ChartOfAccountsError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
+            Self::ChartNodeCreate(_) => Level::ERROR,
+            Self::ChartNodeModify(_) => Level::ERROR,
+            Self::ChartNodeFind(_) => Level::ERROR,
+            Self::ChartNodeQuery(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::CodeNotFoundInChart(_) => Level::WARN,
             Self::CsvParse(e) => e.severity(),

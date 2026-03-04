@@ -40,7 +40,7 @@ pub enum ChartEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct Chart {
     pub id: ChartId,
     pub account_set_id: CalaAccountSetId,
@@ -532,7 +532,7 @@ impl Chart {
 }
 
 impl TryFromEvents<ChartEvent> for Chart {
-    fn try_from_events(events: EntityEvents<ChartEvent>) -> Result<Self, EsEntityError> {
+    fn try_from_events(events: EntityEvents<ChartEvent>) -> Result<Self, EntityHydrationError> {
         let mut builder = ChartBuilder::default();
 
         for event in events.iter_all() {

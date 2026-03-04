@@ -1,14 +1,23 @@
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use super::repo::{
+    CollateralCreateError, CollateralFindError, CollateralModifyError, CollateralQueryError,
+    LiquidationQueryError,
+};
+
 #[derive(thiserror::Error, Debug)]
 pub enum CollateralError {
     #[error("CollateralError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CollateralError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("CollateralError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("CollateralError - Create: {0}")]
+    Create(#[from] CollateralCreateError),
+    #[error("CollateralError - Modify: {0}")]
+    Modify(#[from] CollateralModifyError),
+    #[error("CollateralError - Find: {0}")]
+    Find(#[from] CollateralFindError),
+    #[error("CollateralError - Query: {0}")]
+    Query(#[from] CollateralQueryError),
     #[error("CollateralError - CollateralLedgerError: {0}")]
     CollateralLedgerError(#[from] super::ledger::CollateralLedgerError),
     #[error("CollateralError - ManualUpdateError: Cannot update collateral with a custodian")]
@@ -25,12 +34,20 @@ pub enum CollateralError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
 }
 
+impl From<LiquidationQueryError> for CollateralError {
+    fn from(e: LiquidationQueryError) -> Self {
+        Self::LiquidationError(e.into())
+    }
+}
+
 impl ErrorSeverity for CollateralError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
             Self::CollateralLedgerError(e) => e.severity(),
             Self::ManualUpdateError => Level::WARN,
             Self::NoActiveLiquidation => Level::WARN,
@@ -41,5 +58,3 @@ impl ErrorSeverity for CollateralError {
         }
     }
 }
-
-es_entity::from_es_entity_error!(CollateralError);

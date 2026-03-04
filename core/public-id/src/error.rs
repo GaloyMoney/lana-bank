@@ -2,24 +2,33 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use super::repo::{
+    PublicIdEntityCreateError, PublicIdEntityFindError, PublicIdEntityModifyError,
+    PublicIdEntityQueryError,
+};
+
 #[derive(Error, Debug)]
 pub enum PublicIdError {
     #[error("PublicIdError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("PublicIdError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("PublicIdError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("PublicIdError - Create: {0}")]
+    Create(#[from] PublicIdEntityCreateError),
+    #[error("PublicIdError - Modify: {0}")]
+    Modify(#[from] PublicIdEntityModifyError),
+    #[error("PublicIdError - Find: {0}")]
+    Find(#[from] PublicIdEntityFindError),
+    #[error("PublicIdError - Query: {0}")]
+    Query(#[from] PublicIdEntityQueryError),
 }
-
-es_entity::from_es_entity_error!(PublicIdError);
 
 impl ErrorSeverity for PublicIdError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(e) => e.severity(),
-            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::Create(_) => Level::ERROR,
+            Self::Modify(_) => Level::ERROR,
+            Self::Find(_) => Level::ERROR,
+            Self::Query(_) => Level::ERROR,
         }
     }
 }

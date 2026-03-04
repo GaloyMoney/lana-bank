@@ -6,12 +6,11 @@ use obix::out::OutboxEventMarker;
 
 use crate::{primitives::*, public::CoreAccessEvent, publisher::UserPublisher};
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Role",
-    err = "RoleError",
     columns(name(ty = "String", list_by)),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -42,7 +41,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &Role,
         new_events: es_entity::LastPersisted<'_, RoleEvent>,
-    ) -> Result<(), RoleError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_role_in_op(op, entity, new_events)
             .await

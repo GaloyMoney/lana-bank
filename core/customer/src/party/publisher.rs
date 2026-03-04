@@ -1,6 +1,6 @@
 use obix::out::{Outbox, OutboxEventMarker};
 
-use super::{entity::*, error::*};
+use super::entity::*;
 use crate::public::*;
 
 pub struct PartyPublisher<E>
@@ -36,7 +36,7 @@ where
         db: &mut impl es_entity::AtomicOperation,
         entity: &Party,
         new_events: es_entity::LastPersisted<'_, PartyEvent>,
-    ) -> Result<(), PartyError> {
+    ) -> Result<(), sqlx::Error> {
         use PartyEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
