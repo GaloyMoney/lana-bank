@@ -97,7 +97,7 @@ where
         &self,
         id: ObligationId,
     ) -> Result<Obligation, ObligationError> {
-        self.repo.find_by_id(id).await
+        Ok(self.repo.find_by_id(id).await?)
     }
 
     pub async fn find_by_id_without_audit_in_op(
@@ -105,7 +105,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         id: ObligationId,
     ) -> Result<Obligation, ObligationError> {
-        self.repo.find_by_id_in_op(op, id).await
+        Ok(self.repo.find_by_id_in_op(op, id).await?)
     }
 
     pub async fn list_ids_needing_transition(
@@ -114,9 +114,10 @@ where
         after: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
         limit: i64,
     ) -> Result<Vec<(ObligationId, chrono::DateTime<chrono::Utc>)>, ObligationError> {
-        self.repo
+        Ok(self
+            .repo
             .list_ids_needing_transition(day, after, limit)
-            .await
+            .await?)
     }
 
     pub async fn execute_transition_in_op(

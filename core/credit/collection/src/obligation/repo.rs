@@ -3,7 +3,6 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
 
 use crate::{
     primitives::{BeneficiaryId, ObligationId},
@@ -11,12 +10,11 @@ use crate::{
     publisher::CollectionPublisher,
 };
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Obligation",
-    err = "ObligationError",
     columns(
         beneficiary_id(
             ty = "BeneficiaryId",
@@ -71,14 +69,13 @@ where
         }
     }
 
-    #[record_error_severity]
     #[tracing::instrument(name = "obligation.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Obligation,
         new_events: es_entity::LastPersisted<'_, ObligationEvent>,
-    ) -> Result<(), ObligationError> {
+    ) -> Result<(), sqlx::Error> {
         self.publisher
             .publish_obligation_in_op(op, entity, new_events)
             .await
@@ -89,7 +86,7 @@ where
         day: chrono::NaiveDate,
         after: Option<(chrono::DateTime<chrono::Utc>, ObligationId)>,
         limit: i64,
-    ) -> Result<Vec<(ObligationId, chrono::DateTime<chrono::Utc>)>, ObligationError> {
+    ) -> Result<Vec<(ObligationId, chrono::DateTime<chrono::Utc>)>, ObligationQueryError> {
         let (after_created_at, after_id) = match after {
             Some((ts, id)) => (Some(ts), Some(id)),
             None => (None, None),
