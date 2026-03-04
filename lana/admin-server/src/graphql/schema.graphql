@@ -1861,6 +1861,17 @@ type LiquidationProceedsReceived {
 	ledgerTxId: UUID!
 }
 
+input LiquidationsSort {
+	by: LiquidationsSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum LiquidationsSortBy {
+	CREATED_AT
+	EXPECTED_TO_RECEIVE
+	AMOUNT_RECEIVED
+}
+
 type LoanAgreement {
 	id: ID!
 	loanAgreementId: UUID!
@@ -2366,7 +2377,7 @@ type Query {
 	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String, sort: DisbursalsSort = {by: CREATED_AT, direction: ASC}, filter: DisbursalsFilter): CreditFacilityDisbursalConnection!
 	liquidation(id: UUID!): Liquidation
-	liquidations(first: Int!, after: String): LiquidationConnection!
+	liquidations(first: Int!, after: String, sort: LiquidationsSort = {by: CREATED_AT, direction: ASC}): LiquidationConnection!
 	custodians(first: Int!, after: String): CustodianConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!

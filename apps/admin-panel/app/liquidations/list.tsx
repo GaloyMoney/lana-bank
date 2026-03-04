@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -14,7 +15,13 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
 import { PublicIdBadge } from "@/components/public-id-badge"
-import { Liquidation, useLiquidationsQuery } from "@/lib/graphql/generated"
+import {
+  Liquidation,
+  LiquidationsSort,
+  SortDirection,
+  useLiquidationsQuery,
+} from "@/lib/graphql/generated"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment LiquidationListFields on Liquidation {
@@ -32,8 +39,8 @@ gql`
     }
   }
 
-  query Liquidations($first: Int!, $after: String) {
-    liquidations(first: $first, after: $after) {
+  query Liquidations($first: Int!, $after: String, $sort: LiquidationsSort) {
+    liquidations(first: $first, after: $after, sort: $sort) {
       edges {
         node {
           ...LiquidationListFields
@@ -52,8 +59,13 @@ gql`
 
 const LiquidationsList = () => {
   const t = useTranslations("Liquidations")
+  const [sortBy, setSortBy] = useState<LiquidationsSort | null>(null)
+
   const { data, loading, error, fetchMore } = useLiquidationsQuery({
-    variables: { first: DEFAULT_PAGESIZE },
+    variables: {
+      first: DEFAULT_PAGESIZE,
+      sort: sortBy,
+    },
   })
 
   const columns: Column<Liquidation>[] = [
@@ -73,6 +85,7 @@ const LiquidationsList = () => {
       key: "expectedToReceive",
       label: t("table.headers.expectedToReceive"),
       render: (amount) => <Balance amount={amount} currency="usd" />,
+      sortable: true,
     },
     {
       key: "sentTotal",
@@ -83,11 +96,13 @@ const LiquidationsList = () => {
       key: "amountReceived",
       label: t("table.headers.amountReceived"),
       render: (amount) => <Balance amount={amount} currency="usd" />,
+      sortable: true,
     },
     {
       key: "createdAt",
       label: t("table.headers.createdAt"),
       render: (date) => <DateWithTooltip value={date} />,
+      sortable: true,
     },
   ]
 
@@ -101,6 +116,12 @@ const LiquidationsList = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(liquidation) => `/liquidations/${liquidation.liquidationId}`}
+        onSort={(column, direction) => {
+          setSortBy({
+            by: camelToScreamingSnake(column) as LiquidationsSort["by"],
+            direction: direction as SortDirection,
+          })
+        }}
       />
     </div>
   )

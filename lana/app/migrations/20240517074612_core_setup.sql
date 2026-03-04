@@ -423,6 +423,8 @@ CREATE TABLE core_liquidations (
   id UUID PRIMARY KEY,
   collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
   completed BOOLEAN NOT NULL DEFAULT FALSE,
+  expected_to_receive BIGINT NOT NULL,
+  amount_received BIGINT NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL
 );
 

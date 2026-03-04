@@ -1,9 +1,13 @@
 use async_graphql::*;
 
-use crate::{graphql::loader::LanaDataLoader, primitives::*};
-pub use lana_app::credit::Liquidation as DomainLiquidation;
+use es_entity::Sort;
 
-use super::Collateral;
+use crate::{graphql::loader::LanaDataLoader, primitives::*};
+pub use lana_app::credit::{
+    Liquidation as DomainLiquidation, LiquidationsSortBy as DomainLiquidationsSortBy,
+};
+
+use super::{Collateral, SortDirection};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -80,5 +84,46 @@ impl Liquidation {
             .await?
             .expect("Collateral not found");
         Ok(collateral)
+    }
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum LiquidationsSortBy {
+    #[default]
+    CreatedAt,
+    ExpectedToReceive,
+    AmountReceived,
+}
+
+impl From<LiquidationsSortBy> for DomainLiquidationsSortBy {
+    fn from(by: LiquidationsSortBy) -> Self {
+        match by {
+            LiquidationsSortBy::CreatedAt => DomainLiquidationsSortBy::CreatedAt,
+            LiquidationsSortBy::ExpectedToReceive => DomainLiquidationsSortBy::ExpectedToReceive,
+            LiquidationsSortBy::AmountReceived => DomainLiquidationsSortBy::AmountReceived,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct LiquidationsSort {
+    #[graphql(default)]
+    pub by: LiquidationsSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<LiquidationsSort> for Sort<DomainLiquidationsSortBy> {
+    fn from(sort: LiquidationsSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<LiquidationsSort> for DomainLiquidationsSortBy {
+    fn from(sort: LiquidationsSort) -> Self {
+        sort.by.into()
     }
 }
