@@ -44,7 +44,9 @@ const config = {
     mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: "throw",
-      onBrokenMarkdownImages: "throw",
+      onBrokenMarkdownImages: function() {
+        return "/lana-bank/img/placeholder.png";
+      },
     },
   },
 
