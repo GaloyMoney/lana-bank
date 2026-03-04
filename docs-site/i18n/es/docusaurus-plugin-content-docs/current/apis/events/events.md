@@ -63,7 +63,7 @@ Eventos relacionados con el ciclo de vida y operaciones de facilidades de credit
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `DisbursalSettled` | Se liquido un desembolso | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement` |
+| `DisbursalSettled` | Se liquido un desembolso | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
 | `AccrualPosted` | Se registro el devengamiento de intereses | `entity.credit_facility_id`, `entity.due_at`, `entity.id`, `entity.period`, `entity.posting` |
 
 ### Eventos de Liquidacion
@@ -76,6 +76,7 @@ Eventos relacionados con el ciclo de vida y operaciones de facilidades de credit
 |-------|-------------|----------------|
 | `FacilityProposalConcluded` | No description available | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
 | `PendingCreditFacilityCompleted` | No description available | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `DisbursalApprovalConcluded` | No description available | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
 
 ---
 
@@ -116,7 +117,8 @@ Eventos relacionados con cuentas de deposito y transacciones.
 |-------|-------------|----------------|
 | `DepositAccountCreated` | Se creo una cuenta de deposito | `entity.account_holder_id`, `entity.id` |
 | `DepositInitialized` | Se inicializo un deposito | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
-| `WithdrawalConfirmed` | Se confirmo un retiro | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
+| `WithdrawalConfirmed` | Se confirmo un retiro | `entity.amount`, `entity.deposit_account_id`, `entity.id`, `entity.status` |
+| `WithdrawalApprovalConcluded` | No description available | `entity.amount`, `entity.deposit_account_id`, `entity.id`, `entity.status` |
 | `DepositReverted` | Se revirtio un deposito | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
 
 ---
