@@ -2323,7 +2323,7 @@ type Query {
 	prospects(first: Int!, after: String, sort: ProspectsSort = {by: CREATED_AT, direction: ASC}, filter: ProspectsFilter): ProspectConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawalByPublicId(id: PublicId!): Withdrawal
-	withdrawals(first: Int!, after: String, filter: WithdrawalsFilter): WithdrawalConnection!
+	withdrawals(first: Int!, after: String, sort: WithdrawalsSort = {by: CREATED_AT, direction: ASC}, filter: WithdrawalsFilter): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
 	depositByPublicId(id: PublicId!): Deposit
 	depositAccount(id: UUID!): DepositAccount
@@ -2890,6 +2890,16 @@ enum WithdrawalStatus {
 
 input WithdrawalsFilter {
 	status: WithdrawalStatus
+}
+
+input WithdrawalsSort {
+	by: WithdrawalsSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum WithdrawalsSortBy {
+	CREATED_AT
+	AMOUNT
 }
 
 """

@@ -59,8 +59,8 @@ pub use public::*;
 use publisher::DepositPublisher;
 use withdrawal::*;
 pub use withdrawal::{
-    Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor, WithdrawalsCursor,
-    WithdrawalsFilters, WithdrawalsSortBy,
+    Withdrawal, WithdrawalStatus, WithdrawalsByAmountCursor, WithdrawalsByCreatedAtCursor,
+    WithdrawalsCursor, WithdrawalsFilters, WithdrawalsSortBy,
 };
 
 #[cfg(feature = "json-schema")]
@@ -1006,6 +1006,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<WithdrawalsCursor>,
         filter: WithdrawalsFilters,
+        sort: es_entity::Sort<WithdrawalsSortBy>,
     ) -> Result<es_entity::PaginatedQueryRet<Withdrawal, WithdrawalsCursor>, CoreDepositError> {
         self.authz
             .enforce_permission(
@@ -1016,14 +1017,7 @@ where
             .await?;
         Ok(self
             .withdrawals
-            .list_for_filters(
-                filter,
-                es_entity::Sort {
-                    by: WithdrawalsSortBy::CreatedAt,
-                    direction: es_entity::ListDirection::Descending,
-                },
-                query,
-            )
+            .list_for_filters(filter, sort, query)
             .await?)
     }
 

@@ -1,10 +1,11 @@
 use async_graphql::*;
+use es_entity::Sort;
 
 use crate::primitives::*;
 
 use super::{
     accounting::LedgerTransaction, approval_process::ApprovalProcess,
-    deposit_account::DepositAccount, loader::LanaDataLoader,
+    deposit_account::DepositAccount, loader::LanaDataLoader, primitives::SortDirection,
 };
 
 pub use lana_app::{
@@ -138,4 +139,43 @@ crate::mutation_payload! { WithdrawalRevertPayload, withdrawal: Withdrawal }
 #[derive(InputObject)]
 pub struct WithdrawalsFilter {
     pub status: Option<WithdrawalStatus>,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum WithdrawalsSortBy {
+    #[default]
+    CreatedAt,
+    Amount,
+}
+
+impl From<WithdrawalsSortBy> for DomainWithdrawalsSortBy {
+    fn from(by: WithdrawalsSortBy) -> Self {
+        match by {
+            WithdrawalsSortBy::CreatedAt => DomainWithdrawalsSortBy::CreatedAt,
+            WithdrawalsSortBy::Amount => DomainWithdrawalsSortBy::Amount,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct WithdrawalsSort {
+    #[graphql(default)]
+    pub by: WithdrawalsSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<WithdrawalsSort> for Sort<DomainWithdrawalsSortBy> {
+    fn from(sort: WithdrawalsSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<WithdrawalsSort> for DomainWithdrawalsSortBy {
+    fn from(sort: WithdrawalsSort) -> Self {
+        sort.by.into()
+    }
 }

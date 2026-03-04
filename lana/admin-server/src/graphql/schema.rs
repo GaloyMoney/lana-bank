@@ -255,6 +255,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(WithdrawalsSort::default())")] sort: Option<WithdrawalsSort>,
         filter: Option<WithdrawalsFilter>,
     ) -> async_graphql::Result<Connection<WithdrawalsCursor, Withdrawal, EmptyFields, EmptyFields>>
     {
@@ -262,15 +263,18 @@ impl Query {
             status: filter.as_ref().and_then(|f| f.status),
             ..Default::default()
         };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             WithdrawalsCursor,
             Withdrawal,
-            DomainWithdrawalsSortBy::CreatedAt,
+            DomainWithdrawalsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.deposits().list_withdrawals(sub, query, filter)
+            |query| app
+                .deposits()
+                .list_withdrawals(sub, query, filter, sort.into())
         )
     }
 

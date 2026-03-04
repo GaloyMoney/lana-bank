@@ -4,6 +4,8 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
+use money::UsdCents;
+
 use crate::{
     primitives::{ApprovalProcessId, CalaTransactionId, DepositAccountId, PublicId, WithdrawalId},
     public::CoreDepositEvent,
@@ -25,7 +27,8 @@ use super::entity::*;
         cancelled_tx_id(ty = "Option<CalaTransactionId>", create(persist = false)),
         reference(ty = "String", create(accessor = "reference()")),
         public_id(ty = "PublicId", list_by),
-        status(ty = "WithdrawalStatus", list_for, update(accessor = "status()"))
+        status(ty = "WithdrawalStatus", list_for, update(accessor = "status()")),
+        amount(ty = "UsdCents", list_by, update(persist = false))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -88,6 +91,9 @@ impl From<(WithdrawalsSortBy, &Withdrawal)> for withdrawal_cursor::WithdrawalsCu
             }
             WithdrawalsSortBy::PublicId => {
                 withdrawal_cursor::WithdrawalsByPublicIdCursor::from(withdrawal).into()
+            }
+            WithdrawalsSortBy::Amount => {
+                withdrawal_cursor::WithdrawalsByAmountCursor::from(withdrawal).into()
             }
         }
     }
