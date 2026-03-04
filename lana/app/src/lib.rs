@@ -92,7 +92,8 @@ pub mod governance {
     pub use core_deposit::APPROVE_WITHDRAWAL_PROCESS;
     pub use governance::{
         ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, ApprovalRules, Committee,
-        CommitteeId, Policy, approval_process_cursor, committee_cursor, error, policy_cursor,
+        CommitteeId, CommitteesSortBy, Policy, approval_process_cursor, committee_cursor, error,
+        policy_cursor,
     };
 }
 
@@ -164,7 +165,8 @@ pub mod fiscal_year {
 
 pub mod custody {
     pub use core_custody::{
-        CustodyConfig, CustodyPublisher, Wallet, WalletId, WalletNetwork, custodian, error,
+        CustodiansSortBy, CustodyConfig, CustodyPublisher, Wallet, WalletId, WalletNetwork,
+        custodian, custodian_cursor, error,
     };
     pub type Custody =
         core_custody::CoreCustody<crate::authorization::Authorization, lana_events::LanaEvent>;

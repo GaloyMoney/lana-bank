@@ -423,6 +423,16 @@ type CommitteeThreshold {
 	committee: Committee!
 }
 
+input CommitteesSort {
+	by: CommitteesSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum CommitteesSortBy {
+	CREATED_AT
+	NAME
+}
+
 enum ConfigType {
 	BOOL
 	STRING
@@ -998,6 +1008,16 @@ type CustodianEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+input CustodiansSort {
+	by: CustodiansSortBy! = NAME
+	direction: SortDirection! = ASC
+}
+
+enum CustodiansSortBy {
+	NAME
+	CREATED_AT
 }
 
 type Customer {
@@ -2378,9 +2398,9 @@ type Query {
 	disbursals(first: Int!, after: String, sort: DisbursalsSort = {by: CREATED_AT, direction: ASC}, filter: DisbursalsFilter): CreditFacilityDisbursalConnection!
 	liquidation(id: UUID!): Liquidation
 	liquidations(first: Int!, after: String, sort: LiquidationsSort = {by: CREATED_AT, direction: ASC}): LiquidationConnection!
-	custodians(first: Int!, after: String): CustodianConnection!
+	custodians(first: Int!, after: String, sort: CustodiansSort = {by: NAME, direction: ASC}): CustodianConnection!
 	committee(id: UUID!): Committee
-	committees(first: Int!, after: String): CommitteeConnection!
+	committees(first: Int!, after: String, sort: CommitteesSort = {by: CREATED_AT, direction: ASC}): CommitteeConnection!
 	policy(id: UUID!): Policy
 	policies(first: Int!, after: String): PolicyConnection!
 	approvalProcess(id: UUID!): ApprovalProcess

@@ -45,3 +45,18 @@ impl CustodianRepo {
         Ok(custodians)
     }
 }
+
+impl From<(CustodiansSortBy, &Custodian)> for custodian_cursor::CustodiansCursor {
+    fn from(custodian_with_sort: (CustodiansSortBy, &Custodian)) -> Self {
+        let (sort, custodian) = custodian_with_sort;
+        match sort {
+            CustodiansSortBy::CreatedAt => {
+                custodian_cursor::CustodiansByCreatedAtCursor::from(custodian).into()
+            }
+            CustodiansSortBy::Id => custodian_cursor::CustodiansByIdCursor::from(custodian).into(),
+            CustodiansSortBy::Name => {
+                custodian_cursor::CustodiansByNameCursor::from(custodian).into()
+            }
+        }
+    }
+}

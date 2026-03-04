@@ -15,3 +15,4 @@ pub use entity::{Custodian, NewCustodian};
 pub use notification::CustodianNotification;
 pub(super) use repo::CustodianRepo;
 pub use repo::custodian_cursor::*;
+pub use repo::{CustodiansSortBy, custodian_cursor};

@@ -1,12 +1,16 @@
 use async_graphql::*;
 use url::Url;
 
-use crate::primitives::*;
+use es_entity::Sort;
 
-pub use lana_app::custody::custodian::{
-    BitgoConfig as DomainBitgoConfig, Custodian as DomainCustodian,
-    CustodianConfig as DomainCustodianConfig, CustodiansByNameCursor,
-    KomainuConfig as DomainKomainuConfig,
+use crate::{graphql::primitives::SortDirection, primitives::*};
+
+pub use lana_app::custody::{
+    CustodiansSortBy as DomainCustodiansSortBy,
+    custodian::{
+        BitgoConfig as DomainBitgoConfig, Custodian as DomainCustodian,
+        CustodianConfig as DomainCustodianConfig, KomainuConfig as DomainKomainuConfig,
+    },
 };
 
 #[derive(SimpleObject, Clone)]
@@ -137,3 +141,42 @@ pub struct CustodianConfigUpdateInput {
 crate::mutation_payload! { CustodianCreatePayload, custodian: Custodian }
 
 crate::mutation_payload! { CustodianConfigUpdatePayload, custodian: Custodian }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum CustodiansSortBy {
+    #[default]
+    Name,
+    CreatedAt,
+}
+
+impl From<CustodiansSortBy> for DomainCustodiansSortBy {
+    fn from(by: CustodiansSortBy) -> Self {
+        match by {
+            CustodiansSortBy::Name => DomainCustodiansSortBy::Name,
+            CustodiansSortBy::CreatedAt => DomainCustodiansSortBy::CreatedAt,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct CustodiansSort {
+    #[graphql(default)]
+    pub by: CustodiansSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<CustodiansSort> for Sort<DomainCustodiansSortBy> {
+    fn from(sort: CustodiansSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<CustodiansSort> for DomainCustodiansSortBy {
+    fn from(sort: CustodiansSort) -> Self {
+        sort.by.into()
+    }
+}

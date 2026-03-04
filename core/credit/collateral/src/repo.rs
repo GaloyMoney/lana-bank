@@ -93,7 +93,7 @@ where
         sort: impl Into<Sort<LiquidationsSortBy>>,
     ) -> Result<
         es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsCursor>,
-        LiquidationError,
+        LiquidationQueryError,
     > {
         let sort = sort.into();
         self.liquidations

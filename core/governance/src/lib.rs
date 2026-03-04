@@ -491,14 +491,10 @@ where
     pub async fn list_committees(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<
-            committee::committee_cursor::CommitteesByCreatedAtCursor,
-        >,
+        query: es_entity::PaginatedQueryArgs<committee::committee_cursor::CommitteesCursor>,
+        sort: es_entity::Sort<CommitteesSortBy>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<
-            Committee,
-            committee::committee_cursor::CommitteesByCreatedAtCursor,
-        >,
+        es_entity::PaginatedQueryRet<Committee, committee::committee_cursor::CommitteesCursor>,
         GovernanceError,
     > {
         self.authz
@@ -511,7 +507,7 @@ where
 
         let committees = self
             .committee_repo
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .list_for_filters(Default::default(), sort, query)
             .await?;
         Ok(committees)
     }

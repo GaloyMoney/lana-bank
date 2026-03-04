@@ -20,6 +20,8 @@ use lana_app::{
     credit::{
         LiquidationsSortBy as DomainLiquidationsSortBy, liquidation_cursor::LiquidationsCursor,
     },
+    custody::{CustodiansSortBy as DomainCustodiansSortBy, custodian_cursor::CustodiansCursor},
+    governance::{CommitteesSortBy as DomainCommitteesSortBy, committee_cursor::CommitteesCursor},
 };
 
 use crate::primitives::*;
@@ -660,17 +662,19 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<CustodiansByNameCursor, Custodian, EmptyFields, EmptyFields>,
-    > {
+        #[graphql(default_with = "Some(CustodiansSort::default())")] sort: Option<CustodiansSort>,
+    ) -> async_graphql::Result<Connection<CustodiansCursor, Custodian, EmptyFields, EmptyFields>>
+    {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            CustodiansByNameCursor,
+        list_with_combo_cursor!(
+            CustodiansCursor,
             Custodian,
+            DomainCustodiansSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.custody().list_custodians(sub, query)
+            |query| app.custody().list_custodians(sub, query, Sort::from(sort))
         )
     }
 
@@ -692,17 +696,21 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<CommitteesByCreatedAtCursor, Committee, EmptyFields, EmptyFields>,
-    > {
+        #[graphql(default_with = "Some(CommitteesSort::default())")] sort: Option<CommitteesSort>,
+    ) -> async_graphql::Result<Connection<CommitteesCursor, Committee, EmptyFields, EmptyFields>>
+    {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            CommitteesByCreatedAtCursor,
+        list_with_combo_cursor!(
+            CommitteesCursor,
             Committee,
+            DomainCommitteesSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.governance().list_committees(sub, query)
+            |query| app
+                .governance()
+                .list_committees(sub, query, Sort::from(sort))
         )
     }
 
