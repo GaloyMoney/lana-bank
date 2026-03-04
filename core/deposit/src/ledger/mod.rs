@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use audit::SystemSubject;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use core_accounting_primitives::EntityRef;
 use es_entity::clock::ClockHandle;
@@ -65,7 +65,7 @@ pub struct DepositLedger {
 }
 
 impl DepositLedger {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.init", skip_all)]
     pub async fn init(
         cala: &CalaLedger,
@@ -179,7 +179,7 @@ impl DepositLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.find_or_create_account_set", skip(cala, name), fields(journal_id = %journal_id, reference = %reference, account_set_name = %name))]
     async fn find_or_create_account_set(
         cala: &CalaLedger,
@@ -221,7 +221,7 @@ impl DepositLedger {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.find_or_create_omnibus_account", skip(cala, name), fields(journal_id = %journal_id, reference = %reference, account_set_name = %name))]
     async fn find_or_create_omnibus_account(
         cala: &CalaLedger,
@@ -299,7 +299,7 @@ impl DepositLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.account_history", skip_all, fields(account_id = tracing::field::Empty))]
     pub async fn account_history<T, U>(
         &self,
@@ -334,7 +334,7 @@ impl DepositLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit_ledger.record_deposit_in_op",
         skip_all,
@@ -372,7 +372,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit_ledger.initiate_withdrawal_in_op",
         skip_all,
@@ -412,7 +412,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit_ledger.deny_withdrawal_in_op",
         skip_all,
@@ -454,7 +454,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.revert_withdrawal_in_op", skip(self, op))]
     pub async fn revert_withdrawal_in_op(
         &self,
@@ -487,7 +487,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.revert_deposit_in_op", skip_all)]
     pub async fn revert_deposit_in_op(
         &self,
@@ -520,7 +520,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit_ledger.freeze_account_in_op",
         skip(self, op, account),
@@ -567,7 +567,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
       name = "deposit_ledger.unfreeze_account_in_op",
       skip(self, op, account),
@@ -616,7 +616,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.lock_account_in_op", skip(self, op))]
     pub async fn lock_account_in_op(
         &self,
@@ -628,7 +628,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit_ledger.confirm_withdrawal_in_op",
         skip_all,
@@ -673,7 +673,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit_ledger.cancel_withdrawal_in_op",
         skip_all,
@@ -714,7 +714,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.balance", skip_all, fields(account_id = tracing::field::Empty))]
     pub async fn balance(
         &self,
@@ -739,7 +739,7 @@ impl DepositLedger {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.create_deposit_accounts_in_op", skip_all)]
     pub async fn create_deposit_accounts_in_op(
         &self,
@@ -819,7 +819,7 @@ impl DepositLedger {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit_ledger.create_account_in_op",
         skip_all,
@@ -862,7 +862,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.create_deposit_control", skip(cala))]
     pub async fn create_deposit_control(
         cala: &CalaLedger,
@@ -883,7 +883,7 @@ impl DepositLedger {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit_ledger.add_deposit_control_to_account_in_op",
         skip_all,
@@ -909,7 +909,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "deposit_ledger.attach_charts_account_set_in_op", skip_all)]
     async fn attach_charts_account_set_in_op(
         &self,
@@ -933,7 +933,7 @@ impl DepositLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "deposit_ledger.attach_chart_of_accounts_account_sets_in_op",
         skip_all

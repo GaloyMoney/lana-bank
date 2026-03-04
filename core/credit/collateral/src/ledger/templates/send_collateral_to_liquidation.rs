@@ -9,7 +9,7 @@ use cala_ledger::{
     velocity::{NewParamDefinition, ParamDataType, Params},
 };
 use money::Satoshis;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::ledger::CollateralLedgerError;
 
@@ -102,7 +102,7 @@ impl<S: std::fmt::Display> From<SendCollateralToLiquidationParams<S>> for Params
 pub struct SendCollateralToLiquidation;
 
 impl SendCollateralToLiquidation {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_credit.collateral.ledger.templates.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CollateralLedgerError> {
         let transaction = NewTxTemplateTransaction::builder()

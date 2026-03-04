@@ -1,6 +1,6 @@
 use rust_decimal::Decimal;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{
     AccountId as CalaAccountId,
@@ -98,7 +98,7 @@ impl<S: std::fmt::Display> From<RemoveCollateralParams<S>> for Params {
 pub struct RemoveCollateral;
 
 impl RemoveCollateral {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_credit.collateral.ledger.remove_collateral.init",
         skip_all

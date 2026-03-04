@@ -4,7 +4,7 @@ pub mod templates;
 
 use audit::SystemSubject;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{
     AccountSetId as CalaAccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId,
@@ -63,7 +63,7 @@ pub struct CollateralLedger {
 }
 
 impl CollateralLedger {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_credit.collateral.ledger.init", skip_all)]
     pub async fn init(
         cala: &CalaLedger,
@@ -87,7 +87,7 @@ impl CollateralLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_credit.collateral.ledger.create_collateral_accounts_in_op",
         skip(self, op)
@@ -186,7 +186,7 @@ impl CollateralLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_credit.collateral.ledger.update_collateral_amount_in_op",
         skip(self, op)
@@ -244,7 +244,7 @@ impl CollateralLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_credit.collateral.ledger.record_collateral_sent_to_liquidation_in_op",
         skip(self, db)
@@ -280,7 +280,7 @@ impl CollateralLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_credit.collateral.ledger.record_proceeds_from_liquidation_in_op",
         skip(self, db)

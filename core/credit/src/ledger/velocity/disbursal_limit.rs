@@ -1,5 +1,5 @@
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{velocity::*, *};
 
@@ -8,7 +8,7 @@ pub struct DisbursalLimit;
 const DISBURSAL_LIMIT_ID: uuid::Uuid = uuid::uuid!("00000000-0000-0000-0000-000000000002");
 
 impl DisbursalLimit {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "ledger.disbursal_limit.init", skip_all)]
     pub async fn init(
         ledger: &CalaLedger,

@@ -24,7 +24,7 @@ use cala_ledger::{
 use core_credit_collateral::CollateralAccountSets;
 
 type BalanceId = (JournalId, cala_ledger::AccountId, Currency);
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{
     chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
@@ -167,7 +167,7 @@ pub struct CreditLedger {
 }
 
 impl CreditLedger {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit_ledger.init", skip_all)]
     pub async fn init(
         cala: &CalaLedger,
@@ -383,7 +383,7 @@ impl CreditLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit_ledger.find_or_create_account_set", skip(cala, name), fields(journal_id = %journal_id, reference = %reference, account_set_name = %name))]
     async fn find_or_create_account_set(
         cala: &CalaLedger,
@@ -425,7 +425,7 @@ impl CreditLedger {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit_ledger.find_or_create_omnibus_account", skip(cala, name), fields(journal_id = %journal_id, reference = %reference, account_set_name = %name))]
     async fn find_or_create_omnibus_account(
         cala: &CalaLedger,

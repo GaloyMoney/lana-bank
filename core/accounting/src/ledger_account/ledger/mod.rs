@@ -11,7 +11,7 @@ use cala_ledger::{
     account_set::{AccountSet, AccountSetId, AccountSetMemberId},
 };
 
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{AccountCode, LedgerAccount, LedgerAccountId, journal_error::JournalError};
 
@@ -188,7 +188,7 @@ impl LedgerAccountLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "ledger_account.load_by_external_id", skip(self), fields(external_id = %external_id))]
     pub async fn load_ledger_account_by_external_id(
         &self,
