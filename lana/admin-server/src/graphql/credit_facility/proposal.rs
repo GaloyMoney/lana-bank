@@ -135,6 +135,7 @@ pub struct CreditFacilityProposalsFilter {
 pub enum CreditFacilityProposalsSortBy {
     #[default]
     CreatedAt,
+    FacilityAmount,
 }
 
 impl From<CreditFacilityProposalsSortBy> for DomainCreditFacilityProposalsSortBy {
@@ -142,6 +143,9 @@ impl From<CreditFacilityProposalsSortBy> for DomainCreditFacilityProposalsSortBy
         match by {
             CreditFacilityProposalsSortBy::CreatedAt => {
                 DomainCreditFacilityProposalsSortBy::CreatedAt
+            }
+            CreditFacilityProposalsSortBy::FacilityAmount => {
+                DomainCreditFacilityProposalsSortBy::Amount
             }
         }
     }

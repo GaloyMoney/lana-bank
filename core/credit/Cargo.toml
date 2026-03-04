@@ -22,7 +22,7 @@ json-schema = [
 mock-custodian = ["core-custody/mock-custodian"]
 
 [dependencies]
-money = { workspace = true }
+money = { workspace = true, features = ["sqlx"] }
 permission-sets-macro = { workspace = true }
 core-price = { workspace = true }
 core-customer = { workspace = true }

@@ -789,6 +789,7 @@ input CreditFacilityProposalsSort {
 
 enum CreditFacilityProposalsSortBy {
 	CREATED_AT
+	FACILITY_AMOUNT
 }
 
 type CreditFacilityRepaymentAmountReceived {

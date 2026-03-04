@@ -813,7 +813,8 @@ export type CreditFacilityProposalsSort = {
 };
 
 export enum CreditFacilityProposalsSortBy {
-  CreatedAt = 'CREATED_AT'
+  CreatedAt = 'CREATED_AT',
+  FacilityAmount = 'FACILITY_AMOUNT'
 }
 
 export type CreditFacilityRepaymentAmountReceived = {

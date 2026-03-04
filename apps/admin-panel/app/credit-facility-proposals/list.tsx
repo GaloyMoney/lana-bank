@@ -112,6 +112,7 @@ const columns = (t: (key: string) => string): Column<CreditFacilityProposal>[] =
     label: t("table.headers.facilityAmount"),
     labelClassName: "w-[25%]",
     render: (amount) => <Balance amount={amount} currency="usd" />,
+    sortable: true,
   },
   {
     key: "createdAt",

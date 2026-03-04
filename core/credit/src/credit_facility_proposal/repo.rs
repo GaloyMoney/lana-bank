@@ -4,6 +4,8 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
+use money::UsdCents;
+
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
 
 use super::entity::*;
@@ -19,6 +21,7 @@ use super::entity::*;
             list_for,
             update(accessor = "status()")
         ),
+        amount(ty = "UsdCents", list_by, update(persist = false))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -89,6 +92,12 @@ impl From<(CreditFacilityProposalsSortBy, &CreditFacilityProposal)>
             CreditFacilityProposalsSortBy::ApprovalProcessId => {
                 credit_facility_proposal_cursor::CreditFacilityProposalsByApprovalProcessIdCursor::from(proposal)
                     .into()
+            }
+            CreditFacilityProposalsSortBy::Amount => {
+                credit_facility_proposal_cursor::CreditFacilityProposalsByAmountCursor::from(
+                    proposal,
+                )
+                .into()
             }
         }
     }
