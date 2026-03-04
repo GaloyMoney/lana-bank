@@ -13,8 +13,7 @@ use crate::{
 
 use super::{
     AccountCode, BtcLedgerAccountBalanceRange, LedgerAccountBalanceRange,
-    LedgerAccountBalanceRangeByCurrency,
-    UsdLedgerAccountBalanceRange,
+    LedgerAccountBalanceRangeByCurrency, UsdLedgerAccountBalanceRange,
 };
 
 #[derive(Clone, SimpleObject)]

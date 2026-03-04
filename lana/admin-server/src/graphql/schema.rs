@@ -1025,12 +1025,7 @@ impl Query {
         let profit_and_loss = app
             .accounting()
             .profit_and_loss()
-            .pl_statement(
-                sub,
-                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
-                from,
-                until,
-            )
+            .pl_statement(sub, PROFIT_AND_LOSS_STATEMENT_NAME.to_string(), from, until)
             .await?;
         Ok(ProfitAndLossStatement::new(profit_and_loss, from, until))
     }
