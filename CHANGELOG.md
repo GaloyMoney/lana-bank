@@ -1,3 +1,14 @@
+## [0.45.1] - 2026-03-04
+
+### 🚜 Refactor
+
+- Point in time balance sheet query (#4065)
+- Update es-entity, cala-ledger, job, and obix dependencies (#4097)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.45.0 [ci skip] (#4101)
+- Switch interest accrual job to use time event (#3997)
 ## [0.45.0] - 2026-03-04
 
 ### 🚀 Features
