@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tokio::{select, time::Duration};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -11,7 +11,7 @@ use crate::{CorePriceEvent, PRICE_UPDATED_EVENT_TYPE, PriceOfOneBTC};
 
 const PRICE_UPDATE_INTERVAL: Duration = Duration::from_secs(60);
 
-#[record_error_severity]
+#[observe_error(allow_single_error_alert)]
 #[tracing::instrument(name = "core.price.bfx_client.fetch_price", skip(client))]
 pub async fn fetch_price(
     client: std::sync::Arc<bfx_client::BfxClient>,

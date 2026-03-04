@@ -5,7 +5,7 @@ pub mod config;
 pub mod email;
 pub mod error;
 
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use core_access::user::Users;
 use core_credit::CoreCredit;
@@ -61,7 +61,7 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "notification.init", skip_all)]
     pub async fn init(
         config: NotificationConfig,

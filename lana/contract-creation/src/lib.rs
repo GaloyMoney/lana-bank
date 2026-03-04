@@ -12,7 +12,7 @@ use document_storage::{
 };
 use obix::out::OutboxEventMarker;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 use uuid::Uuid;
 
 mod error;
@@ -90,7 +90,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "contract.initiate_loan_agreement_generation", skip(self))]
     pub async fn initiate_loan_agreement_generation(
         &self,
@@ -136,7 +136,7 @@ where
         Ok(LoanAgreement::from(document))
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "contract.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
@@ -163,7 +163,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "contract.generate_document_download_link", skip(self))]
     pub async fn generate_document_download_link(
         &self,

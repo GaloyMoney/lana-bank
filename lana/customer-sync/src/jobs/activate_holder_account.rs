@@ -14,7 +14,7 @@ use core_deposit::{
     DepositAccountHolderStatus, GovernanceAction, GovernanceObject,
 };
 use governance::GovernanceEvent;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ActivateHolderAccountConfig {
@@ -98,7 +98,7 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(
         name = "customer_sync.activate_holder_account_job.process_command",
         skip(self, current_job),

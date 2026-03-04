@@ -5,7 +5,7 @@ use job::*;
 
 use core_access::UserId;
 use keycloak_client::KeycloakClient;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CreateKeycloakUserConfig {
@@ -52,7 +52,7 @@ pub struct CreateKeycloakUserJobRunner {
 
 #[async_trait]
 impl JobRunner for CreateKeycloakUserJobRunner {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(
         name = "user_onboarding.create_keycloak_user_job.process_command",
         skip(self, _current_job),

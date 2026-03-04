@@ -10,7 +10,7 @@ pub mod public;
 
 use es_entity::clock::ClockHandle;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use std::collections::{HashMap, HashSet};
 
@@ -82,7 +82,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "governance.init_policy", skip(self), fields(process_type = ?process_type, policy_id = tracing::field::Empty))]
     pub async fn init_policy(
         &self,
@@ -124,7 +124,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.find_policy", skip(self))]
     pub async fn find_policy(
         &self,
@@ -143,7 +143,7 @@ where
         Ok(self.policy_repo.maybe_find_by_id(policy_id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.list_policies", skip(self))]
     pub async fn list_policies_by_created_at(
         &self,
@@ -168,7 +168,7 @@ where
         Ok(policies)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.assign_committee_to_policy", skip(self))]
     pub async fn assign_committee_to_policy(
         &self,
@@ -210,7 +210,7 @@ where
         Ok(policy)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.find_all_policies", skip(self))]
     pub async fn find_all_policies<T: From<Policy>>(
         &self,
@@ -219,7 +219,7 @@ where
         Ok(self.policy_repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.find_all_policies_authorized", skip(self))]
     pub async fn find_all_policies_authorized<T: From<Policy>>(
         &self,
@@ -236,7 +236,7 @@ where
         Ok(self.policy_repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.start_process_in_op", skip(self, db))]
     pub async fn start_process_in_op(
         &self,
@@ -270,7 +270,7 @@ where
         Ok(process)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.approve_process", skip(self))]
     pub async fn approve_process(
         &self,
@@ -311,7 +311,7 @@ where
         Ok(process)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.deny_process", skip(self))]
     pub async fn deny_process(
         &self,
@@ -359,7 +359,7 @@ where
         Ok(process)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.create_committee", skip(self, name), fields(committee_name = %name))]
     pub async fn create_committee(
         &self,
@@ -417,7 +417,7 @@ where
         Ok(false)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.add_member_to_committee", skip(self))]
     pub async fn add_member_to_committee(
         &self,
@@ -442,7 +442,7 @@ where
         Ok(committee)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.remove_member_from_committee", skip(self))]
     pub async fn remove_member_from_committee(
         &self,
@@ -467,7 +467,7 @@ where
         Ok(committee)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.find_committee_by_id", skip(self))]
     pub async fn find_committee_by_id(
         &self,
@@ -486,7 +486,7 @@ where
         Ok(self.committee_repo.maybe_find_by_id(committee_id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.list_committees", skip(self))]
     pub async fn list_committees(
         &self,
@@ -516,7 +516,7 @@ where
         Ok(committees)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.find_all_committees", skip(self))]
     pub async fn find_all_committees<T: From<Committee>>(
         &self,
@@ -525,7 +525,7 @@ where
         Ok(self.committee_repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.find_all_committees_authorized", skip(self))]
     pub async fn find_all_committees_authorized<T: From<Committee>>(
         &self,
@@ -542,7 +542,7 @@ where
         Ok(self.committee_repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.find_approval_process_by_id", skip(self))]
     pub async fn find_approval_process_by_id(
         &self,
@@ -561,7 +561,7 @@ where
         Ok(self.process_repo.maybe_find_by_id(process_id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.list_approval_processes", skip(self))]
     pub async fn list_approval_processes(
         &self,
@@ -591,7 +591,7 @@ where
         Ok(approval_processes)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.find_all_approval_processes", skip(self))]
     pub async fn find_all_approval_processes<T: From<ApprovalProcess>>(
         &self,
@@ -600,7 +600,7 @@ where
         Ok(self.process_repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "governance.find_all_approval_processes_authorized", skip(self))]
     pub async fn find_all_approval_processes_authorized<T: From<ApprovalProcess>>(
         &self,

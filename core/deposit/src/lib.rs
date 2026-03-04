@@ -18,7 +18,7 @@ mod withdrawal;
 use std::sync::Arc;
 
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -129,7 +129,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "deposit.init", skip_all, fields(journal_id = %journal_id))]
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -223,7 +223,7 @@ where
         ))
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.create_account", skip(self))]
     pub async fn create_account(
         &self,
@@ -290,7 +290,7 @@ where
         Ok(account)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_account_by_id", skip(self))]
     pub async fn find_account_by_id(
         &self,
@@ -309,7 +309,7 @@ where
         Ok(self.deposit_accounts.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_account_by_public_id", skip(self))]
     pub async fn find_account_by_public_id(
         &self,
@@ -330,7 +330,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_account_by_id_without_audit", skip(self))]
     pub async fn find_account_by_id_without_audit(
         &self,
@@ -340,7 +340,7 @@ where
         Ok(self.deposit_accounts.find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.update_account_status_for_holder", skip(self))]
     pub async fn update_account_status_for_holder(
         &self,
@@ -355,7 +355,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "deposit.update_account_status_for_holder_in_op",
         skip(self, op)
@@ -408,7 +408,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.account_history", skip(self))]
     pub async fn account_history(
         &self,
@@ -437,7 +437,7 @@ where
         Ok(history)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.record_deposit", skip(self))]
     pub async fn record_deposit(
         &self,
@@ -478,7 +478,7 @@ where
         Ok(deposit)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.initiate_withdrawal", skip(self))]
     pub async fn initiate_withdrawal(
         &self,
@@ -534,7 +534,7 @@ where
         Ok(withdrawal)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.revert_deposit", skip(self))]
     pub async fn revert_deposit(
         &self,
@@ -566,7 +566,7 @@ where
         Ok(deposit)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.revert_withdrawal", skip(self))]
     pub async fn revert_withdrawal(
         &self,
@@ -601,7 +601,7 @@ where
         Ok(withdrawal)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.confirm_withdrawal", skip(self))]
     pub async fn confirm_withdrawal(
         &self,
@@ -645,7 +645,7 @@ where
         Ok(withdrawal)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.cancel_withdrawal", skip(self))]
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn cancel_withdrawal(
@@ -685,7 +685,7 @@ where
         Ok(withdrawal)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.freeze_account", skip(self))]
     pub async fn freeze_account(
         &self,
@@ -721,7 +721,7 @@ where
         Ok(account)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.unfreeze_account", skip(self))]
     pub async fn unfreeze_account(
         &self,
@@ -757,7 +757,7 @@ where
         Ok(account)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.close_account", skip(self))]
     pub async fn close_account(
         &self,
@@ -797,7 +797,7 @@ where
         Ok(account)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.account_balance", skip(self))]
     pub async fn account_balance(
         &self,
@@ -818,7 +818,7 @@ where
         Ok(balance)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_deposit_by_id", skip(self))]
     pub async fn find_deposit_by_id(
         &self,
@@ -837,7 +837,7 @@ where
         Ok(self.deposits.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_withdrawal_by_id", skip(self))]
     pub async fn find_withdrawal_by_id(
         &self,
@@ -856,7 +856,7 @@ where
         Ok(self.withdrawals.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_deposit_by_public_id", skip(self))]
     pub async fn find_deposit_by_public_id(
         &self,
@@ -877,7 +877,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_withdrawal_by_public_id", skip(self))]
     pub async fn find_withdrawal_by_public_id(
         &self,
@@ -898,7 +898,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_withdrawal_by_cancelled_tx_id", skip(self))]
     pub async fn find_withdrawal_by_cancelled_tx_id(
         &self,
@@ -921,7 +921,7 @@ where
         Ok(withdrawal)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_all_withdrawals", skip(self))]
     pub async fn find_all_withdrawals<T: From<Withdrawal>>(
         &self,
@@ -930,7 +930,7 @@ where
         Ok(self.withdrawals.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_all_withdrawals_authorized", skip(self))]
     pub async fn find_all_withdrawals_authorized<T: From<Withdrawal>>(
         &self,
@@ -947,7 +947,7 @@ where
         Ok(self.withdrawals.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_all_deposits", skip(self))]
     pub async fn find_all_deposits<T: From<Deposit>>(
         &self,
@@ -956,7 +956,7 @@ where
         Ok(self.deposits.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_all_deposits_authorized", skip(self))]
     pub async fn find_all_deposits_authorized<T: From<Deposit>>(
         &self,
@@ -973,7 +973,7 @@ where
         Ok(self.deposits.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_all_deposit_accounts", skip(self))]
     pub async fn find_all_deposit_accounts<T: From<DepositAccount>>(
         &self,
@@ -982,7 +982,7 @@ where
         Ok(self.deposit_accounts.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.find_all_deposit_accounts_authorized", skip(self))]
     pub async fn find_all_deposit_accounts_authorized<T: From<DepositAccount>>(
         &self,
@@ -999,7 +999,7 @@ where
         Ok(self.deposit_accounts.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.list_withdrawals", skip(self))]
     pub async fn list_withdrawals(
         &self,
@@ -1027,7 +1027,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.list_deposits", skip(self))]
     pub async fn list_deposits(
         &self,
@@ -1055,7 +1055,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.list_accounts", skip(self))]
     pub async fn list_accounts(
         &self,
@@ -1084,7 +1084,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.list_deposits_for_account", skip(self))]
     pub async fn list_deposits_for_account(
         &self,
@@ -1110,7 +1110,7 @@ where
             .entities)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "deposit.list_withdrawals_for_account", skip(self))]
     pub async fn list_withdrawals_for_account(
         &self,
@@ -1136,7 +1136,7 @@ where
             .entities)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "deposit.list_accounts_by_created_at_for_account_holder",
         skip(self)
@@ -1166,7 +1166,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "deposit.find_account_by_account_holder_without_audit",
         skip(self)

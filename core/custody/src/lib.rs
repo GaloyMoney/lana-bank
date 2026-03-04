@@ -13,7 +13,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use strum::IntoDiscriminant as _;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use std::collections::HashMap;
 
@@ -124,7 +124,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "custody.process_webhook", skip(self))]
     async fn process_webhook(
         &self,
@@ -172,7 +172,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "custody.update_wallet_balance", skip(self))]
     async fn update_wallet_balance(
         &self,
@@ -233,7 +233,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "custody.init", skip_all)]
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -274,7 +274,7 @@ where
     }
 
     #[cfg(feature = "mock-custodian")]
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit_facility.ensure_mock_custodian_in_op", skip(self, db))]
     pub async fn ensure_mock_custodian_in_op(
         &self,
@@ -295,7 +295,7 @@ where
     }
 
     #[cfg(feature = "mock-custodian")]
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_custody.create_mock_custodian_in_op", skip(self, db))]
     pub async fn create_mock_custodian_in_op(
         &self,
@@ -322,7 +322,7 @@ where
         Ok(custodian)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_custody.create_custodian_in_op", skip(self, db))]
     pub async fn create_custodian_in_op(
         &self,
@@ -371,7 +371,7 @@ where
         Ok(custodian)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_custody.create_custodian", skip(self, custodian_config))]
     pub async fn create_custodian(
         &self,
@@ -452,7 +452,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_custody.find_all_wallets", skip(self))]
     pub async fn find_all_wallets<T: From<Wallet>>(
         &self,
@@ -461,7 +461,7 @@ where
         Ok(self.wallets.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_custody.find_all_custodians", skip(self))]
     pub async fn find_all_custodians<T: From<Custodian>>(
         &self,
@@ -470,7 +470,7 @@ where
         Ok(self.custodians.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_custody.find_all_custodians_authorized", skip(self))]
     pub async fn find_all_custodians_authorized<T: From<Custodian>>(
         &self,
@@ -487,7 +487,7 @@ where
         Ok(self.custodians.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_custody.list_custodians", skip(self))]
     pub async fn list_custodians(
         &self,
@@ -508,7 +508,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "custody.create_wallet_in_op", skip(self, db))]
     pub async fn create_wallet_in_op(
         &self,
@@ -543,7 +543,7 @@ where
         Ok(wallet)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "custody.handle_webhook", skip(self))]
     pub async fn handle_webhook(
         &self,

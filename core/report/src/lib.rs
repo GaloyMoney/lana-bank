@@ -84,7 +84,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.init", skip_all)]
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -122,7 +122,7 @@ where
         })
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.find_all_reports", skip(self), fields(count = ids.len()))]
     pub async fn find_all_reports(
         &self,
@@ -131,7 +131,7 @@ where
         Ok(self.reports.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.find_all_reports_authorized", skip(self), fields(count = ids.len()))]
     pub async fn find_all_reports_authorized(
         &self,
@@ -148,7 +148,7 @@ where
         Ok(self.reports.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.find_all_report_runs", skip(self), fields(count = ids.len()))]
     pub async fn find_all_report_runs(
         &self,
@@ -157,7 +157,7 @@ where
         Ok(self.report_runs.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.find_all_report_runs_authorized", skip(self), fields(count = ids.len()))]
     pub async fn find_all_report_runs_authorized(
         &self,
@@ -174,7 +174,7 @@ where
         Ok(self.report_runs.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.list_report_runs", skip(self, query), fields(subject = %sub))]
     pub async fn list_report_runs(
         &self,
@@ -195,7 +195,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.list_reports_for_run", skip(self), fields(subject = %sub, run_id = %run_id))]
     pub async fn list_reports_for_run(
         &self,
@@ -221,7 +221,7 @@ where
         Ok(result.entities)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.find_report_run_by_id", skip(self), fields(subject = %sub, run_id = tracing::field::Empty))]
     pub async fn find_report_run_by_id(
         &self,
@@ -242,7 +242,7 @@ where
         Ok(self.report_runs.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.generate_report_file_download_link", skip(self), fields(subject = %sub, report_id = tracing::field::Empty, extension = %extension))]
     pub async fn generate_report_file_download_link(
         &self,
@@ -280,7 +280,7 @@ where
         Ok(download_link)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.reports_sync", skip(self), fields(job_id = tracing::field::Empty))]
     pub async fn reports_sync(&self) -> Result<job::JobId, ReportError> {
         let mut db = self.report_runs.begin_op().await?;
@@ -295,7 +295,7 @@ where
         Ok(job_id)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "report.trigger_report_run_job", skip(self), fields(subject = %sub, job_id = tracing::field::Empty))]
     pub async fn trigger_report_run_job(
         &self,

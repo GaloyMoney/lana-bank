@@ -26,7 +26,7 @@ use job::Jobs;
 use manual_transaction::ManualTransactions;
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
@@ -195,7 +195,7 @@ where
         &self.fiscal_year
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.find_all_charts_authorized", skip(self))]
     pub async fn find_all_charts_authorized<T: From<Chart>>(
         &self,
@@ -212,7 +212,7 @@ where
         Ok(self.chart_of_accounts.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "core_accounting.find_all_charts_by_reference_authorized",
         skip(self)
@@ -238,7 +238,7 @@ where
         Ok(res)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "core_accounting.find_all_ledger_accounts_authorized",
         skip(self)
@@ -259,7 +259,7 @@ where
         self.find_all_ledger_accounts(chart_ref, ids).await
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "core_accounting.find_all_ledger_transactions_authorized",
         skip(self)
@@ -281,7 +281,7 @@ where
         Ok(self.ledger_transactions.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "core_accounting.find_all_transaction_templates_authorized",
         skip(self)
@@ -303,7 +303,7 @@ where
         Ok(self.transaction_templates.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.find_all_csv_documents_authorized", skip(self))]
     pub async fn find_all_csv_documents_authorized<T: From<document_storage::Document>>(
         &self,
@@ -320,7 +320,7 @@ where
         Ok(self.csvs.find_all_documents(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.find_all_fiscal_years_authorized", skip(self))]
     pub async fn find_all_fiscal_years_authorized<T: From<FiscalYear>>(
         &self,
@@ -337,7 +337,7 @@ where
         Ok(self.fiscal_year.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self))]
     pub async fn find_ledger_account_by_id(
         &self,
@@ -350,7 +350,7 @@ where
         Ok(self.ledger_accounts.find_by_id(sub, &chart, id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
     pub async fn find_ledger_account_by_code(
         &self,
@@ -365,7 +365,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.find_all_ledger_accounts", skip(self))]
     pub async fn find_all_ledger_accounts<T: From<LedgerAccount>>(
         &self,
@@ -376,7 +376,7 @@ where
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.find_all_ledger_accounts_in_range", skip(self))]
     pub async fn find_all_ledger_accounts_in_range<T: From<LedgerAccount>>(
         &self,
@@ -392,7 +392,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.list_all_account_flattened", skip(self))]
     pub async fn list_all_account_flattened(
         &self,
@@ -409,7 +409,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "core_accounting.execute_manual_transaction",
         skip(self, entries)
@@ -445,7 +445,7 @@ where
             .expect("Could not find LedgerTransaction"))
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.import_csv_with_base_config", skip(self, data))]
     pub async fn import_csv_with_base_config(
         &self,
@@ -489,7 +489,7 @@ where
         Ok(chart)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.import_csv", skip(self))]
     pub async fn import_csv(
         &self,
@@ -510,7 +510,7 @@ where
         Ok(chart)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.init_fiscal_year_for_chart", skip(self))]
     pub async fn init_fiscal_year_for_chart(
         &self,
@@ -529,7 +529,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.list_fiscal_years_for_chart", skip(self))]
     pub async fn list_fiscal_years_for_chart(
         &self,
@@ -550,7 +550,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "core_accounting.fiscal_year.find_for_chart_by_year",
         skip(self)
@@ -572,7 +572,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.add_root_node", skip(self))]
     pub async fn add_root_node(
         &self,
@@ -594,7 +594,7 @@ where
         Ok(chart)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_accounting.add_child_node", skip(self))]
     pub async fn add_child_node(
         &self,

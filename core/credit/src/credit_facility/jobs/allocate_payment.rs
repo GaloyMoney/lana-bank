@@ -9,7 +9,7 @@ use authz::PermissionCheck;
 use core_credit_collection::CoreCreditCollection;
 use job::*;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
@@ -92,7 +92,7 @@ where
         From<CoreCreditObject> + From<CoreCreditCollectionObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCreditCollectionEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(
         name = "credit.allocate_credit_facility_payment.process_command",
         skip_all

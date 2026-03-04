@@ -1,5 +1,5 @@
 use tracing::{Span, instrument};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use std::sync::Arc;
 
@@ -173,7 +173,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_events",
         skip(self),
@@ -236,7 +236,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_price_event",
         skip(self)

@@ -3,7 +3,7 @@ use job::*;
 use serde::{Deserialize, Serialize};
 
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::CoreReportEvent;
 use crate::report_run::ReportRunRepo;
@@ -114,7 +114,7 @@ impl<E> JobRunner for TriggerReportRunJobRunner<E>
 where
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(
         name = "core_reports.job.trigger_report_run.run",
         skip(self, _current_job)

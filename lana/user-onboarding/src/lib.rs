@@ -11,7 +11,7 @@ use jobs::*;
 
 use core_access::CoreAccessEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub struct UserOnboarding<E>
 where
@@ -37,7 +37,7 @@ impl<E> UserOnboarding<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "user_onboarding.init", skip_all)]
     pub async fn init(
         jobs: &mut ::job::Jobs,

@@ -4,7 +4,7 @@ mod error;
 use core_credit::PaymentSourceAccountId;
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use authz::PermissionCheck;
 
@@ -74,7 +74,7 @@ pub struct LanaApp {
 }
 
 impl LanaApp {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "lana_app.init", skip_all)]
     pub async fn init(
         pool: PgPool,
@@ -329,7 +329,7 @@ impl LanaApp {
         &self.outbox
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "lana.audit.list_audit", skip(self))]
     pub async fn list_audit(
         &self,
@@ -362,7 +362,7 @@ impl LanaApp {
             .map_err(ApplicationError::from)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "lana.audit.list_audit_subjects", skip(self))]
     pub async fn list_audit_subjects(
         &self,
@@ -438,7 +438,7 @@ impl LanaApp {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "lana.app.create_proposal", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty))]
     pub async fn create_facility_proposal(
         &self,
@@ -473,7 +473,7 @@ impl LanaApp {
         Ok(ret)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "lana.app.record_payment", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty))]
     pub async fn record_payment(
         &self,
@@ -503,7 +503,7 @@ impl LanaApp {
         Ok(ret)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "lana.app.record_payment_with_date", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty))]
     pub async fn record_payment_with_date(
         &self,

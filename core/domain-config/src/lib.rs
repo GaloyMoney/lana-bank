@@ -140,7 +140,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use encryption::EncryptionKey;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use encryption::EncryptionConfig;
 pub use entity::DomainConfig;
@@ -205,7 +205,7 @@ impl InternalDomainConfigs {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.get", skip(self))]
     pub async fn get<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
@@ -215,7 +215,7 @@ impl InternalDomainConfigs {
         C::Flavor::try_new::<C>(entity, &self.encryption_config)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.update", skip(self, value))]
     pub async fn update<C>(
         &self,
@@ -233,13 +233,13 @@ impl InternalDomainConfigs {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.begin_op", skip(self))]
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, DomainConfigError> {
         Ok(self.repo.begin_op().await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.update_in_op", skip(self, op, value))]
     pub async fn update_in_op<C>(
         &self,
@@ -266,7 +266,7 @@ impl ExposedDomainConfigsReadOnly {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.get_without_audit", skip(self))]
     pub async fn get_without_audit<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
@@ -295,7 +295,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.get", skip(self), fields(subject = %sub))]
     pub async fn get<C>(
         &self,
@@ -309,7 +309,7 @@ where
         C::Flavor::try_new::<C>(entity, &self.encryption_config)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.update", skip(self, value), fields(subject = %sub))]
     pub async fn update<C>(
         &self,
@@ -330,7 +330,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.list_exposed_configs", skip(self, query), fields(subject = %sub))]
     pub async fn list(
         &self,
@@ -355,7 +355,7 @@ where
     /// pattern where DataLoader "find_all" methods are auth-free and are only called after a
     /// higher-level, subject-aware endpoint has already enforced access. In practice it’s used for
     /// GraphQL field loading, which doesn’t carry subject into the loader.
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.find_all_exposed", skip(self))]
     pub async fn find_all<T: From<DomainConfig>>(
         &self,
@@ -364,7 +364,7 @@ where
         self.repo.find_all_exposed(ids).await
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.find_all_authorized", skip(self))]
     pub async fn find_all_authorized<T: From<DomainConfig>>(
         &self,
@@ -375,7 +375,7 @@ where
         self.repo.find_all_exposed(ids).await
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "domain_config.update_exposed_from_json", skip(self, value), fields(subject = %sub))]
     pub async fn update_from_json(
         &self,

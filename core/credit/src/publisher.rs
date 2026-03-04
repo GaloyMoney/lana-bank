@@ -1,5 +1,6 @@
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
+use tracing_macros::observe_error;
 
 use crate::{
     credit_facility::{
@@ -40,6 +41,7 @@ where
         }
     }
 
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.publisher.publish_facility_in_op", skip_all)]
     pub async fn publish_facility_in_op(
         &self,
@@ -75,6 +77,7 @@ where
         Ok(())
     }
 
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "credit.publisher.publish_interest_accrual_cycle_in_op",
         skip_all
@@ -100,6 +103,7 @@ where
         Ok(())
     }
 
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.publisher.publish_proposal_in_op", skip_all)]
     pub async fn publish_proposal_in_op(
         &self,
@@ -128,6 +132,7 @@ where
         Ok(())
     }
 
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "credit.publisher.publish_pending_credit_facility_in_op",
         skip_all
@@ -159,6 +164,7 @@ where
         Ok(())
     }
 
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.publisher.publish_disbursal_in_op", skip_all)]
     pub async fn publish_disbursal_in_op(
         &self,
