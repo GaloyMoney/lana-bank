@@ -172,6 +172,7 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
+    #[observe_error]
     #[instrument(
         name = "collateral.record_liquidation_started_in_op",
         skip(self, db),

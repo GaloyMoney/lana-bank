@@ -173,7 +173,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    #[observe_error(allow_single_error_alert)]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_events",
         skip(self),
@@ -236,7 +236,7 @@ where
         Ok(())
     }
 
-    #[observe_error(allow_single_error_alert)]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_price_event",
         skip(self)
