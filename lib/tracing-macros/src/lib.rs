@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    parse::Parse, parse::ParseStream, parse_macro_input, Ident, ItemFn, ReturnType, Token, Type,
+    Ident, ItemFn, ReturnType, Token, Type, parse::Parse, parse::ParseStream, parse_macro_input,
 };
 
 /// Arguments for the `observe_error` macro.
@@ -192,86 +192,6 @@ pub fn observe_error(args: TokenStream, input: TokenStream) -> TokenStream {
         }
     };
 
-    let result = quote! {
-        #(#fn_attrs)*
-        #fn_vis #fn_sig #new_body
-    };
-
-    TokenStream::from(result)
-}
-
-#[proc_macro_attribute]
-pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStream {
-    let function = parse_macro_input!(input as ItemFn);
-
-    // Check if function returns a Result
-    let returns_result = match &function.sig.output {
-        ReturnType::Default => false,
-        ReturnType::Type(_, ty) => is_result_type(ty),
-    };
-
-    if !returns_result {
-        // If not returning Result, just return the original function
-        return TokenStream::from(quote! { #function });
-    }
-
-    // Extract function components
-    let fn_vis = &function.vis;
-    let fn_sig = &function.sig;
-    let fn_body = &function.block;
-    let fn_attrs = &function.attrs;
-    let is_async = function.sig.asyncness.is_some();
-
-    // Extract the return type from the function signature
-    let return_type = match &function.sig.output {
-        ReturnType::Default => quote! { () },
-        ReturnType::Type(_, ty) => quote! { #ty },
-    };
-
-    // Create the execution part based on whether the function is async
-    let execute_body = if is_async {
-        quote! { async move #fn_body.await }
-    } else {
-        quote! { #fn_body }
-    };
-
-    // Create the new function body that wraps the original
-    let new_body = quote! {
-        {
-            // Execute the original function body directly
-            let __result: #return_type = #execute_body;
-
-            // Record error severity if it's an Err
-            if let Err(ref __e) = __result {
-                use tracing_utils::ErrorSeverity;
-
-                let __severity = __e.severity();
-
-                // Emit event at appropriate level with "error" field for OpenTelemetry
-                match __severity {
-                    ::tracing::Level::ERROR => {
-                        ::tracing::event!(::tracing::Level::ERROR, error = &::tracing::field::display(__e));
-                    }
-                    ::tracing::Level::WARN => {
-                        ::tracing::event!(::tracing::Level::WARN, error = &::tracing::field::display(__e));
-                    }
-                    ::tracing::Level::INFO => {
-                        ::tracing::event!(::tracing::Level::INFO, error = &::tracing::field::display(__e));
-                    }
-                    ::tracing::Level::DEBUG => {
-                        ::tracing::event!(::tracing::Level::DEBUG, error = &::tracing::field::display(__e));
-                    }
-                    ::tracing::Level::TRACE => {
-                        ::tracing::event!(::tracing::Level::TRACE, error = &::tracing::field::display(__e));
-                    }
-                }
-            }
-
-            __result
-        }
-    };
-
-    // Generate the complete wrapped function
     let result = quote! {
         #(#fn_attrs)*
         #fn_vis #fn_sig #new_body
