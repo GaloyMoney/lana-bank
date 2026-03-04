@@ -1,15 +1,17 @@
 use async_graphql::{connection::*, *};
+use es_entity::Sort;
 
 use crate::primitives::*;
 
 pub use lana_app::deposit::{
     DepositAccount as DomainDepositAccount, DepositAccountHistoryCursor,
     DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry, DepositAccountStatus,
+    DepositAccountsSortBy as DomainDepositAccountsSortBy,
 };
 
 use super::{
     accounting::LedgerAccount, customer::Customer, deposit::*, deposit_account_history::*,
-    loader::LanaDataLoader, withdrawal::*,
+    loader::LanaDataLoader, primitives::SortDirection, withdrawal::*,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -178,4 +180,43 @@ impl DepositAccount {
 #[derive(InputObject)]
 pub struct DepositAccountsFilter {
     pub status: Option<DepositAccountStatus>,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DepositAccountsSortBy {
+    #[default]
+    CreatedAt,
+    PublicId,
+}
+
+impl From<DepositAccountsSortBy> for DomainDepositAccountsSortBy {
+    fn from(by: DepositAccountsSortBy) -> Self {
+        match by {
+            DepositAccountsSortBy::CreatedAt => DomainDepositAccountsSortBy::CreatedAt,
+            DepositAccountsSortBy::PublicId => DomainDepositAccountsSortBy::PublicId,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct DepositAccountsSort {
+    #[graphql(default)]
+    pub by: DepositAccountsSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<DepositAccountsSort> for Sort<DomainDepositAccountsSortBy> {
+    fn from(sort: DepositAccountsSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<DepositAccountsSort> for DomainDepositAccountsSortBy {
+    fn from(sort: DepositAccountsSort) -> Self {
+        sort.by.into()
+    }
 }

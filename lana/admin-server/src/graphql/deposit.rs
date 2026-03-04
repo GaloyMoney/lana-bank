@@ -5,7 +5,7 @@ use crate::{graphql::accounting::LedgerTransaction, primitives::*};
 
 use super::{loader::LanaDataLoader, primitives::SortDirection};
 
-pub use super::deposit_account::{DepositAccount, DepositAccountsFilter};
+pub use super::deposit_account::{DepositAccount, DepositAccountsFilter, DepositAccountsSort};
 
 pub use lana_app::{
     deposit::{

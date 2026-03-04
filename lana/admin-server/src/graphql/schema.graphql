@@ -1297,6 +1297,16 @@ input DepositAccountsFilter {
 	status: DepositAccountStatus
 }
 
+input DepositAccountsSort {
+	by: DepositAccountsSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum DepositAccountsSortBy {
+	CREATED_AT
+	PUBLIC_ID
+}
+
 type DepositConnection {
 	"""
 	Information to aid in pagination.
@@ -2329,7 +2339,7 @@ type Query {
 	depositByPublicId(id: PublicId!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	depositAccountByPublicId(id: PublicId!): DepositAccount
-	depositAccounts(first: Int!, after: String, filter: DepositAccountsFilter): DepositAccountConnection!
+	depositAccounts(first: Int!, after: String, sort: DepositAccountsSort = {by: CREATED_AT, direction: ASC}, filter: DepositAccountsFilter): DepositAccountConnection!
 	deposits(first: Int!, after: String, sort: DepositsSort = {by: CREATED_AT, direction: ASC}, filter: DepositsFilter): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!

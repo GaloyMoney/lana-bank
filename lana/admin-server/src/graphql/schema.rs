@@ -327,6 +327,9 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(DepositAccountsSort::default())")] sort: Option<
+            DepositAccountsSort,
+        >,
         filter: Option<DepositAccountsFilter>,
     ) -> async_graphql::Result<
         Connection<DepositAccountsCursor, DepositAccount, EmptyFields, EmptyFields>,
@@ -335,15 +338,18 @@ impl Query {
             status: filter.as_ref().and_then(|f| f.status),
             ..Default::default()
         };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             DepositAccountsCursor,
             DepositAccount,
-            DomainDepositAccountsSortBy::CreatedAt,
+            DomainDepositAccountsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.deposits().list_accounts(sub, query, filter)
+            |query| app
+                .deposits()
+                .list_accounts(sub, query, filter, sort.into())
         )
     }
 

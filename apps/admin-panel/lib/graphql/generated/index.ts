@@ -1304,6 +1304,16 @@ export type DepositAccountsFilter = {
   status?: InputMaybe<DepositAccountStatus>;
 };
 
+export type DepositAccountsSort = {
+  by?: DepositAccountsSortBy;
+  direction?: SortDirection;
+};
+
+export enum DepositAccountsSortBy {
+  CreatedAt = 'CREATED_AT',
+  PublicId = 'PUBLIC_ID'
+}
+
 export type DepositConnection = {
   __typename?: 'DepositConnection';
   /** A list of edges. */
@@ -2764,6 +2774,7 @@ export type QueryDepositAccountsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<DepositAccountsFilter>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<DepositAccountsSort>;
 };
 
 
@@ -4228,6 +4239,7 @@ export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: 
 export type DepositAccountsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<DepositAccountsSort>;
   filter?: InputMaybe<DepositAccountsFilter>;
 }>;
 
@@ -8825,8 +8837,8 @@ export type DepositAccountCreateMutationHookResult = ReturnType<typeof useDeposi
 export type DepositAccountCreateMutationResult = Apollo.MutationResult<DepositAccountCreateMutation>;
 export type DepositAccountCreateMutationOptions = Apollo.BaseMutationOptions<DepositAccountCreateMutation, DepositAccountCreateMutationVariables>;
 export const DepositAccountsDocument = gql`
-    query DepositAccounts($first: Int!, $after: String, $filter: DepositAccountsFilter) {
-  depositAccounts(first: $first, after: $after, filter: $filter) {
+    query DepositAccounts($first: Int!, $after: String, $sort: DepositAccountsSort, $filter: DepositAccountsFilter) {
+  depositAccounts(first: $first, after: $after, sort: $sort, filter: $filter) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -8857,6 +8869,7 @@ export const DepositAccountsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *      filter: // value for 'filter'
  *   },
  * });

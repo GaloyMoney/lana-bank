@@ -10,6 +10,8 @@ import {
   DepositAccount,
   DepositAccountStatus,
   DepositAccountsFilter,
+  DepositAccountsSort,
+  SortDirection,
   useDepositAccountsQuery,
 } from "@/lib/graphql/generated"
 
@@ -20,6 +22,7 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
 import { PublicIdBadge } from "@/components/public-id-badge"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment DepositAccountFields on DepositAccount {
@@ -38,8 +41,8 @@ gql`
     }
   }
 
-  query DepositAccounts($first: Int!, $after: String, $filter: DepositAccountsFilter) {
-    depositAccounts(first: $first, after: $after, filter: $filter) {
+  query DepositAccounts($first: Int!, $after: String, $sort: DepositAccountsSort, $filter: DepositAccountsFilter) {
+    depositAccounts(first: $first, after: $after, sort: $sort, filter: $filter) {
       pageInfo {
         hasPreviousPage
         hasNextPage
@@ -59,10 +62,12 @@ gql`
 const DepositAccounts = () => {
   const t = useTranslations("DepositAccounts.table")
   const [filter, setFilter] = useState<DepositAccountsFilter | null>(null)
+  const [sortBy, setSortBy] = useState<DepositAccountsSort | null>(null)
 
   const { data, loading, error, fetchMore } = useDepositAccountsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
       filter,
     },
   })
@@ -77,6 +82,12 @@ const DepositAccounts = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(depositAccount) => `/deposit-accounts/${depositAccount.publicId}`}
+        onSort={(column, direction) => {
+          setSortBy({
+            by: camelToScreamingSnake(column as string) as DepositAccountsSort["by"],
+            direction: direction as SortDirection,
+          })
+        }}
         onFilter={(filters) => {
           const f = filters as DepositAccountsFilter
           setFilter(Object.keys(f).length > 0 ? f : null)
@@ -92,6 +103,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<DepositAccount>[
   {
     key: "publicId",
     label: t("headers.depositAccountId"),
+    sortable: true,
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {

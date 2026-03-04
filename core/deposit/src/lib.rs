@@ -1047,6 +1047,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DepositAccountsCursor>,
         filter: DepositAccountsFilters,
+        sort: es_entity::Sort<DepositAccountsSortBy>,
     ) -> Result<es_entity::PaginatedQueryRet<DepositAccount, DepositAccountsCursor>, CoreDepositError>
     {
         self.authz
@@ -1058,14 +1059,7 @@ where
             .await?;
         Ok(self
             .deposit_accounts
-            .list_for_filters(
-                filter,
-                es_entity::Sort {
-                    by: DepositAccountsSortBy::CreatedAt,
-                    direction: es_entity::ListDirection::Descending,
-                },
-                query,
-            )
+            .list_for_filters(filter, sort, query)
             .await?)
     }
 
