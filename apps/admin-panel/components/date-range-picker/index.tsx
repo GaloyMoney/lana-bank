@@ -15,11 +15,6 @@ export type DateRange = {
   until: string
 }
 
-const parseLocalDate = (date: string): Date => {
-  const [year, month, day] = date.split("-").map(Number)
-  return new Date(year, month - 1, day)
-}
-
 type DateRangeSelectorProps = {
   initialDateRange: DateRange
   onDateChange: (dateRange: DateRange) => void
@@ -210,10 +205,10 @@ export const DateRangeSelector = ({
   const [dateRange, setDateRange] = useState<DateRange>(initialDateRange)
 
   const [selectedFrom, setSelectedFrom] = useState<Date | undefined>(
-    parseLocalDate(initialDateRange.from),
+    parseDateString(initialDateRange.from),
   )
   const [selectedTo, setSelectedTo] = useState<Date | undefined>(
-    parseLocalDate(initialDateRange.until),
+    parseDateString(initialDateRange.until),
   )
 
   const today = useMemo(() => {
@@ -227,8 +222,8 @@ export const DateRangeSelector = ({
       const range = preset.getRange()
       setSelection({ type: "preset", key: preset.key })
       setDateRange(range)
-      setSelectedFrom(parseLocalDate(range.from))
-      setSelectedTo(parseLocalDate(range.until))
+      setSelectedFrom(parseDateString(range.from))
+      setSelectedTo(parseDateString(range.until))
       onDateChange(range)
       setShowCustom(false)
       setIsOpen(false)
@@ -260,7 +255,7 @@ export const DateRangeSelector = ({
   const triggerLabel =
     selection.type === "preset"
       ? formatPresetLabel(t, selection.key)
-      : `${formatDate(parseLocalDate(dateRange.from), { includeTime: false })} - ${formatDate(parseLocalDate(dateRange.until), { includeTime: false })}`
+      : `${formatDate(parseDateString(dateRange.from), { includeTime: false })} - ${formatDate(parseDateString(dateRange.until), { includeTime: false })}`
 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
