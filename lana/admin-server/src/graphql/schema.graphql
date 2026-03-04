@@ -1027,6 +1027,7 @@ type Customer {
 	status: CustomerStatus!
 	kycVerification: KycVerification!
 	activity: Activity!
+	status: CustomerStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
@@ -1041,6 +1042,14 @@ type Customer {
 	creditFacilityProposals: [CreditFacilityProposal!]!
 	documents: [CustomerDocument!]!
 	userCanCreateCreditFacility: Boolean!
+}
+
+input CustomerCloseInput {
+	customerId: UUID!
+}
+
+type CustomerClosePayload {
+	customer: Customer!
 }
 
 type CustomerConnection {
@@ -1134,6 +1143,7 @@ type CustomerFreezePayload {
 enum CustomerStatus {
 	ACTIVE
 	FROZEN
+	CLOSED
 }
 
 input CustomerTelegramHandleUpdateInput {
@@ -1999,6 +2009,7 @@ type Mutation {
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	customerFreeze(input: CustomerFreezeInput!): CustomerFreezePayload!
 	customerUnfreeze(input: CustomerUnfreezeInput!): CustomerUnfreezePayload!
+	customerClose(input: CustomerCloseInput!): CustomerClosePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!

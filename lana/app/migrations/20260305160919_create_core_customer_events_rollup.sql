@@ -13,6 +13,7 @@ CREATE TABLE core_customer_events_rollup (
   level VARCHAR,
   party_id UUID,
   public_id VARCHAR,
+  status VARCHAR,
 
   -- Toggle fields
   is_kyc_approved BOOLEAN DEFAULT false
@@ -39,7 +40,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'activity_updated', 'kyc_rejected') THEN
+  IF event_type NOT IN ('initialized', 'activity_updated', 'kyc_rejected', 'closed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -60,6 +61,7 @@ BEGIN
     new_row.level := (NEW.event ->> 'level');
     new_row.party_id := (NEW.event ->> 'party_id')::UUID;
     new_row.public_id := (NEW.event ->> 'public_id');
+    new_row.status := (NEW.event ->> 'status');
   ELSE
     -- Default all fields to current values
     new_row.activity := current_row.activity;
@@ -70,6 +72,7 @@ BEGIN
     new_row.level := current_row.level;
     new_row.party_id := current_row.party_id;
     new_row.public_id := current_row.public_id;
+    new_row.status := current_row.status;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -85,6 +88,8 @@ BEGIN
     WHEN 'activity_updated' THEN
       new_row.activity := (NEW.event ->> 'activity');
     WHEN 'kyc_rejected' THEN
+    WHEN 'closed' THEN
+      new_row.status := (NEW.event ->> 'status');
   END CASE;
 
   INSERT INTO core_customer_events_rollup (
@@ -100,7 +105,8 @@ BEGIN
     kyc_verification,
     level,
     party_id,
-    public_id
+    public_id,
+    status
   )
   VALUES (
     new_row.id,
@@ -115,7 +121,8 @@ BEGIN
     new_row.kyc_verification,
     new_row.level,
     new_row.party_id,
-    new_row.public_id
+    new_row.public_id,
+    new_row.status
   );
 
   RETURN NEW;

@@ -1509,6 +1509,20 @@ impl Mutation {
         )
     }
 
+    async fn customer_close(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerCloseInput,
+    ) -> async_graphql::Result<CustomerClosePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerClosePayload,
+            Customer,
+            ctx,
+            app.close_customer(sub, input.customer_id)
+        )
+    }
+
     async fn domain_config_update(
         &self,
         ctx: &Context<'_>,

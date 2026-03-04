@@ -11,7 +11,8 @@
     "CustomerStatus": {
       "enum": [
         "active",
-        "frozen"
+        "frozen",
+        "closed"
       ],
       "type": "string"
     },
@@ -143,6 +144,22 @@
         },
         "type": {
           "const": "unfrozen",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CustomerStatus"
+        },
+        "type": {
+          "const": "closed",
           "type": "string"
         }
       },

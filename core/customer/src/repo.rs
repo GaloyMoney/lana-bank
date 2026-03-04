@@ -17,7 +17,8 @@ use super::entity::*;
         kyc_verification(ty = "KycVerification", list_for),
         activity(ty = "Activity", list_for),
         customer_type(ty = "CustomerType", list_for, update(persist = false)),
-        public_id(ty = "PublicId", list_by)
+        public_id(ty = "PublicId", list_by),
+        status(ty = "CustomerStatus", list_for)
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -63,6 +64,44 @@ where
         new_events: es_entity::LastPersisted<'_, CustomerEvent>,
     ) -> Result<(), sqlx::Error> {
         self.publisher.publish_in_op(db, entity, new_events).await
+    }
+}
+
+mod customer_status_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use crate::primitives::CustomerStatus;
+
+    impl Type<Postgres> for CustomerStatus {
+        fn type_info() -> PgTypeInfo {
+            <String as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <String as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for CustomerStatus {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for CustomerStatus {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
+        }
+    }
+
+    impl PgHasArrayType for CustomerStatus {
+        fn array_type_info() -> PgTypeInfo {
+            <String as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
     }
 }
 

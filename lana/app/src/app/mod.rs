@@ -539,4 +539,115 @@ impl LanaApp {
 
         Ok(ret)
     }
+
+    #[record_error_severity]
+    #[instrument(name = "lana.app.close_customer", skip(self))]
+    pub async fn close_customer(
+        &self,
+        sub: &Subject,
+        customer_id: impl Into<crate::primitives::CustomerId> + std::fmt::Debug + Copy,
+    ) -> Result<crate::customer::Customer, ApplicationError> {
+        let customer_id = customer_id.into();
+
+        // Precondition: all credit facilities must be closed
+        let facilities = self
+            .credit()
+            .facilities()
+            .list(
+                sub,
+                Default::default(),
+                crate::credit::CreditFacilitiesFilters {
+                    customer_id: Some(customer_id),
+                    ..Default::default()
+                },
+                crate::credit::Sort {
+                    by: crate::credit::CreditFacilitiesSortBy::CreatedAt,
+                    direction: crate::credit::ListDirection::Descending,
+                },
+            )
+            .await
+            .map_err(crate::credit::error::CoreCreditError::from)?;
+        if facilities
+            .entities
+            .iter()
+            .any(|f| f.status() != crate::credit::CreditFacilityStatus::Closed)
+        {
+            return Err(ApplicationError::CustomerClosePreconditionFailed(
+                "has active credit facilities".to_string(),
+            ));
+        }
+
+        // Precondition: all credit facility proposals must be in terminal state
+        let proposals = self
+            .credit()
+            .proposals()
+            .list_for_customer_by_created_at(sub, customer_id)
+            .await
+            .map_err(crate::credit::error::CoreCreditError::from)?;
+        if proposals.iter().any(|p| {
+            !matches!(
+                p.status(),
+                crate::credit::CreditFacilityProposalStatus::Denied
+                    | crate::credit::CreditFacilityProposalStatus::Approved
+                    | crate::credit::CreditFacilityProposalStatus::CustomerDenied
+            )
+        }) {
+            return Err(ApplicationError::CustomerClosePreconditionFailed(
+                "has pending credit facility proposals".to_string(),
+            ));
+        }
+
+        // Precondition: no pending credit facilities awaiting collateralization
+        let pending_facilities = self
+            .credit()
+            .pending_credit_facilities()
+            .list_for_customer_by_created_at(sub, customer_id)
+            .await
+            .map_err(crate::credit::error::CoreCreditError::from)?;
+        if pending_facilities.iter().any(|pf| {
+            pf.status() == crate::credit::PendingCreditFacilityStatus::PendingCollateralization
+        }) {
+            return Err(ApplicationError::CustomerClosePreconditionFailed(
+                "has pending credit facilities awaiting collateralization".to_string(),
+            ));
+        }
+
+        // Precondition: all deposit accounts must be closed
+        let deposit_accounts = self
+            .deposits()
+            .list_accounts_by_created_at_for_account_holder(
+                sub,
+                customer_id,
+                Default::default(),
+                crate::credit::ListDirection::Descending,
+            )
+            .await?;
+        if deposit_accounts.entities.iter().any(|a| !a.is_closed()) {
+            return Err(ApplicationError::CustomerClosePreconditionFailed(
+                "has active deposit accounts".to_string(),
+            ));
+        }
+
+        // Precondition: no pending withdrawals
+        for account in &deposit_accounts.entities {
+            let withdrawals = self
+                .deposits()
+                .list_withdrawals_for_account(sub, account.id)
+                .await?;
+            if withdrawals.iter().any(|w| {
+                matches!(
+                    w.status(),
+                    crate::deposit::WithdrawalStatus::PendingApproval
+                        | crate::deposit::WithdrawalStatus::PendingConfirmation
+                )
+            }) {
+                return Err(ApplicationError::CustomerClosePreconditionFailed(
+                    "has pending withdrawals".to_string(),
+                ));
+            }
+        }
+
+        let customer = self.customers().close_customer(sub, customer_id).await?;
+        Ok(customer)
+    }
 }

@@ -224,6 +224,12 @@ pub struct CustomerUnfreezeInput {
 }
 crate::mutation_payload! { CustomerUnfreezePayload, customer: Customer }
 
+#[derive(InputObject)]
+pub struct CustomerCloseInput {
+    pub customer_id: UUID,
+}
+crate::mutation_payload! { CustomerClosePayload, customer: Customer }
+
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CustomersSortBy {
     #[default]

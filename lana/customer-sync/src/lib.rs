@@ -88,6 +88,18 @@ where
             )
             .await?;
 
+        let disable_keycloak_user_spawner = jobs.add_initializer(
+            DisableKeycloakUserJobInitializer::new(keycloak_client.clone()),
+        );
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CUSTOMER_SYNC_DISABLE_KEYCLOAK_USER),
+                SyncCustomerCloseKeycloakHandler::new(disable_keycloak_user_spawner),
+            )
+            .await?;
+
         let update_user_email_spawner =
             jobs.add_initializer(UpdateUserEmailJobInitializer::new(keycloak_client.clone()));
 

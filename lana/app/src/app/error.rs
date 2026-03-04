@@ -68,6 +68,8 @@ pub enum ApplicationError {
     CanNotCreateProposalForClosedOrFrozenAccount,
     #[error("ApplicationError - ClosedOrFrozenAccount")]
     ClosedOrFrozenAccount,
+    #[error("ApplicationError - CustomerClosePreconditionFailed: {0}")]
+    CustomerClosePreconditionFailed(String),
 }
 
 impl ErrorSeverity for ApplicationError {
@@ -104,6 +106,7 @@ impl ErrorSeverity for ApplicationError {
             Self::TracingError(e) => e.severity(),
             Self::CanNotCreateProposalForClosedOrFrozenAccount => Level::WARN,
             Self::ClosedOrFrozenAccount => Level::WARN,
+            Self::CustomerClosePreconditionFailed(_) => Level::WARN,
             Self::TimeEventsError(e) => e.severity(),
         }
     }

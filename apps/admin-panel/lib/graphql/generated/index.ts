@@ -1070,6 +1070,15 @@ export type Customer = {
   userCanCreateCreditFacility: Scalars['Boolean']['output'];
 };
 
+export type CustomerCloseInput = {
+  customerId: Scalars['UUID']['input'];
+};
+
+export type CustomerClosePayload = {
+  __typename?: 'CustomerClosePayload';
+  customer: Customer;
+};
+
 export type CustomerConnection = {
   __typename?: 'CustomerConnection';
   /** A list of edges. */
@@ -1157,7 +1166,8 @@ export type CustomerFreezePayload = {
 
 export enum CustomerStatus {
   Active = 'ACTIVE',
-  Frozen = 'FROZEN'
+  Frozen = 'FROZEN',
+  Closed = 'CLOSED'
 }
 
 export type CustomerTelegramHandleUpdateInput = {
@@ -2008,6 +2018,7 @@ export type Mutation = {
   creditModuleConfigure: CreditModuleConfigurePayload;
   custodianConfigUpdate: CustodianConfigUpdatePayload;
   custodianCreate: CustodianCreatePayload;
+  customerClose: CustomerClosePayload;
   customerDocumentArchive: CustomerDocumentArchivePayload;
   customerDocumentAttach: CustomerDocumentCreatePayload;
   customerDocumentDelete: CustomerDocumentDeletePayload;
@@ -2156,6 +2167,11 @@ export type MutationCustodianConfigUpdateArgs = {
 
 export type MutationCustodianCreateArgs = {
   input: CustodianCreateInput;
+};
+
+
+export type MutationCustomerCloseArgs = {
+  input: CustomerCloseInput;
 };
 
 

@@ -34,6 +34,9 @@ pub enum CustomerEvent {
     Unfrozen {
         status: CustomerStatus,
     },
+    Closed {
+        status: CustomerStatus,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -82,6 +85,14 @@ impl Customer {
         self.events
             .push(CustomerEvent::ActivityUpdated { activity });
         self.activity = activity;
+        Idempotent::Executed(())
+    }
+
+    pub(crate) fn close(&mut self) -> Idempotent<()> {
+        idempotency_guard!(self.events.iter_all().rev(), CustomerEvent::Closed { .. });
+        let status = CustomerStatus::Closed;
+        self.events.push(CustomerEvent::Closed { status });
+        self.status = status;
         Idempotent::Executed(())
     }
 
@@ -166,6 +177,9 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 CustomerEvent::Unfrozen { status } => {
                     builder = builder.status(*status);
                 }
+                CustomerEvent::Closed { status } => {
+                    builder = builder.status(*status);
+                }
             }
         }
 
@@ -186,6 +200,8 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(crate) applicant_id: String,
     pub(crate) level: KycLevel,
+    #[builder(setter(skip), default)]
+    pub(crate) status: CustomerStatus,
 }
 
 impl NewCustomer {

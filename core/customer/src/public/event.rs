@@ -13,6 +13,7 @@ pub enum CoreCustomerEvent {
     CustomerKycUpdated { entity: PublicCustomer },
     CustomerFrozen { entity: PublicCustomer },
     CustomerUnfrozen { entity: PublicCustomer },
+    CustomerClosed { entity: PublicCustomer },
     PartyCreated { entity: PublicParty },
     PartyEmailUpdated { entity: PublicParty },
     ProspectCreated { entity: PublicProspect },

@@ -94,6 +94,7 @@
       "customerTelegramIdUpdate": "Actualiza el identificador de Telegram de un cliente",
       "customerTelegramHandleUpdate": "Actualiza el nombre de usuario de Telegram de un cliente",
       "customerEmailUpdate": "Actualiza la direccion de correo electronico de un cliente",
+      "customerClose": "Cierra una cuenta de cliente despues de verificar que se cumplan todas las precondiciones",
       "domainConfigUpdate": "Actualiza una configuracion de dominio",
       "depositModuleConfigure": "Configura los mapeos del catalogo de cuentas del modulo de depositos",
       "manualTransactionExecute": "Ejecuta una transaccion contable manual con asientos especificados",

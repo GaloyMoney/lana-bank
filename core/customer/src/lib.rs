@@ -691,6 +691,30 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.close_customer", skip(self))]
+    pub async fn close_customer(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer(id),
+                CoreCustomerAction::CUSTOMER_CLOSE,
+            )
+            .await?;
+
+        let mut customer = self.repo.find_by_id(id).await?;
+        if customer.close().did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
+
+        Ok(customer)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.close_prospect", skip(self))]
     pub async fn close_prospect(
         &self,

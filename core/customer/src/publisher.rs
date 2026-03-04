@@ -51,6 +51,9 @@ where
                 Unfrozen { .. } => Some(CoreCustomerEvent::CustomerUnfrozen {
                     entity: PublicCustomer::from(entity),
                 }),
+                Closed { .. } => Some(CoreCustomerEvent::CustomerClosed {
+                    entity: PublicCustomer::from(entity),
+                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

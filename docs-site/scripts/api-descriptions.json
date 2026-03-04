@@ -96,6 +96,7 @@
       "customerEmailUpdate": "Updates a customer's email address",
       "customerFreeze": "Freezes a customer account, blocking all financial operations and freezing their deposit accounts",
       "customerUnfreeze": "Unfreezes a previously frozen customer account, restoring normal operations and unfreezing their deposit accounts",
+      "customerClose": "Closes a customer account after verifying all preconditions are met",
       "domainConfigUpdate": "Updates a domain configuration setting",
       "depositModuleConfigure": "Configures the deposit module's chart of accounts mappings",
       "manualTransactionExecute": "Executes a manual ledger transaction with specified entries",
