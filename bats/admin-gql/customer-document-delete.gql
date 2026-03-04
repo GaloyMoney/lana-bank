@@ -1,5 +1,0 @@
-mutation CustomerDocumentDelete($input: CustomerDocumentDeleteInput!) {
-  customerDocumentDelete(input: $input) {
-    deletedDocumentId
-  }
-}

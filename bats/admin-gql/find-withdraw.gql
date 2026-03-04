@@ -1,6 +1,0 @@
-query withdraw($id: UUID!) {
-  withdrawal(id: $id) {
-    withdrawalId
-    status
-  }
-}

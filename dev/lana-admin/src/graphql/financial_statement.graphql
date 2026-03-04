@@ -1,0 +1,175 @@
+query BalanceSheetGet($asOf: Date!) {
+  balanceSheet(asOf: $asOf) {
+    name
+    assetsBalance {
+      usd {
+        settled {
+          debit
+          credit
+          net
+        }
+      }
+      btc {
+        settled {
+          debit
+          credit
+          net
+        }
+      }
+    }
+    liabilitiesBalance {
+      usd {
+        settled {
+          debit
+          credit
+          net
+        }
+      }
+      btc {
+        settled {
+          debit
+          credit
+          net
+        }
+      }
+    }
+    equityBalance {
+      usd {
+        settled {
+          debit
+          credit
+          net
+        }
+      }
+      btc {
+        settled {
+          debit
+          credit
+          net
+        }
+      }
+    }
+    categories {
+      balanceSheetAccountId
+      ledgerAccountId
+      code
+      name
+      balance {
+        usd {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+        btc {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+      }
+    }
+  }
+}
+
+query TrialBalanceGet($from: Date!, $until: Date!) {
+  trialBalance(from: $from, until: $until) {
+    name
+    total {
+      usd {
+        close {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+      }
+      btc {
+        close {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+      }
+    }
+    accounts {
+      name
+      balanceRange {
+        __typename
+        ... on UsdLedgerAccountBalanceRange {
+          close {
+            settled {
+              debit
+              credit
+              net
+            }
+          }
+        }
+        ... on BtcLedgerAccountBalanceRange {
+          close {
+            settled {
+              debit
+              credit
+              net
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+query ProfitAndLossGet($from: Date!, $until: Date) {
+  profitAndLossStatement(from: $from, until: $until) {
+    name
+    total {
+      usd {
+        close {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+      }
+      btc {
+        close {
+          settled {
+            debit
+            credit
+            net
+          }
+        }
+      }
+    }
+    categories {
+      name
+      balanceRange {
+        __typename
+        ... on UsdLedgerAccountBalanceRange {
+          close {
+            settled {
+              debit
+              credit
+              net
+            }
+          }
+        }
+        ... on BtcLedgerAccountBalanceRange {
+          close {
+            settled {
+              debit
+              credit
+              net
+            }
+          }
+        }
+      }
+    }
+  }
+}

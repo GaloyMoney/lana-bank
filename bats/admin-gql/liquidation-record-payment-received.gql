@@ -1,7 +1,0 @@
-mutation CollateralRecordProceedsFromLiquidation($input: CollateralRecordProceedsFromLiquidationInput!) {
-  collateralRecordProceedsFromLiquidation(input: $input) {
-    collateral {
-      collateralId
-    }
-  }
-}

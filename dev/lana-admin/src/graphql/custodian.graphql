@@ -1,0 +1,15 @@
+mutation CustodianCreate($input: CustodianCreateInput!) {
+  custodianCreate(input: $input) {
+    custodian {
+      custodianId
+    }
+  }
+}
+
+mutation CustodianConfigUpdate($input: CustodianConfigUpdateInput!) {
+  custodianConfigUpdate(input: $input) {
+    custodian {
+      custodianId
+    }
+  }
+}

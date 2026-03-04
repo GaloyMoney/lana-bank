@@ -1,0 +1,8 @@
+query DashboardGet {
+  dashboard {
+    activeFacilities
+    pendingFacilities
+    totalDisbursed
+    totalCollateral
+  }
+}

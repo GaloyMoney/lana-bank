@@ -1,0 +1,73 @@
+mutation ProspectCreate($input: ProspectCreateInput!) {
+  prospectCreate(input: $input) {
+    prospect {
+      prospectId
+      publicId
+      email
+      telegramHandle
+      customerType
+      stage
+      status
+      createdAt
+    }
+  }
+}
+
+query ProspectsList($first: Int!, $after: String) {
+  prospects(first: $first, after: $after) {
+    nodes {
+      prospectId
+      publicId
+      email
+      telegramHandle
+      customerType
+      stage
+      status
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query ProspectGet($id: UUID!) {
+  prospect(id: $id) {
+    prospectId
+    publicId
+    email
+    telegramHandle
+    customerType
+    stage
+    status
+    kycStatus
+    level
+    createdAt
+    applicantId
+  }
+}
+
+mutation ProspectConvert($input: ProspectConvertInput!) {
+  prospectConvert(input: $input) {
+    customer {
+      customerId
+      publicId
+      email
+      customerType
+      createdAt
+    }
+  }
+}
+
+mutation ProspectClose($input: ProspectCloseInput!) {
+  prospectClose(input: $input) {
+    prospect {
+      prospectId
+      publicId
+      email
+      stage
+      status
+    }
+  }
+}

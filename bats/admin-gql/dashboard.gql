@@ -1,8 +1,0 @@
-query Dashboard() {
-  dashboard {
-    activeFacilities
-    pendingFacilities
-    totalDisbursed
-    totalCollateral
-  }
-}

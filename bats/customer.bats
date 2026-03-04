@@ -7,6 +7,7 @@ RUN_LOG_FILE="customer.run.e2e-logs"
 setup_file() {
   start_server
   login_superadmin
+  login_lanacli
 }
 
 teardown_file() {
@@ -14,14 +15,10 @@ teardown_file() {
 }
 
 wait_for_approval() {
-  variables=$(
-    jq -n \
-      --arg withdrawId "$1" \
-    '{ id: $withdrawId }'
-  )
-  exec_admin_graphql 'find-withdraw' "$variables"
-  echo "withdrawal | $i. $(graphql_output)" >> $RUN_LOG_FILE
-  status=$(graphql_output '.data.withdrawal.status')
+  local cli_output
+  cli_output=$("$LANACLI" --json withdrawal find --id "$1")
+  echo "withdrawal | $i. $cli_output" >> $RUN_LOG_FILE
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "PENDING_CONFIRMATION" ]] || return 1
 }
 
@@ -30,26 +27,16 @@ wait_for_approval() {
   telegramHandle=$(generate_email)
   customer_type="INDIVIDUAL"
 
-  variables=$(
-    jq -n \
-    --arg email "$customer_email" \
-    --arg telegramHandle "$telegramHandle" \
-    --arg customerType "$customer_type" \
-    '{
-      input: {
-        email: $email,
-        telegramHandle: $telegramHandle,
-        customerType: $customerType
-      }
-    }'
-  )
-
-  exec_admin_graphql 'prospect-create' "$variables"
-  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
-  [[ "$prospect_id" != "null" ]] || exit 1
+  local cli_output
+  cli_output=$("$LANACLI" --json prospect create \
+    --email "$customer_email" \
+    --telegram-handle "$telegramHandle" \
+    --customer-type "$customer_type")
+  prospect_id=$(echo "$cli_output" | jq -r '.prospectId')
+  [[ "$prospect_id" != "null" && -n "$prospect_id" ]] || exit 1
 
   # Verify customerType in prospect response
-  response_customer_type=$(graphql_output .data.prospectCreate.prospect.customerType)
+  response_customer_type=$(echo "$cli_output" | jq -r '.customerType')
   [[ "$response_customer_type" == "$customer_type" ]] || exit 1
 
   # Simulate KYC start via SumSub applicantCreated webhook
@@ -89,17 +76,16 @@ wait_for_approval() {
   # Poll until the customer exists.
   customer_id="$prospect_id"
   for i in {1..30}; do
-    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-    exec_admin_graphql 'customer' "$variables"
-    fetched_id=$(graphql_output .data.customer.customerId)
-    [[ "$fetched_id" != "null" ]] && break
+    cli_output=$("$LANACLI" --json customer get --id "$customer_id" 2>/dev/null || echo '{}')
+    fetched_id=$(echo "$cli_output" | jq -r '.customerId // empty')
+    [[ -n "$fetched_id" ]] && break
     sleep 1
   done
-  [[ "$fetched_id" != "null" ]] || exit 1
+  [[ -n "$fetched_id" ]] || exit 1
 
-  variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-  exec_admin_graphql 'customer-audit-log' "$variables"
-  audit_nodes_count=$(graphql_output '.data.audit.nodes | length')
+  local audit_output
+  audit_output=$("$LANACLI" --json audit customer --id "$customer_id")
+  audit_nodes_count=$(echo "$audit_output" | jq '. | length')
   [[ "$audit_nodes_count" -gt 0 ]] || exit 1
 }
 
@@ -110,23 +96,13 @@ wait_for_approval() {
   telegramHandle=$(generate_email)
   customer_type="INDIVIDUAL"
 
-  variables=$(
-    jq -n \
-    --arg email "$customer_email" \
-    --arg telegramHandle "$telegramHandle" \
-    --arg customerType "$customer_type" \
-    '{
-      input: {
-        email: $email,
-        telegramHandle: $telegramHandle,
-        customerType: $customerType
-      }
-    }'
-  )
-
-  exec_admin_graphql 'prospect-create' "$variables"
-  prospect_id=$(graphql_output .data.prospectCreate.prospect.prospectId)
-  [[ "$prospect_id" != "null" ]] || exit 1
+  local cli_output
+  cli_output=$("$LANACLI" --json prospect create \
+    --email "$customer_email" \
+    --telegram-handle "$telegramHandle" \
+    --customer-type "$customer_type")
+  prospect_id=$(echo "$cli_output" | jq -r '.prospectId')
+  [[ "$prospect_id" != "null" && -n "$prospect_id" ]] || exit 1
 
   # Simulate KYC start via SumSub applicantCreated webhook
   webhook_id="req-$(date +%s%N)"
@@ -165,13 +141,12 @@ wait_for_approval() {
   # Poll until the customer exists.
   customer_id="$prospect_id"
   for i in {1..30}; do
-    variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
-    exec_admin_graphql 'customer' "$variables"
-    fetched_id=$(graphql_output .data.customer.customerId)
-    [[ "$fetched_id" != "null" ]] && break
+    cli_output=$("$LANACLI" --json customer get --id "$customer_id" 2>/dev/null || echo '{}')
+    fetched_id=$(echo "$cli_output" | jq -r '.customerId // empty')
+    [[ -n "$fetched_id" ]] && break
     sleep 1
   done
-  [[ "$fetched_id" != "null" ]] || exit 1
+  [[ -n "$fetched_id" ]] || exit 1
 
   login_customer $customer_email
   exec_customer_graphql $customer_email 'me'
