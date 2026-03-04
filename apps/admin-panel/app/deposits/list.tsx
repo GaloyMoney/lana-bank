@@ -103,6 +103,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
     key: "publicId",
     label: t("headers.depositId"),
+    sortable: true,
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {

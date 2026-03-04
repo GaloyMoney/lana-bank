@@ -1403,6 +1403,7 @@ input DepositsSort {
 enum DepositsSortBy {
 	CREATED_AT
 	AMOUNT
+	PUBLIC_ID
 }
 
 type DisbursalApprovalConcludedPayload {
@@ -2900,6 +2901,7 @@ input WithdrawalsSort {
 enum WithdrawalsSortBy {
 	CREATED_AT
 	AMOUNT
+	PUBLIC_ID
 }
 
 """

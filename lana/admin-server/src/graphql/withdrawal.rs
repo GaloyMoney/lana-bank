@@ -146,6 +146,7 @@ pub enum WithdrawalsSortBy {
     #[default]
     CreatedAt,
     Amount,
+    PublicId,
 }
 
 impl From<WithdrawalsSortBy> for DomainWithdrawalsSortBy {
@@ -153,6 +154,7 @@ impl From<WithdrawalsSortBy> for DomainWithdrawalsSortBy {
         match by {
             WithdrawalsSortBy::CreatedAt => DomainWithdrawalsSortBy::CreatedAt,
             WithdrawalsSortBy::Amount => DomainWithdrawalsSortBy::Amount,
+            WithdrawalsSortBy::PublicId => DomainWithdrawalsSortBy::PublicId,
         }
     }
 }

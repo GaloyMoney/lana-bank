@@ -1404,7 +1404,8 @@ export type DepositsSort = {
 
 export enum DepositsSortBy {
   Amount = 'AMOUNT',
-  CreatedAt = 'CREATED_AT'
+  CreatedAt = 'CREATED_AT',
+  PublicId = 'PUBLIC_ID'
 }
 
 export type DisbursalApprovalConcludedPayload = {
@@ -3529,7 +3530,8 @@ export type WithdrawalsSort = {
 
 export enum WithdrawalsSortBy {
   Amount = 'AMOUNT',
-  CreatedAt = 'CREATED_AT'
+  CreatedAt = 'CREATED_AT',
+  PublicId = 'PUBLIC_ID'
 }
 
 export type ApprovalProcessFieldsFragment = { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:

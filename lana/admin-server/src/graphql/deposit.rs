@@ -127,6 +127,7 @@ pub enum DepositsSortBy {
     #[default]
     CreatedAt,
     Amount,
+    PublicId,
 }
 
 impl From<DepositsSortBy> for DomainDepositsSortBy {
@@ -134,6 +135,7 @@ impl From<DepositsSortBy> for DomainDepositsSortBy {
         match by {
             DepositsSortBy::CreatedAt => DomainDepositsSortBy::CreatedAt,
             DepositsSortBy::Amount => DomainDepositsSortBy::Amount,
+            DepositsSortBy::PublicId => DomainDepositsSortBy::PublicId,
         }
     }
 }

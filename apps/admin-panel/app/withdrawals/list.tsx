@@ -103,6 +103,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] =>
   {
     key: "publicId",
     label: t("headers.withdrawalId"),
+    sortable: true,
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
