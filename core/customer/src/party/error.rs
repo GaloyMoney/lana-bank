@@ -5,7 +5,7 @@ use tracing_utils::ErrorSeverity;
 #[derive(Error, Debug)]
 pub enum PartyError {
     #[error("PartyError - Sqlx: {0}")]
-    Sqlx(#[from] sqlx::Error),
+    Sqlx(sqlx::Error),
     #[error("PartyError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("PartyError - CursorDestructureError: {0}")]
@@ -18,19 +18,6 @@ pub enum PartyError {
 
 es_entity::from_es_entity_error!(PartyError);
 
-impl PartyError {
-    pub fn from_db_error(error: PartyError) -> PartyError {
-        match &error {
-            PartyError::Sqlx(sqlx::Error::Database(db_err)) => match db_err.constraint() {
-                Some("core_parties_email_key") => PartyError::EmailAlreadyExists,
-                Some("core_parties_telegram_handle_key") => PartyError::TelegramHandleAlreadyExists,
-                _ => error,
-            },
-            _ => error,
-        }
-    }
-}
-
 impl ErrorSeverity for PartyError {
     fn severity(&self) -> Level {
         match self {
@@ -40,5 +27,20 @@ impl ErrorSeverity for PartyError {
             Self::EmailAlreadyExists => Level::WARN,
             Self::TelegramHandleAlreadyExists => Level::WARN,
         }
+    }
+}
+
+impl From<sqlx::Error> for PartyError {
+    fn from(error: sqlx::Error) -> Self {
+        if let Some(db_err) = error.as_database_error() {
+            match db_err.constraint() {
+                Some("core_parties_email_key") => return Self::EmailAlreadyExists,
+                Some("core_parties_telegram_handle_key") => {
+                    return Self::TelegramHandleAlreadyExists;
+                }
+                _ => {}
+            }
+        }
+        Self::Sqlx(error)
     }
 }
