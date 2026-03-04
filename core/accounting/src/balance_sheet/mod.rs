@@ -10,9 +10,10 @@ use chrono::NaiveDate;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    LedgerAccountId,
+    AccountCode, LedgerAccountId,
+    ledger_account::LedgerAccount as DomainLedgerAccount,
     primitives::{
-        BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject,
+        CalaAccountBalance, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject,
         ResolvedAccountingBaseConfig,
     },
 };
@@ -117,8 +118,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
+        as_of: NaiveDate,
     ) -> Result<BalanceSheet, BalanceSheetError> {
         self.authz
             .enforce_permission(
@@ -130,16 +130,46 @@ where
 
         Ok(self
             .balance_sheet_ledger
-            .get_balance_sheet(reference, from, until)
+            .get_balance_sheet(reference, as_of)
             .await?)
     }
 }
 
 #[derive(Clone)]
-pub struct BalanceSheet {
+pub struct AccountCategoryBalance {
+    pub usd: Option<CalaAccountBalance>,
+    pub btc: Option<CalaAccountBalance>,
+}
+
+#[derive(Clone)]
+pub struct BalanceSheetAccountSet {
     pub id: LedgerAccountId,
     pub name: String,
-    pub usd_balance_range: Option<BalanceRange>,
-    pub btc_balance_range: Option<BalanceRange>,
+    pub code: Option<AccountCode>,
+    pub balance: AccountCategoryBalance,
+    pub children_ids: Vec<LedgerAccountId>,
+}
+
+impl From<DomainLedgerAccount> for BalanceSheetAccountSet {
+    fn from(account: DomainLedgerAccount) -> Self {
+        Self {
+            id: account.id,
+            name: account.name,
+            code: account.code,
+            balance: AccountCategoryBalance {
+                usd: account.usd_balance_range.and_then(|range| range.close),
+                btc: account.btc_balance_range.and_then(|range| range.close),
+            },
+            children_ids: account.children_ids,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct BalanceSheet {
+    pub name: String,
+    pub assets: AccountCategoryBalance,
+    pub liabilities: AccountCategoryBalance,
+    pub equity: AccountCategoryBalance,
     pub category_ids: Vec<LedgerAccountId>,
 }

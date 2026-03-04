@@ -6,23 +6,18 @@ use tracing::instrument;
 
 use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
-    account_set::{AccountSet, AccountSetMemberId, NewAccountSet},
+    account_set::{AccountSetMemberId, NewAccountSet},
 };
 use tracing_macros::record_error_severity;
 
-use crate::primitives::{BalanceRange, CalaBalanceRange, ResolvedAccountingBaseConfig};
+use crate::primitives::{CalaAccountBalance, ResolvedAccountingBaseConfig};
 
 use super::{
-    ASSETS_NAME, BalanceSheet, BalanceSheetIds, COST_OF_REVENUE_NAME, EQUITY_NAME, EXPENSES_NAME,
-    LIABILITIES_NAME, NET_INCOME_NAME, REVENUE_NAME,
+    ASSETS_NAME, AccountCategoryBalance, BalanceSheet, BalanceSheetIds, COST_OF_REVENUE_NAME,
+    EQUITY_NAME, EXPENSES_NAME, LIABILITIES_NAME, NET_INCOME_NAME, REVENUE_NAME,
 };
 
 use error::*;
-
-type AccountSetWithBalances = (
-    AccountSet,
-    (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-);
 
 #[derive(Clone)]
 pub struct BalanceSheetLedger {
@@ -136,30 +131,12 @@ impl BalanceSheetLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "bs_ledger.get_account_set_with_balances", skip(self, balances_by_id), fields(account_set_id = %account_set_id))]
-    async fn get_account_set_with_balances(
-        &self,
-        account_set_id: AccountSetId,
-        balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
-    ) -> Result<AccountSetWithBalances, BalanceSheetLedgerError> {
-        let account_set = self.cala.account_sets().find(account_set_id).await?;
-
-        let btc_balance =
-            balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::BTC));
-        let usd_balance =
-            balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::USD));
-
-        Ok((account_set, (usd_balance, btc_balance)))
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "bs_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), from = %from, until = ?until))]
+    #[instrument(name = "bs_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), as_of = %as_of))]
     async fn get_balances_by_id(
         &self,
         all_account_set_ids: Vec<AccountSetId>,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
-    ) -> Result<HashMap<BalanceId, CalaBalanceRange>, BalanceSheetLedgerError> {
+        as_of: NaiveDate,
+    ) -> Result<HashMap<BalanceId, CalaAccountBalance>, BalanceSheetLedgerError> {
         let balance_ids = all_account_set_ids
             .iter()
             .flat_map(|id| {
@@ -169,14 +146,17 @@ impl BalanceSheetLedger {
                 ]
             })
             .collect::<Vec<_>>();
-        let res = self
+        let ranges = self
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&balance_ids, from, until)
+            .find_all_in_range(&balance_ids, as_of, Some(as_of))
             .await?;
 
-        Ok(res)
+        Ok(ranges
+            .into_iter()
+            .map(|(id, range)| (id, range.close))
+            .collect())
     }
 
     #[record_error_severity]
@@ -340,58 +320,33 @@ impl BalanceSheetLedger {
     pub async fn get_balance_sheet(
         &self,
         reference: String,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
+        as_of: NaiveDate,
     ) -> Result<BalanceSheet, BalanceSheetLedgerError> {
         let ids = self.get_ids_from_reference(reference).await?;
-        let all_account_set_ids = vec![ids.id, ids.assets, ids.liabilities, ids.equity];
+        let all_account_set_ids = vec![ids.assets, ids.liabilities, ids.equity];
 
-        let mut balances_by_id = self
-            .get_balances_by_id(all_account_set_ids, from, until)
-            .await?;
+        let mut balances_by_id = self.get_balances_by_id(all_account_set_ids, as_of).await?;
 
-        let (account, balances) = self
-            .get_account_set_with_balances(ids.id, &mut balances_by_id)
-            .await?;
+        let account_set = self.cala.account_sets().find(ids.id).await?;
+        let name = account_set.into_values().name;
 
-        Ok(BalanceSheet::from((account, balances, ids)))
+        Ok(BalanceSheet {
+            name,
+            assets: self.get_account_set_balance(&mut balances_by_id, ids.assets),
+            liabilities: self.get_account_set_balance(&mut balances_by_id, ids.liabilities),
+            equity: self.get_account_set_balance(&mut balances_by_id, ids.equity),
+            category_ids: vec![ids.assets.into(), ids.liabilities.into(), ids.equity.into()],
+        })
     }
-}
 
-impl
-    From<(
-        AccountSet,
-        (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-        BalanceSheetIds,
-    )> for BalanceSheet
-{
-    fn from(
-        (account_set, (usd_balance, btc_balance), ids): (
-            AccountSet,
-            (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-            BalanceSheetIds,
-        ),
-    ) -> Self {
-        let values = account_set.into_values();
-
-        let usd_balance_range = usd_balance.map(|range| BalanceRange {
-            open: Some(range.open),
-            close: Some(range.close),
-            period_activity: Some(range.period),
-        });
-
-        let btc_balance_range = btc_balance.map(|range| BalanceRange {
-            open: Some(range.open),
-            close: Some(range.close),
-            period_activity: Some(range.period),
-        });
-
-        BalanceSheet {
-            id: values.id.into(),
-            name: values.name,
-            usd_balance_range,
-            btc_balance_range,
-            category_ids: vec![ids.equity.into(), ids.assets.into(), ids.liabilities.into()],
+    fn get_account_set_balance(
+        &self,
+        balances_by_id: &mut HashMap<BalanceId, CalaAccountBalance>,
+        account_set_id: AccountSetId,
+    ) -> AccountCategoryBalance {
+        AccountCategoryBalance {
+            usd: balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::USD)),
+            btc: balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::BTC)),
         }
     }
 }

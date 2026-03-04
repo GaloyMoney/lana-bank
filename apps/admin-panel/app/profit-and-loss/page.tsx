@@ -83,6 +83,32 @@ gql`
       ...BtcBalanceFragment
     }
   }
+
+  fragment UsdBalanceFragment on UsdLedgerAccountBalance {
+    settled {
+      debit
+      credit
+      net
+    }
+    pending {
+      debit
+      credit
+      net
+    }
+  }
+
+  fragment BtcBalanceFragment on BtcLedgerAccountBalance {
+    settled {
+      debit
+      credit
+      net
+    }
+    pending {
+      debit
+      credit
+      net
+    }
+  }
 `
 interface ProfitAndLossProps {
   data?: ProfitAndLossStatementQuery["profitAndLossStatement"]

@@ -1,9 +1,8 @@
 "use client"
-import { gql } from "@apollo/client"
-import { useState, useCallback, useMemo } from "react"
-import { useTranslations } from "next-intl"
 
-import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
+import { gql } from "@apollo/client"
+import { useCallback, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 
 import {
   Card,
@@ -12,140 +11,172 @@ import {
   CardHeader,
   CardTitle,
 } from "@lana/web/ui/card"
-
+import { Label } from "@lana/web/ui/label"
+import { Separator } from "@lana/web/ui/separator"
 import { Skeleton } from "@lana/web/ui/skeleton"
+import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
 
 import { Account } from "./account"
+import { AsOfDateSelector, getInitialAsOfDate } from "./as-of-date-selector"
 
-import { BalanceSheetQuery, useBalanceSheetQuery } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import { getInitialDateRange, DateRange } from "@/components/date-range-picker"
-import { ReportFilters } from "@/components/report-filters"
-import { ReportLayer } from "@/components/report-filters/selectors"
+import {
+  CurrencySelection,
+  LayerSelection,
+  ReportLayer,
+} from "@/components/report-filters/selectors"
+import { BalanceSheetQuery, useBalanceSheetQuery } from "@/lib/graphql/generated"
 
 gql`
-  query BalanceSheet($from: Date!, $until: Date) {
-    balanceSheet(from: $from, until: $until) {
+  query BalanceSheet($asOf: Date!) {
+    balanceSheet(asOf: $asOf) {
       name
-      balance {
-        __typename
-        ...UsdLedgerBalanceRangeFragment
-        ...BtcLedgerBalanceRangeFragment
+      assetsBalance {
+        usd {
+          settled {
+            net
+          }
+          pending {
+            net
+          }
+        }
+        btc {
+          settled {
+            net
+          }
+          pending {
+            net
+          }
+        }
+      }
+      liabilitiesBalance {
+        usd {
+          settled {
+            net
+          }
+          pending {
+            net
+          }
+        }
+        btc {
+          settled {
+            net
+          }
+          pending {
+            net
+          }
+        }
+      }
+      equityBalance {
+        usd {
+          settled {
+            net
+          }
+          pending {
+            net
+          }
+        }
+        btc {
+          settled {
+            net
+          }
+          pending {
+            net
+          }
+        }
       }
       categories {
         balanceSheetAccountId
+        ledgerAccountId
         name
         code
-        balanceRange {
-          __typename
-          ...UsdLedgerBalanceRangeFragment
-          ...BtcLedgerBalanceRangeFragment
+        balance {
+          usd {
+            settled {
+              net
+            }
+            pending {
+              net
+            }
+          }
+          btc {
+            settled {
+              net
+            }
+            pending {
+              net
+            }
+          }
         }
         children {
           balanceSheetAccountId
+          ledgerAccountId
           name
           code
-          balanceRange {
-            __typename
-            ...UsdLedgerBalanceRangeFragment
-            ...BtcLedgerBalanceRangeFragment
+          balance {
+            usd {
+              settled {
+                net
+              }
+              pending {
+                net
+              }
+            }
+            btc {
+              settled {
+                net
+              }
+              pending {
+                net
+              }
+            }
           }
         }
       }
     }
   }
-
-  fragment UsdBalanceFragment on UsdLedgerAccountBalance {
-    settled {
-      debit
-      credit
-      net
-    }
-    pending {
-      debit
-      credit
-      net
-    }
-  }
-
-  fragment BtcBalanceFragment on BtcLedgerAccountBalance {
-    settled {
-      debit
-      credit
-      net
-    }
-    pending {
-      debit
-      credit
-      net
-    }
-  }
-
-  fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
-    usdStart: open {
-      ...UsdBalanceFragment
-    }
-    usdDiff: periodActivity {
-      ...UsdBalanceFragment
-    }
-    usdEnd: close {
-      ...UsdBalanceFragment
-    }
-  }
-
-  fragment BtcLedgerBalanceRangeFragment on BtcLedgerAccountBalanceRange {
-    btcStart: open {
-      ...BtcBalanceFragment
-    }
-    btcDiff: periodActivity {
-      ...BtcBalanceFragment
-    }
-    btcEnd: close {
-      ...BtcBalanceFragment
-    }
-  }
 `
 
+type CategoryBalance = NonNullable<BalanceSheetQuery["balanceSheet"]>["assetsBalance"]
+
 export default function BalanceSheetPage() {
-  const initialDateRange = useMemo(() => getInitialDateRange(), [])
-  const [dateRange, setDateRange] = useState<DateRange>(initialDateRange)
-  const handleDateChange = useCallback((newDateRange: DateRange) => {
-    setDateRange(newDateRange)
+  const initialAsOf = useMemo(() => getInitialAsOfDate(), [])
+  const [asOf, setAsOf] = useState(initialAsOf)
+  const handleDateChange = useCallback((newAsOf: string) => {
+    setAsOf(newAsOf)
   }, [])
 
   const { data, loading, error } = useBalanceSheetQuery({
-    variables: dateRange,
+    variables: { asOf },
     fetchPolicy: "cache-and-network",
   })
 
   return (
-    <>
-      <BalanceSheet
-        data={data?.balanceSheet}
-        loading={loading && !data}
-        error={error}
-        dateRange={dateRange}
-        setDateRange={handleDateChange}
-      />
-    </>
+    <BalanceSheetView
+      data={data?.balanceSheet}
+      loading={loading && !data}
+      error={error}
+      asOf={asOf}
+      setAsOf={handleDateChange}
+    />
   )
 }
 
-interface BalanceSheetProps {
+interface BalanceSheetViewProps {
   data?: BalanceSheetQuery["balanceSheet"]
   loading: boolean
   error: Error | undefined
-  dateRange: DateRange
-  setDateRange: (dateRange: DateRange) => void
+  asOf: string
+  setAsOf: (asOf: string) => void
 }
 
-const BalanceSheet = ({
+const BalanceSheetView = ({
   data,
   loading,
   error,
-  dateRange,
-  setDateRange,
-}: BalanceSheetProps) => {
+  asOf,
+  setAsOf,
+}: BalanceSheetViewProps) => {
   const t = useTranslations("BalanceSheet")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<ReportLayer>("settled")
@@ -155,11 +186,12 @@ const BalanceSheet = ({
   const assets = data?.categories?.filter((cat) => cat.name === "Assets")
   const liabilities = data?.categories?.filter((cat) => cat.name === "Liabilities")
   const equity = data?.categories?.filter((cat) => cat.name === "Equity")
-
-  const assetsTotal = getBalanceTotal(assets, currency, layer)
-
   const liabilitiesAndEquity = [...(liabilities || []), ...(equity || [])]
-  const liabilitiesAndEquityTotal = getBalanceTotal(liabilitiesAndEquity, currency, layer)
+
+  const assetsTotal = getBalanceNet(data?.assetsBalance, currency, layer)
+  const liabilitiesAndEquityTotal =
+    getBalanceNet(data?.liabilitiesBalance, currency, layer) +
+    getBalanceNet(data?.equityBalance, currency, layer)
 
   return (
     <Card>
@@ -168,19 +200,29 @@ const BalanceSheet = ({
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ReportFilters
-          dateRange={dateRange}
-          onDateChange={setDateRange}
-          currency={currency}
-          onCurrencyChange={setCurrency}
-          layer={layer}
-          onLayerChange={setLayer}
-        />
+        <div className="mb-2 flex w-fit flex-wrap items-center gap-2 rounded-md">
+          <div>
+            <Label>{t("date")}</Label>
+            <AsOfDateSelector asOf={asOf} onDateChange={setAsOf} />
+          </div>
+          <div className="flex h-14 items-center">
+            <Separator orientation="vertical" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <CurrencySelection currency={currency} setCurrency={setCurrency} />
+          </div>
+          <div className="flex h-14 items-center">
+            <Separator orientation="vertical" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <LayerSelection layer={layer} setLayer={setLayer} />
+          </div>
+        </div>
 
-        {loading || !data?.balance ? (
+        {loading || !data ? (
           <Skeleton className="h-96 w-full" />
         ) : (
-          <div className="flex justify-between border rounded-md">
+          <div className="flex justify-between rounded-md border">
             {assets && assets.length > 0 && (
               <BalanceSheetColumn
                 title={t("columns.assets")}
@@ -190,8 +232,8 @@ const BalanceSheet = ({
                 total={assetsTotal}
               />
             )}
-            <div className="w-px min-h-full bg-border" />
-            {liabilitiesAndEquity && liabilitiesAndEquity.length > 0 && (
+            <div className="min-h-full w-px bg-border" />
+            {liabilitiesAndEquity.length > 0 && (
               <BalanceSheetColumn
                 title={t("columns.liabilitiesAndEquity")}
                 categories={liabilitiesAndEquity}
@@ -223,7 +265,7 @@ function BalanceSheetColumn({
   total,
 }: BalanceSheetColumnProps) {
   return (
-    <div className="grow flex flex-col justify-between w-1/2">
+    <div className="flex w-1/2 grow flex-col justify-between">
       <Table>
         <TableBody>
           {categories.map((category) => (
@@ -239,13 +281,13 @@ function BalanceSheetColumn({
       <Table>
         <TableBody>
           <TableRow className="bg-secondary">
-            <TableCell className="uppercase font-bold">{title}</TableCell>
-            <TableCell className="flex flex-col gap-2 items-end text-right font-semibold">
+            <TableCell className="font-bold uppercase">{title}</TableCell>
+            <TableCell className="flex flex-col items-end gap-2 text-right font-semibold">
               <Balance
                 align="end"
+                className="font-semibold"
                 currency={currency}
                 amount={total as CurrencyType}
-                className="font-semibold"
               />
             </TableCell>
           </TableRow>
@@ -263,18 +305,18 @@ interface CategoryRowProps {
 
 function CategoryRow({ category, currency, layer }: CategoryRowProps) {
   const t = useTranslations("BalanceSheet")
-  const categoryBalance = getBalance(category, currency, layer)
+  const categoryBalance = getBalanceNet(category.balance, currency, layer)
 
   return (
     <>
       <TableRow className="bg-secondary">
         <TableCell
-          className="flex items-center gap-2 text-primary font-semibold uppercase"
+          className="flex items-center gap-2 font-semibold uppercase text-primary"
           data-testid={`category-name-${category.name.toLowerCase()}`}
         >
           {t(`categories.${category.name.replace(/\s+/g, "")}`)}
         </TableCell>
-        <TableCell className="w-48"></TableCell>
+        <TableCell className="w-48" />
       </TableRow>
       {category.children?.map((child) => (
         <Account
@@ -285,7 +327,7 @@ function CategoryRow({ category, currency, layer }: CategoryRowProps) {
         />
       ))}
       <TableRow>
-        <TableCell className="flex items-center gap-2 text-textColor-secondary font-semibold uppercase text-xs">
+        <TableCell className="flex items-center gap-2 text-xs font-semibold uppercase text-textColor-secondary">
           <div className="w-6" />
           {t("total")}
         </TableCell>
@@ -302,34 +344,11 @@ function CategoryRow({ category, currency, layer }: CategoryRowProps) {
   )
 }
 
-function getBalance(
-  item: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"][0],
+function getBalanceNet(
+  balance: CategoryBalance | undefined,
   currency: Currency,
   layer: ReportLayer,
 ): number {
-  if (!item.balanceRange) return 0
-  if (
-    currency === "usd" &&
-    item.balanceRange.__typename === "UsdLedgerAccountBalanceRange"
-  ) {
-    return item.balanceRange.usdEnd[layer].net
-  } else if (
-    currency === "btc" &&
-    item.balanceRange.__typename === "BtcLedgerAccountBalanceRange"
-  ) {
-    return item.balanceRange.btcEnd[layer].net
-  }
-
-  return 0
-}
-
-function getBalanceTotal(
-  categories: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"] | undefined,
-  currency: Currency,
-  layer: ReportLayer,
-): number {
-  if (!categories || categories.length === 0) return 0
-  return categories.reduce((total, category) => {
-    return total + getBalance(category, currency, layer)
-  }, 0)
+  if (!balance) return 0
+  return balance[currency][layer].net
 }

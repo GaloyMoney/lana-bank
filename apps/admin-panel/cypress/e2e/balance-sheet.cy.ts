@@ -9,8 +9,6 @@ const CLS = "CurrencyLayerSelection"
 
 describe("Balance Sheet", () => {
   const currentDate = new Date()
-  const lastMonthDate = new Date()
-  lastMonthDate.setMonth(lastMonthDate.getMonth() - 1)
 
   beforeEach(() => {
     cy.visit("/balance-sheet")
@@ -22,8 +20,7 @@ describe("Balance Sheet", () => {
 
   it("should display balance sheet sections and categories", () => {
     cy.graphqlRequest<{ data: BalanceSheetQuery }>(print(BalanceSheetDocument), {
-      from: lastMonthDate.toISOString().split("T")[0],
-      until: currentDate.toISOString().split("T")[0],
+      asOf: currentDate.toISOString().split("T")[0],
     }).then((response) => {
       cy.contains(t(BalanceSheet + ".columns.assets")).should("be.visible")
       cy.contains(t(BalanceSheet + ".columns.liabilitiesAndEquity")).should("be.visible")
