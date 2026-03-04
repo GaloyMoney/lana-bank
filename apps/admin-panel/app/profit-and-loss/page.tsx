@@ -155,12 +155,12 @@ const ProfitAndLossStatement = ({
   if (error) return <div className="text-destructive">{error.message}</div>
 
   const total = data?.total
-  let netEnd: number | undefined
+  let netPeriod: number | undefined
 
   if (currency === "usd" && total?.usd) {
-    netEnd = total.usd.usdEnd[layer].net
+    netPeriod = total.usd.usdDiff[layer].net
   } else if (currency === "btc" && total?.btc) {
-    netEnd = total.btc.btcEnd[layer].net
+    netPeriod = total.btc.btcDiff[layer].net
   }
 
   return (
@@ -185,15 +185,15 @@ const ProfitAndLossStatement = ({
             <Table>
               <TableBody>
                 {data.categories.map((category) => {
-                  let categoryEnd: number | undefined
+                  let categoryPeriod: number | undefined
                   if (
                     category.balanceRange.__typename === "UsdLedgerAccountBalanceRange"
                   ) {
-                    categoryEnd = category.balanceRange.usdEnd[layer].net
+                    categoryPeriod = category.balanceRange.usdDiff[layer].net
                   } else if (
                     category.balanceRange.__typename === "BtcLedgerAccountBalanceRange"
                   ) {
-                    categoryEnd = category.balanceRange.btcEnd[layer].net
+                    categoryPeriod = category.balanceRange.btcDiff[layer].net
                   }
                   return (
                     <CategoryRow
@@ -201,7 +201,7 @@ const ProfitAndLossStatement = ({
                       category={category}
                       currency={currency}
                       layer={layer}
-                      endingBalance={categoryEnd}
+                      periodBalance={categoryPeriod}
                     />
                   )
                 })}
@@ -213,7 +213,7 @@ const ProfitAndLossStatement = ({
                     <Balance
                       align="end"
                       currency={currency}
-                      amount={netEnd as CurrencyType}
+                      amount={netPeriod as CurrencyType}
                     />
                   </TableCell>
                 </TableRow>
@@ -232,10 +232,10 @@ interface CategoryRowProps {
   >["categories"][0]
   currency: Currency
   layer: ReportLayer
-  endingBalance?: number
+  periodBalance?: number
 }
 
-const CategoryRow = ({ category, currency, layer, endingBalance }: CategoryRowProps) => {
+const CategoryRow = ({ category, currency, layer, periodBalance }: CategoryRowProps) => {
   const t = useTranslations("ProfitAndLoss")
 
   return (
@@ -251,7 +251,7 @@ const CategoryRow = ({ category, currency, layer, endingBalance }: CategoryRowPr
           <Balance
             align="end"
             currency={currency}
-            amount={endingBalance as CurrencyType}
+            amount={periodBalance as CurrencyType}
           />
         </TableCell>
       </TableRow>
