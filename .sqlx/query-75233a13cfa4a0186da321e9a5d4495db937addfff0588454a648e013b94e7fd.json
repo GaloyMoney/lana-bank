@@ -1,0 +1,31 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id AS \"id: CreditFacilityId\", created_at\n               FROM core_credit_facilities\n               WHERE maturity_date IS NOT NULL\n                 AND maturity_date <= $1\n                 AND status = 'Active'\n                 AND (($2::timestamptz IS NULL) OR (created_at, id) > ($2, $3))\n               ORDER BY created_at, id\n               LIMIT $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: CreditFacilityId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Timestamptz",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "75233a13cfa4a0186da321e9a5d4495db937addfff0588454a648e013b94e7fd"
+}
