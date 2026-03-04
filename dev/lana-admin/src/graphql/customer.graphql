@@ -1,0 +1,48 @@
+query CustomersList($first: Int!, $after: String) {
+  customers(first: $first, after: $after) {
+    nodes {
+      customerId
+      publicId
+      email
+      telegramHandle
+      customerType
+      activity
+      level
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query CustomerGet($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    publicId
+    email
+    telegramHandle
+    customerType
+    activity
+    level
+    kycVerification
+    createdAt
+    applicantId
+  }
+}
+
+query CustomerGetByEmail($email: String!) {
+  customerByEmail(email: $email) {
+    customerId
+    publicId
+    email
+    telegramHandle
+    customerType
+    activity
+    level
+    kycVerification
+    createdAt
+    applicantId
+  }
+}

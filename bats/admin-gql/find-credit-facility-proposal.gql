@@ -1,6 +1,0 @@
-query creditFacilityProposal($id: UUID!) {
-  creditFacilityProposal(id: $id) {
-    creditFacilityProposalId
-    status
-  }
-}

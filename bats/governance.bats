@@ -6,6 +6,7 @@ setup_file() {
   export LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
   start_server
   login_superadmin
+  login_lanacli
 }
 
 teardown_file() {
@@ -13,32 +14,16 @@ teardown_file() {
 }
 
 trigger_withdraw_approval_process() {
-  variables=$(
-    jq -n \
-      --arg deposit_account_id "$1" \
-    '{
-      input: {
-        depositAccountId: $deposit_account_id,
-        amount: 1000000,
-      }
-    }'
-  )
-  exec_admin_graphql 'record-deposit' "$variables"
+  local cli_output
+  cli_output=$("$LANACLI" --json deposit-account record-deposit \
+    --deposit-account-id "$1" \
+    --amount 1000000)
 
-  variables=$(
-    jq -n \
-      --arg deposit_account_id "$1" \
-    --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $deposit_account_id,
-        amount: 150000,
-        reference: ("withdrawal-ref-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'initiate-withdrawal' "$variables"
-  process_id=$(graphql_output .data.withdrawalInitiate.withdrawal.approvalProcessId)
+  cli_output=$("$LANACLI" --json deposit-account initiate-withdrawal \
+    --deposit-account-id "$1" \
+    --amount 150000 \
+    --reference "withdrawal-ref-$(date +%s%N)")
+  process_id=$(echo "$cli_output" | jq -r '.approvalProcessId')
   [[ "$process_id" != "null" ]] || exit 1
   echo $process_id
 }
@@ -51,12 +36,8 @@ trigger_withdraw_approval_process() {
   cache_value "deposit_account_id" $deposit_account_id
 
   process_id=$(trigger_withdraw_approval_process $deposit_account_id)
-  variables=$(
-    jq -n \
-      --arg id "$process_id" \
-    '{ id: $id }'
-  )
-  exec_admin_graphql 'find-approval-process' "$variables"
-  status=$(graphql_output .data.approvalProcess.status)
+  local cli_output
+  cli_output=$("$LANACLI" --json approval-process get --id "$process_id")
+  status=$(echo "$cli_output" | jq -r '.status')
   [[ "$status" == "APPROVED" ]] || exit 1
 }

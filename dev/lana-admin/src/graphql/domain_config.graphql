@@ -1,0 +1,21 @@
+query DomainConfigsList {
+  domainConfigs(first: 100) {
+    edges {
+      node {
+        domainConfigId
+        key
+        value
+      }
+    }
+  }
+}
+
+mutation DomainConfigUpdate($input: DomainConfigUpdateInput!) {
+  domainConfigUpdate(input: $input) {
+    domainConfig {
+      domainConfigId
+      key
+      value
+    }
+  }
+}

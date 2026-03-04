@@ -1,9 +1,0 @@
-mutation CreditFacilityDisbursalInitiate(
-  $input: CreditFacilityDisbursalInitiateInput!
-) {
-  creditFacilityDisbursalInitiate(input: $input) {
-    disbursal {
-      id
-    }
-  }
-}

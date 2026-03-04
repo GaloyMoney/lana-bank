@@ -1,7 +1,0 @@
-query DescendantAccountSetsByCategory($category: AccountCategory!) {
-  descendantAccountSetsByCategory(category: $category) {
-    accountSetId
-    code
-    name
-  }
-}
