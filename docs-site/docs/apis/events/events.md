@@ -63,7 +63,7 @@ Events related to credit facility lifecycle and operations.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `DisbursalSettled` | A disbursal was settled | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement` |
+| `DisbursalSettled` | A disbursal was settled | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
 | `AccrualPosted` | Interest accrual was posted | `entity.credit_facility_id`, `entity.due_at`, `entity.id`, `entity.period`, `entity.posting` |
 
 ### Liquidation Events
@@ -76,6 +76,7 @@ Events related to credit facility lifecycle and operations.
 |-------|-------------|----------------|
 | `FacilityProposalConcluded` | No description available | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
 | `PendingCreditFacilityCompleted` | No description available | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `DisbursalApprovalConcluded` | No description available | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
 
 ---
 
@@ -116,7 +117,8 @@ Events related to deposit accounts and transactions.
 |-------|-------------|----------------|
 | `DepositAccountCreated` | A deposit account was created | `entity.account_holder_id`, `entity.id` |
 | `DepositInitialized` | A deposit was initialized | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
-| `WithdrawalConfirmed` | A withdrawal was confirmed | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
+| `WithdrawalConfirmed` | A withdrawal was confirmed | `entity.amount`, `entity.deposit_account_id`, `entity.id`, `entity.status` |
+| `WithdrawalApprovalConcluded` | No description available | `entity.amount`, `entity.deposit_account_id`, `entity.id`, `entity.status` |
 | `DepositReverted` | A deposit was reverted | `entity.amount`, `entity.deposit_account_id`, `entity.id` |
 
 ---
