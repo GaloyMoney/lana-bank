@@ -49,9 +49,9 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
 
 use crate::{
-    CompletedAccrualCycle, ConfirmedAccrual, CoreCreditAction, CoreCreditCollectionAction,
-    CoreCreditCollectionEvent, CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
-    CreditFacilityId,
+    AccrualOutcome, CompletedAccrualCycle, ConfirmedAccrual, CoreCreditAction,
+    CoreCreditCollectionAction, CoreCreditCollectionEvent, CoreCreditCollectionObject,
+    CoreCreditEvent, CoreCreditObject, CreditFacilityId,
     credit_facility::{
         CreditFacilityRepo,
         error::CreditFacilityError,
@@ -285,76 +285,67 @@ where
     /// - If cycle is complete: transition to AwaitObligationsSync
     async fn accrue_period(
         &self,
-        mut current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut db = self.credit_facility_repo.begin_op().await?;
 
-        let confirmed = match self
+        let outcome = self
             .confirm_interest_accrual_in_op(&mut db, self.config.credit_facility_id)
-            .await
-        {
-            Ok(confirmed) => confirmed,
-            Err(CreditFacilityError::InterestAccrualCycleError(
-                InterestAccrualCycleError::NoNextAccrualPeriod,
-            )) => {
+            .await?;
+
+        match outcome {
+            AccrualOutcome::Accrued(confirmed) => {
+                self.ledger
+                    .record_interest_accrual_in_op(
+                        &mut db,
+                        confirmed.accrual,
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                            crate::primitives::INTEREST_ACCRUAL,
+                        ),
+                    )
+                    .await?;
+
+                match confirmed.next_period {
+                    Some(_) => {
+                        tracing::debug!(
+                            accrual_idx = %confirmed.accrual_idx,
+                            accrued_count = %confirmed.accrued_count,
+                            "Period accrued, next EndOfDay will pick up remaining periods"
+                        );
+                        Ok(JobCompletion::CompleteWithOp(db))
+                    }
+                    None => {
+                        tracing::info!(
+                            accrued_count = %confirmed.accrued_count,
+                            accrual_idx = %confirmed.accrual_idx,
+                            "All periods accrued, transitioning to await obligations sync"
+                        );
+                        self.transition_to_await_obligations_sync(current_job, db)
+                            .await
+                    }
+                }
+            }
+            AccrualOutcome::AllPeriodsComplete => {
                 tracing::info!(
                     credit_facility_id = %self.config.credit_facility_id,
                     "All periods already accrued, transitioning to await obligations sync"
                 );
-                current_job
-                    .update_execution_state_in_op(
-                        &mut db,
-                        &ProcessAccrualCycleState::AwaitObligationsSync,
-                    )
-                    .await?;
-                db.commit().await?;
-                return self.await_obligations_sync(current_job).await;
-            }
-            Err(e) => return Err(e.into()),
-        };
-
-        let ConfirmedAccrual {
-            accrual: interest_accrual,
-            next_period,
-            accrual_idx,
-            accrued_count,
-        } = confirmed;
-
-        self.ledger
-            .record_interest_accrual_in_op(
-                &mut db,
-                interest_accrual,
-                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
-                    crate::primitives::INTEREST_ACCRUAL,
-                ),
-            )
-            .await?;
-
-        match next_period {
-            Some(_) => {
-                tracing::debug!(
-                    accrual_idx = %accrual_idx,
-                    accrued_count = %accrued_count,
-                    "Period accrued, next EndOfDay will pick up remaining periods"
-                );
-                Ok(JobCompletion::CompleteWithOp(db))
-            }
-            None => {
-                tracing::info!(
-                    accrued_count = %accrued_count,
-                    accrual_idx = %accrual_idx,
-                    "All periods accrued, transitioning to await obligations sync"
-                );
-                current_job
-                    .update_execution_state_in_op(
-                        &mut db,
-                        &ProcessAccrualCycleState::AwaitObligationsSync,
-                    )
-                    .await?;
-                db.commit().await?;
-                self.await_obligations_sync(current_job).await
+                self.transition_to_await_obligations_sync(current_job, db)
+                    .await
             }
         }
+    }
+
+    async fn transition_to_await_obligations_sync(
+        &self,
+        mut current_job: CurrentJob,
+        mut db: es_entity::DbOp<'_>,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        current_job
+            .update_execution_state_in_op(&mut db, &ProcessAccrualCycleState::AwaitObligationsSync)
+            .await?;
+        db.commit().await?;
+        self.await_obligations_sync(current_job).await
     }
 
     #[record_error_severity]
@@ -367,7 +358,7 @@ where
         &self,
         op: &mut impl es_entity::AtomicOperation,
         credit_facility_id: CreditFacilityId,
-    ) -> Result<ConfirmedAccrual, CreditFacilityError> {
+    ) -> Result<AccrualOutcome, CreditFacilityError> {
         self.authz
             .audit()
             .record_system_entry_in_op(
@@ -383,7 +374,7 @@ where
             .find_by_id_in_op(op, credit_facility_id)
             .await?;
 
-        let confirmed_accrual = {
+        let result = {
             let account_ids = credit_facility.account_ids;
             let collateral_account_id = self
                 .collaterals
@@ -396,15 +387,22 @@ where
                 .get_credit_facility_balance_in_op(op, account_ids, collateral_account_id)
                 .await?;
 
-            let recorded = credit_facility
-                .record_accrual_on_in_progress_cycle(balances.disbursed_outstanding())?
-                .expect("record_accrual always returns Executed");
-
-            ConfirmedAccrual {
-                accrual: (recorded.accrual_data, account_ids).into(),
-                next_period: recorded.next_period,
-                accrual_idx: recorded.accrual_idx,
-                accrued_count: recorded.accrued_count,
+            match credit_facility
+                .record_accrual_on_in_progress_cycle(balances.disbursed_outstanding())
+            {
+                Ok(recorded) => {
+                    let recorded = recorded.expect("record_accrual always returns Executed");
+                    AccrualOutcome::Accrued(ConfirmedAccrual {
+                        accrual: (recorded.accrual_data, account_ids).into(),
+                        next_period: recorded.next_period,
+                        accrual_idx: recorded.accrual_idx,
+                        accrued_count: recorded.accrued_count,
+                    })
+                }
+                Err(CreditFacilityError::InterestAccrualCycleError(
+                    InterestAccrualCycleError::NoNextAccrualPeriod,
+                )) => AccrualOutcome::AllPeriodsComplete,
+                Err(e) => return Err(e),
             }
         };
 
@@ -412,7 +410,7 @@ where
             .update_in_op(op, &mut credit_facility)
             .await?;
 
-        Ok(confirmed_accrual)
+        Ok(result)
     }
 
     /// State: AwaitObligationsSync
