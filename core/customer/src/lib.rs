@@ -497,7 +497,7 @@ where
             es_entity::Idempotent::AlreadyApplied => {
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
-                if customer.unfreeze().did_execute() {
+                if customer.unfreeze()?.did_execute() {
                     self.repo.update(&mut customer).await?;
                 }
                 Ok(Some(customer))
@@ -556,7 +556,7 @@ where
             es_entity::Idempotent::AlreadyApplied => {
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
-                if customer.unfreeze().did_execute() {
+                if customer.unfreeze()?.did_execute() {
                     self.repo.update(&mut customer).await?;
                 }
                 Ok(customer)
@@ -594,7 +594,7 @@ where
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
                 let kyc_changed = customer.reject_kyc().did_execute();
-                let frozen = customer.freeze().did_execute();
+                let frozen = customer.freeze()?.did_execute();
                 if kyc_changed || frozen {
                     self.repo.update(&mut customer).await?;
                 }
@@ -633,7 +633,7 @@ where
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
                 let kyc_changed = customer.reject_kyc().did_execute();
-                let frozen = customer.freeze().did_execute();
+                let frozen = customer.freeze()?.did_execute();
                 if kyc_changed || frozen {
                     self.repo.update(&mut customer).await?;
                 }
@@ -1268,10 +1268,7 @@ where
             .await?;
 
         let mut customer = self.repo.find_by_id(id).await?;
-        if customer.is_closed() {
-            return Err(CustomerError::CustomerIsClosed);
-        }
-        if customer.freeze().did_execute() {
+        if customer.freeze()?.did_execute() {
             self.repo.update(&mut customer).await?;
         }
         Ok(customer)
@@ -1294,10 +1291,7 @@ where
             .await?;
 
         let mut customer = self.repo.find_by_id(id).await?;
-        if customer.is_closed() {
-            return Err(CustomerError::CustomerIsClosed);
-        }
-        if customer.unfreeze().did_execute() {
+        if customer.unfreeze()?.did_execute() {
             self.repo.update(&mut customer).await?;
         }
         Ok(customer)

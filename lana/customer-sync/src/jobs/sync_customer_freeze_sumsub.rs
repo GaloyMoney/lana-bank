@@ -15,9 +15,7 @@ pub struct SyncCustomerFreezeSumsubHandler {
 }
 
 impl SyncCustomerFreezeSumsubHandler {
-    pub fn new(
-        deactivate_sumsub_applicant: JobSpawner<DeactivateSumsubApplicantConfig>,
-    ) -> Self {
+    pub fn new(deactivate_sumsub_applicant: JobSpawner<DeactivateSumsubApplicantConfig>) -> Self {
         Self {
             deactivate_sumsub_applicant,
         }

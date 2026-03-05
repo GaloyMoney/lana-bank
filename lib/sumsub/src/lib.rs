@@ -218,12 +218,7 @@ impl SumsubClient {
 
         let headers = self.get_headers(method, &url_path, None)?;
 
-        let response = self
-            .client
-            .patch(full_url)
-            .headers(headers)
-            .send()
-            .await?;
+        let response = self.client.patch(full_url).headers(headers).send().await?;
 
         self.handle_simple_response(response, "Failed to deactivate applicant")
             .await

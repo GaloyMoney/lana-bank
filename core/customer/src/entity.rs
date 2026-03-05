@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use crate::error::CustomerError;
 use crate::primitives::*;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -114,7 +115,10 @@ impl Customer {
         self.status == CustomerStatus::Frozen
     }
 
-    pub fn freeze(&mut self) -> Idempotent<()> {
+    pub fn freeze(&mut self) -> Result<Idempotent<()>, CustomerError> {
+        if self.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::Frozen { .. },
@@ -123,22 +127,25 @@ impl Customer {
         let status = CustomerStatus::Frozen;
         self.events.push(CustomerEvent::Frozen { status });
         self.status = status;
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
-    pub fn unfreeze(&mut self) -> Idempotent<()> {
+    pub fn unfreeze(&mut self) -> Result<Idempotent<()>, CustomerError> {
+        if self.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::Unfrozen { .. },
             => CustomerEvent::Frozen { .. }
         );
         if !self.is_frozen() {
-            return Idempotent::AlreadyApplied;
+            return Ok(Idempotent::AlreadyApplied);
         }
         let status = CustomerStatus::Active;
         self.events.push(CustomerEvent::Unfrozen { status });
         self.status = status;
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 }
 

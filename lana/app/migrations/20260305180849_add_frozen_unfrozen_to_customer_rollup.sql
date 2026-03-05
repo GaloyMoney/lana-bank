@@ -1,7 +1,3 @@
--- Add status column to customer events rollup
-ALTER TABLE core_customer_events_rollup
-  ADD COLUMN status VARCHAR DEFAULT 'active';
-
 -- Update trigger function to handle frozen/unfrozen events
 CREATE OR REPLACE FUNCTION core_customer_events_rollup_trigger()
 RETURNS TRIGGER AS $$
@@ -20,7 +16,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'activity_updated', 'kyc_rejected', 'frozen', 'unfrozen') THEN
+  IF event_type NOT IN ('initialized', 'activity_updated', 'kyc_rejected', 'closed', 'frozen', 'unfrozen') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -69,6 +65,8 @@ BEGIN
       new_row.activity := (NEW.event ->> 'activity');
     WHEN 'kyc_rejected' THEN
       -- no additional fields to update
+    WHEN 'closed' THEN
+      new_row.status := (NEW.event ->> 'status');
     WHEN 'frozen' THEN
       new_row.status := (NEW.event ->> 'status');
     WHEN 'unfrozen' THEN
