@@ -8,7 +8,7 @@ use domain_config::DomainConfigId;
 pub use lana_app::{
     accounting::{LedgerAccountId, TransactionTemplateId},
     primitives::{
-        AccountSpec, ApprovalProcessId, ChartId, CollateralDirection, CollateralId, CommitteeId,
+        ApprovalProcessId, ChartId, CollateralDirection, CollateralId, CommitteeId,
         CreditFacilityId, CreditFacilityProposalId, CreditFacilityProposalStatus, CustodianId,
         CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus,
         DocumentId, EntryId, FiscalYearId, LedgerTransactionId, LiquidationId, ManualTransactionId,
