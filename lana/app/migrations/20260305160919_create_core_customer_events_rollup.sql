@@ -9,13 +9,10 @@ CREATE TABLE core_customer_events_rollup (
   activity VARCHAR,
   applicant_id VARCHAR,
   customer_type VARCHAR,
-  email VARCHAR,
   kyc_verification VARCHAR,
   level VARCHAR,
   party_id UUID,
-  personal_info JSONB,
   public_id VARCHAR,
-  telegram_handle VARCHAR,
 
   -- Toggle fields
   is_kyc_approved BOOLEAN DEFAULT false
@@ -42,7 +39,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'party_linked', 'telegram_handle_updated', 'email_updated', 'activity_updated', 'kyc_rejected', 'personal_info_updated') THEN
+  IF event_type NOT IN ('initialized', 'activity_updated', 'kyc_rejected') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -58,27 +55,21 @@ BEGIN
     new_row.activity := (NEW.event ->> 'activity');
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
     new_row.customer_type := (NEW.event ->> 'customer_type');
-    new_row.email := (NEW.event ->> 'email');
     new_row.is_kyc_approved := false;
     new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
     new_row.level := (NEW.event ->> 'level');
     new_row.party_id := (NEW.event ->> 'party_id')::UUID;
-    new_row.personal_info := (NEW.event -> 'personal_info');
     new_row.public_id := (NEW.event ->> 'public_id');
-    new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
   ELSE
     -- Default all fields to current values
     new_row.activity := current_row.activity;
     new_row.applicant_id := current_row.applicant_id;
     new_row.customer_type := current_row.customer_type;
-    new_row.email := current_row.email;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
     new_row.kyc_verification := current_row.kyc_verification;
     new_row.level := current_row.level;
     new_row.party_id := current_row.party_id;
-    new_row.personal_info := current_row.personal_info;
     new_row.public_id := current_row.public_id;
-    new_row.telegram_handle := current_row.telegram_handle;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -87,24 +78,13 @@ BEGIN
       new_row.activity := (NEW.event ->> 'activity');
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
       new_row.customer_type := (NEW.event ->> 'customer_type');
-      new_row.email := (NEW.event ->> 'email');
       new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
       new_row.level := (NEW.event ->> 'level');
       new_row.party_id := (NEW.event ->> 'party_id')::UUID;
-      new_row.personal_info := (NEW.event -> 'personal_info');
       new_row.public_id := (NEW.event ->> 'public_id');
-      new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
-    WHEN 'party_linked' THEN
-      new_row.party_id := (NEW.event ->> 'party_id')::UUID;
-    WHEN 'telegram_handle_updated' THEN
-      new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
-    WHEN 'email_updated' THEN
-      new_row.email := (NEW.event ->> 'email');
     WHEN 'activity_updated' THEN
       new_row.activity := (NEW.event ->> 'activity');
     WHEN 'kyc_rejected' THEN
-    WHEN 'personal_info_updated' THEN
-      new_row.personal_info := (NEW.event -> 'personal_info');
   END CASE;
 
   INSERT INTO core_customer_events_rollup (
@@ -116,14 +96,11 @@ BEGIN
     activity,
     applicant_id,
     customer_type,
-    email,
     is_kyc_approved,
     kyc_verification,
     level,
     party_id,
-    personal_info,
-    public_id,
-    telegram_handle
+    public_id
   )
   VALUES (
     new_row.id,
@@ -134,14 +111,11 @@ BEGIN
     new_row.activity,
     new_row.applicant_id,
     new_row.customer_type,
-    new_row.email,
     new_row.is_kyc_approved,
     new_row.kyc_verification,
     new_row.level,
     new_row.party_id,
-    new_row.personal_info,
-    new_row.public_id,
-    new_row.telegram_handle
+    new_row.public_id
   );
 
   RETURN NEW;
