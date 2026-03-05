@@ -1,3 +1,20 @@
+## [0.46.1] - 2026-03-05
+
+### 🐛 Bug Fixes
+
+- Env var secret leakage in logs (#4121)
+- Increase admin panel session timeout from 5 to 30 minutes (#4133)
+- Replace .expect() with error returns in interest accrual cycle methods (#4118)
+
+### 🚜 Refactor
+
+- *(customer)* Remove legacy event variants from Customer and Prospect (#4119)
+- Remove ChartOfAccountsAddRootNode mutation (#4129)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.46.0 [ci skip] (#4120)
+- Remove leftover hakari config file (#4135)
 ## [0.46.0] - 2026-03-05
 
 ### 🚀 Features
