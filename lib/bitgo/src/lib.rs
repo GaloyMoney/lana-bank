@@ -18,7 +18,7 @@ pub use config::{BitgoConfig, BitgoDirectoryConfig};
 pub use error::*;
 pub use wire::*;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct BitgoClient {
     http_client: Client,
     long_lived_token: String,
@@ -29,6 +29,21 @@ pub struct BitgoClient {
     coin: String,
     webhook_url: Url,
     webhook_secret: Vec<u8>,
+}
+
+impl std::fmt::Debug for BitgoClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BitgoClient")
+            .field("endpoint", &self.endpoint)
+            .field("enterprise_id", &self.enterprise_id)
+            .field("is_test", &self.is_test)
+            .field("coin", &self.coin)
+            .field("webhook_url", &self.webhook_url)
+            .field("long_lived_token", &"<redacted>")
+            .field("passphrase", &"<redacted>")
+            .field("webhook_secret", &"<redacted>")
+            .finish()
+    }
 }
 
 impl BitgoClient {
