@@ -16,18 +16,10 @@ use crate::{entity::NewCustomer, primitives::*};
 pub enum ProspectEvent {
     Initialized {
         id: ProspectId,
-        #[serde(default)]
-        party_id: Option<PartyId>,
-        #[serde(default)]
-        email: Option<String>,
-        #[serde(default)]
-        telegram_handle: Option<String>,
+        party_id: PartyId,
         customer_type: CustomerType,
         public_id: PublicId,
         stage: ProspectStage,
-    },
-    PartyLinked {
-        party_id: PartyId,
     },
     KycStarted {
         applicant_id: String,
@@ -51,13 +43,6 @@ pub enum ProspectEvent {
     },
     Closed {
         stage: ProspectStage,
-    },
-    // Legacy event variants kept for backward compatibility deserialization
-    TelegramHandleUpdated {
-        telegram_handle: String,
-    },
-    PersonalInfoUpdated {
-        personal_info: PersonalInfo,
     },
 }
 
@@ -288,20 +273,14 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     customer_type,
                     public_id,
                     stage,
-                    ..
                 } => {
                     builder = builder
                         .id(*id)
+                        .party_id(*party_id)
                         .customer_type(*customer_type)
                         .public_id(public_id.clone())
                         .level(KycLevel::NotKyced)
                         .stage(*stage);
-                    if let Some(party_id) = party_id {
-                        builder = builder.party_id(*party_id);
-                    }
-                }
-                ProspectEvent::PartyLinked { party_id } => {
-                    builder = builder.party_id(*party_id);
                 }
                 ProspectEvent::KycStarted {
                     applicant_id,
@@ -337,9 +316,6 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                 ProspectEvent::Closed { stage } => {
                     builder = builder.status(ProspectStatus::Closed).stage(*stage);
                 }
-                // Legacy event variants - no-op for state reconstruction
-                ProspectEvent::TelegramHandleUpdated { .. }
-                | ProspectEvent::PersonalInfoUpdated { .. } => {}
             }
         }
 
@@ -371,9 +347,7 @@ impl IntoEvents<ProspectEvent> for NewProspect {
             self.id,
             [ProspectEvent::Initialized {
                 id: self.id,
-                party_id: Some(self.party_id),
-                email: None,
-                telegram_handle: None,
+                party_id: self.party_id,
                 customer_type: self.customer_type,
                 public_id: self.public_id,
                 stage: self.stage,
@@ -393,9 +367,7 @@ mod tests {
             id,
             [ProspectEvent::Initialized {
                 id,
-                party_id: Some(party_id),
-                email: None,
-                telegram_handle: None,
+                party_id,
                 customer_type: CustomerType::Individual,
                 public_id: PublicId::new("test-public-id"),
                 stage: ProspectStage::New,

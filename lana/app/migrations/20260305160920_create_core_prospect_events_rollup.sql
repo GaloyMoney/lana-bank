@@ -8,13 +8,10 @@ CREATE TABLE core_prospect_events_rollup (
   -- Flattened fields from the event JSON
   applicant_id VARCHAR,
   customer_type VARCHAR,
-  email VARCHAR,
   level VARCHAR,
   party_id UUID,
-  personal_info JSONB,
   public_id VARCHAR,
   stage VARCHAR,
-  telegram_handle VARCHAR,
   url VARCHAR,
 
   -- Toggle fields
@@ -42,7 +39,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'party_linked', 'kyc_started', 'kyc_approved', 'kyc_pending', 'kyc_declined', 'manually_converted', 'verification_link_created', 'closed', 'telegram_handle_updated', 'personal_info_updated') THEN
+  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_pending', 'kyc_declined', 'manually_converted', 'verification_link_created', 'closed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -57,27 +54,21 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
     new_row.customer_type := (NEW.event ->> 'customer_type');
-    new_row.email := (NEW.event ->> 'email');
     new_row.is_kyc_approved := false;
     new_row.level := (NEW.event ->> 'level');
     new_row.party_id := (NEW.event ->> 'party_id')::UUID;
-    new_row.personal_info := (NEW.event -> 'personal_info');
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.stage := (NEW.event ->> 'stage');
-    new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
     new_row.url := (NEW.event ->> 'url');
   ELSE
     -- Default all fields to current values
     new_row.applicant_id := current_row.applicant_id;
     new_row.customer_type := current_row.customer_type;
-    new_row.email := current_row.email;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
     new_row.level := current_row.level;
     new_row.party_id := current_row.party_id;
-    new_row.personal_info := current_row.personal_info;
     new_row.public_id := current_row.public_id;
     new_row.stage := current_row.stage;
-    new_row.telegram_handle := current_row.telegram_handle;
     new_row.url := current_row.url;
   END IF;
 
@@ -85,13 +76,9 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.customer_type := (NEW.event ->> 'customer_type');
-      new_row.email := (NEW.event ->> 'email');
       new_row.party_id := (NEW.event ->> 'party_id')::UUID;
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.stage := (NEW.event ->> 'stage');
-      new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
-    WHEN 'party_linked' THEN
-      new_row.party_id := (NEW.event ->> 'party_id')::UUID;
     WHEN 'kyc_started' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
       new_row.stage := (NEW.event ->> 'stage');
@@ -109,10 +96,6 @@ BEGIN
       new_row.url := (NEW.event ->> 'url');
     WHEN 'closed' THEN
       new_row.stage := (NEW.event ->> 'stage');
-    WHEN 'telegram_handle_updated' THEN
-      new_row.telegram_handle := (NEW.event ->> 'telegram_handle');
-    WHEN 'personal_info_updated' THEN
-      new_row.personal_info := (NEW.event -> 'personal_info');
   END CASE;
 
   INSERT INTO core_prospect_events_rollup (
@@ -123,14 +106,11 @@ BEGIN
     event_type,
     applicant_id,
     customer_type,
-    email,
     is_kyc_approved,
     level,
     party_id,
-    personal_info,
     public_id,
     stage,
-    telegram_handle,
     url
   )
   VALUES (
@@ -141,14 +121,11 @@ BEGIN
     new_row.event_type,
     new_row.applicant_id,
     new_row.customer_type,
-    new_row.email,
     new_row.is_kyc_approved,
     new_row.level,
     new_row.party_id,
-    new_row.personal_info,
     new_row.public_id,
     new_row.stage,
-    new_row.telegram_handle,
     new_row.url
   );
 

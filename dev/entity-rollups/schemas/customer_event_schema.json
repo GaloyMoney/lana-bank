@@ -35,39 +35,6 @@
         "rejected"
       ],
       "type": "string"
-    },
-    "PersonalInfo": {
-      "properties": {
-        "address": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "dateOfBirth": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "firstName": {
-          "type": "string"
-        },
-        "lastName": {
-          "type": "string"
-        },
-        "nationality": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      },
-      "required": [
-        "firstName",
-        "lastName"
-      ],
-      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -83,13 +50,6 @@
         "customer_type": {
           "$ref": "#/$defs/CustomerType"
         },
-        "email": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -101,33 +61,11 @@
           "$ref": "#/$defs/KycLevel"
         },
         "party_id": {
-          "default": null,
           "format": "uuid",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "personal_info": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/PersonalInfo"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
+          "type": "string"
         },
         "public_id": {
           "type": "string"
-        },
-        "telegram_handle": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
         },
         "type": {
           "const": "initialized",
@@ -137,61 +75,13 @@
       "required": [
         "type",
         "id",
+        "party_id",
         "customer_type",
         "activity",
         "public_id",
         "applicant_id",
         "level",
         "kyc_verification"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "party_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "type": {
-          "const": "party_linked",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "party_id"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "telegram_handle": {
-          "type": "string"
-        },
-        "type": {
-          "const": "telegram_handle_updated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "telegram_handle"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "type": {
-          "const": "email_updated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "email"
       ],
       "type": "object"
     },
@@ -220,22 +110,6 @@
       },
       "required": [
         "type"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "personal_info": {
-          "$ref": "#/$defs/PersonalInfo"
-        },
-        "type": {
-          "const": "personal_info_updated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "personal_info"
       ],
       "type": "object"
     }
