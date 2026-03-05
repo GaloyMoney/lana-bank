@@ -1131,6 +1131,7 @@ enum CustomerType {
 
 input CustomersFilter {
 	kycVerification: KycVerification
+	customerType: CustomerType
 }
 
 input CustomersSort {
@@ -2287,6 +2288,7 @@ enum ProspectStatus {
 
 input ProspectsFilter {
 	stage: ProspectStage
+	customerType: CustomerType
 }
 
 input ProspectsSort {

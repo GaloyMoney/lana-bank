@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_prospects WHERE COALESCE(stage = $1, $1 IS NULL) AND (COALESCE(id < $3, true)) ORDER BY id DESC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_prospect_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT created_at, id FROM core_prospects WHERE COALESCE(stage = $1, $1 IS NULL) AND COALESCE(customer_type = $2, $2 IS NULL) AND (COALESCE((created_at, id) < ($5, $4), $4 IS NULL)) ORDER BY created_at DESC, id DESC LIMIT $3) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $6 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_prospect_events e ON i.id = e.id ORDER BY i.created_at desc, i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -32,8 +32,10 @@
     "parameters": {
       "Left": [
         "Text",
+        "Text",
         "Int8",
         "Uuid",
+        "Timestamptz",
         "Bool"
       ]
     },
@@ -45,5 +47,5 @@
       false
     ]
   },
-  "hash": "96f4be1b8939510900387158f5620d59dfc0c5958850a470f7c8b01f2d463a1e"
+  "hash": "52099b41ab19de86b79655df3781f7c2a517ff4d698808514d35d06f82500228"
 }

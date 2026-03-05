@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_prospects WHERE COALESCE(stage = $1, $1 IS NULL) AND (COALESCE(id > $3, true)) ORDER BY id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_prospect_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT customer_type, id FROM core_prospects WHERE ((customer_type = $1) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_prospect_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -45,5 +45,5 @@
       false
     ]
   },
-  "hash": "224d9cde6daace7f309bba70353b0b6d1433a1ac6c0b8b33014d52e0b495c088"
+  "hash": "748b1de2af0b571621edd39554546c163eb6a8a42c82a4722cd45520ac85091b"
 }

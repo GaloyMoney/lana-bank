@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl"
 import { ProspectStageBadge } from "./prospect-stage-badge"
 
 import {
+  CustomerType,
   Prospect,
   ProspectStage,
   ProspectsFilter,
@@ -85,6 +86,7 @@ const ProspectsList = () => {
     {
       key: "customerType",
       label: t("columns.customerType"),
+      filterValues: Object.values(CustomerType),
     },
   ]
 

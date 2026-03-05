@@ -71,10 +71,22 @@ pub enum Activity {
     Suspended,
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
+#[derive(
+    Debug,
+    Default,
+    Deserialize,
+    Clone,
+    Copy,
+    Serialize,
+    Eq,
+    PartialEq,
+    strum::Display,
+    strum::EnumString,
+)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub enum CustomerType {
+    #[default]
     Individual,
     GovernmentEntity,
     PrivateCompany,
@@ -82,20 +94,6 @@ pub enum CustomerType {
     FinancialInstitution,
     ForeignAgencyOrSubsidiary,
     NonDomiciledCompany,
-}
-
-impl Display for CustomerType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CustomerType::Individual => write!(f, "Individual"),
-            CustomerType::GovernmentEntity => write!(f, "Government Entity"),
-            CustomerType::PrivateCompany => write!(f, "Private Company"),
-            CustomerType::Bank => write!(f, "Bank"),
-            CustomerType::FinancialInstitution => write!(f, "Financial Institution"),
-            CustomerType::ForeignAgencyOrSubsidiary => write!(f, "Foreign Agency or Subsidiary"),
-            CustomerType::NonDomiciledCompany => write!(f, "Non-Domiciled Company"),
-        }
-    }
 }
 
 #[derive(

@@ -198,4 +198,5 @@ impl From<ProspectsSort> for Sort<DomainProspectsSortBy> {
 #[derive(InputObject)]
 pub struct ProspectsFilter {
     pub stage: Option<ProspectStage>,
+    pub customer_type: Option<CustomerType>,
 }
