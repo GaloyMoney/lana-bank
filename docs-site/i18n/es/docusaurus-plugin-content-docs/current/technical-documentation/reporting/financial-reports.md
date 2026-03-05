@@ -328,40 +328,40 @@ mutation ExportReport($input: ReportExportInput!) {
 
 ### Configurar Reporte Automático
 
-## Recorrido en Panel de Administración: Trial Balance
+## Recorrido en Panel de Administración: Balanza de Comprobación
 
-**Paso 1.** Open the trial balance report.
+**Paso 1.** Abre el reporte de balanza de comprobación.
 
-![Trial balance report](/img/screenshots/current/es/trial-balance.cy.ts/trial-balance.png)
+![Balanza de comprobación](/img/screenshots/current/es/trial-balance.cy.ts/trial-balance.png)
 
-**Paso 2.** Switch currency view (example: BTC).
+**Paso 2.** Cambia la moneda de visualización (ejemplo: BTC).
 
-![Trial balance BTC currency](/img/screenshots/current/es/trial-balance.cy.ts/trial-balance-btc-currency.png)
+![Balanza BTC](/img/screenshots/current/es/trial-balance.cy.ts/trial-balance-btc-currency.png)
 
-## Recorrido en Panel de Administración: Balance Sheet
+## Recorrido en Panel de Administración: Balance General
 
-**Paso 1.** Open the balance sheet report.
+**Paso 1.** Abre el reporte de balance general.
 
-![Balance sheet report](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet.png)
+![Balance general](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet.png)
 
-**Paso 2.** Switch currency (USD/BTC).
+**Paso 2.** Cambia moneda (USD/BTC).
 
-![Balance sheet BTC currency](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet-btc-currency.png)
+![Balance general BTC](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet-btc-currency.png)
 
-**Paso 3.** Filter by balance layer (example: pending).
+**Paso 3.** Filtra por capa de balance (ejemplo: pendiente).
 
-![Balance sheet pending layer](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet-pending.png)
+![Balance general capa pendiente](/img/screenshots/current/es/balance-sheet.cy.ts/balance-sheet-pending.png)
 
-## Recorrido en Panel de Administración: Profit and Loss
+## Recorrido en Panel de Administración: Estado de Resultados
 
-**Paso 1.** Open profit and loss report.
+**Paso 1.** Abre el reporte de estado de resultados.
 
-![Profit and loss report](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss.png)
+![Estado de resultados](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss.png)
 
-**Paso 2.** Switch currency view.
+**Paso 2.** Cambia moneda de visualización.
 
-![Profit and loss BTC currency](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss-btc-currency.png)
+![Estado de resultados BTC](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss-btc-currency.png)
 
-**Paso 3.** Filter by layer (example: pending).
+**Paso 3.** Filtra por capa (ejemplo: pendiente).
 
-![Profit and loss pending layer](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss-pending.png)
+![Estado de resultados capa pendiente](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss-pending.png)

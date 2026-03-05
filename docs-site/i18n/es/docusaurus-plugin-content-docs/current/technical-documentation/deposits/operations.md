@@ -257,92 +257,92 @@ query GetTransactionHistory($accountId: ID!, $first: Int) {
 | Aprobar retiro | WITHDRAWAL_APPROVE |
 | Confirmar retiro | WITHDRAWAL_CONFIRM |
 
-## Recorrido en Panel de Administración: Deposits and Withdrawals
+## Recorrido en Panel de Administración: Depósitos y Retiros
 
-This flow shows operational creation and management of deposits and withdrawals.
+Este flujo muestra la creación y gestión operativa de depósitos y retiros.
 
-### A) Create a deposit
+### A) Crear un depósito
 
-**Paso 1.** Click global **Create**.
+**Paso 1.** Haz clic en **Crear** global.
 
-![Open create menu](/img/screenshots/current/es/transactions.cy.ts/1_deposit_create_button.png)
+![Abrir menú crear](/img/screenshots/current/es/transactions.cy.ts/1_deposit_create_button.png)
 
-**Paso 2.** Select **Create Deposit**.
+**Paso 2.** Selecciona **Crear Depósito**.
 
-![Select create deposit](/img/screenshots/current/es/transactions.cy.ts/2_deposit_select.png)
+![Seleccionar crear depósito](/img/screenshots/current/es/transactions.cy.ts/2_deposit_select.png)
 
-**Paso 3.** Enter deposit amount.
+**Paso 3.** Ingresa monto del depósito.
 
-![Enter deposit amount](/img/screenshots/current/es/transactions.cy.ts/3_deposit_enter_amount.png)
+![Ingresar monto depósito](/img/screenshots/current/es/transactions.cy.ts/3_deposit_enter_amount.png)
 
-**Paso 4.** Submit.
+**Paso 4.** Envía el formulario.
 
-![Submit deposit](/img/screenshots/current/es/transactions.cy.ts/4_deposit_submit.png)
+![Enviar depósito](/img/screenshots/current/es/transactions.cy.ts/4_deposit_submit.png)
 
-**Paso 5.** Confirm success message.
+**Paso 5.** Confirma mensaje de éxito.
 
-![Deposit success](/img/screenshots/current/es/transactions.cy.ts/5_deposit_success.png)
+![Éxito depósito](/img/screenshots/current/es/transactions.cy.ts/5_deposit_success.png)
 
-**Paso 6.** Verify deposit in deposit list.
+**Paso 6.** Verifica depósito en lista principal.
 
-![Deposit appears in list](/img/screenshots/current/es/transactions.cy.ts/6_deposit_in_list.png)
+![Depósito en lista](/img/screenshots/current/es/transactions.cy.ts/6_deposit_in_list.png)
 
-**Paso 7.** Verify deposit in customer transaction history.
+**Paso 7.** Verifica depósito en historial del cliente.
 
-![Deposit in transaction history](/img/screenshots/current/es/transactions.cy.ts/7_deposit_in_transactions.png)
+![Depósito en historial](/img/screenshots/current/es/transactions.cy.ts/7_deposit_in_transactions.png)
 
-### B) Create a withdrawal
+### B) Crear un retiro
 
-**Paso 8.** Click **Create** for withdrawal initiation.
+**Paso 8.** Haz clic en **Crear** para iniciar retiro.
 
-![Open withdrawal create](/img/screenshots/current/es/transactions.cy.ts/8_withdrawal_create_button.png)
+![Abrir retiro](/img/screenshots/current/es/transactions.cy.ts/8_withdrawal_create_button.png)
 
-**Paso 9.** Select **Create Withdrawal**.
+**Paso 9.** Selecciona **Crear Retiro**.
 
-![Select create withdrawal](/img/screenshots/current/es/transactions.cy.ts/9_withdrawal_select.png)
+![Seleccionar crear retiro](/img/screenshots/current/es/transactions.cy.ts/9_withdrawal_select.png)
 
-**Paso 10.** Enter withdrawal amount.
+**Paso 10.** Ingresa monto del retiro.
 
-![Enter withdrawal amount](/img/screenshots/current/es/transactions.cy.ts/10_withdrawal_enter_amount.png)
+![Ingresar monto retiro](/img/screenshots/current/es/transactions.cy.ts/10_withdrawal_enter_amount.png)
 
-**Paso 11.** Submit the request.
+**Paso 11.** Envía solicitud.
 
-![Submit withdrawal](/img/screenshots/current/es/transactions.cy.ts/11_withdrawal_submit.png)
+![Enviar retiro](/img/screenshots/current/es/transactions.cy.ts/11_withdrawal_submit.png)
 
-**Paso 12.** Verify withdrawal appears in withdrawal list.
+**Paso 12.** Verifica retiro en lista principal.
 
-![Withdrawal in list](/img/screenshots/current/es/transactions.cy.ts/12_withdrawal_in_list.png)
+![Retiro en lista](/img/screenshots/current/es/transactions.cy.ts/12_withdrawal_in_list.png)
 
-**Paso 13.** Verify withdrawal appears in customer transactions.
+**Paso 13.** Verifica retiro en historial del cliente.
 
-![Withdrawal in transaction history](/img/screenshots/current/es/transactions.cy.ts/13_withdrawal_in_transactions.png)
+![Retiro en historial](/img/screenshots/current/es/transactions.cy.ts/13_withdrawal_in_transactions.png)
 
-### C) Manage withdrawal outcome
+### C) Gestionar resultado del retiro
 
-#### Cancel a pending withdrawal
+#### Cancelar retiro pendiente
 
-**Paso 14.** Click **Cancel**.
+**Paso 14.** Haz clic en **Cancelar**.
 
-![Cancel withdrawal button](/img/screenshots/current/es/transactions.cy.ts/14_withdrawal_cancel_button.png)
+![Botón cancelar retiro](/img/screenshots/current/es/transactions.cy.ts/14_withdrawal_cancel_button.png)
 
-**Paso 15.** Confirm cancellation.
+**Paso 15.** Confirma cancelación.
 
-![Confirm cancellation](/img/screenshots/current/es/transactions.cy.ts/15_withdrawal_cancel_confirm.png)
+![Confirmar cancelación](/img/screenshots/current/es/transactions.cy.ts/15_withdrawal_cancel_confirm.png)
 
-**Paso 16.** Verify status becomes cancelled.
+**Paso 16.** Verifica estado cancelado.
 
-![Cancelled status](/img/screenshots/current/es/transactions.cy.ts/16_withdrawal_cancelled_status.png)
+![Estado retiro cancelado](/img/screenshots/current/es/transactions.cy.ts/16_withdrawal_cancelled_status.png)
 
-#### Approve a pending withdrawal
+#### Aprobar retiro pendiente
 
-**Paso 17.** Click **Approve**.
+**Paso 17.** Haz clic en **Aprobar**.
 
-![Approve withdrawal button](/img/screenshots/current/es/transactions.cy.ts/17_withdrawal_approve_button.png)
+![Botón aprobar retiro](/img/screenshots/current/es/transactions.cy.ts/17_withdrawal_approve_button.png)
 
-**Paso 18.** Confirm approval.
+**Paso 18.** Confirma aprobación.
 
-![Confirm approval](/img/screenshots/current/es/transactions.cy.ts/18_withdrawal_approve_confirm.png)
+![Confirmar aprobación](/img/screenshots/current/es/transactions.cy.ts/18_withdrawal_approve_confirm.png)
 
-**Paso 19.** Verify approved/confirmed status.
+**Paso 19.** Verifica estado aprobado/confirmado.
 
-![Approved withdrawal status](/img/screenshots/current/es/transactions.cy.ts/19_withdrawal_approved_status.png)
+![Estado retiro aprobado](/img/screenshots/current/es/transactions.cy.ts/19_withdrawal_approved_status.png)

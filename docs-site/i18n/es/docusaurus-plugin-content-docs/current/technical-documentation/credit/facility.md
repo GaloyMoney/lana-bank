@@ -203,23 +203,3 @@ Cuando la activación es exitosa, úsalo como punto de handoff al flujo de desem
 **Paso 22.** Verifica que la facilidad activa aparece en la lista de facilidades.
 
 ![Facilidad de crédito en lista](/img/screenshots/current/es/credit-facilities.cy.ts/22_credit_facility_in_list.png)
-
-**Paso 18.** Confirma que la actualización de la garantía se realice correctamente.
-
-![Garantía actualizada](/img/screenshots/current/es/credit-facilities.cy.ts/18_collateral_updated.png)
-
-**Paso 19.** Verifica que el estado de la facilidad pendiente cambie a **Completado**.
-
-![Facilidad pendiente completada](/img/screenshots/current/es/credit-facilities.cy.ts/19_pending_facility_completed.png)
-
-**Paso 20.** Haz clic en **Ver facilidad**.
-
-![Botón ver facilidad](/img/screenshots/current/es/credit-facilities.cy.ts/20_view_facility_button.png)
-
-**Paso 21.** Confirma que el estado de la facilidad de crédito sea **Activo**.
-
-![Verificar estado activo](/img/screenshots/current/es/credit-facilities.cy.ts/21_verify_active_status.png)
-
-**Paso 22.** Verifica que la facilidad activa aparezca en la lista de facilidades.
-
-![Facilidad de crédito en lista](/img/screenshots/current/es/credit-facilities.cy.ts/22_credit_facility_in_list.png)

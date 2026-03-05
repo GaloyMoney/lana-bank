@@ -186,62 +186,62 @@ Si falla el aprovisionamiento:
 | Iniciar KYC | Comenzar verificación | CUSTOMER_UPDATE |
 | Desactivar | Suspender cuenta | CUSTOMER_UPDATE |
 
-## Recorrido en Panel de Administración: Customer Creation and KYC
+## Recorrido en Panel de Administración: Creación de Cliente y KYC
 
-This walkthrough reflects the operator flow used in Cypress manuals and aligns with the customer
-domain lifecycle (create -> verify -> activate).
+Este recorrido refleja el flujo operativo usado en los manuales de Cypress y coincide con el
+ciclo de vida de cliente en dominio (crear -> verificar -> activar).
 
-### 1) Create and verify customer basics
+### 1) Crear y validar datos base del cliente
 
-**Paso 1.** Open the customers list.
+**Paso 1.** Abre la lista de clientes.
 
-![Customers list](/img/screenshots/current/es/customers.cy.ts/2_list_all_prospects.png)
+![Lista de clientes](/img/screenshots/current/es/customers.cy.ts/2_list_all_prospects.png)
 
-**Paso 2.** Click **Create**.
+**Paso 2.** Haz clic en **Crear**.
 
-![Click create customer](/img/screenshots/current/es/customers.cy.ts/3_click_create_button.png)
+![Botón crear cliente](/img/screenshots/current/es/customers.cy.ts/3_click_create_button.png)
 
-**Paso 3.** The customer creation form opens with the email input field ready.
+**Paso 3.** Se abre el formulario de creación con el campo de email listo.
 
-![Customer creation form](/img/screenshots/current/es/customers.cy.ts/4_verify_email_input_visible.png)
+![Formulario de creación de cliente](/img/screenshots/current/es/customers.cy.ts/4_verify_email_input_visible.png)
 
-**Paso 4.** Enter a unique customer email.
+**Paso 4.** Ingresa un correo único.
 
-![Enter customer email](/img/screenshots/current/es/customers.cy.ts/5_enter_email.png)
+![Ingresar correo](/img/screenshots/current/es/customers.cy.ts/5_enter_email.png)
 
-**Paso 5.** Enter a unique Telegram ID (if used by your process).
+**Paso 5.** Ingresa un ID de Telegram único (si aplica en tu operación).
 
-![Enter telegram id](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_handle.png)
+![Ingresar Telegram ID](/img/screenshots/current/es/customers.cy.ts/6_enter_telegram_handle.png)
 
-**Paso 6.** Review details before submission.
+**Paso 6.** Revisa los datos antes del envío.
 
-![Review customer details](/img/screenshots/current/es/customers.cy.ts/7_click_review_details.png)
+![Revisar datos del cliente](/img/screenshots/current/es/customers.cy.ts/7_click_review_details.png)
 
-**Paso 7.** Verify the confirmation dialog showing the entered customer details.
+**Paso 7.** Verifica el diálogo de confirmación con los datos ingresados.
 
-![Verify customer details before submit](/img/screenshots/current/es/customers.cy.ts/8_verify_details.png)
+![Verificar datos antes de confirmar](/img/screenshots/current/es/customers.cy.ts/8_verify_details.png)
 
-**Paso 8.** Click **Confirm** to create the customer.
+**Paso 8.** Haz clic en **Confirmar** para crear el cliente.
 
-![Confirm customer creation](/img/screenshots/current/es/customers.cy.ts/9_click_confirm_submit.png)
+![Confirmar creación de cliente](/img/screenshots/current/es/customers.cy.ts/9_click_confirm_submit.png)
 
-**Paso 9.** Confirm the customer detail page and identity fields.
+**Paso 9.** Confirma la pantalla de detalle del cliente.
 
-![Customer details page](/img/screenshots/current/es/customers.cy.ts/10_verify_email.png)
+![Detalle del cliente](/img/screenshots/current/es/customers.cy.ts/10_verify_email.png)
 
-**Paso 10.** Verify the customer appears in list views.
+**Paso 10.** Verifica que el cliente aparece en listados.
 
-![Customer visible in list](/img/screenshots/current/es/customers.cy.ts/11_verify_customer_in_list.png)
+![Cliente en lista](/img/screenshots/current/es/customers.cy.ts/11_verify_customer_in_list.png)
 
-### 2) Start and monitor KYC
+### 2) Iniciar y monitorear KYC
 
-The system integrates with Sumsub. Operators generate the verification link, then monitor status
-changes driven by webhook updates.
+El sistema se integra con Sumsub. El operador genera el enlace y monitorea cambios de estado
+alimentados por webhooks.
 
-**Paso 11.** Open customer KYC section and generate verification link.
+**Paso 11.** Abre la sección KYC y crea el enlace de verificación.
 
-![Customer KYC detail section](/img/screenshots/current/es/customers.cy.ts/14_prospect_kyc_details_page.png)
+![Sección KYC del cliente](/img/screenshots/current/es/customers.cy.ts/14_prospect_kyc_details_page.png)
 
-**Paso 12.** Confirm KYC link was created.
+**Paso 12.** Confirma que el enlace KYC fue generado.
 
-![KYC link created](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)
+![Enlace KYC creado](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)

@@ -270,58 +270,58 @@ Todas las modificaciones a políticas se registran en el sistema de auditoría:
 - Cuándo se realizó
 - Valores anteriores y nuevos
 
-## Recorrido en Panel de Administración: Assign Committee and Resolve Actions
+## Recorrido en Panel de Administración: Asignar Comité y Resolver Acciones
 
-### 1) Assign committee to policy
+### 1) Asignar comité a política
 
-**Paso 12.** Open policies page.
+**Paso 12.** Abre la página de políticas.
 
-![Visit policies page](/img/screenshots/current/es/governance.cy.ts/12_step-visit-policies-page.png)
+![Visitar página de políticas](/img/screenshots/current/es/governance.cy.ts/12_step-visit-policies-page.png)
 
-**Paso 13.** Select a policy.
+**Paso 13.** Selecciona una política.
 
-![Select policy](/img/screenshots/current/es/governance.cy.ts/13_step-select-policy.png)
+![Seleccionar política](/img/screenshots/current/es/governance.cy.ts/13_step-select-policy.png)
 
-**Paso 14.** Assign committee and threshold.
+**Paso 14.** Asigna comité y umbral.
 
-![Assign committee to policy](/img/screenshots/current/es/governance.cy.ts/14_step-assign-committee-to-policy.png)
+![Asignar comité a política](/img/screenshots/current/es/governance.cy.ts/14_step-assign-committee-to-policy.png)
 
-**Paso 15.** Verify assignment success.
+**Paso 15.** Verifica éxito de asignación.
 
-![Verify committee assigned](/img/screenshots/current/es/governance.cy.ts/15_step-verify-committee-assigned.png)
+![Verificar comité asignado](/img/screenshots/current/es/governance.cy.ts/15_step-verify-committee-assigned.png)
 
-### 2) Review pending actions
+### 2) Revisar acciones pendientes
 
-**Paso 16.** Open actions queue.
+**Paso 16.** Abre la cola de acciones.
 
-![Actions page](/img/screenshots/current/es/governance.cy.ts/16_step-view-actions-page.png)
+![Página de acciones](/img/screenshots/current/es/governance.cy.ts/16_step-view-actions-page.png)
 
-**Paso 17.** Confirm pending request appears.
+**Paso 17.** Confirma que la solicitud pendiente aparece.
 
-![Pending withdrawal visible](/img/screenshots/current/es/governance.cy.ts/17_step-verify-pending-withdrawal.png)
+![Retiro pendiente visible](/img/screenshots/current/es/governance.cy.ts/17_step-verify-pending-withdrawal.png)
 
-### 3) Approve or deny process
+### 3) Aprobar o rechazar proceso
 
-**Paso 18.** Open request details for decision.
+**Paso 18.** Abre el detalle de la solicitud.
 
-![Withdrawal details for approval](/img/screenshots/current/es/governance.cy.ts/18_step-visit-withdrawal-details.png)
+![Detalle retiro para aprobación](/img/screenshots/current/es/governance.cy.ts/18_step-visit-withdrawal-details.png)
 
-**Paso 19.** Click **Approve**.
+**Paso 19.** Haz clic en **Aprobar**.
 
-![Click approve](/img/screenshots/current/es/governance.cy.ts/19_step-click-approve-button.png)
+![Clic en aprobar](/img/screenshots/current/es/governance.cy.ts/19_step-click-approve-button.png)
 
-**Paso 20.** Verify approval success and state transition.
+**Paso 20.** Verifica éxito y transición de estado.
 
-![Approval success](/img/screenshots/current/es/governance.cy.ts/20_step-verify-approval-success.png)
+![Éxito de aprobación](/img/screenshots/current/es/governance.cy.ts/20_step-verify-approval-success.png)
 
-**Paso 21.** Open request for denial flow.
+**Paso 21.** Abre solicitud para flujo de rechazo.
 
-![Visit withdrawal for denial](/img/screenshots/current/es/governance.cy.ts/21_step-visit-withdrawal-for-denial.png)
+![Visitar retiro para rechazo](/img/screenshots/current/es/governance.cy.ts/21_step-visit-withdrawal-for-denial.png)
 
-**Paso 22.** Click **Deny** and provide reason.
+**Paso 22.** Haz clic en **Rechazar** e ingresa motivo.
 
-![Click deny](/img/screenshots/current/es/governance.cy.ts/22_step-click-deny-button.png)
+![Clic en rechazar](/img/screenshots/current/es/governance.cy.ts/22_step-click-deny-button.png)
 
-**Paso 23.** Verify denial success and terminal status.
+**Paso 23.** Verifica éxito del rechazo y estado terminal.
 
-![Denial success](/img/screenshots/current/es/governance.cy.ts/23_step-verify-denial-success.png)
+![Éxito de rechazo](/img/screenshots/current/es/governance.cy.ts/23_step-verify-denial-success.png)

@@ -247,52 +247,52 @@ query GetCommitteeDecisions($committeeId: ID!, $first: Int) {
 
 ## Permisos Requeridos
 
-## Recorrido en Panel de Administración: Create Committee and Add Members
+## Recorrido en Panel de Administración: Crear Comité y Agregar Miembros
 
-### 1) Create committee
+### 1) Crear comité
 
-**Paso 1.** Visit committees page.
+**Paso 1.** Visita la página de comités.
 
-![Visit committees page](/img/screenshots/current/es/governance.cy.ts/1_step-visit-committees.png)
+![Visitar comités](/img/screenshots/current/es/governance.cy.ts/1_step-visit-committees.png)
 
-**Paso 2.** Click **Create Committee**.
+**Paso 2.** Haz clic en **Crear Comité**.
 
-![Click create committee](/img/screenshots/current/es/governance.cy.ts/2_step-click-create-committee-button.png)
+![Crear comité](/img/screenshots/current/es/governance.cy.ts/2_step-click-create-committee-button.png)
 
-**Paso 3.** Enter committee name.
+**Paso 3.** Completa nombre del comité.
 
-![Fill committee name](/img/screenshots/current/es/governance.cy.ts/3_step-fill-committee-name.png)
+![Completar nombre comité](/img/screenshots/current/es/governance.cy.ts/3_step-fill-committee-name.png)
 
-**Paso 4.** Submit committee creation.
+**Paso 4.** Envía creación.
 
-![Submit committee creation](/img/screenshots/current/es/governance.cy.ts/4_step-submit-committee-creation.png)
+![Enviar creación comité](/img/screenshots/current/es/governance.cy.ts/4_step-submit-committee-creation.png)
 
-**Paso 5.** Verify success.
+**Paso 5.** Verifica mensaje de éxito.
 
-![Committee created successfully](/img/screenshots/current/es/governance.cy.ts/5_step-committee-created-successfully.png)
+![Comité creado exitosamente](/img/screenshots/current/es/governance.cy.ts/5_step-committee-created-successfully.png)
 
-**Paso 6.** Confirm committee appears in list.
+**Paso 6.** Verifica presencia en lista.
 
-![Committee list](/img/screenshots/current/es/governance.cy.ts/6_step-view-committees-list.png)
+![Lista de comités](/img/screenshots/current/es/governance.cy.ts/6_step-view-committees-list.png)
 
-### 2) Add member
+### 2) Agregar miembro
 
-**Paso 7.** Open committee details.
+**Paso 7.** Abre detalle del comité.
 
-![Committee details](/img/screenshots/current/es/governance.cy.ts/7_step-visit-committee-details.png)
+![Detalle del comité](/img/screenshots/current/es/governance.cy.ts/7_step-visit-committee-details.png)
 
-**Paso 8.** Click **Add Member**.
+**Paso 8.** Haz clic en **Agregar Miembro**.
 
-![Add member button](/img/screenshots/current/es/governance.cy.ts/8_step-click-add-member-button.png)
+![Botón agregar miembro](/img/screenshots/current/es/governance.cy.ts/8_step-click-add-member-button.png)
 
-**Paso 9.** Select role/member mapping.
+**Paso 9.** Selecciona rol/miembro.
 
-![Select admin role](/img/screenshots/current/es/governance.cy.ts/9_step-select-admin-role.png)
+![Seleccionar rol admin](/img/screenshots/current/es/governance.cy.ts/9_step-select-admin-role.png)
 
-**Paso 10.** Submit member addition.
+**Paso 10.** Envía alta de miembro.
 
-![Submit add member](/img/screenshots/current/es/governance.cy.ts/10_step-submit-add-member.png)
+![Enviar agregar miembro](/img/screenshots/current/es/governance.cy.ts/10_step-submit-add-member.png)
 
-**Paso 11.** Verify member is added successfully.
+**Paso 11.** Verifica éxito de alta.
 
-![Verify member added](/img/screenshots/current/es/governance.cy.ts/11_step-verify-member-added.png)
+![Verificar miembro agregado](/img/screenshots/current/es/governance.cy.ts/11_step-verify-member-added.png)
