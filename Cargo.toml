@@ -59,6 +59,7 @@ core-report = { path = "core/report" }
 core-time-events = { path = "core/time-events" }
 document-storage = { path = "core/document-storage" }
 governance = { path = "core/governance" }
+core-note = { path = "core/note" }
 public-id = { path = "core/public-id" }
 domain-config = { path = "core/domain-config" }
 

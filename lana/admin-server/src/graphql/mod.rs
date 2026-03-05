@@ -18,6 +18,7 @@ mod document;
 mod domain_config;
 mod loader;
 mod me;
+mod note;
 mod price;
 mod primitives;
 mod prospect;

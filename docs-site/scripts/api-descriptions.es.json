@@ -77,7 +77,8 @@
       "reportRun": "Obtiene una ejecucion de reporte especifica por su identificador unico",
       "prospect": "Obtiene un prospecto especifico por su identificador unico",
       "prospectByPublicId": "Obtiene un prospecto por su identificador publico",
-      "prospects": "Devuelve una lista paginada de todos los prospectos, opcionalmente filtrada por etapa"
+      "prospects": "Devuelve una lista paginada de todos los prospectos, opcionalmente filtrada por etapa",
+      "notesForTarget": "Devuelve todas las notas no eliminadas adjuntas a una entidad objetivo especifica (por ejemplo, cliente, facilidad crediticia)"
     },
     "mutations": {
       "customerDocumentAttach": "Carga y adjunta un documento al perfil de un cliente",
@@ -94,7 +95,6 @@
       "customerTelegramIdUpdate": "Actualiza el identificador de Telegram de un cliente",
       "customerTelegramHandleUpdate": "Actualiza el nombre de usuario de Telegram de un cliente",
       "customerEmailUpdate": "Actualiza la direccion de correo electronico de un cliente",
-      "customerClose": "Cierra una cuenta de cliente despues de verificar que se cumplan todas las precondiciones",
       "domainConfigUpdate": "Actualiza una configuracion de dominio",
       "depositModuleConfigure": "Configura los mapeos del catalogo de cuentas del modulo de depositos",
       "manualTransactionExecute": "Ejecuta una transaccion contable manual con asientos especificados",
@@ -154,8 +154,9 @@
       "collateralLiquidationRecordProceedsReceived": "Registra los ingresos recibidos de una liquidacion de colateral",
       "collateralRecordSentToLiquidation": "Registra el colateral enviado a liquidacion",
       "collateralUpdate": "Actualiza el monto de colateral para una facilidad crediticia con una fecha efectiva especificada",
-      "customerFreeze": "Congela una cuenta de cliente, bloqueando todas las operaciones financieras y congelando sus cuentas de deposito",
-      "customerUnfreeze": "Descongela una cuenta de cliente previamente congelada, restaurando las operaciones normales y descongelando sus cuentas de deposito"
+      "noteCreate": "Crea una nueva nota adjunta a una entidad objetivo (por ejemplo, cliente, facilidad crediticia)",
+      "noteUpdate": "Actualiza el contenido de una nota existente",
+      "noteDelete": "Elimina suavemente una nota, marcandola como eliminada"
     }
   },
   "customer": {

@@ -673,3 +673,22 @@ CREATE TABLE dashboards (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE core_notes (
+  id UUID PRIMARY KEY,
+  target_type VARCHAR NOT NULL,
+  target_id VARCHAR NOT NULL,
+  deleted BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_core_notes_target ON core_notes(target_type, target_id);
+
+CREATE TABLE core_note_events (
+  id UUID NOT NULL REFERENCES core_notes(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);

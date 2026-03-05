@@ -29,6 +29,7 @@ use crate::{
     governance::Governance,
     job::Jobs,
     kyc::CustomerKyc,
+    note::Notes,
     notification::Notification,
     outbox::Outbox,
     price::Price,
@@ -63,6 +64,7 @@ pub struct LanaApp {
     governance: Governance,
     dashboard: Dashboard,
     public_ids: PublicIds,
+    notes: Notes,
     contract_creation: ContractCreation,
     reports: Reports,
     terms_templates: TermsTemplates,
@@ -136,6 +138,7 @@ impl LanaApp {
             TimeEvents::init(&exposed_domain_configs_readonly, &mut jobs, &outbox).await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
         let public_ids = PublicIds::new(&pool);
+        let notes = Notes::new(&pool, &authz);
 
         let user_onboarding =
             UserOnboarding::init(&mut jobs, &outbox, config.user_onboarding).await?;
@@ -284,6 +287,7 @@ impl LanaApp {
             governance,
             dashboard,
             public_ids,
+            notes,
             contract_creation,
             reports,
             terms_templates,
@@ -409,6 +413,10 @@ impl LanaApp {
 
     pub fn public_ids(&self) -> &PublicIds {
         &self.public_ids
+    }
+
+    pub fn notes(&self) -> &Notes {
+        &self.notes
     }
 
     pub fn contract_creation(&self) -> &ContractCreation {
