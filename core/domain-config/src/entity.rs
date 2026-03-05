@@ -855,9 +855,12 @@ mod tests {
             enabled: true,
             limit: 50,
         };
-        config
-            .update_value_plain::<SampleComplexWithDefaultConfig>(updated.clone())
-            .unwrap();
+        assert!(
+            config
+                .update_value_plain::<SampleComplexWithDefaultConfig>(updated.clone())
+                .unwrap()
+                .did_execute()
+        );
 
         let expected = serde_json::to_value(updated).unwrap();
         assert_eq!(
