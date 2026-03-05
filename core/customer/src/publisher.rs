@@ -45,6 +45,12 @@ where
                 KycRejected { .. } => Some(CoreCustomerEvent::CustomerKycUpdated {
                     entity: PublicCustomer::from(entity),
                 }),
+                Frozen { .. } => Some(CoreCustomerEvent::CustomerFrozen {
+                    entity: PublicCustomer::from(entity),
+                }),
+                Unfrozen { .. } => Some(CoreCustomerEvent::CustomerUnfrozen {
+                    entity: PublicCustomer::from(entity),
+                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

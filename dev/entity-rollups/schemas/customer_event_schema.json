@@ -28,6 +28,13 @@
       ],
       "type": "string"
     },
+    "CustomerStatus": {
+      "enum": [
+        "active",
+        "frozen"
+      ],
+      "type": "string"
+    },
     "KycVerification": {
       "enum": [
         "no-kyc",
@@ -110,6 +117,38 @@
       },
       "required": [
         "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CustomerStatus"
+        },
+        "type": {
+          "const": "frozen",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CustomerStatus"
+        },
+        "type": {
+          "const": "unfrozen",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
       ],
       "type": "object"
     }

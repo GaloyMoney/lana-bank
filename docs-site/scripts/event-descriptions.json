@@ -97,7 +97,9 @@
     "events": {
       "CustomerCreated": "A new customer was created",
       "CustomerAccountKycVerificationUpdated": "KYC verification status changed",
-      "CustomerEmailUpdated": "Customer email was updated"
+      "CustomerEmailUpdated": "Customer email was updated",
+      "CustomerFrozen": "A customer account was frozen, blocking financial operations",
+      "CustomerUnfrozen": "A previously frozen customer account was unfrozen, restoring normal operations"
     }
   },
   "CoreDepositEvent": {

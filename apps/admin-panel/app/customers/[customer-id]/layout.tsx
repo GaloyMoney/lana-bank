@@ -25,6 +25,7 @@ gql`
   fragment CustomerDetailsFragment on Customer {
     id
     customerId
+    status
     email
     telegramHandle
     kycVerification

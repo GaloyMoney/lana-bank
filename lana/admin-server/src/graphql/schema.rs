@@ -1481,6 +1481,34 @@ impl Mutation {
         )
     }
 
+    async fn customer_freeze(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerFreezeInput,
+    ) -> async_graphql::Result<CustomerFreezePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerFreezePayload,
+            Customer,
+            ctx,
+            app.customers().freeze_customer(sub, input.customer_id)
+        )
+    }
+
+    async fn customer_unfreeze(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerUnfreezeInput,
+    ) -> async_graphql::Result<CustomerUnfreezePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerUnfreezePayload,
+            Customer,
+            ctx,
+            app.customers().unfreeze_customer(sub, input.customer_id)
+        )
+    }
+
     async fn domain_config_update(
         &self,
         ctx: &Context<'_>,

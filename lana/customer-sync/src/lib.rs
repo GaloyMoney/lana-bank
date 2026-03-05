@@ -125,6 +125,28 @@ where
             )
             .await?;
 
+        let freeze_customer_deposits_spawner = jobs.add_initializer(
+            FreezeCustomerDepositsJobInitializer::new(deposit.clone(), keycloak_client.clone()),
+        );
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CUSTOMER_FREEZE_SYNC),
+                SyncCustomerFreezeHandler::new(freeze_customer_deposits_spawner),
+            )
+            .await?;
+
+        let unfreeze_customer_deposits_spawner = jobs.add_initializer(
+            UnfreezeCustomerDepositsJobInitializer::new(deposit.clone(), keycloak_client.clone()),
+        );
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CUSTOMER_UNFREEZE_SYNC),
+                SyncCustomerUnfreezeHandler::new(unfreeze_customer_deposits_spawner),
+            )
+            .await?;
+
         Ok(Self {
             _phantom: std::marker::PhantomData,
             _outbox: outbox.clone(),
