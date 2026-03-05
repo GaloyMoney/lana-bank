@@ -253,6 +253,7 @@
       "new": "Nuevo",
       "kycStarted": "KYC Iniciado",
       "kycPending": "KYC Pendiente",
+      "kycOnHold": "KYC En Espera",
       "kycDeclined": "KYC Rechazado",
       "converted": "Convertido",
       "closed": "Cerrado"
@@ -267,7 +268,8 @@
       "started": "Iniciado",
       "pending": "Pendiente",
       "approved": "Aprobado",
-      "declined": "Rechazado"
+      "declined": "Rechazado",
+      "onHold": "En Espera"
     },
     "create": {
       "title": "Agregar nuevo prospecto",

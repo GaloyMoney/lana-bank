@@ -107,10 +107,10 @@
       "title": "Notification from name",
       "description": "From name shown on outgoing notification emails."
     },
-    "timezone": {                                                                                                                                            
-      "title": "Timezone",                                                                                                                                   
-      "description": "Timezone for end-of-day processing"                                                                                                    
-    },                                                                                                                                                       
+    "timezone": {
+      "title": "Timezone",
+      "description": "Timezone for end-of-day processing"
+    },
     "closing-time": {
       "title": "Closing Time",
       "description": "Time when end-of-day processing runs (HH:MM:SS)"
@@ -253,6 +253,7 @@
       "new": "New",
       "kycStarted": "KYC Started",
       "kycPending": "KYC Pending",
+      "kycOnHold": "KYC On Hold",
       "kycDeclined": "KYC Declined",
       "converted": "Converted",
       "closed": "Closed"
@@ -267,7 +268,8 @@
       "started": "Started",
       "pending": "Pending",
       "approved": "Approved",
-      "declined": "Declined"
+      "declined": "Declined",
+      "onHold": "On Hold"
     },
     "create": {
       "title": "Add new prospect",

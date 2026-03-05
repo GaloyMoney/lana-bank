@@ -32,6 +32,9 @@ pub enum ProspectEvent {
     KycPending {
         stage: ProspectStage,
     },
+    KycOnHold {
+        stage: ProspectStage,
+    },
     KycDeclined {
         stage: ProspectStage,
     },
@@ -102,6 +105,7 @@ impl Prospect {
             ProspectStatus::Open => match self.kyc_status {
                 KycStatus::Declined => ProspectStage::KycDeclined,
                 KycStatus::Pending => ProspectStage::KycPending,
+                KycStatus::OnHold => ProspectStage::KycOnHold,
                 KycStatus::Started => ProspectStage::KycStarted,
                 KycStatus::NotStarted => ProspectStage::New,
                 KycStatus::Approved => {
@@ -141,6 +145,19 @@ impl Prospect {
         self.kyc_status = KycStatus::Pending;
         let stage = self.compute_stage();
         self.events.push(ProspectEvent::KycPending { stage });
+        self.stage = stage;
+        Ok(Idempotent::Executed(()))
+    }
+
+    pub fn set_kyc_on_hold(&mut self) -> Result<Idempotent<()>, ProspectError> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ProspectEvent::KycOnHold { .. }
+        );
+        self.ensure_open()?;
+        self.kyc_status = KycStatus::OnHold;
+        let stage = self.compute_stage();
+        self.events.push(ProspectEvent::KycOnHold { stage });
         self.stage = stage;
         Ok(Idempotent::Executed(()))
     }
@@ -293,6 +310,9 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                 }
                 ProspectEvent::KycPending { stage } => {
                     builder = builder.kyc_status(KycStatus::Pending).stage(*stage);
+                }
+                ProspectEvent::KycOnHold { stage } => {
+                    builder = builder.kyc_status(KycStatus::OnHold).stage(*stage);
                 }
                 ProspectEvent::KycApproved { level, stage } => {
                     builder = builder

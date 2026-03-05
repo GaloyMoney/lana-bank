@@ -1668,6 +1668,7 @@ export enum KycStatus {
   Approved = 'APPROVED',
   Declined = 'DECLINED',
   NotStarted = 'NOT_STARTED',
+  OnHold = 'ON_HOLD',
   Pending = 'PENDING',
   Started = 'STARTED'
 }
@@ -2532,6 +2533,7 @@ export enum ProspectStage {
   Closed = 'CLOSED',
   Converted = 'CONVERTED',
   KycDeclined = 'KYC_DECLINED',
+  KycOnHold = 'KYC_ON_HOLD',
   KycPending = 'KYC_PENDING',
   KycStarted = 'KYC_STARTED',
   New = 'NEW'

@@ -25,6 +25,7 @@
         "new",
         "kyc-started",
         "kyc-pending",
+        "kyc-on-hold",
         "kyc-declined",
         "converted",
         "closed"
@@ -115,6 +116,22 @@
         },
         "type": {
           "const": "kyc_pending",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "stage"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/ProspectStage"
+        },
+        "type": {
+          "const": "kyc_on_hold",
           "type": "string"
         }
       },

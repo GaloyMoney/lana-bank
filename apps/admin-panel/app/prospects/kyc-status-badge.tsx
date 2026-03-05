@@ -18,6 +18,8 @@ const KycStatusBadge = ({ status }: { status: KycStatus }) => {
       return <Badge variant="warning">{t("pending")}</Badge>
     case KycStatus.Declined:
       return <Badge variant="destructive">{t("declined")}</Badge>
+    case KycStatus.OnHold:
+      return <Badge variant="warning">{t("onHold")}</Badge>
     case KycStatus.NotStarted:
       return <Badge variant="secondary">{t("notStarted")}</Badge>
     default: {

@@ -17,6 +17,8 @@ const getConfig = (
       return { label: t("kycStarted"), variant: "warning" }
     case ProspectStage.KycPending:
       return { label: t("kycPending"), variant: "warning" }
+    case ProspectStage.KycOnHold:
+      return { label: t("kycOnHold"), variant: "warning" }
     case ProspectStage.KycDeclined:
       return { label: t("kycDeclined"), variant: "destructive" }
     case ProspectStage.Converted:
