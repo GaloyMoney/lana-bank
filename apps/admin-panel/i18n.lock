@@ -275,6 +275,7 @@ checksums:
     Customers/columns/telegramHandle: 0719cb55ded3146892d106733a8431b2
     Customers/columns/status: 4e1fcce15854d824919b4a582c697c90
     Customers/columns/kycVerification: 150eea9193777cbe2aed03e4dc774f8c
+    Customers/columns/customerType: f04471a7ddac844b9ad145eb9911ef75
     Customers/columns/depositAccount: 857ee8a777580666ef3e60098e442c11
     Customers/status/verified: 9566bd61c1f754dd5082eea5101f15a8
     Customers/status/notVerified: fb164eed05b30673bc6852ddadbc6f27
