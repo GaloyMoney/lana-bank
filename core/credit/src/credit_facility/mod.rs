@@ -631,6 +631,13 @@ where
     }
 }
 
+pub(crate) enum AccrualOutcome {
+    /// Period was accrued. Contains data needed for ledger recording.
+    Accrued(ConfirmedAccrual),
+    /// All periods were already accrued in a prior run. Nothing to record.
+    AllPeriodsComplete,
+}
+
 #[derive(Clone)]
 pub(crate) struct ConfirmedAccrual {
     pub(super) accrual: CreditFacilityInterestAccrual,
