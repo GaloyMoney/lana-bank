@@ -13,7 +13,7 @@ env:
   TARGET_BIGQUERY_LOCATION: "US"
 
 jobs:
-  validate-report-columns:
+  data-pipeline-tests:
     if: ${{ github.actor != 'dependabot[bot]' && !startsWith(github.head_ref, 'dependabot/') }}
     runs-on: ubuntu-latest
     steps:
@@ -21,27 +21,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Generate dbt manifest
-        run: |
-          pip install dbt-core~=1.10.3 dbt-bigquery~=1.10.3 pyyaml
-          cd dagster/src/dbt_lana_dw
-          dbt deps
-          DBT_BIGQUERY_PROJECT=build-placeholder \
-          DBT_BIGQUERY_DATASET=build-placeholder \
-          DBT_BIGQUERY_CREDENTIALS_JSON='{"type":"service_account","project_id":"x"}' \
-            dbt parse
       - name: Validate report columns
         run: |
-          python ci/tasks/validate-report-columns.py \
-            dagster/src/dbt_lana_dw/target/manifest.json \
-            dagster/generate_es_reports/reports.yml
-
-  data-pipeline-tests:
-    needs: validate-report-columns
-    if: ${{ github.actor != 'dependabot[bot]' && !startsWith(github.head_ref, 'dependabot/') }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+          pip install dbt-core~=1.10.3 dbt-bigquery~=1.10.3 pyyaml
+          ci/tasks/validate-report-columns.sh
       - uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
@@ -97,10 +80,10 @@ jobs:
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
 
       - name: Configure BigQuery environment
-        run: |         
+        run: |
           # Compute all BigQuery/DBT env vars once
           SAFE_PREFIX="$(printf '%s' "$NAME_PREFIX" | tr -c '[:alnum:]_' '_')"
-          
+
           echo "TF_VAR_name_prefix=$NAME_PREFIX" >> $GITHUB_ENV
           echo "DBT_BIGQUERY_PROJECT=$(echo $SA_CREDS_BASE64 | base64 -d | jq -r '.project_id')" >> $GITHUB_ENV
           echo "DBT_BIGQUERY_DATASET=dbt_${SAFE_PREFIX}" >> $GITHUB_ENV
