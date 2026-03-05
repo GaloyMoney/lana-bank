@@ -46,7 +46,6 @@ pub fn parse_from_env() -> Result<Vec<DomainConfigSetting>> {
             let value = serde_json::from_str(&env_value).unwrap_or_else(|_| {
                 info!(
                     env_var = %env_key,
-                    value = %env_value,
                     "Env var value is not valid JSON, treating as string"
                 );
                 serde_json::Value::String(env_value.clone())
