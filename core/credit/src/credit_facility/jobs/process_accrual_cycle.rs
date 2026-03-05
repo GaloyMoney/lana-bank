@@ -320,7 +320,7 @@ where
                             accrual_idx = %confirmed.accrual_idx,
                             "All periods accrued, transitioning to await obligations sync"
                         );
-                        self.transition_to_await_obligations_sync(current_job, db)
+                        self.transition_to_await_obligations_sync_in_op(db, current_job)
                             .await
                     }
                 }
@@ -330,16 +330,16 @@ where
                     credit_facility_id = %self.config.credit_facility_id,
                     "All periods already accrued, transitioning to await obligations sync"
                 );
-                self.transition_to_await_obligations_sync(current_job, db)
+                self.transition_to_await_obligations_sync_in_op(db, current_job)
                     .await
             }
         }
     }
 
-    async fn transition_to_await_obligations_sync(
+    async fn transition_to_await_obligations_sync_in_op(
         &self,
-        mut current_job: CurrentJob,
         mut db: es_entity::DbOp<'_>,
+        mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         current_job
             .update_execution_state_in_op(&mut db, &ProcessAccrualCycleState::AwaitObligationsSync)
