@@ -22,9 +22,7 @@ jobs:
         with:
           python-version: "3.13"
       - name: Validate report columns
-        run: |
-          pip install dbt-core~=1.10.3 dbt-bigquery~=1.10.3 pyyaml
-          ci/tasks/validate-report-columns.sh
+        run: ci/tasks/validate-report-columns.sh
       - uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true

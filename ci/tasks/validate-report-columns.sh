@@ -10,8 +10,16 @@ set -euo pipefail
 # since it is filtered out at query time.
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+DOCKERFILE="$REPO_ROOT/dagster/Dockerfile"
 DBT_PROJECT_DIR="$REPO_ROOT/dagster/src/dbt_lana_dw"
 REPORTS_YML="$REPO_ROOT/dagster/generate_es_reports/reports.yml"
+
+# Extract dbt package versions from Dockerfile to stay in sync
+DBT_CORE_VERSION=$(grep -oP 'dbt-core~=\K[0-9.]+' "$DOCKERFILE" | head -1)
+DBT_BQ_VERSION=$(grep -oP 'dbt-bigquery~=\K[0-9.]+' "$DOCKERFILE" | head -1)
+
+echo "Installing dbt-core~=${DBT_CORE_VERSION} dbt-bigquery~=${DBT_BQ_VERSION}..."
+pip install -q "dbt-core~=${DBT_CORE_VERSION}" "dbt-bigquery~=${DBT_BQ_VERSION}" pyyaml
 
 # Generate dbt manifest
 echo "Installing dbt dependencies..."
