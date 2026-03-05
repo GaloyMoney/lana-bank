@@ -1,9 +1,16 @@
 # Report job definitions for file report generation
 
+norms:
+  - norm: "nrsf_03"
+    source_url:  "https://www.bcr.gob.sv/regulaciones/upload/NRSF-03.pdf"
+    norm_body_file: nrsf_03.md
+    summary: "Technical standards for generating information on monetary deposits and their holders for the SSF and IGD."
+
 report_jobs:
   - norm: other
     id: "calculo_de_riesgo_neto"
     friendly_name: "calculo_de_riesgo_neto"
+    description: 
     outputs:
       - type: csv
 
