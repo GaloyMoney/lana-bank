@@ -53,7 +53,7 @@ gql`
           creditFacilityId
           publicId
           collateralizationState
-          activatedAt
+          createdAt
           status
           facilityAmount
           currentCvl {
@@ -166,8 +166,8 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     sortable: true,
   },
   {
-    key: "activatedAt",
-    label: t("table.headers.activatedAt"),
+    key: "createdAt",
+    label: t("table.headers.createdAt"),
     labelClassName: "w-[13%]",
     render: (date) => <DateWithTooltip value={date} />,
     sortable: true,

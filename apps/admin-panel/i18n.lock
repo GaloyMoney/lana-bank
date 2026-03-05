@@ -522,7 +522,7 @@ checksums:
     CreditFacilities/table/headers/outstanding: 1c88761a69affad9b482d2a76b09e8aa
     CreditFacilities/table/headers/collateralizationState: 118de561d4525b14f9bb29ac9e86161d
     CreditFacilities/table/headers/cvl: 12e0a6186d39f26162179c48207c2507
-    CreditFacilities/table/headers/activatedAt: 598bd7b17bfe1910961f8adf0c127c03
+    CreditFacilities/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     CreditFacilities/CreditFacilityStatus/active: 3e1ec025c4a50830bbb9ad57a176630a
     CreditFacilities/CreditFacilityStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     CreditFacilities/CreditFacilityStatus/matured: efaa50b3c35aca3fc276b8eb1dd04e4b
@@ -677,7 +677,7 @@ checksums:
     PendingCreditFacilities/table/headers/status: 4e1fcce15854d824919b4a582c697c90
     PendingCreditFacilities/table/headers/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
     PendingCreditFacilities/table/headers/collateral: b0dcbdb652cb11f0d9eeb77666c8ca8d
-    PendingCreditFacilities/table/headers/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
+    PendingCreditFacilities/table/headers/collateralizationState: 118de561d4525b14f9bb29ac9e86161d
     PendingCreditFacilities/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     PendingCreditFacilities/status/pending_collateralization: 0938ab9b8f6b15670ddb207d84327012
     PendingCreditFacilities/status/completed: 0e4bbce9985f25eb673d9a054c8d5334

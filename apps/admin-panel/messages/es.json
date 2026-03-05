@@ -787,7 +787,7 @@
         "outstanding": "Pendiente",
         "collateralizationState": "Estado",
         "cvl": "CVL",
-        "activatedAt": "Activado el"
+        "createdAt": "Creado el"
       }
     },
     "CreditFacilityStatus": {
@@ -1056,7 +1056,7 @@
         "status": "Estado",
         "facilityAmount": "Monto de línea",
         "collateral": "Garantía",
-        "collateralizationState": "Estado de Colateralización",
+        "collateralizationState": "Estado",
         "createdAt": "Fecha de registro"
       }
     },

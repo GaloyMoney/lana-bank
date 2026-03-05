@@ -787,7 +787,7 @@
         "outstanding": "Outstanding",
         "collateralizationState": "State",
         "cvl": "CVL",
-        "activatedAt": "Activated At"
+        "createdAt": "Created At"
       }
     },
     "CreditFacilityStatus": {
@@ -1056,7 +1056,7 @@
         "status": "Status",
         "facilityAmount": "Facility Amount",
         "collateral": "Collateral",
-        "collateralizationState": "Collateralization State",
+        "collateralizationState": "State",
         "createdAt": "Created At"
       }
     },
