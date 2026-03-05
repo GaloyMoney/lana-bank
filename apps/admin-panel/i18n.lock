@@ -191,6 +191,7 @@ checksums:
     Prospects/stage/new: 126d036fae5fb6b629728ecb97e6195b
     Prospects/stage/kycStarted: f9d466b1b1cce7474ed7da50efccc604
     Prospects/stage/kycPending: 0c234209231aedf1aa2317858f79c67c
+    Prospects/stage/kycOnHold: 24a169c498716cb3265dd4c29429b1f2
     Prospects/stage/kycDeclined: 90c74054ff0d874a1bdbf1121717da59
     Prospects/stage/converted: 1d0247b1c49b79f4ed79dfcdf9eeea9b
     Prospects/stage/closed: 180560eb657a20f3d4edc44d5f7e7c2a
@@ -202,6 +203,7 @@ checksums:
     Prospects/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
     Prospects/kycStatus/approved: e5231b13f1fb9008823144a21a81a1b3
     Prospects/kycStatus/declined: d9330b2f64bfd767cfcfedd9afe86c77
+    Prospects/kycStatus/onHold: 2f7fb3c98b8720ab7b3c4f3de87e2baf
     Prospects/create/title: b92b78626e6273c7179849cad229cb95
     Prospects/create/confirmTitle: ef0363bb83f6367fbec32fc16c3d26c1
     Prospects/create/description: 3e97a4b3316f5cbd63b851bd355b641b
