@@ -327,7 +327,8 @@ checksums:
     Customers/CustomerDetails/details/labels/email: e7f34943a0c2fb849db1839ff6ef5cb5
     Customers/CustomerDetails/details/labels/createdOn: 24d89e2759464207b31141138abf2e81
     Customers/CustomerDetails/details/labels/telegram: 0719cb55ded3146892d106733a8431b2
-    Customers/CustomerDetails/details/labels/status: 4e1fcce15854d824919b4a582c697c90
+    Customers/CustomerDetails/details/labels/customerStatus: 4e1fcce15854d824919b4a582c697c90
+    Customers/CustomerDetails/details/labels/activity: 1948763de8e531483a798b68195e297e
     Customers/CustomerDetails/details/labels/customerType: f04471a7ddac844b9ad145eb9911ef75
     Customers/CustomerDetails/details/labels/publicId: 916fc3fdca16a23af44dbcfec824984d
     Customers/CustomerDetails/details/labels/firstName: cf040a5d6a9fd696be400380cc99f54b
@@ -335,6 +336,8 @@ checksums:
     Customers/CustomerDetails/details/labels/dateOfBirth: 8c0517839acdee5c6fff3f23e1f1aeb2
     Customers/CustomerDetails/details/labels/nationality: 676a006a7f9c4e1d976e31d470a7cd7c
     Customers/CustomerDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
+    Customers/CustomerDetails/details/customerStatus/active: 3e1ec025c4a50830bbb9ad57a176630a
+    Customers/CustomerDetails/details/customerStatus/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
