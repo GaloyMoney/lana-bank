@@ -882,7 +882,7 @@ impl Query {
             Some(first),
             None,
             |after, _, first, _| async move {
-                let first = first.expect("First always exists");
+                let first: usize = first.expect("First always exists");
                 let query_args = es_entity::PaginatedQueryArgs { first, after };
                 let res = app.accounting().journal().entries(sub, query_args).await?;
 
@@ -975,20 +975,25 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(FiscalYearsSort::default())")] sort: Option<FiscalYearsSort>,
     ) -> async_graphql::Result<
-        Connection<FiscalYearsByCreatedAtCursor, FiscalYear, EmptyFields, EmptyFields>,
+        Connection<DomainFiscalYearsCursor, FiscalYear, EmptyFields, EmptyFields>,
     > {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        list_with_cursor!(
-            FiscalYearsByCreatedAtCursor,
+        list_with_combo_cursor!(
+            DomainFiscalYearsCursor,
             FiscalYear,
+            DomainFiscalYearsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app
-                .accounting()
-                .list_fiscal_years_for_chart(sub, CHART_REF.0, query,)
+            |query| app.accounting().list_fiscal_years_for_chart(
+                sub,
+                CHART_REF.0,
+                query,
+                sort.into()
+            )
         )
     }
 

@@ -21,6 +21,8 @@ CREATE TABLE core_policies (
   created_at TIMESTAMPTZ NOT NULL
 );
 
+CREATE INDEX idx_core_policies_process_type ON core_policies (process_type, id);
+
 CREATE TABLE core_policy_events (
   id UUID NOT NULL REFERENCES core_policies(id),
   sequence INT NOT NULL,
@@ -624,6 +626,7 @@ CREATE TABLE core_fiscal_years (
   id UUID PRIMARY KEY,
   chart_id UUID NOT NULL REFERENCES core_charts(id),
   reference VARCHAR NOT NULL UNIQUE,
+  opened_as_of DATE NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

@@ -14,12 +14,18 @@ import { useCreateContext } from "../create"
 import { FiscalYearStatusBadge } from "./status-badge"
 import { InitFiscalYearDialog } from "./init-fiscal-year"
 
-import { FiscalYear, useFiscalYearsQuery } from "@/lib/graphql/generated"
+import {
+  FiscalYear,
+  FiscalYearsSort,
+  SortDirection,
+  useFiscalYearsQuery,
+} from "@/lib/graphql/generated"
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment FiscalYearFields on FiscalYear {
@@ -30,11 +36,12 @@ gql`
     isOpen
     reference
     year
+    createdAt
     isLastMonthOfYearClosed
   }
 
-  query FiscalYears($first: Int!, $after: String) {
-    fiscalYears(first: $first, after: $after) {
+  query FiscalYears($first: Int!, $after: String, $sort: FiscalYearsSort) {
+    fiscalYears(first: $first, after: $after, sort: $sort) {
       edges {
         cursor
         node {
@@ -55,10 +62,12 @@ const FiscalYearsList = () => {
   const t = useTranslations("FiscalYears.table")
   const tInit = useTranslations("FiscalYears.init")
   const [openInitDialog, setOpenInitDialog] = useState(false)
+  const [sortBy, setSortBy] = useState<FiscalYearsSort | null>(null)
 
   const { data, loading, error, fetchMore } = useFiscalYearsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
     },
   })
 
@@ -74,6 +83,7 @@ const FiscalYearsList = () => {
     {
       key: "openedAsOf",
       label: t("headers.openedAsOf"),
+      sortable: true,
       render: (openedAsOf) => formatUTCDateOnly(openedAsOf) ?? "-",
     },
     {
@@ -114,6 +124,12 @@ const FiscalYearsList = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(fiscalYear) => `/fiscal-years/${fiscalYear.year}`}
+        onSort={(column, direction) => {
+          setSortBy({
+            by: camelToScreamingSnake(column as string) as FiscalYearsSort["by"],
+            direction: direction as SortDirection,
+          })
+        }}
       />
     </>
   )

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT chart_id, created_at, id FROM core_fiscal_years WHERE ((chart_id = $1) AND (COALESCE((created_at, id) < ($4, $3), $3 IS NULL))) ORDER BY created_at DESC, id DESC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_fiscal_year_events e ON i.id = e.id ORDER BY i.created_at desc, i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT opened_as_of, id FROM core_fiscal_years WHERE COALESCE(chart_id = $1, $1 IS NULL) AND (COALESCE((opened_as_of, id) > ($4, $3), $3 IS NULL)) ORDER BY opened_as_of ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_fiscal_year_events e ON i.id = e.id ORDER BY i.opened_as_of asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -34,7 +34,7 @@
         "Uuid",
         "Int8",
         "Uuid",
-        "Timestamptz",
+        "Date",
         "Bool"
       ]
     },
@@ -46,5 +46,5 @@
       false
     ]
   },
-  "hash": "846aaabdd8ff9de13ffd55fae478b3548f9b369db685fe789467cc6520b84b32"
+  "hash": "2e60b283ac6d9d4000a337589082d32e0926fa41741f4faed14bcfe2014fb534"
 }

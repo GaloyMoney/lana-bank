@@ -34,7 +34,8 @@ pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
 pub use event::{CSV_EXPORT_EVENT_TYPE, CoreAccountingEvent};
 pub use fiscal_year::{
-    FiscalYear, FiscalYears, FiscalYearsByCreatedAtCursor, error as fiscal_year_error,
+    FiscalYear, FiscalYears, FiscalYearsByCreatedAtCursor, FiscalYearsCursor, FiscalYearsSortBy,
+    error as fiscal_year_error,
 };
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
@@ -535,18 +536,17 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
-        query: es_entity::PaginatedQueryArgs<FiscalYearsByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<FiscalYear, FiscalYearsByCreatedAtCursor>,
-        CoreAccountingError,
-    > {
+        query: es_entity::PaginatedQueryArgs<FiscalYearsCursor>,
+        sort: es_entity::Sort<FiscalYearsSortBy>,
+    ) -> Result<es_entity::PaginatedQueryRet<FiscalYear, FiscalYearsCursor>, CoreAccountingError>
+    {
         let chart = self
             .chart_of_accounts()
             .find_by_reference(chart_ref)
             .await?;
         Ok(self
             .fiscal_year()
-            .list_for_chart_id(sub, chart.id, query)
+            .list_for_chart_id(sub, chart.id, query, sort)
             .await?)
     }
 

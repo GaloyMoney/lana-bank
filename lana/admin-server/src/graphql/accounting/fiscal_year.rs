@@ -1,10 +1,13 @@
 use async_graphql::*;
+use es_entity::Sort;
 
 use crate::primitives::*;
 pub use lana_app::fiscal_year::{
     FiscalMonthClosure as DomainFiscalMonthClosure, FiscalYear as DomainFiscalYear,
-    FiscalYearsByCreatedAtCursor,
+    FiscalYearsCursor as DomainFiscalYearsCursor, FiscalYearsSortBy as DomainFiscalYearsSortBy,
 };
+
+use crate::graphql::primitives::SortDirection;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -15,6 +18,7 @@ pub struct FiscalYear {
     is_open: bool,
     opened_as_of: Date,
     closed_as_of: Option<Date>,
+    created_at: Timestamp,
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainFiscalYear>,
 }
@@ -27,6 +31,7 @@ impl From<DomainFiscalYear> for FiscalYear {
             is_open: fiscal_year.closed_as_of.is_none(),
             opened_as_of: fiscal_year.opened_as_of.into(),
             closed_as_of: fiscal_year.closed_as_of.map(|date| date.into()),
+            created_at: fiscal_year.created_at().into(),
             entity: Arc::new(fiscal_year),
         }
     }
@@ -101,3 +106,42 @@ pub struct FiscalYearOpenNextInput {
 }
 
 crate::mutation_payload! { FiscalYearOpenNextPayload, fiscal_year: FiscalYear }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum FiscalYearsSortBy {
+    #[default]
+    CreatedAt,
+    OpenedAsOf,
+}
+
+impl From<FiscalYearsSortBy> for DomainFiscalYearsSortBy {
+    fn from(by: FiscalYearsSortBy) -> Self {
+        match by {
+            FiscalYearsSortBy::CreatedAt => DomainFiscalYearsSortBy::CreatedAt,
+            FiscalYearsSortBy::OpenedAsOf => DomainFiscalYearsSortBy::OpenedAsOf,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct FiscalYearsSort {
+    #[graphql(default)]
+    pub by: FiscalYearsSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<FiscalYearsSort> for DomainFiscalYearsSortBy {
+    fn from(sort: FiscalYearsSort) -> Self {
+        sort.by.into()
+    }
+}
+
+impl From<FiscalYearsSort> for Sort<DomainFiscalYearsSortBy> {
+    fn from(sort: FiscalYearsSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}

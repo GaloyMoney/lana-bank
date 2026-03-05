@@ -1566,6 +1566,7 @@ type FiscalYear {
 	isOpen: Boolean!
 	openedAsOf: Date!
 	closedAsOf: Date
+	createdAt: Timestamp!
 	reference: String!
 	year: String!
 	monthClosures: [FiscalMonthClosure!]!
@@ -1632,6 +1633,16 @@ input FiscalYearOpenNextInput {
 
 type FiscalYearOpenNextPayload {
 	fiscalYear: FiscalYear!
+}
+
+input FiscalYearsSort {
+	by: FiscalYearsSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
+}
+
+enum FiscalYearsSortBy {
+	CREATED_AT
+	OPENED_AS_OF
 }
 
 type FreezeEntry {
@@ -2419,7 +2430,7 @@ type Query {
 	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
 	fiscalYear(id: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
-	fiscalYears(first: Int!, after: String): FiscalYearConnection!
+	fiscalYears(first: Int!, after: String, sort: FiscalYearsSort = {by: CREATED_AT, direction: ASC}): FiscalYearConnection!
 	balanceSheet(asOf: Date!): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!
