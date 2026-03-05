@@ -6,7 +6,7 @@ use super::repo::{
     LiquidationQueryError,
 };
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, strum::IntoStaticStr)]
 pub enum CollateralError {
     #[error("CollateralError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

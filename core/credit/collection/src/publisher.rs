@@ -1,6 +1,5 @@
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
-use tracing_macros::observe_error;
 
 use crate::{
     CoreCreditCollectionEvent, PublicObligation, PublicPayment, PublicPaymentAllocation,
@@ -37,7 +36,6 @@ where
         }
     }
 
-    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "collection.publisher.publish_payment_in_op", skip_all)]
     pub async fn publish_payment_in_op(
         &self,
@@ -59,7 +57,6 @@ where
         Ok(())
     }
 
-    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "collection.publisher.publish_payment_allocation_in_op",
         skip_all
@@ -84,7 +81,6 @@ where
         Ok(())
     }
 
-    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "collection.publisher.publish_obligation_in_op", skip_all)]
     pub async fn publish_obligation_in_op(
         &self,

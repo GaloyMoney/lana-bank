@@ -4,7 +4,6 @@ use sqlx::PgPool;
 use core_custody::WalletId as CustodyWalletId;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::observe_error;
 
 use crate::{
     CollateralId, LiquidationId, public::CoreCreditCollateralEvent, publisher::CollateralPublisher,
@@ -48,7 +47,6 @@ where
         }
     }
 
-    #[observe_error]
     #[tracing::instrument(name = "collateral.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,

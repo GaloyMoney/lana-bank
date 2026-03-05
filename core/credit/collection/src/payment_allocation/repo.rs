@@ -3,7 +3,6 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::observe_error;
 
 use crate::primitives::*;
 
@@ -56,7 +55,6 @@ where
         }
     }
 
-    #[observe_error]
     #[tracing::instrument(name = "payment_allocation.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,

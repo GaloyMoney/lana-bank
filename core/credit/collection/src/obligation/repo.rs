@@ -3,7 +3,6 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::observe_error;
 
 use crate::{
     primitives::{BeneficiaryId, ObligationId},
@@ -70,7 +69,6 @@ where
         }
     }
 
-    #[observe_error]
     #[tracing::instrument(name = "obligation.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,

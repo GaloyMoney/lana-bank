@@ -4,7 +4,6 @@ use sqlx::PgPool;
 use es_entity::*;
 pub use es_entity::{ListDirection, Sort};
 use obix::out::OutboxEventMarker;
-use tracing_macros::observe_error;
 
 use core_credit_collateral::CollateralId;
 
@@ -76,7 +75,6 @@ where
         }
     }
 
-    #[observe_error]
     #[tracing::instrument(name = "credit_facility.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
@@ -89,7 +87,6 @@ where
             .await
     }
 
-<<<<<<< HEAD
     pub async fn list_facility_ids_eligible_for_accrual_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
@@ -122,9 +119,6 @@ where
         Ok(rows.into_iter().map(|r| (r.id, r.created_at)).collect())
     }
 
-=======
-    #[observe_error]
->>>>>>> 4ce110938 (refactor: migrate lib and repo layers to observe_error macro)
     #[tracing::instrument(name = "credit_facility.find_by_custody_wallet", skip_all)]
     pub async fn find_by_custody_wallet(
         &self,
@@ -192,7 +186,6 @@ where
         }
     }
 
-    #[observe_error]
     #[tracing::instrument(name = "interest_accrual_cycle.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,

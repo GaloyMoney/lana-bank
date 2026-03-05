@@ -3,7 +3,6 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::observe_error;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
 
@@ -58,7 +57,6 @@ where
         }
     }
 
-    #[observe_error]
     #[tracing::instrument(name = "credit_facility_proposal.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,

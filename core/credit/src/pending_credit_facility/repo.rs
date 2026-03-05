@@ -3,7 +3,6 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::observe_error;
 
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
 use core_credit_collateral::CollateralId;
@@ -72,7 +71,6 @@ where
         }
     }
 
-    #[observe_error]
     #[tracing::instrument(name = "pending_credit_facility.publish_in_op", skip_all)]
     async fn publish_in_op(
         &self,
