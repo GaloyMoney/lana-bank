@@ -56,18 +56,31 @@ class BaseTableFetcher(ABC):
     def fetch_table_contents(
         self,
         table_name: str,
-        as_of_date: str | None = None,
-        supports_as_of: bool = False,
     ) -> TabularReportContents:
-        """Fetch table contents and return them as TabularReportContents.
+        """Fetch all rows from a table.
 
         Args:
             table_name: Name of the table to fetch.
-            as_of_date: Optional date string to filter daily tables.
-            supports_as_of: Whether this report uses daily tables.
 
         Returns:
             TabularReportContents with field names and records.
+        """
+        pass
+
+    @abstractmethod
+    def fetch_table_contents_as_of(
+        self,
+        table_name: str,
+        as_of_date: str,
+    ) -> TabularReportContents:
+        """Fetch rows from a daily table filtered to a specific date.
+
+        Args:
+            table_name: Name of the table to fetch.
+            as_of_date: Date string to filter by (YYYY-MM-DD).
+
+        Returns:
+            TabularReportContents with field names and records (as_of_date excluded).
         """
         pass
 
@@ -96,31 +109,7 @@ class BigQueryTableFetcher(BaseTableFetcher):
             project=self.project_id, credentials=credentials
         )
 
-    def fetch_table_contents(
-        self,
-        table_name: str,
-        as_of_date: str | None = None,
-        supports_as_of: bool = False,
-    ) -> TabularReportContents:
-        """Fetch all rows from a BigQuery table.
-
-        Args:
-            table_name: Name of the table (without dataset prefix).
-            as_of_date: Optional date string to filter daily tables.
-            supports_as_of: Whether this report uses daily tables.
-
-        Returns:
-            TabularReportContents with field names and records.
-        """
-        fqn = f"`{self.project_id}.{self.dataset}.{table_name}`"
-        if supports_as_of:
-            if as_of_date:
-                query = f"SELECT * EXCEPT(as_of_date) FROM {fqn} WHERE as_of_date = '{as_of_date}';"
-            else:
-                query = f"SELECT * EXCEPT(as_of_date) FROM {fqn} WHERE as_of_date = (SELECT MAX(as_of_date) FROM {fqn});"
-        else:
-            query = f"SELECT * FROM {fqn};"
-
+    def _run_query(self, query: str) -> TabularReportContents:
         query_job = self._bq_client.query(query)
         rows = query_job.result()
 
@@ -128,6 +117,23 @@ class BigQueryTableFetcher(BaseTableFetcher):
         records = [{name: row[name] for name in field_names} for row in rows]
 
         return TabularReportContents(field_names=field_names, records=records)
+
+    def fetch_table_contents(
+        self,
+        table_name: str,
+    ) -> TabularReportContents:
+        fqn = f"`{self.project_id}.{self.dataset}.{table_name}`"
+        return self._run_query(f"SELECT * FROM {fqn};")
+
+    def fetch_table_contents_as_of(
+        self,
+        table_name: str,
+        as_of_date: str,
+    ) -> TabularReportContents:
+        fqn = f"`{self.project_id}.{self.dataset}.{table_name}`"
+        return self._run_query(
+            f"SELECT * EXCEPT(as_of_date) FROM {fqn} WHERE as_of_date = '{as_of_date}';"
+        )
 
 
 def encode_gcs_path(path: str) -> str:

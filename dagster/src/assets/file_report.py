@@ -142,16 +142,17 @@ def _process_single_asset(
             dataset=dataset,
         )
 
-        def fetch_table(
-            table_name: str, as_of_date: str | None = None, supports_as_of: bool = False
-        ):
-            contents = fetcher.fetch_table_contents(
-                table_name, as_of_date, supports_as_of
-            )
+        def fetch_table(table_name: str):
+            contents = fetcher.fetch_table_contents(table_name)
+            return (contents.fields, contents.records)
+
+        def fetch_table_as_of(table_name: str, as_of_date: str):
+            contents = fetcher.fetch_table_contents_as_of(table_name, as_of_date)
             return (contents.fields, contents.records)
 
         result = generate_single_report(
             fetch_table=fetch_table,
+            fetch_table_as_of=fetch_table_as_of,
             upload_file=upload_file,
             table_name=report_job.source_table_name,
             norm=report_job.norm,
@@ -159,8 +160,7 @@ def _process_single_asset(
             file_output_config=file_config,
             run_id=run_id,
             log=log,
-            as_of_date=as_of_date,
-            supports_as_of=report_job.supports_as_of,
+            as_of_date=as_of_date if report_job.supports_as_of else None,
         )
         return asset_key, result
 
