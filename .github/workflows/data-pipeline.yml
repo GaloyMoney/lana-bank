@@ -13,7 +13,31 @@ env:
   TARGET_BIGQUERY_LOCATION: "US"
 
 jobs:
+  validate-report-columns:
+    if: ${{ github.actor != 'dependabot[bot]' && !startsWith(github.head_ref, 'dependabot/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Generate dbt manifest
+        run: |
+          pip install dbt-core~=1.10.3 dbt-bigquery~=1.10.3 pyyaml
+          cd dagster/src/dbt_lana_dw
+          dbt deps
+          DBT_BIGQUERY_PROJECT=build-placeholder \
+          DBT_BIGQUERY_DATASET=build-placeholder \
+          DBT_BIGQUERY_CREDENTIALS_JSON='{"type":"service_account","project_id":"x"}' \
+            dbt parse
+      - name: Validate report columns
+        run: |
+          python ci/tasks/validate-report-columns.py \
+            dagster/src/dbt_lana_dw/target/manifest.json \
+            dagster/generate_es_reports/reports.yml
+
   data-pipeline-tests:
+    needs: validate-report-columns
     if: ${{ github.actor != 'dependabot[bot]' && !startsWith(github.head_ref, 'dependabot/') }}
     runs-on: ubuntu-latest
     steps:

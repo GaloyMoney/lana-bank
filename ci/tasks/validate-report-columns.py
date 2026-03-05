@@ -1,4 +1,4 @@
-"""CI check: validate that expected_columns in reports.yml match dbt manifest columns.
+"""Validate that expected_columns in reports.yml match dbt manifest columns.
 
 For reports with expected_columns declared, verifies that the dbt model's
 columns (from manifest.json) match exactly. For supports_as_of reports,
@@ -6,7 +6,7 @@ as_of_date is excluded from the manifest columns before comparison since
 it is filtered out at query time.
 
 Usage:
-    python -m generate_es_reports.validate_report_columns <manifest_path>
+    python ci/tasks/validate-report-columns.py <manifest_path> <reports_yml_path>
 """
 from __future__ import annotations
 
@@ -16,11 +16,9 @@ from pathlib import Path
 
 import yaml
 
-REPORTS_YAML_PATH = Path(__file__).parent / "reports.yml"
 
-
-def validate(manifest_path: Path) -> list[str]:
-    with open(REPORTS_YAML_PATH, "r") as f:
+def validate(manifest_path: Path, reports_yml_path: Path) -> list[str]:
+    with open(reports_yml_path, "r") as f:
         reports_config = yaml.safe_load(f)
 
     with open(manifest_path, "r") as f:
@@ -62,16 +60,22 @@ def validate(manifest_path: Path) -> list[str]:
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <manifest.json path>", file=sys.stderr)
+    if len(sys.argv) != 3:
+        print(
+            f"Usage: {sys.argv[0]} <manifest.json> <reports.yml>",
+            file=sys.stderr,
+        )
         sys.exit(2)
 
     manifest_path = Path(sys.argv[1])
-    if not manifest_path.exists():
-        print(f"Manifest not found: {manifest_path}", file=sys.stderr)
-        sys.exit(2)
+    reports_yml_path = Path(sys.argv[2])
 
-    errors = validate(manifest_path)
+    for path in (manifest_path, reports_yml_path):
+        if not path.exists():
+            print(f"File not found: {path}", file=sys.stderr)
+            sys.exit(2)
+
+    errors = validate(manifest_path, reports_yml_path)
     if errors:
         print("Column validation failed:", file=sys.stderr)
         for error in errors:
