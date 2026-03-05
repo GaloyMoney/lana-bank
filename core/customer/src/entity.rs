@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
