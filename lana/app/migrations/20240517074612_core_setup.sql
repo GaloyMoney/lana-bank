@@ -425,6 +425,7 @@ CREATE TABLE core_liquidations (
   completed BOOLEAN NOT NULL DEFAULT FALSE,
   expected_to_receive BIGINT NOT NULL,
   amount_received BIGINT NOT NULL DEFAULT 0,
+  sent_total BIGINT NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL
 );
 

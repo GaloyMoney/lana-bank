@@ -1878,7 +1878,8 @@ export type LiquidationsSort = {
 export enum LiquidationsSortBy {
   AmountReceived = 'AMOUNT_RECEIVED',
   CreatedAt = 'CREATED_AT',
-  ExpectedToReceive = 'EXPECTED_TO_RECEIVE'
+  ExpectedToReceive = 'EXPECTED_TO_RECEIVE',
+  SentTotal = 'SENT_TOTAL'
 }
 
 export type Loan = {

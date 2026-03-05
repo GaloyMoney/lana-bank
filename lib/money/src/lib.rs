@@ -340,6 +340,49 @@ mod usd_cents_sqlx {
     }
 }
 
+#[cfg(feature = "sqlx")]
+mod satoshis_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use super::Satoshis;
+
+    impl Type<Postgres> for Satoshis {
+        fn type_info() -> PgTypeInfo {
+            <i64 as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <i64 as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for Satoshis {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            let val = i64::try_from(self.into_inner())
+                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?;
+            <i64 as sqlx::Encode<'_, Postgres>>::encode(val, buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for Satoshis {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let val = <i64 as sqlx::Decode<Postgres>>::decode(value)?;
+            let val = u64::try_from(val)
+                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?;
+            Ok(Satoshis::from(val))
+        }
+    }
+
+    impl PgHasArrayType for Satoshis {
+        fn array_type_info() -> PgTypeInfo {
+            <i64 as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
+    }
+}
+
 impl fmt::Display for UsdCents {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)

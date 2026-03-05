@@ -1890,6 +1890,7 @@ enum LiquidationsSortBy {
 	CREATED_AT
 	EXPECTED_TO_RECEIVE
 	AMOUNT_RECEIVED
+	SENT_TOTAL
 }
 
 type LoanAgreement {

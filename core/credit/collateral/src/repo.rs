@@ -3,7 +3,7 @@ use sqlx::PgPool;
 
 use core_custody::WalletId as CustodyWalletId;
 use es_entity::*;
-use money::UsdCents;
+use money::{Satoshis, UsdCents};
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -149,6 +149,12 @@ where
             list_by,
             create(persist = false),
             update(accessor = "amount_received")
+        ),
+        sent_total(
+            ty = "Satoshis",
+            list_by,
+            create(persist = false),
+            update(accessor = "sent_total")
         )
     ),
     tbl_prefix = "core"
@@ -191,6 +197,9 @@ impl From<(LiquidationsSortBy, &Liquidation)> for liquidation_cursor::Liquidatio
             }
             LiquidationsSortBy::AmountReceived => {
                 liquidation_cursor::LiquidationsByAmountReceivedCursor::from(liquidation).into()
+            }
+            LiquidationsSortBy::SentTotal => {
+                liquidation_cursor::LiquidationsBySentTotalCursor::from(liquidation).into()
             }
         }
     }

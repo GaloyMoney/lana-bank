@@ -93,6 +93,7 @@ pub enum LiquidationsSortBy {
     CreatedAt,
     ExpectedToReceive,
     AmountReceived,
+    SentTotal,
 }
 
 impl From<LiquidationsSortBy> for DomainLiquidationsSortBy {
@@ -101,6 +102,7 @@ impl From<LiquidationsSortBy> for DomainLiquidationsSortBy {
             LiquidationsSortBy::CreatedAt => DomainLiquidationsSortBy::CreatedAt,
             LiquidationsSortBy::ExpectedToReceive => DomainLiquidationsSortBy::ExpectedToReceive,
             LiquidationsSortBy::AmountReceived => DomainLiquidationsSortBy::AmountReceived,
+            LiquidationsSortBy::SentTotal => DomainLiquidationsSortBy::SentTotal,
         }
     }
 }

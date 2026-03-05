@@ -91,6 +91,7 @@ const LiquidationsList = () => {
       key: "sentTotal",
       label: t("table.headers.sentTotal"),
       render: (amount) => <Balance amount={amount} currency="btc" />,
+      sortable: true,
     },
     {
       key: "amountReceived",
