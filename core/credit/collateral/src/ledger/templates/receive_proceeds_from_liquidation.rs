@@ -19,7 +19,7 @@ use cala_ledger::{
     velocity::{NewParamDefinition, ParamDataType, Params},
 };
 use money::{Satoshis, UsdCents};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::ledger::{CollateralLedgerError, FacilityProceedsFromLiquidationAccountId};
 
@@ -141,7 +141,7 @@ impl<S: std::fmt::Display> From<ReceiveProceedsFromLiquidationParams<S>> for Par
 pub struct ReceiveProceedsFromLiquidation;
 
 impl ReceiveProceedsFromLiquidation {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_credit.collateral.ledger.templates.receive_proceeds.init",
         skip_all

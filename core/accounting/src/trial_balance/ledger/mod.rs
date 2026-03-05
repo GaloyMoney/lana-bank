@@ -7,7 +7,7 @@ use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
     account_set::{AccountSet, NewAccountSet},
 };
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::primitives::{BalanceRange, CalaBalanceRange};
 
@@ -157,7 +157,7 @@ impl TrialBalanceLedger {
         Ok(statement_id)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "trial_balance.get_id_from_reference", skip(self), fields(reference = %reference))]
     pub async fn get_id_from_reference(
         &self,

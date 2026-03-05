@@ -8,7 +8,7 @@ use obix::out::OutboxEventMarker;
 
 use audit::SystemSubject;
 use core_custody::{CUSTODIAN_SYNC, CoreCustodyEvent, WalletId as CustodyWalletId};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{ledger::CollateralLedger, public::CoreCreditCollateralEvent, repo::CollateralRepo};
 
@@ -88,7 +88,7 @@ where
     S: SystemSubject + Send + Sync + 'static,
     E: OutboxEventMarker<CoreCreditCollateralEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(
         name = "core_credit.record_collateral_update_job.process_command",
         skip(self, current_job),

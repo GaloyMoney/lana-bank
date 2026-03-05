@@ -9,7 +9,7 @@ use super::repo::{
     ManualTransactionQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ManualTransactionError {
     #[error("ManualTransactionError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

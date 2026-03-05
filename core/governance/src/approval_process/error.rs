@@ -7,7 +7,7 @@ pub use super::repo::{
     ApprovalProcessQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ApprovalProcessError {
     #[error("ApprovalProcessError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

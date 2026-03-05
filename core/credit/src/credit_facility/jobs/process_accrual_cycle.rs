@@ -32,7 +32,7 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use std::sync::Arc;
 
@@ -231,6 +231,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(
         name = "process_accrual_cycle.run",
         skip(self, current_job),
@@ -334,7 +335,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility.confirm_interest_accrual_in_op",
         skip(self, op),
@@ -487,7 +488,7 @@ where
         Ok(JobCompletion::CompleteWithOp(op))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.facility.complete_interest_cycle_and_maybe_start_new_cycle_in_op",
         skip(self, db)

@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ContractCreationError {
     #[error("Rendering error: {0}")]
     Rendering(#[from] rendering::RenderingError),

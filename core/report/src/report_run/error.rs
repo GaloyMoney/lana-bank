@@ -6,7 +6,7 @@ use super::repo::{
     ReportRunCreateError, ReportRunFindError, ReportRunModifyError, ReportRunQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ReportRunError {
     #[error("ReportRunError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

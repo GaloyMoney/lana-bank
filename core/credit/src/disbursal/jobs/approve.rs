@@ -16,7 +16,7 @@ use governance::{
 };
 use job::*;
 use obix::out::{OutboxEventHandler, OutboxEventMarker, PersistentOutboxEvent};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{
     CoreCreditAction, CoreCreditCollectionAction, CoreCreditCollectionEvent,
@@ -158,7 +158,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "credit.approve_disbursal.process_command", skip_all)]
     async fn run(
         &self,

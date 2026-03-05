@@ -3,7 +3,7 @@ use tracing_utils::ErrorSeverity;
 
 pub use super::repo::{WalletCreateError, WalletFindError, WalletModifyError, WalletQueryError};
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, strum::IntoStaticStr)]
 pub enum WalletError {
     #[error("WalletError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

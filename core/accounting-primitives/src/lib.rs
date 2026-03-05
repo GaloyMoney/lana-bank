@@ -89,7 +89,7 @@ pub enum AccountCodeSectionParseError {
     NonDigit,
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AccountCodeParseError {
     #[error("AccountCodeParseError - Empty")]
     Empty,
@@ -109,7 +109,7 @@ impl ErrorSeverity for AccountCodeParseError {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AccountCodeError {
     #[error("AccountCodeError - InvalidParent")]
     InvalidParent,
@@ -305,7 +305,7 @@ impl Display for AccountCode {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AccountingBaseConfigError {
     #[error("AccountingBaseConfigError - DuplicateAccountCode: {0}")]
     DuplicateAccountCode(String),
@@ -492,7 +492,7 @@ pub trait ChartLookup: Send + Sync {
 }
 
 /// Error for chart lookup failures during account set resolution.
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ChartLookupError {
     #[error("InvalidAccountCategory: code {code} is not in category {category:?}")]
     InvalidAccountCategory {

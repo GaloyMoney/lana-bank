@@ -7,7 +7,7 @@ mod event;
 mod jobs;
 
 use obix::{Outbox, out::OutboxEventMarker};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use domain_config::ExposedDomainConfigsReadOnly;
 
@@ -25,7 +25,7 @@ pub struct TimeEvents {
 }
 
 impl TimeEvents {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "core_time_events.init", skip_all)]
     pub async fn init<E>(
         domain_configs: &ExposedDomainConfigsReadOnly,

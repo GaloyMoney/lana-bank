@@ -12,7 +12,7 @@ use crate::{
     repo::{CustomerCreateError, CustomerFindError, CustomerModifyError, CustomerQueryError},
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CustomerError {
     #[error("CustomerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

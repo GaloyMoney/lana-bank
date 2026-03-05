@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum GotenbergError {
     #[error("GotenbergError - HTTP error: {0}")]
     Http(#[from] reqwest::Error),

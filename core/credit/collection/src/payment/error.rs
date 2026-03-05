@@ -4,7 +4,7 @@ use tracing_utils::ErrorSeverity;
 
 use super::repo::{PaymentCreateError, PaymentFindError, PaymentModifyError, PaymentQueryError};
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum PaymentError {
     #[error("PaymentError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

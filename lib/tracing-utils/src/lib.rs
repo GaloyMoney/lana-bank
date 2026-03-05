@@ -3,6 +3,7 @@
 
 pub mod error;
 pub mod error_severity;
+pub mod rate_tracker;
 
 use std::sync::{
     Arc, Mutex,

@@ -5,7 +5,7 @@ use tracing_utils::ErrorSeverity;
 use crate::email::error::EmailError;
 use ::job::error::JobError;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum NotificationError {
     #[error("NotificationError - Email: {0}")]
     Email(#[from] EmailError),

@@ -4,7 +4,7 @@ use tracing_utils::ErrorSeverity;
 
 use crate::error::CustomerError;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum KycError {
     #[error("KycError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

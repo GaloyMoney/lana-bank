@@ -6,7 +6,7 @@ use super::repo::{
     ObligationCreateError, ObligationFindError, ObligationModifyError, ObligationQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ObligationError {
     #[error("ObligationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),

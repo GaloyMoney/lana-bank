@@ -1,5 +1,5 @@
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{velocity::*, *};
 
@@ -10,7 +10,7 @@ pub struct OverdraftPrevention;
 const OVERDRAFT_PREVENTION_ID: uuid::Uuid = uuid::uuid!("00000000-0000-0000-0000-000000000001");
 
 impl OverdraftPrevention {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "ledger.overdraft_prevention.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<VelocityLimitId, DepositLedgerError> {
         let limit = NewVelocityLimit::builder()

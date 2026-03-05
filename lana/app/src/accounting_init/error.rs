@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AccountingInitError {
     #[error("AccountingInitError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

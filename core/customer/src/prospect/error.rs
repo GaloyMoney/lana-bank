@@ -6,7 +6,7 @@ use super::repo::{
     ProspectCreateError, ProspectFindError, ProspectModifyError, ProspectQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ProspectError {
     #[error("ProspectError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

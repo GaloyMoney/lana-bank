@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum BitgoError {
     #[error("BitgoError - ReqwestError: {0}")]
     ReqwestError(#[from] reqwest::Error),

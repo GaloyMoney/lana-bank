@@ -38,7 +38,7 @@ use job::Jobs;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrations,
@@ -171,7 +171,7 @@ where
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id))]
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -418,7 +418,7 @@ where
         self.repayment_plans.as_ref()
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.find_all_facilities_authorized", skip(self))]
     pub async fn find_all_facilities_authorized<T: From<CreditFacility>>(
         &self,
@@ -435,7 +435,7 @@ where
         Ok(self.facilities.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "credit.find_all_pending_credit_facilities_authorized",
         skip(self)
@@ -455,7 +455,7 @@ where
         Ok(self.pending_credit_facilities.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.find_all_proposals_authorized", skip(self))]
     pub async fn find_all_proposals_authorized<T: From<CreditFacilityProposal>>(
         &self,
@@ -472,7 +472,7 @@ where
         Ok(self.credit_facility_proposals.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.find_all_disbursals_authorized", skip(self))]
     pub async fn find_all_disbursals_authorized<T: From<Disbursal>>(
         &self,
@@ -489,7 +489,7 @@ where
         Ok(self.disbursals.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.find_all_collaterals_authorized", skip(self))]
     pub async fn find_all_collaterals_authorized<T: From<core_credit_collateral::Collateral>>(
         &self,
@@ -507,7 +507,7 @@ where
         Ok(self.collaterals.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.find_all_liquidations_authorized", skip(self))]
     pub async fn find_all_liquidations_authorized<T: From<core_credit_collateral::Liquidation>>(
         &self,
@@ -564,7 +564,7 @@ where
         ))
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.find_credit_facility", skip(self))]
     pub async fn find_credit_facility(
         &self,
@@ -576,7 +576,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.create_proposal", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty))]
     pub async fn create_facility_proposal(
         &self,
@@ -654,7 +654,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.initiate_disbursal", skip(self),fields(credit_facility_id = %credit_facility_id))]
     pub async fn initiate_disbursal(
         &self,
@@ -776,7 +776,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.record_payment", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty))]
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn record_payment(
@@ -843,7 +843,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.record_payment_with_date", skip(self))]
     #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn record_payment_with_date(
@@ -909,7 +909,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "credit.complete_facility", skip(self))]
     #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn complete_facility(

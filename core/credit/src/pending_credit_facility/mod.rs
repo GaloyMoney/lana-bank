@@ -16,7 +16,7 @@ use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use es_entity::clock::ClockHandle;
 
@@ -164,7 +164,7 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.pending_credit_facility.transition_from_proposal_in_op",
         skip(self, db, credit_facility_proposal_id),
@@ -241,7 +241,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.pending_credit_facility.complete_in_op",
         skip(self, db),
         fields(pending_credit_facility_id = tracing::field::display(&pending_credit_facility_id)))
@@ -292,7 +292,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.pending_credit_facility.list", skip(self))]
     pub async fn list(
         &self,
@@ -315,7 +315,7 @@ where
         Ok(self.repo.list_for_filters(filter, sort, query).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.pending_credit_facility.list_for_customer_by_created_at",
         skip(self)
@@ -346,7 +346,7 @@ where
             .entities)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.pending_credit_facility.find_all", skip(self, ids))]
     pub async fn find_all<T: From<PendingCreditFacility>>(
         &self,
@@ -356,7 +356,7 @@ where
         Ok(self.repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.pending_credit_facility.find_by_id",
         skip(self, sub, pending_credit_facility_id)

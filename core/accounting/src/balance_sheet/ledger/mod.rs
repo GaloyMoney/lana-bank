@@ -8,7 +8,7 @@ use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
     account_set::{AccountSetMemberId, NewAccountSet},
 };
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::primitives::{CalaAccountBalance, ResolvedAccountingBaseConfig};
 
@@ -33,7 +33,7 @@ impl BalanceSheetLedger {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "bs_ledger.create_unique_account_set_in_op", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_unique_account_set_in_op(
         &self,
@@ -67,7 +67,7 @@ impl BalanceSheetLedger {
         Ok(id)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "bs_ledger.create_account_set_in_op", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_account_set_in_op(
         &self,
@@ -100,7 +100,7 @@ impl BalanceSheetLedger {
         Ok(id)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "bs_ledger.get_member_account_set_ids_and_names", skip_all)]
     async fn get_member_account_set_ids_and_names(
         &self,
@@ -130,7 +130,7 @@ impl BalanceSheetLedger {
         Ok(accounts)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "bs_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), as_of = %as_of))]
     async fn get_balances_by_id(
         &self,
@@ -159,7 +159,7 @@ impl BalanceSheetLedger {
             .collect())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "bs_ledger.create_in_op", skip(self, op), fields(reference = %reference))]
     pub async fn create_in_op(
         &self,
@@ -214,7 +214,7 @@ impl BalanceSheetLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "balance_sheet.get_ids_from_reference", skip(self), fields(reference = %reference))]
     pub async fn get_ids_from_reference(
         &self,

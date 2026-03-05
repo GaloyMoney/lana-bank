@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum StorageError {
     #[error("Storage Error - StorageClientError: {0}")]
     StorageClientError(#[from] super::client::error::StorageClientError),

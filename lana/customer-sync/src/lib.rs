@@ -20,7 +20,7 @@ use core_time_events::CoreTimeEvent;
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub struct CustomerSync<Perms, E>
 where
@@ -65,7 +65,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreTimeEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "customer_sync.init", skip_all)]
     pub async fn init(
         jobs: &mut ::job::Jobs,

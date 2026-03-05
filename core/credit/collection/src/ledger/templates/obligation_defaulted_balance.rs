@@ -1,6 +1,6 @@
 use rust_decimal::Decimal;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
@@ -90,7 +90,7 @@ impl<S: std::fmt::Display> From<RecordObligationDefaultedBalanceParams<S>> for P
 pub struct RecordObligationDefaultedBalance;
 
 impl RecordObligationDefaultedBalance {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "collection.ledger.record_obligation_defaulted_balance.init",
         skip_all

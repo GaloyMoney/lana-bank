@@ -6,7 +6,7 @@ use authz::PermissionCheck;
 use governance::{ApprovalProcessId, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{CoreDepositAction, CoreDepositObject, public::CoreDepositEvent};
 
@@ -88,7 +88,7 @@ where
         From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "deposit.execute_withdraw_approval.process_command", skip_all)]
     async fn run(
         &self,

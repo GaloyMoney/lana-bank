@@ -11,7 +11,7 @@ use core_custody::CustodianId;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 use tracing::{Span, instrument};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{CoreCreditEvent, pending_credit_facility::NewPendingCreditFacility, primitives::*};
 
@@ -84,7 +84,7 @@ where
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility_proposals.create_in_op",
         skip(self, db, new_proposal)
@@ -97,7 +97,7 @@ where
         Ok(self.repo.create_in_op(db, new_proposal).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility_proposals.conclude_customer_approval",
         skip(self, credit_facility_proposal_id),
@@ -145,7 +145,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility_proposals.approve_in_op",
         skip(self, db, credit_facility_proposal_id),
@@ -179,7 +179,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.credit_facility_proposals.find_all", skip(self, ids))]
     pub async fn find_all<T: From<CreditFacilityProposal>>(
         &self,
@@ -189,7 +189,7 @@ where
         Ok(self.repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility_proposals.find_by_id",
         skip(self, sub, credit_facility_proposal_id),
@@ -213,7 +213,7 @@ where
         Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "credit.credit_facility_proposals.list", skip(self))]
     pub async fn list(
         &self,
@@ -236,7 +236,7 @@ where
         Ok(self.repo.list_for_filters(filter, sort, query).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "credit.credit_facility_proposals.list_for_customer_by_created_at",
         skip(self)

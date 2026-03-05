@@ -1,6 +1,6 @@
 use rust_decimal::Decimal;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{
     AccountId as CalaAccountId,
@@ -98,7 +98,7 @@ impl<S: std::fmt::Display> From<AddCollateralParams<S>> for Params {
 pub struct AddCollateral;
 
 impl AddCollateral {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_credit.collateral.ledger.add_collateral.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CollateralLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()

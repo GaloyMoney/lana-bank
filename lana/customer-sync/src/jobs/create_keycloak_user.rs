@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use core_customer::PartyId;
 use job::*;
 use keycloak_client::KeycloakClient;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub const CREATE_KEYCLOAK_USER_COMMAND: JobType =
     JobType::new("command.customer-sync.create-keycloak-user");
@@ -52,7 +52,7 @@ pub struct CreateKeycloakUserJobRunner {
 
 #[async_trait]
 impl JobRunner for CreateKeycloakUserJobRunner {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "customer_sync.create_keycloak_user.process_command", skip_all)]
     async fn run(
         &self,

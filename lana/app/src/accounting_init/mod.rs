@@ -3,7 +3,7 @@ mod seed;
 
 pub mod error;
 
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{
     accounting::Accounting, app::AccountingInitConfig, balance_sheet::BalanceSheets,
@@ -21,7 +21,7 @@ pub struct JournalInit {
 }
 
 impl JournalInit {
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "accounting_init.journal", skip_all)]
     pub async fn journal(cala: &CalaLedger) -> Result<Self, AccountingInitError> {
         seed::journal::init(cala).await
@@ -32,7 +32,7 @@ impl JournalInit {
 pub struct StatementsInit;
 
 impl StatementsInit {
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "accounting_init.statements", skip_all)]
     pub async fn statements(accounting: &Accounting) -> Result<(), AccountingInitError> {
         seed::statements::init(
@@ -49,7 +49,7 @@ impl StatementsInit {
 pub struct ChartsInit;
 
 impl ChartsInit {
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "accounting_init.charts_of_accounts", skip_all)]
     pub async fn charts_of_accounts(
         accounting: &Accounting,

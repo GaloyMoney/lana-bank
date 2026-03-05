@@ -3,7 +3,7 @@ pub mod templates;
 
 use audit::SystemSubject;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{
     CalaLedger, Currency, JournalId,
@@ -35,7 +35,7 @@ pub struct CollectionLedger {
 }
 
 impl CollectionLedger {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "collection.ledger.init", skip_all)]
     pub async fn init(
         cala: &CalaLedger,
@@ -56,7 +56,7 @@ impl CollectionLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "collection.ledger.record_payment_in_op",
         skip(self, op, payment)
@@ -106,7 +106,7 @@ impl CollectionLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "collection.ledger.record_payment_allocations_in_op",
         skip(self, op, payments)
@@ -124,7 +124,7 @@ impl CollectionLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "collection.ledger.record_obligation_due_in_op", skip(self, op))]
     pub async fn record_obligation_due_in_op(
         &self,
@@ -157,7 +157,7 @@ impl CollectionLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "collection.ledger.record_obligation_overdue_in_op",
         skip(self, op)
@@ -193,7 +193,7 @@ impl CollectionLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "collection.ledger.record_obligation_defaulted_in_op",
         skip(self, op)

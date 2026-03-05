@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum StorageClientError {
     #[error("Google Cloud Storage error: {0}")]
     Gcs(#[from] google_cloud_storage::Error),

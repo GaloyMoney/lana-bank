@@ -6,7 +6,7 @@ mod error;
 
 use reqwest::Url;
 use reqwest::multipart::{Form, Part};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use config::GotenbergConfig;
 pub use error::GotenbergError;
@@ -38,7 +38,7 @@ impl GotenbergClient {
 
     /// Generate a PDF from markdown content via Gotenberg
     /// Returns the PDF as bytes that can be written to a file or uploaded
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "gotenberg.generate_pdf_from_markdown", skip_all)]
     pub async fn generate_pdf_from_markdown(
         &self,

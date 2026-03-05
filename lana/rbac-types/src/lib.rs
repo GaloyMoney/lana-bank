@@ -66,7 +66,7 @@ impl std::str::FromStr for Subject {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, strum::IntoStaticStr)]
 pub enum ParseSubjectError {
     #[error("ParseSubjectError - Strum: {0}")]
     Strum(#[from] strum::ParseError),

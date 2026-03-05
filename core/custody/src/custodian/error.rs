@@ -6,7 +6,7 @@ pub use super::repo::{
     CustodianCreateError, CustodianFindError, CustodianModifyError, CustodianQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CustodianError {
     #[error("CustodianError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

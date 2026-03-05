@@ -7,7 +7,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{
     LedgerAccountId,
@@ -61,7 +61,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.profit_and_loss.create_pl_statement", skip(self, name), fields(pl_statement_name = %name))]
     pub async fn create_pl_statement(
         &self,
@@ -89,7 +89,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.profit_and_loss.link_chart_account_sets_in_op",
         skip(self, op, resolved)
@@ -105,7 +105,7 @@ where
             .await
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.profit_and_loss.pl_statement", skip(self))]
     pub async fn pl_statement(
         &self,

@@ -17,7 +17,7 @@ use cala_ledger::{
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub(super) use closing_balances::*;
 use closing_metadata::*;
@@ -44,7 +44,7 @@ impl ChartLedger {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "chart_ledger.create_chart_root_account_set_in_op", skip(self, op, chart), fields(chart_id = %chart.id, chart_name = %chart.name))]
     pub async fn create_chart_root_account_set_in_op(
         &self,
@@ -80,7 +80,7 @@ impl ChartLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "chart_ledger.close_by_chart_root_account_set_as_of_in_op",
         skip(self, op),
@@ -123,7 +123,7 @@ impl ChartLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "chart_ledger.attach_closing_controls_to_account_set_in_op",
         skip(self, op)
@@ -148,7 +148,7 @@ impl ChartLedger {
         Ok(control_id)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "chart_ledger.create_close_control_in_op", skip(self, op))]
     async fn create_close_control_in_op(
         &self,
@@ -196,7 +196,7 @@ impl ChartLedger {
         Ok(control.id())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "chart_ledger.create_account_closing_limits_in_op",
         skip(self, op)
@@ -317,7 +317,7 @@ impl ChartLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "chart_ledger.post_closing_transaction_in_op",
         skip(self, op, initiated_by)

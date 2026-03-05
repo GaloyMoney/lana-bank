@@ -12,7 +12,7 @@ use sqlx::PgPool;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use obix::out::OutboxEventJobConfig;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use error::*;
 use job::*;
@@ -47,7 +47,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DashboardModuleAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DashboardModuleObject>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "dashboard.init", skip_all)]
     pub async fn init(
         pool: &PgPool,
@@ -72,7 +72,7 @@ where
         })
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "dashboard.load", skip(self), fields(subject = %sub))]
     pub async fn load(
         &self,

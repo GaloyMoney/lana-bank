@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, strum::IntoStaticStr)]
 pub enum CustodianClientError {
     #[error("CustodianClientError - ClientError: {0}")]
     ClientError(Box<dyn std::error::Error + Send + Sync>),

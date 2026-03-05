@@ -7,7 +7,7 @@ use crate::credit_facility::repo::{
     InterestAccrualCycleModifyError, InterestAccrualCycleQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum InterestAccrualCycleError {
     #[error("InterestAccrualCycleError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
@@ -172,6 +172,7 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
+    #[observe_error]
     #[instrument(
         name = "collateral.record_liquidation_started_in_op",
         skip(self, db),
@@ -255,7 +256,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "collateral.record_collateral_update_via_manual_input_in_op",
         skip(db, self, sub)
@@ -283,7 +284,7 @@ where
         Ok(None)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "collateral.update_collateral_by_id", skip(self, sub), err)]
     pub async fn update_collateral_by_id(
         &self,
@@ -315,7 +316,7 @@ where
         Ok(collateral)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "collateral.record_collateral_update_via_liquidation",
         skip(self, sub),
@@ -363,7 +364,7 @@ where
         Ok(collateral)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "collateral.record_proceeds_received_and_liquidation_completed",
         skip(self, sub),
@@ -400,7 +401,7 @@ where
         Ok(collateral)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "collateral.list_liquidations_for_collateral_by_created_at",
         skip(self, sub)
@@ -431,7 +432,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "collateral.find_liquidation_by_id", skip(self, sub))]
     pub async fn find_liquidation_by_id(
         &self,
@@ -457,7 +458,7 @@ where
         Ok(self.repo.find_all_liquidations(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "collateral.collateral_ledger_account_ids_in_op",
         skip(self, db)
@@ -471,7 +472,7 @@ where
         Ok(collateral.account_ids)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "collateral.liquidation_ledger_account_ids_in_op",
         skip(self, db)
@@ -485,7 +486,7 @@ where
         Ok(collateral.facility_ledger_account_ids_for_liquidation)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "collateral.list_liquidations", skip(self, sub))]
     pub async fn list_liquidations(
         &self,

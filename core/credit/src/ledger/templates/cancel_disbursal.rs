@@ -4,7 +4,7 @@ use cala_ledger::{
 };
 use rust_decimal::Decimal;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{
     ledger::error::*,
@@ -100,7 +100,7 @@ impl<S: std::fmt::Display> From<CancelDisbursalParams<S>> for Params {
 pub struct CancelDisbursal;
 
 impl CancelDisbursal {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "ledger.cancel_disbursal.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()

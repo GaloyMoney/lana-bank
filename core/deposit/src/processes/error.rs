@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ProcessError {
     #[error("ProcessError - Governance: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),

@@ -1,6 +1,6 @@
 use rust_decimal::Decimal;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
@@ -106,7 +106,7 @@ impl<S: std::fmt::Display> From<RecordPaymentAllocationParams<S>> for Params {
 pub struct RecordPaymentAllocation;
 
 impl RecordPaymentAllocation {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "collection.ledger.record_payment_allocation.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CollectionLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()

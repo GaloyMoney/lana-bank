@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{CoreCreditTermsAction, CoreCreditTermsObject, TermValues};
 
@@ -114,7 +114,7 @@ where
         Ok(terms_template)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_credit_terms.terms_template.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
@@ -160,7 +160,7 @@ where
         Ok(self.repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_credit_terms.terms_template.find_all_authorized",
         skip(self)

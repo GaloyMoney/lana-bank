@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use tracing_utils::{ErrorSeverity, Level};
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum TimeEventsError {
     #[error("TimeEventsError - DomainConfigError: {0}")]
     DomainConfig(#[from] domain_config::DomainConfigError),

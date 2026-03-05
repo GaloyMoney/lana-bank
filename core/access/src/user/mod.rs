@@ -9,7 +9,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck};
 use obix::out::{Outbox, OutboxEventMarker};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{Role, primitives::*, public::*, publisher::UserPublisher};
 
@@ -85,7 +85,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_access.create_user", skip(self, role))]
     pub async fn create_user(
         &self,
@@ -116,7 +116,7 @@ where
         Ok(user)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_access.find_for_subject", skip(self))]
     pub async fn find_for_subject(
         &self,
@@ -132,7 +132,7 @@ where
         Ok(self.repo.find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_access.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
@@ -146,7 +146,7 @@ where
         Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_access.find_by_email", skip(self))]
     pub async fn find_by_email(
         &self,
@@ -166,7 +166,7 @@ where
         Ok(self.repo.maybe_find_by_email(email.as_str()).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_access.find_all", skip(self))]
     pub async fn find_all<T: From<User>>(
         &self,
@@ -175,7 +175,7 @@ where
         Ok(self.repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_access.find_all_authorized", skip(self))]
     pub async fn find_all_authorized<T: From<User>>(
         &self,
@@ -192,7 +192,7 @@ where
         Ok(self.repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_access.list_users", skip(self))]
     pub async fn list_users(
         &self,

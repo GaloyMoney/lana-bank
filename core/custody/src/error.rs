@@ -9,7 +9,7 @@ use crate::wallet::error::{
     WalletCreateError, WalletFindError, WalletModifyError, WalletQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CoreCustodyError {
     #[error("CoreCustodyError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),

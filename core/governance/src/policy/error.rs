@@ -6,7 +6,7 @@ pub use super::repo::{
     PolicyColumn, PolicyCreateError, PolicyFindError, PolicyModifyError, PolicyQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum PolicyError {
     #[error("PolicyError - Sqlx: {0}")]
     Sqlx(sqlx::Error),

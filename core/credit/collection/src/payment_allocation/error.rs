@@ -7,7 +7,7 @@ use super::repo::{
     PaymentAllocationQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum PaymentAllocationError {
     #[error("PaymentAllocationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

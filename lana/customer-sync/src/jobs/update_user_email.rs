@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use core_customer::PartyId;
 use job::*;
 use keycloak_client::KeycloakClient;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub const UPDATE_USER_EMAIL_COMMAND: JobType =
     JobType::new("command.customer-sync.update-user-email");
@@ -52,7 +52,7 @@ pub struct UpdateUserEmailJobRunner {
 
 #[async_trait]
 impl JobRunner for UpdateUserEmailJobRunner {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "customer_sync.update_user_email.process_command", skip_all)]
     async fn run(
         &self,

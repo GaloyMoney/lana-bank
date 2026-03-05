@@ -9,7 +9,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerO
 use document_storage::{DocumentId, DocumentStorage};
 use job::*;
 use obix::out::OutboxEventMarker;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use super::{LoanAgreementData, templates::ContractTemplates};
 use crate::{CustomerKyc, Customers};
@@ -129,7 +129,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(
         name = "contract_creation.generate_loan_agreement_job.run",
         skip_all,

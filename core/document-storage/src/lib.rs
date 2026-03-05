@@ -10,7 +10,7 @@ use cloud_storage::Storage;
 use es_entity::{ListDirection, clock::ClockHandle};
 use std::collections::HashMap;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use entity::{Document, DocumentStatus, GeneratedDocumentDownloadLink, NewDocument};
 use error::*;
@@ -58,7 +58,7 @@ impl DocumentStorage {
         self.repo.begin_op().await
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.create_in_op", skip(self, db))]
     pub async fn create_in_op(
         &self,
@@ -90,7 +90,7 @@ impl DocumentStorage {
         Ok(document)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(
         name = "document_storage.upload_in_op",
         skip(self, db, content, document)
@@ -113,7 +113,7 @@ impl DocumentStorage {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.upload", skip(self, content, document))]
     pub async fn upload(
         &self,
@@ -126,7 +126,7 @@ impl DocumentStorage {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.create_and_upload", skip(self, content))]
     pub async fn create_and_upload(
         &self,
@@ -164,7 +164,7 @@ impl DocumentStorage {
         Ok(document)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
@@ -181,7 +181,7 @@ impl DocumentStorage {
         Ok(self.repo.find_by_id_in_op(op, id.into()).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.list_for_reference_id", skip(self))]
     pub async fn list_for_reference_id(
         &self,
@@ -198,7 +198,7 @@ impl DocumentStorage {
             .entities)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.list_for_reference_id_paginated", skip(self))]
     pub async fn list_for_reference_id_paginated(
         &self,
@@ -218,7 +218,7 @@ impl DocumentStorage {
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.generate_download_link", skip(self))]
     pub async fn generate_download_link(
         &self,
@@ -243,7 +243,7 @@ impl DocumentStorage {
         Ok(GeneratedDocumentDownloadLink { document_id, link })
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.delete", skip(self))]
     pub async fn delete(
         &self,
@@ -270,7 +270,7 @@ impl DocumentStorage {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.archive", skip(self))]
     pub async fn archive(
         &self,
@@ -285,7 +285,7 @@ impl DocumentStorage {
         Ok(document)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "document_storage.find_all", skip(self))]
     pub async fn find_all<T: From<Document>>(
         &self,

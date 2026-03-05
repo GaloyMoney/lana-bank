@@ -5,7 +5,7 @@ pub mod error;
 pub mod template;
 
 use gotenberg::{GotenbergClient, GotenbergConfig};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use error::RenderingError;
 pub use template::TemplateRenderer;
@@ -29,7 +29,7 @@ impl Renderer {
     }
 
     /// Render a handlebars template and convert to PDF
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(name = "rendering.render_template_to_pdf", skip_all)]
     pub async fn render_template_to_pdf(&self, content: &str) -> Result<Vec<u8>, RenderingError> {
         let pdf_bytes = self

@@ -4,7 +4,7 @@ use tracing::Level;
 
 use crate::error_severity::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum TracingError {
     #[error("TracingError - TracerProvider: {0}")]
     TracerProvider(#[from] TraceError),

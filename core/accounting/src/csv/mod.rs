@@ -14,7 +14,7 @@ use document_storage::{
     GeneratedDocumentDownloadLink, ReferenceId,
 };
 use obix::out::{Outbox, OutboxEventMarker};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::{Jobs, event::CoreAccountingEvent};
 
@@ -81,7 +81,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.csv.create", skip(self))]
     pub async fn create_ledger_account_csv(
         &self,
@@ -125,7 +125,7 @@ where
         Ok(document)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.csv.generate_download_link", skip(self))]
     pub async fn generate_download_link(
         &self,
@@ -148,7 +148,7 @@ where
         Ok(link)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.csv.list_for_ledger_account_id", skip(self))]
     pub async fn list_for_ledger_account_id(
         &self,
@@ -173,7 +173,7 @@ where
         Ok(documents)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.csv.list_for_ledger_account_id_paginated",
         skip(self)
@@ -208,7 +208,7 @@ where
         Ok(result)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.csv.get_latest_for_ledger_account_id",
         skip(self)
@@ -244,7 +244,7 @@ where
         Ok(result.entities.into_iter().next())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.csv.find_all_documents", skip(self))]
     pub async fn find_all_documents<T: From<Document>>(
         &self,

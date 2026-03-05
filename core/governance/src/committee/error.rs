@@ -6,7 +6,7 @@ pub use super::repo::{
     CommitteeCreateError, CommitteeFindError, CommitteeModifyError, CommitteeQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CommitteeError {
     #[error("CommitteeError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

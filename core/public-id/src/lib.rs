@@ -8,7 +8,7 @@ mod repo;
 
 use std::collections::HashMap;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use entity::{NewPublicIdEntity, PublicIdEntity};
 pub use error::*;
@@ -38,7 +38,7 @@ impl PublicIds {
         Self { repo }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "public_id_service.create_in_op", skip(self, op))]
     pub async fn create_in_op(
         &self,
@@ -60,7 +60,7 @@ impl PublicIds {
         Ok(public_id)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "public_id_service.update_target_in_op", skip(self, op))]
     pub async fn update_target_in_op(
         &self,
@@ -79,7 +79,7 @@ impl PublicIds {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "public_id_service.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
@@ -88,7 +88,7 @@ impl PublicIds {
         Ok(self.repo.maybe_find_by_id(id.into()).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "public_id_service.find_all", skip(self))]
     pub async fn find_all<T: From<PublicIdEntity>>(
         &self,

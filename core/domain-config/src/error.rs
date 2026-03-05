@@ -8,7 +8,7 @@ use super::repo::{
     DomainConfigCreateError, DomainConfigFindError, DomainConfigModifyError, DomainConfigQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum DomainConfigError {
     #[error("DomainConfigError - Invalid Key: {0}")]
     InvalidKey(String),

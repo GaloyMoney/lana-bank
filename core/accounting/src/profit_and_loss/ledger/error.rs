@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ProfitAndLossStatementLedgerError {
     #[error("ProfitAndLossStatementLedgerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

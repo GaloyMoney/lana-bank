@@ -8,7 +8,7 @@ use super::repo::{
     WithdrawalCreateError, WithdrawalFindError, WithdrawalModifyError, WithdrawalQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum WithdrawalError {
     #[error("WithdrawalError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

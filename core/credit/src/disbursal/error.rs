@@ -6,7 +6,7 @@ use super::repo::{
     DisbursalCreateError, DisbursalFindError, DisbursalModifyError, DisbursalQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum DisbursalError {
     #[error("DisbursalError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

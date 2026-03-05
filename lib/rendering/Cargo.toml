@@ -12,6 +12,7 @@ gotenberg = { workspace = true }
 handlebars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
+strum = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }

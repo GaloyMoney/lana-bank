@@ -16,7 +16,7 @@ mod repo;
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -121,7 +121,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_party_by_id_without_audit", skip(self))]
     pub async fn find_party_by_id_without_audit(
         &self,
@@ -146,7 +146,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.create_prospect", fields(prospect_id = tracing::field::Empty), skip(self))]
     pub async fn create_prospect(
         &self,
@@ -201,7 +201,7 @@ where
         Ok(prospect)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_for_subject", skip(self))]
     pub async fn find_for_subject(
         &self,
@@ -214,7 +214,7 @@ where
         Ok(self.repo.find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
@@ -233,7 +233,7 @@ where
         Ok(self.repo.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_by_id_without_audit", skip(self))]
     pub async fn find_by_id_without_audit(
         &self,
@@ -242,7 +242,7 @@ where
         Ok(self.repo.find_by_id(id.into()).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_by_id_without_audit_in_op", skip(self, op))]
     pub async fn find_by_id_without_audit_in_op(
         &self,
@@ -252,7 +252,7 @@ where
         Ok(self.repo.find_by_id_in_op(op, id.into()).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_by_email", skip(self))]
     pub async fn find_by_email(
         &self,
@@ -274,7 +274,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_by_public_id", skip(self))]
     pub async fn find_by_public_id(
         &self,
@@ -292,7 +292,7 @@ where
         Ok(self.repo.maybe_find_by_public_id(public_id.into()).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.list", skip(self))]
     pub async fn list(
         &self,
@@ -314,7 +314,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.create_customer_bypassing_kyc", skip(self))]
     pub async fn create_customer_bypassing_kyc(
         &self,
@@ -355,7 +355,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.handle_kyc_started_if_exists", skip(self))]
     pub async fn handle_kyc_started_if_exists(
         &self,
@@ -382,7 +382,7 @@ where
         Ok(Some(prospect))
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.handle_kyc_started", skip(self))]
     pub async fn handle_kyc_started(
         &self,
@@ -407,7 +407,7 @@ where
         Ok(prospect)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.handle_kyc_pending_if_exists", skip(self))]
     pub async fn handle_kyc_pending_if_exists(
         &self,
@@ -424,7 +424,7 @@ where
         Ok(Some(prospect))
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.handle_kyc_approved_if_exists", skip(self))]
     pub async fn handle_kyc_approved_if_exists(
         &self,
@@ -484,7 +484,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.handle_kyc_approved", skip(self))]
     pub async fn handle_kyc_approved(
         &self,
@@ -539,7 +539,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.handle_kyc_declined_if_exists", skip(self))]
     pub async fn handle_kyc_declined_if_exists(
         &self,
@@ -578,7 +578,7 @@ where
         Ok(Some(prospect))
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.handle_kyc_declined", skip(self))]
     pub async fn handle_kyc_declined(
         &self,
@@ -615,7 +615,7 @@ where
         Ok(prospect)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.handle_personal_info_changed_if_exists", skip(self))]
     pub async fn handle_personal_info_changed_if_exists(
         &self,
@@ -633,7 +633,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.record_prospect_verification_link", skip(self))]
     pub async fn record_prospect_verification_link(
         &self,
@@ -661,7 +661,7 @@ where
         Ok(prospect)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.close_prospect", skip(self))]
     pub async fn close_prospect(
         &self,
@@ -685,7 +685,7 @@ where
         Ok(prospect)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.convert_prospect", skip(self))]
     pub async fn convert_prospect(
         &self,
@@ -733,7 +733,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_prospect_by_id", skip(self))]
     pub async fn find_prospect_by_id(
         &self,
@@ -752,7 +752,7 @@ where
         Ok(self.prospect_repo.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_prospect_by_id_without_audit", skip(self))]
     pub async fn find_prospect_by_id_without_audit(
         &self,
@@ -761,7 +761,7 @@ where
         Ok(self.prospect_repo.find_by_id(id.into()).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_prospect_by_public_id", skip(self))]
     pub async fn find_prospect_by_public_id(
         &self,
@@ -782,7 +782,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.list_prospects", skip(self))]
     pub async fn list_prospects(
         &self,
@@ -807,7 +807,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_all", skip(self))]
     pub async fn find_all<T: From<Customer>>(
         &self,
@@ -816,7 +816,7 @@ where
         Ok(self.repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_all_authorized", skip(self))]
     pub async fn find_all_authorized<T: From<Customer>>(
         &self,
@@ -833,7 +833,7 @@ where
         Ok(self.repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_all_prospects", skip(self))]
     pub async fn find_all_prospects<T: From<Prospect>>(
         &self,
@@ -842,7 +842,7 @@ where
         Ok(self.prospect_repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_all_prospects_authorized", skip(self))]
     pub async fn find_all_prospects_authorized<T: From<Prospect>>(
         &self,
@@ -867,7 +867,7 @@ where
         Ok(self.party_repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_all_parties_authorized", skip(self))]
     pub async fn find_all_parties_authorized<T: From<Party>>(
         &self,
@@ -884,7 +884,7 @@ where
         Ok(self.party_repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.update_telegram_handle", skip(self))]
     pub async fn update_telegram_handle(
         &self,
@@ -913,7 +913,7 @@ where
         Ok(customer)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.update_email", skip(self))]
     pub async fn update_email(
         &self,
@@ -939,7 +939,7 @@ where
     }
 
     // Document management methods
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.create_document", skip(self, content))]
     pub async fn create_document(
         &self,
@@ -972,7 +972,7 @@ where
         Ok(document)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.list_documents_for_customer", skip(self))]
     pub async fn list_documents_for_customer_id(
         &self,
@@ -996,7 +996,7 @@ where
         Ok(documents)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.generate_document_download_link", skip(self))]
     pub async fn generate_document_download_link(
         &self,
@@ -1020,7 +1020,7 @@ where
         Ok(link)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.delete_document", skip(self))]
     pub async fn delete_document(
         &self,
@@ -1041,7 +1041,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.archive_document", skip(self))]
     pub async fn archive_document(
         &self,
@@ -1062,7 +1062,7 @@ where
         Ok(document)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_customer_document_by_id", skip(self))]
     pub async fn find_customer_document_by_id(
         &self,
@@ -1087,7 +1087,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_all_documents", skip(self))]
     pub async fn find_all_documents<T: From<Document>>(
         &self,
@@ -1105,7 +1105,7 @@ where
         Ok(result)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.find_all_documents_authorized", skip(self))]
     pub async fn find_all_documents_authorized<T: From<Document>>(
         &self,
@@ -1122,7 +1122,7 @@ where
         self.find_all_documents(ids).await
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.record_last_activity_date", skip(self))]
     pub async fn record_last_activity_date(
         &self,
@@ -1155,7 +1155,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "customer.perform_customer_activity_status_update", skip(self))]
     pub async fn perform_customer_activity_status_update(
         &self,

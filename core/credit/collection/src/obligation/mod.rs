@@ -7,7 +7,7 @@ use audit::SystemSubject;
 use std::sync::Arc;
 
 use tracing::{Span, instrument};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -164,7 +164,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "collections.obligation.allocate_payment_in_op",
         skip(self, op),
@@ -272,7 +272,7 @@ where
         Ok(true)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "collections.obligation.beneficiary_obligations",
         skip(self),
@@ -308,7 +308,7 @@ where
         Ok(obligations)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "collections.obligation.beneficiary_obligations_in_op",
         skip(self, op),

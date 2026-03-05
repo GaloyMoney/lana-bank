@@ -7,7 +7,7 @@ use super::repo::{
     CreditFacilityProposalModifyError, CreditFacilityProposalQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CreditFacilityProposalError {
     #[error("CreditFacilityProposalError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

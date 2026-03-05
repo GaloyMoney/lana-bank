@@ -7,7 +7,7 @@ use super::repo::{
     ChartNodeModifyError, ChartNodeQueryError, ChartQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ChartOfAccountsError {
     #[error("ChartOfAccountsError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

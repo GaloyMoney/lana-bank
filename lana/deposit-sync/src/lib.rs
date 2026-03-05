@@ -18,7 +18,7 @@ use core_deposit::{
 use governance::GovernanceEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use sumsub::SumsubClient;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use lana_events::LanaEvent;
 
@@ -65,7 +65,7 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "deposit_sync.init", skip_all)]
     pub async fn init(
         jobs: &mut Jobs,

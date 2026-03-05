@@ -8,7 +8,7 @@ use super::repo::{
     TermsTemplateModifyError, TermsTemplateQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum TermsTemplateError {
     #[error("TermsTemplateError - Sqlx: {0}")]
     Sqlx(sqlx::Error),

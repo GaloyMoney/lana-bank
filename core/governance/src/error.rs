@@ -13,7 +13,7 @@ use crate::policy::error::{
     PolicyCreateError, PolicyFindError, PolicyModifyError, PolicyQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum GovernanceError {
     #[error("GovernanceError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

@@ -12,7 +12,7 @@ use keycloak::types::*;
 use keycloak::{KeycloakAdmin, KeycloakServiceAccountAdminTokenRetriever};
 use reqwest::Client;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -57,7 +57,7 @@ impl KeycloakClient {
     ///
     /// This operation is idempotent: if a user with the given `lana_id` already exists,
     /// returns the existing user's Keycloak ID instead of creating a duplicate.
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "keycloak.create_user", skip(self))]
     pub async fn create_user(
         &self,
@@ -104,7 +104,7 @@ impl KeycloakClient {
         Ok(uuid)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "keycloak.update_user_email", skip(self))]
     pub async fn update_user_email(
         &self,
@@ -125,7 +125,7 @@ impl KeycloakClient {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "keycloak.query_users_by_attribute", skip(self))]
     async fn query_users_by_attribute(
         &self,
@@ -155,7 +155,7 @@ impl KeycloakClient {
         Ok(users)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "keycloak.get_keycloak_id_by_lana_id", skip(self))]
     pub async fn get_keycloak_id_by_lana_id(
         &self,

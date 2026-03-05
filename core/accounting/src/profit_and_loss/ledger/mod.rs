@@ -9,7 +9,7 @@ use cala_ledger::{
     account_set::{AccountSet, AccountSetMemberId, NewAccountSet},
 };
 
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::primitives::{BalanceRange, CalaBalanceRange, ResolvedAccountingBaseConfig};
 
@@ -39,7 +39,7 @@ impl ProfitAndLossStatementLedger {
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "pl_ledger.create_unique_account_set_in_op", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_unique_account_set_in_op(
         &self,
@@ -73,7 +73,7 @@ impl ProfitAndLossStatementLedger {
         Ok(id)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "pl_ledger.create_account_set_in_op", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_account_set_in_op(
         &self,
@@ -106,7 +106,7 @@ impl ProfitAndLossStatementLedger {
         Ok(id)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "pl_ledger.get_member_account_set_ids_and_names", skip_all)]
     async fn get_member_account_set_ids_and_names(
         &self,
@@ -136,7 +136,7 @@ impl ProfitAndLossStatementLedger {
         Ok(accounts)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "pl_ledger.get_account_set_with_balances", skip(self, balances_by_id), fields(account_set_id = %account_set_id))]
     async fn get_account_set_with_balances(
         &self,
@@ -153,7 +153,7 @@ impl ProfitAndLossStatementLedger {
         Ok((account_set, (usd_balance, btc_balance)))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "pl_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), from = %from, until = ?until))]
     async fn get_balances_by_id(
         &self,
@@ -217,7 +217,7 @@ impl ProfitAndLossStatementLedger {
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "pl_ledger.create_in_op", skip(self, op), fields(reference = %reference))]
     pub async fn create_in_op(
         &self,
@@ -251,7 +251,7 @@ impl ProfitAndLossStatementLedger {
         })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "pl_ledger.get_pl_statement", skip(self), fields(reference = %reference, from = %from, until = ?until))]
     pub async fn get_pl_statement(
         &self,
@@ -273,7 +273,7 @@ impl ProfitAndLossStatementLedger {
         Ok(ProfitAndLossStatement::from((account, balances, ids)))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "profit_and_loss.get_ids_from_reference", skip(self), fields(reference = %reference))]
     pub async fn get_ids_from_reference(
         &self,

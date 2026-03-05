@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum CoreAccountingError {
     #[error("CoreAccountingError - ChartOfAccounts: {0}")]
     ChartOfAccountsError(#[from] super::chart_of_accounts_error::ChartOfAccountsError),

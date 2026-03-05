@@ -6,7 +6,7 @@ use crate::repo::{
     LiquidationCreateError, LiquidationFindError, LiquidationModifyError, LiquidationQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum LiquidationError {
     #[error("LiquidationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

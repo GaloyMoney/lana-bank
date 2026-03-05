@@ -7,7 +7,7 @@ use super::repo::{
     DepositAccountQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum DepositAccountError {
     #[error("DepositAccountError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

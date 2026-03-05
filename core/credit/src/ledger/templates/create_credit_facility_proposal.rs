@@ -1,6 +1,6 @@
 use rust_decimal::Decimal;
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
@@ -104,7 +104,7 @@ impl<S: std::fmt::Display> From<CreateCreditFacilityProposalParams<S>> for Param
 pub struct CreateCreditFacilityProposal;
 
 impl CreateCreditFacilityProposal {
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "ledger.create_credit_facility_proposal.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()

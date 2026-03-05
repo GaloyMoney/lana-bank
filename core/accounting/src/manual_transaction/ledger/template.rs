@@ -1,5 +1,5 @@
 use rust_decimal::Decimal;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{
     AccountId as CalaAccountId,
@@ -159,7 +159,7 @@ impl ManualTransactionTemplate {
         format!("MANUAL_TRANSACTION_{}", self.n_entries)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "manual_transaction_template.init", skip(ledger), fields(n_entries = n_entries))]
     pub async fn init(
         ledger: &CalaLedger,
@@ -170,7 +170,7 @@ impl ManualTransactionTemplate {
         Ok(res)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "manual_transaction_template.find_or_create", skip(self, ledger), fields(template_code = tracing::field::Empty))]
     async fn find_or_create_template(
         &self,

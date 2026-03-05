@@ -8,7 +8,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, transaction::TransactionsByCreatedAtCursor};
 use tracing::instrument;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use crate::primitives::{CoreAccountingAction, CoreAccountingObject, LedgerTransactionId};
 
@@ -38,7 +38,7 @@ where
         }
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.ledger_transaction.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
@@ -69,7 +69,7 @@ where
         Ok(res)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.ledger_transaction.find_all", skip(self))]
     pub async fn find_all<
         T: From<LedgerTransaction<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>>,
@@ -117,7 +117,7 @@ where
     }
 
     #[allow(clippy::type_complexity)]
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.ledger_transaction.list_for_template_code",
         skip(self)

@@ -1,7 +1,7 @@
 use handlebars::Handlebars;
 use serde::Serialize;
 
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use super::error::ContractCreationError;
 
@@ -32,7 +32,7 @@ impl ContractTemplates {
     }
 
     /// Render a contract template with the provided data
-    #[record_error_severity]
+    #[observe_error]
     #[tracing::instrument(
         name = "lana.contract_creation.render_template",
         skip_all,

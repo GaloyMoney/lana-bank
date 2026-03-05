@@ -3,7 +3,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum AuthorizationError {
     #[error("AuthorizationError - CasbinError: {0}")]
     Casbin(CasbinError),

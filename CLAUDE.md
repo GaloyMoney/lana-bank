@@ -103,7 +103,7 @@ For detailed patterns on `Idempotent<T>`, `idempotency_guard!`, and infallible q
 
 ## Coding Rules
 - Use rustls, not openssl (use `rustls-tls` feature flag)
-- Use Strum library for enum <-> string conversion
+- Use Strum library for enum <-> string conversion. For `&'static str` from enums, use `strum::IntoStaticStr` (not `AsRefStr` which returns `&str` tied to `&self` lifetime)
 - Use OTEL for debugging, not println (except in tests)
 - Use `#[serde(rename_all = "camelCase")]` instead of manual field renames
 - Don't add `#[allow(dead_code)]`

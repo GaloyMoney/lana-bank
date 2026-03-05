@@ -79,7 +79,7 @@ impl SignedSatoshis {
         self.0
     }
 }
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum ConversionError {
     #[error("ConversionError - DecimalError: {0}")]
     DecimalError(#[from] rust_decimal::Error),

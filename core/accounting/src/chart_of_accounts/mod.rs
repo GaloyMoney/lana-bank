@@ -13,7 +13,7 @@ use tracing::instrument;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 use cala_ledger::{CalaLedger, account::Account};
 
@@ -94,7 +94,7 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.chart_of_accounts.create_chart", skip(self))]
     pub async fn create_chart(
         &self,
@@ -132,7 +132,7 @@ where
         Ok(chart)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.chart_of_accounts.import_from_csv_with_base_config_in_op",
         skip(self, op, import_data)
@@ -192,7 +192,7 @@ where
         Ok((chart, new_trial_balance_account_ids))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.chart_of_accounts.import_from_csv",
         skip(self, import_data)
@@ -247,7 +247,7 @@ where
         Ok((chart, Some(new_account_set_ids.clone())))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.chart_of_accounts.maybe_find_accounting_base_config_by_chart_id",
         skip(self)
@@ -261,7 +261,7 @@ where
         Ok(base_config)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.chart_of_accounts.add_root_node", skip(self,))]
     pub async fn add_root_node(
         &self,
@@ -306,7 +306,7 @@ where
         Ok((chart, new_account_set_id))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.chart_of_accounts.add_child_node", skip(self))]
     pub async fn add_child_node(
         &self,
@@ -351,7 +351,7 @@ where
         Ok((chart, new_account_set_id))
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.chart_of_accounts.close_as_of", skip(self, op))]
     pub async fn close_as_of_in_op(
         &self,
@@ -378,7 +378,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.chart_of_accounts.post_closing_transaction_in_op",
         skip(self, op)
@@ -412,7 +412,7 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.chart_of_accounts.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
@@ -421,7 +421,7 @@ where
         Ok(self.repo.find_by_id(id.into()).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.chart_of_accounts.maybe_find_by_reference",
         skip(self)
@@ -433,7 +433,7 @@ where
         Ok(self.repo.maybe_find_by_reference(reference).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.chart_of_accounts.find_by_reference_with_sub",
         skip(self)
@@ -454,7 +454,7 @@ where
         self.find_by_reference(reference).await
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.chart_of_accounts.find_by_reference",
         skip(self)
@@ -480,7 +480,7 @@ where
             })
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(name = "core_accounting.chart_of_accounts.find_all", skip(self))]
     pub async fn find_all<T: From<Chart>>(
         &self,
@@ -489,7 +489,7 @@ where
         Ok(self.repo.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error]
     #[instrument(
         name = "core_accounting.chart_of_accounts.manual_transaction_account_id_for_account_id_or_code",
         skip(self)

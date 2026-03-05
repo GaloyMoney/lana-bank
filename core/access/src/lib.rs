@@ -18,7 +18,7 @@ use authz::{Authorization, PermissionCheck as _};
 use es_entity::clock::ClockHandle;
 use obix::out::{Outbox, OutboxEventMarker};
 use permission_set::{PermissionSet, PermissionSetRepo, PermissionSetsByIdCursor};
-use tracing_macros::record_error_severity;
+use tracing_macros::observe_error;
 
 pub use primitives::*;
 pub use public::*;
@@ -56,7 +56,7 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "core_access.init", skip_all)]
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -96,7 +96,7 @@ where
 
     /// Creates a new user with an email and assigns the specified role.
     /// The role must exist and the user must not already exist.
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_access.create_user", skip(self))]
     pub async fn create_user(
         &self,
@@ -119,7 +119,7 @@ where
 
     /// Creates a new role with a given name and initial permission sets. The name
     /// must be unique, an error will be raised in case of conflict.
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "core_access.create_role", skip(self, permission_sets, name), fields(subject = %sub, role_name = %name, permission_sets_count = tracing::field::Empty))]
     pub async fn create_role(
         &self,
@@ -165,7 +165,7 @@ where
         Ok(role)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "core_access.add_permission_sets_to_role", skip(self, role_id, permission_set_ids), fields(subject = %sub, role_id = tracing::field::Empty, permission_sets_count = tracing::field::Empty))]
     pub async fn add_permission_sets_to_role(
         &self,
@@ -212,7 +212,7 @@ where
         Ok(role)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "core_access.remove_permission_sets_from_role", skip(self, role_id, permission_set_ids), fields(subject = %sub, role_id = tracing::field::Empty, permission_sets_count = tracing::field::Empty))]
     pub async fn remove_permission_sets_from_role(
         &self,
@@ -263,7 +263,7 @@ where
         Ok(role)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "access.find_role_by_name", skip(self, name), fields(subject = %sub, role_name = %name))]
     pub async fn find_role_by_name(
         &self,
@@ -283,7 +283,7 @@ where
         Ok(self.roles.find_by_name(name).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "core_access.update_role_of_user", skip(self))]
     pub async fn update_role_of_user(
         &self,
@@ -315,7 +315,7 @@ where
         Ok(user)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "access.list_roles", skip(self))]
     pub async fn list_roles(
         &self,
@@ -335,7 +335,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "access.find_all_roles", skip(self))]
     pub async fn find_all_roles<T: From<Role>>(
         &self,
@@ -344,7 +344,7 @@ where
         Ok(self.roles.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "access.find_all_roles_authorized", skip(self))]
     pub async fn find_all_roles_authorized<T: From<Role>>(
         &self,
@@ -361,7 +361,7 @@ where
         Ok(self.roles.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "access.list_permission_sets", skip(self))]
     pub async fn list_permission_sets(
         &self,
@@ -384,7 +384,7 @@ where
             .await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "core_access.find_role_by_id", skip(self, id), fields(subject = %sub, role_id = tracing::field::Empty))]
     pub async fn find_role_by_id(
         &self,
@@ -400,7 +400,7 @@ where
         Ok(self.roles.maybe_find_by_id(id).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "access.find_all_permission_sets", skip(self))]
     pub async fn find_all_permission_sets<T: From<PermissionSet>>(
         &self,
@@ -409,7 +409,7 @@ where
         Ok(self.permission_sets.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[instrument(name = "access.find_all_permission_sets_authorized", skip(self))]
     pub async fn find_all_permission_sets_authorized<T: From<PermissionSet>>(
         &self,
@@ -426,7 +426,7 @@ where
         Ok(self.permission_sets.find_all(ids).await?)
     }
 
-    #[record_error_severity]
+    #[observe_error(allow_single_error_alert)]
     #[tracing::instrument(name = "core_access.ensure_permission_sets_exist", skip(self), fields(count = permission_set_ids.len()))]
     async fn ensure_permission_sets_exist(
         &self,

@@ -6,7 +6,7 @@ use super::repo::{
     DocumentCreateError, DocumentFindError, DocumentModifyError, DocumentQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum DocumentStorageError {
     #[error("DocumentStorageError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),

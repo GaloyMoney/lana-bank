@@ -7,7 +7,7 @@ use super::repo::{
     PublicIdEntityQueryError,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::IntoStaticStr)]
 pub enum PublicIdError {
     #[error("PublicIdError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
