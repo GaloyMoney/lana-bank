@@ -217,6 +217,7 @@ export type Customer = {
 
 export enum CustomerStatus {
   Active = 'ACTIVE',
+  Closed = 'CLOSED',
   Frozen = 'FROZEN'
 }
 

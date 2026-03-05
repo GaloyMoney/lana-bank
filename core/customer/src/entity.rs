@@ -69,7 +69,11 @@ impl Customer {
     }
 
     pub fn may_create_loan(&self) -> bool {
-        true
+        self.status == CustomerStatus::Active
+    }
+
+    pub fn is_closed(&self) -> bool {
+        self.status == CustomerStatus::Closed
     }
 
     pub fn should_sync_financial_transactions(&self) -> bool {

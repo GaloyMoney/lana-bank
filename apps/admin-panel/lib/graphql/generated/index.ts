@@ -1166,8 +1166,8 @@ export type CustomerFreezePayload = {
 
 export enum CustomerStatus {
   Active = 'ACTIVE',
-  Frozen = 'FROZEN',
-  Closed = 'CLOSED'
+  Closed = 'CLOSED',
+  Frozen = 'FROZEN'
 }
 
 export type CustomerTelegramHandleUpdateInput = {

@@ -955,6 +955,9 @@ where
             .await?;
 
         let customer = self.repo.find_by_party_id(party_id).await?;
+        if customer.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
         let mut party = self.party_repo.find_by_id(party_id).await?;
         if party
             .update_telegram_handle(new_telegram_handle)
@@ -984,6 +987,9 @@ where
             .await?;
 
         let customer = self.repo.find_by_party_id(party_id).await?;
+        if customer.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
         let mut party = self.party_repo.find_by_id(party_id).await?;
         if party.update_email(new_email).did_execute() {
             self.party_repo.update(&mut party).await?;
@@ -1010,6 +1016,11 @@ where
                 CoreCustomerAction::CUSTOMER_DOCUMENT_CREATE,
             )
             .await?;
+
+        let customer = self.repo.find_by_id(customer_id).await?;
+        if customer.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
 
         let document = self
             .document_storage
@@ -1257,6 +1268,9 @@ where
             .await?;
 
         let mut customer = self.repo.find_by_id(id).await?;
+        if customer.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
         if customer.freeze().did_execute() {
             self.repo.update(&mut customer).await?;
         }
@@ -1280,6 +1294,9 @@ where
             .await?;
 
         let mut customer = self.repo.find_by_id(id).await?;
+        if customer.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
         if customer.unfreeze().did_execute() {
             self.repo.update(&mut customer).await?;
         }

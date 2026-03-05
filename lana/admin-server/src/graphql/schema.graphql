@@ -1027,7 +1027,6 @@ type Customer {
 	status: CustomerStatus!
 	kycVerification: KycVerification!
 	activity: Activity!
-	status: CustomerStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!

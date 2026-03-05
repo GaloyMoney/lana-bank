@@ -175,6 +175,7 @@ type Customer {
 enum CustomerStatus {
 	ACTIVE
 	FROZEN
+	CLOSED
 }
 
 enum CustomerType {
