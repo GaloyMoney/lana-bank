@@ -27,9 +27,14 @@ describe("Profit and Loss Statement", () => {
         until: currentDate.toISOString().split("T")[0],
       },
     ).then((response) => {
-      response.data.profitAndLossStatement?.categories.forEach((category) => {
+      const rows = response.data.profitAndLossStatement?.rows ?? []
+      const categories = rows.filter((row) => !row.parentProfitAndLossAccountId)
+      categories.forEach((category) => {
         cy.get(`[data-testid="category-${category.name.toLowerCase()}"]`).should("exist")
-        category.children.forEach((child) => {
+        const children = rows.filter(
+          (row) => row.parentProfitAndLossAccountId === category.profitAndLossAccountId,
+        )
+        children.forEach((child) => {
           cy.get(`[data-testid="account-${child.profitAndLossAccountId}"]`).should("exist")
         })
       })

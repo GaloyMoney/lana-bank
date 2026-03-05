@@ -32,17 +32,18 @@ describe("Balance Sheet", () => {
         expect(categoryTexts).to.include(t(BalanceSheet + ".categories.Equity"))
       })
 
-      if (response.data?.balanceSheet?.categories) {
-        response.data.balanceSheet.categories.forEach((category) => {
-          if (category?.children) {
-            category.children.forEach((child) => {
-              if (child?.name) {
-                cy.contains(child.name).should("be.visible")
-              }
-            })
+      const rows = response.data?.balanceSheet?.rows ?? []
+      const rootRows = rows.filter((row) => !row.parentBalanceSheetAccountId)
+      rootRows.forEach((category) => {
+        const children = rows.filter(
+          (row) => row.parentBalanceSheetAccountId === category.balanceSheetAccountId,
+        )
+        children.forEach((child) => {
+          if (child.name) {
+            cy.contains(child.name).should("be.visible")
           }
         })
-      }
+      })
     })
     cy.takeScreenshot("balance-sheet")
   })

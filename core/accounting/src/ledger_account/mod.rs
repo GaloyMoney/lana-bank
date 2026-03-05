@@ -24,12 +24,6 @@ use error::*;
 use ledger::*;
 pub use value::*;
 
-#[derive(Clone, Copy, Debug)]
-enum UncodedChildrenStrategy {
-    LeafDescendants,
-    DirectMembers,
-}
-
 #[derive(Clone)]
 pub struct LedgerAccounts<Perms>
 where
@@ -145,8 +139,7 @@ where
             .await?
         {
             self.populate_ancestors(chart, &mut account).await?;
-            self.populate_children(chart, &mut account, UncodedChildrenStrategy::LeafDescendants)
-                .await?;
+            self.populate_children(chart, &mut account).await?;
             Ok(Some(account))
         } else {
             Ok(None)
@@ -164,8 +157,7 @@ where
         let mut res = HashMap::new();
         for (k, mut v) in accounts.into_iter() {
             self.populate_ancestors(chart, &mut v).await?;
-            self.populate_children(chart, &mut v, UncodedChildrenStrategy::LeafDescendants)
-                .await?;
+            self.populate_children(chart, &mut v).await?;
             res.insert(k, v.into());
         }
         Ok(res)
@@ -183,14 +175,8 @@ where
         from: chrono::NaiveDate,
         until: Option<chrono::NaiveDate>,
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
-        self.find_all_in_range_with_children_strategy(
-            chart,
-            ids,
-            from,
-            until,
-            UncodedChildrenStrategy::LeafDescendants,
-        )
-        .await
+        self.find_all_in_range_with_leaf_descendants(chart, ids, from, until)
+            .await
     }
 
     #[record_error_severity]
@@ -205,23 +191,16 @@ where
         from: chrono::NaiveDate,
         until: Option<chrono::NaiveDate>,
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
-        self.find_all_in_range_with_children_strategy(
-            chart,
-            ids,
-            from,
-            until,
-            UncodedChildrenStrategy::DirectMembers,
-        )
-        .await
+        self.find_all_in_range_with_direct_members_internal(chart, ids, from, until)
+            .await
     }
 
-    async fn find_all_in_range_with_children_strategy<T: From<LedgerAccount>>(
+    async fn find_all_in_range_with_leaf_descendants<T: From<LedgerAccount>>(
         &self,
         chart: &Chart,
         ids: &[LedgerAccountId],
         from: chrono::NaiveDate,
         until: Option<chrono::NaiveDate>,
-        strategy: UncodedChildrenStrategy,
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
         let accounts = self
             .ledger
@@ -230,7 +209,28 @@ where
         let mut res = HashMap::new();
         for (k, mut v) in accounts.into_iter() {
             self.populate_ancestors(chart, &mut v).await?;
-            self.populate_children(chart, &mut v, strategy).await?;
+            self.populate_children(chart, &mut v).await?;
+            res.insert(k, v.into());
+        }
+        Ok(res)
+    }
+
+    async fn find_all_in_range_with_direct_members_internal<T: From<LedgerAccount>>(
+        &self,
+        chart: &Chart,
+        ids: &[LedgerAccountId],
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
+    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
+        let accounts = self
+            .ledger
+            .load_ledger_accounts_in_range(ids, from, until)
+            .await?;
+        let mut res = HashMap::new();
+        for (k, mut v) in accounts.into_iter() {
+            self.populate_ancestors(chart, &mut v).await?;
+            self.populate_children_with_direct_members(chart, &mut v)
+                .await?;
             res.insert(k, v.into());
         }
         Ok(res)
@@ -271,8 +271,7 @@ where
 
         for entry in &mut entries {
             self.populate_ancestors(chart, entry).await?;
-            self.populate_children(chart, entry, UncodedChildrenStrategy::LeafDescendants)
-                .await?;
+            self.populate_children(chart, entry).await?;
         }
 
         Ok(entries)
@@ -314,7 +313,6 @@ where
         &self,
         chart: &Chart,
         account: &mut LedgerAccount,
-        strategy: UncodedChildrenStrategy,
     ) -> Result<(), LedgerAccountError> {
         let children: BTreeMap<_, _> = account
             .code
@@ -323,14 +321,32 @@ where
             .unwrap_or_default();
 
         account.children_ids = if children.is_empty() {
-            match strategy {
-                UncodedChildrenStrategy::LeafDescendants => {
-                    self.ledger.find_leaf_children(account.id, 1).await?
-                }
-                UncodedChildrenStrategy::DirectMembers => {
-                    self.ledger.find_direct_children(account.id).await?
-                }
-            }
+            self.ledger.find_leaf_children(account.id, 1).await?
+        } else {
+            children.into_values().map(Into::into).collect()
+        };
+
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.ledger_account.populate_children_with_direct_members",
+        skip(self, chart, account)
+    )]
+    async fn populate_children_with_direct_members(
+        &self,
+        chart: &Chart,
+        account: &mut LedgerAccount,
+    ) -> Result<(), LedgerAccountError> {
+        let children: BTreeMap<_, _> = account
+            .code
+            .as_ref()
+            .map(|code| chart.children(code).collect())
+            .unwrap_or_default();
+
+        account.children_ids = if children.is_empty() {
+            self.ledger.find_direct_children(account.id).await?
         } else {
             children.into_values().map(Into::into).collect()
         };

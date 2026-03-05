@@ -277,6 +277,7 @@ export const mockBalanceSheet = (overrides?: Partial<BalanceSheet>, _relationshi
         equityBalance: overrides && overrides.hasOwnProperty('equityBalance') ? overrides.equityBalance! : relationshipsToOmit.has('LedgerAccountBalanceByCurrency') ? {} as LedgerAccountBalanceByCurrency : mockLedgerAccountBalanceByCurrency({}, relationshipsToOmit),
         liabilitiesBalance: overrides && overrides.hasOwnProperty('liabilitiesBalance') ? overrides.liabilitiesBalance! : relationshipsToOmit.has('LedgerAccountBalanceByCurrency') ? {} as LedgerAccountBalanceByCurrency : mockLedgerAccountBalanceByCurrency({}, relationshipsToOmit),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        rows: overrides && overrides.hasOwnProperty('rows') ? overrides.rows! : [relationshipsToOmit.has('BalanceSheetRow') ? {} as BalanceSheetRow : mockBalanceSheetRow({}, relationshipsToOmit)],
     };
 };
 
@@ -291,6 +292,22 @@ export const mockBalanceSheetAccount = (overrides?: Partial<BalanceSheetAccount>
         code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
         ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+    };
+};
+
+export const mockBalanceSheetRow = (overrides?: Partial<BalanceSheetRow>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'BalanceSheetRow' } & BalanceSheetRow => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('BalanceSheetRow');
+    return {
+        __typename: 'BalanceSheetRow',
+        balance: overrides && overrides.hasOwnProperty('balance') ? overrides.balance! : relationshipsToOmit.has('LedgerAccountBalanceByCurrency') ? {} as LedgerAccountBalanceByCurrency : mockLedgerAccountBalanceByCurrency({}, relationshipsToOmit),
+        balanceSheetAccountId: overrides && overrides.hasOwnProperty('balanceSheetAccountId') ? overrides.balanceSheetAccountId! : faker.string.uuid(),
+        category: overrides && overrides.hasOwnProperty('category') ? overrides.category! : faker.lorem.word(),
+        code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
+        depth: overrides && overrides.hasOwnProperty('depth') ? overrides.depth! : faker.number.int({ min: 0, max: 9999 }),
+        ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        parentBalanceSheetAccountId: overrides && overrides.hasOwnProperty('parentBalanceSheetAccountId') ? overrides.parentBalanceSheetAccountId! : faker.string.uuid(),
     };
 };
 
@@ -2860,6 +2877,22 @@ export const mockProfitAndLossAccount = (overrides?: Partial<ProfitAndLossAccoun
     };
 };
 
+export const mockProfitAndLossRow = (overrides?: Partial<ProfitAndLossRow>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ProfitAndLossRow' } & ProfitAndLossRow => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('ProfitAndLossRow');
+    return {
+        __typename: 'ProfitAndLossRow',
+        balanceRange: overrides && overrides.hasOwnProperty('balanceRange') ? overrides.balanceRange! : relationshipsToOmit.has('BtcLedgerAccountBalanceRange') ? {} as BtcLedgerAccountBalanceRange : mockBtcLedgerAccountBalanceRange({}, relationshipsToOmit),
+        category: overrides && overrides.hasOwnProperty('category') ? overrides.category! : faker.lorem.word(),
+        code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
+        depth: overrides && overrides.hasOwnProperty('depth') ? overrides.depth! : faker.number.int({ min: 0, max: 9999 }),
+        ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        parentProfitAndLossAccountId: overrides && overrides.hasOwnProperty('parentProfitAndLossAccountId') ? overrides.parentProfitAndLossAccountId! : faker.string.uuid(),
+        profitAndLossAccountId: overrides && overrides.hasOwnProperty('profitAndLossAccountId') ? overrides.profitAndLossAccountId! : faker.string.uuid(),
+    };
+};
+
 export const mockProfitAndLossStatement = (overrides?: Partial<ProfitAndLossStatement>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ProfitAndLossStatement' } & ProfitAndLossStatement => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ProfitAndLossStatement');
@@ -2867,6 +2900,7 @@ export const mockProfitAndLossStatement = (overrides?: Partial<ProfitAndLossStat
         __typename: 'ProfitAndLossStatement',
         categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : [relationshipsToOmit.has('ProfitAndLossAccount') ? {} as ProfitAndLossAccount : mockProfitAndLossAccount({}, relationshipsToOmit)],
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        rows: overrides && overrides.hasOwnProperty('rows') ? overrides.rows! : [relationshipsToOmit.has('ProfitAndLossRow') ? {} as ProfitAndLossRow : mockProfitAndLossRow({}, relationshipsToOmit)],
         total: overrides && overrides.hasOwnProperty('total') ? overrides.total! : relationshipsToOmit.has('LedgerAccountBalanceRangeByCurrency') ? {} as LedgerAccountBalanceRangeByCurrency : mockLedgerAccountBalanceRangeByCurrency({}, relationshipsToOmit),
     };
 };

@@ -1,7 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import {
@@ -28,9 +28,12 @@ import {
 import { BalanceSheetQuery, useBalanceSheetQuery } from "@/lib/graphql/generated"
 
 gql`
-  fragment BalanceSheetAccountFields on BalanceSheetAccount {
+  fragment BalanceSheetRowFields on BalanceSheetRow {
     balanceSheetAccountId
+    parentBalanceSheetAccountId
     ledgerAccountId
+    category
+    depth
     name
     code
     balance {
@@ -110,26 +113,15 @@ gql`
           }
         }
       }
-      categories {
-        ...BalanceSheetAccountFields
-        children {
-          ...BalanceSheetAccountFields
-          children {
-            ...BalanceSheetAccountFields
-            children {
-              ...BalanceSheetAccountFields
-              children {
-                ...BalanceSheetAccountFields
-              }
-            }
-          }
-        }
+      rows {
+        ...BalanceSheetRowFields
       }
     }
   }
 `
 
 type CategoryBalance = NonNullable<BalanceSheetQuery["balanceSheet"]>["assetsBalance"]
+type BalanceSheetRow = NonNullable<BalanceSheetQuery["balanceSheet"]>["rows"][number]
 
 export default function BalanceSheetPage() {
   const initialAsOf = useMemo(() => getInitialAsOfDate(), [])
@@ -184,12 +176,21 @@ const BalanceSheetView = ({
       return next
     })
   }, [])
+  const categories = useMemo(() => buildBalanceSheetTree(data?.rows ?? []), [data?.rows])
+
+  useEffect(() => {
+    if (categories.length === 0) return
+    setCollapsedAccountIds((prev) => {
+      if (prev.size > 0) return prev
+      return collectCollapsedBalanceSheetAccountIds(categories)
+    })
+  }, [categories])
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
-  const assets = data?.categories?.filter((cat) => cat.name === "Assets")
-  const liabilities = data?.categories?.filter((cat) => cat.name === "Liabilities")
-  const equity = data?.categories?.filter((cat) => cat.name === "Equity")
+  const assets = categories.filter((cat) => cat.name === "Assets")
+  const liabilities = categories.filter((cat) => cat.name === "Liabilities")
+  const equity = categories.filter((cat) => cat.name === "Equity")
   const liabilitiesAndEquity = [...(liabilities || []), ...(equity || [])]
 
   const assetsTotal = getBalanceNet(data?.assetsBalance, currency, layer)
@@ -259,7 +260,7 @@ const BalanceSheetView = ({
 
 interface BalanceSheetColumnProps {
   title: string
-  categories: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"]
+  categories: BalanceSheetAccountNode[]
   currency: Currency
   layer: ReportLayer
   total: number
@@ -312,7 +313,7 @@ function BalanceSheetColumn({
 }
 
 interface CategoryRowProps {
-  category: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"][0]
+  category: BalanceSheetAccountNode
   currency: Currency
   layer: ReportLayer
   collapsedAccountIds: Set<string>
@@ -375,4 +376,54 @@ function getBalanceNet(
 ): number {
   if (!balance) return 0
   return balance[currency][layer].net
+}
+
+function buildBalanceSheetTree(rows: BalanceSheetRow[]): BalanceSheetAccountNode[] {
+  const nodesById = new Map<string, BalanceSheetAccountNode>()
+  for (const row of rows) {
+    nodesById.set(row.balanceSheetAccountId, {
+      balanceSheetAccountId: row.balanceSheetAccountId,
+      ledgerAccountId: row.ledgerAccountId,
+      code: row.code,
+      name: row.name,
+      balance: row.balance,
+      children: [],
+    })
+  }
+
+  const roots: BalanceSheetAccountNode[] = []
+  for (const row of rows) {
+    const node = nodesById.get(row.balanceSheetAccountId)
+    if (!node) continue
+
+    if (!row.parentBalanceSheetAccountId) {
+      roots.push(node)
+      continue
+    }
+
+    const parent = nodesById.get(row.parentBalanceSheetAccountId)
+    if (!parent) {
+      roots.push(node)
+      continue
+    }
+    parent.children = [...(parent.children ?? []), node]
+  }
+
+  return roots
+}
+
+function collectCollapsedBalanceSheetAccountIds(
+  nodes: BalanceSheetAccountNode[],
+): Set<string> {
+  const ids = new Set<string>()
+
+  const walk = (node: BalanceSheetAccountNode) => {
+    if ((node.children?.length ?? 0) > 0) {
+      ids.add(node.balanceSheetAccountId)
+      node.children?.forEach(walk)
+    }
+  }
+
+  nodes.forEach(walk)
+  return ids
 }

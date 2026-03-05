@@ -8,7 +8,7 @@ import { BalanceSheetQuery } from "@/lib/graphql/generated"
 
 type BalanceSheetBalance = NonNullable<
   BalanceSheetQuery["balanceSheet"]
->["categories"][number]["balance"]
+>["rows"][number]["balance"]
 
 export interface BalanceSheetAccountNode {
   balanceSheetAccountId: string

@@ -203,6 +203,7 @@ type BalanceSheet {
 	liabilitiesBalance: LedgerAccountBalanceByCurrency!
 	equityBalance: LedgerAccountBalanceByCurrency!
 	categories: [BalanceSheetAccount!]!
+	rows: [BalanceSheetRow!]!
 }
 
 type BalanceSheetAccount {
@@ -212,6 +213,17 @@ type BalanceSheetAccount {
 	name: String!
 	balance: LedgerAccountBalanceByCurrency!
 	children: [BalanceSheetAccount!]!
+}
+
+type BalanceSheetRow {
+	balanceSheetAccountId: ID!
+	parentBalanceSheetAccountId: ID
+	ledgerAccountId: UUID!
+	code: AccountCode
+	category: String!
+	name: String!
+	depth: Int!
+	balance: LedgerAccountBalanceByCurrency!
 }
 
 input BitgoConfig {
@@ -2297,10 +2309,22 @@ type ProfitAndLossAccount {
 	children: [ProfitAndLossAccount!]!
 }
 
+type ProfitAndLossRow {
+	profitAndLossAccountId: ID!
+	parentProfitAndLossAccountId: ID
+	ledgerAccountId: UUID!
+	code: AccountCode
+	category: String!
+	name: String!
+	depth: Int!
+	balanceRange: LedgerAccountBalanceRange!
+}
+
 type ProfitAndLossStatement {
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
 	categories: [ProfitAndLossAccount!]!
+	rows: [ProfitAndLossRow!]!
 }
 
 type Prospect {

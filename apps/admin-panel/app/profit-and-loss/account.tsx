@@ -8,14 +8,14 @@ import { ProfitAndLossStatementQuery } from "@/lib/graphql/generated"
 
 type BalanceRangeType = NonNullable<
   ProfitAndLossStatementQuery["profitAndLossStatement"]
->["categories"][0]["children"][number]
+>["rows"][number]["balanceRange"]
 
 export interface ProfitAndLossAccountNode {
   profitAndLossAccountId: string
   ledgerAccountId: string
   code?: string | null
   name: string
-  balanceRange: BalanceRangeType["balanceRange"]
+  balanceRange: BalanceRangeType
   children?: ProfitAndLossAccountNode[]
 }
 
