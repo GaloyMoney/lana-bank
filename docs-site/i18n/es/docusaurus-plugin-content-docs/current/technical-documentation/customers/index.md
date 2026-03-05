@@ -92,3 +92,17 @@ El sistema soporta múltiples tipos de cliente para clasificación regulatoria:
 
 - [Proceso de Onboarding](onboarding) - Flujo completo de incorporación
 - [Gestión de Documentos](documents) - Manejo de documentos del cliente
+
+## Integración con otros módulos
+
+El registro del cliente es referenciado por prácticamente todos los demás módulos del sistema:
+
+- **Depósitos**: Cada cliente tiene una cuenta de depósito (creada automáticamente después de la aprobación KYC). El tipo de cliente determina a qué conjunto de cuentas contables pertenece la cuenta de depósito.
+- **Crédito**: Las propuestas de facilidades crediticias están vinculadas a un cliente. La verificación KYC puede ser requerida antes de que se permitan los desembolsos.
+- **Contabilidad**: El tipo de cliente determina la ubicación en el plan de cuentas tanto para los pasivos de depósitos como para las cuentas por cobrar de crédito.
+- **Gobernanza**: Los procesos de aprobación para retiros y operaciones de crédito referencian al cliente indirectamente a través de las entidades asociadas.
+
+## Documentación relacionada
+
+- [Proceso de onboarding](onboarding) - Flujo completo de onboarding con KYC de Sumsub
+- [Gestión de documentos](documents) - Manejo de documentos del cliente

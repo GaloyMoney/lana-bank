@@ -328,40 +328,6 @@ mutation ExportReport($input: ReportExportInput!) {
 
 ### Configurar Reporte Automático
 
-```graphql
-mutation ScheduleReport($input: ReportScheduleInput!) {
-  reportSchedule(input: $input) {
-    schedule {
-      id
-      reportType
-      frequency
-      nextRun
-      recipients
-    }
-  }
-}
-```
-
-### Frecuencias Disponibles
-
-| Frecuencia | Descripción |
-|------------|-------------|
-| DAILY | Todos los días |
-| WEEKLY | Semanal |
-| MONTHLY | Mensual |
-| QUARTERLY | Trimestral |
-| YEARLY | Anual |
-
-## Permisos Requeridos
-
-| Operación | Permiso |
-|-----------|---------|
-| Ver reportes financieros | REPORT_FINANCIAL_READ |
-| Ver reportes de cartera | REPORT_PORTFOLIO_READ |
-| Ver reportes regulatorios | REPORT_REGULATORY_READ |
-| Exportar reportes | REPORT_EXPORT |
-| Programar reportes | REPORT_SCHEDULE |
-
 ## Recorrido en Panel de Administración: Balanza de Comprobación
 
 **Paso 1.** Abre el reporte de balanza de comprobación.
@@ -399,4 +365,3 @@ mutation ScheduleReport($input: ReportScheduleInput!) {
 **Paso 3.** Filtra por capa (ejemplo: pendiente).
 
 ![Estado de resultados capa pendiente](/img/screenshots/current/es/profit-and-loss.cy.ts/profit-and-loss-pending.png)
-

@@ -63,3 +63,20 @@ El método `get()` devuelve un envoltorio `TypedDomainConfig<C>`. Llame a `.valu
 - `None` - no existe ningún valor y no se definió un valor predeterminado
 
 El llamador no necesita saber si el valor provino de una entrada explícita en la base de datos o del valor predeterminado definido en el registro.
+
+### Acceso de solo lectura para consumidores internos
+
+Para trabajos en segundo plano y procesos internos que necesitan leer configuraciones expuestas sin contexto de usuario, usa `ExposedDomainConfigsReadOnly`:
+
+```rust
+let readonly_configs = ExposedDomainConfigsReadOnly::new(&pool);
+let typed_config = readonly_configs.get_without_audit::<MyConfig>().await?;
+```
+
+Este servicio proporciona acceso de solo lectura a configuraciones expuestas sin requerir un sujeto de autorización. Usa este patrón cuando:
+
+- Los trabajos en segundo plano necesitan valores de configuración durante la ejecución
+- Los procesos internos operan sin contexto de usuario
+- Necesitas evitar la sobrecarga de autorización para acceso interno de solo lectura
+
+El servicio de solo lectura solo admite lectura; las actualizaciones de configuración aún requieren el servicio estándar `ExposedDomainConfigs` con la autorización adecuada.

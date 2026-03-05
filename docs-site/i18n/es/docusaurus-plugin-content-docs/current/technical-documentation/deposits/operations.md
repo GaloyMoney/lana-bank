@@ -346,4 +346,3 @@ Este flujo muestra la creación y gestión operativa de depósitos y retiros.
 **Paso 19.** Verifica estado aprobado/confirmado.
 
 ![Estado retiro aprobado](/img/screenshots/current/es/transactions.cy.ts/19_withdrawal_approved_status.png)
-

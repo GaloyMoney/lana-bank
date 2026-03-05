@@ -325,4 +325,3 @@ Todas las modificaciones a políticas se registran en el sistema de auditoría:
 **Paso 23.** Verifica éxito del rechazo y estado terminal.
 
 ![Éxito de rechazo](/img/screenshots/current/es/governance.cy.ts/23_step-verify-denial-success.png)
-

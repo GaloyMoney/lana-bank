@@ -1,7 +1,7 @@
 ---
 id: index
 title: Aplicaciones Frontend
-sidebar_position: 1
+sidebar_position: 6
 ---
 
 # Aplicaciones Frontend
@@ -146,26 +146,14 @@ export function useAuth() {
 ### Iniciar Aplicaciones
 
 ```bash
+
 # Panel de Administración
+
 cd apps/admin-panel
 pnpm dev
 
 # Portal del Cliente
+
 cd apps/customer-portal
 pnpm dev
 ```
-
-### URLs de Desarrollo
-
-| Aplicación | URL |
-|------------|-----|
-| Admin Panel | http://admin.localhost:4455 |
-| Customer Portal | http://app.localhost:4455 |
-
-## Documentación Relacionada
-
-- [Panel de Administración](admin-panel) - Documentación del panel admin
-- [Portal del Cliente](customer-portal) - Documentación del portal de clientes
-- [Componentes Compartidos](shared-components) - Biblioteca de UI
-- [Interfaz de Crédito](credit-ui) - Gestión de facilidades de crédito
-

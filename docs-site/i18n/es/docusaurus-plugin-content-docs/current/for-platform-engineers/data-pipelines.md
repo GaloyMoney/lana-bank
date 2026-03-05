@@ -1,7 +1,7 @@
 ---
 id: data-pipelines
 title: Canalización de Datos
-sidebar_position: 4
+sidebar_position: 12
 ---
 
 # Canalización de Datos y Analítica
@@ -303,25 +303,11 @@ with DAG('lana_etl', schedule_interval='@hourly') as dag:
 ### Comandos Básicos
 
 ```bash
+
 # Ejecutar extracción completa
+
 meltano run tap-postgres target-bigquery
 
 # Ejecutar con selección de tablas
+
 meltano run tap-postgres target-bigquery --select core_credit_facility_events
-
-# Ejecutar transformaciones dbt
-meltano invoke dbt:run
-
-# Verificar frescura de datos
-meltano invoke dbt:source freshness
-```
-
-### Desarrollo Local
-
-Para desarrollo local con Dagster:
-
-```bash
-DAGSTER=true make start-deps
-```
-
-Esto inicia la interfaz de Dagster para visualizar y ejecutar la canalización.

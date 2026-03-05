@@ -85,3 +85,49 @@ Este flujo continúa desde una facilidad de crédito activa y muestra cómo crea
 - El desembolso aparece bajo la facilidad y cliente esperados.
 - El historial de la facilidad refleja ejecución/liquidación.
 - Las vistas de repago muestran el impacto de la nueva obligación principal.
+
+**Paso 29.** Confirma que el desembolso aparece en la lista de desembolsos.
+
+![Desembolso en la lista](/img/screenshots/current/es/credit-facilities.cy.ts/29_disbursal_in_list.png)
+
+## Qué verificar después del paso 29
+
+- El estado del desembolso es `Confirmed`.
+- El desembolso es visible bajo la facilidad y cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de repago muestran el impacto de la obligación para el nuevo principal.
+
+- El estado del desembolso es `Confirmed`.
+- El desembolso es visible bajo la facilidad y el cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de reembolso muestran el impacto de la obligación para el nuevo principal.
+
+- El estado del desembolso es `Confirmed`.
+- El desembolso es visible bajo la facilidad y el cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de reembolso muestran el impacto de la obligación para el nuevo principal.
+
+- El estado del desembolso es `Confirmed`.
+- El desembolso es visible bajo la facilidad y el cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de reembolso muestran el impacto de la obligación para el nuevo principal.
+
+- El estado del desembolso es `Confirmed`.
+- El desembolso es visible bajo la facilidad y el cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de reembolso muestran el impacto de la obligación para el nuevo principal.
+
+- El estado del desembolso es `Confirmado`.
+- El desembolso es visible bajo la facilidad y el cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de reembolso muestran el impacto de la obligación para el nuevo principal.
+
+- El estado del desembolso es `Confirmed`.
+- El desembolso es visible bajo la facilidad y el cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de reembolso muestran el impacto de la obligación para el nuevo principal.
+
+- El estado del desembolso es `Confirmed`.
+- El desembolso es visible bajo la facilidad y el cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de reembolso muestran el impacto de la obligación para el nuevo principal.

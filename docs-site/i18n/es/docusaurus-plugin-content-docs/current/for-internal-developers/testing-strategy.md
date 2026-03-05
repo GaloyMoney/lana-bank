@@ -105,13 +105,17 @@ describe('Credit Facility', () => {
 ### Pruebas de Rust
 
 ```bash
+
 # Todas las pruebas
+
 cargo nextest run
 
 # Un solo crate
+
 cargo nextest run -p core-credit
 
 # Una sola prueba
+
 cargo nextest run credit::tests::test_create_facility
 ```
 
@@ -124,10 +128,13 @@ make e2e
 ### Pruebas de Frontend
 
 ```bash
+
 # Sin interfaz grafica
+
 pnpm cypress:run-headless
 
 # Interactivo
+
 pnpm cypress:open
 ```
 
@@ -153,17 +160,22 @@ impl TestFixtures {
 ### Carga de Datos en la Base de Datos
 
 ```bash
+
 # Cargar datos de desarrollo
+
 cargo run -- seed
 ```
 
 ## Cobertura
 
 ```bash
+
 # Generar informe de cobertura
+
 cargo llvm-cov --html
 
 # Abrir informe
+
 open target/llvm-cov/html/index.html
 ```
 

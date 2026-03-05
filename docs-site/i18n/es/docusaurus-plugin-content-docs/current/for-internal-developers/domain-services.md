@@ -1,7 +1,7 @@
 ---
 id: domain-services
 title: Servicios de Dominio
-sidebar_position: 3
+sidebar_position: 7
 ---
 
 # Servicios de Dominio
@@ -201,23 +201,3 @@ default = []
 graphql = ["async-graphql"]
 import = ["cloud-storage"]
 ```
-
-## Integración con la Capa de Aplicación
-
-El crate `lana-app` agrega todos los servicios de dominio:
-
-```rust
-pub struct LanaApp {
-    pub customers: Customers,
-    pub credit_facilities: CreditFacilities,
-    pub deposits: Deposits,
-    pub accounting: Accounting,
-    pub governance: Governance,
-    // ... otros servicios
-}
-```
-
-Esta agregación permite:
-- Inicialización coordinada de servicios
-- Inyección de dependencias compartidas
-- Acceso unificado desde los resolvers GraphQL

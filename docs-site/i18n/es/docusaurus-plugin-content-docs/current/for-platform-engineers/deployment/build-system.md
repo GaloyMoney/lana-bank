@@ -51,10 +51,13 @@ Si has configurado Cachix (ver más abajo), este comando es casi instantáneo po
 Hay dos formas de compilar el binario `lana-cli`:
 
 ```bash
+
 # Build release — optimizado, usado en CI para imágenes Docker
+
 nix build --impure .#lana-cli-release
 
 # Build de depuración — más rápido de compilar, tiene símbolos de depuración
+
 nix build .#lana-cli-debug
 ```
 
@@ -140,10 +143,13 @@ Cada derivación se sube a Cachix inmediatamente cuando se completa (usando `cac
 Puedes acelerar tus comandos locales de `nix develop` y `nix build` configurando Cachix:
 
 ```bash
+
 # Configuración única — agrega galoymoney como caché binaria
+
 cachix use galoymoney
 
 # Ahora esto descarga herramientas precompiladas en lugar de compilarlas
+
 nix develop
 ```
 
@@ -162,10 +168,13 @@ Lana usa [SQLx](https://github.com/launchbadge/sqlx) para consultas de base de d
 Eso es un problema en CI, donde no hay base de datos disponible durante el paso de build. La solución es el **modo offline de SQLx**: guardas los metadatos de las consultas en un directorio `.sqlx/` (registrado en git), y los builds de CI usan esos metadatos almacenados en caché en lugar de conectarse a una base de datos real.
 
 ```bash
+
 # Cuando tienes una base de datos ejecutándose localmente, regenera los metadatos
+
 make sqlx-prepare
 
 # En CI o cuando compilas sin base de datos
+
 SQLX_OFFLINE=true cargo build
 ```
 

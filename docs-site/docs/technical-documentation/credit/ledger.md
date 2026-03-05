@@ -275,3 +275,4 @@ Columns to the right of Template Code represent account sets involved in the tra
 │ ADD_STRUCTURING_FEE │ DR (Settled)       │ CR (Settled) │
 └─────────────────────┴────────────────────┴──────────────┘
 ```
+

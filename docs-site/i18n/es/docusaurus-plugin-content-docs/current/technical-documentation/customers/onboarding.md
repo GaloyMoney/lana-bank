@@ -245,4 +245,3 @@ alimentados por webhooks.
 **Paso 12.** Confirma que el enlace KYC fue generado.
 
 ![Enlace KYC creado](/img/screenshots/current/es/customers.cy.ts/15_kyc_link_created.png)
-

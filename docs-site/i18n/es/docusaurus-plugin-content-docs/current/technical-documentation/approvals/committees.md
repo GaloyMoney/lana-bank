@@ -247,14 +247,6 @@ query GetCommitteeDecisions($committeeId: ID!, $first: Int) {
 
 ## Permisos Requeridos
 
-| Operación | Permiso |
-|-----------|---------|
-| Crear comité | COMMITTEE_CREATE |
-| Ver comités | COMMITTEE_READ |
-| Modificar comité | COMMITTEE_UPDATE |
-| Eliminar comité | COMMITTEE_DELETE |
-| Emitir voto | VOTE_CREATE |
-
 ## Recorrido en Panel de Administración: Crear Comité y Agregar Miembros
 
 ### 1) Crear comité
@@ -304,18 +296,3 @@ query GetCommitteeDecisions($committeeId: ID!, $first: Int) {
 **Paso 11.** Verifica éxito de alta.
 
 ![Verificar miembro agregado](/img/screenshots/current/es/governance.cy.ts/11_step-verify-member-added.png)
-
-## Mejores Prácticas
-
-### Configuración de Comités
-
-1. **Separación de responsabilidades**: Crear comités específicos para cada tipo de operación
-2. **Quórum adecuado**: Balancear seguridad con eficiencia operativa
-3. **Documentación**: Mantener registro de cambios en la composición
-
-### Gestión de Miembros
-
-1. **Revisión periódica**: Auditar membresías regularmente
-2. **Capacitación**: Asegurar que los miembros entiendan sus responsabilidades
-3. **Respaldo**: Tener miembros suplentes disponibles
-

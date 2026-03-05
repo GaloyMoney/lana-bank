@@ -140,4 +140,3 @@ Checklist de verificación:
 - la corrida aparece en el listado,
 - el estado se actualiza en UI,
 - los enlaces de descarga se generan solo cuando la corrida finaliza con éxito.
-

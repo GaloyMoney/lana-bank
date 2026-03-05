@@ -1,25 +1,25 @@
 ---
 id: graphql-integration
-title: GraphQL Integration
+title: Integración de GraphQL
 sidebar_position: 4
 ---
 
-# GraphQL Integration
+# Integración de GraphQL
 
-This guide covers integrating client applications with Lana's GraphQL APIs.
+Esta guía cubre la integración de aplicaciones cliente con las APIs GraphQL de Lana.
 
-## API Endpoints
+## Endpoints de la API
 
-Lana exposes two GraphQL APIs:
+Lana expone dos APIs GraphQL:
 
-| API | Purpose | Typical URL |
+| API | Propósito | URL típica |
 |-----|---------|-------------|
-| **Admin API** | Administrative operations — customers, credit, accounting | `https://admin.your-instance.com/graphql` |
-| **Customer API** | Customer-facing operations — account info, facility status | `https://app.your-instance.com/graphql` |
+| **API de administración** | Operaciones administrativas: clientes, crédito, contabilidad | `https://admin.your-instance.com/graphql` |
+| **API de cliente** | Operaciones de cara al cliente: información de cuenta, estado de facilidades | `https://app.your-instance.com/graphql` |
 
-## Making Requests
+## Realizar solicitudes
 
-### With curl
+### Con curl
 
 ```bash
 curl -X POST \
@@ -29,7 +29,7 @@ curl -X POST \
   https://admin.your-instance.com/graphql
 ```
 
-### With JavaScript (Apollo Client)
+### Con JavaScript (Apollo Client)
 
 ```bash
 npm install @apollo/client graphql
@@ -56,7 +56,7 @@ const client = new ApolloClient({
 });
 ```
 
-### With Python
+### Con Python
 
 ```python
 import requests
@@ -85,9 +85,9 @@ response = requests.post(url, json={"query": query}, headers=headers)
 data = response.json()
 ```
 
-## Pagination
+## Paginación
 
-Lana APIs use cursor-based pagination following the Relay specification:
+Las APIs de Lana utilizan paginación basada en cursores siguiendo la especificación Relay:
 
 ```graphql
 query GetCustomers($first: Int!, $after: String) {
@@ -110,11 +110,11 @@ query GetCustomers($first: Int!, $after: String) {
 }
 ```
 
-To fetch the next page, pass the `endCursor` value as the `after` parameter.
+Para obtener la siguiente página, pasa el valor de `endCursor` como parámetro `after`.
 
-## Error Handling
+## Manejo de errores
 
-GraphQL errors are returned in the `errors` array of the response:
+Los errores de GraphQL se devuelven en el array `errors` de la respuesta:
 
 ```json
 {
@@ -131,22 +131,21 @@ GraphQL errors are returned in the `errors` array of the response:
 }
 ```
 
-| Error Type | Description | Action |
+| Tipo de error | Descripción | Acción |
 |------------|-------------|--------|
-| `FORBIDDEN` | Insufficient permissions | Check API credentials and role |
-| `UNAUTHENTICATED` | Invalid or expired token | Refresh the access token |
-| `BAD_USER_INPUT` | Invalid input data | Check the request parameters |
-| `INTERNAL_SERVER_ERROR` | Server-side error | Retry with exponential backoff |
+| `FORBIDDEN` | Permisos insuficientes | Verifica las credenciales de la API y el rol |
+| `UNAUTHENTICATED` | Token inválido o expirado | Actualiza el token de acceso |
+| `BAD_USER_INPUT` | Datos de entrada inválidos | Verifica los parámetros de la solicitud |
+| `INTERNAL_SERVER_ERROR` | Error del servidor | Reintenta con retroceso exponencial |
 
-## Required Headers
+## Encabezados requeridos
 
 ```
 Authorization: Bearer <access-token>
 Content-Type: application/json
 ```
 
-## API References
+## Referencias de la API
 
-- [Admin API Reference](../apis/admin-api/api-reference.mdx) — Complete admin operations and types
-- [Customer API Reference](../apis/customer-api/api-reference.mdx) — Complete customer operations
-
+- [Referencia de la API de administración](../apis/admin-api) — Operaciones y tipos completos de administración
+- [Referencia de la API de cliente](../apis/customer-api) — Operaciones completas de cliente
