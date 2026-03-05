@@ -53,8 +53,9 @@ use crate::{
     CoreCreditCollectionEvent, CoreCreditCollectionObject, CoreCreditEvent, CoreCreditObject,
     CreditFacilityId,
     credit_facility::{
-        CreditFacilityRepo, error::CreditFacilityError,
-        interest_accrual_cycle::NewInterestAccrualCycleData,
+        CreditFacilityRepo,
+        error::CreditFacilityError,
+        interest_accrual_cycle::{NewInterestAccrualCycleData, error::InterestAccrualCycleError},
     },
     ledger::*,
 };
@@ -288,14 +289,36 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut db = self.credit_facility_repo.begin_op().await?;
 
+        let confirmed = match self
+            .confirm_interest_accrual_in_op(&mut db, self.config.credit_facility_id)
+            .await
+        {
+            Ok(confirmed) => confirmed,
+            Err(CreditFacilityError::InterestAccrualCycleError(
+                InterestAccrualCycleError::NoNextAccrualPeriod,
+            )) => {
+                tracing::info!(
+                    credit_facility_id = %self.config.credit_facility_id,
+                    "All periods already accrued, transitioning to await obligations sync"
+                );
+                current_job
+                    .update_execution_state_in_op(
+                        &mut db,
+                        &ProcessAccrualCycleState::AwaitObligationsSync,
+                    )
+                    .await?;
+                db.commit().await?;
+                return self.await_obligations_sync(current_job).await;
+            }
+            Err(e) => return Err(e.into()),
+        };
+
         let ConfirmedAccrual {
             accrual: interest_accrual,
             next_period,
             accrual_idx,
             accrued_count,
-        } = self
-            .confirm_interest_accrual_in_op(&mut db, self.config.credit_facility_id)
-            .await?;
+        } = confirmed;
 
         self.ledger
             .record_interest_accrual_in_op(
