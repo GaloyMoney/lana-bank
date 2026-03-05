@@ -25,29 +25,6 @@ teardown_file() {
   [[ "$assets_code" -eq "1" ]] || exit 1
 }
 
-@test "accounting: add new root node into chart of accounts" {
-  exec_admin_graphql 'chart-of-accounts'
-  n_children_before=$(graphql_output '.data.chartOfAccounts.children | length')
-  
-  new_code="$(( RANDOM % 9000 + 1000 ))"
-  name="Root Account #$new_code"
-  variables=$(
-    jq -n \
-    --arg code "$new_code" \
-    --arg name "$name" \
-    '{
-      input: {
-        code: $code,
-        name: $name,
-        normalBalanceType: "CREDIT"
-      }
-    }'
-  )
-  exec_admin_graphql 'chart-of-accounts-add-root-node' "$variables"
-  n_children_after=$(graphql_output '.data.chartOfAccountsAddRootNode.chartOfAccounts.children | length')
-  [[ "$n_children_after" -gt "$n_children_before" ]] || exit 1
-}
-
 @test "accounting: add new child node into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
   n_children_before=$(graphql_output '

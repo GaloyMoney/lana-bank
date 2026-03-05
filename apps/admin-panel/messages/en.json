@@ -2055,7 +2055,6 @@
   "ChartOfAccounts": {
     "title": "Chart Of Accounts",
     "description": "A structured list of all accounts used to categorize and track financial records.",
-    "addRootNode": "Add Account",
     "upload": {
       "dragAndDrop": "Drag and drop your CSV file here",
       "dropHere": "Drop your file here",
@@ -2067,36 +2066,6 @@
       "uploading": "Uploading and processing your chart of accounts...",
       "reset": "Reset",
       "upload": "Upload"
-    },
-    "AddRootNodeDialog": {
-      "title": "Add Account",
-      "description": "Create a new account in the chart of accounts",
-      "success": "Account added successfully",
-      "fields": {
-        "code": "Account Code",
-        "name": "Account Name",
-        "normalBalanceType": "Normal Balance Type"
-      },
-      "placeholders": {
-        "code": "e.g., 1000",
-        "name": "e.g., Assets",
-        "normalBalanceType": "Select balance type"
-      },
-      "balanceTypes": {
-        "debit": "Debit",
-        "credit": "Credit"
-      },
-      "codeHint": "{remaining} digits remaining (max {max})",
-      "errors": {
-        "required": "All fields are required",
-        "chartNotFound": "Chart of accounts not found",
-        "unknown": "An unknown error occurred"
-      },
-      "buttons": {
-        "cancel": "Cancel",
-        "add": "Add Account",
-        "adding": "Adding..."
-      }
     },
     "AddChildNodeDialog": {
       "title": "Add Sub Account",
@@ -2357,7 +2326,6 @@
       "custodian": "Add Custodian",
       "executeManualTransaction": "Execute Manual Transaction",
       "role": "Role",
-      "account": "Account",
       "depositAccount": "Deposit Account",
       "subAccount": "Sub Account",
       "fiscalYear": "Fiscal Year",
