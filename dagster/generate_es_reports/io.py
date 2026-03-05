@@ -112,15 +112,14 @@ class BigQueryTableFetcher(BaseTableFetcher):
         Returns:
             TabularReportContents with field names and records.
         """
+        fqn = f"`{self.project_id}.{self.dataset}.{table_name}`"
         if supports_as_of:
-            daily_table = f"{table_name}_daily"
-            fqn = f"`{self.project_id}.{self.dataset}.{daily_table}`"
             if as_of_date:
                 query = f"SELECT * EXCEPT(as_of_date) FROM {fqn} WHERE as_of_date = '{as_of_date}';"
             else:
                 query = f"SELECT * EXCEPT(as_of_date) FROM {fqn} WHERE as_of_date = (SELECT MAX(as_of_date) FROM {fqn});"
         else:
-            query = f"SELECT * FROM `{self.project_id}.{self.dataset}.{table_name}`;"
+            query = f"SELECT * FROM {fqn};"
 
         query_job = self._bq_client.query(query)
         rows = query_job.result()
@@ -191,6 +190,7 @@ def load_report_jobs_from_yaml(
                 norm=report_job["norm"],
                 id=report_job["id"],
                 friendly_name=report_job["friendly_name"],
+                source_table=report_job["source_table"],
                 file_output_configs=output_configs,
                 supports_as_of=report_job.get("supports_as_of", False),
             )

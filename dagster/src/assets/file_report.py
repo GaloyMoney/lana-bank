@@ -83,12 +83,7 @@ def _build_file_report_specs_and_lookup() -> Tuple[
                 ]
             )
 
-            dbt_table = (
-                f"{report_job.source_table_name}_daily"
-                if report_job.supports_as_of
-                else report_job.source_table_name
-            )
-            dbt_dep = get_dbt_asset_key_for_table(dbt_table)
+            dbt_dep = get_dbt_asset_key_for_table(report_job.source_table_name)
             deps = [dbt_dep] if dbt_dep else []
 
             specs.append(
