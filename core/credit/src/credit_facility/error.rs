@@ -117,7 +117,9 @@ impl ErrorSeverity for CreditFacilityError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
+            Self::Create(e) if e.was_concurrent_modification() => Level::WARN,
             Self::Create(_) => Level::ERROR,
+            Self::Modify(e) if e.was_concurrent_modification() => Level::WARN,
             Self::Modify(_) => Level::ERROR,
             Self::Find(_) => Level::ERROR,
             Self::Query(_) => Level::ERROR,
