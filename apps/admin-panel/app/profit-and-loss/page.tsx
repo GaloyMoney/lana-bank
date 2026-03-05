@@ -156,6 +156,18 @@ const ProfitAndLossStatement = ({
   const t = useTranslations("ProfitAndLoss")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<ReportLayer>("settled")
+  const [collapsedAccountIds, setCollapsedAccountIds] = useState<Set<string>>(new Set())
+  const toggleCollapsedAccount = useCallback((accountId: string) => {
+    setCollapsedAccountIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(accountId)) {
+        next.delete(accountId)
+      } else {
+        next.add(accountId)
+      }
+      return next
+    })
+  }, [])
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
@@ -207,6 +219,8 @@ const ProfitAndLossStatement = ({
                       currency={currency}
                       layer={layer}
                       periodBalance={categoryPeriod}
+                      collapsedAccountIds={collapsedAccountIds}
+                      onToggleCollapsed={toggleCollapsedAccount}
                     />
                   )
                 })}
@@ -238,9 +252,18 @@ interface CategoryRowProps {
   currency: Currency
   layer: ReportLayer
   periodBalance?: number
+  collapsedAccountIds: Set<string>
+  onToggleCollapsed: (accountId: string) => void
 }
 
-const CategoryRow = ({ category, currency, layer, periodBalance }: CategoryRowProps) => {
+const CategoryRow = ({
+  category,
+  currency,
+  layer,
+  periodBalance,
+  collapsedAccountIds,
+  onToggleCollapsed,
+}: CategoryRowProps) => {
   const t = useTranslations("ProfitAndLoss")
 
   return (
@@ -272,6 +295,8 @@ const CategoryRow = ({ category, currency, layer, periodBalance }: CategoryRowPr
             currency={currency}
             depth={1}
             layer={layer}
+            collapsedAccountIds={collapsedAccountIds}
+            onToggleCollapsed={onToggleCollapsed}
           />
         ),
       )}

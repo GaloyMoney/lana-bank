@@ -172,6 +172,18 @@ const BalanceSheetView = ({
   const t = useTranslations("BalanceSheet")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<ReportLayer>("settled")
+  const [collapsedAccountIds, setCollapsedAccountIds] = useState<Set<string>>(new Set())
+  const toggleCollapsedAccount = useCallback((accountId: string) => {
+    setCollapsedAccountIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(accountId)) {
+        next.delete(accountId)
+      } else {
+        next.add(accountId)
+      }
+      return next
+    })
+  }, [])
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
@@ -222,6 +234,8 @@ const BalanceSheetView = ({
                 currency={currency}
                 layer={layer}
                 total={assetsTotal}
+                collapsedAccountIds={collapsedAccountIds}
+                onToggleCollapsed={toggleCollapsedAccount}
               />
             )}
             <div className="min-h-full w-px bg-border" />
@@ -232,6 +246,8 @@ const BalanceSheetView = ({
                 currency={currency}
                 layer={layer}
                 total={liabilitiesAndEquityTotal}
+                collapsedAccountIds={collapsedAccountIds}
+                onToggleCollapsed={toggleCollapsedAccount}
               />
             )}
           </div>
@@ -247,6 +263,8 @@ interface BalanceSheetColumnProps {
   currency: Currency
   layer: ReportLayer
   total: number
+  collapsedAccountIds: Set<string>
+  onToggleCollapsed: (accountId: string) => void
 }
 
 function BalanceSheetColumn({
@@ -255,6 +273,8 @@ function BalanceSheetColumn({
   currency,
   layer,
   total,
+  collapsedAccountIds,
+  onToggleCollapsed,
 }: BalanceSheetColumnProps) {
   return (
     <div className="flex w-1/2 grow flex-col justify-between">
@@ -266,6 +286,8 @@ function BalanceSheetColumn({
               category={category}
               currency={currency}
               layer={layer}
+              collapsedAccountIds={collapsedAccountIds}
+              onToggleCollapsed={onToggleCollapsed}
             />
           ))}
         </TableBody>
@@ -293,9 +315,17 @@ interface CategoryRowProps {
   category: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"][0]
   currency: Currency
   layer: ReportLayer
+  collapsedAccountIds: Set<string>
+  onToggleCollapsed: (accountId: string) => void
 }
 
-function CategoryRow({ category, currency, layer }: CategoryRowProps) {
+function CategoryRow({
+  category,
+  currency,
+  layer,
+  collapsedAccountIds,
+  onToggleCollapsed,
+}: CategoryRowProps) {
   const t = useTranslations("BalanceSheet")
   const categoryBalance = getBalanceNet(category.balance, currency, layer)
 
@@ -316,6 +346,8 @@ function CategoryRow({ category, currency, layer }: CategoryRowProps) {
           account={child as BalanceSheetAccountNode}
           currency={currency}
           layer={layer}
+          collapsedAccountIds={collapsedAccountIds}
+          onToggleCollapsed={onToggleCollapsed}
         />
       ))}
       <TableRow>
