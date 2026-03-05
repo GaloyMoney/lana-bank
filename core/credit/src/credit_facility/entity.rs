@@ -554,14 +554,14 @@ impl CreditFacility {
     {
         let accrual_cycle_data = self
             .interest_accrual_cycle_in_progress()
-            .expect("accrual not found")
+            .ok_or(CreditFacilityError::NoAccrualCycleInProgress)?
             .accrual_cycle_data()
             .ok_or(CreditFacilityError::InterestAccrualNotCompletedYet)?;
 
         let (idx, new_obligation) = {
             let accrual = self
                 .interest_accrual_cycle_in_progress_mut()
-                .expect("accrual not found");
+                .ok_or(CreditFacilityError::NoAccrualCycleInProgress)?;
 
             (
                 accrual.idx,
@@ -606,7 +606,7 @@ impl CreditFacility {
     ) -> Result<Idempotent<RecordedAccrualOnCycle>, CreditFacilityError> {
         let accrual = self
             .interest_accrual_cycle_in_progress_mut()
-            .expect("Accrual in progress should exist");
+            .ok_or(CreditFacilityError::NoAccrualCycleInProgress)?;
 
         let accrual_data = accrual
             .record_accrual(amount)?
