@@ -16,7 +16,7 @@ pub enum NoteEvent {
     Initialized {
         id: NoteId,
         target_type: NoteTargetType,
-        target_id: NoteTargetId,
+        target_id: String,
         content: String,
     },
     Updated {
@@ -30,7 +30,7 @@ pub enum NoteEvent {
 pub struct Note {
     pub id: NoteId,
     pub target_type: NoteTargetType,
-    pub target_id: NoteTargetId,
+    pub target_id: String,
     pub content: String,
     events: EntityEvents<NoteEvent>,
 }
@@ -80,7 +80,7 @@ impl TryFromEvents<NoteEvent> for Note {
                     builder = builder
                         .id(*id)
                         .target_type(target_type.clone())
-                        .target_id(*target_id)
+                        .target_id(target_id.clone())
                         .content(content.clone());
                 }
                 NoteEvent::Updated { content } => {
@@ -100,8 +100,7 @@ pub struct NewNote {
     #[builder(setter(into))]
     pub(super) id: NoteId,
     pub(super) target_type: NoteTargetType,
-    #[builder(setter(into))]
-    pub(super) target_id: NoteTargetId,
+    pub(super) target_id: String,
     pub(super) content: String,
 }
 

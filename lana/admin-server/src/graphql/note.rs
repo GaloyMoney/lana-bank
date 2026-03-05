@@ -27,31 +27,40 @@ impl From<DomainNote> for Note {
 
 #[ComplexObject]
 impl Note {
+    async fn target_type(&self) -> &str {
+        self.entity.target_type.as_str()
+    }
+
+    async fn target_id(&self) -> &str {
+        &self.entity.target_id
+    }
+
     async fn content(&self) -> &str {
         &self.entity.content
     }
 }
 
 #[derive(InputObject)]
-pub struct CustomerNoteCreateInput {
-    pub customer_id: UUID,
+pub struct NoteCreateInput {
+    pub target_type: String,
+    pub target_id: UUID,
     pub content: String,
 }
-crate::mutation_payload! { CustomerNoteCreatePayload, note: Note }
+crate::mutation_payload! { NoteCreatePayload, note: Note }
 
 #[derive(InputObject)]
-pub struct CustomerNoteUpdateInput {
+pub struct NoteUpdateInput {
     pub note_id: UUID,
     pub content: String,
 }
-crate::mutation_payload! { CustomerNoteUpdatePayload, note: Note }
+crate::mutation_payload! { NoteUpdatePayload, note: Note }
 
 #[derive(InputObject)]
-pub struct CustomerNoteDeleteInput {
+pub struct NoteDeleteInput {
     pub note_id: UUID,
 }
 
 #[derive(SimpleObject)]
-pub struct CustomerNoteDeletePayload {
+pub struct NoteDeletePayload {
     pub deleted_note_id: UUID,
 }

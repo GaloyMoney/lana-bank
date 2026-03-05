@@ -16,6 +16,8 @@ pub enum NoteError {
     Find(#[from] NoteFindError),
     #[error("NoteError - Query: {0}")]
     Query(#[from] NoteQueryError),
+    #[error("NoteError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
 }
 
 impl ErrorSeverity for NoteError {
@@ -26,6 +28,7 @@ impl ErrorSeverity for NoteError {
             Self::Modify(_) => Level::ERROR,
             Self::Find(_) => Level::ERROR,
             Self::Query(_) => Level::ERROR,
+            Self::AuthorizationError(_) => Level::WARN,
         }
     }
 }
