@@ -2055,7 +2055,6 @@
   "ChartOfAccounts": {
     "title": "Catálogo de Cuentas",
     "description": "Una lista estructurada de todas las cuentas utilizadas para categorizar y seguir los registros financieros.",
-    "addRootNode": "Agregar Cuenta",
     "upload": {
       "dragAndDrop": "Arrastra y suelta tu archivo CSV aquí",
       "dropHere": "Suelta tu archivo aquí",
@@ -2067,36 +2066,6 @@
       "uploading": "Subiendo y procesando tu catálogo de cuentas...",
       "reset": "Reiniciar",
       "upload": "Subir"
-    },
-    "AddRootNodeDialog": {
-      "title": "Agregar Cuenta",
-      "description": "Crear una nueva cuenta en el catálogo de cuentas",
-      "success": "Cuenta agregada exitosamente",
-      "fields": {
-        "code": "Código de Cuenta",
-        "name": "Nombre de Cuenta",
-        "normalBalanceType": "Tipo de Saldo Normal"
-      },
-      "placeholders": {
-        "code": "ej., 1000",
-        "name": "ej., Activos",
-        "normalBalanceType": "Seleccionar tipo de saldo"
-      },
-      "balanceTypes": {
-        "debit": "Débito",
-        "credit": "Crédito"
-      },
-      "codeHint": "{remaining} dígitos restantes (máximo {max})",
-      "errors": {
-        "required": "Todos los campos son obligatorios",
-        "chartNotFound": "Catálogo de cuentas no encontrado",
-        "unknown": "Ocurrió un error desconocido"
-      },
-      "buttons": {
-        "cancel": "Cancelar",
-        "add": "Agregar Cuenta",
-        "adding": "Agregando..."
-      }
     },
     "AddChildNodeDialog": {
       "title": "Agregar Subcuenta",
@@ -2357,7 +2326,6 @@
       "custodian": "Agregar Custodio",
       "executeManualTransaction": "Registrar partida manual",
       "role": "Rol",
-      "account": "Cuenta",
       "depositAccount": "Cuenta de depósito",
       "subAccount": "Subcuenta",
       "fiscalYear": "Año Fiscal",

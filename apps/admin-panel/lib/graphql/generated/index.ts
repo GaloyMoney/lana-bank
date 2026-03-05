@@ -320,17 +320,6 @@ export type ChartOfAccountsAddChildNodePayload = {
   chartOfAccounts: ChartOfAccounts;
 };
 
-export type ChartOfAccountsAddRootNodeInput = {
-  code: Scalars['AccountCode']['input'];
-  name: Scalars['String']['input'];
-  normalBalanceType: DebitOrCredit;
-};
-
-export type ChartOfAccountsAddRootNodePayload = {
-  __typename?: 'ChartOfAccountsAddRootNodePayload';
-  chartOfAccounts: ChartOfAccounts;
-};
-
 export type ChartOfAccountsCsvImportInput = {
   file: Scalars['Upload']['input'];
 };
@@ -1901,7 +1890,6 @@ export type Mutation = {
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
-  chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   chartOfAccountsCsvImportWithBaseConfig: ChartOfAccountsCsvImportWithBaseConfigPayload;
   collateralRecordProceedsFromLiquidation: CollateralRecordProceedsFromLiquidationPayload;
@@ -1980,11 +1968,6 @@ export type MutationApprovalProcessDenyArgs = {
 
 export type MutationChartOfAccountsAddChildNodeArgs = {
   input: ChartOfAccountsAddChildNodeInput;
-};
-
-
-export type MutationChartOfAccountsAddRootNodeArgs = {
-  input: ChartOfAccountsAddRootNodeInput;
 };
 
 
@@ -3608,13 +3591,6 @@ export type ChartOfAccountsAddChildNodeMutationVariables = Exact<{
 
 
 export type ChartOfAccountsAddChildNodeMutation = { __typename?: 'Mutation', chartOfAccountsAddChildNode: { __typename?: 'ChartOfAccountsAddChildNodePayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartOfAccountsId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> } } };
-
-export type ChartOfAccountsAddRootNodeMutationVariables = Exact<{
-  input: ChartOfAccountsAddRootNodeInput;
-}>;
-
-
-export type ChartOfAccountsAddRootNodeMutation = { __typename?: 'Mutation', chartOfAccountsAddRootNode: { __typename?: 'ChartOfAccountsAddRootNodePayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartOfAccountsId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> }> }> }> }> }> }> }> }> } } };
 
 export type ChartAccountBaseFragment = { __typename?: 'ChartNode', name: string, accountCode: string };
 
@@ -6759,41 +6735,6 @@ export function useChartOfAccountsAddChildNodeMutation(baseOptions?: Apollo.Muta
 export type ChartOfAccountsAddChildNodeMutationHookResult = ReturnType<typeof useChartOfAccountsAddChildNodeMutation>;
 export type ChartOfAccountsAddChildNodeMutationResult = Apollo.MutationResult<ChartOfAccountsAddChildNodeMutation>;
 export type ChartOfAccountsAddChildNodeMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsAddChildNodeMutation, ChartOfAccountsAddChildNodeMutationVariables>;
-export const ChartOfAccountsAddRootNodeDocument = gql`
-    mutation ChartOfAccountsAddRootNode($input: ChartOfAccountsAddRootNodeInput!) {
-  chartOfAccountsAddRootNode(input: $input) {
-    chartOfAccounts {
-      ...ChartOfAccountsFields
-    }
-  }
-}
-    ${ChartOfAccountsFieldsFragmentDoc}`;
-export type ChartOfAccountsAddRootNodeMutationFn = Apollo.MutationFunction<ChartOfAccountsAddRootNodeMutation, ChartOfAccountsAddRootNodeMutationVariables>;
-
-/**
- * __useChartOfAccountsAddRootNodeMutation__
- *
- * To run a mutation, you first call `useChartOfAccountsAddRootNodeMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useChartOfAccountsAddRootNodeMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [chartOfAccountsAddRootNodeMutation, { data, loading, error }] = useChartOfAccountsAddRootNodeMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useChartOfAccountsAddRootNodeMutation(baseOptions?: Apollo.MutationHookOptions<ChartOfAccountsAddRootNodeMutation, ChartOfAccountsAddRootNodeMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ChartOfAccountsAddRootNodeMutation, ChartOfAccountsAddRootNodeMutationVariables>(ChartOfAccountsAddRootNodeDocument, options);
-      }
-export type ChartOfAccountsAddRootNodeMutationHookResult = ReturnType<typeof useChartOfAccountsAddRootNodeMutation>;
-export type ChartOfAccountsAddRootNodeMutationResult = Apollo.MutationResult<ChartOfAccountsAddRootNodeMutation>;
-export type ChartOfAccountsAddRootNodeMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsAddRootNodeMutation, ChartOfAccountsAddRootNodeMutationVariables>;
 export const ChartOfAccountsDocument = gql`
     query ChartOfAccounts {
   chartOfAccounts {
