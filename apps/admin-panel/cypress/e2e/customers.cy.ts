@@ -67,6 +67,12 @@ describe("Customers", () => {
       })
   })
 
+  it("should show newly created prospect in the list", () => {
+    cy.visit("/prospects")
+    cy.contains(testEmail).should("be.visible")
+    cy.takeScreenshot("11_verify_prospect_in_list")
+  })
+
   it("KYC verification and customer creation", () => {
     cy.intercept("POST", "/graphql", (req) => {
       if (req.body.operationName === "sumsubPermalinkCreate") {
