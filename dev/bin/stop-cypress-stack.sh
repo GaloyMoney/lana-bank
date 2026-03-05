@@ -19,6 +19,6 @@ fi
 pkill -f "lana-cli" || true
 pkill -f "admin-panel.*pnpm.*start" || true
 
-make stop-deps || true
+make clean-deps || true
 
 echo "Cypress test stack stopped."
