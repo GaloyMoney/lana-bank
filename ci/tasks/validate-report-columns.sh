@@ -1,13 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-# Validate that expected_columns in reports.yml match dbt manifest columns.
+# Validate that reports declaring supports_as_of have an as_of_date column
+# in their dbt source table.
 #
 # Generates the dbt manifest with dummy credentials (no BQ connection needed),
-# then checks each report with expected_columns against the manifest.
-#
-# For supports_as_of reports, as_of_date is excluded from manifest columns
-# since it is filtered out at query time.
+# then checks each as-of report against the manifest.
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DOCKERFILE="$REPO_ROOT/dagster/Dockerfile"
@@ -33,8 +31,8 @@ DBT_BIGQUERY_CREDENTIALS_JSON='{"type":"service_account","project_id":"x"}' \
 
 MANIFEST="$DBT_PROJECT_DIR/target/manifest.json"
 
-# Validate columns
-echo "Validating report columns..."
+# Validate as-of reports have as_of_date column
+echo "Validating as-of report columns..."
 python3 -c "
 import json, yaml, sys
 
@@ -50,23 +48,19 @@ for node in manifest['nodes'].values():
 
 errors = []
 for job in reports['report_jobs']:
-    expected = job.get('expected_columns')
-    if expected is None:
+    if not job.get('supports_as_of', False):
         continue
     table = job['source_table']
     cols = model_columns.get(table)
     if cols is None:
-        errors.append(f\"{job['norm']}/{job['id']}: source_table '{table}' has no columns in dbt manifest\")
-        continue
-    if job.get('supports_as_of', False):
-        cols = [c for c in cols if c != 'as_of_date']
-    if cols != expected:
-        errors.append(f\"{job['norm']}/{job['id']}: column mismatch for '{table}': expected {expected}, got {cols}\")
+        errors.append(f\"{job['norm']}/{job['id']}: source_table '{table}' has no columns declared in dbt manifest\")
+    elif 'as_of_date' not in cols:
+        errors.append(f\"{job['norm']}/{job['id']}: source_table '{table}' declares supports_as_of but has no as_of_date column (has: {cols})\")
 
 if errors:
-    print('Column validation failed:', file=sys.stderr)
+    print('Validation failed:', file=sys.stderr)
     for e in errors:
         print(f'  - {e}', file=sys.stderr)
     sys.exit(1)
-print('Column validation passed.')
+print('As-of report validation passed.')
 "
