@@ -3744,12 +3744,14 @@ export type AuditSubjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type AuditSubjectsQuery = { __typename?: 'Query', auditSubjects: Array<string> };
 
+export type BalanceSheetAccountFieldsFragment = { __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } };
+
 export type BalanceSheetQueryVariables = Exact<{
   asOf: Scalars['Date']['input'];
 }>;
 
 
-export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet: { __typename?: 'BalanceSheet', name: string, assetsBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, liabilitiesBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, equityBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, categories: Array<{ __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, children: Array<{ __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } }> }> } };
+export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet: { __typename?: 'BalanceSheet', name: string, assetsBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, liabilitiesBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, equityBalance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }, categories: Array<{ __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, children: Array<{ __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, children: Array<{ __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, children: Array<{ __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, children: Array<{ __typename?: 'BalanceSheetAccount', balanceSheetAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } }>, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } }>, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } }>, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } }>, balance: { __typename?: 'LedgerAccountBalanceByCurrency', usd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } }, btc: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } } }> } };
 
 export type ChartOfAccountsForLedgerQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4872,19 +4874,33 @@ export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'Po
           | { __typename?: 'SystemApproval', autoApprove: boolean }
          } }>, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
+export type ProfitAndLossAccountFieldsFragment = { __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balanceRange:
+    | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
+    | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
+   };
+
 export type ProfitAndLossStatementQueryVariables = Exact<{
   from: Scalars['Date']['input'];
   until?: InputMaybe<Scalars['Date']['input']>;
 }>;
 
 
-export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement: { __typename?: 'ProfitAndLossStatement', name: string, total: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, categories: Array<{ __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balanceRange:
-        | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
-        | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-      , children: Array<{ __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balanceRange:
+export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement: { __typename?: 'ProfitAndLossStatement', name: string, total: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, categories: Array<{ __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, children: Array<{ __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, children: Array<{ __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, children: Array<{ __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, children: Array<{ __typename?: 'ProfitAndLossAccount', profitAndLossAccountId: string, ledgerAccountId: string, name: string, code?: string | null, balanceRange:
+                | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
+                | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
+               }>, balanceRange:
+              | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
+              | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
+             }>, balanceRange:
+            | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
+            | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
+           }>, balanceRange:
           | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
-         }> }> } };
+         }>, balanceRange:
+        | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
+        | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
+       }> } };
 
 export type UsdLedgerBalanceRangeFragmentFragment = { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } };
 
@@ -5297,6 +5313,32 @@ export type GetCreditFacilityPublicIdQueryVariables = Exact<{
 
 export type GetCreditFacilityPublicIdQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null };
 
+export const BalanceSheetAccountFieldsFragmentDoc = gql`
+    fragment BalanceSheetAccountFields on BalanceSheetAccount {
+  balanceSheetAccountId
+  ledgerAccountId
+  name
+  code
+  balance {
+    usd {
+      settled {
+        net
+      }
+      pending {
+        net
+      }
+    }
+    btc {
+      settled {
+        net
+      }
+      pending {
+        net
+      }
+    }
+  }
+}
+    `;
 export const ChartAccountBaseFragmentDoc = gql`
     fragment ChartAccountBase on ChartNode {
   name
@@ -6216,6 +6258,74 @@ export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
   }
 }
     ${ApprovalProcessFieldsFragmentDoc}`;
+export const UsdBalanceFragmentFragmentDoc = gql`
+    fragment UsdBalanceFragment on UsdLedgerAccountBalance {
+  settled {
+    debit
+    credit
+    net
+  }
+  pending {
+    debit
+    credit
+    net
+  }
+}
+    `;
+export const UsdLedgerBalanceRangeFragmentFragmentDoc = gql`
+    fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
+  usdStart: open {
+    ...UsdBalanceFragment
+  }
+  usdDiff: periodActivity {
+    ...UsdBalanceFragment
+  }
+  usdEnd: close {
+    ...UsdBalanceFragment
+  }
+}
+    ${UsdBalanceFragmentFragmentDoc}`;
+export const BtcBalanceFragmentFragmentDoc = gql`
+    fragment BtcBalanceFragment on BtcLedgerAccountBalance {
+  settled {
+    debit
+    credit
+    net
+  }
+  pending {
+    debit
+    credit
+    net
+  }
+}
+    `;
+export const BtcLedgerBalanceRangeFragmentFragmentDoc = gql`
+    fragment BtcLedgerBalanceRangeFragment on BtcLedgerAccountBalanceRange {
+  btcStart: open {
+    ...BtcBalanceFragment
+  }
+  btcDiff: periodActivity {
+    ...BtcBalanceFragment
+  }
+  btcEnd: close {
+    ...BtcBalanceFragment
+  }
+}
+    ${BtcBalanceFragmentFragmentDoc}`;
+export const ProfitAndLossAccountFieldsFragmentDoc = gql`
+    fragment ProfitAndLossAccountFields on ProfitAndLossAccount {
+  profitAndLossAccountId
+  ledgerAccountId
+  name
+  code
+  balanceRange {
+    __typename
+    ...UsdLedgerBalanceRangeFragment
+    ...BtcLedgerBalanceRangeFragment
+  }
+}
+    ${UsdLedgerBalanceRangeFragmentFragmentDoc}
+${BtcLedgerBalanceRangeFragmentFragmentDoc}`;
 export const ProspectDetailsFragmentFragmentDoc = gql`
     fragment ProspectDetailsFragment on Prospect {
   id
@@ -6291,60 +6401,6 @@ export const TermsTemplateFieldsFragmentDoc = gql`
   }
 }
     `;
-export const UsdBalanceFragmentFragmentDoc = gql`
-    fragment UsdBalanceFragment on UsdLedgerAccountBalance {
-  settled {
-    debit
-    credit
-    net
-  }
-  pending {
-    debit
-    credit
-    net
-  }
-}
-    `;
-export const UsdLedgerBalanceRangeFragmentFragmentDoc = gql`
-    fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
-  usdStart: open {
-    ...UsdBalanceFragment
-  }
-  usdDiff: periodActivity {
-    ...UsdBalanceFragment
-  }
-  usdEnd: close {
-    ...UsdBalanceFragment
-  }
-}
-    ${UsdBalanceFragmentFragmentDoc}`;
-export const BtcBalanceFragmentFragmentDoc = gql`
-    fragment BtcBalanceFragment on BtcLedgerAccountBalance {
-  settled {
-    debit
-    credit
-    net
-  }
-  pending {
-    debit
-    credit
-    net
-  }
-}
-    `;
-export const BtcLedgerBalanceRangeFragmentFragmentDoc = gql`
-    fragment BtcLedgerBalanceRangeFragment on BtcLedgerAccountBalanceRange {
-  btcStart: open {
-    ...BtcBalanceFragment
-  }
-  btcDiff: periodActivity {
-    ...BtcBalanceFragment
-  }
-  btcEnd: close {
-    ...BtcBalanceFragment
-  }
-}
-    ${BtcBalanceFragmentFragmentDoc}`;
 export const TrialBalanceAccountBaseFragmentDoc = gql`
     fragment TrialBalanceAccountBase on LedgerAccount {
   id
@@ -6760,48 +6816,15 @@ export const BalanceSheetDocument = gql`
       }
     }
     categories {
-      balanceSheetAccountId
-      ledgerAccountId
-      name
-      code
-      balance {
-        usd {
-          settled {
-            net
-          }
-          pending {
-            net
-          }
-        }
-        btc {
-          settled {
-            net
-          }
-          pending {
-            net
-          }
-        }
-      }
+      ...BalanceSheetAccountFields
       children {
-        balanceSheetAccountId
-        ledgerAccountId
-        name
-        code
-        balance {
-          usd {
-            settled {
-              net
-            }
-            pending {
-              net
-            }
-          }
-          btc {
-            settled {
-              net
-            }
-            pending {
-              net
+        ...BalanceSheetAccountFields
+        children {
+          ...BalanceSheetAccountFields
+          children {
+            ...BalanceSheetAccountFields
+            children {
+              ...BalanceSheetAccountFields
             }
           }
         }
@@ -6809,7 +6832,7 @@ export const BalanceSheetDocument = gql`
     }
   }
 }
-    `;
+    ${BalanceSheetAccountFieldsFragmentDoc}`;
 
 /**
  * __useBalanceSheetQuery__
@@ -11393,31 +11416,25 @@ export const ProfitAndLossStatementDocument = gql`
       }
     }
     categories {
-      profitAndLossAccountId
-      ledgerAccountId
-      name
-      code
-      balanceRange {
-        __typename
-        ...UsdLedgerBalanceRangeFragment
-        ...BtcLedgerBalanceRangeFragment
-      }
+      ...ProfitAndLossAccountFields
       children {
-        profitAndLossAccountId
-        ledgerAccountId
-        name
-        code
-        balanceRange {
-          __typename
-          ...UsdLedgerBalanceRangeFragment
-          ...BtcLedgerBalanceRangeFragment
+        ...ProfitAndLossAccountFields
+        children {
+          ...ProfitAndLossAccountFields
+          children {
+            ...ProfitAndLossAccountFields
+            children {
+              ...ProfitAndLossAccountFields
+            }
+          }
         }
       }
     }
   }
 }
     ${UsdLedgerBalanceRangeFragmentFragmentDoc}
-${BtcLedgerBalanceRangeFragmentFragmentDoc}`;
+${BtcLedgerBalanceRangeFragmentFragmentDoc}
+${ProfitAndLossAccountFieldsFragmentDoc}`;
 
 /**
  * __useProfitAndLossStatementQuery__

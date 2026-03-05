@@ -16,7 +16,7 @@ import { Separator } from "@lana/web/ui/separator"
 import { Skeleton } from "@lana/web/ui/skeleton"
 import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
 
-import { Account } from "./account"
+import { Account, BalanceSheetAccountNode } from "./account"
 import { AsOfDateSelector, getInitialAsOfDate } from "./as-of-date-selector"
 
 import Balance, { Currency } from "@/components/balance/balance"
@@ -28,6 +28,31 @@ import {
 import { BalanceSheetQuery, useBalanceSheetQuery } from "@/lib/graphql/generated"
 
 gql`
+  fragment BalanceSheetAccountFields on BalanceSheetAccount {
+    balanceSheetAccountId
+    ledgerAccountId
+    name
+    code
+    balance {
+      usd {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
+      btc {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
+    }
+  }
+
   query BalanceSheet($asOf: Date!) {
     balanceSheet(asOf: $asOf) {
       name
@@ -86,48 +111,15 @@ gql`
         }
       }
       categories {
-        balanceSheetAccountId
-        ledgerAccountId
-        name
-        code
-        balance {
-          usd {
-            settled {
-              net
-            }
-            pending {
-              net
-            }
-          }
-          btc {
-            settled {
-              net
-            }
-            pending {
-              net
-            }
-          }
-        }
+        ...BalanceSheetAccountFields
         children {
-          balanceSheetAccountId
-          ledgerAccountId
-          name
-          code
-          balance {
-            usd {
-              settled {
-                net
-              }
-              pending {
-                net
-              }
-            }
-            btc {
-              settled {
-                net
-              }
-              pending {
-                net
+          ...BalanceSheetAccountFields
+          children {
+            ...BalanceSheetAccountFields
+            children {
+              ...BalanceSheetAccountFields
+              children {
+                ...BalanceSheetAccountFields
               }
             }
           }
@@ -321,7 +313,7 @@ function CategoryRow({ category, currency, layer }: CategoryRowProps) {
       {category.children?.map((child) => (
         <Account
           key={child.balanceSheetAccountId}
-          account={child}
+          account={child as BalanceSheetAccountNode}
           currency={currency}
           layer={layer}
         />

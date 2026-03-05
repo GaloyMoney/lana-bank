@@ -104,6 +104,10 @@ impl BalanceSheetAccount {
     }
 
     async fn children(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<BalanceSheetAccount>> {
+        if self.entity.name == "Current Earnings" {
+            return Ok(Vec::new());
+        }
+
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let keys = self
             .entity

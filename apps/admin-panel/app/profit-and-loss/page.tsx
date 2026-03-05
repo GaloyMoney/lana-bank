@@ -14,7 +14,7 @@ import { Skeleton } from "@lana/web/ui/skeleton"
 
 import { useTranslations } from "next-intl"
 
-import { Account } from "./account"
+import { Account, ProfitAndLossAccountNode } from "./account"
 
 import {
   ProfitAndLossStatementQuery,
@@ -26,6 +26,18 @@ import { ReportFilters } from "@/components/report-filters"
 import { ReportLayer } from "@/components/report-filters/selectors"
 
 gql`
+  fragment ProfitAndLossAccountFields on ProfitAndLossAccount {
+    profitAndLossAccountId
+    ledgerAccountId
+    name
+    code
+    balanceRange {
+      __typename
+      ...UsdLedgerBalanceRangeFragment
+      ...BtcLedgerBalanceRangeFragment
+    }
+  }
+
   query ProfitAndLossStatement($from: Date!, $until: Date) {
     profitAndLossStatement(from: $from, until: $until) {
       name
@@ -38,24 +50,17 @@ gql`
         }
       }
       categories {
-        profitAndLossAccountId
-        ledgerAccountId
-        name
-        code
-        balanceRange {
-          __typename
-          ...UsdLedgerBalanceRangeFragment
-          ...BtcLedgerBalanceRangeFragment
-        }
+        ...ProfitAndLossAccountFields
         children {
-          profitAndLossAccountId
-          ledgerAccountId
-          name
-          code
-          balanceRange {
-            __typename
-            ...UsdLedgerBalanceRangeFragment
-            ...BtcLedgerBalanceRangeFragment
+          ...ProfitAndLossAccountFields
+          children {
+            ...ProfitAndLossAccountFields
+            children {
+              ...ProfitAndLossAccountFields
+              children {
+                ...ProfitAndLossAccountFields
+              }
+            }
           }
         }
       }
@@ -263,7 +268,7 @@ const CategoryRow = ({ category, currency, layer, periodBalance }: CategoryRowPr
         ) => (
           <Account
             key={child.profitAndLossAccountId}
-            account={child}
+            account={child as ProfitAndLossAccountNode}
             currency={currency}
             depth={1}
             layer={layer}

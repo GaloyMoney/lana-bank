@@ -562,7 +562,12 @@ impl Loader<BalanceSheetAccountKey> for LanaLoader {
             let accounts: HashMap<_, lana_app::balance_sheet::BalanceSheetAccountSet> = self
                 .app
                 .accounting()
-                .find_all_ledger_accounts_in_range(CHART_REF.0, &ids, as_of, Some(as_of))
+                .find_all_ledger_accounts_in_range_with_direct_members(
+                    CHART_REF.0,
+                    &ids,
+                    as_of,
+                    Some(as_of),
+                )
                 .await
                 .map_err(Arc::new)?;
 
@@ -615,7 +620,12 @@ impl Loader<ProfitAndLossAccountKey> for LanaLoader {
             let accounts: HashMap<_, lana_app::accounting::ledger_account::LedgerAccount> = self
                 .app
                 .accounting()
-                .find_all_ledger_accounts_in_range(CHART_REF.0, &ids, from, until)
+                .find_all_ledger_accounts_in_range_with_direct_members(
+                    CHART_REF.0,
+                    &ids,
+                    from,
+                    until,
+                )
                 .await
                 .map_err(Arc::new)?;
 
