@@ -4,12 +4,14 @@ report_jobs:
   - norm: other
     id: "calculo_de_riesgo_neto"
     friendly_name: "calculo_de_riesgo_neto"
+    source_table: report_other_calculo_de_riesgo_neto
     outputs:
       - type: csv
 
   - norm: uif_07
     id: "diario_otros_medios_electronicos"
     friendly_name: "diario_otros_medios_electronicos"
+    source_table: report_uif_07_diario_otros_medios_electronicos
     outputs:
       - type: csv
 
@@ -17,6 +19,7 @@ report_jobs:
   - norm: nrp_41
     id: "01_persona"
     friendly_name: "persona"
+    source_table: report_nrp_41_01_persona
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_persona
@@ -25,6 +28,7 @@ report_jobs:
   - norm: nrp_41
     id: "02_referencia"
     friendly_name: "referencia"
+    source_table: report_nrp_41_02_referencia
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_referencia
@@ -33,6 +37,7 @@ report_jobs:
   - norm: nrp_41
     id: "03_referencia_garantia"
     friendly_name: "referencia_garantia"
+    source_table: report_nrp_41_03_referencia_garantia
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_referencia_garantia
@@ -41,6 +46,7 @@ report_jobs:
   - norm: nrp_41
     id: "04_garantia_hipotecaria"
     friendly_name: "garantia_hipotecaria"
+    source_table: report_nrp_41_04_garantia_hipotecaria
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_garantia_hipotecaria
@@ -49,6 +55,7 @@ report_jobs:
   - norm: nrp_41
     id: "05_garantia_fiduciaria"
     friendly_name: "garantia_fiduciaria"
+    source_table: report_nrp_41_05_garantia_fiduciaria
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_garantia_fiduciaria
@@ -57,6 +64,7 @@ report_jobs:
   - norm: nrp_41
     id: "06_garantia_aval"
     friendly_name: "garantia_aval"
+    source_table: report_nrp_41_06_garantia_aval
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_garantia_aval
@@ -65,6 +73,7 @@ report_jobs:
   - norm: nrp_41
     id: "07_garantia_pignorada"
     friendly_name: "garantia_pignorada"
+    source_table: report_nrp_41_07_garantia_pignorada
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_garantia_pignorada
@@ -73,6 +82,7 @@ report_jobs:
   - norm: nrp_41
     id: "08_garantia_prenda"
     friendly_name: "garantia_prenda"
+    source_table: report_nrp_41_08_garantia_prenda
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_garantia_prenda
@@ -81,6 +91,7 @@ report_jobs:
   - norm: nrp_41
     id: "09_garantia_bono"
     friendly_name: "garantia_bono"
+    source_table: report_nrp_41_09_garantia_bono
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_garantia_bono
@@ -89,6 +100,7 @@ report_jobs:
   - norm: nrp_41
     id: "10_garantia_poliza"
     friendly_name: "garantia_poliza"
+    source_table: report_nrp_41_10_garantia_poliza
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_garantia_poliza
@@ -97,6 +109,7 @@ report_jobs:
   - norm: nrp_41
     id: "11_garantia_fondo"
     friendly_name: "garantia_fondo"
+    source_table: report_nrp_41_11_garantia_fondo
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_garantia_fondo
@@ -105,6 +118,7 @@ report_jobs:
   - norm: nrp_41
     id: "12_referencia_gasto"
     friendly_name: "referencia_gasto"
+    source_table: report_nrp_41_12_referencia_gasto
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_referencia_gasto
@@ -113,6 +127,7 @@ report_jobs:
   - norm: nrp_41
     id: "13_referencia_unidad"
     friendly_name: "referencia_unidad"
+    source_table: report_nrp_41_13_referencia_unidad
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_referencia_unidad
@@ -121,6 +136,7 @@ report_jobs:
   - norm: nrp_41
     id: "14_referencia_cancelada"
     friendly_name: "referencia_cancelada"
+    source_table: report_nrp_41_14_referencia_cancelada
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_referencia_cancelada
@@ -129,6 +145,7 @@ report_jobs:
   - norm: nrp_41
     id: "15_socios_sociedades"
     friendly_name: "socios_sociedades"
+    source_table: report_nrp_41_15_socios_sociedades
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_socios_sociedades
@@ -137,6 +154,7 @@ report_jobs:
   - norm: nrp_41
     id: "16_junta_directiva"
     friendly_name: "junta_directiva"
+    source_table: report_nrp_41_16_junta_directiva
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_junta_directiva
@@ -145,6 +163,7 @@ report_jobs:
   - norm: nrp_41
     id: "17_garantia_prendaria"
     friendly_name: "garantia_prendaria"
+    source_table: report_nrp_41_17_garantia_prendaria
     outputs:
       - type: xml
         validation_schema_id: ssf_ctri_garantia_prendaria
@@ -155,6 +174,7 @@ report_jobs:
     id: "01_saldo_cuenta"
     friendly_name: "saldo_cuenta"
     supports_as_of: true
+    source_table: report_nrp_51_01_saldo_cuenta_daily
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_saldo_cuenta
@@ -163,6 +183,7 @@ report_jobs:
   - norm: nrp_51
     id: "02_deposito_extranjero"
     friendly_name: "deposito_extranjero"
+    source_table: report_nrp_51_02_deposito_extranjero
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_deposito_extranjero
@@ -171,6 +192,7 @@ report_jobs:
   - norm: nrp_51
     id: "03_dato_extracontable"
     friendly_name: "dato_extracontable"
+    source_table: report_nrp_51_03_dato_extracontable
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_dato_extracontable
@@ -179,6 +201,7 @@ report_jobs:
   - norm: nrp_51
     id: "04_titulo_valor_extranjero"
     friendly_name: "titulo_valor_extranjero"
+    source_table: report_nrp_51_04_titulo_valor_extranjero
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_titulo_valor_extranjero
@@ -187,6 +210,7 @@ report_jobs:
   - norm: nrp_51
     id: "05_prestamo_garantizado"
     friendly_name: "prestamo_garantizado"
+    source_table: report_nrp_51_05_prestamo_garantizado
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_prestamo_garantizado
@@ -195,6 +219,7 @@ report_jobs:
   - norm: nrp_51
     id: "06_aval_garantizado"
     friendly_name: "aval_garantizado"
+    source_table: report_nrp_51_06_aval_garantizado
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_aval_garantizado
@@ -203,6 +228,7 @@ report_jobs:
   - norm: nrp_51
     id: "07_deuda_subordinada"
     friendly_name: "deuda_subordinada"
+    source_table: report_nrp_51_07_deuda_subordinada
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_deuda_subordinada
@@ -211,6 +237,7 @@ report_jobs:
   - norm: nrp_51
     id: "08_balance_proyectado"
     friendly_name: "balance_proyectado"
+    source_table: report_nrp_51_08_balance_proyectado
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_balance_proyectado
@@ -220,6 +247,7 @@ report_jobs:
   - norm: nrsf_03
     id: "01_cliente"
     friendly_name: "cliente"
+    source_table: report_nrsf_03_01_cliente
     outputs:
       - type: csv
       - type: txt
@@ -227,6 +255,7 @@ report_jobs:
   - norm: nrsf_03
     id: "02_depositos"
     friendly_name: "depositos"
+    source_table: report_nrsf_03_02_depositos
     outputs:
       - type: csv
       - type: txt
@@ -234,6 +263,7 @@ report_jobs:
   - norm: nrsf_03
     id: "03_documentos_clientes"
     friendly_name: "documentos_clientes"
+    source_table: report_nrsf_03_03_documentos_clientes
     outputs:
       - type: csv
       - type: txt
@@ -241,6 +271,7 @@ report_jobs:
   - norm: nrsf_03
     id: "04_titulares"
     friendly_name: "titulares"
+    source_table: report_nrsf_03_04_titulares
     outputs:
       - type: csv
       - type: txt
@@ -248,6 +279,7 @@ report_jobs:
   - norm: nrsf_03
     id: "05_agencias"
     friendly_name: "agencias"
+    source_table: report_nrsf_03_05_agencias
     outputs:
       - type: csv
       - type: txt
@@ -255,6 +287,7 @@ report_jobs:
   - norm: nrsf_03
     id: "06_productos"
     friendly_name: "productos"
+    source_table: report_nrsf_03_06_productos
     outputs:
       - type: csv
       - type: txt
@@ -262,6 +295,7 @@ report_jobs:
   - norm: nrsf_03
     id: "07_funcionarios_y_empleados"
     friendly_name: "funcionarios_y_empleados"
+    source_table: report_nrsf_03_07_funcionarios_y_empleados
     outputs:
       - type: csv
       - type: txt
@@ -269,6 +303,7 @@ report_jobs:
   - norm: nrsf_03
     id: "08_resumen_de_depositos_garantizados"
     friendly_name: "resumen_de_depositos_garantizados"
+    source_table: report_nrsf_03_08_resumen_de_depositos_garantizados
     outputs:
       - type: csv
       - type: txt
@@ -276,6 +311,7 @@ report_jobs:
   - norm: nrsf_03
     id: "09_ajustes"
     friendly_name: "ajustes"
+    source_table: report_nrsf_03_09_ajustes
     outputs:
       - type: csv
       - type: txt
@@ -284,23 +320,27 @@ report_jobs:
   - norm: other
     id: "estado_de_cuenta_de_prestamo"
     friendly_name: "estado_de_cuenta_de_prestamo"
+    source_table: report_other_estado_de_cuenta_de_prestamo
     outputs:
       - type: csv
 
   - norm: other
     id: "historial_de_pagos"
     friendly_name: "historial_de_pagos"
+    source_table: report_other_historial_de_pagos
     outputs:
       - type: csv
 
   - norm: other
     id: "listado_de_prestamos_activos"
     friendly_name: "listado_de_prestamos_activos"
+    source_table: report_other_listado_de_prestamos_activos
     outputs:
       - type: csv
 
   - norm: other
     id: "reporte_de_cartera_de_prestamos"
     friendly_name: "reporte_de_cartera_de_prestamos"
+    source_table: report_other_reporte_de_cartera_de_prestamos
     outputs:
       - type: csv
