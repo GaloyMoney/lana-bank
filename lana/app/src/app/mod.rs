@@ -181,21 +181,22 @@ impl LanaApp {
             &internal_domain_configs,
         )
         .await?;
-        let customer_sync = CustomerSync::init(
-            &mut jobs,
-            &outbox,
-            &customers,
-            &deposits,
-            config.customer_sync,
-        )
-        .await?;
-
         let customer_kyc = CustomerKyc::init(
             &pool,
             &exposed_domain_configs_readonly,
             &authz,
             &customers,
             &mut jobs,
+        )
+        .await?;
+
+        let customer_sync = CustomerSync::init(
+            &mut jobs,
+            &outbox,
+            &customers,
+            &deposits,
+            config.customer_sync,
+            customer_kyc.sumsub_client().clone(),
         )
         .await?;
 

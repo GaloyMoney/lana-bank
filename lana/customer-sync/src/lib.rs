@@ -73,6 +73,7 @@ where
         customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
         config: CustomerSyncConfig,
+        sumsub_client: sumsub::SumsubClient,
     ) -> Result<Self, CustomerSyncError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak.clone());
 
@@ -156,6 +157,16 @@ where
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_UNFREEZE_SYNC),
                 SyncCustomerUnfreezeHandler::new(unfreeze_customer_deposits_spawner),
+            )
+            .await?;
+
+        let deactivate_sumsub_applicant_spawner =
+            jobs.add_initializer(DeactivateSumsubApplicantJobInitializer::new(sumsub_client));
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CUSTOMER_SYNC_DEACTIVATE_SUMSUB_APPLICANT),
+                SyncCustomerFreezeSumsubHandler::new(deactivate_sumsub_applicant_spawner),
             )
             .await?;
 
