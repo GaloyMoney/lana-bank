@@ -1,3 +1,25 @@
+## [0.46.1] - 2026-03-05
+
+### 🐛 Bug Fixes
+
+- Env var secret leakage in logs (#4121)
+- Increase admin panel session timeout from 5 to 30 minutes (#4133)
+- Replace .expect() with error returns in interest accrual cycle methods (#4118)
+- Replace derive(Debug) with custom impl on EncryptionKey to redact key material (#4137)
+- *(credit)* Handle NoNextAccrualPeriod in accrue_period to prevent infinite retry (#4141)
+- Replace derive(Debug) with custom impl on SumsubClient and SumsubConfig to redact secret (#4139)
+- Replace derive(Debug) with custom impl on BitgoClient to redact secrets (#4138)
+- *(deps)* Address all open Dependabot security alerts (#4113)
+
+### 🚜 Refactor
+
+- *(customer)* Remove legacy event variants from Customer and Prospect (#4119)
+- Remove ChartOfAccountsAddRootNode mutation (#4129)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.46.0 [ci skip] (#4120)
+- Remove leftover hakari config file (#4135)
 ## [0.46.0] - 2026-03-05
 
 ### 🚀 Features
