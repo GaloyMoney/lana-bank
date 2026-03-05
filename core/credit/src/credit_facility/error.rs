@@ -95,6 +95,8 @@ pub enum CreditFacilityError {
     ),
     #[error("CreditFacilityError - CollateralError: {0}")]
     CollateralError(#[from] core_credit_collateral::error::CollateralError),
+    #[error("CreditFacilityError - NoAccrualCycleInProgress")]
+    NoAccrualCycleInProgress,
 }
 
 impl CreditFacilityError {
@@ -156,6 +158,7 @@ impl ErrorSeverity for CreditFacilityError {
             Self::RegisterEventHandler(_) => Level::ERROR,
             Self::CreditFacilityProposalError(e) => e.severity(),
             Self::CollateralError(e) => e.severity(),
+            Self::NoAccrualCycleInProgress => Level::ERROR,
         }
     }
 }
