@@ -2372,7 +2372,11 @@
     "view": "View",
     "noData": "No data to display",
     "sortBy": "Sort By",
-    "all": "All"
+    "all": "All",
+    "activeFilters": "Active filters",
+    "removeFilter": "Remove filter {label}",
+    "clearAllFilters": "Clear all filters",
+    "clearAll": "Clear all"
   },
   "Modules": {
     "notYetConfigured": "Not yet configured",

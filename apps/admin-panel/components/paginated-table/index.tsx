@@ -8,6 +8,7 @@ import {
   HiChevronLeft,
   HiChevronRight,
   HiFilter,
+  HiX,
 } from "react-icons/hi"
 
 import { useRouter } from "next/navigation"
@@ -220,6 +221,68 @@ const PaginatedTable = <T,>({
     }
   }
 
+  const clearAllFilters = () => {
+    setFilterState({})
+    setCurrentPage(1)
+    onFilter && onFilter({})
+  }
+
+  const activeFilterEntries = Object.entries(filterState) as [keyof T, T[keyof T]][]
+
+  const formatFilterValue = (key: keyof T, value: T[keyof T]) => {
+    const col = columns.find((c) => c.key === key)
+    const label = col?.label || String(key)
+    const displayValue = col?.filterLabel
+      ? col.filterLabel(value)
+      : String(value).split("_").join(" ").toLowerCase()
+    return { label, displayValue }
+  }
+
+  const ActiveFilterChips = () => {
+    if (activeFilterEntries.length === 0) return null
+    return (
+      <div
+        className="flex flex-wrap items-center gap-2 px-2 py-1.5"
+        role="region"
+        aria-label={t("activeFilters", { defaultMessage: "Active filters" })}
+      >
+        {activeFilterEntries.map(([key, value]) => {
+          const { label, displayValue } = formatFilterValue(key, value)
+          return (
+            <span
+              key={String(key)}
+              className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 text-xs text-blue-700 dark:text-blue-300"
+            >
+              <span className="font-medium">{label}:</span>
+              <span className="capitalize">{displayValue}</span>
+              <button
+                type="button"
+                onClick={() => handleFilter(key, undefined)}
+                className="ml-0.5 inline-flex items-center rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
+                aria-label={t("removeFilter", {
+                  defaultMessage: `Remove filter ${label}`,
+                  label,
+                })}
+              >
+                <HiX className="h-3 w-3" />
+              </button>
+            </span>
+          )
+        })}
+        {activeFilterEntries.length >= 2 && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 rounded"
+            aria-label={t("clearAllFilters", { defaultMessage: "Clear all filters" })}
+          >
+            {t("clearAll", { defaultMessage: "Clear all" })}
+          </button>
+        )}
+      </div>
+    )
+  }
+
   if (loading && !data) {
     return isMobile ? (
       <div className="space-y-4" data-testid="loading-skeleton">
@@ -358,6 +421,8 @@ const PaginatedTable = <T,>({
             ))}
         </div>
 
+        <ActiveFilterChips />
+
         {displayData.map(({ node }, idx) => {
           const safeUrl = getSafeNavigationUrl(node)
           return (
@@ -482,6 +547,7 @@ const PaginatedTable = <T,>({
           }
         }}
       >
+        <ActiveFilterChips />
         <Table className="table-fixed w-full">
           {showHeader && (
             <TableHeader
