@@ -839,11 +839,11 @@ mod tests {
     #[test]
     fn current_stored_value_returns_default_when_no_update() {
         let config = seed_config::<SampleComplexWithDefaultConfig>(DomainConfigId::new());
-        let expected =
-            serde_json::to_value(SampleComplexWithDefaultConfig::default_value().unwrap()).unwrap();
         assert_eq!(
-            config.current_stored_value().unwrap().as_plain(),
-            Some(&expected)
+            config
+                .current_value_plain::<SampleComplexWithDefaultConfig>()
+                .unwrap(),
+            SampleComplexWithDefaultConfig::default_value().unwrap(),
         );
     }
 
