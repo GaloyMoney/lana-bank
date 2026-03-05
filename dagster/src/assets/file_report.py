@@ -84,7 +84,13 @@ def _build_file_report_specs_and_lookup() -> Tuple[
             )
 
             dbt_dep = get_dbt_asset_key_for_table(report_job.source_table_name)
-            deps = [dbt_dep] if dbt_dep else []
+            if dbt_dep is None:
+                raise ValueError(
+                    f"Report '{report_job.norm}/{report_job.id}' references "
+                    f"source_table '{report_job.source_table_name}' which does "
+                    f"not exist in the dbt manifest"
+                )
+            deps = [dbt_dep]
 
             specs.append(
                 dg.AssetSpec(
