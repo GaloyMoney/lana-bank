@@ -1210,7 +1210,6 @@ checksums:
     AuditLogs/table/emptyMessage: b3ef7a5a76768db254c867944b84b04c
     ChartOfAccounts/title: 785b8862f83c931ce85f5939e38be7c0
     ChartOfAccounts/description: d386b72a014828c82a6218385dd8c27a
-    ChartOfAccounts/addRootNode: 180a55852a8b0f21e53512e344808a0a
     ChartOfAccounts/upload/dragAndDrop: 4d24050d9792d5ee1d1229553a1a5cbe
     ChartOfAccounts/upload/dropHere: c396eb3e3cdc8788750150ca38725495
     ChartOfAccounts/upload/csvOnly: a7964b2b0e8676b4cd9e20c5a724a736
@@ -1221,24 +1220,6 @@ checksums:
     ChartOfAccounts/upload/uploading: a318ac63eb5403166dae52e92478fd18
     ChartOfAccounts/upload/reset: c19c53a05e21c7f3b395247809a14b51
     ChartOfAccounts/upload/upload: 4a6c84aa16db0f4e5697f49b45257bc7
-    ChartOfAccounts/AddRootNodeDialog/title: 180a55852a8b0f21e53512e344808a0a
-    ChartOfAccounts/AddRootNodeDialog/description: 5130577ab0b6bd8d4dffe6ada8602ef4
-    ChartOfAccounts/AddRootNodeDialog/success: 6f0d0977e6b083f6fe8024b5479fe489
-    ChartOfAccounts/AddRootNodeDialog/fields/code: 9218742c297d337fdc0f5f5dd985294d
-    ChartOfAccounts/AddRootNodeDialog/fields/name: 5a4c82f1bc517348b64c107345f94f65
-    ChartOfAccounts/AddRootNodeDialog/fields/normalBalanceType: f1799262ce7320432b25a80767a5e8a7
-    ChartOfAccounts/AddRootNodeDialog/placeholders/code: 6f771967eadabae3b82b1a12a7ab9353
-    ChartOfAccounts/AddRootNodeDialog/placeholders/name: f3c2024af39ce7c19eae9ecf4efa8e69
-    ChartOfAccounts/AddRootNodeDialog/placeholders/normalBalanceType: d5680178923a96e1a6f9a91d2f12162b
-    ChartOfAccounts/AddRootNodeDialog/balanceTypes/debit: 1b35db901aa1aeed8ee79aec6d807731
-    ChartOfAccounts/AddRootNodeDialog/balanceTypes/credit: 2d447a71ec815a039f175e94fbb12a56
-    ChartOfAccounts/AddRootNodeDialog/codeHint: f39d8538089115a814bed24ab95216b6
-    ChartOfAccounts/AddRootNodeDialog/errors/required: 01fe4fe061a783c06c001dd39c78053a
-    ChartOfAccounts/AddRootNodeDialog/errors/chartNotFound: 8c6d6e3dadc8220549ecb3eb25c4dad0
-    ChartOfAccounts/AddRootNodeDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
-    ChartOfAccounts/AddRootNodeDialog/buttons/cancel: 2e2a849c2223911717de8caa2c71bade
-    ChartOfAccounts/AddRootNodeDialog/buttons/add: 180a55852a8b0f21e53512e344808a0a
-    ChartOfAccounts/AddRootNodeDialog/buttons/adding: 7d16e074064398614c282f10ea47adf4
     ChartOfAccounts/AddChildNodeDialog/title: aee0a7b3cd53ce03d00724d4ab56ccbb
     ChartOfAccounts/AddChildNodeDialog/description: 163c1463b2bc742e63a5eb480023d04c
     ChartOfAccounts/AddChildNodeDialog/success: 41d574af17e9fcbe06b3d08094143449
@@ -1399,7 +1380,6 @@ checksums:
     CreateButton/menuItems/custodian: a8e359b8fcfb691a7c1bf2eb7129938b
     CreateButton/menuItems/executeManualTransaction: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
     CreateButton/menuItems/role: 53743bbb6ca938f5b893552e839d067f
-    CreateButton/menuItems/account: 01215c12fb1cdb93bd0c84c1382bef56
     CreateButton/menuItems/depositAccount: 23d240412c0bf14efcff84a2325587be
     CreateButton/menuItems/subAccount: a961000f7042205eb33b04f0d07e2ced
     CreateButton/menuItems/fiscalYear: e3e280db0cd9a365118398f104a31b7f
