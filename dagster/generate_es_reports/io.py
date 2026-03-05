@@ -185,6 +185,9 @@ def load_report_jobs_from_yaml(
 
         output_configs = tuple(output_configs)
 
+        raw_columns = report_job.get("expected_columns")
+        expected_columns = tuple(raw_columns) if raw_columns else None
+
         report_jobs.append(
             ReportJobDefinition(
                 norm=report_job["norm"],
@@ -193,6 +196,7 @@ def load_report_jobs_from_yaml(
                 source_table=report_job["source_table"],
                 file_output_configs=output_configs,
                 supports_as_of=report_job.get("supports_as_of", False),
+                expected_columns=expected_columns,
             )
         )
 

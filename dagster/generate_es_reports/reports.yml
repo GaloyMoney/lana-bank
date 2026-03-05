@@ -175,6 +175,10 @@ report_jobs:
     friendly_name: "saldo_cuenta"
     supports_as_of: true
     source_table: report_nrp_51_01_saldo_cuenta_daily
+    expected_columns:
+      - id_codigo_cuenta
+      - nom_cuenta
+      - valor
     outputs:
       - type: xml
         validation_schema_id: ssf_coes_saldo_cuenta
