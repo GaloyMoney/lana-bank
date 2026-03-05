@@ -18,10 +18,9 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountCategory, AccountCode, AccountIdOrCode, AccountInfo, AccountName, AccountSpec,
-    AccountingBaseConfig, CalaAccountSetId, CalaJournalId, ChartId, ClockHandle,
-    ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction, CoreAccountingObject,
-    LedgerAccountId,
+    AccountCategory, AccountCode, AccountIdOrCode, AccountInfo, AccountName, AccountingBaseConfig,
+    CalaAccountSetId, CalaJournalId, ChartId, ClockHandle, ClosingAccountCodes, ClosingTxDetails,
+    CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
 use bulk_import::BulkImportResult;
@@ -259,51 +258,6 @@ where
         let chart = self.find_by_id(chart_id).await?;
         let base_config = chart.accounting_base_config();
         Ok(base_config)
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "core_accounting.chart_of_accounts.add_root_node", skip(self,))]
-    pub async fn add_root_node(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_ref: &str,
-        spec: impl Into<AccountSpec> + std::fmt::Debug,
-    ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
-        let spec = spec.into();
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_charts(),
-                CoreAccountingAction::CHART_UPDATE,
-            )
-            .await?;
-
-        let mut op = self.repo.begin_op().await?;
-        let mut chart = self.find_by_reference_in_op(&mut op, chart_ref).await?;
-        let es_entity::Idempotent::Executed(NewChartAccountDetails {
-            parent_account_set_id,
-            new_account_set,
-        }) = chart.create_root_node(&spec, self.journal_id)
-        else {
-            return Ok((chart, None));
-        };
-        let account_set_id = new_account_set.id;
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        self.cala
-            .account_sets()
-            .create_in_op(&mut op, new_account_set)
-            .await?;
-        self.cala
-            .account_sets()
-            .add_member_in_op(&mut op, parent_account_set_id, account_set_id)
-            .await?;
-
-        op.commit().await?;
-
-        let new_account_set_id = chart.trial_balance_account_id_from_new_account(account_set_id);
-        Ok((chart, new_account_set_id))
     }
 
     #[record_error_severity]
