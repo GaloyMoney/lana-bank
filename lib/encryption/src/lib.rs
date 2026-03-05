@@ -24,10 +24,19 @@ impl EncryptionKeyId {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct EncryptionKey {
     key: chacha20poly1305::Key,
     id: EncryptionKeyId,
+}
+
+impl std::fmt::Debug for EncryptionKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EncryptionKey")
+            .field("id", &self.id)
+            .field("key", &"<redacted>")
+            .finish()
+    }
 }
 
 impl EncryptionKey {
