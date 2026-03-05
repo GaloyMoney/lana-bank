@@ -998,6 +998,30 @@
               echo "Formatting checks passed" > $out/result.txt
             '';
           };
+
+          # Aggregate checks for CI: lightweight checks (no Rust compilation)
+          fast = pkgs.runCommand "fast-checks" {
+            buildInputs = [
+              self.checks.${system}.check-fmt
+              self.checks.${system}.workspace-fmt
+              self.checks.${system}.dagster-format
+              self.checks.${system}.workspace-machete
+            ];
+          } "touch $out";
+
+          # Aggregate checks for CI: heavyweight checks (require Rust build)
+          rust = pkgs.runCommand "rust-checks" {
+            buildInputs = [
+              self.checks.${system}.workspace-clippy
+              self.checks.${system}.workspace-deny
+              self.checks.${system}.workspace-audit
+              self.checks.${system}.check-custom-lints
+              self.checks.${system}.check-sdl
+              self.checks.${system}.check-translation-labels
+              self.checks.${system}.check-entity-rollups
+              self.checks.${system}.check-default-config
+            ];
+          } "touch $out";
         };
 
         apps.default = flake-utils.lib.mkApp {
