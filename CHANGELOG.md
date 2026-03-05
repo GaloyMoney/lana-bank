@@ -1,3 +1,24 @@
+## [0.46.0] - 2026-03-05
+
+### 🚀 Features
+
+- Add customer type filtering for customers and prospects (#4077)
+- Auto-translate docs via Lingo.dev with symlink wrapper (#3965)
+
+### 🐛 Bug Fixes
+
+- Update deps to fix audit (#4110)
+- Downgrade ConcurrentModification severity from ERROR to WARN (#4111)
+
+### 🚜 Refactor
+
+- Point in time balance sheet query (#4065)
+- Update es-entity, cala-ledger, job, and obix dependencies (#4097)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.45.0 [ci skip] (#4101)
+- Switch interest accrual job to use time event (#3997)
 ## [0.45.0] - 2026-03-04
 
 ### 🚀 Features
