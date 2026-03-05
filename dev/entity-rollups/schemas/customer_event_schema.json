@@ -8,6 +8,13 @@
       ],
       "type": "string"
     },
+    "CustomerStatus": {
+      "enum": [
+        "active",
+        "frozen"
+      ],
+      "type": "string"
+    },
     "CustomerType": {
       "enum": [
         "Individual",
@@ -25,13 +32,6 @@
         "NotKyced",
         "Basic",
         "Advanced"
-      ],
-      "type": "string"
-    },
-    "CustomerStatus": {
-      "enum": [
-        "active",
-        "frozen"
       ],
       "type": "string"
     },
