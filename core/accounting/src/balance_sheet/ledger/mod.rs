@@ -181,6 +181,7 @@ impl BalanceSheetLedger {
                 vec![statement_id],
             )
             .await?;
+        // TODO: Does this need to attached to retained earnings (32 in local COA) or even better something nested within it (32.01 in local COA)?
         let equity_id = self
             .create_account_set_in_op(op, EQUITY_NAME, DebitOrCredit::Credit, vec![statement_id])
             .await?;
