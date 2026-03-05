@@ -194,7 +194,6 @@ class ReportJobDefinition:
         source_table: str,
         file_output_configs: tuple[BaseFileOutputConfig, ...],
         supports_as_of: bool = False,
-        expected_columns: tuple[str, ...] | None = None,
     ):
         self.norm = norm
         self.id = id
@@ -202,4 +201,3 @@ class ReportJobDefinition:
         self.source_table_name = source_table
         self.file_output_configs = file_output_configs
         self.supports_as_of = supports_as_of
-        self.expected_columns = expected_columns
