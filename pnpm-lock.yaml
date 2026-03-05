@@ -9,6 +9,7 @@ overrides:
   minimatch@<3.1.4: '>=3.1.4 <4'
   storybook: '>=10.2.10'
   serialize-javascript: '>=7.0.3'
+  immutable: '>=4.3.8'
 
 importers:
 
@@ -4858,10 +4859,6 @@ packages:
   '@tootallnate/quickjs-emscripten@0.23.0':
     resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
 
-  '@trysound/sax@0.2.0':
-    resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
-    engines: {node: '>=10.13.0'}
-
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
 
@@ -8273,9 +8270,8 @@ packages:
   immer@10.2.0:
     resolution: {integrity: sha512-d/+XTN3zfODyjr89gM3mPq1WNX2B8pYsu7eORitdwyA2sBubnTl3laYlBk4sXY5FUa5qTZGBDPJICVbvqzjlbw==}
 
-  immutable@3.7.6:
-    resolution: {integrity: sha512-AizQPcaofEtO11RZhPPHBOJRdo/20MKQF9mBLnVkBoyHi1/zXK8fzVdnEpSV9gxqtnh6Qomfp3F0xT5qP/vThw==}
-    engines: {node: '>=0.8.0'}
+  immutable@5.1.5:
+    resolution: {integrity: sha512-t7xcm2siw+hlUM68I+UEOK+z84RzmN59as9DZ7P1l0994DKUWV7UXBMQZVxaoMSRQ+PBZbHCOoBt7a2wxOMt+A==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -11054,6 +11050,10 @@ packages:
     resolution: {integrity: sha512-1n3r/tGXO6b6VXMdFT54SHzT9ytu9yr7TaELowdYpMqY/Ao7EnlQGmAQ1+RatX7Tkkdm6hONI2owqNx2aZj5Sw==}
     engines: {node: '>=11.0.0'}
 
+  sax@1.5.0:
+    resolution: {integrity: sha512-21IYA3Q5cQf089Z6tgaUTr7lDAyzoTPx5HRtbhsME8Udispad8dC/+sziTNugOEx54ilvatQ9YCzl4KQLPcRHA==}
+    engines: {node: '>=11.0.0'}
+
   scheduler@0.23.2:
     resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
 
@@ -11553,8 +11553,8 @@ packages:
   svg-parser@2.0.4:
     resolution: {integrity: sha512-e4hG1hRwoOdRb37cIMSgzNsxyzKfayW6VOflrwvR+/bzrkyxY/31WkbgnQpgtrNp1SdpJvpUAGTa/ZoiPNDuRQ==}
 
-  svgo@3.3.2:
-    resolution: {integrity: sha512-OoohrmuUlBs8B8o6MB2Aevn+pRIH9zDALSR+6hhqVfa6fRwG/Qw9VUMSMW9VNg2CFc/MTIfabtdOVl9ODIJjpw==}
+  svgo@3.3.3:
+    resolution: {integrity: sha512-+wn7I4p7YgJhHs38k2TNjy1vCfPIfLIJWR5MnCStsN8WuuTcBnRKcMHQLMM2ijxGZmDoZwNv8ipl5aTTen62ng==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -12580,7 +12580,7 @@ snapshots:
       fbjs: 3.0.5
       glob: 7.2.3
       graphql: 16.12.0
-      immutable: 3.7.6
+      immutable: 5.1.5
       invariant: 2.2.4
       nullthrows: 1.1.1
       relay-runtime: 12.0.0
@@ -12598,7 +12598,7 @@ snapshots:
       chalk: 4.1.2
       fb-watchman: 2.0.2
       graphql: 16.12.0
-      immutable: 3.7.6
+      immutable: 5.1.5
       invariant: 2.2.4
       nullthrows: 1.1.1
       relay-runtime: 12.0.0
@@ -18299,7 +18299,7 @@ snapshots:
       '@svgr/core': 8.1.0(typescript@5.9.3)
       cosmiconfig: 8.3.6(typescript@5.9.3)
       deepmerge: 4.3.1
-      svgo: 3.3.2
+      svgo: 3.3.3
     transitivePeerDependencies:
       - typescript
 
@@ -18520,8 +18520,6 @@ snapshots:
       - supports-color
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
-
-  '@trysound/sax@0.2.0': {}
 
   '@tybys/wasm-util@0.10.1':
     dependencies:
@@ -22708,7 +22706,7 @@ snapshots:
 
   immer@10.2.0: {}
 
-  immutable@3.7.6: {}
+  immutable@5.1.5: {}
 
   import-fresh@3.3.1:
     dependencies:
@@ -25229,7 +25227,7 @@ snapshots:
     dependencies:
       postcss: 8.5.6
       postcss-value-parser: 4.2.0
-      svgo: 3.3.2
+      svgo: 3.3.3
 
   postcss-unique-selectors@6.0.4(postcss@8.5.6):
     dependencies:
@@ -26003,6 +26001,8 @@ snapshots:
 
   sax@1.4.4: {}
 
+  sax@1.5.0: {}
+
   scheduler@0.23.2:
     dependencies:
       loose-envify: 1.4.0
@@ -26645,15 +26645,15 @@ snapshots:
 
   svg-parser@2.0.4: {}
 
-  svgo@3.3.2:
+  svgo@3.3.3:
     dependencies:
-      '@trysound/sax': 0.2.0
       commander: 7.2.0
       css-select: 5.2.2
       css-tree: 2.3.1
       css-what: 6.2.2
       csso: 5.0.5
       picocolors: 1.1.1
+      sax: 1.5.0
 
   swap-case@2.0.2:
     dependencies:
@@ -27699,7 +27699,7 @@ snapshots:
 
   xml-js@1.6.11:
     dependencies:
-      sax: 1.4.4
+      sax: 1.5.0
 
   xtend@4.0.2: {}
 
