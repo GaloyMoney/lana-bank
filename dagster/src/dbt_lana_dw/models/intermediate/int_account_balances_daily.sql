@@ -1,11 +1,3 @@
-{{
-    config(
-        materialized="table",
-        partition_by={"field": "as_of_date", "data_type": "date"},
-        cluster_by=["account_id", "currency"],
-    )
-}}
-
 with
     chart_initialized_at as (
         select
