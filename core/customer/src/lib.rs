@@ -479,7 +479,11 @@ where
             }
             es_entity::Idempotent::AlreadyApplied => {
                 let customer_id = CustomerId::from(prospect_id);
-                Ok(Some(self.repo.find_by_id(customer_id).await?))
+                let mut customer = self.repo.find_by_id(customer_id).await?;
+                if customer.unfreeze().did_execute() {
+                    self.repo.update(&mut customer).await?;
+                }
+                Ok(Some(customer))
             }
         }
     }
@@ -534,7 +538,11 @@ where
             }
             es_entity::Idempotent::AlreadyApplied => {
                 let customer_id = CustomerId::from(prospect_id);
-                Ok(self.repo.find_by_id(customer_id).await?)
+                let mut customer = self.repo.find_by_id(customer_id).await?;
+                if customer.unfreeze().did_execute() {
+                    self.repo.update(&mut customer).await?;
+                }
+                Ok(customer)
             }
         }
     }
@@ -568,7 +576,9 @@ where
             Err(prospect::ProspectError::AlreadyConverted) => {
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
-                if customer.reject_kyc().did_execute() {
+                let kyc_changed = customer.reject_kyc().did_execute();
+                let frozen = customer.freeze().did_execute();
+                if kyc_changed || frozen {
                     self.repo.update(&mut customer).await?;
                 }
             }
@@ -605,7 +615,9 @@ where
             Err(prospect::ProspectError::AlreadyConverted) => {
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
-                if customer.reject_kyc().did_execute() {
+                let kyc_changed = customer.reject_kyc().did_execute();
+                let frozen = customer.freeze().did_execute();
+                if kyc_changed || frozen {
                     self.repo.update(&mut customer).await?;
                 }
             }
@@ -1185,5 +1197,51 @@ where
             .await?;
 
         Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.freeze_customer", skip(self))]
+    pub async fn freeze_customer(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer(id),
+                CoreCustomerAction::CUSTOMER_FREEZE,
+            )
+            .await?;
+
+        let mut customer = self.repo.find_by_id(id).await?;
+        if customer.freeze().did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
+        Ok(customer)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.unfreeze_customer", skip(self))]
+    pub async fn unfreeze_customer(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer(id),
+                CoreCustomerAction::CUSTOMER_UNFREEZE,
+            )
+            .await?;
+
+        let mut customer = self.repo.find_by_id(id).await?;
+        if customer.unfreeze().did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
+        Ok(customer)
     }
 }

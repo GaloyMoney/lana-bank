@@ -160,6 +160,7 @@ enum CreditFacilityStatus {
 type Customer {
 	id: ID!
 	customerId: UUID!
+	status: CustomerStatus!
 	kycVerification: KycVerification!
 	level: KycLevel!
 	createdAt: Timestamp!
@@ -169,6 +170,11 @@ type Customer {
 	personalInfo: PersonalInfo
 	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
+}
+
+enum CustomerStatus {
+	ACTIVE
+	FROZEN
 }
 
 enum CustomerType {

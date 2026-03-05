@@ -211,8 +211,14 @@ export type Customer = {
   kycVerification: KycVerification;
   level: KycLevel;
   personalInfo?: Maybe<PersonalInfo>;
+  status: CustomerStatus;
   telegramHandle: Scalars['String']['output'];
 };
+
+export enum CustomerStatus {
+  Active = 'ACTIVE',
+  Frozen = 'FROZEN'
+}
 
 export enum CustomerType {
   Bank = 'BANK',

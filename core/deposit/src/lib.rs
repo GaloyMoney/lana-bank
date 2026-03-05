@@ -758,6 +758,103 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "deposit.freeze_accounts_for_holder_in_op", skip(self, op))]
+    pub async fn freeze_accounts_for_holder_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'static>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+    ) -> Result<(), CoreDepositError> {
+        let holder_id = holder_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_FREEZE,
+            )
+            .await?;
+
+        let accounts = self
+            .deposit_accounts
+            .list_for_account_holder_id_by_id_in_op(
+                &mut *op,
+                holder_id,
+                Default::default(),
+                Default::default(),
+            )
+            .await?;
+
+        for mut account in accounts.entities.into_iter() {
+            match account.freeze() {
+                Ok(result) if result.did_execute() => {
+                    self.deposit_accounts.update_in_op(op, &mut account).await?;
+                    self.ledger.freeze_account_in_op(op, &account, sub).await?;
+                }
+                Err(DepositAccountError::CannotUpdateClosedAccount(_))
+                | Err(DepositAccountError::CannotFreezeInactiveAccount(_)) => {
+                    tracing::warn!(
+                        account_id = %account.id,
+                        "Skipping freeze for account that cannot be frozen"
+                    );
+                    continue;
+                }
+                Err(e) => return Err(e.into()),
+                Ok(_) => continue,
+            }
+        }
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "deposit.unfreeze_accounts_for_holder_in_op", skip(self, op))]
+    pub async fn unfreeze_accounts_for_holder_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'static>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+    ) -> Result<(), CoreDepositError> {
+        let holder_id = holder_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_UNFREEZE,
+            )
+            .await?;
+
+        let accounts = self
+            .deposit_accounts
+            .list_for_account_holder_id_by_id_in_op(
+                &mut *op,
+                holder_id,
+                Default::default(),
+                Default::default(),
+            )
+            .await?;
+
+        for mut account in accounts.entities.into_iter() {
+            match account.unfreeze() {
+                Ok(result) if result.did_execute() => {
+                    self.deposit_accounts.update_in_op(op, &mut account).await?;
+                    self.ledger
+                        .unfreeze_account_in_op(op, &account, sub)
+                        .await?;
+                }
+                Err(DepositAccountError::CannotUpdateClosedAccount(_)) => {
+                    tracing::warn!(
+                        account_id = %account.id,
+                        "Skipping unfreeze for closed account"
+                    );
+                    continue;
+                }
+                Err(e) => return Err(e.into()),
+                Ok(_) => continue,
+            }
+        }
+        Ok(())
+    }
+
+    #[record_error_severity]
     #[instrument(name = "deposit.close_account", skip(self))]
     pub async fn close_account(
         &self,

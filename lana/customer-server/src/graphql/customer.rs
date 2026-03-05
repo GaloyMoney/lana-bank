@@ -2,7 +2,8 @@ use async_graphql::*;
 use std::sync::Arc;
 
 use lana_app::customer::{
-    Customer as DomainCustomer, CustomerType, KycLevel, KycVerification, PersonalInfo,
+    Customer as DomainCustomer, CustomerStatus, CustomerType, KycLevel, KycVerification,
+    PersonalInfo,
 };
 
 use crate::primitives::*;
@@ -22,6 +23,7 @@ pub enum CustomerError {
 pub struct Customer {
     id: ID,
     customer_id: UUID,
+    status: CustomerStatus,
     kyc_verification: KycVerification,
     level: KycLevel,
     created_at: Timestamp,
@@ -35,6 +37,7 @@ impl From<DomainCustomer> for Customer {
         Customer {
             id: customer.id.to_global_id(),
             customer_id: UUID::from(customer.id),
+            status: customer.status,
             kyc_verification: customer.kyc_verification,
             level: customer.level,
             created_at: customer.created_at().into(),

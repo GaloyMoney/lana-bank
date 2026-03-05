@@ -126,6 +126,36 @@ impl KeycloakClient {
     }
 
     #[record_error_severity]
+    #[instrument(name = "keycloak.disable_user", skip(self))]
+    pub async fn disable_user(&self, lana_id: Uuid) -> Result<(), KeycloakClientError> {
+        let user_id = self.get_keycloak_id_by_lana_id(lana_id).await?;
+        let user = UserRepresentation {
+            enabled: Some(false),
+            ..Default::default()
+        };
+        let client = self.get_client();
+        client
+            .realm_users_with_user_id_put(&self.connection.realm, &user_id.to_string(), user)
+            .await?;
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "keycloak.enable_user", skip(self))]
+    pub async fn enable_user(&self, lana_id: Uuid) -> Result<(), KeycloakClientError> {
+        let user_id = self.get_keycloak_id_by_lana_id(lana_id).await?;
+        let user = UserRepresentation {
+            enabled: Some(true),
+            ..Default::default()
+        };
+        let client = self.get_client();
+        client
+            .realm_users_with_user_id_put(&self.connection.realm, &user_id.to_string(), user)
+            .await?;
+        Ok(())
+    }
+
+    #[record_error_severity]
     #[instrument(name = "keycloak.query_users_by_attribute", skip(self))]
     async fn query_users_by_attribute(
         &self,

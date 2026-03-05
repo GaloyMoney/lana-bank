@@ -27,6 +27,12 @@ pub enum CustomerEvent {
         activity: Activity,
     },
     KycRejected {},
+    Frozen {
+        status: CustomerStatus,
+    },
+    Unfrozen {
+        status: CustomerStatus,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -37,6 +43,7 @@ pub struct Customer {
     pub customer_type: CustomerType,
     pub kyc_verification: KycVerification,
     pub activity: Activity,
+    pub status: CustomerStatus,
     pub level: KycLevel,
     #[builder(setter(into))]
     pub applicant_id: String,
@@ -86,6 +93,37 @@ impl Customer {
         self.kyc_verification = KycVerification::Rejected;
         Idempotent::Executed(())
     }
+
+    pub fn is_frozen(&self) -> bool {
+        self.status == CustomerStatus::Frozen
+    }
+
+    pub fn freeze(&mut self) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::Frozen { .. },
+            => CustomerEvent::Unfrozen { .. }
+        );
+        let status = CustomerStatus::Frozen;
+        self.events.push(CustomerEvent::Frozen { status });
+        self.status = status;
+        Idempotent::Executed(())
+    }
+
+    pub fn unfreeze(&mut self) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::Unfrozen { .. },
+            => CustomerEvent::Frozen { .. }
+        );
+        if !self.is_frozen() {
+            return Idempotent::AlreadyApplied;
+        }
+        let status = CustomerStatus::Active;
+        self.events.push(CustomerEvent::Unfrozen { status });
+        self.status = status;
+        Idempotent::Executed(())
+    }
 }
 
 impl TryFromEvents<CustomerEvent> for Customer {
@@ -109,6 +147,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .party_id(*party_id)
                         .customer_type(*customer_type)
                         .activity(*activity)
+                        .status(CustomerStatus::Active)
                         .public_id(public_id.clone())
                         .level(*level)
                         .kyc_verification(*kyc_verification)
@@ -119,6 +158,12 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 }
                 CustomerEvent::KycRejected { .. } => {
                     builder = builder.kyc_verification(KycVerification::Rejected);
+                }
+                CustomerEvent::Frozen { status } => {
+                    builder = builder.status(*status);
+                }
+                CustomerEvent::Unfrozen { status } => {
+                    builder = builder.status(*status);
                 }
             }
         }

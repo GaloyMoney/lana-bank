@@ -1002,6 +1002,7 @@ type CustodianEdge {
 type Customer {
 	id: ID!
 	customerId: UUID!
+	status: CustomerStatus!
 	kycVerification: KycVerification!
 	activity: Activity!
 	level: KycLevel!
@@ -1100,6 +1101,19 @@ type CustomerEmailUpdatePayload {
 	customer: Customer!
 }
 
+input CustomerFreezeInput {
+	customerId: UUID!
+}
+
+type CustomerFreezePayload {
+	customer: Customer!
+}
+
+enum CustomerStatus {
+	ACTIVE
+	FROZEN
+}
+
 input CustomerTelegramHandleUpdateInput {
 	customerId: UUID!
 	telegramHandle: String!
@@ -1117,6 +1131,14 @@ enum CustomerType {
 	FINANCIAL_INSTITUTION
 	FOREIGN_AGENCY_OR_SUBSIDIARY
 	NON_DOMICILED_COMPANY
+}
+
+input CustomerUnfreezeInput {
+	customerId: UUID!
+}
+
+type CustomerUnfreezePayload {
+	customer: Customer!
 }
 
 input CustomersFilter {
@@ -1898,6 +1920,8 @@ type Mutation {
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
 	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
+	customerFreeze(input: CustomerFreezeInput!): CustomerFreezePayload!
+	customerUnfreeze(input: CustomerUnfreezeInput!): CustomerUnfreezePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!

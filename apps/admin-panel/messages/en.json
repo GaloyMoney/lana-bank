@@ -445,7 +445,8 @@
           "email": "Email",
           "createdOn": "Created on",
           "telegram": "Telegram",
-          "status": "Status",
+          "customerStatus": "Status",
+          "activity": "Activity",
           "customerType": "Type",
           "publicId": "Public ID",
           "firstName": "First Name",
@@ -453,6 +454,10 @@
           "dateOfBirth": "Date of Birth",
           "nationality": "Nationality",
           "address": "Address"
+        },
+        "customerStatus": {
+          "active": "Active",
+          "frozen": "Frozen"
         },
         "status": {
           "active": "Active",
