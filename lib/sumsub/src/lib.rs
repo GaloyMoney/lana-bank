@@ -24,12 +24,22 @@ pub use wire::*;
 const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
 
 /// Sumsub API client
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct SumsubClient {
     client: ReqwestClient,
     sumsub_key: String,
     sumsub_secret: String,
     base_url: Url,
+}
+
+impl std::fmt::Debug for SumsubClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SumsubClient")
+            .field("sumsub_key", &self.sumsub_key)
+            .field("sumsub_secret", &"<redacted>")
+            .field("base_url", &self.base_url)
+            .finish()
+    }
 }
 
 impl SumsubClient {
