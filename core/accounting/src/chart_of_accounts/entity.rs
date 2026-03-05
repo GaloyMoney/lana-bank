@@ -128,14 +128,6 @@ impl Chart {
         })
     }
 
-    pub(super) fn create_root_node(
-        &mut self,
-        spec: &AccountSpec,
-        journal_id: CalaJournalId,
-    ) -> Idempotent<NewChartAccountDetails> {
-        self.create_node_without_verifying_parent(spec, journal_id)
-    }
-
     pub(super) fn configure_with_initial_accounts(
         &mut self,
         account_specs: Vec<AccountSpec>,

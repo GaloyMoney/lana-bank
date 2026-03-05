@@ -36,7 +36,6 @@ import { CreateCommitteeDialog } from "./committees/create"
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 import { ExecuteManualTransactionDialog } from "./journal/execute-manual-transaction"
 import { CreateCustodianDialog } from "./custodians/create"
-import { AddRootNodeDialog } from "./chart-of-accounts/add-root-node-dialog"
 import { AddChildNodeDialog } from "./chart-of-accounts/add-child-node-dialog"
 import { CreateDepositAccountDialog } from "./deposit-accounts/create"
 import { OpenNextYearDialog } from "./fiscal-years/open-next-year"
@@ -84,17 +83,13 @@ export const PATH_CONFIGS = {
 
   FISCAL_YEARS: "/fiscal-years",
 
-  CHART_OF_ACCOUNTS: "/chart-of-accounts",
-  LEDGER_ACCOUNTS: "/ledger-accounts",
   LEDGER_TRANSACTIONS: "/ledger-transactions",
 
   LEDGER_ACCOUNT_DETAILS: /^\/ledger-accounts\/[^/]+/,
   DEPOSIT_ACCOUNT_DETAILS: /^\/deposit-accounts\/[^/]+/,
 }
 
-export const ALWAYS_SHOW_DROPDOWN_PATHS: (string | RegExp)[] = [
-  PATH_CONFIGS.CHART_OF_ACCOUNTS,
-]
+export const ALWAYS_SHOW_DROPDOWN_PATHS: (string | RegExp)[] = []
 
 const showCreateButton = (currentPath: string) => {
   const allowedPaths = Object.values(PATH_CONFIGS)
@@ -163,7 +158,6 @@ const CreateButton = () => {
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
   const [openCreateCustodianDialog, setOpenCreateCustodianDialog] = useState(false)
   const [openExecuteManualTransaction, setOpenExecuteManualTransaction] = useState(false)
-  const [openAddAccountDialog, setOpenAddAccountDialog] = useState(false)
   const [openCreateDepositAccountDialog, setOpenCreateDepositAccountDialog] =
     useState(false)
   const [openAddChildAccountDialog, setOpenAddChildAccountDialog] = useState(false)
@@ -350,12 +344,6 @@ const CreateButton = () => {
       allowedPaths: [PATH_CONFIGS.ROLES_AND_PERMISSIONS],
     },
     {
-      label: t("menuItems.account"),
-      onClick: () => setOpenAddAccountDialog(true),
-      dataTestId: "create-account-button",
-      allowedPaths: [PATH_CONFIGS.CHART_OF_ACCOUNTS, PATH_CONFIGS.LEDGER_ACCOUNTS],
-    },
-    {
       label: t("menuItems.subAccount"),
       onClick: () => {
         if (!ledgerAccount) return
@@ -500,11 +488,6 @@ const CreateButton = () => {
       <ExecuteManualTransactionDialog
         openExecuteManualTransaction={openExecuteManualTransaction}
         setOpenExecuteManualTransaction={setOpenExecuteManualTransaction}
-      />
-
-      <AddRootNodeDialog
-        open={openAddAccountDialog}
-        onOpenChange={setOpenAddAccountDialog}
       />
 
       {customer && !customer.depositAccount && (

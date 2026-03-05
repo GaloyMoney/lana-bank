@@ -2448,26 +2448,6 @@ impl Mutation {
         )
     }
 
-    async fn chart_of_accounts_add_root_node(
-        &self,
-        ctx: &Context<'_>,
-        input: ChartOfAccountsAddRootNodeInput,
-    ) -> async_graphql::Result<ChartOfAccountsAddRootNodePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            ChartOfAccountsAddRootNodePayload,
-            ChartOfAccounts,
-            ChartId,
-            ctx,
-            app.accounting().add_root_node(
-                sub,
-                CHART_REF.0,
-                input.try_into()?,
-                TRIAL_BALANCE_STATEMENT_NAME,
-            )
-        )
-    }
-
     async fn chart_of_accounts_add_child_node(
         &self,
         ctx: &Context<'_>,

@@ -573,28 +573,6 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "core_accounting.add_root_node", skip(self))]
-    pub async fn add_root_node(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_ref: &str,
-        spec: AccountSpec,
-        trial_balance_ref: &str,
-    ) -> Result<Chart, CoreAccountingError> {
-        let (chart, new_account_set_id) = self
-            .chart_of_accounts()
-            .add_root_node(sub, chart_ref, spec)
-            .await?;
-        if let Some(new_account_set_id) = new_account_set_id {
-            self.trial_balances()
-                .add_new_chart_accounts_to_trial_balance(trial_balance_ref, &[new_account_set_id])
-                .await?;
-        }
-
-        Ok(chart)
-    }
-
-    #[record_error_severity]
     #[instrument(name = "core_accounting.add_child_node", skip(self))]
     pub async fn add_child_node(
         &self,
