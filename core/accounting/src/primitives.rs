@@ -8,7 +8,7 @@ pub const ACCOUNTING_TRIAL_BALANCE: audit::SystemActor =
     audit::SystemActor::new("accounting-trial-balance");
 
 // Re-export everything from the primitives crate
-pub use core_accounting_primitives::*;
+pub use chart_primitives::*;
 
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,

@@ -1206,7 +1206,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
- "core-accounting-primitives",
+ "core-chart-primitives",
  "csv",
  "derive_builder",
  "document-storage",
@@ -1232,7 +1232,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "core-accounting-primitives"
+name = "core-chart-primitives"
 version = "0.0.0"
 dependencies = [
  "cala-ledger",
@@ -1262,7 +1262,7 @@ dependencies = [
  "cloud-storage",
  "core-access",
  "core-accounting",
- "core-accounting-primitives",
+ "core-chart-primitives",
  "core-credit-collateral",
  "core-credit-collection",
  "core-credit-terms",
@@ -1312,7 +1312,7 @@ dependencies = [
  "authz",
  "cala-ledger",
  "chrono",
- "core-accounting-primitives",
+ "core-chart-primitives",
  "core-credit-collection",
  "core-custody",
  "core-price",
@@ -1478,7 +1478,7 @@ dependencies = [
  "chrono",
  "cloud-storage",
  "core-accounting",
- "core-accounting-primitives",
+ "core-chart-primitives",
  "core-customer",
  "derive_builder",
  "document-storage",

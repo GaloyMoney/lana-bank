@@ -27,7 +27,7 @@ cala-ledger = { workspace = true }
 es-entity = { workspace = true }
 sqlx = { workspace = true }
 
-core-accounting-primitives = { path = "../../accounting-primitives" }
+chart-primitives = { workspace = true }
 core-custody = { path = "../../custody" }
 core-price = { path = "../../price" }
 governance = { path = "../../governance" }

@@ -6,10 +6,10 @@ edition = "2024"
 [features]
 fail-on-warnings = []
 graphql = [ "dep:async-graphql" ]
-json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "document-storage/json-schema", "core-accounting-primitives/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "document-storage/json-schema", "chart-primitives/json-schema"]
 
 [dependencies]
-core-accounting-primitives = { workspace = true }
+chart-primitives = { workspace = true }
 permission-sets-macro = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }

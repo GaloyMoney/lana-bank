@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_accounting_primitives::ChartLookup;
+use chart_primitives::ChartLookup;
 use domain_config::InternalDomainConfigs;
 
 use crate::{CoreCreditAction, CoreCreditObject, ledger::*};

@@ -1,5 +1,5 @@
 [package]
-name = "core-accounting-primitives"
+name = "core-chart-primitives"
 license = "BUSL-1.1"
 edition = "2024"
 

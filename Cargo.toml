@@ -46,7 +46,7 @@ tracing-utils = { path = "lib/tracing-utils" }
 # Core dependencies
 core-access = { path = "core/access" }
 core-accounting = { path = "core/accounting" }
-core-accounting-primitives = { path = "core/accounting-primitives" }
+chart-primitives = { package = "core-chart-primitives", path = "core/chart-primitives" }
 core-credit = { path = "core/credit" }
 core-credit-collateral = { path = "core/credit/collateral" }
 core-credit-collection = { path = "core/credit/collection" }

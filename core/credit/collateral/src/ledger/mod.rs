@@ -10,7 +10,7 @@ use cala_ledger::{
     AccountSetId as CalaAccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId,
     TransactionId as CalaTransactionId, account::NewAccount,
 };
-use core_accounting_primitives::EntityRef;
+use chart_primitives::EntityRef;
 use es_entity::clock::ClockHandle;
 use money::Satoshis;
 
