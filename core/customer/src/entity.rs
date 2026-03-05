@@ -15,37 +15,18 @@ use crate::primitives::*;
 pub enum CustomerEvent {
     Initialized {
         id: CustomerId,
-        #[serde(default)]
-        party_id: Option<PartyId>,
-        #[serde(default)]
-        email: Option<String>,
-        #[serde(default)]
-        telegram_handle: Option<String>,
+        party_id: PartyId,
         customer_type: CustomerType,
         activity: Activity,
         public_id: PublicId,
         applicant_id: String,
         level: KycLevel,
         kyc_verification: KycVerification,
-        #[serde(default)]
-        personal_info: Option<PersonalInfo>,
-    },
-    PartyLinked {
-        party_id: PartyId,
-    },
-    TelegramHandleUpdated {
-        telegram_handle: String,
-    },
-    EmailUpdated {
-        email: String,
     },
     ActivityUpdated {
         activity: Activity,
     },
     KycRejected {},
-    PersonalInfoUpdated {
-        personal_info: PersonalInfo,
-    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -122,22 +103,16 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     applicant_id,
                     level,
                     kyc_verification,
-                    ..
                 } => {
                     builder = builder
                         .id(*id)
+                        .party_id(*party_id)
                         .customer_type(*customer_type)
                         .activity(*activity)
                         .public_id(public_id.clone())
                         .level(*level)
                         .kyc_verification(*kyc_verification)
                         .applicant_id(applicant_id.clone());
-                    if let Some(party_id) = party_id {
-                        builder = builder.party_id(*party_id);
-                    }
-                }
-                CustomerEvent::PartyLinked { party_id } => {
-                    builder = builder.party_id(*party_id);
                 }
                 CustomerEvent::ActivityUpdated { activity, .. } => {
                     builder = builder.activity(*activity);
@@ -145,10 +120,6 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 CustomerEvent::KycRejected { .. } => {
                     builder = builder.kyc_verification(KycVerification::Rejected);
                 }
-                // Legacy event variants - no-op for state reconstruction
-                CustomerEvent::TelegramHandleUpdated { .. }
-                | CustomerEvent::EmailUpdated { .. }
-                | CustomerEvent::PersonalInfoUpdated { .. } => {}
             }
         }
 
@@ -183,16 +154,13 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
             self.id,
             [CustomerEvent::Initialized {
                 id: self.id,
-                party_id: Some(self.party_id),
-                email: None,
-                telegram_handle: None,
+                party_id: self.party_id,
                 customer_type: self.customer_type,
                 activity: self.activity,
                 public_id: self.public_id,
                 applicant_id: self.applicant_id,
                 level: self.level,
                 kyc_verification: self.kyc_verification,
-                personal_info: None,
             }],
         )
     }
