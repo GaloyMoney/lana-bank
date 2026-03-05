@@ -1500,6 +1500,7 @@ export const mockCustomersFilter = (overrides?: Partial<CustomersFilter>, _relat
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomersFilter');
     return {
+        customerType: overrides && overrides.hasOwnProperty('customerType') ? overrides.customerType! : CustomerType.Bank,
         kycVerification: overrides && overrides.hasOwnProperty('kycVerification') ? overrides.kycVerification! : KycVerification.NoKyc,
     };
 };
@@ -2867,6 +2868,7 @@ export const mockProspectsFilter = (overrides?: Partial<ProspectsFilter>, _relat
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ProspectsFilter');
     return {
+        customerType: overrides && overrides.hasOwnProperty('customerType') ? overrides.customerType! : CustomerType.Bank,
         stage: overrides && overrides.hasOwnProperty('stage') ? overrides.stage! : ProspectStage.Closed,
     };
 };

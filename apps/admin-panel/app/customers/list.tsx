@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { KycStatusBadge } from "./kyc-status-badge"
 
 import {
+  CustomerType,
   KycVerification,
   Customer,
   CustomersFilter,
@@ -42,6 +43,7 @@ gql`
           email
           telegramHandle
           applicantId
+          customerType
           depositAccount {
             balance {
               settled
@@ -93,6 +95,11 @@ const CustomersList = () => {
       label: t("columns.kycVerification"),
       filterValues: Object.values(KycVerification),
       render: (status) => <KycStatusBadge status={status} />,
+    },
+    {
+      key: "customerType",
+      label: t("columns.customerType"),
+      filterValues: Object.values(CustomerType),
     },
     {
       key: "depositAccount",

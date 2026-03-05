@@ -377,6 +377,7 @@
       "telegramHandle": "Telegram",
       "status": "Status",
       "kycVerification": "KYC Verification",
+      "customerType": "Type",
       "depositAccount": "USD Balance"
     },
     "status": {

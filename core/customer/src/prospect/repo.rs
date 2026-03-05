@@ -15,7 +15,8 @@ use super::{entity::*, publisher::*};
     columns(
         party_id(ty = "PartyId", list_by),
         public_id(ty = "PublicId", list_by),
-        stage(ty = "ProspectStage", list_for)
+        stage(ty = "ProspectStage", list_for),
+        customer_type(ty = "CustomerType", list_for, update(persist = false))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"

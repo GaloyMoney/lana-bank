@@ -121,6 +121,7 @@ CREATE TABLE core_customers (
   party_id UUID NOT NULL REFERENCES core_parties(id),
   kyc_verification VARCHAR NOT NULL,
   activity VARCHAR NOT NULL DEFAULT 'disabled',
+  customer_type VARCHAR NOT NULL,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );
@@ -145,6 +146,7 @@ CREATE INDEX idx_customer_activity_last_activity_date ON customer_activity(last_
 CREATE TABLE core_prospects (
   id UUID PRIMARY KEY,
   party_id UUID NOT NULL REFERENCES core_parties(id),
+  customer_type VARCHAR NOT NULL,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   stage VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
