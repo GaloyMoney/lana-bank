@@ -98,8 +98,8 @@ checksums:
     Configurations/deposit-activity-escheatable-threshold-days/description: e160f1067b72de051ea7557e45ea0e2f
     Configurations/require-verified-customer-for-account/title: 015c054200f31fa6c65b634c7f3623db
     Configurations/require-verified-customer-for-account/description: ae89027a625701fe82727b185c634d0e
-    Configurations/disable-manual-collateral/title: 29c38afab360f30e14d2743b2633013d
-    Configurations/disable-manual-collateral/description: 98d7e1cbe5414552318eacd3c7bd8aa9
+    Configurations/manual-collateral/title: fc9c898caaa1db855598d7966e66b21b
+    Configurations/manual-collateral/description: d8f87ff90fbd2ce12d5265ed26560d52
     Configurations/sumsub-api-key/title: dd29a0723bea12971cb2d1ee46136ba9
     Configurations/sumsub-api-key/description: c07793f938e83089516c7abe29a82a3d
     Configurations/sumsub-api-secret/title: 804c2c14a63732c2eb2a061c89f31d5d
