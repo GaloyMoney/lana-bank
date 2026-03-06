@@ -1175,6 +1175,7 @@ type CustomerUnfreezePayload {
 input CustomersFilter {
 	kycVerification: KycVerification
 	customerType: CustomerType
+	status: CustomerStatus
 }
 
 input CustomersSort {

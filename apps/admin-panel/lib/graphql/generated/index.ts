@@ -1202,6 +1202,7 @@ export type CustomerUnfreezePayload = {
 export type CustomersFilter = {
   customerType?: InputMaybe<CustomerType>;
   kycVerification?: InputMaybe<KycVerification>;
+  status?: InputMaybe<CustomerStatus>;
 };
 
 export type CustomersSort = {
@@ -4205,6 +4206,13 @@ export type CustodiansQueryVariables = Exact<{
 
 export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: string, name: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type CustomerCloseMutationVariables = Exact<{
+  input: CustomerCloseInput;
+}>;
+
+
+export type CustomerCloseMutation = { __typename?: 'Mutation', customerClose: { __typename?: 'CustomerClosePayload', customer: { __typename?: 'Customer', id: string, status: CustomerStatus } } };
+
 export type GetCustomerCreditFacilityProposalsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
@@ -4286,7 +4294,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, kycVerification: KycVerification, activity: Activity, level: KycLevel, email: string, telegramHandle: string, applicantId: string, customerType: CustomerType, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, status: CustomerStatus, activity: Activity, level: KycLevel, email: string, telegramHandle: string, applicantId: string, customerType: CustomerType, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -8201,6 +8209,42 @@ export type CustodiansQueryHookResult = ReturnType<typeof useCustodiansQuery>;
 export type CustodiansLazyQueryHookResult = ReturnType<typeof useCustodiansLazyQuery>;
 export type CustodiansSuspenseQueryHookResult = ReturnType<typeof useCustodiansSuspenseQuery>;
 export type CustodiansQueryResult = Apollo.QueryResult<CustodiansQuery, CustodiansQueryVariables>;
+export const CustomerCloseDocument = gql`
+    mutation CustomerClose($input: CustomerCloseInput!) {
+  customerClose(input: $input) {
+    customer {
+      id
+      status
+    }
+  }
+}
+    `;
+export type CustomerCloseMutationFn = Apollo.MutationFunction<CustomerCloseMutation, CustomerCloseMutationVariables>;
+
+/**
+ * __useCustomerCloseMutation__
+ *
+ * To run a mutation, you first call `useCustomerCloseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerCloseMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerCloseMutation, { data, loading, error }] = useCustomerCloseMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustomerCloseMutation(baseOptions?: Apollo.MutationHookOptions<CustomerCloseMutation, CustomerCloseMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerCloseMutation, CustomerCloseMutationVariables>(CustomerCloseDocument, options);
+      }
+export type CustomerCloseMutationHookResult = ReturnType<typeof useCustomerCloseMutation>;
+export type CustomerCloseMutationResult = Apollo.MutationResult<CustomerCloseMutation>;
+export type CustomerCloseMutationOptions = Apollo.BaseMutationOptions<CustomerCloseMutation, CustomerCloseMutationVariables>;
 export const GetCustomerCreditFacilityProposalsDocument = gql`
     query GetCustomerCreditFacilityProposals($id: PublicId!) {
   customerByPublicId(id: $id) {
@@ -8648,7 +8692,7 @@ export const CustomersDocument = gql`
         id
         customerId
         publicId
-        kycVerification
+        status
         activity
         level
         email

@@ -1554,6 +1554,7 @@ export const mockCustomersFilter = (overrides?: Partial<CustomersFilter>, _relat
     return {
         customerType: overrides && overrides.hasOwnProperty('customerType') ? overrides.customerType! : CustomerType.Bank,
         kycVerification: overrides && overrides.hasOwnProperty('kycVerification') ? overrides.kycVerification! : KycVerification.NoKyc,
+        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CustomerStatus.Active,
     };
 };
 

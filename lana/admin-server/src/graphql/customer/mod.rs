@@ -271,4 +271,5 @@ impl From<CustomersSort> for Sort<DomainCustomersSortBy> {
 pub struct CustomersFilter {
     pub kyc_verification: Option<KycVerification>,
     pub customer_type: Option<CustomerType>,
+    pub status: Option<CustomerStatus>,
 }

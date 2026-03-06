@@ -469,7 +469,18 @@
         },
         "actions": {
           "editTelegram": "Edit Telegram Handle"
+        },
+        "buttons": {
+          "close": "Close Customer"
         }
+      },
+      "closeCustomer": {
+        "title": "Close Customer",
+        "description": "Are you sure you want to close this customer? This action cannot be undone.",
+        "buttons": {
+          "close": "Close"
+        },
+        "success": "Customer closed successfully"
       },
       "kycStatus": {
         "title": "KYC",
