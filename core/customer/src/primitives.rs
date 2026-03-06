@@ -116,6 +116,7 @@ pub enum KycStatus {
     NotStarted,
     Started,
     Pending,
+    OnHold,
     Approved,
     Declined,
 }
@@ -162,6 +163,7 @@ pub enum ProspectStage {
     New,
     KycStarted,
     KycPending,
+    KycOnHold,
     KycDeclined,
     Converted,
     Closed,

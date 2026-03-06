@@ -334,6 +334,33 @@ where
                     }
                 }
             }
+            KycCallbackPayload::ApplicantOnHold {
+                applicant_id,
+                external_user_id,
+                sandbox_mode,
+                ..
+            } => {
+                tracing::Span::current().record("callback_type", "ApplicantOnHold");
+                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("applicant_id", applicant_id.as_str());
+                tracing::Span::current()
+                    .record("customer_id", external_user_id.to_string().as_str());
+
+                let res = self
+                    .customers
+                    .handle_kyc_on_hold_if_exists(external_user_id)
+                    .await?;
+                if res.is_none() {
+                    if sandbox_mode.unwrap_or(false) {
+                        tracing::Span::current().record("ignore_for_sandbox", true);
+                    } else {
+                        tracing::warn!(
+                            prospect_id = %external_user_id,
+                            "No prospect found for KYC on hold callback"
+                        );
+                    }
+                }
+            }
             KycCallbackPayload::ApplicantPersonalInfoChanged {
                 applicant_id,
                 external_user_id,

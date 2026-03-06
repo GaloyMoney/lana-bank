@@ -425,6 +425,23 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.handle_kyc_on_hold_if_exists", skip(self))]
+    pub async fn handle_kyc_on_hold_if_exists(
+        &self,
+        prospect_id: ProspectId,
+    ) -> Result<Option<Prospect>, CustomerError> {
+        let Some(mut prospect) = self.prospect_repo.maybe_find_by_id(prospect_id).await? else {
+            return Ok(None);
+        };
+
+        if prospect.set_kyc_on_hold()?.did_execute() {
+            self.prospect_repo.update(&mut prospect).await?;
+        }
+
+        Ok(Some(prospect))
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.handle_kyc_approved_if_exists", skip(self))]
     pub async fn handle_kyc_approved_if_exists(
         &self,
