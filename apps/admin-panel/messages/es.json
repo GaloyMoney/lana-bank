@@ -1458,7 +1458,7 @@
       },
       "CommitteeAssignmentDialog": {
         "title": "Asignar Comité a Política",
-        "description": "Seleccione un comité para esta política. Todos los miembros del comité deben aprobar.",
+        "description": "Selecciona un comité para esta política. Todos los miembros del comité deben aprobarla.",
         "fields": {
           "committee": "Seleccionar Comité"
         },

@@ -895,12 +895,10 @@ checksums:
     Policies/PolicyDetails/DetailsCard/buttons/updatePolicy: 5a1b57bec7b12858fc078e6abd34b92b
     Policies/PolicyDetails/DetailsCard/buttons/assignCommittee: d0c985e17d986b2d6798b4edd89c5d14
     Policies/PolicyDetails/CommitteeAssignmentDialog/title: 73e63853ea6c9ad2ef716a6f3149ee6d
-    Policies/PolicyDetails/CommitteeAssignmentDialog/description: f57d4d1d87d5e043e7ee2c1b7d127bbd
+    Policies/PolicyDetails/CommitteeAssignmentDialog/description: 286768785c89f71b4b6102264d3d8e0f
     Policies/PolicyDetails/CommitteeAssignmentDialog/fields/committee: a1ba7268f936a3dc65cd7f2ecdf26aee
-    Policies/PolicyDetails/CommitteeAssignmentDialog/fields/threshold: bf13122ad13acfc7f20e79610efbaac5
     Policies/PolicyDetails/CommitteeAssignmentDialog/placeholders/committee: 4f2c28607075059501b031774dfdffe6
-    Policies/PolicyDetails/CommitteeAssignmentDialog/placeholders/threshold: 09d2717d32e28f41c7308e0db6df2f29
-    Policies/PolicyDetails/CommitteeAssignmentDialog/errors/selectCommitteeAndThreshold: 1b991020d5e8ef11f04c49a67d4a075b
+    Policies/PolicyDetails/CommitteeAssignmentDialog/errors/selectCommittee: 6a5dbfc32297cb9831dca4ad0883a07e
     Policies/PolicyDetails/CommitteeAssignmentDialog/errors/general: dd9aef0a9c3638442bc8f6151feb33d6
     Policies/PolicyDetails/CommitteeAssignmentDialog/errors/assignmentFailed: 1379637f80e23b14f57dbbb2872725f8
     Policies/PolicyDetails/CommitteeAssignmentDialog/success/assigned: a638c89b03661838e2bca433e0b40905
