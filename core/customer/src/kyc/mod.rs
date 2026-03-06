@@ -389,15 +389,10 @@ where
                     }
                 };
 
-                let prospect = self
-                    .customers
-                    .find_prospect_by_id_without_audit(external_user_id)
-                    .await;
-                if let Ok(prospect) = prospect {
-                    self.customers
-                        .handle_personal_info_changed_if_exists(prospect.party_id, personal_info)
-                        .await?;
-                }
+                let party_id = external_user_id.into();
+                self.customers
+                    .handle_personal_info_changed_if_exists(party_id, personal_info)
+                    .await?;
             }
             KycCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
