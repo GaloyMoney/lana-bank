@@ -1249,12 +1249,12 @@ impl Query {
     async fn notes_for_target(
         &self,
         ctx: &Context<'_>,
-        target_type: String,
+        target_type: lana_app::note::NoteTargetKind,
         target_id: UUID,
     ) -> async_graphql::Result<Vec<Note>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let target_id_str = uuid::Uuid::from(&target_id).to_string();
-        let note_target_type = lana_app::note::NoteTargetType::new_from_string(target_type);
+        let note_target_type = lana_app::note::NoteTargetType::from(target_type);
         let notes = app
             .notes()
             .list_for_target(sub, note_target_type, target_id_str)
@@ -2687,7 +2687,7 @@ impl Mutation {
         input: NoteCreateInput,
     ) -> async_graphql::Result<NoteCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let note_target_type = lana_app::note::NoteTargetType::new_from_string(input.target_type);
+        let note_target_type = lana_app::note::NoteTargetType::from(input.target_type);
         let note = app
             .notes()
             .create(

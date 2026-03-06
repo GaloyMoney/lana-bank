@@ -2068,13 +2068,13 @@ type Note {
 	id: ID!
 	noteId: UUID!
 	createdAt: Timestamp!
-	targetType: String!
+	targetType: NoteTargetKind!
 	targetId: String!
 	content: String!
 }
 
 input NoteCreateInput {
-	targetType: String!
+	targetType: NoteTargetKind!
 	targetId: UUID!
 	content: String!
 }
@@ -2089,6 +2089,12 @@ input NoteDeleteInput {
 
 type NoteDeletePayload {
 	deletedNoteId: UUID!
+}
+
+enum NoteTargetKind {
+	CUSTOMER
+	PROSPECT
+	CREDIT_FACILITY
 }
 
 input NoteUpdateInput {
@@ -2518,7 +2524,7 @@ type Query {
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 	reportRuns(first: Int!, after: String): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun
-	notesForTarget(targetType: String!, targetId: UUID!): [Note!]!
+	notesForTarget(targetType: NoteTargetKind!, targetId: UUID!): [Note!]!
 }
 
 type RealtimePrice {

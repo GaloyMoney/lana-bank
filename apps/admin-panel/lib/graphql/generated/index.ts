@@ -2405,13 +2405,13 @@ export type Note = {
   id: Scalars['ID']['output'];
   noteId: Scalars['UUID']['output'];
   targetId: Scalars['String']['output'];
-  targetType: Scalars['String']['output'];
+  targetType: NoteTargetKind;
 };
 
 export type NoteCreateInput = {
   content: Scalars['String']['input'];
   targetId: Scalars['UUID']['input'];
-  targetType: Scalars['String']['input'];
+  targetType: NoteTargetKind;
 };
 
 export type NoteCreatePayload = {
@@ -2427,6 +2427,12 @@ export type NoteDeletePayload = {
   __typename?: 'NoteDeletePayload';
   deletedNoteId: Scalars['UUID']['output'];
 };
+
+export enum NoteTargetKind {
+  CreditFacility = 'CREDIT_FACILITY',
+  Customer = 'CUSTOMER',
+  Prospect = 'PROSPECT'
+}
 
 export type NoteUpdateInput = {
   content: Scalars['String']['input'];
@@ -3064,7 +3070,7 @@ export type QueryLoanAgreementArgs = {
 
 export type QueryNotesForTargetArgs = {
   targetId: Scalars['UUID']['input'];
-  targetType: Scalars['String']['input'];
+  targetType: NoteTargetKind;
 };
 
 
