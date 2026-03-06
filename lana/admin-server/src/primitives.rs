@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use domain_config::DomainConfigId;
 
+pub use lana_app::note::NoteId;
 pub use lana_app::{
     accounting::{LedgerAccountId, TransactionTemplateId},
     primitives::{
@@ -165,5 +166,6 @@ impl_to_global_id! {
     FiscalYearId,
     ProspectId,
     DomainConfigId,
-    TransactionTemplateId
+    TransactionTemplateId,
+    NoteId
 }

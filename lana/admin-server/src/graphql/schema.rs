@@ -30,8 +30,8 @@ use super::{
     access::*, accounting::*, approval_process::*, audit::*, build_info::BuildInfo, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, domain_config::*, loader::*, me::*,
-    policy::*, price::*, prospect::*, public_id::*, reports::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    note::*, policy::*, price::*, prospect::*, public_id::*, reports::*, sumsub::*,
+    terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -1244,6 +1244,48 @@ impl Query {
     ) -> async_graphql::Result<Option<ReportRun>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(ReportRun, ctx, app.reports().find_report_run_by_id(sub, id))
+    }
+
+    async fn notes_for_target(
+        &self,
+        ctx: &Context<'_>,
+        target_id: UUID,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<
+            lana_app::note::note_cursor::NotesByCreatedAtCursor,
+            Note,
+            EmptyFields,
+            EmptyFields,
+        >,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let target_id_str = uuid::Uuid::from(&target_id).to_string();
+        async_graphql::types::connection::query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let args = es_entity::PaginatedQueryArgs { first, after };
+                let res = app
+                    .notes()
+                    .list_for_target(sub, target_id_str, args)
+                    .await?;
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entity| {
+                        let cursor =
+                            lana_app::note::note_cursor::NotesByCreatedAtCursor::from(&entity);
+                        Edge::new(cursor, Note::from(entity))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 }
 
@@ -2663,6 +2705,56 @@ impl Mutation {
             .generate_report_file_download_link(sub, input.report_id, input.extension)
             .await?;
         Ok(ReportFileGenerateDownloadLinkPayload { url })
+    }
+
+    async fn note_create(
+        &self,
+        ctx: &Context<'_>,
+        input: NoteCreateInput,
+    ) -> async_graphql::Result<NoteCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let note_target_type = lana_app::note::NoteTargetType::from(input.target_type);
+        let note = app
+            .notes()
+            .create(
+                sub,
+                note_target_type,
+                uuid::Uuid::from(&input.target_id).to_string(),
+                input.content,
+            )
+            .await?;
+        Ok(NoteCreatePayload::from(Note::from(note)))
+    }
+
+    async fn note_update(
+        &self,
+        ctx: &Context<'_>,
+        input: NoteUpdateInput,
+    ) -> async_graphql::Result<NoteUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let note = app
+            .notes()
+            .update(
+                sub,
+                lana_app::note::NoteId::from(input.note_id),
+                input.content,
+            )
+            .await?;
+        Ok(NoteUpdatePayload::from(Note::from(note)))
+    }
+
+    async fn note_delete(
+        &self,
+        ctx: &Context<'_>,
+        input: NoteDeleteInput,
+    ) -> async_graphql::Result<NoteDeletePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        app.notes()
+            .delete(sub, lana_app::note::NoteId::from(input.note_id))
+            .await?;
+        Ok(NoteDeletePayload {
+            deleted_note_id: input.note_id,
+        })
     }
 }
 

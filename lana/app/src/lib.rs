@@ -222,6 +222,14 @@ pub mod public_id {
     pub use public_id::{PublicId, PublicIdEntity, PublicIdTargetType, PublicIds, error};
 }
 
+pub mod note {
+    pub use core_note::{
+        CoreNoteAction, Note, NoteError, NoteId, NoteObject, NoteTargetKind, NoteTargetType, error,
+        note_cursor,
+    };
+    pub type Notes = core_note::Notes<crate::authorization::Authorization>;
+}
+
 pub mod report {
     pub use core_report::{
         CoreReportAction, CoreReportEvent, Report, ReportConfig, ReportError, ReportFile, ReportId,

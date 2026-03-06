@@ -108,6 +108,14 @@
       "description": "Can create and manage committees and policies, and control approval processes (create, approve, deny, conclude)",
       "label": "Governance Writer"
     },
+    "note_reader": {
+      "description": "Can read notes",
+      "label": "Note Reader"
+    },
+    "note_writer": {
+      "description": "Can create, update, and delete notes",
+      "label": "Note Writer"
+    },
     "report_viewer": {
       "description": "Can see regulatory reports and download them",
       "label": "Report Viewer"

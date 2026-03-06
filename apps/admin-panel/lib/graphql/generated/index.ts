@@ -2044,6 +2044,9 @@ export type Mutation = {
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
+  noteCreate: NoteCreatePayload;
+  noteDelete: NoteDeletePayload;
+  noteUpdate: NoteUpdatePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   prospectClose: ProspectClosePayload;
   prospectConvert: ProspectConvertPayload;
@@ -2296,6 +2299,21 @@ export type MutationManualTransactionExecuteArgs = {
 };
 
 
+export type MutationNoteCreateArgs = {
+  input: NoteCreateInput;
+};
+
+
+export type MutationNoteDeleteArgs = {
+  input: NoteDeleteInput;
+};
+
+
+export type MutationNoteUpdateArgs = {
+  input: NoteUpdateInput;
+};
+
+
 export type MutationPolicyAssignCommitteeArgs = {
   input: PolicyAssignCommitteeInput;
 };
@@ -2378,6 +2396,71 @@ export type MutationWithdrawalInitiateArgs = {
 
 export type MutationWithdrawalRevertArgs = {
   input: WithdrawalRevertInput;
+};
+
+export type Note = {
+  __typename?: 'Note';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  noteId: Scalars['UUID']['output'];
+  targetId: Scalars['String']['output'];
+  targetType: NoteTargetKind;
+};
+
+export type NoteConnection = {
+  __typename?: 'NoteConnection';
+  /** A list of edges. */
+  edges: Array<NoteEdge>;
+  /** A list of nodes. */
+  nodes: Array<Note>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+export type NoteCreateInput = {
+  content: Scalars['String']['input'];
+  targetId: Scalars['UUID']['input'];
+  targetType: NoteTargetKind;
+};
+
+export type NoteCreatePayload = {
+  __typename?: 'NoteCreatePayload';
+  note: Note;
+};
+
+export type NoteDeleteInput = {
+  noteId: Scalars['UUID']['input'];
+};
+
+export type NoteDeletePayload = {
+  __typename?: 'NoteDeletePayload';
+  deletedNoteId: Scalars['UUID']['output'];
+};
+
+/** An edge in a connection. */
+export type NoteEdge = {
+  __typename?: 'NoteEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Note;
+};
+
+export enum NoteTargetKind {
+  CreditFacility = 'CREDIT_FACILITY',
+  Customer = 'CUSTOMER',
+  Prospect = 'PROSPECT'
+}
+
+export type NoteUpdateInput = {
+  content: Scalars['String']['input'];
+  noteId: Scalars['UUID']['input'];
+};
+
+export type NoteUpdatePayload = {
+  __typename?: 'NoteUpdatePayload';
+  note: Note;
 };
 
 export type Outstanding = {
@@ -2740,6 +2823,7 @@ export type Query = {
   liquidations: LiquidationConnection;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
+  notesForTarget: NoteConnection;
   pendingCreditFacilities: PendingCreditFacilityConnection;
   pendingCreditFacility?: Maybe<PendingCreditFacility>;
   permissionSets: PermissionSetConnection;
@@ -3000,6 +3084,13 @@ export type QueryLiquidationsArgs = {
 
 export type QueryLoanAgreementArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryNotesForTargetArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+  targetId: Scalars['UUID']['input'];
 };
 
 

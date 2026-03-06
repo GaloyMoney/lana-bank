@@ -77,7 +77,8 @@
       "reportRun": "Fetches a specific report run by its unique identifier",
       "prospect": "Fetches a specific prospect by their unique identifier",
       "prospectByPublicId": "Fetches a prospect by their public-facing identifier",
-      "prospects": "Returns a paginated list of all prospects, optionally filtered by stage"
+      "prospects": "Returns a paginated list of all prospects, optionally filtered by stage",
+      "notesForTarget": "Returns all non-deleted notes attached to a specific target entity (e.g., customer, credit facility)"
     },
     "mutations": {
       "customerDocumentAttach": "Uploads and attaches a document to a customer's profile",
@@ -155,7 +156,10 @@
       "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file",
       "collateralLiquidationRecordProceedsReceived": "Records proceeds received from a collateral liquidation",
       "collateralRecordSentToLiquidation": "Records collateral sent to liquidation",
-      "collateralUpdate": "Updates the collateral amount for a credit facility with a specified effective date"
+      "collateralUpdate": "Updates the collateral amount for a credit facility with a specified effective date",
+      "noteCreate": "Creates a new note attached to a target entity (e.g., customer, credit facility)",
+      "noteUpdate": "Updates the content of an existing note",
+      "noteDelete": "Soft-deletes a note, marking it as deleted"
     }
   },
   "customer": {

@@ -2059,6 +2059,80 @@ type Mutation {
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	triggerReportRun: ReportRunCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
+	noteCreate(input: NoteCreateInput!): NoteCreatePayload!
+	noteUpdate(input: NoteUpdateInput!): NoteUpdatePayload!
+	noteDelete(input: NoteDeleteInput!): NoteDeletePayload!
+}
+
+type Note {
+	id: ID!
+	noteId: UUID!
+	createdAt: Timestamp!
+	targetType: NoteTargetKind!
+	targetId: String!
+	content: String!
+}
+
+type NoteConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [NoteEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Note!]!
+}
+
+input NoteCreateInput {
+	targetType: NoteTargetKind!
+	targetId: UUID!
+	content: String!
+}
+
+type NoteCreatePayload {
+	note: Note!
+}
+
+input NoteDeleteInput {
+	noteId: UUID!
+}
+
+type NoteDeletePayload {
+	deletedNoteId: UUID!
+}
+
+"""
+An edge in a connection.
+"""
+type NoteEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Note!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+enum NoteTargetKind {
+	CUSTOMER
+	PROSPECT
+	CREDIT_FACILITY
+}
+
+input NoteUpdateInput {
+	noteId: UUID!
+	content: String!
+}
+
+type NoteUpdatePayload {
+	note: Note!
 }
 
 scalar OneTimeFeeRatePct
@@ -2479,6 +2553,7 @@ type Query {
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 	reportRuns(first: Int!, after: String): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun
+	notesForTarget(targetId: UUID!, first: Int!, after: String): NoteConnection!
 }
 
 type RealtimePrice {
