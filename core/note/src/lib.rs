@@ -14,7 +14,7 @@ use tracing_macros::record_error_severity;
 pub use entity::{NewNote, Note};
 pub use error::*;
 pub use primitives::*;
-pub use repo::NoteRepo;
+pub use repo::{NoteRepo, note_cursor};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -136,15 +136,22 @@ where
     pub async fn list_for_target(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        target_type: NoteTargetType,
-        target_id: String,
-    ) -> Result<Vec<Note>, NoteError> {
+        target_id: impl Into<String> + std::fmt::Debug,
+        query: es_entity::PaginatedQueryArgs<note_cursor::NotesByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Note, note_cursor::NotesByCreatedAtCursor>, NoteError>
+    {
         self.authz
             .enforce_permission(sub, NoteObject::all_notes(), CoreNoteAction::NOTE_LIST)
             .await?;
 
-        let notes = self.repo.list_by_target(&target_type, &target_id).await?;
-        Ok(notes)
+        Ok(self
+            .repo
+            .list_for_target_id_by_created_at(
+                target_id.into(),
+                query,
+                es_entity::ListDirection::Ascending,
+            )
+            .await?)
     }
 
     pub async fn find_all(
