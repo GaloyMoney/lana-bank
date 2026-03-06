@@ -23,6 +23,7 @@ use authz::PermissionCheck;
 use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
+use domain_config::ExposedDomainConfigsReadOnly;
 use es_entity::clock::ClockHandle;
 use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
@@ -63,6 +64,7 @@ where
     customer_activity_repo: CustomerActivityRepo,
     document_storage: DocumentStorage,
     public_ids: PublicIds,
+    domain_configs: ExposedDomainConfigsReadOnly,
     config: CustomerConfig,
 }
 
@@ -81,6 +83,7 @@ where
             customer_activity_repo: self.customer_activity_repo.clone(),
             document_storage: self.document_storage.clone(),
             public_ids: self.public_ids.clone(),
+            domain_configs: self.domain_configs.clone(),
             config: self.config.clone(),
         }
     }
@@ -99,6 +102,7 @@ where
         outbox: &Outbox<E>,
         document_storage: DocumentStorage,
         public_id_service: PublicIds,
+        domain_configs: &ExposedDomainConfigsReadOnly,
         clock: ClockHandle,
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
@@ -117,17 +121,9 @@ where
             customer_activity_repo,
             document_storage,
             public_ids: public_id_service,
+            domain_configs: domain_configs.clone(),
             config: CustomerConfig::default(),
         }
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "customer.find_party_by_id_without_audit", skip(self))]
-    pub async fn find_party_by_id_without_audit(
-        &self,
-        party_id: impl Into<PartyId> + std::fmt::Debug,
-    ) -> Result<Party, CustomerError> {
-        Ok(self.party_repo.find_by_id(party_id.into()).await?)
     }
 
     #[record_error_severity]
@@ -136,8 +132,8 @@ where
         &self,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Party, CustomerError> {
-        let customer = self.repo.find_by_id(customer_id.into()).await?;
-        Ok(self.party_repo.find_by_id(customer.party_id).await?)
+        let id = PartyId::from(customer_id.into());
+        Ok(self.party_repo.find_by_id(id).await?)
     }
 
     #[record_error_severity]
@@ -150,8 +146,8 @@ where
         op: &mut impl es_entity::AtomicOperation,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Party, CustomerError> {
-        let customer = self.repo.find_by_id_in_op(op, customer_id.into()).await?;
-        Ok(self.party_repo.find_by_id(customer.party_id).await?)
+        let id = PartyId::from(customer_id.into());
+        Ok(self.party_repo.find_by_id_in_op(op, id).await?)
     }
 
     pub async fn subject_can_create_prospect(
@@ -285,15 +281,19 @@ where
         &self,
         op: &mut impl es_entity::AtomicOperation,
         id: impl Into<CustomerId> + std::fmt::Debug,
-        require_verified: bool,
     ) -> Result<Customer, CustomerError> {
-        let customer = self.repo.find_by_id_in_op(op, id.into()).await?;
+        let customer = self.repo.find_by_id_in_op(&mut *op, id.into()).await?;
         if customer.is_closed() {
             return Err(CustomerError::CustomerIsClosed);
         }
         if customer.is_frozen() {
             return Err(CustomerError::CustomerIsFrozen);
         }
+        let require_verified = self
+            .domain_configs
+            .get_without_audit_in_op::<RequireVerifiedCustomerForAccount>(op)
+            .await?
+            .value();
         if require_verified && !customer.kyc_verification.is_verified() {
             return Err(CustomerError::CustomerNotVerified);
         }

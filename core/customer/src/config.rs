@@ -1,5 +1,17 @@
 use chrono::{DateTime, Duration, NaiveDate, Utc};
+use domain_config::define_exposed_config;
 use serde::{Deserialize, Serialize};
+
+define_exposed_config! {
+    /// Controls whether KYC verification is required for account operations.
+    /// When enabled, customers must be KYC-verified before creating
+    /// deposit accounts or credit facilities.
+    pub struct RequireVerifiedCustomerForAccount(bool);
+    spec {
+        key: "require-verified-customer-for-account";
+        default: || Some(true);
+    }
+}
 
 // Use January 1st, 2000 as the minimum date
 pub const EARLIEST_SEARCH_START: DateTime<Utc> = {

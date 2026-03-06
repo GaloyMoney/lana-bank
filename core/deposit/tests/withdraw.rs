@@ -42,17 +42,18 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
 
+    let (internal_domain_configs, exposed_domain_configs) =
+        helpers::init_domain_configs(&pool, &authz).await?;
+
     let customers = Customers::new(
         &pool,
         &authz,
         &outbox,
         document_storage.clone(),
         public_ids.clone(),
+        &exposed_domain_configs,
         clock.clone(),
     );
-
-    let (internal_domain_configs, exposed_domain_configs) =
-        helpers::init_domain_configs(&pool, &authz).await?;
 
     let deposit = CoreDeposit::init(
         &pool,

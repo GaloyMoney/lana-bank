@@ -126,7 +126,6 @@ mod macros;
 mod primitives;
 pub mod registry;
 mod repo;
-mod shared_config;
 mod spec;
 mod typed_domain_config;
 mod value;
@@ -155,7 +154,6 @@ pub use primitives::{
     PERMISSION_SET_EXPOSED_CONFIG_VIEWER, PERMISSION_SET_EXPOSED_CONFIG_WRITER, Visibility,
 };
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
-pub use shared_config::RequireVerifiedCustomerForAccount;
 pub use spec::{
     Complex, ConfigFlavor, ConfigSpec, DefaultedConfig, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, ExposedConfig, InternalConfig, Simple, ValueKind,
@@ -273,6 +271,19 @@ impl ExposedDomainConfigsReadOnly {
         C: ExposedConfig,
     {
         let entity = self.repo.find_by_key(C::KEY).await?;
+        C::Flavor::try_new::<C>(entity, &self.encryption_config)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.get_without_audit_in_op", skip(self, op))]
+    pub async fn get_without_audit_in_op<C>(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+    ) -> Result<TypedDomainConfig<C>, DomainConfigError>
+    where
+        C: ExposedConfig,
+    {
+        let entity = self.repo.find_by_key_in_op(op, C::KEY).await?;
         C::Flavor::try_new::<C>(entity, &self.encryption_config)
     }
 }

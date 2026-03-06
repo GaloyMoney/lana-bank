@@ -35,12 +35,22 @@ pub async fn setup() -> anyhow::Result<(
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let public_ids = public_id::PublicIds::new(&pool);
 
+    let startup_configs: Vec<(String, serde_json::Value)> = vec![];
+    let (_, _, exposed_domain_configs_readonly) = domain_config::init(
+        &pool,
+        &authz,
+        domain_config::EncryptionConfig::default(),
+        startup_configs,
+    )
+    .await?;
+
     let customers = Customers::new(
         &pool,
         &authz,
         &outbox,
         document_storage,
         public_ids,
+        &exposed_domain_configs_readonly,
         clock.clone(),
     );
 
@@ -53,6 +63,12 @@ pub mod action {
 
     impl From<core_customer::CoreCustomerAction> for DummyAction {
         fn from(_: core_customer::CoreCustomerAction) -> Self {
+            Self
+        }
+    }
+
+    impl From<domain_config::DomainConfigAction> for DummyAction {
+        fn from(_: domain_config::DomainConfigAction) -> Self {
             Self
         }
     }
@@ -78,6 +94,12 @@ pub mod object {
 
     impl From<core_customer::CustomerObject> for DummyObject {
         fn from(_: core_customer::CustomerObject) -> Self {
+            Self
+        }
+    }
+
+    impl From<domain_config::DomainConfigObject> for DummyObject {
+        fn from(_: domain_config::DomainConfigObject) -> Self {
             Self
         }
     }

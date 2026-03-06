@@ -44,7 +44,6 @@ pub use deposit::{
     Deposit, DepositsByCreatedAtCursor, DepositsCursor, DepositsFilters, DepositsSortBy,
 };
 pub use deposit_account_balance::DepositAccountBalance;
-pub use domain_config::RequireVerifiedCustomerForAccount;
 use error::*;
 pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
@@ -240,19 +239,13 @@ where
 
         let customer_id = CustomerId::from(holder_id.into());
 
-        let require_verified = self
-            .domain_configs
-            .get_without_audit::<RequireVerifiedCustomerForAccount>()
-            .await?
-            .value();
-
         let account_id = DepositAccountId::new();
 
         let mut op = self.deposit_accounts.begin_op().await?;
 
         let customer = self
             .customers
-            .find_eligible_for_product_without_audit_in_op(&mut op, customer_id, require_verified)
+            .find_eligible_for_product_without_audit_in_op(&mut op, customer_id)
             .await?;
 
         let public_id = self

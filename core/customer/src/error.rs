@@ -40,6 +40,8 @@ pub enum CustomerError {
     ProspectError(#[from] prospect::ProspectError),
     #[error("CustomerError - PartyError: {0}")]
     PartyError(#[from] party::PartyError),
+    #[error("CustomerError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::DomainConfigError),
     #[error("CustomerError - CustomerIsClosed")]
     CustomerIsClosed,
     #[error("CustomerError - CustomerIsFrozen")]
@@ -112,6 +114,7 @@ impl ErrorSeverity for CustomerError {
             Self::PublicIdError(e) => e.severity(),
             Self::ProspectError(e) => e.severity(),
             Self::PartyError(e) => e.severity(),
+            Self::DomainConfigError(_) => Level::ERROR,
             Self::CustomerIsClosed => Level::WARN,
             Self::CustomerIsFrozen => Level::WARN,
             Self::CustomerNotVerified => Level::WARN,

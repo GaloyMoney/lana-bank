@@ -58,7 +58,7 @@ pub mod customer {
         CustomerStatus, CustomerType, CustomersCursor, CustomersFilters, CustomersSortBy, KycLevel,
         KycStatus, KycVerification, PROSPECT_REF_TARGET, Party, PartyId, PersonalInfo, Prospect,
         ProspectId, ProspectStage, ProspectStatus, ProspectsFilters, ProspectsSortBy,
-        PublicProspect, Sort, error, prospect_cursor,
+        PublicProspect, RequireVerifiedCustomerForAccount, Sort, error, prospect_cursor,
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
@@ -115,10 +115,9 @@ pub mod deposit {
         DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositAccountStatus,
         DepositAccountsByCreatedAtCursor, DepositAccountsCursor, DepositAccountsFilters,
         DepositAccountsSortBy, DepositId, DepositStatus, DepositsByCreatedAtCursor, DepositsCursor,
-        DepositsFilters, DepositsSortBy, RequireVerifiedCustomerForAccount,
-        WITHDRAWAL_TRANSACTION_ENTITY_TYPE, Withdrawal, WithdrawalId, WithdrawalStatus,
-        WithdrawalsByCreatedAtCursor, WithdrawalsCursor, WithdrawalsFilters, WithdrawalsSortBy,
-        error,
+        DepositsFilters, DepositsSortBy, WITHDRAWAL_TRANSACTION_ENTITY_TYPE, Withdrawal,
+        WithdrawalId, WithdrawalStatus, WithdrawalsByCreatedAtCursor, WithdrawalsCursor,
+        WithdrawalsFilters, WithdrawalsSortBy, error,
     };
 
     pub type Deposits =

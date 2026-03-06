@@ -1435,7 +1435,7 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let require_verified = app
             .exposed_domain_configs()
-            .get::<lana_app::deposit::RequireVerifiedCustomerForAccount>(sub)
+            .get::<lana_app::customer::RequireVerifiedCustomerForAccount>(sub)
             .await?
             .value();
         if require_verified {

@@ -525,11 +525,7 @@ where
             .customers
             .find_prospect_by_id_without_audit(prospect_id)
             .await?;
-        let party = self
-            .customers
-            .find_party_by_id_without_audit(prospect.party_id)
-            .await?;
-        let level: KycLevel = party.customer_type.into();
+        let level: KycLevel = prospect.customer_type.into();
 
         let response = self
             .sumsub_client
