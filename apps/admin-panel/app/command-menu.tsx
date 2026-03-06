@@ -121,10 +121,10 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
   const { data: domainConfigsData } = useDomainConfigsQuery({
     variables: { first: 100 },
   })
-  const manualCollateralDisabled =
+  const manualCollateralEnabled =
     domainConfigsData?.domainConfigs.nodes.find(
-      (c) => c.key === "disable-manual-collateral",
-    )?.value === true
+      (c) => c.key === "manual-collateral",
+    )?.value !== false
 
   const search = usePublicIdSearch()
   const getActiveEntity = () => {
@@ -218,7 +218,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
       allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
       condition: () =>
         facility?.userCanUpdateCollateral &&
-        !manualCollateralDisabled &&
+        manualCollateralEnabled &&
         facility?.status !== CreditFacilityStatus.Closed &&
         facility?.status !== CreditFacilityStatus.Matured,
     },

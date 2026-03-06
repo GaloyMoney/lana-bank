@@ -46,10 +46,10 @@ const PendingCreditFacilityDetailsCard: React.FC<
   const { data: domainConfigsData } = useDomainConfigsQuery({
     variables: { first: 100 },
   })
-  const manualCollateralDisabled =
+  const manualCollateralEnabled =
     domainConfigsData?.domainConfigs.nodes.find(
-      (c) => c.key === "disable-manual-collateral",
-    )?.value === true
+      (c) => c.key === "manual-collateral",
+    )?.value !== false
 
   const { publicId: facilityPublicId } = usePublicIdForCreditFacility(
     pendingDetails.status === PendingCreditFacilityStatus.Completed
@@ -123,7 +123,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
   const footerContent = (
     <>
       {pendingDetails.status !== PendingCreditFacilityStatus.Completed &&
-        !manualCollateralDisabled && (
+        manualCollateralEnabled && (
           <Button
             variant="outline"
             onClick={() => setOpenCollateralUpdateDialog(true)}

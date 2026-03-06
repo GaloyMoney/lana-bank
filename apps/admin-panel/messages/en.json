@@ -127,9 +127,9 @@
       "title": "Deposit activity escheatable threshold (days)",
       "description": "Number of days without activity before a deposit account is classified as escheatable. This must be greater than the inactive threshold."
     },
-    "disable-manual-collateral": {
-      "title": "Disable manual collateral",
-      "description": "When enabled, prevents manual collateral updates via the admin panel. Custodian sync and liquidation updates are unaffected."
+    "manual-collateral": {
+      "title": "Manual collateral",
+      "description": "When enabled, allows manual collateral updates via the admin panel. Intended for testing purposes only. Custodian sync and liquidation updates are unaffected by this setting."
     },
     "sumsub-api-key": {
       "title": "SumSub API Key",
