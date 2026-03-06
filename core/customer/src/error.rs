@@ -44,10 +44,8 @@ pub enum CustomerError {
     DomainConfigError(#[from] domain_config::DomainConfigError),
     #[error("CustomerError - CustomerIsClosed")]
     CustomerIsClosed,
-    #[error("CustomerError - CustomerIsFrozen")]
-    CustomerIsFrozen,
-    #[error("CustomerError - CustomerNotVerified")]
-    CustomerNotVerified,
+    #[error("CustomerError - CustomerNotEligibleForProduct")]
+    CustomerNotEligibleForProduct,
 }
 
 impl From<ProspectCreateError> for CustomerError {
@@ -116,8 +114,7 @@ impl ErrorSeverity for CustomerError {
             Self::PartyError(e) => e.severity(),
             Self::DomainConfigError(_) => Level::ERROR,
             Self::CustomerIsClosed => Level::WARN,
-            Self::CustomerIsFrozen => Level::WARN,
-            Self::CustomerNotVerified => Level::WARN,
+            Self::CustomerNotEligibleForProduct => Level::WARN,
         }
     }
 }

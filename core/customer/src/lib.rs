@@ -283,19 +283,13 @@ where
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
         let customer = self.repo.find_by_id_in_op(&mut *op, id.into()).await?;
-        if customer.is_closed() {
-            return Err(CustomerError::CustomerIsClosed);
-        }
-        if customer.is_frozen() {
-            return Err(CustomerError::CustomerIsFrozen);
-        }
         let require_verified = self
             .domain_configs
             .get_without_audit_in_op::<RequireVerifiedCustomerForAccount>(op)
             .await?
             .value();
-        if require_verified && !customer.kyc_verification.is_verified() {
-            return Err(CustomerError::CustomerNotVerified);
+        if !customer.may_attach_product(require_verified) {
+            return Err(CustomerError::CustomerNotEligibleForProduct);
         }
         Ok(customer)
     }
