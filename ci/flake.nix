@@ -206,6 +206,16 @@
           echo "Creating versioned docs snapshot for $VERSION..."
           pnpm run version-docs "$VERSION"
 
+          # Step 3b: Fix Spanish version label
+          # docusaurus docs:version copies current.json (which has "Siguiente" / "Next")
+          # to version-X.X.X.json — we need to replace that with the actual version number
+          VERSION_I18N_FILE="i18n/es/docusaurus-plugin-content-docs/version-''${VERSION}.json"
+          if [ -f "$VERSION_I18N_FILE" ]; then
+            echo "Fixing Spanish version label in $VERSION_I18N_FILE..."
+            ${pkgs.gnused}/bin/sed -i 's/"message": "Siguiente"/"message": "'"$VERSION"'"/' "$VERSION_I18N_FILE"
+            ${pkgs.gnused}/bin/sed -i 's/"description": "The label for version current"/"description": "The label for version '"$VERSION"'"/' "$VERSION_I18N_FILE"
+          fi
+
           # Step 4: Snapshot schemas
           echo "Snapshotting schemas for $VERSION..."
           pnpm run snapshot-schemas "$VERSION"
