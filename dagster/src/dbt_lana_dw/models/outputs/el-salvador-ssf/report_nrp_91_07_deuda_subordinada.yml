@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: report_nrp_91_07_deuda_subordinada
+    description: >
+      deuda_subordinada.xml per NRP-91 (Anexo 1, file 7). Reports the value of subordinated debt
+      broken down by maturity period for Bancos de Inversión. The reported detail must correspond to
+      the capital of the debt, and it is validated against the balances of the corresponding accounts
+      in the chart of accounts (subordinated debt with first-tier foreign institutions). The debt
+      codes and descriptions are provided by the SSF and must not be modified; only the value field
+      should be updated. Must be reported even when the value is zero.
+      Corresponds to XSD ssf_cebi_deuda_subordinada.xsd.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "char_length(id_codigo_deuda) between 1 and 10"
+          config:
+            description: "Debt code must be 1-10 characters (XsString length 10)"
+      - dbt_utils.expression_is_true:
+          expression: "char_length(desc_deuda) between 1 and 80"
+          config:
+            description: "Debt description must be 1-80 characters (XsString length 80)"
+
+    columns:
+      - name: id_codigo_deuda
+        description: >
+          Code assigned to the subordinated debt by its maturity period (XsString, length <= 10).
+          Provided by the SSF and must not be modified.
+        tests:
+          - not_null
+          - unique
+      - name: desc_deuda
+        description: >
+          Description of the subordinated debt code (XsString, length <= 80). Assigned by the SSF
+          and must not be modified.
+        tests:
+          - not_null
+      - name: valor_deuda
+        description: >
+          Value of the subordinated debt (XsDecimal, totalDigits=17, fractionDigits=2). This is the
+          only field that should be updated. Must be reported even when the value is zero. The sum
+          is validated against the corresponding accounts in the chart of accounts.
+        tests:
+          - not_null

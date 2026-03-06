@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: report_nrp_91_03_dato_extracontable
+    description: >
+      dato_extracontable.xml per NRP-91 (Anexo 1, file 3). Reports off-balance-sheet (extracontable)
+      data required for the determination of the patrimonial fund (fondo patrimonial) of Bancos de
+      Inversión via the CEBI system. The extracontable codes and descriptions are provided by the SSF
+      and must not be modified. Only the Valor field should be updated. All requested variables must
+      be reported, including those with zero values. The valid variable codes are defined in NRP-91
+      Anexo 4 and include: 114GBI, 114GDBI, 114GSGRBI, 114GAFL, AVALGAFL, 114NATEXT, NUMACCION,
+      21MAS1ANIO, 4120NATEXT, AVALEXTERI, AVALGDMC, CONTRARBI, CREDCARIBI, CREDEMPBI, CREDRELBI,
+      BIPRESBRUT-1. Corresponds to XSD ssf_cebi_dato_extracontable.xsd.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "char_length(id_codigo_extracontable) between 1 and 10"
+          config:
+            description: "Validator error 29: extracontable code must be 1-10 characters"
+      - dbt_utils.expression_is_true:
+          expression: "char_length(desc_extra_contable) between 1 and 80"
+          config:
+            description: "Validator error 30: extracontable description must be 1-80 characters"
+      - dbt_utils.expression_is_true:
+          expression: "desc_extra_contable = upper(desc_extra_contable)"
+          config:
+            description: "Extracontable description must be uppercase per Anexo 2.C"
+
+    columns:
+      - name: id_codigo_extracontable
+        description: >
+          Code of the extracontable variable (XsString, length <= 10). Must match one of the
+          codes defined in NRP-91 Anexo 4: 114GBI (Préstamos Garantizados por Bancos de Inversión),
+          114GDBI (Préstamos Totalmente Garantizados con Depósitos en Moneda de Curso Legal),
+          114GSGRBI (Préstamos con Garantía de Sociedades de Garantía Recíproca),
+          114GAFL (Préstamos Totalmente Garantizados con Activos de Fácil Liquidación),
+          AVALGAFL (Avales y Fianzas Garantizados por Activos de Fácil Liquidación),
+          114NATEXT, NUMACCION, 21MAS1ANIO, 4120NATEXT, AVALEXTERI, AVALGDMC, CONTRARBI,
+          CREDCARIBI, CREDEMPBI, CREDRELBI, BIPRESBRUT-1.
+          This value is provided by the SSF and must not be modified (validator error 29).
+        tests:
+          - not_null
+          - unique
+          - accepted_values:
+              values:
+                - "114GBI"
+                - "114GDBI"
+                - "114GSGRBI"
+                - "114GAFL"
+                - "AVALGAFL"
+                - "114NATEXT"
+                - "NUMACCION"
+                - "21MAS1ANIO"
+                - "4120NATEXT"
+                - "AVALEXTERI"
+                - "AVALGDMC"
+                - "CONTRARBI"
+                - "CREDCARIBI"
+                - "CREDEMPBI"
+                - "CREDRELBI"
+                - "BIPRESBRUT-1"
+      - name: desc_extra_contable
+        description: >
+          Description of the extracontable variable (XsString, length <= 80, uppercase).
+          Provided by the SSF and must not be modified. Validator error 30 checks for
+          incorrect descriptions.
+        tests:
+          - not_null
+      - name: Valor
+        description: >
+          Balance of the extracontable variable (XsDecimal, totalDigits=17, fractionDigits=2).
+          This is the only field that should be updated by the Banco de Inversión.
+          Must be reported even when the value is zero.
+        tests:
+          - not_null
