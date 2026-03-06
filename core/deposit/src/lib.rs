@@ -252,15 +252,8 @@ where
 
         let customer = self
             .customers
-            .find_by_id_without_audit_in_op(&mut op, customer_id)
+            .find_eligible_for_product_without_audit_in_op(&mut op, customer_id, require_verified)
             .await?;
-        let party = self
-            .customers
-            .find_party_by_id_without_audit(customer.party_id)
-            .await?;
-        if require_verified && !customer.kyc_verification.is_verified() {
-            return Err(CoreDepositError::CustomerNotVerified);
-        }
 
         let public_id = self
             .public_ids
@@ -282,7 +275,7 @@ where
             .await?;
 
         self.ledger
-            .create_deposit_accounts_in_op(&mut op, &account, party.customer_type)
+            .create_deposit_accounts_in_op(&mut op, &account, customer.customer_type)
             .await?;
 
         op.commit().await?;

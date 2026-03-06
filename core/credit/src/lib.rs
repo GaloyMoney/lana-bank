@@ -607,20 +607,13 @@ where
 
         let customer = self
             .customer
-            .find_by_id_without_audit_in_op(&mut db, customer_id)
+            .find_eligible_for_product_without_audit_in_op(&mut db, customer_id, require_verified)
             .await?;
-        let party = self
-            .customer
-            .find_party_by_id_without_audit(customer.party_id)
-            .await?;
-        if require_verified && !customer.kyc_verification.is_verified() {
-            return Err(CoreCreditError::CustomerNotVerified);
-        }
 
         let new_facility_proposal = NewCreditFacilityProposal::builder()
             .id(proposal_id)
             .customer_id(customer.id)
-            .customer_type(party.customer_type)
+            .customer_type(customer.customer_type)
             .custodian_id(custodian_id.map(|id| id.into()))
             .disbursal_credit_account_id(deposit_account_id)
             .terms(terms)
@@ -682,13 +675,9 @@ where
             .await?;
 
         let customer_id = facility.customer_id;
-        let customer = self
-            .customer
-            .find_by_id_without_audit_in_op(&mut db, customer_id)
+        self.customer
+            .find_eligible_for_product_without_audit_in_op(&mut db, customer_id, require_verified)
             .await?;
-        if require_verified && !customer.kyc_verification.is_verified() {
-            return Err(CoreCreditError::CustomerNotVerified);
-        }
 
         if facility.is_single_disbursal() {
             return Err(CreditFacilityError::OnlyOneDisbursalAllowed.into());

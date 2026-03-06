@@ -44,6 +44,8 @@ pub enum CustomerError {
     CustomerIsClosed,
     #[error("CustomerError - CustomerIsFrozen")]
     CustomerIsFrozen,
+    #[error("CustomerError - CustomerNotVerified")]
+    CustomerNotVerified,
 }
 
 impl From<ProspectCreateError> for CustomerError {
@@ -112,6 +114,7 @@ impl ErrorSeverity for CustomerError {
             Self::PartyError(e) => e.severity(),
             Self::CustomerIsClosed => Level::WARN,
             Self::CustomerIsFrozen => Level::WARN,
+            Self::CustomerNotVerified => Level::WARN,
         }
     }
 }

@@ -64,8 +64,6 @@ pub enum CoreCreditError {
     CustomerMismatchForCreditFacility,
     #[error("CoreCreditError - SubjectIsNotCustomer")]
     SubjectIsNotCustomer,
-    #[error("CoreCreditError - CustomerIsNotVerified")]
-    CustomerNotVerified,
     #[error("CoreCreditError - DisbursalBuilderError: {0}")]
     DisbursalBuilderError(#[from] super::NewDisbursalBuilderError),
     #[error("CoreCreditError - PublicIdError: {0}")]
@@ -103,7 +101,6 @@ impl ErrorSeverity for CoreCreditError {
             Self::RegisterEventHandler(_) => Level::ERROR,
             Self::CustomerMismatchForCreditFacility => Level::ERROR,
             Self::SubjectIsNotCustomer => Level::WARN,
-            Self::CustomerNotVerified => Level::WARN,
             Self::DisbursalBuilderError(_) => Level::ERROR,
             Self::PublicIdError(e) => e.severity(),
             Self::DomainConfigError(e) => e.severity(),

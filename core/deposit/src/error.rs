@@ -52,8 +52,6 @@ pub enum CoreDepositError {
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("CoreDepositError - DomainConfigError: {0}")]
     DomainConfigError(#[from] domain_config::DomainConfigError),
-    #[error("CoreDepositError - CustomerNotVerified")]
-    CustomerNotVerified,
 }
 
 // Two-hop From impls: repo typed errors -> sub-module error -> CoreDepositError
@@ -168,7 +166,6 @@ impl ErrorSeverity for CoreDepositError {
             Self::DepositBuilderError(_) => Level::ERROR,
             Self::PublicIdError(e) => e.severity(),
             Self::DomainConfigError(e) => e.severity(),
-            Self::CustomerNotVerified => Level::WARN,
         }
     }
 }

@@ -253,6 +253,30 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(
+        name = "customer.find_eligible_for_product_without_audit_in_op",
+        skip(self, op)
+    )]
+    pub async fn find_eligible_for_product_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+        require_verified: bool,
+    ) -> Result<Customer, CustomerError> {
+        let customer = self.repo.find_by_id_in_op(op, id.into()).await?;
+        if customer.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
+        if customer.is_frozen() {
+            return Err(CustomerError::CustomerIsFrozen);
+        }
+        if require_verified && !customer.kyc_verification.is_verified() {
+            return Err(CustomerError::CustomerNotVerified);
+        }
+        Ok(customer)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.find_by_email", skip(self))]
     pub async fn find_by_email(
         &self,
