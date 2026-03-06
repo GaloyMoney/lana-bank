@@ -476,12 +476,12 @@ where
             .get_without_audit::<SumsubKycFlowName>()
             .await?
             .maybe_value()
-            .unwrap_or_else(|| "basic-kyc-level".to_string());
+            .expect("SumsubKycFlowName has a default");
         let kyb_flow_name = exposed_domain_configs
             .get_without_audit::<SumsubKybFlowName>()
             .await?
             .maybe_value()
-            .unwrap_or_else(|| "kyb-basic".to_string());
+            .expect("SumsubKybFlowName has a default");
 
         let sumsub_config = SumsubConfig {
             sumsub_key,
