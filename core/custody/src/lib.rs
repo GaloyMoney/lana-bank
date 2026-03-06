@@ -492,9 +492,12 @@ where
     pub async fn list_custodians(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<CustodiansByNameCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<Custodian, CustodiansByNameCursor>, CoreCustodyError>
-    {
+        query: es_entity::PaginatedQueryArgs<custodian_cursor::CustodiansCursor>,
+        sort: es_entity::Sort<CustodiansSortBy>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<Custodian, custodian_cursor::CustodiansCursor>,
+        CoreCustodyError,
+    > {
         self.authz
             .enforce_permission(
                 sub,
@@ -504,7 +507,7 @@ where
             .await?;
         Ok(self
             .custodians
-            .list_by_name(query, es_entity::ListDirection::Ascending)
+            .list_for_filters(Default::default(), sort, query)
             .await?)
     }
 

@@ -10,6 +10,8 @@ import {
   Withdrawal,
   WithdrawalStatus,
   WithdrawalsFilter,
+  WithdrawalsSort,
+  SortDirection,
   useWithdrawalsQuery,
 } from "@/lib/graphql/generated"
 
@@ -20,6 +22,7 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
 import { PublicIdBadge } from "@/components/public-id-badge"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment WithdrawalFields on Withdrawal {
@@ -38,8 +41,8 @@ gql`
     }
   }
 
-  query Withdrawals($first: Int!, $after: String, $filter: WithdrawalsFilter) {
-    withdrawals(first: $first, after: $after, filter: $filter) {
+  query Withdrawals($first: Int!, $after: String, $sort: WithdrawalsSort, $filter: WithdrawalsFilter) {
+    withdrawals(first: $first, after: $after, sort: $sort, filter: $filter) {
       pageInfo {
         hasPreviousPage
         hasNextPage
@@ -59,10 +62,12 @@ gql`
 const Withdrawals = () => {
   const t = useTranslations("Withdrawals.table")
   const [filter, setFilter] = useState<WithdrawalsFilter | null>(null)
+  const [sortBy, setSortBy] = useState<WithdrawalsSort | null>(null)
 
   const { data, loading, error, fetchMore } = useWithdrawalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
       filter,
     },
   })
@@ -77,6 +82,12 @@ const Withdrawals = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(withdrawal) => `/withdrawals/${withdrawal.publicId}`}
+        onSort={(column, direction) => {
+          setSortBy({
+            by: camelToScreamingSnake(column as string) as WithdrawalsSort["by"],
+            direction: direction as SortDirection,
+          })
+        }}
         onFilter={(filters) => {
           const f = filters as WithdrawalsFilter
           setFilter(Object.keys(f).length > 0 ? f : null)
@@ -92,6 +103,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] =>
   {
     key: "publicId",
     label: t("headers.withdrawalId"),
+    sortable: true,
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
@@ -108,6 +120,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] =>
   {
     key: "amount",
     label: t("headers.amount"),
+    sortable: true,
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
   {

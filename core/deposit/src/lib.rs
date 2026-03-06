@@ -59,8 +59,8 @@ pub use public::*;
 use publisher::DepositPublisher;
 use withdrawal::*;
 pub use withdrawal::{
-    Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor, WithdrawalsCursor,
-    WithdrawalsFilters, WithdrawalsSortBy,
+    Withdrawal, WithdrawalStatus, WithdrawalsByAmountCursor, WithdrawalsByCreatedAtCursor,
+    WithdrawalsCursor, WithdrawalsFilters, WithdrawalsSortBy,
 };
 
 #[cfg(feature = "json-schema")]
@@ -1006,6 +1006,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<WithdrawalsCursor>,
         filter: WithdrawalsFilters,
+        sort: es_entity::Sort<WithdrawalsSortBy>,
     ) -> Result<es_entity::PaginatedQueryRet<Withdrawal, WithdrawalsCursor>, CoreDepositError> {
         self.authz
             .enforce_permission(
@@ -1016,14 +1017,7 @@ where
             .await?;
         Ok(self
             .withdrawals
-            .list_for_filters(
-                filter,
-                es_entity::Sort {
-                    by: WithdrawalsSortBy::CreatedAt,
-                    direction: es_entity::ListDirection::Descending,
-                },
-                query,
-            )
+            .list_for_filters(filter, sort, query)
             .await?)
     }
 
@@ -1034,6 +1028,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DepositsCursor>,
         filter: DepositsFilters,
+        sort: es_entity::Sort<DepositsSortBy>,
     ) -> Result<es_entity::PaginatedQueryRet<Deposit, DepositsCursor>, CoreDepositError> {
         self.authz
             .enforce_permission(
@@ -1042,17 +1037,7 @@ where
                 CoreDepositAction::DEPOSIT_LIST,
             )
             .await?;
-        Ok(self
-            .deposits
-            .list_for_filters(
-                filter,
-                es_entity::Sort {
-                    by: DepositsSortBy::CreatedAt,
-                    direction: es_entity::ListDirection::Descending,
-                },
-                query,
-            )
-            .await?)
+        Ok(self.deposits.list_for_filters(filter, sort, query).await?)
     }
 
     #[record_error_severity]
@@ -1062,6 +1047,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DepositAccountsCursor>,
         filter: DepositAccountsFilters,
+        sort: es_entity::Sort<DepositAccountsSortBy>,
     ) -> Result<es_entity::PaginatedQueryRet<DepositAccount, DepositAccountsCursor>, CoreDepositError>
     {
         self.authz
@@ -1073,14 +1059,7 @@ where
             .await?;
         Ok(self
             .deposit_accounts
-            .list_for_filters(
-                filter,
-                es_entity::Sort {
-                    by: DepositAccountsSortBy::CreatedAt,
-                    direction: es_entity::ListDirection::Descending,
-                },
-                query,
-            )
+            .list_for_filters(filter, sort, query)
             .await?)
     }
 

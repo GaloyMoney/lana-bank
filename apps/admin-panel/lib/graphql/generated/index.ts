@@ -461,6 +461,16 @@ export type CommitteeThreshold = {
   threshold: Scalars['Int']['output'];
 };
 
+export type CommitteesSort = {
+  by?: CommitteesSortBy;
+  direction?: SortDirection;
+};
+
+export enum CommitteesSortBy {
+  CreatedAt = 'CREATED_AT',
+  Name = 'NAME'
+}
+
 export enum ConfigType {
   Bool = 'BOOL',
   Complex = 'COMPLEX',
@@ -495,6 +505,7 @@ export type CreditFacility = {
   collateralId: Scalars['UUID']['output'];
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
   collateralizationState: CollateralizationState;
+  createdAt: Scalars['Timestamp']['output'];
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
   currentCvl: CvlPct;
@@ -818,7 +829,8 @@ export type CreditFacilityProposalsSort = {
 };
 
 export enum CreditFacilityProposalsSortBy {
-  CreatedAt = 'CREATED_AT'
+  CreatedAt = 'CREATED_AT',
+  FacilityAmount = 'FACILITY_AMOUNT'
 }
 
 export type CreditFacilityRepaymentAmountReceived = {
@@ -1023,6 +1035,16 @@ export type CustodianEdge = {
   /** The item at the end of the edge */
   node: Custodian;
 };
+
+export type CustodiansSort = {
+  by?: CustodiansSortBy;
+  direction?: SortDirection;
+};
+
+export enum CustodiansSortBy {
+  CreatedAt = 'CREATED_AT',
+  Name = 'NAME'
+}
 
 export type Customer = {
   __typename?: 'Customer';
@@ -1309,6 +1331,16 @@ export type DepositAccountsFilter = {
   status?: InputMaybe<DepositAccountStatus>;
 };
 
+export type DepositAccountsSort = {
+  by?: DepositAccountsSortBy;
+  direction?: SortDirection;
+};
+
+export enum DepositAccountsSortBy {
+  CreatedAt = 'CREATED_AT',
+  PublicId = 'PUBLIC_ID'
+}
+
 export type DepositConnection = {
   __typename?: 'DepositConnection';
   /** A list of edges. */
@@ -1402,6 +1434,17 @@ export type DepositsFilter = {
   status?: InputMaybe<DepositStatus>;
 };
 
+export type DepositsSort = {
+  by?: DepositsSortBy;
+  direction?: SortDirection;
+};
+
+export enum DepositsSortBy {
+  Amount = 'AMOUNT',
+  CreatedAt = 'CREATED_AT',
+  PublicId = 'PUBLIC_ID'
+}
+
 export type DisbursalApprovalConcludedPayload = {
   __typename?: 'DisbursalApprovalConcludedPayload';
   disbursal: CreditFacilityDisbursal;
@@ -1429,6 +1472,16 @@ export enum DisbursalStatus {
 export type DisbursalsFilter = {
   status?: InputMaybe<DisbursalStatus>;
 };
+
+export type DisbursalsSort = {
+  by?: DisbursalsSortBy;
+  direction?: SortDirection;
+};
+
+export enum DisbursalsSortBy {
+  Amount = 'AMOUNT',
+  CreatedAt = 'CREATED_AT'
+}
 
 export type Disbursed = {
   __typename?: 'Disbursed';
@@ -1516,6 +1569,7 @@ export type FiscalYear = {
   __typename?: 'FiscalYear';
   chartId: Scalars['UUID']['output'];
   closedAsOf?: Maybe<Scalars['Date']['output']>;
+  createdAt: Scalars['Timestamp']['output'];
   fiscalYearId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   isLastMonthOfYearClosed: Scalars['Boolean']['output'];
@@ -1581,6 +1635,16 @@ export type FiscalYearOpenNextPayload = {
   __typename?: 'FiscalYearOpenNextPayload';
   fiscalYear: FiscalYear;
 };
+
+export type FiscalYearsSort = {
+  by?: FiscalYearsSortBy;
+  direction?: SortDirection;
+};
+
+export enum FiscalYearsSortBy {
+  CreatedAt = 'CREATED_AT',
+  OpenedAsOf = 'OPENED_AS_OF'
+}
 
 export type FreezeEntry = {
   __typename?: 'FreezeEntry';
@@ -1817,6 +1881,18 @@ export type LiquidationProceedsReceived = {
   amount: Scalars['UsdCents']['output'];
   ledgerTxId: Scalars['UUID']['output'];
 };
+
+export type LiquidationsSort = {
+  by?: LiquidationsSortBy;
+  direction?: SortDirection;
+};
+
+export enum LiquidationsSortBy {
+  AmountReceived = 'AMOUNT_RECEIVED',
+  CreatedAt = 'CREATED_AT',
+  ExpectedToReceive = 'EXPECTED_TO_RECEIVE',
+  SentTotal = 'SENT_TOTAL'
+}
 
 export type Loan = {
   __typename?: 'Loan';
@@ -2291,7 +2367,8 @@ export type PendingCreditFacilitiesSort = {
 };
 
 export enum PendingCreditFacilitiesSortBy {
-  CreatedAt = 'CREATED_AT'
+  CreatedAt = 'CREATED_AT',
+  FacilityAmount = 'FACILITY_AMOUNT'
 }
 
 export type PendingCreditFacility = {
@@ -2676,6 +2753,7 @@ export type QueryCommitteeArgs = {
 export type QueryCommitteesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<CommitteesSort>;
 };
 
 
@@ -2713,6 +2791,7 @@ export type QueryCreditFacilityProposalsArgs = {
 export type QueryCustodiansArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<CustodiansSort>;
 };
 
 
@@ -2763,6 +2842,7 @@ export type QueryDepositAccountsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<DepositAccountsFilter>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<DepositAccountsSort>;
 };
 
 
@@ -2775,6 +2855,7 @@ export type QueryDepositsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<DepositsFilter>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<DepositsSort>;
 };
 
 
@@ -2797,6 +2878,7 @@ export type QueryDisbursalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<DisbursalsFilter>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<DisbursalsSort>;
 };
 
 
@@ -2819,6 +2901,7 @@ export type QueryFiscalYearByYearArgs = {
 export type QueryFiscalYearsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<FiscalYearsSort>;
 };
 
 
@@ -2858,6 +2941,7 @@ export type QueryLiquidationArgs = {
 export type QueryLiquidationsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<LiquidationsSort>;
 };
 
 
@@ -2983,6 +3067,7 @@ export type QueryWithdrawalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<WithdrawalsFilter>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<WithdrawalsSort>;
 };
 
 export type RealtimePrice = {
@@ -3520,6 +3605,17 @@ export type WithdrawalsFilter = {
   status?: InputMaybe<WithdrawalStatus>;
 };
 
+export type WithdrawalsSort = {
+  by?: WithdrawalsSortBy;
+  direction?: SortDirection;
+};
+
+export enum WithdrawalsSortBy {
+  Amount = 'AMOUNT',
+  CreatedAt = 'CREATED_AT',
+  PublicId = 'PUBLIC_ID'
+}
+
 export type ApprovalProcessFieldsFragment = { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
     | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
     | { __typename?: 'SystemApproval', autoApprove: boolean }
@@ -3636,6 +3732,7 @@ export type CommitteeFieldsFragment = { __typename?: 'Committee', id: string, co
 export type CommitteesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<CommitteesSort>;
 }>;
 
 
@@ -3880,7 +3977,7 @@ export type CreditFacilitiesQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, activatedAt: string, status: CreditFacilityStatus, facilityAmount: UsdCents, currentCvl:
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, createdAt: string, status: CreditFacilityStatus, facilityAmount: UsdCents, currentCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
@@ -4050,6 +4147,7 @@ export type CustodianFieldsFragment = { __typename?: 'Custodian', id: string, cu
 export type CustodiansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<CustodiansSort>;
 }>;
 
 
@@ -4196,6 +4294,7 @@ export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: 
 export type DepositAccountsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<DepositAccountsSort>;
   filter?: InputMaybe<DepositAccountsFilter>;
 }>;
 
@@ -4230,6 +4329,7 @@ export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, deposi
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<DepositsSort>;
   filter?: InputMaybe<DepositsFilter>;
 }>;
 
@@ -4293,58 +4393,60 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
 export type DisbursalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<DisbursalsSort>;
   filter?: InputMaybe<DisbursalsFilter>;
 }>;
 
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, createdAt: string, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', customer: { __typename?: 'Customer', email: string } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> };
+export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> };
 
 export type GetFiscalYearDetailsQueryVariables = Exact<{
   year: Scalars['String']['input'];
 }>;
 
 
-export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYearByYear?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } | null };
+export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYearByYear?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } | null };
 
 export type FiscalYearCloseMonthMutationVariables = Exact<{
   input: FiscalYearCloseMonthInput;
 }>;
 
 
-export type FiscalYearCloseMonthMutation = { __typename?: 'Mutation', fiscalYearCloseMonth: { __typename?: 'FiscalYearCloseMonthPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
+export type FiscalYearCloseMonthMutation = { __typename?: 'Mutation', fiscalYearCloseMonth: { __typename?: 'FiscalYearCloseMonthPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
 
 export type FiscalYearCloseMutationVariables = Exact<{
   input: FiscalYearCloseInput;
 }>;
 
 
-export type FiscalYearCloseMutation = { __typename?: 'Mutation', fiscalYearClose: { __typename?: 'FiscalYearClosePayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
+export type FiscalYearCloseMutation = { __typename?: 'Mutation', fiscalYearClose: { __typename?: 'FiscalYearClosePayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
 
 export type FiscalYearInitMutationVariables = Exact<{
   input: FiscalYearInitInput;
 }>;
 
 
-export type FiscalYearInitMutation = { __typename?: 'Mutation', fiscalYearInit: { __typename?: 'FiscalYearInitPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, isLastMonthOfYearClosed: boolean } } };
+export type FiscalYearInitMutation = { __typename?: 'Mutation', fiscalYearInit: { __typename?: 'FiscalYearInitPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, createdAt: string, isLastMonthOfYearClosed: boolean } } };
 
-export type FiscalYearFieldsFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, isLastMonthOfYearClosed: boolean };
+export type FiscalYearFieldsFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, createdAt: string, isLastMonthOfYearClosed: boolean };
 
 export type FiscalYearsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<FiscalYearsSort>;
 }>;
 
 
-export type FiscalYearsQuery = { __typename?: 'Query', fiscalYears: { __typename?: 'FiscalYearConnection', edges: Array<{ __typename?: 'FiscalYearEdge', cursor: string, node: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, isLastMonthOfYearClosed: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type FiscalYearsQuery = { __typename?: 'Query', fiscalYears: { __typename?: 'FiscalYearConnection', edges: Array<{ __typename?: 'FiscalYearEdge', cursor: string, node: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, reference: string, year: string, createdAt: string, isLastMonthOfYearClosed: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type FiscalYearOpenNextMutationVariables = Exact<{
   input: FiscalYearOpenNextInput;
 }>;
 
 
-export type FiscalYearOpenNextMutation = { __typename?: 'Mutation', fiscalYearOpenNext: { __typename?: 'FiscalYearOpenNextPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
+export type FiscalYearOpenNextMutation = { __typename?: 'Mutation', fiscalYearOpenNext: { __typename?: 'FiscalYearOpenNextPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> } } };
 
 export type ExecuteManualTransactionMutationVariables = Exact<{
   input: ManualTransactionExecuteInput;
@@ -4524,6 +4626,7 @@ export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', id: st
 export type LiquidationsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<LiquidationsSort>;
 }>;
 
 
@@ -5048,6 +5151,7 @@ export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', id: string, 
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<WithdrawalsSort>;
   filter?: InputMaybe<WithdrawalsFilter>;
 }>;
 
@@ -5745,6 +5849,7 @@ export const FiscalYearDetailsPageFragmentFragmentDoc = gql`
   fiscalYearId
   chartId
   openedAsOf
+  createdAt
   isOpen
   isLastMonthOfYearClosed
   reference
@@ -5765,6 +5870,7 @@ export const FiscalYearFieldsFragmentDoc = gql`
   isOpen
   reference
   year
+  createdAt
   isLastMonthOfYearClosed
 }
     `;
@@ -6928,8 +7034,8 @@ export type CreateCommitteeMutationHookResult = ReturnType<typeof useCreateCommi
 export type CreateCommitteeMutationResult = Apollo.MutationResult<CreateCommitteeMutation>;
 export type CreateCommitteeMutationOptions = Apollo.BaseMutationOptions<CreateCommitteeMutation, CreateCommitteeMutationVariables>;
 export const CommitteesDocument = gql`
-    query Committees($first: Int!, $after: String) {
-  committees(first: $first, after: $after) {
+    query Committees($first: Int!, $after: String, $sort: CommitteesSort) {
+  committees(first: $first, after: $after, sort: $sort) {
     edges {
       cursor
       node {
@@ -6960,6 +7066,7 @@ export const CommitteesDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */
@@ -7526,7 +7633,7 @@ export const CreditFacilitiesDocument = gql`
         creditFacilityId
         publicId
         collateralizationState
-        activatedAt
+        createdAt
         status
         facilityAmount
         currentCvl {
@@ -7986,8 +8093,8 @@ export type CustodianCreateMutationHookResult = ReturnType<typeof useCustodianCr
 export type CustodianCreateMutationResult = Apollo.MutationResult<CustodianCreateMutation>;
 export type CustodianCreateMutationOptions = Apollo.BaseMutationOptions<CustodianCreateMutation, CustodianCreateMutationVariables>;
 export const CustodiansDocument = gql`
-    query Custodians($first: Int!, $after: String) {
-  custodians(first: $first, after: $after) {
+    query Custodians($first: Int!, $after: String, $sort: CustodiansSort) {
+  custodians(first: $first, after: $after, sort: $sort) {
     edges {
       cursor
       node {
@@ -8018,6 +8125,7 @@ export const CustodiansDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */
@@ -8874,8 +8982,8 @@ export type DepositAccountCreateMutationHookResult = ReturnType<typeof useDeposi
 export type DepositAccountCreateMutationResult = Apollo.MutationResult<DepositAccountCreateMutation>;
 export type DepositAccountCreateMutationOptions = Apollo.BaseMutationOptions<DepositAccountCreateMutation, DepositAccountCreateMutationVariables>;
 export const DepositAccountsDocument = gql`
-    query DepositAccounts($first: Int!, $after: String, $filter: DepositAccountsFilter) {
-  depositAccounts(first: $first, after: $after, filter: $filter) {
+    query DepositAccounts($first: Int!, $after: String, $sort: DepositAccountsSort, $filter: DepositAccountsFilter) {
+  depositAccounts(first: $first, after: $after, sort: $sort, filter: $filter) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -8906,6 +9014,7 @@ export const DepositAccountsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *      filter: // value for 'filter'
  *   },
  * });
@@ -9062,8 +9171,8 @@ export type CreateDepositMutationHookResult = ReturnType<typeof useCreateDeposit
 export type CreateDepositMutationResult = Apollo.MutationResult<CreateDepositMutation>;
 export type CreateDepositMutationOptions = Apollo.BaseMutationOptions<CreateDepositMutation, CreateDepositMutationVariables>;
 export const DepositsDocument = gql`
-    query Deposits($first: Int!, $after: String, $filter: DepositsFilter) {
-  deposits(first: $first, after: $after, filter: $filter) {
+    query Deposits($first: Int!, $after: String, $sort: DepositsSort, $filter: DepositsFilter) {
+  deposits(first: $first, after: $after, sort: $sort, filter: $filter) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -9094,6 +9203,7 @@ export const DepositsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *      filter: // value for 'filter'
  *   },
  * });
@@ -9244,8 +9354,8 @@ export type CreditFacilityDisbursalInitiateMutationHookResult = ReturnType<typeo
 export type CreditFacilityDisbursalInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursalInitiateMutation>;
 export type CreditFacilityDisbursalInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 export const DisbursalsDocument = gql`
-    query Disbursals($first: Int!, $after: String, $filter: DisbursalsFilter) {
-  disbursals(first: $first, after: $after, filter: $filter) {
+    query Disbursals($first: Int!, $after: String, $sort: DisbursalsSort, $filter: DisbursalsFilter) {
+  disbursals(first: $first, after: $after, sort: $sort, filter: $filter) {
     edges {
       node {
         id
@@ -9286,6 +9396,7 @@ export const DisbursalsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *      filter: // value for 'filter'
  *   },
  * });
@@ -9458,8 +9569,8 @@ export type FiscalYearInitMutationHookResult = ReturnType<typeof useFiscalYearIn
 export type FiscalYearInitMutationResult = Apollo.MutationResult<FiscalYearInitMutation>;
 export type FiscalYearInitMutationOptions = Apollo.BaseMutationOptions<FiscalYearInitMutation, FiscalYearInitMutationVariables>;
 export const FiscalYearsDocument = gql`
-    query FiscalYears($first: Int!, $after: String) {
-  fiscalYears(first: $first, after: $after) {
+    query FiscalYears($first: Int!, $after: String, $sort: FiscalYearsSort) {
+  fiscalYears(first: $first, after: $after, sort: $sort) {
     edges {
       cursor
       node {
@@ -9490,6 +9601,7 @@ export const FiscalYearsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */
@@ -10248,8 +10360,8 @@ export type CollateralRecordProceedsFromLiquidationMutationHookResult = ReturnTy
 export type CollateralRecordProceedsFromLiquidationMutationResult = Apollo.MutationResult<CollateralRecordProceedsFromLiquidationMutation>;
 export type CollateralRecordProceedsFromLiquidationMutationOptions = Apollo.BaseMutationOptions<CollateralRecordProceedsFromLiquidationMutation, CollateralRecordProceedsFromLiquidationMutationVariables>;
 export const LiquidationsDocument = gql`
-    query Liquidations($first: Int!, $after: String) {
-  liquidations(first: $first, after: $after) {
+    query Liquidations($first: Int!, $after: String, $sort: LiquidationsSort) {
+  liquidations(first: $first, after: $after, sort: $sort) {
     edges {
       node {
         ...LiquidationListFields
@@ -10280,6 +10392,7 @@ export const LiquidationsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */
@@ -12671,8 +12784,8 @@ export type WithdrawalInitiateMutationHookResult = ReturnType<typeof useWithdraw
 export type WithdrawalInitiateMutationResult = Apollo.MutationResult<WithdrawalInitiateMutation>;
 export type WithdrawalInitiateMutationOptions = Apollo.BaseMutationOptions<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
 export const WithdrawalsDocument = gql`
-    query Withdrawals($first: Int!, $after: String, $filter: WithdrawalsFilter) {
-  withdrawals(first: $first, after: $after, filter: $filter) {
+    query Withdrawals($first: Int!, $after: String, $sort: WithdrawalsSort, $filter: WithdrawalsFilter) {
+  withdrawals(first: $first, after: $after, sort: $sort, filter: $filter) {
     pageInfo {
       hasPreviousPage
       hasNextPage
@@ -12703,6 +12816,7 @@ export const WithdrawalsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *      filter: // value for 'filter'
  *   },
  * });

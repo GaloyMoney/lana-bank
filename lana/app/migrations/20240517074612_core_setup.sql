@@ -186,6 +186,7 @@ CREATE TABLE core_deposits (
   reference VARCHAR NOT NULL UNIQUE,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   status VARCHAR NOT NULL,
+  amount BIGINT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -207,6 +208,7 @@ CREATE TABLE core_withdrawals (
   reference VARCHAR NOT NULL UNIQUE,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   status VARCHAR NOT NULL,
+  amount BIGINT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -321,6 +323,7 @@ CREATE TABLE core_credit_facility_proposals (
   customer_id UUID NOT NULL REFERENCES core_customers(id),
   approval_process_id UUID DEFAULT NULL REFERENCES core_approval_processes(id),
   status VARCHAR NOT NULL DEFAULT 'PendingCustomerApproval',
+  amount BIGINT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -343,6 +346,7 @@ CREATE TABLE core_pending_credit_facilities (
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
   status VARCHAR NOT NULL DEFAULT 'PendingCollateralization',
+  amount BIGINT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -419,6 +423,9 @@ CREATE TABLE core_liquidations (
   id UUID PRIMARY KEY,
   collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
   completed BOOLEAN NOT NULL DEFAULT FALSE,
+  expected_to_receive BIGINT NOT NULL,
+  amount_received BIGINT NOT NULL DEFAULT 0,
+  sent_total BIGINT NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -440,6 +447,7 @@ CREATE TABLE core_disbursals (
   concluded_tx_id UUID DEFAULT NULL,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   status VARCHAR NOT NULL DEFAULT 'New',
+  amount BIGINT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -616,6 +624,7 @@ CREATE TABLE core_fiscal_years (
   id UUID PRIMARY KEY,
   chart_id UUID NOT NULL REFERENCES core_charts(id),
   reference VARCHAR NOT NULL UNIQUE,
+  opened_as_of DATE NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

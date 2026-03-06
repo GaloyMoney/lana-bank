@@ -17,7 +17,11 @@ use lana_app::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
-    credit::LiquidationsByIdCursor,
+    credit::{
+        LiquidationsSortBy as DomainLiquidationsSortBy, liquidation_cursor::LiquidationsCursor,
+    },
+    custody::{CustodiansSortBy as DomainCustodiansSortBy, custodian_cursor::CustodiansCursor},
+    governance::{CommitteesSortBy as DomainCommitteesSortBy, committee_cursor::CommitteesCursor},
 };
 
 use crate::primitives::*;
@@ -255,6 +259,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(WithdrawalsSort::default())")] sort: Option<WithdrawalsSort>,
         filter: Option<WithdrawalsFilter>,
     ) -> async_graphql::Result<Connection<WithdrawalsCursor, Withdrawal, EmptyFields, EmptyFields>>
     {
@@ -262,15 +267,18 @@ impl Query {
             status: filter.as_ref().and_then(|f| f.status),
             ..Default::default()
         };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             WithdrawalsCursor,
             Withdrawal,
-            DomainWithdrawalsSortBy::CreatedAt,
+            DomainWithdrawalsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.deposits().list_withdrawals(sub, query, filter)
+            |query| app
+                .deposits()
+                .list_withdrawals(sub, query, filter, sort.into())
         )
     }
 
@@ -323,6 +331,9 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(DepositAccountsSort::default())")] sort: Option<
+            DepositAccountsSort,
+        >,
         filter: Option<DepositAccountsFilter>,
     ) -> async_graphql::Result<
         Connection<DepositAccountsCursor, DepositAccount, EmptyFields, EmptyFields>,
@@ -331,15 +342,18 @@ impl Query {
             status: filter.as_ref().and_then(|f| f.status),
             ..Default::default()
         };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             DepositAccountsCursor,
             DepositAccount,
-            DomainDepositAccountsSortBy::CreatedAt,
+            DomainDepositAccountsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.deposits().list_accounts(sub, query, filter)
+            |query| app
+                .deposits()
+                .list_accounts(sub, query, filter, sort.into())
         )
     }
 
@@ -348,21 +362,25 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(DepositsSort::default())")] sort: Option<DepositsSort>,
         filter: Option<DepositsFilter>,
     ) -> async_graphql::Result<Connection<DepositsCursor, Deposit, EmptyFields, EmptyFields>> {
         let filter = DomainDepositsFilters {
             status: filter.as_ref().and_then(|f| f.status),
             ..Default::default()
         };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             DepositsCursor,
             Deposit,
-            DomainDepositsSortBy::CreatedAt,
+            DomainDepositsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.deposits().list_deposits(sub, query, filter)
+            |query| app
+                .deposits()
+                .list_deposits(sub, query, filter, sort.into())
         )
     }
 
@@ -572,6 +590,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(DisbursalsSort::default())")] sort: Option<DisbursalsSort>,
         filter: Option<DisbursalsFilter>,
     ) -> async_graphql::Result<
         Connection<DisbursalsCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
@@ -581,19 +600,20 @@ impl Query {
             ..Default::default()
         };
 
-        let sort = Sort {
-            by: DomainDisbursalsSortBy::CreatedAt,
-            direction: ListDirection::Descending,
-        };
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             DisbursalsCursor,
             CreditFacilityDisbursal,
-            sort.by,
+            DomainDisbursalsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| { app.credit().disbursals().list(sub, query, filter, sort) }
+            |query| {
+                app.credit()
+                    .disbursals()
+                    .list(sub, query, filter, Sort::from(sort))
+            }
         )
     }
 
@@ -615,17 +635,25 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<LiquidationsByIdCursor, Liquidation, EmptyFields, EmptyFields>,
-    > {
+        #[graphql(default_with = "Some(LiquidationsSort::default())")] sort: Option<
+            LiquidationsSort,
+        >,
+    ) -> async_graphql::Result<Connection<LiquidationsCursor, Liquidation, EmptyFields, EmptyFields>>
+    {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            LiquidationsByIdCursor,
+        list_with_combo_cursor!(
+            LiquidationsCursor,
             Liquidation,
+            DomainLiquidationsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.credit().collaterals().list_liquidations(sub, query)
+            |query| {
+                app.credit()
+                    .collaterals()
+                    .list_liquidations(sub, query, Sort::from(sort))
+            }
         )
     }
 
@@ -634,17 +662,19 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<CustodiansByNameCursor, Custodian, EmptyFields, EmptyFields>,
-    > {
+        #[graphql(default_with = "Some(CustodiansSort::default())")] sort: Option<CustodiansSort>,
+    ) -> async_graphql::Result<Connection<CustodiansCursor, Custodian, EmptyFields, EmptyFields>>
+    {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            CustodiansByNameCursor,
+        list_with_combo_cursor!(
+            CustodiansCursor,
             Custodian,
+            DomainCustodiansSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.custody().list_custodians(sub, query)
+            |query| app.custody().list_custodians(sub, query, Sort::from(sort))
         )
     }
 
@@ -666,17 +696,21 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<CommitteesByCreatedAtCursor, Committee, EmptyFields, EmptyFields>,
-    > {
+        #[graphql(default_with = "Some(CommitteesSort::default())")] sort: Option<CommitteesSort>,
+    ) -> async_graphql::Result<Connection<CommitteesCursor, Committee, EmptyFields, EmptyFields>>
+    {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            CommitteesByCreatedAtCursor,
+        list_with_combo_cursor!(
+            CommitteesCursor,
             Committee,
+            DomainCommitteesSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app.governance().list_committees(sub, query)
+            |query| app
+                .governance()
+                .list_committees(sub, query, Sort::from(sort))
         )
     }
 
@@ -848,7 +882,7 @@ impl Query {
             Some(first),
             None,
             |after, _, first, _| async move {
-                let first = first.expect("First always exists");
+                let first: usize = first.expect("First always exists");
                 let query_args = es_entity::PaginatedQueryArgs { first, after };
                 let res = app.accounting().journal().entries(sub, query_args).await?;
 
@@ -941,20 +975,25 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(FiscalYearsSort::default())")] sort: Option<FiscalYearsSort>,
     ) -> async_graphql::Result<
-        Connection<FiscalYearsByCreatedAtCursor, FiscalYear, EmptyFields, EmptyFields>,
+        Connection<DomainFiscalYearsCursor, FiscalYear, EmptyFields, EmptyFields>,
     > {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        list_with_cursor!(
-            FiscalYearsByCreatedAtCursor,
+        list_with_combo_cursor!(
+            DomainFiscalYearsCursor,
             FiscalYear,
+            DomainFiscalYearsSortBy::from(sort),
             ctx,
             after,
             first,
-            |query| app
-                .accounting()
-                .list_fiscal_years_for_chart(sub, CHART_REF.0, query,)
+            |query| app.accounting().list_fiscal_years_for_chart(
+                sub,
+                CHART_REF.0,
+                query,
+                sort.into()
+            )
         )
     }
 

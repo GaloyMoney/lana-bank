@@ -1,11 +1,13 @@
 use async_graphql::*;
 
+use es_entity::Sort;
+
 use crate::primitives::*;
 
-use super::{access::User, loader::LanaDataLoader};
+use super::{access::User, loader::LanaDataLoader, primitives::SortDirection};
 
 pub use lana_app::governance::{
-    Committee as DomainCommittee, committee_cursor::CommitteesByCreatedAtCursor,
+    Committee as DomainCommittee, CommitteesSortBy as DomainCommitteesSortBy,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -66,3 +68,42 @@ pub struct CommitteeRemoveUserInput {
     pub user_id: UUID,
 }
 crate::mutation_payload! { CommitteeRemoveUserPayload, committee: Committee }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum CommitteesSortBy {
+    #[default]
+    CreatedAt,
+    Name,
+}
+
+impl From<CommitteesSortBy> for DomainCommitteesSortBy {
+    fn from(by: CommitteesSortBy) -> Self {
+        match by {
+            CommitteesSortBy::CreatedAt => DomainCommitteesSortBy::CreatedAt,
+            CommitteesSortBy::Name => DomainCommitteesSortBy::Name,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct CommitteesSort {
+    #[graphql(default)]
+    pub by: CommitteesSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<CommitteesSort> for Sort<DomainCommitteesSortBy> {
+    fn from(sort: CommitteesSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<CommitteesSort> for DomainCommitteesSortBy {
+    fn from(sort: CommitteesSort) -> Self {
+        sort.by.into()
+    }
+}

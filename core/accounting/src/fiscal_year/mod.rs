@@ -21,7 +21,7 @@ pub use entity::FiscalYearEvent;
 pub(super) use entity::*;
 pub use entity::{FiscalMonthClosure, FiscalYear};
 use error::*;
-pub use repo::{fiscal_year_cursor::FiscalYearsByCreatedAtCursor, *};
+pub use repo::{fiscal_year_cursor::*, *};
 pub struct FiscalYears<Perms>
 where
     Perms: PermissionCheck,
@@ -216,11 +216,9 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
-        query: es_entity::PaginatedQueryArgs<FiscalYearsByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<FiscalYear, FiscalYearsByCreatedAtCursor>,
-        FiscalYearError,
-    > {
+        query: es_entity::PaginatedQueryArgs<FiscalYearsCursor>,
+        sort: es_entity::Sort<FiscalYearsSortBy>,
+    ) -> Result<es_entity::PaginatedQueryRet<FiscalYear, FiscalYearsCursor>, FiscalYearError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -231,7 +229,13 @@ where
 
         Ok(self
             .repo
-            .list_for_chart_id_by_created_at(chart_id, query, es_entity::ListDirection::Descending)
+            .list_for_filters(
+                FiscalYearsFilters {
+                    chart_id: Some(chart_id),
+                },
+                sort,
+                query,
+            )
             .await?)
     }
 
@@ -291,13 +295,22 @@ where
         &self,
         chart_id: ChartId,
     ) -> Result<Option<FiscalYear>, FiscalYearError> {
-        let query = PaginatedQueryArgs::<FiscalYearsByCreatedAtCursor> {
+        let query = PaginatedQueryArgs::<FiscalYearsCursor> {
             first: 1,
             after: None,
         };
         let result = self
             .repo
-            .list_for_chart_id_by_created_at(chart_id, query, es_entity::ListDirection::Descending)
+            .list_for_filters(
+                FiscalYearsFilters {
+                    chart_id: Some(chart_id),
+                },
+                es_entity::Sort {
+                    by: FiscalYearsSortBy::CreatedAt,
+                    direction: es_entity::ListDirection::Descending,
+                },
+                query,
+            )
             .await?;
 
         Ok(result.entities.into_iter().next())

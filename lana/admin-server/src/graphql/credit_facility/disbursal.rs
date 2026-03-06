@@ -5,8 +5,14 @@ use crate::{
     graphql::{accounting::LedgerTransaction, approval_process::*, loader::LanaDataLoader},
     primitives::*,
 };
+use es_entity::Sort;
+
+use super::SortDirection;
+
 pub use lana_app::{
-    credit::{Disbursal as DomainDisbursal, DisbursalsCursor},
+    credit::{
+        Disbursal as DomainDisbursal, DisbursalsCursor, DisbursalsSortBy as DomainDisbursalsSortBy,
+    },
     public_id::PublicId,
 };
 
@@ -105,4 +111,43 @@ crate::mutation_payload! { CreditFacilityDisbursalInitiatePayload, disbursal: Cr
 #[derive(InputObject)]
 pub struct DisbursalsFilter {
     pub status: Option<DisbursalStatus>,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DisbursalsSortBy {
+    #[default]
+    CreatedAt,
+    Amount,
+}
+
+impl From<DisbursalsSortBy> for DomainDisbursalsSortBy {
+    fn from(by: DisbursalsSortBy) -> Self {
+        match by {
+            DisbursalsSortBy::CreatedAt => DomainDisbursalsSortBy::CreatedAt,
+            DisbursalsSortBy::Amount => DomainDisbursalsSortBy::Amount,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct DisbursalsSort {
+    #[graphql(default)]
+    pub by: DisbursalsSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<DisbursalsSort> for Sort<DomainDisbursalsSortBy> {
+    fn from(sort: DisbursalsSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<DisbursalsSort> for DomainDisbursalsSortBy {
+    fn from(sort: DisbursalsSort) -> Self {
+        sort.by.into()
+    }
 }

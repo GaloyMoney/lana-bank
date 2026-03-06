@@ -16,6 +16,7 @@ gql`
     fiscalYearId
     chartId
     openedAsOf
+    createdAt
     isOpen
     isLastMonthOfYearClosed
     reference

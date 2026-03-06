@@ -53,6 +53,12 @@ pub struct FiscalMonthClosure {
 }
 
 impl FiscalYear {
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
+    }
+
     #[record_error_severity]
     #[instrument(name = "fiscal_year.close", skip(self, now))]
     pub(super) fn close(

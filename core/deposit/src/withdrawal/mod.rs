@@ -6,6 +6,8 @@ pub mod repo;
 pub use entity::WithdrawalEvent;
 pub(super) use entity::*;
 pub use entity::{Withdrawal, WithdrawalStatus};
-pub use repo::withdrawal_cursor::{WithdrawalsByCreatedAtCursor, WithdrawalsCursor};
+pub use repo::withdrawal_cursor::{
+    WithdrawalsByAmountCursor, WithdrawalsByCreatedAtCursor, WithdrawalsCursor,
+};
 pub(super) use repo::*;
 pub use repo::{WithdrawalsFilters, WithdrawalsSortBy};

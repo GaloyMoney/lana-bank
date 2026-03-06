@@ -4,6 +4,8 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
+use money::UsdCents;
+
 use crate::{CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
 use super::entity::*;
@@ -22,7 +24,8 @@ use super::entity::*;
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         concluded_tx_id(ty = "Option<LedgerTxId>", create(persist = false)),
         public_id(ty = "PublicId", list_by),
-        status(ty = "DisbursalStatus", list_for, update(accessor = "status()"))
+        status(ty = "DisbursalStatus", list_for, update(accessor = "status()")),
+        amount(ty = "UsdCents", list_by, update(persist = false))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -125,6 +128,9 @@ impl From<(DisbursalsSortBy, &Disbursal)> for disbursal_cursor::DisbursalsCursor
             DisbursalsSortBy::Id => disbursal_cursor::DisbursalsByIdCursor::from(disbursal).into(),
             DisbursalsSortBy::PublicId => {
                 disbursal_cursor::DisbursalsByPublicIdCursor::from(disbursal).into()
+            }
+            DisbursalsSortBy::Amount => {
+                disbursal_cursor::DisbursalsByAmountCursor::from(disbursal).into()
             }
         }
     }

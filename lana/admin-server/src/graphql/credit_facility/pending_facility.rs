@@ -108,6 +108,7 @@ pub struct PendingCreditFacilitiesFilter {
 pub enum PendingCreditFacilitiesSortBy {
     #[default]
     CreatedAt,
+    FacilityAmount,
 }
 
 impl From<PendingCreditFacilitiesSortBy> for DomainPendingCreditFacilitiesSortBy {
@@ -115,6 +116,9 @@ impl From<PendingCreditFacilitiesSortBy> for DomainPendingCreditFacilitiesSortBy
         match by {
             PendingCreditFacilitiesSortBy::CreatedAt => {
                 DomainPendingCreditFacilitiesSortBy::CreatedAt
+            }
+            PendingCreditFacilitiesSortBy::FacilityAmount => {
+                DomainPendingCreditFacilitiesSortBy::Amount
             }
         }
     }

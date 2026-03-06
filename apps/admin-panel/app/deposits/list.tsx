@@ -10,6 +10,8 @@ import {
   Deposit,
   DepositStatus,
   DepositsFilter,
+  DepositsSort,
+  SortDirection,
   useDepositsQuery,
 } from "@/lib/graphql/generated"
 
@@ -20,6 +22,7 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
 import { PublicIdBadge } from "@/components/public-id-badge"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment DepositFields on Deposit {
@@ -38,8 +41,8 @@ gql`
     }
   }
 
-  query Deposits($first: Int!, $after: String, $filter: DepositsFilter) {
-    deposits(first: $first, after: $after, filter: $filter) {
+  query Deposits($first: Int!, $after: String, $sort: DepositsSort, $filter: DepositsFilter) {
+    deposits(first: $first, after: $after, sort: $sort, filter: $filter) {
       pageInfo {
         hasPreviousPage
         hasNextPage
@@ -59,10 +62,12 @@ gql`
 const Deposits = () => {
   const t = useTranslations("Deposits.table")
   const [filter, setFilter] = useState<DepositsFilter | null>(null)
+  const [sortBy, setSortBy] = useState<DepositsSort | null>(null)
 
   const { data, loading, error, fetchMore } = useDepositsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
       filter,
     },
   })
@@ -77,6 +82,12 @@ const Deposits = () => {
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(deposit) => `/deposits/${deposit.publicId}`}
+        onSort={(column, direction) => {
+          setSortBy({
+            by: camelToScreamingSnake(column as string) as DepositsSort["by"],
+            direction: direction as SortDirection,
+          })
+        }}
         onFilter={(filters) => {
           const f = filters as DepositsFilter
           setFilter(Object.keys(f).length > 0 ? f : null)
@@ -92,6 +103,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
     key: "publicId",
     label: t("headers.depositId"),
+    sortable: true,
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
@@ -108,6 +120,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
     key: "amount",
     label: t("headers.amount"),
+    sortable: true,
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
   {

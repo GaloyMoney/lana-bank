@@ -3,6 +3,7 @@ use sqlx::PgPool;
 
 use core_custody::WalletId as CustodyWalletId;
 use es_entity::*;
+use money::{Satoshis, UsdCents};
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -88,13 +89,15 @@ where
 
     pub async fn list_liquidations(
         &self,
-        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByIdCursor>,
+        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsCursor>,
+        sort: impl Into<Sort<LiquidationsSortBy>>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsByIdCursor>,
+        es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsCursor>,
         LiquidationQueryError,
     > {
+        let sort = sort.into();
         self.liquidations
-            .list_by_id(query, es_entity::ListDirection::Descending)
+            .list_for_filters(Default::default(), sort, query)
             .await
     }
 
@@ -134,6 +137,24 @@ where
             ty = "bool",
             create(persist = false),
             update(accessor = "is_completed()")
+        ),
+        expected_to_receive(
+            ty = "UsdCents",
+            list_by,
+            create(accessor = "initially_expected_to_receive"),
+            update(persist = false)
+        ),
+        amount_received(
+            ty = "UsdCents",
+            list_by,
+            create(persist = false),
+            update(accessor = "amount_received")
+        ),
+        sent_total(
+            ty = "Satoshis",
+            list_by,
+            create(persist = false),
+            update(accessor = "sent_total")
         )
     ),
     tbl_prefix = "core"
@@ -157,6 +178,29 @@ impl LiquidationRepo {
         Self {
             pool: pool.clone(),
             clock,
+        }
+    }
+}
+
+impl From<(LiquidationsSortBy, &Liquidation)> for liquidation_cursor::LiquidationsCursor {
+    fn from(liquidation_with_sort: (LiquidationsSortBy, &Liquidation)) -> Self {
+        let (sort, liquidation) = liquidation_with_sort;
+        match sort {
+            LiquidationsSortBy::CreatedAt => {
+                liquidation_cursor::LiquidationsByCreatedAtCursor::from(liquidation).into()
+            }
+            LiquidationsSortBy::Id => {
+                liquidation_cursor::LiquidationsByIdCursor::from(liquidation).into()
+            }
+            LiquidationsSortBy::ExpectedToReceive => {
+                liquidation_cursor::LiquidationsByExpectedToReceiveCursor::from(liquidation).into()
+            }
+            LiquidationsSortBy::AmountReceived => {
+                liquidation_cursor::LiquidationsByAmountReceivedCursor::from(liquidation).into()
+            }
+            LiquidationsSortBy::SentTotal => {
+                liquidation_cursor::LiquidationsBySentTotalCursor::from(liquidation).into()
+            }
         }
     }
 }

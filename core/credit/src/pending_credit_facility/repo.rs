@@ -4,6 +4,8 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
+use money::UsdCents;
+
 use crate::{CoreCreditEvent, primitives::*, publisher::*};
 use core_credit_collateral::CollateralId;
 
@@ -33,6 +35,7 @@ use super::entity::*;
             list_for,
             update(accessor = "status()")
         ),
+        amount(ty = "UsdCents", list_by, update(persist = false))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -107,6 +110,12 @@ impl From<(PendingCreditFacilitiesSortBy, &PendingCreditFacility)>
             PendingCreditFacilitiesSortBy::CollateralizationRatio => {
                 pending_credit_facility_cursor::PendingCreditFacilitiesByCollateralizationRatioCursor::from(facility)
                     .into()
+            }
+            PendingCreditFacilitiesSortBy::Amount => {
+                pending_credit_facility_cursor::PendingCreditFacilitiesByAmountCursor::from(
+                    facility,
+                )
+                .into()
             }
         }
     }
