@@ -11,7 +11,7 @@ use super::entity::*;
     entity = "Note",
     columns(
         target_type(ty = "NoteTargetType"),
-        target_id(ty = "String", list_for(by(created_at))),
+        target_id(ty = "NoteTargetId", list_for(by(created_at))),
     ),
     tbl_prefix = "core",
     delete = "soft_without_queries"

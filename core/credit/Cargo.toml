@@ -67,6 +67,7 @@ schemars = { workspace = true, optional = true }
 [dev-dependencies]
 obix = { workspace = true, features = ["test-utils"] }
 core-accounting = { workspace = true }
+core-note = { workspace = true }
 document-storage = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 domain-config = { workspace = true, features = ["test-utils"] }

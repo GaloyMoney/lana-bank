@@ -24,6 +24,7 @@ domain-config = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
 governance = { workspace = true, optional = true }
+core-note = { workspace = true }
 document-storage = { workspace = true }
 public-id = { workspace = true }
 sumsub = { workspace = true }

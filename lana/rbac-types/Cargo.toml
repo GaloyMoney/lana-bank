@@ -22,7 +22,6 @@ core-credit-terms = { workspace = true }
 core-custody = { workspace = true }
 core-deposit = { workspace = true }
 core-accounting = { workspace = true }
-core-note = { workspace = true }
 core-report = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }

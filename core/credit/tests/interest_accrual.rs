@@ -86,11 +86,13 @@ async fn setup_with_clock_control() -> anyhow::Result<(
     let (internal_domain_configs, domain_configs) =
         helpers::init_domain_configs(&pool, &authz).await?;
 
+    let notes = core_note::Notes::new(&pool);
     let customers = core_customer::Customers::new(
         &pool,
         &authz,
         &outbox,
         document_storage,
+        notes,
         public_ids,
         &domain_configs,
         clock.clone(),

@@ -3,9 +3,11 @@ use async_graphql::*;
 use crate::primitives::*;
 use lana_app::public_id::PublicId;
 
+use async_graphql::types::connection::*;
+
 use super::{
     credit_facility::*, deposit_account::*, document::CustomerDocument, loader::LanaDataLoader,
-    primitives::SortDirection,
+    note::Note, primitives::SortDirection,
 };
 
 pub use lana_app::customer::{
@@ -187,6 +189,46 @@ impl Customer {
             .list_documents_for_customer_id(sub, self.entity.id)
             .await?;
         Ok(documents.into_iter().map(CustomerDocument::from).collect())
+    }
+
+    async fn notes(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<
+            lana_app::note::note_cursor::NotesByCreatedAtCursor,
+            Note,
+            EmptyFields,
+            EmptyFields,
+        >,
+    > {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let args = es_entity::PaginatedQueryArgs { first, after };
+                let res = app
+                    .customers()
+                    .list_notes_for_customer(sub, self.entity.id, args)
+                    .await?;
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entity| {
+                        let cursor =
+                            lana_app::note::note_cursor::NotesByCreatedAtCursor::from(&entity);
+                        Edge::new(cursor, Note::from(entity))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 
     async fn user_can_create_credit_facility(

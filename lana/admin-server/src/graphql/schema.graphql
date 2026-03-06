@@ -1040,6 +1040,7 @@ type Customer {
 	pendingCreditFacilities: [PendingCreditFacility!]!
 	creditFacilityProposals: [CreditFacilityProposal!]!
 	documents: [CustomerDocument!]!
+	notes(first: Int!, after: String): NoteConnection!
 	userCanCreateCreditFacility: Boolean!
 }
 
@@ -1137,6 +1138,32 @@ input CustomerFreezeInput {
 
 type CustomerFreezePayload {
 	customer: Customer!
+}
+
+input CustomerNoteCreateInput {
+	customerId: UUID!
+	content: String!
+}
+
+type CustomerNoteCreatePayload {
+	note: Note!
+}
+
+input CustomerNoteDeleteInput {
+	noteId: UUID!
+}
+
+type CustomerNoteDeletePayload {
+	deletedNoteId: UUID!
+}
+
+input CustomerNoteUpdateInput {
+	noteId: UUID!
+	content: String!
+}
+
+type CustomerNoteUpdatePayload {
+	note: Note!
 }
 
 enum CustomerStatus {
@@ -2059,17 +2086,15 @@ type Mutation {
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	triggerReportRun: ReportRunCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
-	noteCreate(input: NoteCreateInput!): NoteCreatePayload!
-	noteUpdate(input: NoteUpdateInput!): NoteUpdatePayload!
-	noteDelete(input: NoteDeleteInput!): NoteDeletePayload!
+	customerNoteCreate(input: CustomerNoteCreateInput!): CustomerNoteCreatePayload!
+	customerNoteUpdate(input: CustomerNoteUpdateInput!): CustomerNoteUpdatePayload!
+	customerNoteDelete(input: CustomerNoteDeleteInput!): CustomerNoteDeletePayload!
 }
 
 type Note {
 	id: ID!
 	noteId: UUID!
 	createdAt: Timestamp!
-	targetType: NoteTargetKind!
-	targetId: String!
 	content: String!
 }
 
@@ -2088,24 +2113,6 @@ type NoteConnection {
 	nodes: [Note!]!
 }
 
-input NoteCreateInput {
-	targetType: NoteTargetKind!
-	targetId: UUID!
-	content: String!
-}
-
-type NoteCreatePayload {
-	note: Note!
-}
-
-input NoteDeleteInput {
-	noteId: UUID!
-}
-
-type NoteDeletePayload {
-	deletedNoteId: UUID!
-}
-
 """
 An edge in a connection.
 """
@@ -2118,21 +2125,6 @@ type NoteEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
-}
-
-enum NoteTargetKind {
-	CUSTOMER
-	PROSPECT
-	CREDIT_FACILITY
-}
-
-input NoteUpdateInput {
-	noteId: UUID!
-	content: String!
-}
-
-type NoteUpdatePayload {
-	note: Note!
 }
 
 scalar OneTimeFeeRatePct
@@ -2553,7 +2545,6 @@ type Query {
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 	reportRuns(first: Int!, after: String): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun
-	notesForTarget(targetId: UUID!, first: Int!, after: String): NoteConnection!
 }
 
 type RealtimePrice {

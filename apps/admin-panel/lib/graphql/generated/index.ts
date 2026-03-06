@@ -1061,6 +1061,7 @@ export type Customer = {
   id: Scalars['ID']['output'];
   kycVerification: KycVerification;
   level: KycLevel;
+  notes: NoteConnection;
   pendingCreditFacilities: Array<PendingCreditFacility>;
   personalInfo?: Maybe<PersonalInfo>;
   publicId: Scalars['PublicId']['output'];
@@ -1068,6 +1069,12 @@ export type Customer = {
   telegramHandle: Scalars['String']['output'];
   transactions: Array<Transaction>;
   userCanCreateCreditFacility: Scalars['Boolean']['output'];
+};
+
+
+export type CustomerNotesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type CustomerCloseInput = {
@@ -1162,6 +1169,35 @@ export type CustomerFreezeInput = {
 export type CustomerFreezePayload = {
   __typename?: 'CustomerFreezePayload';
   customer: Customer;
+};
+
+export type CustomerNoteCreateInput = {
+  content: Scalars['String']['input'];
+  customerId: Scalars['UUID']['input'];
+};
+
+export type CustomerNoteCreatePayload = {
+  __typename?: 'CustomerNoteCreatePayload';
+  note: Note;
+};
+
+export type CustomerNoteDeleteInput = {
+  noteId: Scalars['UUID']['input'];
+};
+
+export type CustomerNoteDeletePayload = {
+  __typename?: 'CustomerNoteDeletePayload';
+  deletedNoteId: Scalars['UUID']['output'];
+};
+
+export type CustomerNoteUpdateInput = {
+  content: Scalars['String']['input'];
+  noteId: Scalars['UUID']['input'];
+};
+
+export type CustomerNoteUpdatePayload = {
+  __typename?: 'CustomerNoteUpdatePayload';
+  note: Note;
 };
 
 export enum CustomerStatus {
@@ -2026,6 +2062,9 @@ export type Mutation = {
   customerDocumentDownloadLinkGenerate: CustomerDocumentDownloadLinksGeneratePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
   customerFreeze: CustomerFreezePayload;
+  customerNoteCreate: CustomerNoteCreatePayload;
+  customerNoteDelete: CustomerNoteDeletePayload;
+  customerNoteUpdate: CustomerNoteUpdatePayload;
   customerTelegramHandleUpdate: CustomerTelegramHandleUpdatePayload;
   customerUnfreeze: CustomerUnfreezePayload;
   depositAccountClose: DepositAccountClosePayload;
@@ -2044,9 +2083,6 @@ export type Mutation = {
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
-  noteCreate: NoteCreatePayload;
-  noteDelete: NoteDeletePayload;
-  noteUpdate: NoteUpdatePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   prospectClose: ProspectClosePayload;
   prospectConvert: ProspectConvertPayload;
@@ -2209,6 +2245,21 @@ export type MutationCustomerFreezeArgs = {
 };
 
 
+export type MutationCustomerNoteCreateArgs = {
+  input: CustomerNoteCreateInput;
+};
+
+
+export type MutationCustomerNoteDeleteArgs = {
+  input: CustomerNoteDeleteInput;
+};
+
+
+export type MutationCustomerNoteUpdateArgs = {
+  input: CustomerNoteUpdateInput;
+};
+
+
 export type MutationCustomerTelegramHandleUpdateArgs = {
   input: CustomerTelegramHandleUpdateInput;
 };
@@ -2296,21 +2347,6 @@ export type MutationLoanAgreementGenerateArgs = {
 
 export type MutationManualTransactionExecuteArgs = {
   input: ManualTransactionExecuteInput;
-};
-
-
-export type MutationNoteCreateArgs = {
-  input: NoteCreateInput;
-};
-
-
-export type MutationNoteDeleteArgs = {
-  input: NoteDeleteInput;
-};
-
-
-export type MutationNoteUpdateArgs = {
-  input: NoteUpdateInput;
 };
 
 
@@ -2404,8 +2440,6 @@ export type Note = {
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   noteId: Scalars['UUID']['output'];
-  targetId: Scalars['String']['output'];
-  targetType: NoteTargetKind;
 };
 
 export type NoteConnection = {
@@ -2418,26 +2452,6 @@ export type NoteConnection = {
   pageInfo: PageInfo;
 };
 
-export type NoteCreateInput = {
-  content: Scalars['String']['input'];
-  targetId: Scalars['UUID']['input'];
-  targetType: NoteTargetKind;
-};
-
-export type NoteCreatePayload = {
-  __typename?: 'NoteCreatePayload';
-  note: Note;
-};
-
-export type NoteDeleteInput = {
-  noteId: Scalars['UUID']['input'];
-};
-
-export type NoteDeletePayload = {
-  __typename?: 'NoteDeletePayload';
-  deletedNoteId: Scalars['UUID']['output'];
-};
-
 /** An edge in a connection. */
 export type NoteEdge = {
   __typename?: 'NoteEdge';
@@ -2445,22 +2459,6 @@ export type NoteEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: Note;
-};
-
-export enum NoteTargetKind {
-  CreditFacility = 'CREDIT_FACILITY',
-  Customer = 'CUSTOMER',
-  Prospect = 'PROSPECT'
-}
-
-export type NoteUpdateInput = {
-  content: Scalars['String']['input'];
-  noteId: Scalars['UUID']['input'];
-};
-
-export type NoteUpdatePayload = {
-  __typename?: 'NoteUpdatePayload';
-  note: Note;
 };
 
 export type Outstanding = {
@@ -2823,7 +2821,6 @@ export type Query = {
   liquidations: LiquidationConnection;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
-  notesForTarget: NoteConnection;
   pendingCreditFacilities: PendingCreditFacilityConnection;
   pendingCreditFacility?: Maybe<PendingCreditFacility>;
   permissionSets: PermissionSetConnection;
@@ -3084,13 +3081,6 @@ export type QueryLiquidationsArgs = {
 
 export type QueryLoanAgreementArgs = {
   id: Scalars['UUID']['input'];
-};
-
-
-export type QueryNotesForTargetArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
-  targetId: Scalars['UUID']['input'];
 };
 
 

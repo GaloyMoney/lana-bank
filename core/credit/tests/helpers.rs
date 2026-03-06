@@ -596,11 +596,13 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     .await?;
     let (internal_domain_configs, domain_configs) = init_domain_configs(&pool, &authz).await?;
 
+    let notes = core_note::Notes::new(&pool);
     let customers = core_customer::Customers::new(
         &pool,
         &authz,
         &outbox,
         document_storage,
+        notes,
         public_ids,
         &domain_configs,
         clock.clone(),

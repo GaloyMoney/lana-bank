@@ -11,12 +11,15 @@ pub use public_id::PublicId;
 es_entity::entity_id! {
     CustomerId,
     CustomerDocumentId,
+    CustomerNoteId,
     ProspectId,
     PartyId;
 
     CustomerId => document_storage::ReferenceId,
     CustomerId => public_id::PublicIdTargetId,
     CustomerDocumentId => document_storage::DocumentId,
+    CustomerNoteId => core_note::NoteId,
+    CustomerId => core_note::NoteTargetId,
     ProspectId => public_id::PublicIdTargetId,
     ProspectId => CustomerId,
 
@@ -253,6 +256,7 @@ pub enum CustomerStatus {
 
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
+pub type CustomerNoteAllOrOne = AllOrOne<CustomerNoteId>;
 pub type ProspectAllOrOne = AllOrOne<ProspectId>;
 pub type PartyAllOrOne = AllOrOne<PartyId>;
 
@@ -272,6 +276,7 @@ pub const PROSPECT_REF_TARGET: public_id::PublicIdTargetType =
 pub enum CustomerObject {
     Customer(CustomerAllOrOne),
     CustomerDocument(CustomerDocumentAllOrOne),
+    CustomerNote(CustomerNoteAllOrOne),
     Prospect(ProspectAllOrOne),
     Party(PartyAllOrOne),
 }
@@ -293,6 +298,15 @@ impl CustomerObject {
         match id.into() {
             Some(id) => CustomerObject::CustomerDocument(AllOrOne::ById(id)),
             None => CustomerObject::all_customer_documents(),
+        }
+    }
+    pub fn all_customer_notes() -> CustomerObject {
+        CustomerObject::CustomerNote(AllOrOne::All)
+    }
+    pub fn customer_note(id: impl Into<Option<CustomerNoteId>>) -> CustomerObject {
+        match id.into() {
+            Some(id) => CustomerObject::CustomerNote(AllOrOne::ById(id)),
+            None => CustomerObject::all_customer_notes(),
         }
     }
     pub fn all_prospects() -> CustomerObject {
@@ -322,6 +336,7 @@ impl Display for CustomerObject {
         match self {
             Customer(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             CustomerDocument(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            CustomerNote(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Prospect(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Party(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
@@ -342,6 +357,10 @@ impl FromStr for CustomerObject {
             CustomerDocument => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
                 CustomerObject::CustomerDocument(obj_ref)
+            }
+            CustomerNote => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
+                CustomerObject::CustomerNote(obj_ref)
             }
             Prospect => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
@@ -405,6 +424,7 @@ impl ActionPermission for ProspectEntityAction {
 pub enum CoreCustomerAction {
     Customer(CustomerEntityAction),
     CustomerDocument(CustomerDocumentEntityAction),
+    CustomerNote(CustomerNoteEntityAction),
     Prospect(ProspectEntityAction),
     Party(PartyEntityAction),
 }
@@ -434,6 +454,16 @@ impl CoreCustomerAction {
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::Delete);
     pub const CUSTOMER_DOCUMENT_GENERATE_DOWNLOAD_LINK: Self =
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::GenerateDownloadLink);
+    pub const CUSTOMER_NOTE_CREATE: Self =
+        CoreCustomerAction::CustomerNote(CustomerNoteEntityAction::Create);
+    pub const CUSTOMER_NOTE_READ: Self =
+        CoreCustomerAction::CustomerNote(CustomerNoteEntityAction::Read);
+    pub const CUSTOMER_NOTE_LIST: Self =
+        CoreCustomerAction::CustomerNote(CustomerNoteEntityAction::List);
+    pub const CUSTOMER_NOTE_UPDATE: Self =
+        CoreCustomerAction::CustomerNote(CustomerNoteEntityAction::Update);
+    pub const CUSTOMER_NOTE_DELETE: Self =
+        CoreCustomerAction::CustomerNote(CustomerNoteEntityAction::Delete);
     pub const PROSPECT_CREATE: Self = CoreCustomerAction::Prospect(ProspectEntityAction::Create);
     pub const PROSPECT_READ: Self = CoreCustomerAction::Prospect(ProspectEntityAction::Read);
     pub const PROSPECT_LIST: Self = CoreCustomerAction::Prospect(ProspectEntityAction::List);
@@ -458,6 +488,9 @@ impl CoreCustomerAction {
                 Customer => map_action!(customer, Customer, CustomerEntityAction),
                 CustomerDocument => {
                     map_action!(customer, CustomerDocument, CustomerDocumentEntityAction)
+                }
+                CustomerNote => {
+                    map_action!(customer, CustomerNote, CustomerNoteEntityAction)
                 }
                 Prospect => map_action!(customer, Prospect, ProspectEntityAction),
                 Party => map_action!(customer, Party, PartyEntityAction),
@@ -505,6 +538,7 @@ impl Display for CoreCustomerAction {
         match self {
             Customer(action) => action.fmt(f),
             CustomerDocument(action) => action.fmt(f),
+            CustomerNote(action) => action.fmt(f),
             Prospect(action) => action.fmt(f),
             Party(action) => action.fmt(f),
         }
@@ -522,6 +556,7 @@ impl FromStr for CoreCustomerAction {
             CustomerDocument => {
                 CoreCustomerAction::from(action.parse::<CustomerDocumentEntityAction>()?)
             }
+            CustomerNote => CoreCustomerAction::from(action.parse::<CustomerNoteEntityAction>()?),
             Prospect => CoreCustomerAction::from(action.parse::<ProspectEntityAction>()?),
             Party => CoreCustomerAction::from(action.parse::<PartyEntityAction>()?),
         };
@@ -570,5 +605,30 @@ impl ActionPermission for CustomerDocumentEntityAction {
 impl From<CustomerDocumentEntityAction> for CoreCustomerAction {
     fn from(action: CustomerDocumentEntityAction) -> Self {
         CoreCustomerAction::CustomerDocument(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum CustomerNoteEntityAction {
+    Read,
+    Create,
+    List,
+    Update,
+    Delete,
+}
+
+impl ActionPermission for CustomerNoteEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_CUSTOMER_VIEWER,
+            Self::Create | Self::Update | Self::Delete => PERMISSION_SET_CUSTOMER_WRITER,
+        }
+    }
+}
+
+impl From<CustomerNoteEntityAction> for CoreCustomerAction {
+    fn from(action: CustomerNoteEntityAction) -> Self {
+        CoreCustomerAction::CustomerNote(action)
     }
 }

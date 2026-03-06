@@ -55,10 +55,11 @@ pub mod access {
 pub mod customer {
     pub use core_customer::{
         Activity, CUSTOMER_REF_TARGET, CoreCustomerEvent, Customer, CustomerDocumentId, CustomerId,
-        CustomerStatus, CustomerType, CustomersCursor, CustomersFilters, CustomersSortBy, KycLevel,
-        KycStatus, KycVerification, PROSPECT_REF_TARGET, Party, PartyId, PersonalInfo, Prospect,
-        ProspectId, ProspectStage, ProspectStatus, ProspectsFilters, ProspectsSortBy,
-        PublicProspect, RequireVerifiedCustomerForAccount, Sort, error, prospect_cursor,
+        CustomerNoteId, CustomerStatus, CustomerType, CustomersCursor, CustomersFilters,
+        CustomersSortBy, KycLevel, KycStatus, KycVerification, PROSPECT_REF_TARGET, Party, PartyId,
+        PersonalInfo, Prospect, ProspectId, ProspectStage, ProspectStatus, ProspectsFilters,
+        ProspectsSortBy, PublicProspect, RequireVerifiedCustomerForAccount, Sort, error,
+        prospect_cursor,
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
@@ -224,10 +225,9 @@ pub mod public_id {
 
 pub mod note {
     pub use core_note::{
-        CoreNoteAction, Note, NoteError, NoteId, NoteObject, NoteTargetKind, NoteTargetType, error,
-        note_cursor,
+        Note, NoteError, NoteId, NoteTargetId, NoteTargetType, error, note_cursor,
     };
-    pub type Notes = core_note::Notes<crate::authorization::Authorization>;
+    pub type Notes = core_note::Notes;
 }
 
 pub mod report {

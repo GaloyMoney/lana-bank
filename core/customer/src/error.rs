@@ -34,6 +34,8 @@ pub enum CustomerError {
     SubjectIsNotCustomer,
     #[error("CustomerError - DocumentStorageError: {0}")]
     DocumentStorageError(#[from] document_storage::error::DocumentStorageError),
+    #[error("CustomerError - NoteError: {0}")]
+    NoteError(#[from] core_note::NoteError),
     #[error("CustomerError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("CustomerError - ProspectError: {0}")]
@@ -109,6 +111,7 @@ impl ErrorSeverity for CustomerError {
             Self::AuditError(e) => e.severity(),
             Self::SubjectIsNotCustomer => Level::WARN,
             Self::DocumentStorageError(e) => e.severity(),
+            Self::NoteError(e) => e.severity(),
             Self::PublicIdError(e) => e.severity(),
             Self::ProspectError(e) => e.severity(),
             Self::PartyError(e) => e.severity(),

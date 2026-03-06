@@ -60,11 +60,13 @@ async fn setup() -> anyhow::Result<(
     let (internal_domain_configs, exposed_domain_configs) =
         helpers::init_domain_configs(&pool, &authz).await?;
 
+    let notes = core_note::Notes::new(&pool);
     let customers = Customers::new(
         &pool,
         &authz,
         &outbox,
         document_storage,
+        notes,
         public_ids.clone(),
         &exposed_domain_configs,
         clock.clone(),

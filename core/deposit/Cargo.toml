@@ -54,6 +54,7 @@ schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
 core-accounting = { workspace = true }
+core-note = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 domain-config = { workspace = true, features = ["test-utils"] }
 document-storage = { workspace = true }

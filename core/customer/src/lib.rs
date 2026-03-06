@@ -20,6 +20,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_note::Notes as NoteService;
 use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
@@ -39,6 +40,7 @@ pub use public::*;
 pub use repo::{CustomerRepo, CustomersFilters, CustomersSortBy, Sort, customer_cursor::*};
 
 pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document");
+pub const CUSTOMER_NOTE: core_note::NoteTargetType = core_note::NoteTargetType::new("customer");
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -63,6 +65,7 @@ where
     party_repo: PartyRepo<E>,
     customer_activity_repo: CustomerActivityRepo,
     document_storage: DocumentStorage,
+    notes: NoteService,
     public_ids: PublicIds,
     domain_configs: ExposedDomainConfigsReadOnly,
     config: CustomerConfig,
@@ -82,6 +85,7 @@ where
             party_repo: self.party_repo.clone(),
             customer_activity_repo: self.customer_activity_repo.clone(),
             document_storage: self.document_storage.clone(),
+            notes: self.notes.clone(),
             public_ids: self.public_ids.clone(),
             domain_configs: self.domain_configs.clone(),
             config: self.config.clone(),
@@ -101,6 +105,7 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
         document_storage: DocumentStorage,
+        notes: NoteService,
         public_id_service: PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
         clock: ClockHandle,
@@ -120,6 +125,7 @@ where
             outbox: outbox.clone(),
             customer_activity_repo,
             document_storage,
+            notes,
             public_ids: public_id_service,
             domain_configs: domain_configs.clone(),
             config: CustomerConfig::default(),
@@ -1218,6 +1224,143 @@ where
             )
             .await?;
         self.find_all_documents(ids).await
+    }
+
+    // Note management methods
+
+    #[record_error_severity]
+    #[instrument(name = "customer.create_note", skip(self))]
+    pub async fn create_note(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        content: String,
+    ) -> Result<core_note::Note, CustomerError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_customer_notes(),
+                CoreCustomerAction::CUSTOMER_NOTE_CREATE,
+            )
+            .await?;
+
+        let note = self
+            .notes
+            .create(CUSTOMER_NOTE, customer_id.into(), content)
+            .await?;
+        Ok(note)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.update_note", skip(self))]
+    pub async fn update_note(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        note_id: impl Into<CustomerNoteId> + std::fmt::Debug + Copy,
+        content: String,
+    ) -> Result<core_note::Note, CustomerError> {
+        let customer_note_id = note_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer_note(customer_note_id),
+                CoreCustomerAction::CUSTOMER_NOTE_UPDATE,
+            )
+            .await?;
+
+        let note = self.notes.update(customer_note_id.into(), content).await?;
+        Ok(note)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.delete_note", skip(self))]
+    pub async fn delete_note(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        note_id: impl Into<CustomerNoteId> + std::fmt::Debug + Copy,
+    ) -> Result<(), CustomerError> {
+        let customer_note_id = note_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer_note(customer_note_id),
+                CoreCustomerAction::CUSTOMER_NOTE_DELETE,
+            )
+            .await?;
+
+        self.notes.delete(customer_note_id.into()).await?;
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.list_notes_for_customer", skip(self))]
+    pub async fn list_notes_for_customer(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        query: es_entity::PaginatedQueryArgs<core_note::note_cursor::NotesByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            core_note::Note,
+            core_note::note_cursor::NotesByCreatedAtCursor,
+        >,
+        CustomerError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_customer_notes(),
+                CoreCustomerAction::CUSTOMER_NOTE_LIST,
+            )
+            .await?;
+
+        let notes = self
+            .notes
+            .list_for_target(customer_id.into(), query)
+            .await?;
+        Ok(notes)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_note_by_id", skip(self))]
+    pub async fn find_note_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        note_id: impl Into<CustomerNoteId> + std::fmt::Debug + Copy,
+    ) -> Result<Option<core_note::Note>, CustomerError> {
+        let customer_note_id = note_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer_note(customer_note_id),
+                CoreCustomerAction::CUSTOMER_NOTE_READ,
+            )
+            .await?;
+
+        Ok(self.notes.find_by_id(customer_note_id.into()).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_all_notes", skip(self))]
+    pub async fn find_all_notes<T: From<core_note::Note>>(
+        &self,
+        ids: &[CustomerNoteId],
+    ) -> Result<HashMap<CustomerNoteId, T>, CustomerError> {
+        let note_ids: Vec<core_note::NoteId> = ids.iter().map(|id| (*id).into()).collect();
+        let notes: HashMap<core_note::NoteId, T> = self
+            .notes
+            .find_all(&note_ids)
+            .await?
+            .into_iter()
+            .map(|(id, note)| (id, T::from(note)))
+            .collect();
+
+        let result = notes
+            .into_iter()
+            .map(|(note_id, note)| (CustomerNoteId::from(note_id), note))
+            .collect();
+
+        Ok(result)
     }
 
     #[record_error_severity]
