@@ -346,6 +346,12 @@ dagster_poll_run_status() {
     fi
     if [ "$run_status" = "FAILURE" ] || [ "$run_status" = "CANCELED" ]; then
       echo "Run failed: $output"
+      # Fetch failure events for debugging
+      local events_query='query($runId: ID!) { runOrError(runId: $runId) { ... on Run { eventConnection { events { __typename ... on ExecutionStepFailureEvent { stepKey error { message } } } } } } }'
+      local events_result
+      events_result=$(curl -s "${DAGSTER_URL}/graphql" -H "Content-Type: application/json" \
+        -d "$(jq -n --arg q "$events_query" --arg runId "$run_id" '{query: $q, variables: {runId: $runId}}')")
+      echo "Failure events: $(echo "$events_result" | jq -c '[.data.runOrError.eventConnection.events[] | select(.__typename == "ExecutionStepFailureEvent") | {step: .stepKey, error: .error.message}]' 2>/dev/null)"
       return 1
     fi
     
