@@ -144,8 +144,8 @@ crate::mutation_payload! { CustodianConfigUpdatePayload, custodian: Custodian }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CustodiansSortBy {
-    #[default]
     Name,
+    #[default]
     CreatedAt,
 }
 
