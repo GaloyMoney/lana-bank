@@ -125,47 +125,49 @@ export const makeClient = ({
           creditFacilities: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
           creditFacilityProposals: {
             ...relayStylePagination(),
-            keyArgs: ["filter"],
+            keyArgs: ["sort", "filter"],
           },
           pendingCreditFacilities: {
             ...relayStylePagination(),
-            keyArgs: ["filter"],
-          },
-          creditFacilitiesForStatus: {
-            ...relayStylePagination(),
-            keyArgs: ["sort", "status"],
-          },
-          creditFacilitiesForCollateralizationState: {
-            ...relayStylePagination(),
-            keyArgs: ["sort", "collateralizationState"],
+            keyArgs: ["sort", "filter"],
           },
           disbursals: {
             ...relayStylePagination(),
-            keyArgs: ["filter"],
+            keyArgs: ["sort", "filter"],
           },
-          liquidations: relayStylePagination(),
+          liquidations: {
+            ...relayStylePagination(),
+            keyArgs: ["sort"],
+          },
           deposits: {
             ...relayStylePagination(),
-            keyArgs: ["filter"],
+            keyArgs: ["sort", "filter"],
           },
           withdrawals: {
             ...relayStylePagination(),
-            keyArgs: ["filter"],
+            keyArgs: ["sort", "filter"],
           },
           depositAccounts: {
             ...relayStylePagination(),
-            keyArgs: ["filter"],
+            keyArgs: ["sort", "filter"],
           },
-          loans: relayStylePagination(),
-          custodians: relayStylePagination(),
-          committees: relayStylePagination(),
+          custodians: {
+            ...relayStylePagination(),
+            keyArgs: ["sort"],
+          },
+          committees: {
+            ...relayStylePagination(),
+            keyArgs: ["sort"],
+          },
           policies: relayStylePagination(),
-          fiscalYears: relayStylePagination(),
+          fiscalYears: {
+            ...relayStylePagination(),
+            keyArgs: ["sort"],
+          },
           audit: {
             ...relayStylePagination(),
             keyArgs: ["subject", "authorized", "object", "action"],
           },
-          generalLedgerEntries: relayStylePagination(),
           journalEntries: relayStylePagination(),
           transactionTemplates: relayStylePagination(),
           ledgerTransactionsForTemplateCode: {
