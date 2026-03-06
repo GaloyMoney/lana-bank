@@ -8,20 +8,14 @@
               "format": "uuid",
               "type": "string"
             },
-            "threshold": {
-              "format": "uint",
-              "minimum": 0,
-              "type": "integer"
-            },
             "type": {
-              "const": "committee_threshold",
+              "const": "committee",
               "type": "string"
             }
           },
           "required": [
             "type",
-            "committee_id",
-            "threshold"
+            "committee_id"
           ],
           "type": "object"
         },

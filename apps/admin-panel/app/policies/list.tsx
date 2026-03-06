@@ -21,8 +21,7 @@ gql`
           policyId
           approvalProcessType
           rules {
-            ... on CommitteeThreshold {
-              threshold
+            ... on CommitteeApproval {
               committee {
                 id
                 committeeId
@@ -82,7 +81,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Policy>[] => [
     key: "rules",
     label: t("headers.rules"),
     render: (rules) => {
-      if (rules.__typename === "CommitteeThreshold") {
+      if (rules.__typename === "CommitteeApproval") {
         return t("rules.committeeThreshold", { committeeName: rules.committee.name })
       }
       if (rules.__typename === "SystemApproval") {

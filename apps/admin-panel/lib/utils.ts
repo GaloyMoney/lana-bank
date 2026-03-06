@@ -85,8 +85,8 @@ export const formatRule = (rule: ApprovalRules | null | undefined): string => {
     return "No rules defined"
   }
 
-  if (rule.__typename === "CommitteeThreshold") {
-    return `${rule.threshold} ${rule.threshold === 1 ? "member" : "members"} required`
+  if (rule.__typename === "CommitteeApproval") {
+    return "All members must approve"
   }
 
   if (rule.__typename === "SystemApproval") {

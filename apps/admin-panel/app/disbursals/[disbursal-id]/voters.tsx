@@ -26,7 +26,7 @@ export const VotersCard = ({
     return null
   }
 
-  if (approvalProcess?.rules.__typename !== "CommitteeThreshold") {
+  if (approvalProcess?.rules.__typename !== "CommitteeApproval") {
     return null
   }
 

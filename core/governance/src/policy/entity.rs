@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use super::{error::PolicyError, rules::ApprovalRules};
+use super::rules::ApprovalRules;
 use crate::{approval_process::NewApprovalProcess, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -58,36 +58,18 @@ impl Policy {
             .expect("failed to build new approval process")
     }
 
-    pub fn assign_committee(
-        &mut self,
-        committee_id: CommitteeId,
-        n_committee_members: usize,
-        threshold: usize,
-    ) -> Result<Idempotent<()>, PolicyError> {
-        if threshold < 1 {
-            return Err(PolicyError::PolicyThresholdTooLow(committee_id, threshold));
-        }
-        let rules = ApprovalRules::CommitteeThreshold {
-            committee_id,
-            threshold,
-        };
+    pub fn assign_committee(&mut self, committee_id: CommitteeId) -> Idempotent<()> {
+        let rules = ApprovalRules::Committee { committee_id };
 
         if self.rules == rules {
-            return Ok(Idempotent::AlreadyApplied);
+            return Idempotent::AlreadyApplied;
         }
 
-        if threshold > n_committee_members {
-            return Err(PolicyError::PolicyThresholdTooHigh(committee_id, threshold));
-        }
-
-        self.rules = ApprovalRules::CommitteeThreshold {
-            threshold,
-            committee_id,
-        };
+        self.rules = rules;
 
         self.events
             .push(PolicyEvent::ApprovalRulesUpdated { rules: self.rules });
-        Ok(Idempotent::Executed(()))
+        Idempotent::Executed(())
     }
 }
 
@@ -165,43 +147,8 @@ mod test {
     fn update_policy() {
         let mut policy = Policy::try_from_events(init_events()).unwrap();
         let committee_id = CommitteeId::new();
-        let n_committee_members = 1;
-        let threshold = 1;
-        let _ = policy
-            .assign_committee(committee_id, n_committee_members, threshold)
-            .unwrap();
+        let _ = policy.assign_committee(committee_id);
         assert_eq!(policy.committee_id(), Some(committee_id));
-        assert_eq!(
-            policy.rules,
-            ApprovalRules::CommitteeThreshold {
-                threshold,
-                committee_id
-            }
-        );
-    }
-
-    #[test]
-    fn error_when_threshold_greater_than_n_committee_members() {
-        let mut policy = Policy::try_from_events(init_events()).unwrap();
-        let committee_id = CommitteeId::new();
-        let n_committee_members = 1;
-        let threshold = 2;
-        let res = policy.assign_committee(committee_id, n_committee_members, threshold);
-
-        assert!(matches!(
-            res,
-            Err(PolicyError::PolicyThresholdTooHigh(_, _))
-        ));
-    }
-
-    #[test]
-    fn error_when_threshold_less_than_one() {
-        let mut policy = Policy::try_from_events(init_events()).unwrap();
-        let committee_id = CommitteeId::new();
-        let n_committee_members = 1;
-        let threshold = 0;
-        let res = policy.assign_committee(committee_id, n_committee_members, threshold);
-
-        assert!(matches!(res, Err(PolicyError::PolicyThresholdTooLow(_, _))));
+        assert_eq!(policy.rules, ApprovalRules::Committee { committee_id });
     }
 }

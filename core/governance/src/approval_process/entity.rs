@@ -293,12 +293,10 @@ mod tests {
 
     #[test]
     fn approve() {
-        let mut process =
-            ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
-                threshold: 2,
-                committee_id: CommitteeId::new(),
-            }))
-            .expect("Could not build approval process");
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Committee {
+            committee_id: CommitteeId::new(),
+        }))
+        .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
         let eligible = [approver].iter().copied().collect();
         assert!(process.approve(&eligible, approver).did_execute());
@@ -307,12 +305,10 @@ mod tests {
 
     #[test]
     fn approve_not_eligible() {
-        let mut process =
-            ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
-                threshold: 2,
-                committee_id: CommitteeId::new(),
-            }))
-            .expect("Could not build approval process");
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Committee {
+            committee_id: CommitteeId::new(),
+        }))
+        .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
         assert!(
             process
@@ -324,12 +320,10 @@ mod tests {
 
     #[test]
     fn approve_already_voted() {
-        let mut process =
-            ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
-                threshold: 2,
-                committee_id: CommitteeId::new(),
-            }))
-            .expect("Could not build approval process");
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Committee {
+            committee_id: CommitteeId::new(),
+        }))
+        .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(process.approve(&eligible, approver).did_execute());
@@ -349,12 +343,10 @@ mod tests {
 
     #[test]
     fn deny() {
-        let mut process =
-            ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
-                threshold: 2,
-                committee_id: CommitteeId::new(),
-            }))
-            .expect("Could not build approval process");
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Committee {
+            committee_id: CommitteeId::new(),
+        }))
+        .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
         let reason = String::new();
         let eligible = [denier].iter().copied().collect();
@@ -364,12 +356,10 @@ mod tests {
 
     #[test]
     fn deny_not_eligible() {
-        let mut process =
-            ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
-                threshold: 2,
-                committee_id: CommitteeId::new(),
-            }))
-            .expect("Could not build approval process");
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Committee {
+            committee_id: CommitteeId::new(),
+        }))
+        .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
         let reason = String::new();
         assert!(
@@ -382,12 +372,10 @@ mod tests {
 
     #[test]
     fn deny_already_voted() {
-        let mut process =
-            ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
-                threshold: 2,
-                committee_id: CommitteeId::new(),
-            }))
-            .expect("Could not build approval process");
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Committee {
+            committee_id: CommitteeId::new(),
+        }))
+        .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(process.approve(&eligible, denier).did_execute());

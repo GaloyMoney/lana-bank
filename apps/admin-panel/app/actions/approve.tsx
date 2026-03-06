@@ -34,8 +34,7 @@ gql`
     userCanSubmitDecision
     status
     rules {
-      ... on CommitteeThreshold {
-        threshold
+      ... on CommitteeApproval {
         committee {
           name
           currentMembers {

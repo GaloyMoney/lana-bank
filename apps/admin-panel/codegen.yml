@@ -159,9 +159,6 @@ generates:
             User:
               roles: "...faker.helpers.arrayElements(Object.values(Role).filter(v => typeof v === 'string'))"
 
-            Committee:
-              threshold: "generateMockValue.int()"
-
             Dashboard:
               activeFacilities: "generateMockValue.int()"
               pendingFacilities: "generateMockValue.int()"

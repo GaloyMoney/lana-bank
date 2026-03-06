@@ -20,8 +20,7 @@ gql`
       policyId
       approvalProcessType
       rules {
-        ... on CommitteeThreshold {
-          threshold
+        ... on CommitteeApproval {
           committee {
             ...CommitteeFields
           }
@@ -82,7 +81,7 @@ function PolicyPage({
     <main className="max-w-7xl m-auto">
       <PolicyDetailsCard policy={data.policy} />
       <div className="flex flex-col mt-4">
-        {data.policy.rules.__typename === "CommitteeThreshold" && (
+        {data.policy.rules.__typename === "CommitteeApproval" && (
           <CommitteeUsers showRemove={false} committee={data.policy.rules.committee} />
         )}
       </div>
