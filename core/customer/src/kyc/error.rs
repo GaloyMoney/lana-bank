@@ -38,7 +38,7 @@ impl ErrorSeverity for KycError {
             Self::Sqlx(_) => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::CustomerError(e) => e.severity(),
-            Self::UnhandledCallbackType => Level::ERROR,
+            Self::UnhandledCallbackType => Level::WARN,
             Self::UnhandledLevelType => Level::ERROR,
             Self::MissingExternalUserId(_) => Level::WARN,
             Self::InboxError(_) => Level::ERROR,
