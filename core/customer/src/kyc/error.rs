@@ -20,8 +20,6 @@ pub enum KycError {
     MissingExternalUserId(String),
     #[error("KycError - InboxError: {0}")]
     InboxError(#[from] obix::inbox::InboxError),
-    #[error("KycError - KycLevelParseError: Could not parse '{0}'")]
-    KycLevelParseError(String),
     #[error("KycError - ReviewAnswerParseError: Could not parse '{0}'")]
     ReviewAnswerParseError(String),
     #[error("KycError - SumsubError: {0}")]
@@ -42,7 +40,6 @@ impl ErrorSeverity for KycError {
             Self::UnhandledLevelType => Level::ERROR,
             Self::MissingExternalUserId(_) => Level::WARN,
             Self::InboxError(_) => Level::ERROR,
-            Self::KycLevelParseError(_) => Level::ERROR,
             Self::ReviewAnswerParseError(_) => Level::ERROR,
             Self::SumsubError(sumsub::SumsubError::ApiError { code: 404, .. }) => Level::WARN,
             Self::SumsubError(e) => e.severity(),

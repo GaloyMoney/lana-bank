@@ -5,7 +5,6 @@ pub mod error;
 #[cfg(feature = "sumsub-testing")]
 pub use sumsub::testing_utils as sumsub_testing_utils;
 
-use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -23,61 +22,8 @@ use crate::{
 use callback::{KycCallbackPayload, ReviewAnswer, ReviewResult};
 use error::KycError;
 
-pub use config::{SumsubApiKey, SumsubApiSecret};
+pub use config::{SumsubApiKey, SumsubApiSecret, SumsubKybFlowName, SumsubKycFlowName};
 pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient, SumsubConfig};
-
-#[cfg(feature = "graphql")]
-use async_graphql::*;
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, strum::Display)]
-#[cfg_attr(feature = "graphql", derive(Enum))]
-#[serde(rename_all = "kebab-case")]
-#[strum(serialize_all = "kebab-case")]
-pub enum KycLevel {
-    #[serde(rename = "basic-kyc-level")]
-    #[strum(serialize = "basic-kyc-level")]
-    BasicKycLevel,
-    #[serde(rename = "basic-kyb-level")]
-    #[strum(serialize = "basic-kyb-level")]
-    BasicKybLevel,
-    Unimplemented,
-}
-
-impl std::str::FromStr for KycLevel {
-    type Err = KycError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "basic-kyc-level" => Ok(KycLevel::BasicKycLevel),
-            "basic-kyb-level" => Ok(KycLevel::BasicKybLevel),
-            _ => {
-                tracing::warn!("Unrecognized KycLevel: {}", s);
-                Err(KycError::KycLevelParseError(s.to_string()))
-            }
-        }
-    }
-}
-
-impl From<&CustomerType> for KycLevel {
-    fn from(customer_type: &CustomerType) -> Self {
-        match customer_type {
-            CustomerType::Individual => KycLevel::BasicKycLevel,
-            // Every company types is tied to the same KYC verification level
-            CustomerType::GovernmentEntity => KycLevel::BasicKybLevel,
-            CustomerType::PrivateCompany => KycLevel::BasicKybLevel,
-            CustomerType::Bank => KycLevel::BasicKybLevel,
-            CustomerType::FinancialInstitution => KycLevel::BasicKybLevel,
-            CustomerType::ForeignAgencyOrSubsidiary => KycLevel::BasicKybLevel,
-            CustomerType::NonDomiciledCompany => KycLevel::BasicKybLevel,
-        }
-    }
-}
-
-impl From<CustomerType> for KycLevel {
-    fn from(customer_type: CustomerType) -> Self {
-        (&customer_type).into()
-    }
-}
 
 struct KycCallbackHandler<Perms, E>
 where
@@ -86,6 +32,8 @@ where
 {
     customers: Customers<Perms, E>,
     sumsub_client: SumsubClient,
+    kyc_flow_name: String,
+    kyb_flow_name: String,
 }
 
 impl<Perms, E> Clone for KycCallbackHandler<Perms, E>
@@ -97,6 +45,8 @@ where
         Self {
             customers: self.customers.clone(),
             sumsub_client: self.sumsub_client.clone(),
+            kyc_flow_name: self.kyc_flow_name.clone(),
+            kyb_flow_name: self.kyb_flow_name.clone(),
         }
     }
 }
@@ -138,11 +88,22 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
 {
-    fn new(customers: &Customers<Perms, E>, sumsub_client: &SumsubClient) -> Self {
+    fn new(
+        customers: &Customers<Perms, E>,
+        sumsub_client: &SumsubClient,
+        kyc_flow_name: String,
+        kyb_flow_name: String,
+    ) -> Self {
         Self {
             customers: customers.clone(),
             sumsub_client: sumsub_client.clone(),
+            kyc_flow_name,
+            kyb_flow_name,
         }
+    }
+
+    fn is_known_flow_name(&self, level_name: &str) -> bool {
+        level_name == self.kyc_flow_name || level_name == self.kyb_flow_name
     }
 
     #[record_error_severity]
@@ -249,13 +210,9 @@ where
                 tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
-                // Try to parse the level name, will return error for unrecognized values
-                match level_name.parse::<KycLevel>() {
-                    Ok(_) => {} // Level is valid, continue
-                    Err(_) => {
-                        return Err(KycError::UnhandledLevelType);
-                    }
-                };
+                if !self.is_known_flow_name(&level_name) {
+                    return Err(KycError::UnhandledLevelType);
+                }
 
                 let personal_info = match self
                     .sumsub_client
@@ -415,6 +372,8 @@ where
     sumsub_client: SumsubClient,
     customers: Customers<Perms, E>,
     inbox: Inbox,
+    kyc_flow_name: String,
+    kyb_flow_name: String,
 }
 
 impl<Perms, E> Clone for CustomerKyc<Perms, E>
@@ -428,6 +387,8 @@ where
             sumsub_client: self.sumsub_client.clone(),
             customers: self.customers.clone(),
             inbox: self.inbox.clone(),
+            kyc_flow_name: self.kyc_flow_name.clone(),
+            kyb_flow_name: self.kyb_flow_name.clone(),
         }
     }
 }
@@ -457,12 +418,26 @@ where
             .maybe_value()
             .unwrap_or_default();
 
+        let kyc_flow_name = exposed_domain_configs
+            .get_without_audit::<SumsubKycFlowName>()
+            .await?
+            .value();
+        let kyb_flow_name = exposed_domain_configs
+            .get_without_audit::<SumsubKybFlowName>()
+            .await?
+            .value();
+
         let sumsub_config = SumsubConfig {
             sumsub_key,
             sumsub_secret,
         };
         let sumsub_client = SumsubClient::new(&sumsub_config);
-        let handler = KycCallbackHandler::new(customers, &sumsub_client);
+        let handler = KycCallbackHandler::new(
+            customers,
+            &sumsub_client,
+            kyc_flow_name.clone(),
+            kyb_flow_name.clone(),
+        );
 
         let inbox_config = InboxConfig::new(KYC_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);
@@ -472,11 +447,20 @@ where
             sumsub_client,
             customers: customers.clone(),
             inbox,
+            kyc_flow_name,
+            kyb_flow_name,
         })
     }
 
     pub fn sumsub_client(&self) -> &SumsubClient {
         &self.sumsub_client
+    }
+
+    fn flow_name_for_customer_type(&self, customer_type: &CustomerType) -> &str {
+        match customer_type {
+            CustomerType::Individual => &self.kyc_flow_name,
+            _ => &self.kyb_flow_name,
+        }
     }
 
     #[record_error_severity]
@@ -521,11 +505,11 @@ where
             .customers
             .find_prospect_by_id_without_audit(prospect_id)
             .await?;
-        let level: KycLevel = prospect.customer_type.into();
+        let flow_name = self.flow_name_for_customer_type(&prospect.customer_type);
 
         let response = self
             .sumsub_client
-            .create_permalink(prospect_id, &level.to_string())
+            .create_permalink(prospect_id, flow_name)
             .await?;
 
         self.customers
@@ -570,7 +554,7 @@ where
             .customers
             .find_prospect_by_id_without_audit(prospect_id)
             .await?;
-        let level: KycLevel = prospect.customer_type.into();
+        let flow_name = self.flow_name_for_customer_type(&prospect.customer_type);
 
         tracing::info!(
             prospect_id = %prospect_id,
@@ -580,7 +564,7 @@ where
         // Step 1: Create applicant via API
         let applicant_id = self
             .sumsub_client
-            .create_applicant(prospect_id, &level.to_string())
+            .create_applicant(prospect_id, flow_name)
             .await?;
 
         tracing::info!(applicant_id = %applicant_id, "Applicant created");

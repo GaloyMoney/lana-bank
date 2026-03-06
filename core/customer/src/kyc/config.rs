@@ -17,3 +17,21 @@ define_exposed_config! {
         encrypted: true;
     }
 }
+
+define_exposed_config! {
+    /// SumSub flow name for KYC (individual) verification
+    pub struct SumsubKycFlowName(String);
+    spec {
+        key: "sumsub-kyc-flow-name";
+        default: || Some("basic-kyc-level".to_string());
+    }
+}
+
+define_exposed_config! {
+    /// SumSub flow name for KYB (business) verification
+    pub struct SumsubKybFlowName(String);
+    spec {
+        key: "sumsub-kyb-flow-name";
+        default: || Some("kyb-basic".to_string());
+    }
+}
