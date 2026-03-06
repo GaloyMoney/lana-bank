@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: report_nrp_91_04_titulo_valor_extranjero
+    description: >
+      titulo_valor_extranjero.xml per NRP-91 (Anexo 1, file 4). Reports information on securities
+      (títulos valores) issued by foreign institutions, classified by issuer type (sovereign, central
+      banks, and others) and divided by risk rating category (from AAA to unrated). This data is
+      required for the calculation of the patrimonial fund. The security codes and descriptions are
+      provided by the SSF and must not be modified; only the value field should be updated. All
+      requested securities must be reported, including those with zero values.
+      Corresponds to XSD ssf_cebi_titulo_valor_extranjero.xsd.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "char_length(id_codigo_titulo_extranjero) between 1 and 10"
+          config:
+            description: "Foreign security code must be 1-10 characters (XsString length 10)"
+      - dbt_utils.expression_is_true:
+          expression: "char_length(desc_tv_extranj) between 1 and 254"
+          config:
+            description: "Foreign security description must be 1-254 characters (XsString length 254)"
+
+    columns:
+      - name: id_codigo_titulo_extranjero
+        description: >
+          Code of the foreign security (XsString, length <= 10). Provided by the SSF and must
+          not be modified. Codes classify securities by issuer and risk rating.
+        tests:
+          - not_null
+          - unique
+      - name: desc_tv_extranj
+        description: >
+          Description of the foreign security (XsString, length <= 254). Provided by the SSF
+          and must not be modified.
+        tests:
+          - not_null
+      - name: valor_tv_extranj
+        description: >
+          Value of the foreign security holding (XsDecimal, totalDigits=17, fractionDigits=2).
+          This is the only field that should be updated by the Banco de Inversión. Must be
+          reported even when the value is zero.
+        tests:
+          - not_null

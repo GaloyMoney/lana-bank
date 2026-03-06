@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: report_nrp_91_01_saldo_cuenta
+    description: >
+      saldo_cuenta.xml per NRP-91 (Anexo 1, file 1). Reports the chart of accounts with balances
+      for Bancos de Inversión to the SSF via the CEBI system. Every account and sub-account up to
+      10 digits must be sent with its balance, even when the balance is zero. Account codes must be
+      sent without zero-padding. Account names must be in uppercase and must not be modified from
+      the official catalog. Corresponds to XSD ssf_cebi_saldo_cuenta.xsd.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "regexp_contains(id_codigo_cuenta, r'^[0-9]{1,10}$')"
+          config:
+            error_if: ">0"
+            description: "Validator error 12: account code must be numeric, 1-10 digits, no zero-padding"
+      - dbt_utils.expression_is_true:
+          expression: "char_length(nom_cuenta) between 1 and 80"
+          config:
+            description: "Account name must be 1-80 characters (XsString length 80)"
+      - dbt_utils.expression_is_true:
+          expression: "nom_cuenta = upper(nom_cuenta)"
+          config:
+            description: "Validator error 3: account name must be uppercase per Anexo 2.A"
+      - dbt_utils.expression_is_true:
+          expression: "regexp_contains(valor, r'^-?[0-9]{1,15}[.][0-9]{2}$')"
+          config:
+            description: "Balance must be formatted as XsDecimal with totalDigits=17 and fractionDigits=2"
+
+    columns:
+      - name: id_codigo_cuenta
+        description: >
+          Account code from the Banco de Inversión chart of accounts (XsString, length <= 10).
+          Must be numeric without zero-padding per NRP-91 Anexo 2.A (e.g. "1" not "1000000000").
+          This value is provided by the SSF catalog and must not be modified by the reporting entity.
+        tests:
+          - not_null
+          - unique
+      - name: nom_cuenta
+        description: >
+          Account description (XsString, length <= 80, uppercase). Provided by the SSF catalog
+          and must not be modified by the Banco de Inversión. The validator will reject submissions
+          where this value does not match the official catalog (NRP-91 Anexo 2.A, validator error 3).
+        tests:
+          - not_null
+      - name: valor
+        description: >
+          Account balance as of the reporting date (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when the balance is zero. Balances are validated against the
+          accounting equation and cross-checked with related accounts (NRP-91 Anexo 2.A, Anexo 3
+          errors 4-9, 14-15).
+        tests:
+          - not_null

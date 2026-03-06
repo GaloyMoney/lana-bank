@@ -1,0 +1,114 @@
+version: 2
+
+models:
+  - name: report_nrp_91_08_balance_proyectado
+    description: >
+      balance_proyectado.xml per NRP-91 (Anexo 1, file 8). Reports the projected balance sheet
+      for Bancos de Inversión, containing projected account balances in dollars for each month of
+      the reporting year. Submitted to the SSF on January 31 of each year. From January to November,
+      projections are reported as a trial balance (balance de comprobación). For December, the
+      projection is reported with the applied profit in equity accounts, informing the balances in
+      the income statement accounts. Account codes and descriptions must not be modified; all 12
+      monthly projections must be sent even when zero.
+      Corresponds to XSD ssf_cebi_balance_proyectado.xsd.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "regexp_contains(id_codigo_cuentaproy, r'^[0-9]{1,10}$')"
+          config:
+            description: "Projected account code must be numeric, 1-10 digits, no zero-padding"
+      - dbt_utils.expression_is_true:
+          expression: "char_length(nom_cuentaproy) between 1 and 80"
+          config:
+            description: "Projected account name must be 1-80 characters (Caracter length 80)"
+      - dbt_utils.expression_is_true:
+          expression: "nom_cuentaproy = upper(nom_cuentaproy)"
+          config:
+            description: "Projected account name must be uppercase per Anexo 2.H"
+
+    columns:
+      - name: id_codigo_cuentaproy
+        description: >
+          Projected account code (XsString, length <= 10). Must be numeric without zero-padding,
+          matching the chart of accounts. This value must not be modified.
+        tests:
+          - not_null
+          - unique
+      - name: nom_cuentaproy
+        description: >
+          Projected account description (Caracter, length <= 80, uppercase). Must not be modified
+          from the official catalog.
+        tests:
+          - not_null
+      - name: enero
+        description: >
+          Projected balance for January (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: febrero
+        description: >
+          Projected balance for February (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: marzo
+        description: >
+          Projected balance for March (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: abril
+        description: >
+          Projected balance for April (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: mayo
+        description: >
+          Projected balance for May (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: junio
+        description: >
+          Projected balance for June (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: julio
+        description: >
+          Projected balance for July (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: agosto
+        description: >
+          Projected balance for August (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: septiembre
+        description: >
+          Projected balance for September (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: octubre
+        description: >
+          Projected balance for October (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: noviembre
+        description: >
+          Projected balance for November (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero.
+        tests:
+          - not_null
+      - name: diciembre
+        description: >
+          Projected balance for December (XsDecimal, totalDigits=17, fractionDigits=2).
+          Must always be sent even when zero. For December, the projection includes the
+          applied profit in equity accounts with income statement balances.
+        tests:
+          - not_null

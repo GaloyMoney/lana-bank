@@ -83,3 +83,70 @@ seeds:
         description: Minimum days past due for this status
       - name: consumer_calendar_le_days
         description: Maximum days past due for this status
+
+  - name: static_nrp_91_variables_extracontables
+    description: >
+      Off-balance-sheet (extracontable) variable codes and descriptions as defined in
+      NRP-91 Anexo 4 for Bancos de Inversión. These variables are required for the
+      calculation of the patrimonial fund and must be reported in dato_extracontable.xml
+      via the CEBI system. Codes and descriptions are provided by the SSF and must not
+      be modified by the reporting entity.
+    config:
+      column_types:
+        codigo: STRING
+        descripcion: STRING
+    columns:
+      - name: codigo
+        description: >
+          Extracontable variable code as defined by the SSF (e.g. 114GBI, AVALGAFL,
+          NUMACCION). Used as the id_codigo_extracontable value in dato_extracontable.xml.
+        data_tests:
+          - unique
+          - not_null
+      - name: descripcion
+        description: >
+          Official description of the extracontable variable in uppercase Spanish,
+          as published by the SSF. Must be sent unmodified as desc_extra_contable
+          in dato_extracontable.xml.
+        data_tests:
+          - not_null
+          - unique
+
+  - name: static_nrp_91_errores_validador
+    description: >
+      Validator error codes defined in NRP-91 Anexo 3 for Bancos de Inversión.
+      Lists the 30 validation rules applied by the SSF's validation program to the
+      CEBI system submissions. Each error code maps to a specific validation check
+      and the XML file where the error is detected. Error codes 1-18 apply to
+      saldo_cuenta, 19-26 to deposito_extranjero, and 27-30 to dato_extracontable.
+    config:
+      column_types:
+        codigo_error: INT64
+        descripcion: STRING
+        archivo: STRING
+    columns:
+      - name: codigo_error
+        description: >
+          Numeric error code (1-30) assigned by the SSF validator. Unlike NRP-51
+          which has derogated gaps, NRP-91 uses a contiguous sequence.
+        data_tests:
+          - unique
+          - not_null
+      - name: descripcion
+        description: >
+          Description of the validation error in uppercase Spanish, explaining
+          what condition triggers the error.
+        data_tests:
+          - not_null
+      - name: archivo
+        description: >
+          Name of the XML file where the error is detected by the validator
+          (saldo_cuenta_bco.xml, deposito_bc_extranjero.xml, or
+          variable_extraconta_bco.xml).
+        data_tests:
+          - not_null
+          - accepted_values:
+              values:
+                - saldo_cuenta_bco.xml
+                - deposito_bc_extranjero.xml
+                - variable_extraconta_bco.xml
