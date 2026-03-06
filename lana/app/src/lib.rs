@@ -225,6 +225,7 @@ pub mod public_id {
 pub mod note {
     pub use core_note::{
         CoreNoteAction, Note, NoteError, NoteId, NoteObject, NoteTargetKind, NoteTargetType, error,
+        note_cursor,
     };
     pub type Notes = core_note::Notes<crate::authorization::Authorization>;
 }

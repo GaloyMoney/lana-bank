@@ -2073,6 +2073,21 @@ type Note {
 	content: String!
 }
 
+type NoteConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [NoteEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Note!]!
+}
+
 input NoteCreateInput {
 	targetType: NoteTargetKind!
 	targetId: UUID!
@@ -2089,6 +2104,20 @@ input NoteDeleteInput {
 
 type NoteDeletePayload {
 	deletedNoteId: UUID!
+}
+
+"""
+An edge in a connection.
+"""
+type NoteEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Note!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 enum NoteTargetKind {
@@ -2524,7 +2553,7 @@ type Query {
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 	reportRuns(first: Int!, after: String): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun
-	notesForTarget(targetType: NoteTargetKind!, targetId: UUID!): [Note!]!
+	notesForTarget(targetId: UUID!, first: Int!, after: String): NoteConnection!
 }
 
 type RealtimePrice {
