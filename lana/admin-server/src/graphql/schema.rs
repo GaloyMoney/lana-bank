@@ -1220,9 +1220,12 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(ReportRunsSort::default())")] sort: Option<ReportRunsSort>,
     ) -> async_graphql::Result<
         Connection<ReportRunsByCreatedAtCursor, ReportRun, EmptyFields, EmptyFields>,
     > {
+        let sort = sort.unwrap_or_default();
+        let direction: es_entity::ListDirection = sort.direction.into();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
             ReportRunsByCreatedAtCursor,
@@ -1230,7 +1233,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.reports().list_report_runs(sub, query)
+            |query| app.reports().list_report_runs(sub, query, direction)
         )
     }
 

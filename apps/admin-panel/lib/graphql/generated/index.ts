@@ -3080,6 +3080,7 @@ export type QueryReportRunArgs = {
 export type QueryReportRunsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<ReportRunsSort>;
 };
 
 
@@ -3216,6 +3217,15 @@ export type ReportRunUpdatedPayload = {
   __typename?: 'ReportRunUpdatedPayload';
   reportRunId: Scalars['UUID']['output'];
 };
+
+export type ReportRunsSort = {
+  by?: ReportRunsSortBy;
+  direction?: SortDirection;
+};
+
+export enum ReportRunsSortBy {
+  StartTime = 'START_TIME'
+}
 
 export type Role = {
   __typename?: 'Role';
@@ -4960,6 +4970,7 @@ export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun
 export type ReportRunsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<ReportRunsSort>;
 }>;
 
 
@@ -11854,8 +11865,8 @@ export type ReportGenerateMutationHookResult = ReturnType<typeof useReportGenera
 export type ReportGenerateMutationResult = Apollo.MutationResult<ReportGenerateMutation>;
 export type ReportGenerateMutationOptions = Apollo.BaseMutationOptions<ReportGenerateMutation, ReportGenerateMutationVariables>;
 export const ReportRunsDocument = gql`
-    query ReportRuns($first: Int!, $after: String) {
-  reportRuns(first: $first, after: $after) {
+    query ReportRuns($first: Int!, $after: String, $sort: ReportRunsSort) {
+  reportRuns(first: $first, after: $after, sort: $sort) {
     edges {
       cursor
       node {
@@ -11890,6 +11901,7 @@ export const ReportRunsDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */
