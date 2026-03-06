@@ -119,9 +119,8 @@ where
 
         match self.process_payload(payload).await {
             Ok(_) => (),
-            // Silently ignoring these errors instead of returning,
-            // this prevents sumsub from retrying for these unhandled cases
-            Err(KycError::UnhandledCallbackType) => (),
+            // Silently ignoring this error instead of returning,
+            // this prevents sumsub from retrying for this unhandled case
             Err(KycError::UnhandledLevelType) => (),
             Err(e) => return Err(Box::new(e)),
         }
@@ -396,7 +395,7 @@ where
             }
             KycCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
-                return Err(KycError::UnhandledCallbackType);
+                tracing::warn!("Received unhandled KYC callback type - skipping");
             }
         }
         Ok(())
