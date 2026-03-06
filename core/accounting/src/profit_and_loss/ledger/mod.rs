@@ -260,7 +260,7 @@ impl ProfitAndLossStatementLedger {
         until: Option<NaiveDate>,
     ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementLedgerError> {
         let ids = self.get_ids_from_reference(reference).await?;
-        let all_account_set_ids = vec![ids.id, ids.revenue, ids.expenses];
+        let all_account_set_ids = vec![ids.id, ids.revenue, ids.cost_of_revenue, ids.expenses];
 
         let mut balances_by_id = self
             .get_balances_by_id(all_account_set_ids, from, until)

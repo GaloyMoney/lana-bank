@@ -1020,17 +1020,14 @@ impl Query {
         until: Option<Date>,
     ) -> async_graphql::Result<ProfitAndLossStatement> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let from = from.into_inner();
+        let until = until.map(|t| t.into_inner());
         let profit_and_loss = app
             .accounting()
             .profit_and_loss()
-            .pl_statement(
-                sub,
-                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
-                from.into_inner(),
-                until.map(|t| t.into_inner()),
-            )
+            .pl_statement(sub, PROFIT_AND_LOSS_STATEMENT_NAME.to_string(), from, until)
             .await?;
-        Ok(ProfitAndLossStatement::from(profit_and_loss))
+        Ok(ProfitAndLossStatement::new(profit_and_loss, from, until))
     }
 
     async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {

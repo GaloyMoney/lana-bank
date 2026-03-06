@@ -37,6 +37,13 @@ pub struct BalanceSheetAccountKey {
     pub as_of: NaiveDate,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ProfitAndLossAccountKey {
+    pub id: LedgerAccountId,
+    pub from: NaiveDate,
+    pub until: Option<NaiveDate>,
+}
+
 pub type LanaDataLoader = DataLoader<LanaLoader>;
 pub struct LanaLoader {
     pub app: LanaApp,
@@ -562,6 +569,59 @@ impl Loader<BalanceSheetAccountKey> for LanaLoader {
             for key in scoped_keys {
                 if let Some(account) = accounts.get(&key.id).cloned() {
                     result.insert(key, BalanceSheetAccount::new(account, as_of));
+                }
+            }
+        }
+
+        Ok(result)
+    }
+}
+
+impl Loader<ProfitAndLossAccountKey> for LanaLoader {
+    type Value = ProfitAndLossAccount;
+    type Error = Arc<lana_app::accounting::error::CoreAccountingError>;
+
+    #[instrument(
+        name = "loader.profit_and_loss_accounts",
+        skip(self),
+        fields(count = keys.len()),
+        err
+    )]
+    async fn load(
+        &self,
+        keys: &[ProfitAndLossAccountKey],
+    ) -> Result<HashMap<ProfitAndLossAccountKey, ProfitAndLossAccount>, Self::Error> {
+        let mut keys_by_scope: HashMap<
+            (NaiveDate, Option<NaiveDate>),
+            Vec<ProfitAndLossAccountKey>,
+        > = HashMap::new();
+        for key in keys {
+            keys_by_scope
+                .entry((key.from, key.until))
+                .or_default()
+                .push(*key);
+        }
+
+        let mut result = HashMap::new();
+
+        for ((from, until), scoped_keys) in keys_by_scope {
+            let ids = scoped_keys
+                .iter()
+                .map(|key| key.id)
+                .collect::<std::collections::HashSet<_>>()
+                .into_iter()
+                .collect::<Vec<_>>();
+
+            let accounts: HashMap<_, lana_app::accounting::ledger_account::LedgerAccount> = self
+                .app
+                .accounting()
+                .find_all_ledger_accounts_in_range(CHART_REF.0, &ids, from, until)
+                .await
+                .map_err(Arc::new)?;
+
+            for key in scoped_keys {
+                if let Some(account) = accounts.get(&key.id).cloned() {
+                    result.insert(key, ProfitAndLossAccount::new(account, from, until));
                 }
             }
         }

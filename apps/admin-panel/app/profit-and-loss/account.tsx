@@ -20,21 +20,21 @@ interface AccountProps {
 export const Account = ({ account, currency, depth = 0, layer }: AccountProps) => {
   const router = useRouter()
 
-  let accountEnd: number | undefined
+  let accountPeriod: number | undefined
 
   if (account.balanceRange.__typename === "UsdLedgerAccountBalanceRange") {
-    accountEnd = account.balanceRange.usdEnd[layer].net
+    accountPeriod = account.balanceRange.usdDiff[layer].net
   } else if (account.balanceRange.__typename === "BtcLedgerAccountBalanceRange") {
-    accountEnd = account.balanceRange.btcEnd[layer].net
+    accountPeriod = account.balanceRange.btcDiff[layer].net
   }
 
   const handleRowClick = () => {
-    router.push(`/ledger-accounts/${account.code || account.id}`)
+    router.push(`/ledger-accounts/${account.code || account.ledgerAccountId}`)
   }
 
   return (
     <TableRow
-      data-testid={`account-${account.id}`}
+      data-testid={`account-${account.profitAndLossAccountId}`}
       className="cursor-pointer hover:bg-muted/50"
       onClick={handleRowClick}
     >
@@ -46,7 +46,7 @@ export const Account = ({ account, currency, depth = 0, layer }: AccountProps) =
         <div>{account.name}</div>
       </TableCell>
       <TableCell>
-        <Balance align="end" currency={currency} amount={accountEnd as CurrencyType} />
+        <Balance align="end" currency={currency} amount={accountPeriod as CurrencyType} />
       </TableCell>
     </TableRow>
   )
