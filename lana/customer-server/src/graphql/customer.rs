@@ -52,7 +52,7 @@ impl Customer {
         let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
         let party = app
             .customers()
-            .find_party_by_id_without_audit(self.entity.party_id)
+            .find_party_by_customer_id_without_audit(self.entity.id)
             .await?;
         Ok(party.email)
     }
@@ -61,7 +61,7 @@ impl Customer {
         let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
         let party = app
             .customers()
-            .find_party_by_id_without_audit(self.entity.party_id)
+            .find_party_by_customer_id_without_audit(self.entity.id)
             .await?;
         Ok(party.telegram_handle)
     }
@@ -70,7 +70,7 @@ impl Customer {
         let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
         let party = app
             .customers()
-            .find_party_by_id_without_audit(self.entity.party_id)
+            .find_party_by_customer_id_without_audit(self.entity.id)
             .await?;
         Ok(party.customer_type)
     }
@@ -82,7 +82,7 @@ impl Customer {
         let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
         let party = app
             .customers()
-            .find_party_by_id_without_audit(self.entity.party_id)
+            .find_party_by_customer_id_without_audit(self.entity.id)
             .await?;
         Ok(party.personal_info)
     }
