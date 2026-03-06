@@ -352,7 +352,11 @@ dagster_poll_run_status() {
       local events_result
       events_result=$(curl -s "$dagster_gql" -H "Content-Type: application/json" \
         -d "$(jq -n --arg q "$events_query" --arg runId "$run_id" '{query: $q, variables: {runId: $runId}}')")
-      echo "Failure events: $(echo "$events_result" | jq -c '[.data.runOrError.eventConnection.events[] | select(.__typename == "ExecutionStepFailureEvent") | {step: .stepKey, error: .error.message[0:200]}]' 2>/dev/null)"
+      # Extract just the dbt error lines (after "Errors parsed from dbt logs:")
+      local dbt_errors
+      dbt_errors=$(echo "$events_result" | jq -r '.data.runOrError.eventConnection.events[] | select(.__typename == "ExecutionStepFailureEvent") | .error.message' 2>/dev/null | sed -n '/Errors parsed from dbt logs/,$ p' | head -20)
+      echo "dbt errors:"
+      echo "$dbt_errors"
       return 1
     fi
     
