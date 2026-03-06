@@ -257,15 +257,15 @@ where
             .policy_repo
             .find_by_process_type_in_op(&mut *db, process_type)
             .await?;
-        if let Some(domain_configs) = &self.domain_configs {
-            if matches!(policy.rules, ApprovalRules::SystemAutoApprove) {
-                let require_committee = domain_configs
-                    .get_without_audit_in_op::<RequireCommitteeApproval>(&mut *db)
-                    .await?
-                    .value();
-                if require_committee {
-                    return Err(GovernanceError::AutoApproveNotAllowed);
-                }
+        if let Some(domain_configs) = &self.domain_configs
+            && matches!(policy.rules, ApprovalRules::SystemAutoApprove)
+        {
+            let require_committee = domain_configs
+                .get_without_audit_in_op::<RequireCommitteeApproval>(&mut *db)
+                .await?
+                .value();
+            if require_committee {
+                return Err(GovernanceError::AutoApproveNotAllowed);
             }
         }
         self.authz
