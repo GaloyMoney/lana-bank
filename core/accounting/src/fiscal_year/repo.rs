@@ -15,7 +15,12 @@ use crate::primitives::{ChartId, FiscalYearId};
     columns(
         chart_id(ty = "ChartId", update(persist = false), list_for),
         reference(ty = "String", create(accessor = "reference()")),
-        opened_as_of(ty = "NaiveDate", list_by, create(accessor = "opened_as_of")),
+        opened_as_of(
+            ty = "NaiveDate",
+            list_by,
+            update(persist = false),
+            create(accessor = "opened_as_of")
+        ),
     ),
     tbl_prefix = "core"
 )]
