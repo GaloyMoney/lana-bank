@@ -108,6 +108,14 @@
       "description": "Puede crear y gestionar comités y políticas, y controlar procesos de aprobación (crear, aprobar, denegar, concluir)",
       "label": "Editor de gobernanza"
     },
+    "note_reader": {
+      "description": "Puede leer notas",
+      "label": "Lector de notas"
+    },
+    "note_writer": {
+      "description": "Puede crear, actualizar y eliminar notas",
+      "label": "Editor de notas"
+    },
     "report_viewer": {
       "description": "Puede ver informes regulatorios y descargarlos",
       "label": "Visualizador de informes"

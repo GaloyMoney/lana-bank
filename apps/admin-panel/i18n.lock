@@ -1804,6 +1804,10 @@ checksums:
     Permissions/governance_viewer/label: bfcc6123d91209cf8ca012200b6cd556
     Permissions/governance_writer/description: 56c0335d078338288795e0cd66062197
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5
+    Permissions/note_reader/description: 8b5544bacbbb0c0095eccc351b16e5c7
+    Permissions/note_reader/label: a025d53b9ea07e27e91a866c99c90e07
+    Permissions/note_writer/description: ce8115e21905729337b552b6225ff309
+    Permissions/note_writer/label: 18ec6ab71af4776791255739bb0ca202
     Permissions/report_viewer/description: b9a52307adee71b1c818d70ac5160696
     Permissions/report_viewer/label: a66689c6ed940e3e6a26e703a04851e6
     Permissions/report_writer/description: d0bb9b9ba3824a2e4c9fadb87d926881
