@@ -96,8 +96,11 @@ Eventos relacionados con el ciclo de vida del cliente y KYC.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `CustomerCreated` | Se creo un nuevo cliente | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `CustomerKycUpdated` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
+| `CustomerCreated` | Se creo un nuevo cliente | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
+| `CustomerKycUpdated` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
+| `CustomerFrozen` | Se congelo una cuenta de cliente, bloqueando operaciones financieras | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
+| `CustomerUnfrozen` | Se descongelo una cuenta de cliente previamente congelada, restaurando operaciones normales | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
+| `CustomerClosed` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
 | `PartyCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
 | `PartyEmailUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
 | `ProspectCreated` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |

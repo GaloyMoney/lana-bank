@@ -1,3 +1,28 @@
+## [0.47.0] - 2026-03-06
+
+### 🚀 Features
+
+- *(customer)* Handle SumSub applicantOnHold callback (#4142)
+- Add column sorting to admin panel tables (#4107)
+- *(customer)* Add frozen status, close customer, and SumSub deactivation (#4112)
+- Improve P&L date range selection with fiscal period presets (#4039)
+
+### 🐛 Bug Fixes
+
+- *(credit)* Handle NoAccrualCycleInProgress in accrue_period to prevent infinite retry (#4148)
+- *(deps)* Override dompurify to fix Dependabot alert #202 (#4150)
+- *(collection)* Downgrade obligation ConcurrentModification error severity to WARN (#4153)
+- *(customer)* Reduce false-positive alerts in KYC callback handling (#4151)
+- *(docs)* Correct Spanish version labels showing "Siguiente" instead of version numbers (#4159)
+
+### 🧪 Testing
+
+- Test for default value in domain config (#4109)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.46.1 [ci skip] (#4145)
+- Update apollo client for sort (#4158)
 ## [0.46.1] - 2026-03-05
 
 ### 🐛 Bug Fixes
