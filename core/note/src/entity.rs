@@ -51,7 +51,8 @@ impl Note {
     pub fn update_content(&mut self, content: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            NoteEvent::Updated { content: existing_content } if existing_content == &content
+            NoteEvent::Updated { content: existing_content } if existing_content == &content,
+            => NoteEvent::Updated {..}
         );
         self.content = content.clone();
         self.events.push(NoteEvent::Updated { content });
