@@ -11,7 +11,6 @@ use core_credit_terms::CoreCreditTermsObject;
 use core_custody::CoreCustodyObject;
 use core_customer::CustomerObject;
 use core_deposit::CoreDepositObject;
-use core_note::NoteObject;
 use core_report::ReportObject;
 use dashboard::DashboardModuleObject;
 use domain_config::DomainConfigObject;
@@ -35,7 +34,6 @@ pub enum LanaObject {
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
     Report(ReportObject),
-    Note(NoteObject),
     Contract(ContractModuleObject),
 }
 
@@ -114,12 +112,6 @@ impl From<ReportObject> for LanaObject {
     }
 }
 
-impl From<NoteObject> for LanaObject {
-    fn from(object: NoteObject) -> Self {
-        LanaObject::Note(object)
-    }
-}
-
 impl From<ContractModuleObject> for LanaObject {
     fn from(object: ContractModuleObject) -> Self {
         LanaObject::Contract(object)
@@ -145,7 +137,6 @@ impl Display for LanaObject {
             Custody(object) => object.fmt(f),
             Dashboard(object) => object.fmt(f),
             Report(object) => object.fmt(f),
-            Note(object) => object.fmt(f),
             Contract(object) => object.fmt(f),
         }
     }
@@ -176,11 +167,6 @@ impl FromStr for LanaObject {
                     .map_err(|_| "could not parse DashboardModuleObject")?,
             ),
             Report => LanaObject::from(object.parse::<ReportObject>()?),
-            Note => LanaObject::from(
-                object
-                    .parse::<NoteObject>()
-                    .map_err(|_| "could not parse NoteObject")?,
-            ),
             Contract => LanaObject::from(
                 object
                     .parse::<ContractModuleObject>()

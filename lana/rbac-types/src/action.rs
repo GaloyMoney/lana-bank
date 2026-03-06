@@ -13,7 +13,6 @@ use core_credit_terms::CoreCreditTermsAction;
 use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
-use core_note::CoreNoteAction;
 use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
 use domain_config::DomainConfigAction;
@@ -37,7 +36,6 @@ pub enum LanaAction {
     Terms(CoreCreditTermsAction),
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
-    Note(CoreNoteAction),
     Contract(ContractModuleAction),
 }
 
@@ -59,7 +57,6 @@ impl LanaAction {
             CoreCreditTermsAction::actions(),
             CoreCustodyAction::actions(),
             CoreReportAction::actions(),
-            CoreNoteAction::actions(),
             ContractModuleAction::actions(),
         ]
         .concat()
@@ -136,11 +133,6 @@ impl From<CoreReportAction> for LanaAction {
         LanaAction::Report(action)
     }
 }
-impl From<CoreNoteAction> for LanaAction {
-    fn from(action: CoreNoteAction) -> Self {
-        LanaAction::Note(action)
-    }
-}
 impl From<ContractModuleAction> for LanaAction {
     fn from(action: ContractModuleAction) -> Self {
         LanaAction::Contract(action)
@@ -166,7 +158,6 @@ impl Display for LanaAction {
             Terms(action) => action.fmt(f),
             Custody(action) => action.fmt(f),
             Report(action) => action.fmt(f),
-            Note(action) => action.fmt(f),
             Contract(action) => action.fmt(f),
         }
     }
@@ -193,7 +184,6 @@ impl FromStr for LanaAction {
             Terms => LanaAction::from(action.parse::<CoreCreditTermsAction>()?),
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),
-            Note => LanaAction::from(action.parse::<CoreNoteAction>()?),
             Contract => LanaAction::from(action.parse::<ContractModuleAction>()?),
         };
         Ok(res)
