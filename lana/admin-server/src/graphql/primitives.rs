@@ -3,8 +3,8 @@ use serde_json::Value;
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SortDirection {
-    #[default]
     Asc,
+    #[default]
     Desc,
 }
 

@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
@@ -7,6 +7,8 @@ import { formatDate } from "@lana/web/utils"
 
 import {
   ReportRun,
+  ReportRunsSort,
+  SortDirection,
   useReportRunsQuery,
   useReportRunUpdatedSubscription,
 } from "@/lib/graphql/generated"
@@ -16,10 +18,11 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
-  query ReportRuns($first: Int!, $after: String) {
-    reportRuns(first: $first, after: $after) {
+  query ReportRuns($first: Int!, $after: String, $sort: ReportRunsSort) {
+    reportRuns(first: $first, after: $after, sort: $sort) {
       edges {
         cursor
         node {
@@ -48,10 +51,12 @@ gql`
 
 const AvailableReportRuns: React.FC = () => {
   const t = useTranslations("Reports")
+  const [sortBy, setSortBy] = useState<ReportRunsSort | null>(null)
 
   const { data, loading, error, fetchMore, refetch } = useReportRunsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
     },
   })
 
@@ -68,6 +73,7 @@ const AvailableReportRuns: React.FC = () => {
     {
       key: "startTime",
       label: t("listHeaders.generatedAt"),
+      sortable: true,
       render: (startTime) => {
         return startTime ? formatDate(startTime) : t("starting")
       },
@@ -94,6 +100,12 @@ const AvailableReportRuns: React.FC = () => {
         pageSize={DEFAULT_PAGESIZE}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         navigateTo={(reportRun) => `/regulatory-reporting/${reportRun.reportRunId}`}
+        onSort={(column, direction) => {
+          setSortBy({
+            by: camelToScreamingSnake(column as string) as ReportRunsSort["by"],
+            direction: direction as SortDirection,
+          })
+        }}
       />
     </div>
   )

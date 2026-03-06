@@ -174,7 +174,10 @@ export const makeClient = ({
             ...relayStylePagination(),
             keyArgs: ["templateCode"],
           },
-          reportRuns: relayStylePagination(),
+          reportRuns: {
+            ...relayStylePagination(),
+            keyArgs: ["sort"],
+          },
         },
       },
     },

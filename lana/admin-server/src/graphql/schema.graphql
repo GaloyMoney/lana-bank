@@ -425,7 +425,7 @@ type CommitteeThreshold {
 
 input CommitteesSort {
 	by: CommitteesSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum CommitteesSortBy {
@@ -451,7 +451,7 @@ input CreditFacilitiesFilter {
 
 input CreditFacilitiesSort {
 	by: CreditFacilitiesSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum CreditFacilitiesSortBy {
@@ -795,7 +795,7 @@ input CreditFacilityProposalsFilter {
 
 input CreditFacilityProposalsSort {
 	by: CreditFacilityProposalsSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum CreditFacilityProposalsSortBy {
@@ -1012,8 +1012,8 @@ type CustodianEdge {
 }
 
 input CustodiansSort {
-	by: CustodiansSortBy! = NAME
-	direction: SortDirection! = ASC
+	by: CustodiansSortBy! = CREATED_AT
+	direction: SortDirection! = DESC
 }
 
 enum CustodiansSortBy {
@@ -1207,7 +1207,7 @@ input CustomersFilter {
 
 input CustomersSort {
 	by: CustomersSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum CustomersSortBy {
@@ -1380,7 +1380,7 @@ input DepositAccountsFilter {
 
 input DepositAccountsSort {
 	by: DepositAccountsSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum DepositAccountsSortBy {
@@ -1488,7 +1488,7 @@ input DepositsFilter {
 
 input DepositsSort {
 	by: DepositsSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum DepositsSortBy {
@@ -1525,7 +1525,7 @@ input DisbursalsFilter {
 
 input DisbursalsSort {
 	by: DisbursalsSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum DisbursalsSortBy {
@@ -1696,7 +1696,7 @@ type FiscalYearOpenNextPayload {
 
 input FiscalYearsSort {
 	by: FiscalYearsSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum FiscalYearsSortBy {
@@ -1954,7 +1954,7 @@ type LiquidationProceedsReceived {
 
 input LiquidationsSort {
 	by: LiquidationsSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum LiquidationsSortBy {
@@ -2171,7 +2171,7 @@ input PendingCreditFacilitiesFilter {
 
 input PendingCreditFacilitiesSort {
 	by: PendingCreditFacilitiesSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum PendingCreditFacilitiesSortBy {
@@ -2471,7 +2471,7 @@ input ProspectsFilter {
 
 input ProspectsSort {
 	by: ProspectsSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum ProspectsSortBy {
@@ -2494,36 +2494,36 @@ type Query {
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
 	customerByPublicId(id: PublicId!): Customer
-	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: ASC}, filter: CustomersFilter): CustomerConnection!
+	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: DESC}, filter: CustomersFilter): CustomerConnection!
 	prospect(id: UUID!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect
-	prospects(first: Int!, after: String, sort: ProspectsSort = {by: CREATED_AT, direction: ASC}, filter: ProspectsFilter): ProspectConnection!
+	prospects(first: Int!, after: String, sort: ProspectsSort = {by: CREATED_AT, direction: DESC}, filter: ProspectsFilter): ProspectConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawalByPublicId(id: PublicId!): Withdrawal
-	withdrawals(first: Int!, after: String, sort: WithdrawalsSort = {by: CREATED_AT, direction: ASC}, filter: WithdrawalsFilter): WithdrawalConnection!
+	withdrawals(first: Int!, after: String, sort: WithdrawalsSort = {by: CREATED_AT, direction: DESC}, filter: WithdrawalsFilter): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
 	depositByPublicId(id: PublicId!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	depositAccountByPublicId(id: PublicId!): DepositAccount
-	depositAccounts(first: Int!, after: String, sort: DepositAccountsSort = {by: CREATED_AT, direction: ASC}, filter: DepositAccountsFilter): DepositAccountConnection!
-	deposits(first: Int!, after: String, sort: DepositsSort = {by: CREATED_AT, direction: ASC}, filter: DepositsFilter): DepositConnection!
+	depositAccounts(first: Int!, after: String, sort: DepositAccountsSort = {by: CREATED_AT, direction: DESC}, filter: DepositAccountsFilter): DepositAccountConnection!
+	deposits(first: Int!, after: String, sort: DepositsSort = {by: CREATED_AT, direction: DESC}, filter: DepositsFilter): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
 	creditFacilityProposal(id: UUID!): CreditFacilityProposal
-	creditFacilityProposals(first: Int!, after: String, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilityProposalsFilter): CreditFacilityProposalConnection!
+	creditFacilityProposals(first: Int!, after: String, sort: CreditFacilityProposalsSort = {by: CREATED_AT, direction: DESC}, filter: CreditFacilityProposalsFilter): CreditFacilityProposalConnection!
 	pendingCreditFacility(id: UUID!): PendingCreditFacility
-	pendingCreditFacilities(first: Int!, after: String, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: PendingCreditFacilitiesFilter): PendingCreditFacilityConnection!
+	pendingCreditFacilities(first: Int!, after: String, sort: PendingCreditFacilitiesSort = {by: CREATED_AT, direction: DESC}, filter: PendingCreditFacilitiesFilter): PendingCreditFacilityConnection!
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
-	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
+	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: DESC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
-	disbursals(first: Int!, after: String, sort: DisbursalsSort = {by: CREATED_AT, direction: ASC}, filter: DisbursalsFilter): CreditFacilityDisbursalConnection!
+	disbursals(first: Int!, after: String, sort: DisbursalsSort = {by: CREATED_AT, direction: DESC}, filter: DisbursalsFilter): CreditFacilityDisbursalConnection!
 	liquidation(id: UUID!): Liquidation
-	liquidations(first: Int!, after: String, sort: LiquidationsSort = {by: CREATED_AT, direction: ASC}): LiquidationConnection!
-	custodians(first: Int!, after: String, sort: CustodiansSort = {by: NAME, direction: ASC}): CustodianConnection!
+	liquidations(first: Int!, after: String, sort: LiquidationsSort = {by: CREATED_AT, direction: DESC}): LiquidationConnection!
+	custodians(first: Int!, after: String, sort: CustodiansSort = {by: CREATED_AT, direction: DESC}): CustodianConnection!
 	committee(id: UUID!): Committee
-	committees(first: Int!, after: String, sort: CommitteesSort = {by: CREATED_AT, direction: ASC}): CommitteeConnection!
+	committees(first: Int!, after: String, sort: CommitteesSort = {by: CREATED_AT, direction: DESC}): CommitteeConnection!
 	policy(id: UUID!): Policy
 	policies(first: Int!, after: String): PolicyConnection!
 	approvalProcess(id: UUID!): ApprovalProcess
@@ -2540,7 +2540,7 @@ type Query {
 	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!
 	fiscalYear(id: UUID!): FiscalYear
 	fiscalYearByYear(year: String!): FiscalYear
-	fiscalYears(first: Int!, after: String, sort: FiscalYearsSort = {by: CREATED_AT, direction: ASC}): FiscalYearConnection!
+	fiscalYears(first: Int!, after: String, sort: FiscalYearsSort = {by: CREATED_AT, direction: DESC}): FiscalYearConnection!
 	balanceSheet(asOf: Date!): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!
@@ -2552,7 +2552,7 @@ type Query {
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
-	reportRuns(first: Int!, after: String): ReportRunConnection!
+	reportRuns(first: Int!, after: String, sort: ReportRunsSort = {by: START_TIME, direction: DESC}): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun
 }
 
@@ -2641,6 +2641,15 @@ enum ReportRunType {
 
 type ReportRunUpdatedPayload {
 	reportRunId: UUID!
+}
+
+input ReportRunsSort {
+	by: ReportRunsSortBy! = START_TIME
+	direction: SortDirection! = DESC
+}
+
+enum ReportRunsSortBy {
+	START_TIME
 }
 
 type Role {
@@ -3071,7 +3080,7 @@ input WithdrawalsFilter {
 
 input WithdrawalsSort {
 	by: WithdrawalsSortBy! = CREATED_AT
-	direction: SortDirection! = ASC
+	direction: SortDirection! = DESC
 }
 
 enum WithdrawalsSortBy {

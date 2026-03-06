@@ -180,6 +180,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<ReportRunsByCreatedAtCursor>,
+        direction: es_entity::ListDirection,
     ) -> Result<es_entity::PaginatedQueryRet<ReportRun, ReportRunsByCreatedAtCursor>, ReportError>
     {
         self.authz
@@ -191,7 +192,7 @@ where
             .await?;
         Ok(self
             .report_runs
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .list_by_created_at(query, direction)
             .await?)
     }
 

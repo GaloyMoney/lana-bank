@@ -2,12 +2,26 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::report::Report;
+use super::{super::primitives::SortDirection, report::Report};
 
 pub use lana_app::report::{
     ReportRun as DomainReportRun, ReportRunState as DomainReportRunState,
     ReportRunType as DomainReportRunType, ReportRunsByCreatedAtCursor,
 };
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ReportRunsSortBy {
+    #[default]
+    StartTime,
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct ReportRunsSort {
+    #[graphql(default)]
+    pub by: ReportRunsSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum ReportRunState {
