@@ -107,7 +107,6 @@ describe("credit facility", () => {
       cy.get('[data-testid="policy-assign-committee"]').click()
       cy.get('[data-testid="policy-select-committee-selector"]').click()
       cy.get('[role="option"]').contains(committeeName).click()
-      cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
       cy.get("[data-testid=policy-assign-committee-submit-button]").click()
       cy.contains(t(Policy + ".CommitteeAssignmentDialog.success.assigned")).should(
         "be.visible",
@@ -122,7 +121,6 @@ describe("credit facility", () => {
       cy.get('[data-testid="policy-assign-committee"]').click()
       cy.get('[data-testid="policy-select-committee-selector"]').click()
       cy.get('[role="option"]').contains(committeeName).click()
-      cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
       cy.get("[data-testid=policy-assign-committee-submit-button]").click()
       cy.contains(t(Policy + ".CommitteeAssignmentDialog.success.assigned")).should(
         "be.visible",

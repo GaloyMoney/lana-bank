@@ -2358,12 +2358,8 @@ impl Mutation {
             PolicyAssignCommitteePayload,
             Policy,
             ctx,
-            app.governance().assign_committee_to_policy(
-                sub,
-                input.policy_id,
-                input.committee_id,
-                input.threshold
-            )
+            app.governance()
+                .assign_committee_to_policy(sub, input.policy_id, input.committee_id,)
         )
     }
 

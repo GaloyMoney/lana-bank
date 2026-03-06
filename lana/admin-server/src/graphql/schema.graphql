@@ -150,7 +150,7 @@ type ApprovalProcessVoter {
 	user: User!
 }
 
-union ApprovalRules = SystemApproval | CommitteeThreshold
+union ApprovalRules = SystemApproval | CommitteeApproval
 
 type AuditEntry {
 	id: ID!
@@ -372,6 +372,10 @@ type CommitteeAddUserPayload {
 	committee: Committee!
 }
 
+type CommitteeApproval {
+	committee: Committee!
+}
+
 type CommitteeConnection {
 	"""
 	Information to aid in pagination.
@@ -415,11 +419,6 @@ input CommitteeRemoveUserInput {
 }
 
 type CommitteeRemoveUserPayload {
-	committee: Committee!
-}
-
-type CommitteeThreshold {
-	threshold: Int!
 	committee: Committee!
 }
 
@@ -2252,7 +2251,6 @@ type Policy {
 input PolicyAssignCommitteeInput {
 	policyId: UUID!
 	committeeId: UUID!
-	threshold: Int!
 }
 
 type PolicyAssignCommitteePayload {

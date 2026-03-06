@@ -39,7 +39,6 @@ impl Policy {
 pub struct PolicyAssignCommitteeInput {
     pub policy_id: UUID,
     pub committee_id: UUID,
-    pub threshold: usize,
 }
 
 mutation_payload! { PolicyAssignCommitteePayload, policy: Policy }

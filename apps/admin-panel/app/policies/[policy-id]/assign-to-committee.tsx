@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from "@lana/web/ui/select"
 
-import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
 
 import {
@@ -37,8 +36,7 @@ gql`
         policyId
         approvalProcessType
         rules {
-          ... on CommitteeThreshold {
-            threshold
+          ... on CommitteeApproval {
             committee {
               ...CommitteeFields
             }
@@ -72,15 +70,14 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
   })
 
   const [selectedCommitteeId, setSelectedCommitteeId] = useState<string>("")
-  const [threshold, setThreshold] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    if (!selectedCommitteeId || threshold === null) {
-      setError(t("errors.selectCommitteeAndThreshold"))
+    if (!selectedCommitteeId) {
+      setError(t("errors.selectCommittee"))
       return
     }
 
@@ -90,7 +87,6 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
           input: {
             policyId,
             committeeId: selectedCommitteeId,
-            threshold,
           },
         },
       })
@@ -116,7 +112,6 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
 
   const resetForm = () => {
     setSelectedCommitteeId("")
-    setThreshold(null)
     setError(null)
     reset()
   }
@@ -153,31 +148,13 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
             </Select>
           </div>
 
-          <div>
-            <Label htmlFor="threshold-input">{t("fields.threshold")}</Label>
-            <Input
-              data-testid="policy-assign-committee-threshold-input"
-              id="threshold-input"
-              type="number"
-              value={threshold || ""}
-              onChange={(e) =>
-                setThreshold(e.target.value ? Number(e.target.value) : null)
-              }
-              placeholder={t("placeholders.threshold")}
-              min="0"
-              max="100"
-            />
-          </div>
-
           {error && <p className="text-destructive text-sm">{error}</p>}
 
           <DialogFooter>
             <Button
               type="submit"
               data-testid="policy-assign-committee-submit-button"
-              disabled={
-                loading || committeesLoading || !selectedCommitteeId || threshold === null
-              }
+              disabled={loading || committeesLoading || !selectedCommitteeId}
             >
               {t("buttons.assign")}
             </Button>

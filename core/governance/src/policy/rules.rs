@@ -8,17 +8,14 @@ use crate::primitives::CommitteeId;
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ApprovalRules {
-    CommitteeThreshold {
-        committee_id: CommitteeId,
-        threshold: usize,
-    },
+    Committee { committee_id: CommitteeId },
     SystemAutoApprove,
 }
 
 impl ApprovalRules {
     pub fn committee_id(&self) -> Option<CommitteeId> {
         match self {
-            ApprovalRules::CommitteeThreshold { committee_id, .. } => Some(*committee_id),
+            ApprovalRules::Committee { committee_id } => Some(*committee_id),
             ApprovalRules::SystemAutoApprove => None,
         }
     }
@@ -34,17 +31,14 @@ impl ApprovalRules {
         }
         match self {
             ApprovalRules::SystemAutoApprove => Some(true),
-            ApprovalRules::CommitteeThreshold { threshold, .. }
-                if eligible_members.intersection(approving_members).count() >= *threshold =>
+            ApprovalRules::Committee { .. } if eligible_members.is_empty() => Some(false),
+            ApprovalRules::Committee { .. }
+                if eligible_members.intersection(approving_members).count()
+                    == eligible_members.len() =>
             {
                 Some(true)
             }
-            ApprovalRules::CommitteeThreshold { threshold, .. }
-                if eligible_members.len() < *threshold =>
-            {
-                Some(false)
-            }
-            _ => None,
+            ApprovalRules::Committee { .. } => None,
         }
     }
 }
@@ -58,13 +52,12 @@ mod tests {
     }
 
     #[test]
-    fn test_committee_threshold_approval() {
-        let rules = ApprovalRules::CommitteeThreshold {
-            threshold: 3,
+    fn test_committee_all_approved() {
+        let rules = ApprovalRules::Committee {
             committee_id: CommitteeId::new(),
         };
 
-        let eligible = make_set(&[1, 2, 3, 4, 5]);
+        let eligible = make_set(&[1, 2, 3]);
         let approving = make_set(&[1, 2, 3]);
         let denying = HashSet::new();
 
@@ -73,19 +66,18 @@ mod tests {
         assert_eq!(
             result,
             Some(true),
-            "Should be approved with 3 approvals >= threshold of 3"
+            "Should be approved when all eligible members approve"
         );
     }
 
     #[test]
-    fn test_committee_threshold_denial() {
-        let rules = ApprovalRules::CommitteeThreshold {
-            threshold: 3,
+    fn test_committee_denial() {
+        let rules = ApprovalRules::Committee {
             committee_id: CommitteeId::new(),
         };
 
-        let eligible = make_set(&[1, 2, 3, 4, 5]);
-        let approving = make_set(&[2, 3, 4]);
+        let eligible = make_set(&[1, 2, 3]);
+        let approving = make_set(&[2, 3]);
         let denying = make_set(&[1]);
 
         let result = rules.is_approved_or_denied(&eligible, &approving, &denying);
@@ -93,18 +85,17 @@ mod tests {
         assert_eq!(
             result,
             Some(false),
-            "Should be denied with only as soon as 1 denial exists"
+            "Should be denied as soon as 1 denial exists"
         );
     }
 
     #[test]
-    fn test_committee_threshold_pending() {
-        let rules = ApprovalRules::CommitteeThreshold {
-            threshold: 3,
+    fn test_committee_pending() {
+        let rules = ApprovalRules::Committee {
             committee_id: CommitteeId::new(),
         };
 
-        let eligible = make_set(&[1, 2, 3, 4, 5]);
+        let eligible = make_set(&[1, 2, 3]);
         let approving = make_set(&[1, 2]);
         let denying = HashSet::new();
 
@@ -112,15 +103,7 @@ mod tests {
 
         assert_eq!(
             result, None,
-            "Should be pending when neither condition is met"
-        );
-        assert!(
-            eligible.intersection(&approving).count() < 3,
-            "Should have fewer than threshold approved members"
-        );
-        assert!(
-            eligible.len() - eligible.intersection(&denying).count() > 2,
-            "Should have more than threshold non-denied members"
+            "Should be pending when not all members have approved"
         );
     }
 
@@ -136,26 +119,16 @@ mod tests {
     }
 
     #[test]
-    fn test_edge_cases() {
-        let rules = ApprovalRules::CommitteeThreshold {
-            threshold: 3,
+    fn test_empty_eligible_denied() {
+        let rules = ApprovalRules::Committee {
             committee_id: CommitteeId::new(),
         };
 
-        // Empty sets
-        let empty = HashSet::new();
+        let empty: HashSet<u32> = HashSet::new();
         assert_eq!(
             rules.is_approved_or_denied(&empty, &empty, &empty),
             Some(false),
             "Empty eligible set should result in denial"
-        );
-
-        // Threshold larger than eligible set
-        let small_eligible = make_set(&[1, 2]);
-        assert_eq!(
-            rules.is_approved_or_denied(&small_eligible, &empty, &empty),
-            Some(false),
-            "Should be denied when threshold exceeds eligible set size"
         );
     }
 }

@@ -1458,17 +1458,15 @@
       },
       "CommitteeAssignmentDialog": {
         "title": "Asignar Comité a Política",
-        "description": "Seleccione un comité y establezca el umbral para esta política.",
+        "description": "Seleccione un comité para esta política. Todos los miembros del comité deben aprobar.",
         "fields": {
-          "committee": "Seleccionar Comité",
-          "threshold": "Umbral"
+          "committee": "Seleccionar Comité"
         },
         "placeholders": {
-          "committee": "Seleccione un comité",
-          "threshold": "Ingrese valor de umbral"
+          "committee": "Seleccione un comité"
         },
         "errors": {
-          "selectCommitteeAndThreshold": "Por favor seleccione un comité y establezca un umbral.",
+          "selectCommittee": "Por favor seleccione un comité.",
           "general": "Ocurrió un error inesperado. Por favor intente de nuevo.",
           "assignmentFailed": "Error al asignar comité a la política."
         },

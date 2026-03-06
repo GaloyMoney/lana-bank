@@ -1458,17 +1458,15 @@
       },
       "CommitteeAssignmentDialog": {
         "title": "Assign Committee to Policy",
-        "description": "Select a committee and set threshold for this policy.",
+        "description": "Select a committee for this policy. All committee members must approve.",
         "fields": {
-          "committee": "Select Committee",
-          "threshold": "Threshold"
+          "committee": "Select Committee"
         },
         "placeholders": {
-          "committee": "Select a committee",
-          "threshold": "Enter threshold value"
+          "committee": "Select a committee"
         },
         "errors": {
-          "selectCommitteeAndThreshold": "Please select a committee and set threshold.",
+          "selectCommittee": "Please select a committee.",
           "general": "An unexpected error occurred. Please try again.",
           "assignmentFailed": "Failed to assign committee to policy."
         },

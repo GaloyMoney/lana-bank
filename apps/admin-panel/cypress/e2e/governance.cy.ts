@@ -95,7 +95,6 @@ describe("Governance Test", () => {
     cy.get('[data-testid="policy-assign-committee"]').click()
     cy.get('[data-testid="policy-select-committee-selector"]').click()
     cy.get('[role="option"]').contains(committeeName).click()
-    cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
     cy.takeScreenshot("14_step-assign-committee-to-policy")
 
     cy.get("[data-testid=policy-assign-committee-submit-button]").click()

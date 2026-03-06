@@ -175,7 +175,6 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         policy_id: impl Into<PolicyId> + std::fmt::Debug,
         committee_id: impl Into<CommitteeId> + std::fmt::Debug,
-        threshold: usize,
     ) -> Result<Policy, GovernanceError> {
         let policy_id = policy_id.into();
         self.authz
@@ -189,7 +188,7 @@ where
         let committee_id = committee_id.into();
 
         let mut db_tx = self.policy_repo.begin_op().await?;
-        let committee = self
+        let _committee = self
             .committee_repo
             .find_by_id_in_op(&mut db_tx, committee_id)
             .await?;
@@ -197,10 +196,7 @@ where
             .policy_repo
             .find_by_id_in_op(&mut db_tx, policy_id)
             .await?;
-        if policy
-            .assign_committee(committee.id, committee.n_members(), threshold)?
-            .did_execute()
-        {
+        if policy.assign_committee(committee_id).did_execute() {
             self.policy_repo
                 .update_in_op(&mut db_tx, &mut policy)
                 .await?;

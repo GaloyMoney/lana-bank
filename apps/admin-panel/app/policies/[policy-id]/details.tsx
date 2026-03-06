@@ -29,7 +29,7 @@ export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
       label: t("fields.rule"),
       value: formatRule(policy.rules as ApprovalRules),
     },
-    ...(policyRuleType === "CommitteeThreshold"
+    ...(policyRuleType === "CommitteeApproval"
       ? [
           {
             label: t("fields.assignedCommittee"),
@@ -45,7 +45,7 @@ export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
       onClick={() => setOpenAssignDialog(true)}
       data-testid="policy-assign-committee"
     >
-      {policyRuleType === "CommitteeThreshold"
+      {policyRuleType === "CommitteeApproval"
         ? t("buttons.updatePolicy")
         : t("buttons.assignCommittee")}
     </Button>

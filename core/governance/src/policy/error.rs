@@ -20,10 +20,6 @@ pub enum PolicyError {
     Query(#[from] PolicyQueryError),
     #[error("PolicyError - DuplicateApprovalProcessType")]
     DuplicateApprovalProcessType,
-    #[error("PolicyError - Threshold {1} too high for committee {0}")]
-    PolicyThresholdTooHigh(crate::primitives::CommitteeId, usize),
-    #[error("PolicyError - Threshold {1} too low for committee {0}")]
-    PolicyThresholdTooLow(crate::primitives::CommitteeId, usize),
 }
 
 impl From<sqlx::Error> for PolicyError {
@@ -56,8 +52,6 @@ impl ErrorSeverity for PolicyError {
             Self::Find(_) => Level::ERROR,
             Self::Query(_) => Level::ERROR,
             Self::DuplicateApprovalProcessType => Level::WARN,
-            Self::PolicyThresholdTooHigh(_, _) => Level::WARN,
-            Self::PolicyThresholdTooLow(_, _) => Level::WARN,
         }
     }
 }
