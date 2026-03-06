@@ -346,6 +346,17 @@ dagster_poll_run_status() {
     fi
     if [ "$run_status" = "FAILURE" ] || [ "$run_status" = "CANCELED" ]; then
       echo "Run failed: $output"
+      # Fetch failure events for debugging
+      local dagster_gql="${DAGSTER_URL:-http://localhost:3000/graphql}"
+      local events_query='query($runId: ID!) { runOrError(runId: $runId) { ... on Run { eventConnection { events { __typename ... on ExecutionStepFailureEvent { stepKey error { message } } } } } } }'
+      local events_result
+      events_result=$(curl -s "$dagster_gql" -H "Content-Type: application/json" \
+        -d "$(jq -n --arg q "$events_query" --arg runId "$run_id" '{query: $q, variables: {runId: $runId}}')")
+      # Extract just the dbt error lines (after "Errors parsed from dbt logs:")
+      local dbt_errors
+      dbt_errors=$(echo "$events_result" | jq -r '.data.runOrError.eventConnection.events[] | select(.__typename == "ExecutionStepFailureEvent") | .error.message' 2>/dev/null | sed -n '/Errors parsed from dbt logs/,$ p' | head -20)
+      echo "dbt errors:"
+      echo "$dbt_errors"
       return 1
     fi
     

@@ -49,6 +49,7 @@ RUN pip install /lana-dw/generate_es_reports/
 # Pre-generate dbt manifest at build time (local-only, no BQ connection needed)
 # Dummy env vars required for profiles.yml Jinja evaluation - values don't matter
 # since dbt parse doesn't actually connect to BigQuery
+RUN dbt deps --project-dir /lana-dw/src/dbt_lana_dw --profiles-dir /lana-dw/src/dbt_lana_dw
 RUN DBT_BIGQUERY_PROJECT=build-placeholder \
     DBT_BIGQUERY_DATASET=build-placeholder \
     DBT_BIGQUERY_CREDENTIALS_JSON='{"type":"service_account","project_id":"x"}' \

@@ -14,11 +14,10 @@ with
             activity,
             applicant_id,
             customer_type,
-            email,
             kyc_verification,
             level,
+            party_id,
             public_id,
-            telegram_handle,
             is_kyc_approved,
             _dlt_load_id,
             _dlt_id
@@ -32,11 +31,10 @@ select
     activity,
     applicant_id,
     customer_type,
-    email,
     kyc_verification,
     level,
+    party_id,
     public_id,
-    telegram_handle,
     is_kyc_approved,
     timestamp_micros(
         cast(cast(_dlt_load_id as decimal) * 1e6 as int64)

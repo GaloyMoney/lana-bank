@@ -174,6 +174,8 @@ dbt:
 	  --user "$$(id -u):$$(id -g)" \
 	  -e HOME=/tmp \
 	  -e DBT_PROFILES_DIR=/lana-dw/src/dbt_lana_dw \
+	  -e DBT_LOG_PATH=/tmp/dbt-logs \
+	  -e DBT_TARGET_PATH=/tmp/dbt-target \
 	  -v "$$(pwd)/dagster/src/dbt_lana_dw:/lana-dw/src/dbt_lana_dw" \
 	  --workdir /lana-dw/src/dbt_lana_dw \
 	  dagster-code-location-lana-dw \

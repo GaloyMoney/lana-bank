@@ -21,6 +21,10 @@ from src.resources import (
 )
 
 
+class FileReportConfig(dg.Config):
+    as_of_date: Optional[str] = None
+
+
 class ReportFile(TypedDict):
     """Represents a single file in a report."""
 
@@ -80,7 +84,13 @@ def _build_file_report_specs_and_lookup() -> Tuple[
             )
 
             dbt_dep = get_dbt_asset_key_for_table(report_job.source_table_name)
-            deps = [dbt_dep] if dbt_dep else []
+            if dbt_dep is None:
+                raise ValueError(
+                    f"Report '{report_job.norm}/{report_job.id}' references "
+                    f"source_table '{report_job.source_table_name}' which does "
+                    f"not exist in the dbt manifest"
+                )
+            deps = [dbt_dep]
 
             specs.append(
                 dg.AssetSpec(
@@ -110,6 +120,7 @@ def _process_single_asset(
     run_id: str,
     log,
     otel_parent_ctx,
+    as_of_date: str | None = None,
 ) -> Tuple[dg.AssetKey, dict]:
     """Fetch, format, and upload a single report file.
 
@@ -135,8 +146,13 @@ def _process_single_asset(
             contents = fetcher.fetch_table_contents(table_name)
             return (contents.fields, contents.records)
 
+        def fetch_table_as_of(table_name: str, as_of_date: str):
+            contents = fetcher.fetch_table_contents_as_of(table_name, as_of_date)
+            return (contents.fields, contents.records)
+
         result = generate_single_report(
             fetch_table=fetch_table,
+            fetch_table_as_of=fetch_table_as_of,
             upload_file=upload_file,
             table_name=report_job.source_table_name,
             norm=report_job.norm,
@@ -144,6 +160,7 @@ def _process_single_asset(
             file_output_config=file_config,
             run_id=run_id,
             log=log,
+            as_of_date=as_of_date if report_job.supports_as_of else None,
         )
         return asset_key, result
 
@@ -190,7 +207,7 @@ def create_file_report_multi_asset():
         can_subset=True,
         required_resource_keys={RESOURCE_KEY_FILE_REPORTS_BUCKET, RESOURCE_KEY_DW_BQ},
     )
-    def file_report_assets(context: dg.AssetExecutionContext):
+    def file_report_assets(context: dg.AssetExecutionContext, config: FileReportConfig):
         from opentelemetry import context as otel_context
 
         dw_bq = context.resources.dw_bq
@@ -228,6 +245,7 @@ def create_file_report_multi_asset():
                         run_id=context.run_id,
                         log=context.log.info,
                         otel_parent_ctx=batch_ctx,
+                        as_of_date=config.as_of_date,
                     ): k
                     for k in context.selected_asset_keys
                 }

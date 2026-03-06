@@ -1,9 +1,11 @@
 version: 2
 
 models:
-  - name: report_nrp_51_01_saldo_cuenta
-    description: saldo_cuenta.xml per NRP-51.
+  - name: report_nrp_51_01_saldo_cuenta_daily
+    description: Full daily history for saldo_cuenta.xml with as_of_date table grain.
     tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [as_of_date, id_codigo_cuenta]
       - dbt_utils.expression_is_true:
           expression: "regexp_contains(id_codigo_cuenta, r'^[0-9]{1,10}$')"
       - dbt_utils.expression_is_true:
@@ -14,13 +16,16 @@ models:
           expression: "regexp_contains(valor, r'^[0-9]{1,15}[.][0-9][0-9]$')"
 
     columns:
+      - name: as_of_date
+        description: As-of date for the precomputed saldo_cuenta snapshot.
+        tests:
+          - not_null
       - name: id_codigo_cuenta
         description: >
           Account code (XsString, length ≤10, no zero padding) per NRP-51 Annex 1 and Annex 2.A.
           Must come from the official chart and must not be modified.
         tests:
           - not_null
-          - unique
       - name: nom_cuenta
         description: >
           Account description (XsString, length ≤80, uppercase) per NRP-51 Annex 1 and Annex 2.A.
