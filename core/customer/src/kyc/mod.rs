@@ -481,7 +481,7 @@ where
             .get_without_audit::<SumsubKybFlowName>()
             .await?
             .maybe_value()
-            .unwrap_or_else(|| "basic-kyb-level".to_string());
+            .unwrap_or_else(|| "kyb-basic".to_string());
 
         let sumsub_config = SumsubConfig {
             sumsub_key,

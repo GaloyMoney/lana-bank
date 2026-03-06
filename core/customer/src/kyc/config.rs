@@ -32,6 +32,6 @@ define_exposed_config! {
     pub struct SumsubKybFlowName(String);
     spec {
         key: "sumsub-kyb-flow-name";
-        default: || Some("basic-kyb-level".to_string());
+        default: || Some("kyb-basic".to_string());
     }
 }
