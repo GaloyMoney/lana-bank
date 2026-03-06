@@ -202,17 +202,7 @@ type BalanceSheet {
 	assetsBalance: LedgerAccountBalanceByCurrency!
 	liabilitiesBalance: LedgerAccountBalanceByCurrency!
 	equityBalance: LedgerAccountBalanceByCurrency!
-	categories: [BalanceSheetAccount!]!
 	rows: [BalanceSheetRow!]!
-}
-
-type BalanceSheetAccount {
-	balanceSheetAccountId: ID!
-	ledgerAccountId: UUID!
-	code: AccountCode
-	name: String!
-	balance: LedgerAccountBalanceByCurrency!
-	children: [BalanceSheetAccount!]!
 }
 
 type BalanceSheetRow {
@@ -220,9 +210,7 @@ type BalanceSheetRow {
 	parentBalanceSheetAccountId: ID
 	ledgerAccountId: UUID!
 	code: AccountCode
-	category: String!
 	name: String!
-	depth: Int!
 	balance: LedgerAccountBalanceByCurrency!
 }
 
@@ -2300,30 +2288,18 @@ type PolicyEdge {
 	cursor: String!
 }
 
-type ProfitAndLossAccount {
-	profitAndLossAccountId: ID!
-	ledgerAccountId: UUID!
-	code: AccountCode
-	name: String!
-	balanceRange: LedgerAccountBalanceRange!
-	children: [ProfitAndLossAccount!]!
-}
-
 type ProfitAndLossRow {
 	profitAndLossAccountId: ID!
 	parentProfitAndLossAccountId: ID
 	ledgerAccountId: UUID!
 	code: AccountCode
-	category: String!
 	name: String!
-	depth: Int!
 	balanceRange: LedgerAccountBalanceRange!
 }
 
 type ProfitAndLossStatement {
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
-	categories: [ProfitAndLossAccount!]!
 	rows: [ProfitAndLossRow!]!
 }
 

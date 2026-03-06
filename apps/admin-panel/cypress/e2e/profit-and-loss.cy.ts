@@ -71,4 +71,48 @@ describe("Profit and Loss Statement", () => {
       .contains(t(CLS + ".layer.options.settled"))
       .click()
   })
+
+  it("should default to collapsed rows and allow toggling", () => {
+    cy.graphqlRequest<{ data: ProfitAndLossStatementQuery }>(
+      print(ProfitAndLossStatementDocument),
+      {
+        from: lastMonthDate.toISOString().split("T")[0],
+        until: currentDate.toISOString().split("T")[0],
+      },
+    ).then((response) => {
+      const rows = response.data.profitAndLossStatement?.rows ?? []
+      const expandableRow = rows.find((row) =>
+        rows.some(
+          (candidate) =>
+            candidate.parentProfitAndLossAccountId === row.profitAndLossAccountId,
+        ),
+      )
+
+      expect(expandableRow, "expected an expandable profit and loss row").to.exist
+      if (!expandableRow) return
+
+      const childRow = rows.find(
+        (row) =>
+          row.parentProfitAndLossAccountId === expandableRow.profitAndLossAccountId,
+      )
+      expect(childRow, "expected a child row for expandable row").to.exist
+      if (!childRow) return
+
+      cy.get(`[data-testid="account-${expandableRow.profitAndLossAccountId}"]`).within(() => {
+        cy.get(`[data-testid="toggle-${expandableRow.profitAndLossAccountId}"]`)
+          .should("have.attr", "aria-label", "Expand account")
+          .click()
+      })
+
+      cy.get(`[data-testid="account-${childRow.profitAndLossAccountId}"]`).should("exist")
+
+      cy.get(`[data-testid="account-${expandableRow.profitAndLossAccountId}"]`).within(() => {
+        cy.get(`[data-testid="toggle-${expandableRow.profitAndLossAccountId}"]`)
+          .should("have.attr", "aria-label", "Collapse account")
+          .click()
+      })
+
+      cy.get(`[data-testid="account-${childRow.profitAndLossAccountId}"]`).should("not.exist")
+    })
+  })
 })

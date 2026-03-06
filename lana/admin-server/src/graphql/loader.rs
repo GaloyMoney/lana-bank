@@ -1,17 +1,18 @@
 use async_graphql::dataloader::{DataLoader, Loader};
+use chrono::NaiveDate;
 use tracing::instrument;
 
 use std::collections::HashMap;
 
-use chrono::NaiveDate;
 use domain_config::{DomainConfigError, DomainConfigId};
 use lana_app::{
     access::{error::CoreAccessError, user::error::UserError},
     accounting::{
         Chart, FiscalYearId, LedgerAccountId, TransactionTemplateId, csv::AccountingCsvDocumentId,
-        error::CoreAccountingError,
+        error::CoreAccountingError, ledger_account::LedgerAccount as DomainLedgerAccount,
     },
     app::LanaApp,
+    balance_sheet::BalanceSheetAccountSet as DomainBalanceSheetAccountSet,
     custody::error::CoreCustodyError,
     customer::{CustomerDocumentId, Party, PartyId},
     deposit::error::CoreDepositError,
@@ -531,11 +532,11 @@ impl Loader<LedgerAccountId> for LanaLoader {
 }
 
 impl Loader<BalanceSheetAccountKey> for LanaLoader {
-    type Value = BalanceSheetAccount;
-    type Error = Arc<lana_app::accounting::error::CoreAccountingError>;
+    type Value = DomainBalanceSheetAccountSet;
+    type Error = Arc<CoreAccountingError>;
 
     #[instrument(
-        name = "loader.balance_sheet_account_sets",
+        name = "loader.balance_sheet_accounts",
         skip(self),
         fields(count = keys.len()),
         err
@@ -543,23 +544,15 @@ impl Loader<BalanceSheetAccountKey> for LanaLoader {
     async fn load(
         &self,
         keys: &[BalanceSheetAccountKey],
-    ) -> Result<HashMap<BalanceSheetAccountKey, BalanceSheetAccount>, Self::Error> {
-        let mut keys_by_scope: HashMap<NaiveDate, Vec<BalanceSheetAccountKey>> = HashMap::new();
+    ) -> Result<HashMap<BalanceSheetAccountKey, DomainBalanceSheetAccountSet>, Self::Error> {
+        let mut grouped = HashMap::<NaiveDate, Vec<LedgerAccountId>>::new();
         for key in keys {
-            keys_by_scope.entry(key.as_of).or_default().push(*key);
+            grouped.entry(key.as_of).or_default().push(key.id);
         }
 
         let mut result = HashMap::new();
-
-        for (as_of, scoped_keys) in keys_by_scope {
-            let ids = scoped_keys
-                .iter()
-                .map(|key| key.id)
-                .collect::<std::collections::HashSet<_>>()
-                .into_iter()
-                .collect::<Vec<_>>();
-
-            let accounts: HashMap<_, lana_app::balance_sheet::BalanceSheetAccountSet> = self
+        for (as_of, ids) in grouped {
+            let accounts: HashMap<LedgerAccountId, DomainBalanceSheetAccountSet> = self
                 .app
                 .accounting()
                 .find_all_ledger_accounts_in_range_with_direct_members(
@@ -571,9 +564,9 @@ impl Loader<BalanceSheetAccountKey> for LanaLoader {
                 .await
                 .map_err(Arc::new)?;
 
-            for key in scoped_keys {
+            for key in keys.iter().copied().filter(|key| key.as_of == as_of) {
                 if let Some(account) = accounts.get(&key.id).cloned() {
-                    result.insert(key, BalanceSheetAccount::new(account, as_of));
+                    result.insert(key, account);
                 }
             }
         }
@@ -583,8 +576,8 @@ impl Loader<BalanceSheetAccountKey> for LanaLoader {
 }
 
 impl Loader<ProfitAndLossAccountKey> for LanaLoader {
-    type Value = ProfitAndLossAccount;
-    type Error = Arc<lana_app::accounting::error::CoreAccountingError>;
+    type Value = DomainLedgerAccount;
+    type Error = Arc<CoreAccountingError>;
 
     #[instrument(
         name = "loader.profit_and_loss_accounts",
@@ -595,29 +588,18 @@ impl Loader<ProfitAndLossAccountKey> for LanaLoader {
     async fn load(
         &self,
         keys: &[ProfitAndLossAccountKey],
-    ) -> Result<HashMap<ProfitAndLossAccountKey, ProfitAndLossAccount>, Self::Error> {
-        let mut keys_by_scope: HashMap<
-            (NaiveDate, Option<NaiveDate>),
-            Vec<ProfitAndLossAccountKey>,
-        > = HashMap::new();
+    ) -> Result<HashMap<ProfitAndLossAccountKey, DomainLedgerAccount>, Self::Error> {
+        let mut grouped = HashMap::<(NaiveDate, Option<NaiveDate>), Vec<LedgerAccountId>>::new();
         for key in keys {
-            keys_by_scope
+            grouped
                 .entry((key.from, key.until))
                 .or_default()
-                .push(*key);
+                .push(key.id);
         }
 
         let mut result = HashMap::new();
-
-        for ((from, until), scoped_keys) in keys_by_scope {
-            let ids = scoped_keys
-                .iter()
-                .map(|key| key.id)
-                .collect::<std::collections::HashSet<_>>()
-                .into_iter()
-                .collect::<Vec<_>>();
-
-            let accounts: HashMap<_, lana_app::accounting::ledger_account::LedgerAccount> = self
+        for ((from, until), ids) in grouped {
+            let accounts: HashMap<LedgerAccountId, DomainLedgerAccount> = self
                 .app
                 .accounting()
                 .find_all_ledger_accounts_in_range_with_direct_members(
@@ -629,9 +611,13 @@ impl Loader<ProfitAndLossAccountKey> for LanaLoader {
                 .await
                 .map_err(Arc::new)?;
 
-            for key in scoped_keys {
+            for key in keys
+                .iter()
+                .copied()
+                .filter(|key| key.from == from && key.until == until)
+            {
                 if let Some(account) = accounts.get(&key.id).cloned() {
-                    result.insert(key, ProfitAndLossAccount::new(account, from, until));
+                    result.insert(key, account);
                 }
             }
         }

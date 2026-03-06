@@ -1,10 +1,9 @@
 use async_graphql::*;
 use chrono::NaiveDate;
+use std::collections::{HashMap, HashSet};
 
-use lana_app::{
-    accounting::ledger_account::LedgerAccount as DomainLedgerAccount,
-    profit_and_loss::ProfitAndLossStatement as DomainProfitAndLossStatement,
-};
+use lana_app::accounting::ledger_account::LedgerAccount as DomainLedgerAccount;
+use lana_app::profit_and_loss::ProfitAndLossStatement as DomainProfitAndLossStatement;
 
 use crate::{
     graphql::loader::{LanaDataLoader, ProfitAndLossAccountKey},
@@ -15,8 +14,6 @@ use super::{
     AccountCode, BtcLedgerAccountBalanceRange, LedgerAccountBalanceRange,
     LedgerAccountBalanceRangeByCurrency, UsdLedgerAccountBalanceRange,
 };
-
-const MAX_STATEMENT_TREE_DEPTH: usize = 4;
 
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
@@ -64,34 +61,10 @@ impl ProfitAndLossStatement {
         })
     }
 
-    async fn categories(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<ProfitAndLossAccount>> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let keys = self
-            .entity
-            .category_ids
-            .iter()
-            .copied()
-            .map(|id| ProfitAndLossAccountKey {
-                id,
-                from: self.from,
-                until: self.until,
-            })
-            .collect::<Vec<_>>();
-        let categories = loader.load_many(keys.clone()).await?;
-
-        Ok(keys
-            .into_iter()
-            .filter_map(|id| categories.get(&id).cloned())
-            .collect())
-    }
-
     async fn rows(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<ProfitAndLossRow>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-
         let mut rows = Vec::new();
+        let mut visited = HashSet::new();
         let mut frontier = self
             .entity
             .category_ids
@@ -104,45 +77,34 @@ impl ProfitAndLossStatement {
                     until: self.until,
                 },
                 parent_id: None,
-                category: None,
-                depth: 1,
             })
+            .filter(|node| visited.insert(node.key.id))
             .collect::<Vec<_>>();
 
         while !frontier.is_empty() {
             let keys = frontier.iter().map(|node| node.key).collect::<Vec<_>>();
-            let accounts = loader.load_many(keys).await?;
+            let accounts: HashMap<ProfitAndLossAccountKey, DomainLedgerAccount> =
+                loader.load_many(keys).await?;
             let mut next_frontier = Vec::new();
 
             for node in frontier {
                 let Some(account) = accounts.get(&node.key).cloned() else {
                     continue;
                 };
+                let account_id = account.id;
+                let child_ids = account.children_ids.clone();
+                rows.push(ProfitAndLossRow::from_account(account, node.parent_id));
 
-                let category = node.category.unwrap_or_else(|| account.name.clone());
-                rows.push(ProfitAndLossRow::new(
-                    &account,
-                    node.parent_id,
-                    category.clone(),
-                    node.depth,
-                ));
-
-                if node.depth >= MAX_STATEMENT_TREE_DEPTH {
-                    continue;
-                }
-
-                for child_id in &account.entity.children_ids {
-                    next_frontier.push(PendingProfitAndLossNode {
+                next_frontier.extend(child_ids.into_iter().filter(|id| visited.insert(*id)).map(
+                    |id| PendingProfitAndLossNode {
                         key: ProfitAndLossAccountKey {
-                            id: *child_id,
+                            id,
                             from: self.from,
                             until: self.until,
                         },
-                        parent_id: Some(account.entity.id),
-                        category: Some(category.clone()),
-                        depth: node.depth + 1,
-                    });
-                }
+                        parent_id: Some(account_id),
+                    },
+                ));
             }
 
             frontier = next_frontier;
@@ -158,33 +120,27 @@ pub struct ProfitAndLossRow {
     parent_profit_and_loss_account_id: Option<ID>,
     ledger_account_id: UUID,
     code: Option<AccountCode>,
-    category: String,
     name: String,
-    depth: i32,
     balance_range: LedgerAccountBalanceRange,
 }
 
 impl ProfitAndLossRow {
-    fn new(
-        account: &ProfitAndLossAccount,
+    fn from_account(
+        account: DomainLedgerAccount,
         parent_id: Option<lana_app::accounting::LedgerAccountId>,
-        category: String,
-        depth: usize,
     ) -> Self {
-        let balance_range = if let Some(balance) = account.entity.btc_balance_range.as_ref() {
+        let balance_range = if let Some(balance) = account.btc_balance_range.as_ref() {
             Some(balance).into()
         } else {
-            account.entity.usd_balance_range.as_ref().into()
+            account.usd_balance_range.as_ref().into()
         };
 
         Self {
-            profit_and_loss_account_id: account.entity.id.to_global_id(),
+            profit_and_loss_account_id: account.id.to_global_id(),
             parent_profit_and_loss_account_id: parent_id.map(|id| id.to_global_id()),
-            ledger_account_id: UUID::from(account.entity.id),
-            code: account.code.clone(),
-            category,
-            name: account.name.clone(),
-            depth: depth as i32,
+            ledger_account_id: UUID::from(account.id),
+            code: account.code.as_ref().map(AccountCode::from),
+            name: account.name,
             balance_range,
         }
     }
@@ -194,95 +150,4 @@ impl ProfitAndLossRow {
 struct PendingProfitAndLossNode {
     key: ProfitAndLossAccountKey,
     parent_id: Option<lana_app::accounting::LedgerAccountId>,
-    category: Option<String>,
-    depth: usize,
-}
-
-#[derive(Clone, SimpleObject)]
-#[graphql(complex)]
-pub struct ProfitAndLossAccount {
-    profit_and_loss_account_id: ID,
-    ledger_account_id: UUID,
-    code: Option<AccountCode>,
-    name: String,
-
-    #[graphql(skip)]
-    entity: Arc<DomainLedgerAccount>,
-    #[graphql(skip)]
-    from: NaiveDate,
-    #[graphql(skip)]
-    until: Option<NaiveDate>,
-    #[graphql(skip)]
-    depth: usize,
-}
-
-impl ProfitAndLossAccount {
-    pub fn new(account: DomainLedgerAccount, from: NaiveDate, until: Option<NaiveDate>) -> Self {
-        Self::with_depth(account, from, until, 1)
-    }
-
-    fn with_depth(
-        account: DomainLedgerAccount,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
-        depth: usize,
-    ) -> Self {
-        Self {
-            profit_and_loss_account_id: account.id.to_global_id(),
-            ledger_account_id: UUID::from(account.id),
-            code: account.code.as_ref().map(|code| code.into()),
-            name: account.name.clone(),
-            entity: Arc::new(account),
-            from,
-            until,
-            depth,
-        }
-    }
-}
-
-#[ComplexObject]
-impl ProfitAndLossAccount {
-    async fn balance_range(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
-        if let Some(balance) = self.entity.btc_balance_range.as_ref() {
-            Ok(Some(balance).into())
-        } else {
-            Ok(self.entity.usd_balance_range.as_ref().into())
-        }
-    }
-
-    async fn children(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<ProfitAndLossAccount>> {
-        if self.depth >= MAX_STATEMENT_TREE_DEPTH {
-            return Ok(Vec::new());
-        }
-
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let keys = self
-            .entity
-            .children_ids
-            .iter()
-            .copied()
-            .map(|id| ProfitAndLossAccountKey {
-                id,
-                from: self.from,
-                until: self.until,
-            })
-            .collect::<Vec<_>>();
-        let children = loader.load_many(keys.clone()).await?;
-
-        Ok(keys
-            .into_iter()
-            .filter_map(|id| children.get(&id).cloned())
-            .map(|child| {
-                ProfitAndLossAccount::with_depth(
-                    child.entity.as_ref().clone(),
-                    child.from,
-                    child.until,
-                    self.depth + 1,
-                )
-            })
-            .collect())
-    }
 }

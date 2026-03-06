@@ -49,6 +49,7 @@ export const Account = ({
   return (
     <>
       <TableRow
+        data-testid={`account-${account.balanceSheetAccountId}`}
         key={account.balanceSheetAccountId}
         className="cursor-pointer hover:bg-muted/50"
         onClick={handleRowClick}
@@ -61,6 +62,7 @@ export const Account = ({
             {hasChildren ? (
               <button
                 type="button"
+                data-testid={`toggle-${account.balanceSheetAccountId}`}
                 className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-muted-foreground hover:bg-muted"
                 onClick={(e) => {
                   e.stopPropagation()

@@ -1,6 +1,6 @@
 "use client"
 import { gql } from "@apollo/client"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 
 import { Table, TableBody, TableCell, TableFooter, TableRow } from "@lana/web/ui/table"
 import {
@@ -24,14 +24,13 @@ import Balance, { Currency } from "@/components/balance/balance"
 import { getYtdDateRange, DateRange } from "@/components/date-range-picker"
 import { ReportFilters } from "@/components/report-filters"
 import { ReportLayer } from "@/components/report-filters/selectors"
+import { useCollapsedTreeState } from "@/components/report-tree/use-collapsed-tree-state"
 
 gql`
   fragment ProfitAndLossRowFields on ProfitAndLossRow {
     profitAndLossAccountId
     parentProfitAndLossAccountId
     ledgerAccountId
-    category
-    depth
     name
     code
     balanceRange {
@@ -151,27 +150,12 @@ const ProfitAndLossStatement = ({
   const t = useTranslations("ProfitAndLoss")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<ReportLayer>("settled")
-  const [collapsedAccountIds, setCollapsedAccountIds] = useState<Set<string>>(new Set())
-  const toggleCollapsedAccount = useCallback((accountId: string) => {
-    setCollapsedAccountIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(accountId)) {
-        next.delete(accountId)
-      } else {
-        next.add(accountId)
-      }
-      return next
-    })
-  }, [])
   const categories = useMemo(() => buildProfitAndLossTree(data?.rows ?? []), [data?.rows])
-
-  useEffect(() => {
-    if (categories.length === 0) return
-    setCollapsedAccountIds((prev) => {
-      if (prev.size > 0) return prev
-      return collectCollapsedProfitAndLossAccountIds(categories)
-    })
-  }, [categories])
+  const { collapsedNodeIds: collapsedAccountIds, toggleCollapsedNode: toggleCollapsedAccount } =
+    useCollapsedTreeState(
+      categories,
+      useCallback((account: ProfitAndLossAccountNode) => account.profitAndLossAccountId, []),
+    )
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
@@ -289,7 +273,7 @@ const CategoryRow = ({
         (child) => (
           <Account
             key={child.profitAndLossAccountId}
-            account={child as ProfitAndLossAccountNode}
+            account={child}
             currency={currency}
             depth={1}
             layer={layer}
@@ -310,7 +294,7 @@ function buildProfitAndLossTree(rows: ProfitAndLossRow[]): ProfitAndLossAccountN
       ledgerAccountId: row.ledgerAccountId,
       code: row.code,
       name: row.name,
-      balanceRange: row.balanceRange as ProfitAndLossAccountNode["balanceRange"],
+      balanceRange: row.balanceRange,
       children: [],
     })
   }
@@ -335,20 +319,4 @@ function buildProfitAndLossTree(rows: ProfitAndLossRow[]): ProfitAndLossAccountN
   }
 
   return roots
-}
-
-function collectCollapsedProfitAndLossAccountIds(
-  nodes: ProfitAndLossAccountNode[],
-): Set<string> {
-  const ids = new Set<string>()
-
-  const walk = (node: ProfitAndLossAccountNode) => {
-    if ((node.children?.length ?? 0) > 0) {
-      ids.add(node.profitAndLossAccountId)
-      node.children?.forEach(walk)
-    }
-  }
-
-  nodes.forEach(walk)
-  return ids
 }
