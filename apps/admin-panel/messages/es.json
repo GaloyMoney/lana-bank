@@ -2315,7 +2315,21 @@
     "fromDate": "Fecha de Inicio",
     "toDate": "Fecha de Fin",
     "apply": "Aplicar",
-    "pickDateRange": "Seleccionar rango de fechas"
+    "back": "Back",
+    "pickDateRange": "Seleccionar rango de fechas",
+    "customRange": "Custom Range...",
+    "group": {
+      "current": "Current Period",
+      "previous": "Previous Period"
+    },
+    "preset": {
+      "thisMonth": "{month} (to date)",
+      "thisQuarter": "{quarter} (to date)",
+      "ytd": "{year} Year to Date",
+      "lastMonth": "{month}",
+      "lastQuarter": "{quarter}",
+      "lastYear": "{year}"
+    }
   },
   "dateTime": {
     "created": "Fecha de registro {date}",

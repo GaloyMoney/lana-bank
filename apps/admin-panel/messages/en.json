@@ -2315,7 +2315,21 @@
     "fromDate": "From Date",
     "toDate": "To Date",
     "apply": "Apply",
-    "pickDateRange": "Pick a date range"
+    "back": "Back",
+    "pickDateRange": "Pick a date range",
+    "customRange": "Custom Range...",
+    "group": {
+      "current": "Current Period",
+      "previous": "Previous Period"
+    },
+    "preset": {
+      "thisMonth": "{month} (to date)",
+      "thisQuarter": "{quarter} (to date)",
+      "ytd": "{year} Year to Date",
+      "lastMonth": "{month}",
+      "lastQuarter": "{quarter}",
+      "lastYear": "{year}"
+    }
   },
   "dateTime": {
     "created": "Created on {date}",

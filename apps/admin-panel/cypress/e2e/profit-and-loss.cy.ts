@@ -30,7 +30,7 @@ describe("Profit and Loss Statement", () => {
       response.data.profitAndLossStatement?.categories.forEach((category) => {
         cy.get(`[data-testid="category-${category.name.toLowerCase()}"]`).should("exist")
         category.children.forEach((child) => {
-          cy.get(`[data-testid="account-${child.id}"]`).should("exist")
+          cy.get(`[data-testid="account-${child.profitAndLossAccountId}"]`).should("exist")
         })
       })
     })

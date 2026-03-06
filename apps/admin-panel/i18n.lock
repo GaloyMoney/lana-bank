@@ -1372,7 +1372,17 @@ checksums:
     DateRangePicker/fromDate: f95d2e89a79b650bf55c329b73071881
     DateRangePicker/toDate: 3dcb01eb7710165085b37d631fba8dcb
     DateRangePicker/apply: 0f03e8e3752eb120bf8ea0b8f8f5d244
+    DateRangePicker/back: f541015a827e37cb3b1234e56bc2aa3c
     DateRangePicker/pickDateRange: b7061cf5d72d1e8380b7e2ef41b09f06
+    DateRangePicker/customRange: 300ff0cb34c8e75487ac1fcebbee2848
+    DateRangePicker/group/current: 48a153d34292568ddb08e7d3acb234e3
+    DateRangePicker/group/previous: 06bb47d02926d45a8d574b5bb8eeab34
+    DateRangePicker/preset/thisMonth: f2f06b36c4b55fa301c55ed7469a679f
+    DateRangePicker/preset/thisQuarter: 1dc5120e3e00d0e3806090bf2fdf17ac
+    DateRangePicker/preset/ytd: 14100689001fc35dc5d06c4dbfd643f6
+    DateRangePicker/preset/lastMonth: ad34386a66d44e697474f8746d930bab
+    DateRangePicker/preset/lastQuarter: 11672a45bd2d66329b8a366c5a0eb4b6
+    DateRangePicker/preset/lastYear: d201f580f297c94bac8fb8bee84b5b83
     dateTime/created: 845d6188357aaa76a703d2fd68cf23d6
     dateTime/format/short: ab423691fde1389f9be644bd5f264d0e
     CreateButton/buttons/create: 757ccd28dd533ff3a933355273c1e32a

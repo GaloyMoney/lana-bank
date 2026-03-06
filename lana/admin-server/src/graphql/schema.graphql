@@ -2354,10 +2354,19 @@ type PolicyEdge {
 	cursor: String!
 }
 
+type ProfitAndLossAccount {
+	profitAndLossAccountId: ID!
+	ledgerAccountId: UUID!
+	code: AccountCode
+	name: String!
+	balanceRange: LedgerAccountBalanceRange!
+	children: [ProfitAndLossAccount!]!
+}
+
 type ProfitAndLossStatement {
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
-	categories: [LedgerAccount!]!
+	categories: [ProfitAndLossAccount!]!
 }
 
 type Prospect {
