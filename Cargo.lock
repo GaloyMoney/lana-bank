@@ -1807,6 +1807,7 @@ dependencies = [
  "lana-events",
  "obix",
  "serde",
+ "sumsub",
  "thiserror 2.0.18",
  "tracing",
  "tracing-macros",

@@ -86,15 +86,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
 
-    let customers = Customers::new(
-        &pool,
-        &authz,
-        &outbox,
-        document_storage.clone(),
-        public_ids.clone(),
-        clock.clone(),
-    );
-
     // Required to prevent the case there is an attempt to remove an account set member from
     // an account set that no longer exists.
     domain_config::DomainConfigTestUtils::clear_config_by_key(
@@ -104,6 +95,16 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     .await?;
     let (internal_domain_configs, exposed_domain_configs) =
         helpers::init_domain_configs(&pool, &authz).await?;
+
+    let customers = Customers::new(
+        &pool,
+        &authz,
+        &outbox,
+        document_storage.clone(),
+        public_ids.clone(),
+        &exposed_domain_configs,
+        clock.clone(),
+    );
 
     let deposit = CoreDeposit::init(
         &pool,

@@ -153,6 +153,7 @@ impl Query {
         let filter = DomainCustomersFilters {
             kyc_verification: filter.as_ref().and_then(|f| f.kyc_verification),
             customer_type: filter.as_ref().and_then(|f| f.customer_type),
+            status: filter.as_ref().and_then(|f| f.status),
             ..Default::default()
         };
 
@@ -1435,7 +1436,7 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let require_verified = app
             .exposed_domain_configs()
-            .get::<lana_app::deposit::RequireVerifiedCustomerForAccount>(sub)
+            .get::<lana_app::customer::RequireVerifiedCustomerForAccount>(sub)
             .await?
             .value();
         if require_verified {
@@ -1478,6 +1479,48 @@ impl Mutation {
             ctx,
             app.customers()
                 .update_email(sub, input.customer_id, input.email)
+        )
+    }
+
+    async fn customer_freeze(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerFreezeInput,
+    ) -> async_graphql::Result<CustomerFreezePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerFreezePayload,
+            Customer,
+            ctx,
+            app.customers().freeze_customer(sub, input.customer_id)
+        )
+    }
+
+    async fn customer_unfreeze(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerUnfreezeInput,
+    ) -> async_graphql::Result<CustomerUnfreezePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerUnfreezePayload,
+            Customer,
+            ctx,
+            app.customers().unfreeze_customer(sub, input.customer_id)
+        )
+    }
+
+    async fn customer_close(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerCloseInput,
+    ) -> async_graphql::Result<CustomerClosePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerClosePayload,
+            Customer,
+            ctx,
+            app.close_customer(sub, input.customer_id)
         )
     }
 

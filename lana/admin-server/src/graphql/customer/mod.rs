@@ -9,7 +9,7 @@ use super::{
 };
 
 pub use lana_app::customer::{
-    Activity, Customer as DomainCustomer, CustomerType, CustomersCursor,
+    Activity, Customer as DomainCustomer, CustomerStatus, CustomerType, CustomersCursor,
     CustomersFilters as DomainCustomersFilters, CustomersSortBy as DomainCustomersSortBy, KycLevel,
     KycVerification, PersonalInfo, Sort,
 };
@@ -19,6 +19,7 @@ pub use lana_app::customer::{
 pub struct Customer {
     id: ID,
     customer_id: UUID,
+    status: CustomerStatus,
     kyc_verification: KycVerification,
     activity: Activity,
     level: KycLevel,
@@ -33,6 +34,7 @@ impl From<DomainCustomer> for Customer {
         Customer {
             id: customer.id.to_global_id(),
             customer_id: UUID::from(customer.id),
+            status: customer.status,
             kyc_verification: customer.kyc_verification,
             activity: customer.activity,
             level: customer.level,
@@ -210,6 +212,24 @@ pub struct CustomerEmailUpdateInput {
 }
 crate::mutation_payload! { CustomerEmailUpdatePayload, customer: Customer }
 
+#[derive(InputObject)]
+pub struct CustomerFreezeInput {
+    pub customer_id: UUID,
+}
+crate::mutation_payload! { CustomerFreezePayload, customer: Customer }
+
+#[derive(InputObject)]
+pub struct CustomerUnfreezeInput {
+    pub customer_id: UUID,
+}
+crate::mutation_payload! { CustomerUnfreezePayload, customer: Customer }
+
+#[derive(InputObject)]
+pub struct CustomerCloseInput {
+    pub customer_id: UUID,
+}
+crate::mutation_payload! { CustomerClosePayload, customer: Customer }
+
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CustomersSortBy {
     #[default]
@@ -251,4 +271,5 @@ impl From<CustomersSort> for Sort<DomainCustomersSortBy> {
 pub struct CustomersFilter {
     pub kyc_verification: Option<KycVerification>,
     pub customer_type: Option<CustomerType>,
+    pub status: Option<CustomerStatus>,
 }

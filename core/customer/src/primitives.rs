@@ -229,6 +229,28 @@ impl From<CustomerType> for String {
     }
 }
 
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+    Serialize,
+    Deserialize,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+pub enum CustomerStatus {
+    #[default]
+    Active,
+    Frozen,
+    Closed,
+}
+
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 pub type ProspectAllOrOne = AllOrOne<ProspectId>;
@@ -398,6 +420,10 @@ impl CoreCustomerAction {
         CoreCustomerAction::Customer(CustomerEntityAction::ApproveKyc);
     pub const CUSTOMER_DECLINE_KYC: Self =
         CoreCustomerAction::Customer(CustomerEntityAction::DeclineKyc);
+    pub const CUSTOMER_FREEZE: Self = CoreCustomerAction::Customer(CustomerEntityAction::Freeze);
+    pub const CUSTOMER_UNFREEZE: Self =
+        CoreCustomerAction::Customer(CustomerEntityAction::Unfreeze);
+    pub const CUSTOMER_CLOSE: Self = CoreCustomerAction::Customer(CustomerEntityAction::Close);
     pub const CUSTOMER_DOCUMENT_CREATE: Self =
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::Create);
     pub const CUSTOMER_DOCUMENT_READ: Self =
@@ -447,9 +473,12 @@ pub enum CustomerEntityAction {
     Create,
     List,
     Update,
+    Close,
     StartKyc,
     ApproveKyc,
     DeclineKyc,
+    Freeze,
+    Unfreeze,
 }
 
 impl ActionPermission for CustomerEntityAction {
@@ -457,10 +486,14 @@ impl ActionPermission for CustomerEntityAction {
         match self {
             Self::Read | Self::List => PERMISSION_SET_CUSTOMER_VIEWER,
 
-            // All other operations use WRITER permission
-            Self::Create | Self::Update | Self::StartKyc | Self::ApproveKyc | Self::DeclineKyc => {
-                PERMISSION_SET_CUSTOMER_WRITER
-            }
+            Self::Create
+            | Self::Update
+            | Self::Close
+            | Self::StartKyc
+            | Self::ApproveKyc
+            | Self::DeclineKyc
+            | Self::Freeze
+            | Self::Unfreeze => PERMISSION_SET_CUSTOMER_WRITER,
         }
     }
 }

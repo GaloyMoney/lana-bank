@@ -94,6 +94,7 @@
       "customerTelegramIdUpdate": "Actualiza el identificador de Telegram de un cliente",
       "customerTelegramHandleUpdate": "Actualiza el nombre de usuario de Telegram de un cliente",
       "customerEmailUpdate": "Actualiza la direccion de correo electronico de un cliente",
+      "customerClose": "Cierra una cuenta de cliente despues de verificar que se cumplan todas las precondiciones",
       "domainConfigUpdate": "Actualiza una configuracion de dominio",
       "depositModuleConfigure": "Configura los mapeos del catalogo de cuentas del modulo de depositos",
       "manualTransactionExecute": "Ejecuta una transaccion contable manual con asientos especificados",
@@ -152,7 +153,9 @@
       "chartOfAccountsCsvImport": "Importa un catalogo de cuentas desde un archivo CSV",
       "collateralLiquidationRecordProceedsReceived": "Registra los ingresos recibidos de una liquidacion de colateral",
       "collateralRecordSentToLiquidation": "Registra el colateral enviado a liquidacion",
-      "collateralUpdate": "Actualiza el monto de colateral para una facilidad crediticia con una fecha efectiva especificada"
+      "collateralUpdate": "Actualiza el monto de colateral para una facilidad crediticia con una fecha efectiva especificada",
+      "customerFreeze": "Congela una cuenta de cliente, bloqueando todas las operaciones financieras y congelando sus cuentas de deposito",
+      "customerUnfreeze": "Descongela una cuenta de cliente previamente congelada, restaurando las operaciones normales y descongelando sus cuentas de deposito"
     }
   },
   "customer": {

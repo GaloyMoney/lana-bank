@@ -1,11 +1,13 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use crate::error::CustomerError;
 use crate::primitives::*;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +29,15 @@ pub enum CustomerEvent {
         activity: Activity,
     },
     KycRejected {},
+    Frozen {
+        status: CustomerStatus,
+    },
+    Unfrozen {
+        status: CustomerStatus,
+    },
+    Closed {
+        status: CustomerStatus,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -37,6 +48,7 @@ pub struct Customer {
     pub customer_type: CustomerType,
     pub kyc_verification: KycVerification,
     pub activity: Activity,
+    pub status: CustomerStatus,
     pub level: KycLevel,
     #[builder(setter(into))]
     pub applicant_id: String,
@@ -57,8 +69,14 @@ impl Customer {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn may_create_loan(&self) -> bool {
-        true
+    pub fn may_attach_product(&self, require_verified: bool) -> bool {
+        !self.is_closed()
+            && !self.is_frozen()
+            && (!require_verified || self.kyc_verification.is_verified())
+    }
+
+    pub fn is_closed(&self) -> bool {
+        self.status == CustomerStatus::Closed
     }
 
     pub fn should_sync_financial_transactions(&self) -> bool {
@@ -77,6 +95,14 @@ impl Customer {
         Idempotent::Executed(())
     }
 
+    pub(crate) fn close(&mut self) -> Idempotent<()> {
+        idempotency_guard!(self.events.iter_all().rev(), CustomerEvent::Closed { .. });
+        let status = CustomerStatus::Closed;
+        self.events.push(CustomerEvent::Closed { status });
+        self.status = status;
+        Idempotent::Executed(())
+    }
+
     pub fn reject_kyc(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -85,6 +111,43 @@ impl Customer {
         self.events.push(CustomerEvent::KycRejected {});
         self.kyc_verification = KycVerification::Rejected;
         Idempotent::Executed(())
+    }
+
+    pub fn is_frozen(&self) -> bool {
+        self.status == CustomerStatus::Frozen
+    }
+
+    pub fn freeze(&mut self) -> Result<Idempotent<()>, CustomerError> {
+        if self.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::Frozen { .. },
+            => CustomerEvent::Unfrozen { .. }
+        );
+        let status = CustomerStatus::Frozen;
+        self.events.push(CustomerEvent::Frozen { status });
+        self.status = status;
+        Ok(Idempotent::Executed(()))
+    }
+
+    pub fn unfreeze(&mut self) -> Result<Idempotent<()>, CustomerError> {
+        if self.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::Unfrozen { .. },
+            => CustomerEvent::Frozen { .. }
+        );
+        if !self.is_frozen() {
+            return Ok(Idempotent::AlreadyApplied);
+        }
+        let status = CustomerStatus::Active;
+        self.events.push(CustomerEvent::Unfrozen { status });
+        self.status = status;
+        Ok(Idempotent::Executed(()))
     }
 }
 
@@ -109,6 +172,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .party_id(*party_id)
                         .customer_type(*customer_type)
                         .activity(*activity)
+                        .status(CustomerStatus::Active)
                         .public_id(public_id.clone())
                         .level(*level)
                         .kyc_verification(*kyc_verification)
@@ -119,6 +183,15 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 }
                 CustomerEvent::KycRejected { .. } => {
                     builder = builder.kyc_verification(KycVerification::Rejected);
+                }
+                CustomerEvent::Frozen { status } => {
+                    builder = builder.status(*status);
+                }
+                CustomerEvent::Unfrozen { status } => {
+                    builder = builder.status(*status);
+                }
+                CustomerEvent::Closed { status } => {
+                    builder = builder.status(*status);
                 }
             }
         }
@@ -140,6 +213,8 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(crate) applicant_id: String,
     pub(crate) level: KycLevel,
+    #[builder(setter(skip), default)]
+    pub(crate) status: CustomerStatus,
 }
 
 impl NewCustomer {

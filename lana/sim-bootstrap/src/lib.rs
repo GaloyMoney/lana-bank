@@ -12,7 +12,7 @@ use es_entity::clock::{ClockController, ClockHandle};
 use rust_decimal_macros::dec;
 use tracing::{Instrument, Span, info, instrument};
 
-use lana_app::{app::LanaApp, deposit::RequireVerifiedCustomerForAccount, primitives::*};
+use lana_app::{app::LanaApp, customer::RequireVerifiedCustomerForAccount, primitives::*};
 
 pub use config::*;
 

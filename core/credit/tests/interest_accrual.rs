@@ -41,15 +41,6 @@ async fn setup_with_clock_control() -> anyhow::Result<(
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
     let public_ids = PublicIds::new(&pool);
-    let customers = core_customer::Customers::new(
-        &pool,
-        &authz,
-        &outbox,
-        document_storage,
-        public_ids,
-        clock.clone(),
-    );
-
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
@@ -94,6 +85,16 @@ async fn setup_with_clock_control() -> anyhow::Result<(
     .await?;
     let (internal_domain_configs, domain_configs) =
         helpers::init_domain_configs(&pool, &authz).await?;
+
+    let customers = core_customer::Customers::new(
+        &pool,
+        &authz,
+        &outbox,
+        document_storage,
+        public_ids,
+        &domain_configs,
+        clock.clone(),
+    );
 
     let credit = CoreCredit::init(
         &pool,

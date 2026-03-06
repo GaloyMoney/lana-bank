@@ -447,7 +447,8 @@
           "email": "Correo electrónico",
           "createdOn": "Fecha de registro",
           "telegram": "Telegram",
-          "status": "Estado",
+          "customerStatus": "Estado",
+          "activity": "Actividad",
           "customerType": "Tipo",
           "publicId": "ID Público",
           "firstName": "Nombre",
@@ -456,6 +457,11 @@
           "nationality": "Nacionalidad",
           "address": "Dirección"
         },
+        "customerStatus": {
+          "active": "Activo",
+          "frozen": "Congelado",
+          "closed": "Closed"
+        },
         "status": {
           "active": "Activo",
           "inactive": "Inactivo",
@@ -463,7 +469,18 @@
         },
         "actions": {
           "editTelegram": "Editar handle de Telegram"
+        },
+        "buttons": {
+          "close": "Close Customer"
         }
+      },
+      "closeCustomer": {
+        "title": "Close Customer",
+        "description": "Are you sure you want to close this customer? This action cannot be undone.",
+        "buttons": {
+          "close": "Close"
+        },
+        "success": "Customer closed successfully"
       },
       "kycStatus": {
         "title": "KYC",

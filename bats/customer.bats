@@ -181,3 +181,28 @@ wait_for_approval() {
   response_customer_type=$(graphql_output .data.me.customer.customerType)
   [[ "$response_customer_type" == "$customer_type" ]] || exit 1
 }
+
+@test "customer: can close a customer" {
+  customer_id=$(create_customer)
+  [[ "$customer_id" != "null" ]] || exit 1
+
+  # Verify customer is ACTIVE
+  variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
+  exec_admin_graphql 'customer' "$variables"
+  status=$(graphql_output '.data.customer.status')
+  [[ "$status" == "ACTIVE" ]] || exit 1
+
+  # Close the customer
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      input: {
+        customerId: $customerId
+      }
+    }'
+  )
+  exec_admin_graphql 'customer-close' "$variables"
+  status=$(graphql_output '.data.customerClose.customer.status')
+  [[ "$status" == "CLOSED" ]] || exit 1
+}

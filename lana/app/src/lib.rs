@@ -55,10 +55,10 @@ pub mod access {
 pub mod customer {
     pub use core_customer::{
         Activity, CUSTOMER_REF_TARGET, CoreCustomerEvent, Customer, CustomerDocumentId, CustomerId,
-        CustomerType, CustomersCursor, CustomersFilters, CustomersSortBy, KycLevel, KycStatus,
-        KycVerification, PROSPECT_REF_TARGET, Party, PartyId, PersonalInfo, Prospect, ProspectId,
-        ProspectStage, ProspectStatus, ProspectsFilters, ProspectsSortBy, PublicProspect, Sort,
-        error, prospect_cursor,
+        CustomerStatus, CustomerType, CustomersCursor, CustomersFilters, CustomersSortBy, KycLevel,
+        KycStatus, KycVerification, PROSPECT_REF_TARGET, Party, PartyId, PersonalInfo, Prospect,
+        ProspectId, ProspectStage, ProspectStatus, ProspectsFilters, ProspectsSortBy,
+        PublicProspect, RequireVerifiedCustomerForAccount, Sort, error, prospect_cursor,
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
@@ -115,10 +115,9 @@ pub mod deposit {
         DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositAccountStatus,
         DepositAccountsByCreatedAtCursor, DepositAccountsCursor, DepositAccountsFilters,
         DepositAccountsSortBy, DepositId, DepositStatus, DepositsByCreatedAtCursor, DepositsCursor,
-        DepositsFilters, DepositsSortBy, RequireVerifiedCustomerForAccount,
-        WITHDRAWAL_TRANSACTION_ENTITY_TYPE, Withdrawal, WithdrawalId, WithdrawalStatus,
-        WithdrawalsByCreatedAtCursor, WithdrawalsCursor, WithdrawalsFilters, WithdrawalsSortBy,
-        error,
+        DepositsFilters, DepositsSortBy, WITHDRAWAL_TRANSACTION_ENTITY_TYPE, Withdrawal,
+        WithdrawalId, WithdrawalStatus, WithdrawalsByCreatedAtCursor, WithdrawalsCursor,
+        WithdrawalsFilters, WithdrawalsSortBy, error,
     };
 
     pub type Deposits =
@@ -179,16 +178,17 @@ pub mod credit {
         CollateralUpdated, CollateralizationUpdated, CoreCreditEvent, CreditFacilitiesCursor,
         CreditFacilitiesFilters, CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
         CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityProposal,
-        CreditFacilityProposalId, CreditFacilityProposalsByCreatedAtCursor,
-        CreditFacilityProposalsCursor, CreditFacilityProposalsFilters,
-        CreditFacilityProposalsSortBy, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
-        DISBURSAL_TRANSACTION_ENTITY_TYPE, Disbursal, DisbursalExecuted, DisbursalStatus,
-        DisbursalsCursor, DisbursalsFilters, DisbursalsSortBy, IncrementalPayment,
-        InterestAccrualsPosted, ListDirection, Payment, PaymentAllocation,
-        PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacilitiesCursor,
+        CreditFacilityProposalId, CreditFacilityProposalStatus,
+        CreditFacilityProposalsByCreatedAtCursor, CreditFacilityProposalsCursor,
+        CreditFacilityProposalsFilters, CreditFacilityProposalsSortBy,
+        CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
+        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilters,
+        DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, ListDirection, Payment,
+        PaymentAllocation, PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacilitiesCursor,
         PendingCreditFacilitiesFilters, PendingCreditFacilitiesSortBy, PendingCreditFacility,
         PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityId,
-        ProceedsFromLiquidationReceived, RepaymentStatus, RepaymentType, Sort, error,
+        PendingCreditFacilityStatus, ProceedsFromLiquidationReceived, RepaymentStatus,
+        RepaymentType, Sort, error,
     };
 
     pub use core_credit_collateral::{

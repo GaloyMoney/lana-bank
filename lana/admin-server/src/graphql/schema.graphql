@@ -1024,6 +1024,7 @@ enum CustodiansSortBy {
 type Customer {
 	id: ID!
 	customerId: UUID!
+	status: CustomerStatus!
 	kycVerification: KycVerification!
 	activity: Activity!
 	level: KycLevel!
@@ -1040,6 +1041,14 @@ type Customer {
 	creditFacilityProposals: [CreditFacilityProposal!]!
 	documents: [CustomerDocument!]!
 	userCanCreateCreditFacility: Boolean!
+}
+
+input CustomerCloseInput {
+	customerId: UUID!
+}
+
+type CustomerClosePayload {
+	customer: Customer!
 }
 
 type CustomerConnection {
@@ -1122,6 +1131,20 @@ type CustomerEmailUpdatePayload {
 	customer: Customer!
 }
 
+input CustomerFreezeInput {
+	customerId: UUID!
+}
+
+type CustomerFreezePayload {
+	customer: Customer!
+}
+
+enum CustomerStatus {
+	ACTIVE
+	FROZEN
+	CLOSED
+}
+
 input CustomerTelegramHandleUpdateInput {
 	customerId: UUID!
 	telegramHandle: String!
@@ -1141,9 +1164,18 @@ enum CustomerType {
 	NON_DOMICILED_COMPANY
 }
 
+input CustomerUnfreezeInput {
+	customerId: UUID!
+}
+
+type CustomerUnfreezePayload {
+	customer: Customer!
+}
+
 input CustomersFilter {
 	kycVerification: KycVerification
 	customerType: CustomerType
+	status: CustomerStatus
 }
 
 input CustomersSort {
@@ -1975,6 +2007,9 @@ type Mutation {
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
 	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
+	customerFreeze(input: CustomerFreezeInput!): CustomerFreezePayload!
+	customerUnfreeze(input: CustomerUnfreezeInput!): CustomerUnfreezePayload!
+	customerClose(input: CustomerCloseInput!): CustomerClosePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!

@@ -8,6 +8,14 @@
       ],
       "type": "string"
     },
+    "CustomerStatus": {
+      "enum": [
+        "active",
+        "frozen",
+        "closed"
+      ],
+      "type": "string"
+    },
     "CustomerType": {
       "enum": [
         "Individual",
@@ -110,6 +118,54 @@
       },
       "required": [
         "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CustomerStatus"
+        },
+        "type": {
+          "const": "frozen",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CustomerStatus"
+        },
+        "type": {
+          "const": "unfrozen",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CustomerStatus"
+        },
+        "type": {
+          "const": "closed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
       ],
       "type": "object"
     }

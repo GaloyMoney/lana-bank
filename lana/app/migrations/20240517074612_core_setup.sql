@@ -122,6 +122,7 @@ CREATE TABLE core_customers (
   kyc_verification VARCHAR NOT NULL,
   activity VARCHAR NOT NULL DEFAULT 'disabled',
   customer_type VARCHAR NOT NULL,
+  status VARCHAR NOT NULL DEFAULT 'active',
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );

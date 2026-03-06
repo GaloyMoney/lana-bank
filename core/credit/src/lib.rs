@@ -29,9 +29,7 @@ use core_custody::{
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
 use core_time_events::CoreTimeEvent;
-use domain_config::{
-    ExposedDomainConfigsReadOnly, InternalDomainConfigs, RequireVerifiedCustomerForAccount,
-};
+use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
@@ -591,12 +589,6 @@ where
             .await?
             .expect("audit info missing");
 
-        let require_verified = self
-            .domain_configs
-            .get_without_audit::<RequireVerifiedCustomerForAccount>()
-            .await?
-            .value();
-
         let proposal_id = CreditFacilityProposalId::new();
         tracing::Span::current().record(
             "credit_facility_proposal_id",
@@ -607,20 +599,13 @@ where
 
         let customer = self
             .customer
-            .find_by_id_without_audit_in_op(&mut db, customer_id)
+            .find_eligible_for_product_without_audit_in_op(&mut db, customer_id)
             .await?;
-        let party = self
-            .customer
-            .find_party_by_id_without_audit(customer.party_id)
-            .await?;
-        if require_verified && !customer.kyc_verification.is_verified() {
-            return Err(CoreCreditError::CustomerNotVerified);
-        }
 
         let new_facility_proposal = NewCreditFacilityProposal::builder()
             .id(proposal_id)
             .customer_id(customer.id)
-            .customer_type(party.customer_type)
+            .customer_type(customer.customer_type)
             .custodian_id(custodian_id.map(|id| id.into()))
             .disbursal_credit_account_id(deposit_account_id)
             .terms(terms)
@@ -666,12 +651,6 @@ where
             .await?
             .expect("audit info missing");
 
-        let require_verified = self
-            .domain_configs
-            .get_without_audit::<RequireVerifiedCustomerForAccount>()
-            .await?
-            .value();
-
         let now = self.clock.now();
 
         let mut db = self.facilities.begin_op().await?;
@@ -682,13 +661,9 @@ where
             .await?;
 
         let customer_id = facility.customer_id;
-        let customer = self
-            .customer
-            .find_by_id_without_audit_in_op(&mut db, customer_id)
+        self.customer
+            .find_eligible_for_product_without_audit_in_op(&mut db, customer_id)
             .await?;
-        if require_verified && !customer.kyc_verification.is_verified() {
-            return Err(CoreCreditError::CustomerNotVerified);
-        }
 
         if facility.is_single_disbursal() {
             return Err(CreditFacilityError::OnlyOneDisbursalAllowed.into());

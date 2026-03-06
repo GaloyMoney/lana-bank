@@ -201,6 +201,29 @@ impl SumsubClient {
         }
     }
 
+    /// Deactivate an applicant's profile by external user ID.
+    ///
+    /// This marks the applicant as deactivated in SumSub so they are treated
+    /// as non-existent and excluded from duplicate checks.
+    pub async fn deactivate_applicant<T>(&self, external_user_id: T) -> Result<(), SumsubError>
+    where
+        T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
+    {
+        let applicant_details = self.get_applicant_details(external_user_id).await?;
+        let applicant_id = &applicant_details.id;
+
+        let method = "PATCH";
+        let url_path = format!("/resources/applicants/{applicant_id}/presence/deactivated");
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
+
+        let headers = self.get_headers(method, &url_path, None)?;
+
+        let response = self.client.patch(full_url).headers(headers).send().await?;
+
+        self.handle_simple_response(response, "Failed to deactivate applicant")
+            .await
+    }
+
     // Testing methods (only available with sumsub-testing feature)
     #[cfg(feature = "sumsub-testing")]
     pub async fn create_applicant<T>(
@@ -630,7 +653,6 @@ impl SumsubClient {
         }
     }
 
-    #[cfg(feature = "sumsub-testing")]
     async fn handle_simple_response(
         &self,
         response: reqwest::Response,

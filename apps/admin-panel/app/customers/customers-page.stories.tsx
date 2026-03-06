@@ -4,7 +4,7 @@ import { MockedProvider } from "@apollo/client/testing"
 
 import Customers from "./page"
 
-import { KycVerification, CustomersDocument } from "@/lib/graphql/generated"
+import { CustomerStatus, CustomersDocument } from "@/lib/graphql/generated"
 
 const baseMocks = [
   {
@@ -24,7 +24,7 @@ const baseMocks = [
               node: {
                 id: "1",
                 customerId: "CUST001",
-                kycVerification: KycVerification.Verified,
+                status: CustomerStatus.Active,
                 level: 1,
                 email: "customer1@example.com",
                 telegramHandle: "@customer1",
@@ -45,7 +45,7 @@ const baseMocks = [
               node: {
                 id: "2",
                 customerId: "CUST002",
-                kycVerification: KycVerification.Rejected,
+                status: CustomerStatus.Frozen,
                 level: 1,
                 email: "customer2@example.com",
                 telegramHandle: "@customer2",

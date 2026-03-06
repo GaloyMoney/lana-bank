@@ -36,6 +36,9 @@ graph LR
     ACTIVE --> INACTIVE["Inactive<br/>(automatic)"]
     INACTIVE --> ACTIVE
     ACTIVE --> SUSPENDED["Suspended<br/>(automatic)"]
+    ACTIVE --> CLOSED["Closed"]
+    INACTIVE --> CLOSED
+    SUSPENDED --> CLOSED
 ```
 
 1. **Creation**: An operator creates the customer record in the admin panel with email, optional Telegram ID, and customer type. The customer starts in `Inactive` status with KYC verification `Pending`.
@@ -66,6 +69,18 @@ When a customer's activity status changes, all of their deposit accounts are upd
 KYC verification is a one-way gate: once verified, a customer remains verified. If verification is rejected, the operator can review the rejection reasons in the Sumsub dashboard and potentially request a new verification attempt.
 
 When KYC verification requirements are enabled in the system configuration, a customer must be verified before a deposit account can be created or a credit facility can be initiated. This is a configurable policy that the bank can enable or disable.
+
+## Closing a Customer
+
+An operator can close a customer account through the admin panel. Closing is a permanent, irreversible action that requires all of the following preconditions to be met:
+
+- All **credit facilities** must be in `Closed` status
+- All **credit facility proposals** must be in a terminal state (`Denied`, `Approved`, or `CustomerDenied`)
+- No **pending credit facilities** awaiting collateralization
+- All **deposit accounts** must be closed
+- No **pending withdrawals** on any deposit account
+
+When a customer is closed, the system disables the associated Keycloak user account, preventing further authentication to the customer portal.
 
 ## System Components
 

@@ -4,11 +4,9 @@ use std::collections::HashMap;
 
 use cala_ledger::{CalaLedger, JournalId, account_set::AccountSetMemberId};
 use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
+use core_customer::RequireVerifiedCustomerForAccount;
 use core_deposit::{DepositOmnibusAccountSetSpec, DepositSummaryAccountSetSpec};
-use domain_config::{
-    EncryptionConfig, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
-    RequireVerifiedCustomerForAccount,
-};
+use domain_config::{EncryptionConfig, ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use rand::RngExt;
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();

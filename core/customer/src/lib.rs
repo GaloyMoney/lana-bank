@@ -23,6 +23,7 @@ use authz::PermissionCheck;
 use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
+use domain_config::ExposedDomainConfigsReadOnly;
 use es_entity::clock::ClockHandle;
 use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
@@ -63,6 +64,7 @@ where
     customer_activity_repo: CustomerActivityRepo,
     document_storage: DocumentStorage,
     public_ids: PublicIds,
+    domain_configs: ExposedDomainConfigsReadOnly,
     config: CustomerConfig,
 }
 
@@ -81,6 +83,7 @@ where
             customer_activity_repo: self.customer_activity_repo.clone(),
             document_storage: self.document_storage.clone(),
             public_ids: self.public_ids.clone(),
+            domain_configs: self.domain_configs.clone(),
             config: self.config.clone(),
         }
     }
@@ -99,6 +102,7 @@ where
         outbox: &Outbox<E>,
         document_storage: DocumentStorage,
         public_id_service: PublicIds,
+        domain_configs: &ExposedDomainConfigsReadOnly,
         clock: ClockHandle,
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
@@ -117,17 +121,33 @@ where
             customer_activity_repo,
             document_storage,
             public_ids: public_id_service,
+            domain_configs: domain_configs.clone(),
             config: CustomerConfig::default(),
         }
     }
 
     #[record_error_severity]
-    #[instrument(name = "customer.find_party_by_id_without_audit", skip(self))]
-    pub async fn find_party_by_id_without_audit(
+    #[instrument(name = "customer.find_party_by_customer_id_without_audit", skip(self))]
+    pub async fn find_party_by_customer_id_without_audit(
         &self,
-        party_id: impl Into<PartyId> + std::fmt::Debug,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Party, CustomerError> {
-        Ok(self.party_repo.find_by_id(party_id.into()).await?)
+        let id = PartyId::from(customer_id.into());
+        Ok(self.party_repo.find_by_id(id).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "customer.find_party_by_customer_id_without_audit_in_op",
+        skip(self, op)
+    )]
+    pub async fn find_party_by_customer_id_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Party, CustomerError> {
+        let id = PartyId::from(customer_id.into());
+        Ok(self.party_repo.find_by_id_in_op(op, id).await?)
     }
 
     pub async fn subject_can_create_prospect(
@@ -250,6 +270,28 @@ where
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
         Ok(self.repo.find_by_id_in_op(op, id.into()).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "customer.find_eligible_for_product_without_audit_in_op",
+        skip(self, op)
+    )]
+    pub async fn find_eligible_for_product_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let customer = self.repo.find_by_id_in_op(&mut *op, id.into()).await?;
+        let require_verified = self
+            .domain_configs
+            .get_without_audit_in_op::<RequireVerifiedCustomerForAccount>(op)
+            .await?
+            .value();
+        if !customer.may_attach_product(require_verified) {
+            return Err(CustomerError::CustomerNotEligibleForProduct);
+        }
+        Ok(customer)
     }
 
     #[record_error_severity]
@@ -496,7 +538,11 @@ where
             }
             es_entity::Idempotent::AlreadyApplied => {
                 let customer_id = CustomerId::from(prospect_id);
-                Ok(Some(self.repo.find_by_id(customer_id).await?))
+                let mut customer = self.repo.find_by_id(customer_id).await?;
+                if customer.unfreeze()?.did_execute() {
+                    self.repo.update(&mut customer).await?;
+                }
+                Ok(Some(customer))
             }
         }
     }
@@ -551,7 +597,11 @@ where
             }
             es_entity::Idempotent::AlreadyApplied => {
                 let customer_id = CustomerId::from(prospect_id);
-                Ok(self.repo.find_by_id(customer_id).await?)
+                let mut customer = self.repo.find_by_id(customer_id).await?;
+                if customer.unfreeze()?.did_execute() {
+                    self.repo.update(&mut customer).await?;
+                }
+                Ok(customer)
             }
         }
     }
@@ -585,7 +635,9 @@ where
             Err(prospect::ProspectError::AlreadyConverted) => {
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
-                if customer.reject_kyc().did_execute() {
+                let kyc_changed = customer.reject_kyc().did_execute();
+                let frozen = customer.freeze()?.did_execute();
+                if kyc_changed || frozen {
                     self.repo.update(&mut customer).await?;
                 }
             }
@@ -622,7 +674,9 @@ where
             Err(prospect::ProspectError::AlreadyConverted) => {
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
-                if customer.reject_kyc().did_execute() {
+                let kyc_changed = customer.reject_kyc().did_execute();
+                let frozen = customer.freeze()?.did_execute();
+                if kyc_changed || frozen {
                     self.repo.update(&mut customer).await?;
                 }
             }
@@ -676,6 +730,30 @@ where
         }
 
         Ok(prospect)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.close_customer", skip(self))]
+    pub async fn close_customer(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer(id),
+                CoreCustomerAction::CUSTOMER_CLOSE,
+            )
+            .await?;
+
+        let mut customer = self.repo.find_by_id(id).await?;
+        if customer.close().did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
+
+        Ok(customer)
     }
 
     #[record_error_severity]
@@ -876,14 +954,6 @@ where
         Ok(self.prospect_repo.find_all(ids).await?)
     }
 
-    #[instrument(name = "customer.find_all_parties", skip(self))]
-    pub async fn find_all_parties<T: From<Party>>(
-        &self,
-        ids: &[PartyId],
-    ) -> Result<HashMap<PartyId, T>, CustomerError> {
-        Ok(self.party_repo.find_all(ids).await?)
-    }
-
     #[record_error_severity]
     #[instrument(name = "customer.find_all_parties_authorized", skip(self))]
     pub async fn find_all_parties_authorized<T: From<Party>>(
@@ -919,6 +989,9 @@ where
             .await?;
 
         let customer = self.repo.find_by_party_id(party_id).await?;
+        if customer.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
         let mut party = self.party_repo.find_by_id(party_id).await?;
         if party
             .update_telegram_handle(new_telegram_handle)
@@ -948,6 +1021,9 @@ where
             .await?;
 
         let customer = self.repo.find_by_party_id(party_id).await?;
+        if customer.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
         let mut party = self.party_repo.find_by_id(party_id).await?;
         if party.update_email(new_email).did_execute() {
             self.party_repo.update(&mut party).await?;
@@ -974,6 +1050,11 @@ where
                 CoreCustomerAction::CUSTOMER_DOCUMENT_CREATE,
             )
             .await?;
+
+        let customer = self.repo.find_by_id(customer_id).await?;
+        if customer.is_closed() {
+            return Err(CustomerError::CustomerIsClosed);
+        }
 
         let document = self
             .document_storage
@@ -1202,5 +1283,51 @@ where
             .await?;
 
         Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.freeze_customer", skip(self))]
+    pub async fn freeze_customer(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer(id),
+                CoreCustomerAction::CUSTOMER_FREEZE,
+            )
+            .await?;
+
+        let mut customer = self.repo.find_by_id(id).await?;
+        if customer.freeze()?.did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
+        Ok(customer)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.unfreeze_customer", skip(self))]
+    pub async fn unfreeze_customer(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer(id),
+                CoreCustomerAction::CUSTOMER_UNFREEZE,
+            )
+            .await?;
+
+        let mut customer = self.repo.find_by_id(id).await?;
+        if customer.unfreeze()?.did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
+        Ok(customer)
     }
 }

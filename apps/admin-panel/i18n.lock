@@ -329,7 +329,8 @@ checksums:
     Customers/CustomerDetails/details/labels/email: e7f34943a0c2fb849db1839ff6ef5cb5
     Customers/CustomerDetails/details/labels/createdOn: 24d89e2759464207b31141138abf2e81
     Customers/CustomerDetails/details/labels/telegram: 0719cb55ded3146892d106733a8431b2
-    Customers/CustomerDetails/details/labels/status: 4e1fcce15854d824919b4a582c697c90
+    Customers/CustomerDetails/details/labels/customerStatus: 4e1fcce15854d824919b4a582c697c90
+    Customers/CustomerDetails/details/labels/activity: 1948763de8e531483a798b68195e297e
     Customers/CustomerDetails/details/labels/customerType: f04471a7ddac844b9ad145eb9911ef75
     Customers/CustomerDetails/details/labels/publicId: 916fc3fdca16a23af44dbcfec824984d
     Customers/CustomerDetails/details/labels/firstName: cf040a5d6a9fd696be400380cc99f54b
@@ -337,10 +338,18 @@ checksums:
     Customers/CustomerDetails/details/labels/dateOfBirth: 8c0517839acdee5c6fff3f23e1f1aeb2
     Customers/CustomerDetails/details/labels/nationality: 676a006a7f9c4e1d976e31d470a7cd7c
     Customers/CustomerDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
+    Customers/CustomerDetails/details/customerStatus/active: 3e1ec025c4a50830bbb9ad57a176630a
+    Customers/CustomerDetails/details/customerStatus/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
+    Customers/CustomerDetails/details/customerStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
     Customers/CustomerDetails/details/actions/editTelegram: 4ae315a304c3159b982b203be81a5f98
+    Customers/CustomerDetails/details/buttons/close: c6bf9acb5e3f853ff3172fd6d607fbb8
+    Customers/CustomerDetails/closeCustomer/title: c6bf9acb5e3f853ff3172fd6d607fbb8
+    Customers/CustomerDetails/closeCustomer/description: 862b695beacd54f83995de902963b849
+    Customers/CustomerDetails/closeCustomer/buttons/close: 2c2e22f8424a1031de89063bd0022e16
+    Customers/CustomerDetails/closeCustomer/success: 2400188f476290f280beb70b880cc22a
     Customers/CustomerDetails/kycStatus/title: 4bd5d2fae73d8ec19511c2d011a48025
     Customers/CustomerDetails/kycStatus/verified: 9566bd61c1f754dd5082eea5101f15a8
     Customers/CustomerDetails/kycStatus/noKyc: 10d02f136823bff246bf59bcb4cea64b

@@ -4,11 +4,11 @@ import { gql } from "@apollo/client"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
 
-import { KycStatusBadge } from "./kyc-status-badge"
+import { CustomerStatusBadge } from "./customer-status-badge"
 
 import {
+  CustomerStatus,
   CustomerType,
-  KycVerification,
   Customer,
   CustomersFilter,
   CustomersSort,
@@ -37,7 +37,7 @@ gql`
           id
           customerId
           publicId
-          kycVerification
+          status
           activity
           level
           email
@@ -81,20 +81,18 @@ const CustomersList = () => {
     {
       key: "email",
       label: t("columns.email"),
-      sortable: true,
       labelClassName: "w-[30%]",
     },
     {
       key: "telegramHandle",
       label: t("columns.telegramHandle"),
-      sortable: true,
       labelClassName: "w-[30%]",
     },
     {
-      key: "kycVerification",
-      label: t("columns.kycVerification"),
-      filterValues: Object.values(KycVerification),
-      render: (status) => <KycStatusBadge status={status} />,
+      key: "status",
+      label: t("columns.status"),
+      filterValues: Object.values(CustomerStatus),
+      render: (status) => <CustomerStatusBadge status={status} />,
     },
     {
       key: "customerType",
