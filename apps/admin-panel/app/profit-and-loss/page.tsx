@@ -1,6 +1,6 @@
 "use client"
 import { gql } from "@apollo/client"
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 
 import { Table, TableBody, TableCell, TableFooter, TableRow } from "@lana/web/ui/table"
 import {
@@ -14,7 +14,7 @@ import { Skeleton } from "@lana/web/ui/skeleton"
 
 import { useTranslations } from "next-intl"
 
-import { Account } from "./account"
+import { Account, ProfitAndLossAccountNode } from "./account"
 
 import {
   ProfitAndLossStatementQuery,
@@ -24,8 +24,22 @@ import Balance, { Currency } from "@/components/balance/balance"
 import { getYtdDateRange, DateRange } from "@/components/date-range-picker"
 import { ReportFilters } from "@/components/report-filters"
 import { ReportLayer } from "@/components/report-filters/selectors"
+import { useCollapsedTreeState } from "@/components/report-tree/use-collapsed-tree-state"
 
 gql`
+  fragment ProfitAndLossRowFields on ProfitAndLossRow {
+    profitAndLossAccountId
+    parentProfitAndLossAccountId
+    ledgerAccountId
+    name
+    code
+    balanceRange {
+      __typename
+      ...UsdLedgerBalanceRangeFragment
+      ...BtcLedgerBalanceRangeFragment
+    }
+  }
+
   query ProfitAndLossStatement($from: Date!, $until: Date) {
     profitAndLossStatement(from: $from, until: $until) {
       name
@@ -37,27 +51,8 @@ gql`
           ...BtcLedgerBalanceRangeFragment
         }
       }
-      categories {
-        profitAndLossAccountId
-        ledgerAccountId
-        name
-        code
-        balanceRange {
-          __typename
-          ...UsdLedgerBalanceRangeFragment
-          ...BtcLedgerBalanceRangeFragment
-        }
-        children {
-          profitAndLossAccountId
-          ledgerAccountId
-          name
-          code
-          balanceRange {
-            __typename
-            ...UsdLedgerBalanceRangeFragment
-            ...BtcLedgerBalanceRangeFragment
-          }
-        }
+      rows {
+        ...ProfitAndLossRowFields
       }
     }
   }
@@ -120,6 +115,10 @@ interface ProfitAndLossProps {
   setDateRange: (range: DateRange) => void
 }
 
+type ProfitAndLossRow = NonNullable<
+  ProfitAndLossStatementQuery["profitAndLossStatement"]
+>["rows"][number]
+
 export default function ProfitAndLossStatementPage() {
   const [dateRange, setDateRange] = useState<DateRange>(getYtdDateRange)
   const handleDateChange = useCallback((newDateRange: DateRange) => {
@@ -151,6 +150,12 @@ const ProfitAndLossStatement = ({
   const t = useTranslations("ProfitAndLoss")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<ReportLayer>("settled")
+  const categories = useMemo(() => buildProfitAndLossTree(data?.rows ?? []), [data?.rows])
+  const { collapsedNodeIds: collapsedAccountIds, toggleCollapsedNode: toggleCollapsedAccount } =
+    useCollapsedTreeState(
+      categories,
+      useCallback((account: ProfitAndLossAccountNode) => account.profitAndLossAccountId, []),
+    )
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
@@ -178,13 +183,13 @@ const ProfitAndLossStatement = ({
           layer={layer}
           onLayerChange={setLayer}
         />
-        {loading || !data?.categories || data.categories.length === 0 ? (
+        {loading || categories.length === 0 ? (
           <Skeleton className="h-96 w-full" />
         ) : (
           <div className="border rounded-md overflow-hidden">
             <Table>
               <TableBody>
-                {data.categories.map((category) => {
+                {categories.map((category) => {
                   let categoryPeriod: number | undefined
                   if (
                     category.balanceRange.__typename === "UsdLedgerAccountBalanceRange"
@@ -202,6 +207,8 @@ const ProfitAndLossStatement = ({
                       currency={currency}
                       layer={layer}
                       periodBalance={categoryPeriod}
+                      collapsedAccountIds={collapsedAccountIds}
+                      onToggleCollapsed={toggleCollapsedAccount}
                     />
                   )
                 })}
@@ -227,15 +234,22 @@ const ProfitAndLossStatement = ({
 }
 
 interface CategoryRowProps {
-  category: NonNullable<
-    ProfitAndLossStatementQuery["profitAndLossStatement"]
-  >["categories"][0]
+  category: ProfitAndLossAccountNode
   currency: Currency
   layer: ReportLayer
   periodBalance?: number
+  collapsedAccountIds: Set<string>
+  onToggleCollapsed: (accountId: string) => void
 }
 
-const CategoryRow = ({ category, currency, layer, periodBalance }: CategoryRowProps) => {
+const CategoryRow = ({
+  category,
+  currency,
+  layer,
+  periodBalance,
+  collapsedAccountIds,
+  onToggleCollapsed,
+}: CategoryRowProps) => {
   const t = useTranslations("ProfitAndLoss")
 
   return (
@@ -255,21 +269,54 @@ const CategoryRow = ({ category, currency, layer, periodBalance }: CategoryRowPr
           />
         </TableCell>
       </TableRow>
-      {category.children.map(
-        (
-          child: NonNullable<
-            ProfitAndLossStatementQuery["profitAndLossStatement"]
-          >["categories"][0]["children"][number],
-        ) => (
+      {category.children?.map(
+        (child) => (
           <Account
             key={child.profitAndLossAccountId}
             account={child}
             currency={currency}
             depth={1}
             layer={layer}
+            collapsedAccountIds={collapsedAccountIds}
+            onToggleCollapsed={onToggleCollapsed}
           />
         ),
       )}
     </>
   )
+}
+
+function buildProfitAndLossTree(rows: ProfitAndLossRow[]): ProfitAndLossAccountNode[] {
+  const nodesById = new Map<string, ProfitAndLossAccountNode>()
+  for (const row of rows) {
+    nodesById.set(row.profitAndLossAccountId, {
+      profitAndLossAccountId: row.profitAndLossAccountId,
+      ledgerAccountId: row.ledgerAccountId,
+      code: row.code,
+      name: row.name,
+      balanceRange: row.balanceRange,
+      children: [],
+    })
+  }
+
+  const roots: ProfitAndLossAccountNode[] = []
+  for (const row of rows) {
+    const node = nodesById.get(row.profitAndLossAccountId)
+    if (!node) continue
+
+    if (!row.parentProfitAndLossAccountId) {
+      roots.push(node)
+      continue
+    }
+
+    const parent = nodesById.get(row.parentProfitAndLossAccountId)
+    if (!parent) {
+      roots.push(node)
+      continue
+    }
+
+    parent.children = [...(parent.children ?? []), node]
+  }
+
+  return roots
 }

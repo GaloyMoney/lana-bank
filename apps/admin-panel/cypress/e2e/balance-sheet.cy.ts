@@ -32,17 +32,18 @@ describe("Balance Sheet", () => {
         expect(categoryTexts).to.include(t(BalanceSheet + ".categories.Equity"))
       })
 
-      if (response.data?.balanceSheet?.categories) {
-        response.data.balanceSheet.categories.forEach((category) => {
-          if (category?.children) {
-            category.children.forEach((child) => {
-              if (child?.name) {
-                cy.contains(child.name).should("be.visible")
-              }
-            })
+      const rows = response.data?.balanceSheet?.rows ?? []
+      const rootRows = rows.filter((row) => !row.parentBalanceSheetAccountId)
+      rootRows.forEach((category) => {
+        const children = rows.filter(
+          (row) => row.parentBalanceSheetAccountId === category.balanceSheetAccountId,
+        )
+        children.forEach((child) => {
+          if (child.name) {
+            cy.contains(child.name).should("be.visible")
           }
         })
-      }
+      })
     })
     cy.takeScreenshot("balance-sheet")
   })
@@ -64,5 +65,45 @@ describe("Balance Sheet", () => {
     cy.contains(t(CLS + ".layer.options.settled")).click()
     cy.contains(t(CLS + ".layer.options.pending")).click()
     cy.takeScreenshot("balance-sheet-pending")
+  })
+
+  it("should default to collapsed rows and allow toggling", () => {
+    cy.graphqlRequest<{ data: BalanceSheetQuery }>(print(BalanceSheetDocument), {
+      asOf: currentDate.toISOString().split("T")[0],
+    }).then((response) => {
+      const rows = response.data?.balanceSheet?.rows ?? []
+      const expandableRow = rows.find((row) =>
+        rows.some(
+          (candidate) =>
+            candidate.parentBalanceSheetAccountId === row.balanceSheetAccountId,
+        ),
+      )
+
+      expect(expandableRow, "expected an expandable balance sheet row").to.exist
+      if (!expandableRow) return
+
+      const childRow = rows.find(
+        (row) =>
+          row.parentBalanceSheetAccountId === expandableRow.balanceSheetAccountId,
+      )
+      expect(childRow, "expected a child row for expandable row").to.exist
+      if (!childRow) return
+
+      cy.get(`[data-testid="account-${expandableRow.balanceSheetAccountId}"]`).within(() => {
+        cy.get(`[data-testid="toggle-${expandableRow.balanceSheetAccountId}"]`)
+          .should("have.attr", "aria-label", "Expand account")
+          .click()
+      })
+
+      cy.get(`[data-testid="account-${childRow.balanceSheetAccountId}"]`).should("exist")
+
+      cy.get(`[data-testid="account-${expandableRow.balanceSheetAccountId}"]`).within(() => {
+        cy.get(`[data-testid="toggle-${expandableRow.balanceSheetAccountId}"]`)
+          .should("have.attr", "aria-label", "Collapse account")
+          .click()
+      })
+
+      cy.get(`[data-testid="account-${childRow.balanceSheetAccountId}"]`).should("not.exist")
+    })
   })
 })

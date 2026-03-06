@@ -1,10 +1,9 @@
 use async_graphql::*;
 use chrono::NaiveDate;
+use std::collections::{HashMap, HashSet};
 
-use lana_app::{
-    accounting::ledger_account::LedgerAccount as DomainLedgerAccount,
-    profit_and_loss::ProfitAndLossStatement as DomainProfitAndLossStatement,
-};
+use lana_app::accounting::ledger_account::LedgerAccount as DomainLedgerAccount;
+use lana_app::profit_and_loss::ProfitAndLossStatement as DomainProfitAndLossStatement;
 
 use crate::{
     graphql::loader::{LanaDataLoader, ProfitAndLossAccountKey},
@@ -62,92 +61,93 @@ impl ProfitAndLossStatement {
         })
     }
 
-    async fn categories(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<ProfitAndLossAccount>> {
+    async fn rows(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<ProfitAndLossRow>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let keys = self
+        let mut rows = Vec::new();
+        let mut visited = HashSet::new();
+        let mut frontier = self
             .entity
             .category_ids
             .iter()
             .copied()
-            .map(|id| ProfitAndLossAccountKey {
-                id,
-                from: self.from,
-                until: self.until,
+            .map(|id| PendingProfitAndLossNode {
+                key: ProfitAndLossAccountKey {
+                    id,
+                    from: self.from,
+                    until: self.until,
+                },
+                parent_id: None,
             })
+            .filter(|node| visited.insert(node.key.id))
             .collect::<Vec<_>>();
-        let categories = loader.load_many(keys.clone()).await?;
 
-        Ok(keys
-            .into_iter()
-            .filter_map(|id| categories.get(&id).cloned())
-            .collect())
+        while !frontier.is_empty() {
+            let keys = frontier.iter().map(|node| node.key).collect::<Vec<_>>();
+            let accounts: HashMap<ProfitAndLossAccountKey, DomainLedgerAccount> =
+                loader.load_many(keys).await?;
+            let mut next_frontier = Vec::new();
+
+            for node in frontier {
+                let Some(account) = accounts.get(&node.key).cloned() else {
+                    continue;
+                };
+                let account_id = account.id;
+                let child_ids = account.children_ids.clone();
+                rows.push(ProfitAndLossRow::from_account(account, node.parent_id));
+
+                next_frontier.extend(child_ids.into_iter().filter(|id| visited.insert(*id)).map(
+                    |id| PendingProfitAndLossNode {
+                        key: ProfitAndLossAccountKey {
+                            id,
+                            from: self.from,
+                            until: self.until,
+                        },
+                        parent_id: Some(account_id),
+                    },
+                ));
+            }
+
+            frontier = next_frontier;
+        }
+
+        Ok(rows)
     }
 }
 
-#[derive(Clone, SimpleObject)]
-#[graphql(complex)]
-pub struct ProfitAndLossAccount {
+#[derive(SimpleObject)]
+pub struct ProfitAndLossRow {
     profit_and_loss_account_id: ID,
+    parent_profit_and_loss_account_id: Option<ID>,
     ledger_account_id: UUID,
     code: Option<AccountCode>,
     name: String,
-
-    #[graphql(skip)]
-    entity: Arc<DomainLedgerAccount>,
-    #[graphql(skip)]
-    from: NaiveDate,
-    #[graphql(skip)]
-    until: Option<NaiveDate>,
+    balance_range: LedgerAccountBalanceRange,
 }
 
-impl ProfitAndLossAccount {
-    pub fn new(account: DomainLedgerAccount, from: NaiveDate, until: Option<NaiveDate>) -> Self {
+impl ProfitAndLossRow {
+    fn from_account(
+        account: DomainLedgerAccount,
+        parent_id: Option<lana_app::accounting::LedgerAccountId>,
+    ) -> Self {
+        let balance_range = if let Some(balance) = account.btc_balance_range.as_ref() {
+            Some(balance).into()
+        } else {
+            account.usd_balance_range.as_ref().into()
+        };
+
         Self {
             profit_and_loss_account_id: account.id.to_global_id(),
+            parent_profit_and_loss_account_id: parent_id.map(|id| id.to_global_id()),
             ledger_account_id: UUID::from(account.id),
-            code: account.code.as_ref().map(|code| code.into()),
-            name: account.name.clone(),
-            entity: Arc::new(account),
-            from,
-            until,
+            code: account.code.as_ref().map(AccountCode::from),
+            name: account.name,
+            balance_range,
         }
     }
 }
 
-#[ComplexObject]
-impl ProfitAndLossAccount {
-    async fn balance_range(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
-        if let Some(balance) = self.entity.btc_balance_range.as_ref() {
-            Ok(Some(balance).into())
-        } else {
-            Ok(self.entity.usd_balance_range.as_ref().into())
-        }
-    }
-
-    async fn children(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<ProfitAndLossAccount>> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let keys = self
-            .entity
-            .children_ids
-            .iter()
-            .copied()
-            .map(|id| ProfitAndLossAccountKey {
-                id,
-                from: self.from,
-                until: self.until,
-            })
-            .collect::<Vec<_>>();
-        let children = loader.load_many(keys.clone()).await?;
-
-        Ok(keys
-            .into_iter()
-            .filter_map(|id| children.get(&id).cloned())
-            .collect())
-    }
+#[derive(Clone)]
+struct PendingProfitAndLossNode {
+    key: ProfitAndLossAccountKey,
+    parent_id: Option<lana_app::accounting::LedgerAccountId>,
 }

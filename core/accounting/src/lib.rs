@@ -394,6 +394,25 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.find_all_ledger_accounts_in_range_with_direct_members",
+        skip(self)
+    )]
+    pub async fn find_all_ledger_accounts_in_range_with_direct_members<T: From<LedgerAccount>>(
+        &self,
+        chart_ref: &str,
+        ids: &[LedgerAccountId],
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
+    ) -> Result<HashMap<LedgerAccountId, T>, CoreAccountingError> {
+        let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
+        Ok(self
+            .ledger_accounts
+            .find_all_in_range_with_direct_members(&chart, ids, from, until)
+            .await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "core_accounting.list_all_account_flattened", skip(self))]
     pub async fn list_all_account_flattened(
         &self,

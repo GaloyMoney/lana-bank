@@ -1,5 +1,6 @@
 use async_graphql::*;
 use chrono::NaiveDate;
+use std::collections::HashSet;
 
 use lana_app::balance_sheet::{
     BalanceSheet as DomainBalanceSheet, BalanceSheetAccountSet as DomainBalanceSheetAccountSet,
@@ -46,80 +47,84 @@ impl BalanceSheet {
         Ok((&self.entity.equity).into())
     }
 
-    async fn categories(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<BalanceSheetAccount>> {
+    async fn rows(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<BalanceSheetRow>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let keys = self
+        let mut rows = Vec::new();
+        let mut visited = HashSet::new();
+        let mut frontier = self
             .entity
             .category_ids
             .iter()
             .copied()
-            .map(|id| BalanceSheetAccountKey {
-                id,
-                as_of: self.as_of,
+            .map(|id| PendingBalanceSheetNode {
+                key: BalanceSheetAccountKey {
+                    id,
+                    as_of: self.as_of,
+                },
+                parent_id: None,
             })
+            .filter(|node| visited.insert(node.key.id))
             .collect::<Vec<_>>();
-        let categories = loader.load_many(keys.clone()).await?;
 
-        Ok(keys
-            .into_iter()
-            .filter_map(|key| categories.get(&key).cloned())
-            .collect())
+        while !frontier.is_empty() {
+            let keys = frontier.iter().map(|node| node.key).collect::<Vec<_>>();
+            let accounts = loader.load_many(keys).await?;
+            let mut next_frontier = Vec::new();
+
+            for node in frontier {
+                let Some(account) = accounts.get(&node.key).cloned() else {
+                    continue;
+                };
+                let account_id = account.id;
+                let child_ids = account.children_ids.clone();
+                rows.push(BalanceSheetRow::from_account(account, node.parent_id));
+
+                next_frontier.extend(child_ids.into_iter().filter(|id| visited.insert(*id)).map(
+                    |id| PendingBalanceSheetNode {
+                        key: BalanceSheetAccountKey {
+                            id,
+                            as_of: self.as_of,
+                        },
+                        parent_id: Some(account_id),
+                    },
+                ));
+            }
+
+            frontier = next_frontier;
+        }
+
+        Ok(rows)
     }
 }
 
-#[derive(Clone, SimpleObject)]
-#[graphql(complex)]
-pub struct BalanceSheetAccount {
+#[derive(SimpleObject)]
+pub struct BalanceSheetRow {
     balance_sheet_account_id: ID,
+    parent_balance_sheet_account_id: Option<ID>,
     ledger_account_id: UUID,
     code: Option<AccountCode>,
     name: String,
-
-    #[graphql(skip)]
-    entity: Arc<DomainBalanceSheetAccountSet>,
-    #[graphql(skip)]
-    as_of: NaiveDate,
+    balance: LedgerAccountBalanceByCurrency,
 }
 
-impl BalanceSheetAccount {
-    pub fn new(account: DomainBalanceSheetAccountSet, as_of: NaiveDate) -> Self {
+impl BalanceSheetRow {
+    fn from_account(
+        account: DomainBalanceSheetAccountSet,
+        parent_id: Option<lana_app::accounting::LedgerAccountId>,
+    ) -> Self {
         Self {
             balance_sheet_account_id: account.id.to_global_id(),
+            parent_balance_sheet_account_id: parent_id.map(|id| id.to_global_id()),
             ledger_account_id: UUID::from(account.id),
             code: account.code.as_ref().map(|code| code.into()),
-            name: account.name.clone(),
-            entity: Arc::new(account),
-            as_of,
+            name: account.name,
+            balance: (&account.balance).into(),
         }
     }
 }
 
-#[ComplexObject]
-impl BalanceSheetAccount {
-    async fn balance(&self) -> async_graphql::Result<LedgerAccountBalanceByCurrency> {
-        Ok((&self.entity.balance).into())
-    }
-
-    async fn children(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<BalanceSheetAccount>> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let keys = self
-            .entity
-            .children_ids
-            .iter()
-            .copied()
-            .map(|id| BalanceSheetAccountKey {
-                id,
-                as_of: self.as_of,
-            })
-            .collect::<Vec<_>>();
-        let children = loader.load_many(keys.clone()).await?;
-
-        Ok(keys
-            .into_iter()
-            .filter_map(|key| children.get(&key).cloned())
-            .collect())
-    }
+#[derive(Clone)]
+struct PendingBalanceSheetNode {
+    key: BalanceSheetAccountKey,
+    parent_id: Option<lana_app::accounting::LedgerAccountId>,
 }

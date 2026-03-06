@@ -175,6 +175,33 @@ where
         from: chrono::NaiveDate,
         until: Option<chrono::NaiveDate>,
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
+        self.find_all_in_range_with_leaf_descendants(chart, ids, from, until)
+            .await
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.ledger_account.find_all_in_range_with_direct_members",
+        skip(self, chart)
+    )]
+    pub async fn find_all_in_range_with_direct_members<T: From<LedgerAccount>>(
+        &self,
+        chart: &Chart,
+        ids: &[LedgerAccountId],
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
+    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
+        self.find_all_in_range_with_direct_members_internal(chart, ids, from, until)
+            .await
+    }
+
+    async fn find_all_in_range_with_leaf_descendants<T: From<LedgerAccount>>(
+        &self,
+        chart: &Chart,
+        ids: &[LedgerAccountId],
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
+    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
         let accounts = self
             .ledger
             .load_ledger_accounts_in_range(ids, from, until)
@@ -183,6 +210,27 @@ where
         for (k, mut v) in accounts.into_iter() {
             self.populate_ancestors(chart, &mut v).await?;
             self.populate_children(chart, &mut v).await?;
+            res.insert(k, v.into());
+        }
+        Ok(res)
+    }
+
+    async fn find_all_in_range_with_direct_members_internal<T: From<LedgerAccount>>(
+        &self,
+        chart: &Chart,
+        ids: &[LedgerAccountId],
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
+    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
+        let accounts = self
+            .ledger
+            .load_ledger_accounts_in_range(ids, from, until)
+            .await?;
+        let mut res = HashMap::new();
+        for (k, mut v) in accounts.into_iter() {
+            self.populate_ancestors(chart, &mut v).await?;
+            self.populate_children_with_direct_members(chart, &mut v)
+                .await?;
             res.insert(k, v.into());
         }
         Ok(res)
@@ -274,6 +322,31 @@ where
 
         account.children_ids = if children.is_empty() {
             self.ledger.find_leaf_children(account.id, 1).await?
+        } else {
+            children.into_values().map(Into::into).collect()
+        };
+
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.ledger_account.populate_children_with_direct_members",
+        skip(self, chart, account)
+    )]
+    async fn populate_children_with_direct_members(
+        &self,
+        chart: &Chart,
+        account: &mut LedgerAccount,
+    ) -> Result<(), LedgerAccountError> {
+        let children: BTreeMap<_, _> = account
+            .code
+            .as_ref()
+            .map(|code| chart.children(code).collect())
+            .unwrap_or_default();
+
+        account.children_ids = if children.is_empty() {
+            self.ledger.find_direct_children(account.id).await?
         } else {
             children.into_values().map(Into::into).collect()
         };

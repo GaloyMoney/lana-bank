@@ -188,6 +188,26 @@ impl LedgerAccountLedger {
         })
     }
 
+    pub async fn find_direct_children(
+        &self,
+        id: LedgerAccountId,
+    ) -> Result<Vec<LedgerAccountId>, LedgerAccountLedgerError> {
+        let children = self
+            .cala
+            .account_sets()
+            .list_members_by_external_id(id.into(), Default::default())
+            .await?
+            .entities;
+
+        Ok(children
+            .into_iter()
+            .map(|child| match child.id {
+                cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => id.into(),
+                cala_ledger::account_set::AccountSetMemberId::Account(id) => id.into(),
+            })
+            .collect())
+    }
+
     #[record_error_severity]
     #[instrument(name = "ledger_account.load_by_external_id", skip(self), fields(external_id = %external_id))]
     pub async fn load_ledger_account_by_external_id(

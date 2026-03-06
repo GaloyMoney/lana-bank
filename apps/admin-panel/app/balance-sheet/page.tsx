@@ -16,7 +16,7 @@ import { Separator } from "@lana/web/ui/separator"
 import { Skeleton } from "@lana/web/ui/skeleton"
 import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
 
-import { Account } from "./account"
+import { Account, BalanceSheetAccountNode } from "./account"
 import { AsOfDateSelector, getInitialAsOfDate } from "./as-of-date-selector"
 
 import Balance, { Currency } from "@/components/balance/balance"
@@ -25,9 +25,36 @@ import {
   LayerSelection,
   ReportLayer,
 } from "@/components/report-filters/selectors"
+import { useCollapsedTreeState } from "@/components/report-tree/use-collapsed-tree-state"
 import { BalanceSheetQuery, useBalanceSheetQuery } from "@/lib/graphql/generated"
 
 gql`
+  fragment BalanceSheetRowFields on BalanceSheetRow {
+    balanceSheetAccountId
+    parentBalanceSheetAccountId
+    ledgerAccountId
+    name
+    code
+    balance {
+      usd {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
+      btc {
+        settled {
+          net
+        }
+        pending {
+          net
+        }
+      }
+    }
+  }
+
   query BalanceSheet($asOf: Date!) {
     balanceSheet(asOf: $asOf) {
       name
@@ -85,59 +112,15 @@ gql`
           }
         }
       }
-      categories {
-        balanceSheetAccountId
-        ledgerAccountId
-        name
-        code
-        balance {
-          usd {
-            settled {
-              net
-            }
-            pending {
-              net
-            }
-          }
-          btc {
-            settled {
-              net
-            }
-            pending {
-              net
-            }
-          }
-        }
-        children {
-          balanceSheetAccountId
-          ledgerAccountId
-          name
-          code
-          balance {
-            usd {
-              settled {
-                net
-              }
-              pending {
-                net
-              }
-            }
-            btc {
-              settled {
-                net
-              }
-              pending {
-                net
-              }
-            }
-          }
-        }
+      rows {
+        ...BalanceSheetRowFields
       }
     }
   }
 `
 
 type CategoryBalance = NonNullable<BalanceSheetQuery["balanceSheet"]>["assetsBalance"]
+type BalanceSheetRow = NonNullable<BalanceSheetQuery["balanceSheet"]>["rows"][number]
 
 export default function BalanceSheetPage() {
   const initialAsOf = useMemo(() => getInitialAsOfDate(), [])
@@ -180,12 +163,18 @@ const BalanceSheetView = ({
   const t = useTranslations("BalanceSheet")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<ReportLayer>("settled")
+  const categories = useMemo(() => buildBalanceSheetTree(data?.rows ?? []), [data?.rows])
+  const { collapsedNodeIds: collapsedAccountIds, toggleCollapsedNode: toggleCollapsedAccount } =
+    useCollapsedTreeState(
+      categories,
+      useCallback((account: BalanceSheetAccountNode) => account.balanceSheetAccountId, []),
+    )
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
-  const assets = data?.categories?.filter((cat) => cat.name === "Assets")
-  const liabilities = data?.categories?.filter((cat) => cat.name === "Liabilities")
-  const equity = data?.categories?.filter((cat) => cat.name === "Equity")
+  const assets = categories.filter((cat) => cat.name === "Assets")
+  const liabilities = categories.filter((cat) => cat.name === "Liabilities")
+  const equity = categories.filter((cat) => cat.name === "Equity")
   const liabilitiesAndEquity = [...(liabilities || []), ...(equity || [])]
 
   const assetsTotal = getBalanceNet(data?.assetsBalance, currency, layer)
@@ -230,6 +219,8 @@ const BalanceSheetView = ({
                 currency={currency}
                 layer={layer}
                 total={assetsTotal}
+                collapsedAccountIds={collapsedAccountIds}
+                onToggleCollapsed={toggleCollapsedAccount}
               />
             )}
             <div className="min-h-full w-px bg-border" />
@@ -240,6 +231,8 @@ const BalanceSheetView = ({
                 currency={currency}
                 layer={layer}
                 total={liabilitiesAndEquityTotal}
+                collapsedAccountIds={collapsedAccountIds}
+                onToggleCollapsed={toggleCollapsedAccount}
               />
             )}
           </div>
@@ -251,10 +244,12 @@ const BalanceSheetView = ({
 
 interface BalanceSheetColumnProps {
   title: string
-  categories: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"]
+  categories: BalanceSheetAccountNode[]
   currency: Currency
   layer: ReportLayer
   total: number
+  collapsedAccountIds: Set<string>
+  onToggleCollapsed: (accountId: string) => void
 }
 
 function BalanceSheetColumn({
@@ -263,6 +258,8 @@ function BalanceSheetColumn({
   currency,
   layer,
   total,
+  collapsedAccountIds,
+  onToggleCollapsed,
 }: BalanceSheetColumnProps) {
   return (
     <div className="flex w-1/2 grow flex-col justify-between">
@@ -274,6 +271,8 @@ function BalanceSheetColumn({
               category={category}
               currency={currency}
               layer={layer}
+              collapsedAccountIds={collapsedAccountIds}
+              onToggleCollapsed={onToggleCollapsed}
             />
           ))}
         </TableBody>
@@ -298,12 +297,20 @@ function BalanceSheetColumn({
 }
 
 interface CategoryRowProps {
-  category: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"][0]
+  category: BalanceSheetAccountNode
   currency: Currency
   layer: ReportLayer
+  collapsedAccountIds: Set<string>
+  onToggleCollapsed: (accountId: string) => void
 }
 
-function CategoryRow({ category, currency, layer }: CategoryRowProps) {
+function CategoryRow({
+  category,
+  currency,
+  layer,
+  collapsedAccountIds,
+  onToggleCollapsed,
+}: CategoryRowProps) {
   const t = useTranslations("BalanceSheet")
   const categoryBalance = getBalanceNet(category.balance, currency, layer)
 
@@ -324,6 +331,8 @@ function CategoryRow({ category, currency, layer }: CategoryRowProps) {
           account={child}
           currency={currency}
           layer={layer}
+          collapsedAccountIds={collapsedAccountIds}
+          onToggleCollapsed={onToggleCollapsed}
         />
       ))}
       <TableRow>
@@ -351,4 +360,38 @@ function getBalanceNet(
 ): number {
   if (!balance) return 0
   return balance[currency][layer].net
+}
+
+function buildBalanceSheetTree(rows: BalanceSheetRow[]): BalanceSheetAccountNode[] {
+  const nodesById = new Map<string, BalanceSheetAccountNode>()
+  for (const row of rows) {
+    nodesById.set(row.balanceSheetAccountId, {
+      balanceSheetAccountId: row.balanceSheetAccountId,
+      ledgerAccountId: row.ledgerAccountId,
+      code: row.code,
+      name: row.name,
+      balance: row.balance,
+      children: [],
+    })
+  }
+
+  const roots: BalanceSheetAccountNode[] = []
+  for (const row of rows) {
+    const node = nodesById.get(row.balanceSheetAccountId)
+    if (!node) continue
+
+    if (!row.parentBalanceSheetAccountId) {
+      roots.push(node)
+      continue
+    }
+
+    const parent = nodesById.get(row.parentBalanceSheetAccountId)
+    if (!parent) {
+      roots.push(node)
+      continue
+    }
+    parent.children = [...(parent.children ?? []), node]
+  }
+
+  return roots
 }
