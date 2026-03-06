@@ -96,8 +96,11 @@ Events related to customer lifecycle and KYC.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `CustomerCreated` | A new customer was created | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `CustomerKycUpdated` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
+| `CustomerCreated` | A new customer was created | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
+| `CustomerKycUpdated` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
+| `CustomerFrozen` | A customer account was frozen, blocking financial operations | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
+| `CustomerUnfrozen` | A previously frozen customer account was unfrozen, restoring normal operations | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
+| `CustomerClosed` | Customer account was closed | `entity.id`, `entity.kyc_verification`, `entity.party_id`, `entity.status` |
 | `PartyCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
 | `PartyEmailUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
 | `ProspectCreated` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
