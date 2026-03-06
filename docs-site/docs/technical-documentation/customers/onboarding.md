@@ -12,68 +12,56 @@ Customer onboarding is a multi-step process that establishes the customer's iden
 
 ```mermaid
 graph TD
-    subgraph S1["1. Customer Creation"]
-        CREATE["Admin creates customer<br/>(email, type, Telegram ID)"] --> PENDING["Customer record created<br/>KYC = Pending Verification<br/>Activity = Inactive"]
+    subgraph S1["1. Prospect Creation"]
+        CREATE["Admin creates prospect<br/>(email, type, Telegram ID)"] --> NEW["Prospect created<br/>Stage = New"]
     end
     subgraph S2["2. KYC Verification"]
         LINK["Operator generates<br/>Sumsub verification link"] --> CUST["Customer completes<br/>identity verification"] --> HOOK["Sumsub sends<br/>webhook callback"]
         HOOK --> RESULT{Approved?}
-        RESULT -->|Yes| APPROVED["KYC = Verified<br/>Level = Basic"]
-        RESULT -->|No| REJECTED["KYC = Rejected"]
+        RESULT -->|Yes| KYCBASIC["Stage = KycApproved<br/>(auto-converts to Customer)"]
+        RESULT -->|No| KYCDECLINED["Stage = KycDeclined"]
     end
     subgraph S3["3. Provisioning"]
-        APPROVED --> KC["Keycloak user created<br/>(via outbox event)"]
+        KYCBASIC --> KC["Keycloak user created<br/>(via outbox event)"]
         KC --> EMAIL["Welcome email sent<br/>with credentials"]
         EMAIL --> DEPACC["Deposit account created"]
         DEPACC --> ACTIVE["Customer ready<br/>for operations"]
     end
     S1 --> S2
+    S2 --> S3
 ```
 
-## Step 1: Customer Creation
+## Step 1: Prospect Creation
 
-An operator creates the customer by providing:
+An operator creates a prospect by providing:
 
 - **Email address** (required) - Used for Keycloak login and communication. Must be unique.
 - **Telegram ID** (optional) - Alternative contact channel.
 - **Customer type** (required) - Determines the KYC verification workflow (KYC for individuals, KYB for companies) and the accounting treatment for the customer's accounts.
 
-The new customer starts with:
-- KYC verification status: `Pending Verification`
-- Activity status: `Inactive`
-- KYC level: `Not KYCed`
+The new prospect starts with:
+- Stage: `New`
+- Status: `Open`
+- KYC status: `Not Started`
 
-No financial operations are possible until KYC verification completes. The customer does not yet have a deposit account or portal access.
+A prospect is not yet a customer and cannot perform financial operations. The prospect becomes a customer only after KYC is approved.
 
 ## Step 2: KYC Verification
 
+### Prospect Stages
+
+As the prospect moves through KYC, their stage changes:
+
+| Stage | Description | Next Action |
+|-------|-------------|-------------|
+| **New** | Prospect created, KYC not started | Operator generates Sumsub link |
+| **KycStarted** | Prospect started Sumsub verification | Wait for Sumsub webhook |
+| **KycPending** | Sumsub reviewing documents | Wait for final decision |
+| **KycDeclined** | KYC verification failed | Review rejection, optionally retry or close prospect |
+| **Converted** | KYC approved, prospect became a customer | Provisioning begins automatically |
+| **Closed** | Prospect closed without converting | No further action |
+
 ### Sumsub Integration
-
-Lana integrates with Sumsub for identity verification. The integration uses two channels:
-
-1. **Outbound API calls** - The system calls Sumsub's REST API to create verification links (permalinks) that customers use to submit their identity documents.
-2. **Inbound webhooks** - Sumsub calls the system's webhook endpoint when verification results are available. All callbacks are processed asynchronously through an inbox queue for reliability.
-
-### Verification Levels
-
-The customer type automatically determines which Sumsub verification level is applied:
-
-| Customer Type | Sumsub Level | Verification Scope |
-|---------------|-------------|-------------------|
-| Individual | Basic KYC | Identity documents, selfie, proof of address |
-| All other types | Basic KYB | Corporate documents, beneficial ownership, authorized representatives |
-
-### KYC Status Transitions
-
-| Status | Description | Next Action |
-|--------|-------------|-------------|
-| **Not Started** | KYC link not yet generated | Operator generates Sumsub link |
-| **Pending** | Customer is completing verification in Sumsub | Wait for Sumsub webhook |
-| **Approved** | Identity verified successfully | System proceeds to provisioning |
-| **Rejected** | Verification failed | Review rejection reasons, optionally retry |
-| **Review Needed** | Sumsub flagged for manual review | Review in Sumsub dashboard |
-
-### Webhook Callback Processing
 
 When Sumsub completes a verification, it sends a webhook to the system. The callback handler processes several event types:
 
@@ -114,43 +102,44 @@ After provisioning completes, the customer can:
 
 ## Admin Panel Operations
 
-### Customer List
+### Prospect List
 
-- Filter by status (Active, Inactive, Pending)
+- Filter by stage (New, KycStarted, KycPending, KycDeclined, Converted, Closed)
 - Search by email or public ID
 - Sort by creation date
 
 ### Available Actions
 
-| Action | Description | Required Permission |
-|--------|-------------|---------------------|
-| Create customer | New registration | CUSTOMER_CREATE |
-| View customer | Query information | CUSTOMER_READ |
-| Start KYC | Begin verification | CUSTOMER_UPDATE |
-| Deactivate | Suspend account | CUSTOMER_UPDATE |
+| Action | Description |
+|--------|-------------|
+| Create prospect | Register a new prospect for onboarding |
+| View prospect | Query prospect information |
+| Start KYC | Begin Sumsub verification for a prospect |
+| Convert prospect | Manually convert a prospect to a customer (bypasses KYC) |
+| Close prospect | Close a prospect without converting |
 
-## Admin Panel Walkthrough: Customer Creation and KYC
+## Admin Panel Walkthrough: Prospect Creation and KYC
 
 This walkthrough reflects the operator flow used in Cypress manuals and aligns with the customer
-domain lifecycle (create -> verify -> activate).
+domain lifecycle (create prospect -> verify -> convert to customer).
 
-### 1) Create and verify customer basics
+### 1) Create a prospect
 
-**Step 1.** Open the customers list.
+**Step 1.** Open the prospects list.
 
-![Customers list](/img/screenshots/current/en/customers.cy.ts/2_list_all_prospects.png)
+![Prospect list](/img/screenshots/current/en/customers.cy.ts/2_list_all_prospects.png)
 
 **Step 2.** Click **Create**.
 
-![Click create customer](/img/screenshots/current/en/customers.cy.ts/3_click_create_button.png)
+![Click create prospect](/img/screenshots/current/en/customers.cy.ts/3_click_create_button.png)
 
-**Step 3.** The customer creation form opens with the email input field ready.
+**Step 3.** The prospect creation form opens with the email input field ready.
 
-![Customer creation form](/img/screenshots/current/en/customers.cy.ts/4_verify_email_input_visible.png)
+![Prospect creation form](/img/screenshots/current/en/customers.cy.ts/4_verify_email_input_visible.png)
 
-**Step 4.** Enter a unique customer email.
+**Step 4.** Enter a unique prospect email.
 
-![Enter customer email](/img/screenshots/current/en/customers.cy.ts/5_enter_email.png)
+![Enter prospect email](/img/screenshots/current/en/customers.cy.ts/5_enter_email.png)
 
 **Step 5.** Enter a unique Telegram ID (if used by your process).
 
@@ -158,34 +147,37 @@ domain lifecycle (create -> verify -> activate).
 
 **Step 6.** Review details before submission.
 
-![Review customer details](/img/screenshots/current/en/customers.cy.ts/7_click_review_details.png)
+![Review prospect details](/img/screenshots/current/en/customers.cy.ts/7_click_review_details.png)
 
 **Step 7.** Verify the confirmation dialog showing the entered customer details.
 
-![Verify customer details before submit](/img/screenshots/current/en/customers.cy.ts/8_verify_details.png)
+![Verify prospect details before submit](/img/screenshots/current/en/customers.cy.ts/8_verify_details.png)
 
-**Step 8.** Click **Confirm** to create the customer.
+**Step 8.** Click **Confirm** to create the prospect.
 
-![Confirm customer creation](/img/screenshots/current/en/customers.cy.ts/9_click_confirm_submit.png)
+![Confirm prospect creation](/img/screenshots/current/en/customers.cy.ts/9_click_confirm_submit.png)
 
-**Step 9.** Confirm the customer detail page and identity fields.
+**Step 9.** Confirm the prospect detail page and identity fields.
 
-![Customer details page](/img/screenshots/current/en/customers.cy.ts/10_verify_email.png)
+![Prospect details page](/img/screenshots/current/en/customers.cy.ts/10_verify_email.png)
 
-**Step 10.** Verify the customer appears in list views.
+**Step 10.** Verify the prospect appears in list views.
 
-![Customer visible in list](/img/screenshots/current/en/customers.cy.ts/11_verify_customer_in_list.png)
+![Prospect visible in list](/img/screenshots/current/en/customers.cy.ts/11_verify_prospect_in_list.png)
 
 ### 2) Start and monitor KYC
 
 The system integrates with Sumsub. Operators generate the verification link, then monitor status
 changes driven by webhook updates.
 
-**Step 11.** Open customer KYC section and generate verification link.
+**Step 11.** Open prospect's KYC section and generate verification link.
 
-![Customer KYC detail section](/img/screenshots/current/en/customers.cy.ts/14_prospect_kyc_details_page.png)
+![Prospect KYC detail section](/img/screenshots/current/en/customers.cy.ts/14_prospect_kyc_details_page.png)
 
 **Step 12.** Confirm KYC link was created.
 
 ![KYC link created](/img/screenshots/current/en/customers.cy.ts/15_kyc_link_created.png)
 
+**Step 13.** After KYC verification, verify the customer appears in list views.
+
+![Customer visible in list](/img/screenshots/current/en/customers.cy.ts/11_verify_customer_in_list.png)
