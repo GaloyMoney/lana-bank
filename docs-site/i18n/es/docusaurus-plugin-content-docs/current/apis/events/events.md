@@ -94,18 +94,18 @@ Eventos relacionados con custodia de Bitcoin y gestion de billeteras.
 
 Eventos relacionados con el ciclo de vida del cliente y KYC.
 
-| Event | Description | Payload Fields |
+| Evento | Descripción | Campos de payload |
 |-------|-------------|----------------|
-| `CustomerCreated` | Se creo un nuevo cliente | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `CustomerKycUpdated` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `PartyCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
-| `PartyEmailUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
-| `ProspectCreated` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycStarted` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycPending` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycDeclined` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectConverted` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectClosed` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `CustomerCreated` | Se creó un nuevo cliente | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
+| `CustomerKycUpdated` | No hay descripción disponible | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
+| `PartyCreated` | No hay descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
+| `PartyEmailUpdated` | No hay descripción disponible | `entity.customer_type`, `entity.email`, `entity.id` |
+| `ProspectCreated` | Se creó un nuevo prospecto para incorporación | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectKycStarted` | Un prospecto inició la verificación KYC | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectKycPending` | La verificación KYC de un prospecto está pendiente de revisión | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectKycDeclined` | La verificación KYC de un prospecto fue rechazada | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectConverted` | Un prospecto fue convertido en cliente | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectClosed` | Un prospecto fue cerrado sin convertirse | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
 
 ---
 
