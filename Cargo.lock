@@ -1317,6 +1317,7 @@ dependencies = [
  "core-custody",
  "core-price",
  "derive_builder",
+ "domain-config",
  "es-entity",
  "governance",
  "job",

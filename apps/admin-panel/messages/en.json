@@ -119,6 +119,10 @@
       "title": "Require verified customer for account",
       "description": "When enabled, customers must be KYC-verified before creating deposit accounts or credit facilities."
     },
+    "disable-manual-collateral": {
+      "title": "Disable manual collateral",
+      "description": "When enabled, prevents manual collateral updates via the admin panel. Custodian sync and liquidation updates are unaffected."
+    },
     "sumsub-api-key": {
       "title": "SumSub API Key",
       "description": "API key for SumSub KYC verification service."
