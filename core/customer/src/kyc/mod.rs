@@ -576,7 +576,7 @@ where
             .await?;
         let party = self
             .customers
-            .find_party_by_id_without_audit(prospect.party_id)
+            .find_party_by_customer_id_without_audit(prospect.party_id)
             .await?;
         let level: KycLevel = party.customer_type.into();
 
