@@ -936,14 +936,6 @@ where
         Ok(self.prospect_repo.find_all(ids).await?)
     }
 
-    #[instrument(name = "customer.find_all_parties", skip(self))]
-    pub async fn find_all_parties<T: From<Party>>(
-        &self,
-        ids: &[PartyId],
-    ) -> Result<HashMap<PartyId, T>, CustomerError> {
-        Ok(self.party_repo.find_all(ids).await?)
-    }
-
     #[record_error_severity]
     #[instrument(name = "customer.find_all_parties_authorized", skip(self))]
     pub async fn find_all_parties_authorized<T: From<Party>>(
