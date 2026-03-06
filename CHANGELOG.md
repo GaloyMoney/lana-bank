@@ -1,3 +1,24 @@
+## [0.47.0] - 2026-03-06
+
+### 🚀 Features
+
+- *(customer)* Handle SumSub applicantOnHold callback (#4142)
+- Add column sorting to admin panel tables (#4107)
+
+### 🐛 Bug Fixes
+
+- *(credit)* Handle NoAccrualCycleInProgress in accrue_period to prevent infinite retry (#4148)
+- *(deps)* Override dompurify to fix Dependabot alert #202 (#4150)
+- *(collection)* Downgrade obligation ConcurrentModification error severity to WARN (#4153)
+- *(customer)* Reduce false-positive alerts in KYC callback handling (#4151)
+
+### 🧪 Testing
+
+- Test for default value in domain config (#4109)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.46.1 [ci skip] (#4145)
 ## [0.46.1] - 2026-03-05
 
 ### 🐛 Bug Fixes
