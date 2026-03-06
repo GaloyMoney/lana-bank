@@ -30,7 +30,7 @@ async fn setup() -> anyhow::Result<(
     .await?;
 
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let governance = Governance::new(&pool, &authz, &outbox, clock.clone());
+    let governance = Governance::new(&pool, &authz, &outbox, clock.clone(), None);
 
     Ok((governance, outbox, pool))
 }

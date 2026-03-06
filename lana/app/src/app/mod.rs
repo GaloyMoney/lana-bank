@@ -127,7 +127,13 @@ impl LanaApp {
         .await?;
 
         let dashboard = Dashboard::init(&pool, &authz, &mut jobs, &outbox).await?;
-        let governance = Governance::new(&pool, &authz, &outbox, clock.clone());
+        let governance = Governance::new(
+            &pool,
+            &authz,
+            &outbox,
+            clock.clone(),
+            Some(&exposed_domain_configs_readonly),
+        );
         let storage = Storage::new(&config.storage);
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;

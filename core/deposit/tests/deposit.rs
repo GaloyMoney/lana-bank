@@ -45,7 +45,7 @@ async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockContr
     .await?;
 
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone(), None);
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())

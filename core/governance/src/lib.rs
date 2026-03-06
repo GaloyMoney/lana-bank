@@ -3,6 +3,7 @@
 
 mod approval_process;
 mod committee;
+pub mod config;
 pub mod error;
 mod policy;
 mod primitives;
@@ -16,10 +17,12 @@ use std::collections::{HashMap, HashSet};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use domain_config::ExposedDomainConfigsReadOnly;
 use obix::out::{Outbox, OutboxEventMarker};
 
 pub use approval_process::{error as approval_process_error, *};
 pub use committee::{error as committee_error, *};
+pub use config::*;
 use error::*;
 use policy::error::PolicyError;
 pub use policy::{error as policy_error, *};
@@ -43,6 +46,7 @@ where
     process_repo: ApprovalProcessRepo,
     authz: Perms,
     outbox: Outbox<E>,
+    domain_configs: Option<ExposedDomainConfigsReadOnly>,
 }
 
 impl<Perms, E> Clone for Governance<Perms, E>
@@ -57,6 +61,7 @@ where
             process_repo: self.process_repo.clone(),
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
+            domain_configs: self.domain_configs.clone(),
         }
     }
 }
@@ -68,7 +73,13 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>, clock: ClockHandle) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: &Perms,
+        outbox: &Outbox<E>,
+        clock: ClockHandle,
+        domain_configs: Option<&ExposedDomainConfigsReadOnly>,
+    ) -> Self {
         let committee_repo = CommitteeRepo::new(pool, clock.clone());
         let policy_repo = PolicyRepo::new(pool, clock.clone());
         let process_repo = ApprovalProcessRepo::new(pool, clock);
@@ -79,6 +90,7 @@ where
             process_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
+            domain_configs: domain_configs.cloned(),
         }
     }
 
@@ -245,6 +257,17 @@ where
             .policy_repo
             .find_by_process_type_in_op(&mut *db, process_type)
             .await?;
+        if let Some(domain_configs) = &self.domain_configs {
+            if matches!(policy.rules, ApprovalRules::SystemAutoApprove) {
+                let require_committee = domain_configs
+                    .get_without_audit_in_op::<RequireCommitteeApproval>(&mut *db)
+                    .await?
+                    .value();
+                if require_committee {
+                    return Err(GovernanceError::AutoApproveNotAllowed);
+                }
+            }
+        }
         self.authz
             .audit()
             .record_system_entry_in_op(

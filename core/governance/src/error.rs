@@ -27,8 +27,12 @@ pub enum GovernanceError {
     ApprovalProcessError(#[from] crate::approval_process::error::ApprovalProcessError),
     #[error("GovernanceError - Audit: {0}")]
     AuditError(#[from] audit::error::AuditError),
+    #[error("GovernanceError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::error::DomainConfigError),
     #[error("GovernanceError - SubjectIsNotCommitteeMember")]
     SubjectIsNotCommitteeMember,
+    #[error("GovernanceError - AutoApproveNotAllowed: policy must have a committee assigned")]
+    AutoApproveNotAllowed,
 }
 
 impl ErrorSeverity for GovernanceError {
@@ -40,7 +44,9 @@ impl ErrorSeverity for GovernanceError {
             Self::PolicyError(e) => e.severity(),
             Self::ApprovalProcessError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
+            Self::DomainConfigError(e) => e.severity(),
             Self::SubjectIsNotCommitteeMember => Level::WARN,
+            Self::AutoApproveNotAllowed => Level::WARN,
         }
     }
 }

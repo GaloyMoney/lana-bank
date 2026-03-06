@@ -14,6 +14,7 @@ permission-sets-macro = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
+domain-config = { workspace = true }
 
 es-entity = { workspace = true }
 uuid = { workspace = true }

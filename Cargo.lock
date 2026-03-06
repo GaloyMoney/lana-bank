@@ -2831,6 +2831,7 @@ dependencies = [
  "authz",
  "chrono",
  "derive_builder",
+ "domain-config",
  "es-entity",
  "obix",
  "permission-sets-macro",
