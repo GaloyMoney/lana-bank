@@ -16,7 +16,6 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
   GetProspectBasicDetailsQuery,
   ProspectStage,
-  ProspectStatus,
   useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 import { CustomerTypeBadge } from "@/app/customers/customer-type-badge"
@@ -88,7 +87,7 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({ prospe
   ]
 
   const footerContent =
-    prospect.status === ProspectStatus.Converted && prospect.customer ? (
+    prospect.stage === ProspectStage.Converted && prospect.customer ? (
       <Button variant="outline" data-testid="view-customer-btn" asChild>
         <Link href={`/customers/${prospect.customer.publicId}`}>
           {t("buttons.viewCustomer")}

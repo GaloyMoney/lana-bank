@@ -2304,7 +2304,6 @@ type ProfitAndLossStatement {
 type Prospect {
 	id: ID!
 	prospectId: UUID!
-	status: ProspectStatus!
 	kycStatus: KycStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
@@ -2386,12 +2385,6 @@ enum ProspectStage {
 	KYC_PENDING
 	KYC_ON_HOLD
 	KYC_DECLINED
-	CONVERTED
-	CLOSED
-}
-
-enum ProspectStatus {
-	OPEN
 	CONVERTED
 	CLOSED
 }

@@ -56,8 +56,6 @@ pub struct Prospect {
     pub party_id: PartyId,
     pub customer_type: CustomerType,
     #[builder(default)]
-    pub status: ProspectStatus,
-    #[builder(default)]
     pub kyc_status: KycStatus,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
@@ -91,31 +89,21 @@ impl Prospect {
     }
 
     fn ensure_open(&self) -> Result<(), ProspectError> {
-        match self.status {
-            ProspectStatus::Converted => Err(ProspectError::AlreadyConverted),
-            ProspectStatus::Closed => Err(ProspectError::AlreadyClosed),
-            ProspectStatus::Open => Ok(()),
+        match self.stage {
+            ProspectStage::Converted => Err(ProspectError::AlreadyConverted),
+            ProspectStage::Closed => Err(ProspectError::AlreadyClosed),
+            _ => Ok(()),
         }
     }
 
     fn compute_stage(&self) -> ProspectStage {
-        match self.status {
-            ProspectStatus::Closed => ProspectStage::Closed,
-            ProspectStatus::Converted => ProspectStage::Converted,
-            ProspectStatus::Open => match self.kyc_status {
-                KycStatus::Declined => ProspectStage::KycDeclined,
-                KycStatus::Pending => ProspectStage::KycPending,
-                KycStatus::OnHold => ProspectStage::KycOnHold,
-                KycStatus::Started => ProspectStage::KycStarted,
-                KycStatus::NotStarted => ProspectStage::New,
-                KycStatus::Approved => {
-                    tracing::error!(
-                        prospect_id = %self.id,
-                        "prospect has KycStatus::Approved but ProspectStatus::Open - expected Converted"
-                    );
-                    ProspectStage::New
-                }
-            },
+        match self.kyc_status {
+            KycStatus::Declined => ProspectStage::KycDeclined,
+            KycStatus::Pending => ProspectStage::KycPending,
+            KycStatus::OnHold => ProspectStage::KycOnHold,
+            KycStatus::Started => ProspectStage::KycStarted,
+            KycStatus::NotStarted => ProspectStage::New,
+            KycStatus::Approved => ProspectStage::Converted,
         }
     }
 
@@ -185,7 +173,6 @@ impl Prospect {
         let applicant_id = applicant_id.to_string();
         self.level = level;
         self.kyc_status = KycStatus::Approved;
-        self.status = ProspectStatus::Converted;
         let stage = self.compute_stage();
         self.events
             .push(ProspectEvent::KycApproved { level, stage });
@@ -212,7 +199,6 @@ impl Prospect {
             ProspectEvent::ManuallyConverted { .. }
         );
         self.ensure_open()?;
-        self.status = ProspectStatus::Converted;
         self.kyc_status = KycStatus::Approved;
         let stage = self.compute_stage();
         self.events.push(ProspectEvent::ManuallyConverted { stage });
@@ -259,8 +245,8 @@ impl Prospect {
     pub fn close(&mut self) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(self.events.iter_all().rev(), ProspectEvent::Closed { .. });
         self.ensure_open()?;
-        self.status = ProspectStatus::Closed;
-        let stage = self.compute_stage();
+        self.stage = ProspectStage::Closed;
+        let stage = self.stage;
         self.events.push(ProspectEvent::Closed { stage });
         self.stage = stage;
         Ok(Idempotent::Executed(()))
@@ -318,14 +304,10 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     builder = builder
                         .level(*level)
                         .kyc_status(KycStatus::Approved)
-                        .status(ProspectStatus::Converted)
                         .stage(*stage);
                 }
                 ProspectEvent::ManuallyConverted { stage } => {
-                    builder = builder
-                        .kyc_status(KycStatus::Approved)
-                        .status(ProspectStatus::Converted)
-                        .stage(*stage);
+                    builder = builder.kyc_status(KycStatus::Approved).stage(*stage);
                 }
                 ProspectEvent::VerificationLinkCreated { url } => {
                     builder = builder.verification_link(url.clone());
@@ -334,7 +316,7 @@ impl TryFromEvents<ProspectEvent> for Prospect {
                     builder = builder.kyc_status(KycStatus::Declined).stage(*stage);
                 }
                 ProspectEvent::Closed { stage } => {
-                    builder = builder.status(ProspectStatus::Closed).stage(*stage);
+                    builder = builder.stage(*stage);
                 }
             }
         }

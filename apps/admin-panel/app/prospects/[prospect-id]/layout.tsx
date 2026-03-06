@@ -22,7 +22,6 @@ gql`
     email
     telegramHandle
     stage
-    status
     kycStatus
     level
     applicantId
