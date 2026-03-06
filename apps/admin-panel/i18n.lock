@@ -1025,7 +1025,7 @@ checksums:
     DepositAccounts/DepositAccountDetails/transactions/table/types/unfreeze: ffa29e47d68fa27901dcf63ef7299eb2
     DepositAccounts/DepositAccountDetails/transactions/table/empty: 15f5fee32cbd24775ccda66e8ca83132
     Deposits/title: 9518ad41e01682ba217001a93932bc1c
-    Deposits/description: 574e2918e4528209b7d3f987da3d5964
+    Deposits/description: 40e7da49ff100d0519765fbbb93a5d32
     Deposits/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     Deposits/table/headers/reference: fbba6b416a620e774c0fa80e167e5d46
     Deposits/table/headers/amount: a0ae9c6ff98b57475cdce56f66066aa4
