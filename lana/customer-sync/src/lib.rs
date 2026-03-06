@@ -166,7 +166,7 @@ where
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_SYNC_DEACTIVATE_SUMSUB_APPLICANT),
-                SyncCustomerFreezeSumsubHandler::new(deactivate_sumsub_applicant_spawner),
+                SyncCustomerCloseSumsubHandler::new(deactivate_sumsub_applicant_spawner),
             )
             .await?;
 

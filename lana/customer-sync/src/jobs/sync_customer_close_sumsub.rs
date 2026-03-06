@@ -10,11 +10,11 @@ use super::deactivate_sumsub_applicant::DeactivateSumsubApplicantConfig;
 pub const CUSTOMER_SYNC_DEACTIVATE_SUMSUB_APPLICANT: JobType =
     JobType::new("outbox.customer-sync-deactivate-sumsub-applicant");
 
-pub struct SyncCustomerFreezeSumsubHandler {
+pub struct SyncCustomerCloseSumsubHandler {
     deactivate_sumsub_applicant: JobSpawner<DeactivateSumsubApplicantConfig>,
 }
 
-impl SyncCustomerFreezeSumsubHandler {
+impl SyncCustomerCloseSumsubHandler {
     pub fn new(deactivate_sumsub_applicant: JobSpawner<DeactivateSumsubApplicantConfig>) -> Self {
         Self {
             deactivate_sumsub_applicant,
@@ -22,7 +22,7 @@ impl SyncCustomerFreezeSumsubHandler {
     }
 }
 
-impl<E> OutboxEventHandler<E> for SyncCustomerFreezeSumsubHandler
+impl<E> OutboxEventHandler<E> for SyncCustomerCloseSumsubHandler
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
