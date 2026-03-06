@@ -25,6 +25,8 @@ sources:
 
       - name: core_customer_events_rollup
 
+      - name: core_party_events_rollup
+
       - name: core_deposit_account_events_rollup
 
       - name: core_deposit_events_rollup

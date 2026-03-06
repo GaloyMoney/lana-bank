@@ -24,6 +24,7 @@ LANA_EL_TABLE_NAMES = (
     "core_credit_facility_events_rollup",
     "core_credit_facility_proposal_events_rollup",
     "core_customer_events_rollup",
+    "core_party_events_rollup",
     "core_deposit_account_events_rollup",
     "core_deposit_events_rollup",
     "core_disbursal_events_rollup",
