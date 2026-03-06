@@ -13,21 +13,20 @@ Este documento describe el flujo completo de incorporación de clientes, desde e
 ```mermaid
 graph TD
     subgraph S1["1. Creación de prospecto"]
-        CREATE["El administrador crea un prospecto<br/>(email, tipo, ID de Telegram)"] --> NEW["Prospecto creado<br/>Etapa = Nuevo"]
+        CREATE["El administrador crea prospecto<br/>(correo, tipo, ID de Telegram)"] --> NEW["Prospecto creado<br/>Etapa = Nuevo"]
     end
     subgraph S2["2. Verificación KYC"]
         LINK["El operador genera<br/>enlace de verificación Sumsub"] --> CUST["El cliente completa<br/>verificación de identidad"] --> HOOK["Sumsub envía<br/>callback webhook"]
         HOOK --> RESULT{¿Aprobado?}
-        RESULT -->|Sí| KYCBASIC["Etapa = KycAprobado<br/>(se convierte automáticamente en cliente)"]
+        RESULT -->|Sí| KYCBASIC["Etapa = KycAprobado<br/>(se convierte automáticamente a Cliente)"]
         RESULT -->|No| KYCDECLINED["Etapa = KycRechazado"]
     end
     subgraph S3["3. Aprovisionamiento"]
-        KYCBASIC --> KC["Usuario de Keycloak creado<br/>(vía evento outbox)"]
-        KC --> EMAIL["Email de bienvenida enviado<br/>con credenciales"]
+        KYCBASIC --> KC["Usuario Keycloak creado<br/>(mediante evento outbox)"]
+        KC --> EMAIL["Correo de bienvenida enviado<br/>con credenciales"]
         EMAIL --> DEPACC["Cuenta de depósito creada"]
         DEPACC --> ACTIVE["Cliente listo<br/>para operaciones"]
     end
-    NEW --> KYCDECLINED
     S1 --> S2
     S2 --> S3
 ```
