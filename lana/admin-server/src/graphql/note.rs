@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-use lana_app::note::Note as DomainNote;
+use lana_app::note::{Note as DomainNote, NoteTargetKind};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -27,8 +27,9 @@ impl From<DomainNote> for Note {
 
 #[ComplexObject]
 impl Note {
-    async fn target_type(&self) -> &str {
-        self.entity.target_type.as_str()
+    async fn target_type(&self) -> async_graphql::Result<NoteTargetKind> {
+        NoteTargetKind::try_from(&self.entity.target_type)
+            .map_err(|e| async_graphql::Error::new(e.to_string()))
     }
 
     async fn target_id(&self) -> &str {
@@ -42,7 +43,7 @@ impl Note {
 
 #[derive(InputObject)]
 pub struct NoteCreateInput {
-    pub target_type: String,
+    pub target_type: NoteTargetKind,
     pub target_id: UUID,
     pub content: String,
 }

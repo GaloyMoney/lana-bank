@@ -3,6 +3,41 @@ use std::{borrow::Cow, fmt::Display, str::FromStr};
 pub use audit::AuditInfo;
 pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    strum::Display,
+    strum::EnumString,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum NoteTargetKind {
+    Customer,
+    Prospect,
+    CreditFacility,
+}
+
+impl From<NoteTargetKind> for NoteTargetType {
+    fn from(kind: NoteTargetKind) -> Self {
+        NoteTargetType::new_from_string(kind.to_string())
+    }
+}
+
+impl TryFrom<&NoteTargetType> for NoteTargetKind {
+    type Error = strum::ParseError;
+
+    fn try_from(t: &NoteTargetType) -> Result<Self, Self::Error> {
+        t.as_str().parse()
+    }
+}
+
 es_entity::entity_id! {
     NoteId
 }
