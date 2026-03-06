@@ -17,7 +17,8 @@ use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCustomerAction, CoreCustomerEvent, CustomerObject, CustomerType, Customers, ProspectId,
+    CoreCustomerAction, CoreCustomerEvent, CustomerObject, CustomerType, Customers, PartyId,
+    ProspectId,
 };
 use callback::{KycCallbackPayload, ReviewAnswer, ReviewResult};
 use error::KycError;
@@ -119,8 +120,9 @@ where
 
         match self.process_payload(payload).await {
             Ok(_) => (),
-            // Silently ignoring this error instead of returning,
-            // this prevents sumsub from retrying for this unhandled case
+            // Silently ignoring these errors instead of returning,
+            // this prevents sumsub from retrying for these unhandled cases
+            Err(KycError::UnhandledCallbackType) => (),
             Err(KycError::UnhandledLevelType) => (),
             Err(e) => return Err(Box::new(e)),
         }
@@ -388,14 +390,14 @@ where
                     }
                 };
 
-                let party_id = external_user_id.into();
+                let party_id: PartyId = external_user_id.into();
                 self.customers
                     .handle_personal_info_changed_if_exists(party_id, personal_info)
                     .await?;
             }
             KycCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
-                tracing::warn!("Received unhandled KYC callback type - skipping");
+                return Err(KycError::UnhandledCallbackType);
             }
         }
         Ok(())

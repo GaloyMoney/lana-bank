@@ -12,6 +12,8 @@ pub enum KycError {
     Serde(#[from] serde_json::Error),
     #[error("KycError - CustomerError: {0}")]
     CustomerError(#[from] CustomerError),
+    #[error("KycError - UnhandledCallbackType")]
+    UnhandledCallbackType,
     #[error("KycError - UnhandledLevelType")]
     UnhandledLevelType,
     #[error("KycError - MissingExternalUserId: {0}")]
@@ -36,6 +38,7 @@ impl ErrorSeverity for KycError {
             Self::Sqlx(_) => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::CustomerError(e) => e.severity(),
+            Self::UnhandledCallbackType => Level::WARN,
             Self::UnhandledLevelType => Level::ERROR,
             Self::MissingExternalUserId(_) => Level::WARN,
             Self::InboxError(_) => Level::ERROR,
