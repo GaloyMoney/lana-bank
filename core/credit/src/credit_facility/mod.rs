@@ -636,6 +636,8 @@ pub(crate) enum AccrualOutcome {
     Accrued(ConfirmedAccrual),
     /// All periods were already accrued in a prior run. Nothing to record.
     AllPeriodsComplete,
+    /// No accrual cycle is in progress. The job should complete without further action.
+    NoCycleInProgress,
 }
 
 #[derive(Clone)]
