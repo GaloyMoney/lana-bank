@@ -333,6 +333,13 @@ where
                 self.transition_to_await_obligations_sync_in_op(db, current_job)
                     .await
             }
+            AccrualOutcome::NoCycleInProgress => {
+                tracing::info!(
+                    credit_facility_id = %self.config.credit_facility_id,
+                    "No accrual cycle in progress, completing job"
+                );
+                Ok(JobCompletion::CompleteWithOp(db))
+            }
         }
     }
 
@@ -374,36 +381,41 @@ where
             .find_by_id_in_op(op, credit_facility_id)
             .await?;
 
-        let result = {
-            let account_ids = credit_facility.account_ids;
-            let collateral_account_id = self
-                .collaterals
-                .collateral_ledger_account_ids_in_op(op, credit_facility.collateral_id)
-                .await?
-                .collateral_account_id;
+        if credit_facility
+            .interest_accrual_cycle_in_progress()
+            .is_none()
+        {
+            return Ok(AccrualOutcome::NoCycleInProgress);
+        }
 
-            let balances = self
-                .ledger
-                .get_credit_facility_balance_in_op(op, account_ids, collateral_account_id)
-                .await?;
+        let account_ids = credit_facility.account_ids;
+        let collateral_account_id = self
+            .collaterals
+            .collateral_ledger_account_ids_in_op(op, credit_facility.collateral_id)
+            .await?
+            .collateral_account_id;
 
-            match credit_facility
-                .record_accrual_on_in_progress_cycle(balances.disbursed_outstanding())
-            {
-                Ok(recorded) => {
-                    let recorded = recorded.expect("record_accrual always returns Executed");
-                    AccrualOutcome::Accrued(ConfirmedAccrual {
-                        accrual: (recorded.accrual_data, account_ids).into(),
-                        next_period: recorded.next_period,
-                        accrual_idx: recorded.accrual_idx,
-                        accrued_count: recorded.accrued_count,
-                    })
-                }
-                Err(CreditFacilityError::InterestAccrualCycleError(
-                    InterestAccrualCycleError::NoNextAccrualPeriod,
-                )) => AccrualOutcome::AllPeriodsComplete,
-                Err(e) => return Err(e),
+        let balances = self
+            .ledger
+            .get_credit_facility_balance_in_op(op, account_ids, collateral_account_id)
+            .await?;
+
+        let result = match credit_facility
+            .record_accrual_on_in_progress_cycle(balances.disbursed_outstanding())
+        {
+            Ok(recorded) => {
+                let recorded = recorded.expect("record_accrual always returns Executed");
+                AccrualOutcome::Accrued(ConfirmedAccrual {
+                    accrual: (recorded.accrual_data, account_ids).into(),
+                    next_period: recorded.next_period,
+                    accrual_idx: recorded.accrual_idx,
+                    accrued_count: recorded.accrued_count,
+                })
             }
+            Err(CreditFacilityError::InterestAccrualCycleError(
+                InterestAccrualCycleError::NoNextAccrualPeriod,
+            )) => AccrualOutcome::AllPeriodsComplete,
+            Err(e) => return Err(e),
         };
 
         self.credit_facility_repo

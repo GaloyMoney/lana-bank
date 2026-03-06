@@ -158,7 +158,7 @@ impl ErrorSeverity for CreditFacilityError {
             Self::RegisterEventHandler(_) => Level::ERROR,
             Self::CreditFacilityProposalError(e) => e.severity(),
             Self::CollateralError(e) => e.severity(),
-            Self::NoAccrualCycleInProgress => Level::ERROR,
+            Self::NoAccrualCycleInProgress => Level::WARN,
         }
     }
 }
