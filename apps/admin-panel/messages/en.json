@@ -1704,7 +1704,7 @@
   },
   "Deposits": {
     "title": "Deposits",
-    "description": "Sums of money added from credit facilities into customer's accounts",
+    "description": "Money added into customer's deposit accounts",
     "table": {
       "headers": {
         "customer": "Customer",

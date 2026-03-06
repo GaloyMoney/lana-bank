@@ -1704,7 +1704,7 @@
   },
   "Deposits": {
     "title": "Depósitos",
-    "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas del cliente",
+    "description": "Dinero añadido a las cuentas de depósito del cliente",
     "table": {
       "headers": {
         "customer": "Cliente",
