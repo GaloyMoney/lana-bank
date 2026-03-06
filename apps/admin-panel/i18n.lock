@@ -345,6 +345,11 @@ checksums:
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
     Customers/CustomerDetails/details/actions/editTelegram: 4ae315a304c3159b982b203be81a5f98
+    Customers/CustomerDetails/details/buttons/close: c6bf9acb5e3f853ff3172fd6d607fbb8
+    Customers/CustomerDetails/closeCustomer/title: c6bf9acb5e3f853ff3172fd6d607fbb8
+    Customers/CustomerDetails/closeCustomer/description: 862b695beacd54f83995de902963b849
+    Customers/CustomerDetails/closeCustomer/buttons/close: 2c2e22f8424a1031de89063bd0022e16
+    Customers/CustomerDetails/closeCustomer/success: 2400188f476290f280beb70b880cc22a
     Customers/CustomerDetails/kycStatus/title: 4bd5d2fae73d8ec19511c2d011a48025
     Customers/CustomerDetails/kycStatus/verified: 9566bd61c1f754dd5082eea5101f15a8
     Customers/CustomerDetails/kycStatus/noKyc: 10d02f136823bff246bf59bcb4cea64b
