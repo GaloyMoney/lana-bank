@@ -395,6 +395,10 @@ mod tests {
     use crate::EncryptionConfig;
 
     fn seed_config<C: ConfigSpec>(id: DomainConfigId) -> DomainConfig {
+        let default_value = C::default_value()
+            .and_then(|v| <C::Kind as ValueKind>::encode(&v).ok())
+            .map(DomainConfigValue::plain);
+
         let events = NewDomainConfig::builder()
             .seed(
                 id,
@@ -403,6 +407,7 @@ mod tests {
                 C::VISIBILITY,
                 <C::Flavor as crate::ConfigFlavor>::IS_ENCRYPTED,
             )
+            .default_value(default_value)
             .build()
             .unwrap()
             .into_events();
@@ -429,6 +434,30 @@ mod tests {
                     ));
                 }
 
+                Ok(())
+            };
+        }
+    }
+
+    crate::define_internal_config! {
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+        struct SampleComplexWithDefaultConfig {
+            enabled: bool,
+            limit: u32,
+        }
+
+        spec {
+            key: "sample-config-with-default";
+            default: || Some(SampleComplexWithDefaultConfig{
+                enabled: false,
+                limit:100
+            });
+            validate: |value: &Self| {
+                if value.limit > 100 {
+                    return Err(DomainConfigError::InvalidState(
+                        "Limit is too high".to_string(),
+                    ));
+                }
                 Ok(())
             };
         }
@@ -804,6 +833,39 @@ mod tests {
                 .current_value_encrypted::<SampleEncryptedConfig>(&new_key)
                 .unwrap(),
             value
+        );
+    }
+
+    #[test]
+    fn current_stored_value_returns_default_when_no_update() {
+        let config = seed_config::<SampleComplexWithDefaultConfig>(DomainConfigId::new());
+        assert_eq!(
+            config
+                .current_value_plain::<SampleComplexWithDefaultConfig>()
+                .unwrap(),
+            SampleComplexWithDefaultConfig::default_value().unwrap(),
+        );
+    }
+
+    #[test]
+    fn current_stored_value_prefers_update_over_default() {
+        let mut config = seed_config::<SampleComplexWithDefaultConfig>(DomainConfigId::new());
+
+        let updated = SampleComplexWithDefaultConfig {
+            enabled: true,
+            limit: 50,
+        };
+        assert!(
+            config
+                .update_value_plain::<SampleComplexWithDefaultConfig>(updated.clone())
+                .unwrap()
+                .did_execute()
+        );
+
+        let expected = serde_json::to_value(updated).unwrap();
+        assert_eq!(
+            config.current_stored_value().unwrap().as_plain(),
+            Some(&expected)
         );
     }
 }
