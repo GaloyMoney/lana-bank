@@ -11,6 +11,7 @@ with
     customers as (
         select *
         from {{ ref("int_core_customer_events_rollup") }}
+        left join {{ ref("int_core_party_events_rollup") }} using (party_id)
         left join {{ ref("int_customer_identities") }} using (customer_id)
         left join credit_facilities using (customer_id)
     )
