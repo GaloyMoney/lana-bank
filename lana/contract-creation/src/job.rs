@@ -143,14 +143,9 @@ where
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        // Find the customer for this loan agreement
-        let customer = self
-            .customers
-            .find_by_id_without_audit(self.config.customer_id)
-            .await?;
         let party = self
             .customers
-            .find_party_by_id_without_audit(customer.party_id)
+            .find_party_by_customer_id_without_audit(self.config.customer_id)
             .await?;
 
         // Get applicant information from Sumsub

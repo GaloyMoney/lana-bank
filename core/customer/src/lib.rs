@@ -130,6 +130,30 @@ where
         Ok(self.party_repo.find_by_id(party_id.into()).await?)
     }
 
+    #[record_error_severity]
+    #[instrument(name = "customer.find_party_by_customer_id_without_audit", skip(self))]
+    pub async fn find_party_by_customer_id_without_audit(
+        &self,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Party, CustomerError> {
+        let customer = self.repo.find_by_id(customer_id.into()).await?;
+        Ok(self.party_repo.find_by_id(customer.party_id).await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "customer.find_party_by_customer_id_without_audit_in_op",
+        skip(self, op)
+    )]
+    pub async fn find_party_by_customer_id_without_audit_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Party, CustomerError> {
+        let customer = self.repo.find_by_id_in_op(op, customer_id.into()).await?;
+        Ok(self.party_repo.find_by_id(customer.party_id).await?)
+    }
+
     pub async fn subject_can_create_prospect(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

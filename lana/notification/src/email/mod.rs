@@ -102,13 +102,9 @@ where
             .find_by_id_without_audit_in_op(&mut *op, *credit_facility_id)
             .await?;
 
-        let customer = self
-            .customers
-            .find_by_id_without_audit_in_op(&mut *op, credit_facility.customer_id)
-            .await?;
         let party = self
             .customers
-            .find_party_by_id_without_audit(customer.party_id)
+            .find_party_by_customer_id_without_audit_in_op(&mut *op, credit_facility.customer_id)
             .await?;
 
         let email_data = OverduePaymentEmailData {
@@ -163,13 +159,9 @@ where
         initially_estimated_to_liquidate: &money::Satoshis,
         initially_expected_to_receive: &money::UsdCents,
     ) -> Result<(), EmailError> {
-        let customer = self
-            .customers
-            .find_by_id_without_audit_in_op(&mut *op, *customer_id)
-            .await?;
         let party = self
             .customers
-            .find_party_by_id_without_audit(customer.party_id)
+            .find_party_by_customer_id_without_audit_in_op(&mut *op, *customer_id)
             .await?;
 
         let email_data = PartialLiquidationInitiatedEmailData {
@@ -228,13 +220,9 @@ where
         outstanding_interest: &money::UsdCents,
         price: &PriceOfOneBTC,
     ) -> Result<(), EmailError> {
-        let customer = self
-            .customers
-            .find_by_id_without_audit_in_op(&mut *op, *customer_id)
-            .await?;
         let party = self
             .customers
-            .find_party_by_id_without_audit(customer.party_id)
+            .find_party_by_customer_id_without_audit_in_op(&mut *op, *customer_id)
             .await?;
 
         let total_outstanding = *outstanding_disbursed + *outstanding_interest;
@@ -266,13 +254,9 @@ where
         account_holder_id: &core_deposit::DepositAccountHolderId,
     ) -> Result<(), EmailError> {
         let customer_id: core_customer::CustomerId = (*account_holder_id).into();
-        let customer = self
-            .customers
-            .find_by_id_without_audit_in_op(&mut *op, customer_id)
-            .await?;
         let party = self
             .customers
-            .find_party_by_id_without_audit(customer.party_id)
+            .find_party_by_customer_id_without_audit_in_op(&mut *op, customer_id)
             .await?;
 
         let email_data = DepositAccountCreatedEmailData {
