@@ -1411,6 +1411,10 @@ checksums:
     PaginatedTable/noData: d30b546a626d903d1ec1b466b2b4b865
     PaginatedTable/sortBy: f1035fcc660691aa9c6e1043e81d1d88
     PaginatedTable/all: 5e2e93f8e2a5f315b6fecdd0a0e6f55f
+    PaginatedTable/activeFilters: 5e8ba09b9ea1f87584d4f4ec6206ec7f
+    PaginatedTable/removeFilter: 4095cdb28c2ae64099064ac4b261817f
+    PaginatedTable/clearAllFilters: 0bc64da95ec15d9bc7fb12cb77f2838a
+    PaginatedTable/clearAll: 854be0c051e4a3491a2cdd9dd8c1b4d5
     Modules/notYetConfigured: e53fce92eb14f228a880be973a193cf3
     Modules/accountCategories/offBalanceSheet: 6b84f41a7ced3ff1db94af889f8330ed
     Modules/accountCategories/asset: ebad9812d55bf3d170664a38b83c7ca9

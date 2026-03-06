@@ -2373,7 +2373,11 @@
     "view": "Ver",
     "noData": "No hay datos para mostrar",
     "sortBy": "Ordenar por",
-    "all": "Todos"
+    "all": "Todos",
+    "activeFilters": "Filtros activos",
+    "removeFilter": "Eliminar filtro {label}",
+    "clearAllFilters": "Borrar todos los filtros",
+    "clearAll": "Borrar todo"
   },
   "Modules": {
     "notYetConfigured": "Aún no configurado",
