@@ -20,6 +20,7 @@ import Balance from "@/components/balance/balance"
 import {
   GetPendingCreditFacilityLayoutDetailsQuery,
   PendingCreditFacilityStatus,
+  useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
@@ -41,6 +42,14 @@ const PendingCreditFacilityDetailsCard: React.FC<
 
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
+
+  const { data: domainConfigsData } = useDomainConfigsQuery({
+    variables: { first: 100 },
+  })
+  const manualCollateralDisabled =
+    domainConfigsData?.domainConfigs.nodes.find(
+      (c) => c.key === "disable-manual-collateral",
+    )?.value === true
 
   const { publicId: facilityPublicId } = usePublicIdForCreditFacility(
     pendingDetails.status === PendingCreditFacilityStatus.Completed
@@ -113,16 +122,17 @@ const PendingCreditFacilityDetailsCard: React.FC<
 
   const footerContent = (
     <>
-      {pendingDetails.status !== PendingCreditFacilityStatus.Completed && (
-        <Button
-          variant="outline"
-          onClick={() => setOpenCollateralUpdateDialog(true)}
-          data-testid="update-collateral-button"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          {t("buttons.updateCollateral")}
-        </Button>
-      )}
+      {pendingDetails.status !== PendingCreditFacilityStatus.Completed &&
+        !manualCollateralDisabled && (
+          <Button
+            variant="outline"
+            onClick={() => setOpenCollateralUpdateDialog(true)}
+            data-testid="update-collateral-button"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {t("buttons.updateCollateral")}
+          </Button>
+        )}
       {pendingDetails.status === PendingCreditFacilityStatus.Completed &&
         facilityPublicId && (
           <Button variant="outline" data-testid="view-facility-button" asChild>
