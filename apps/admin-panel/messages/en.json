@@ -459,7 +459,8 @@
         },
         "customerStatus": {
           "active": "Active",
-          "frozen": "Frozen"
+          "frozen": "Frozen",
+          "closed": "Closed"
         },
         "status": {
           "active": "Active",

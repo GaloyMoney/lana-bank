@@ -15,6 +15,11 @@ const getStatusConfig = (status: CustomerStatus) => {
         translationKey: "frozen",
         variant: "destructive" as const,
       }
+    case CustomerStatus.Closed:
+      return {
+        translationKey: "closed",
+        variant: "secondary" as const,
+      }
     default: {
       const exhaustiveCheck: never = status
       return exhaustiveCheck
