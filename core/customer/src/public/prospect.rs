@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 
 use crate::{
-    primitives::{KycStatus, PartyId, ProspectId, ProspectStage, ProspectStatus},
+    primitives::{KycStatus, PartyId, ProspectId, ProspectStage},
     prospect::Prospect,
 };
 
@@ -13,7 +13,6 @@ use crate::{
 pub struct PublicProspect {
     pub id: ProspectId,
     pub party_id: PartyId,
-    pub status: ProspectStatus,
     pub kyc_status: KycStatus,
     pub stage: ProspectStage,
 }
@@ -23,7 +22,6 @@ impl From<&Prospect> for PublicProspect {
         PublicProspect {
             id: entity.id,
             party_id: entity.party_id,
-            status: entity.status,
             kyc_status: entity.kyc_status,
             stage: entity.stage,
         }

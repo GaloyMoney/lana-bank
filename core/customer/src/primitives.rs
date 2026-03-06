@@ -136,28 +136,6 @@ pub enum KycStatus {
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "kebab-case")]
-pub enum ProspectStatus {
-    #[default]
-    Open,
-    Converted,
-    Closed,
-}
-
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-    Serialize,
-    Deserialize,
-)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(rename_all = "kebab-case")]
 pub enum ProspectStage {
     #[default]
     New,

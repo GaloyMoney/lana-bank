@@ -2607,7 +2607,6 @@ export type Prospect = {
   prospectId: Scalars['UUID']['output'];
   publicId: Scalars['PublicId']['output'];
   stage: ProspectStage;
-  status: ProspectStatus;
   telegramHandle: Scalars['String']['output'];
   verificationLink?: Maybe<Scalars['String']['output']>;
   verificationLinkCreatedAt?: Maybe<Scalars['Timestamp']['output']>;
@@ -2675,12 +2674,6 @@ export enum ProspectStage {
   KycPending = 'KYC_PENDING',
   KycStarted = 'KYC_STARTED',
   New = 'NEW'
-}
-
-export enum ProspectStatus {
-  Closed = 'CLOSED',
-  Converted = 'CONVERTED',
-  Open = 'OPEN'
 }
 
 export type ProspectsFilter = {
@@ -4897,7 +4890,7 @@ export type ProspectCloseMutationVariables = Exact<{
 }>;
 
 
-export type ProspectCloseMutation = { __typename?: 'Mutation', prospectClose: { __typename?: 'ProspectClosePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
+export type ProspectCloseMutation = { __typename?: 'Mutation', prospectClose: { __typename?: 'ProspectClosePayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
 
 export type ProspectConvertMutationVariables = Exact<{
   input: ProspectConvertInput;
@@ -4913,21 +4906,21 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
-export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null };
+export type ProspectDetailsFragmentFragment = { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null };
 
 export type GetProspectBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } | null };
+export type GetProspectBasicDetailsQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } | null };
 
 export type ProspectKycUpdatedSubscriptionVariables = Exact<{
   prospectId: Scalars['UUID']['input'];
 }>;
 
 
-export type ProspectKycUpdatedSubscription = { __typename?: 'Subscription', prospectKycUpdated: { __typename?: 'ProspectKycUpdatedPayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, status: ProspectStatus, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
+export type ProspectKycUpdatedSubscription = { __typename?: 'Subscription', prospectKycUpdated: { __typename?: 'ProspectKycUpdatedPayload', prospect: { __typename?: 'Prospect', id: string, prospectId: string, email: string, telegramHandle: string, stage: ProspectStage, kycStatus: KycStatus, level: KycLevel, applicantId?: string | null, verificationLink?: string | null, verificationLinkCreatedAt?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, customer?: { __typename?: 'Customer', publicId: any, email: string, customerId: string } | null } } };
 
 export type ProspectCreateMutationVariables = Exact<{
   input: ProspectCreateInput;
@@ -6220,7 +6213,6 @@ export const ProspectDetailsFragmentFragmentDoc = gql`
   email
   telegramHandle
   stage
-  status
   kycStatus
   level
   applicantId

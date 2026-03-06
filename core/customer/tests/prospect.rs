@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use core_customer::{
     CoreCustomerEvent, CustomerId, CustomerType, KycStatus, KycVerification, PersonalInfo,
-    ProspectStatus,
+    ProspectStage,
 };
 use helpers::event;
 
@@ -43,7 +43,7 @@ async fn prospect_created_event_on_create_prospect() -> anyhow::Result<()> {
     .await?;
 
     assert_eq!(recorded.id, created_prospect.id);
-    assert_eq!(recorded.status, ProspectStatus::Open);
+    assert_eq!(recorded.stage, ProspectStage::New);
     assert_eq!(recorded.kyc_status, KycStatus::NotStarted);
 
     Ok(())
@@ -94,7 +94,7 @@ async fn prospect_converted_event_on_kyc_approved() -> anyhow::Result<()> {
 
     assert_eq!(recorded.id, prospect.id);
     assert_eq!(recorded.kyc_status, KycStatus::Approved);
-    assert_eq!(recorded.status, ProspectStatus::Converted);
+    assert_eq!(recorded.stage, ProspectStage::Converted);
 
     Ok(())
 }
@@ -134,7 +134,7 @@ async fn prospect_closed_event_on_close_prospect() -> anyhow::Result<()> {
     .await?;
 
     assert_eq!(recorded.id, prospect.id);
-    assert_eq!(recorded.status, ProspectStatus::Closed);
+    assert_eq!(recorded.stage, ProspectStage::Closed);
 
     Ok(())
 }
@@ -198,7 +198,7 @@ async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Resul
         .await?
         .expect("prospect should still exist");
     assert_eq!(prospect_after.kyc_status, KycStatus::Approved);
-    assert_eq!(prospect_after.status, ProspectStatus::Converted);
+    assert_eq!(prospect_after.stage, ProspectStage::Converted);
 
     Ok(())
 }
