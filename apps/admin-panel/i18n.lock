@@ -340,6 +340,7 @@ checksums:
     Customers/CustomerDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
     Customers/CustomerDetails/details/customerStatus/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/customerStatus/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
+    Customers/CustomerDetails/details/customerStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
