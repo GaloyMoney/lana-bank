@@ -192,9 +192,8 @@ pub mod credit {
     };
 
     pub use core_credit_collateral::{
-        COLLATERAL_ENTITY_TYPE, Collateral, CollateralDirection, DisableManualCollateral,
-        Liquidation, LiquidationsSortBy, liquidation_cursor,
-        liquidation_cursor::LiquidationsByIdCursor,
+        COLLATERAL_ENTITY_TYPE, Collateral, CollateralDirection, Liquidation, LiquidationsSortBy,
+        ManualCollateral, liquidation_cursor, liquidation_cursor::LiquidationsByIdCursor,
     };
 
     pub type Credit =

@@ -50,10 +50,10 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const { data: domainConfigsData } = useDomainConfigsQuery({
     variables: { first: 100 },
   })
-  const manualCollateralDisabled =
+  const manualCollateralEnabled =
     domainConfigsData?.domainConfigs.nodes.find(
-      (c) => c.key === "disable-manual-collateral",
-    )?.value === true
+      (c) => c.key === "manual-collateral",
+    )?.value !== false
 
   const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
 
@@ -161,7 +161,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         <Download className="h-4 w-4 mr-2" />
         {t("buttons.loanAgreement")}
       </Button>
-      {creditFacilityDetails.userCanUpdateCollateral && !manualCollateralDisabled && (
+      {creditFacilityDetails.userCanUpdateCollateral && manualCollateralEnabled && (
         <Button
           variant="outline"
           data-testid="update-collateral-button"
