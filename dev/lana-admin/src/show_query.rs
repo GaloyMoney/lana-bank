@@ -127,6 +127,8 @@ fn lookup_query(path: &[&str]) -> Option<QuerySpec> {
         ["customer", "get"] => q("CustomerGet", CUSTOMER_DOC),
         ["customer", "get-by-email"] => q("CustomerGetByEmail", CUSTOMER_DOC),
         ["customer", "close"] => q("CustomerClose", CUSTOMER_DOC),
+        ["customer", "freeze"] => q("CustomerFreeze", CUSTOMER_DOC),
+        ["customer", "unfreeze"] => q("CustomerUnfreeze", CUSTOMER_DOC),
 
         ["deposit", "account", "create"] => q("DepositAccountCreate", DEPOSIT_ACCOUNT_DOC),
         ["deposit", "account", "list"] => q("DepositAccountsList", DEPOSIT_ACCOUNT_DOC),

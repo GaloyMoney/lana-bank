@@ -383,6 +383,16 @@ pub enum CustomerAction {
         #[arg(long)]
         customer_id: String,
     },
+    /// Freeze a customer
+    Freeze {
+        #[arg(long)]
+        customer_id: String,
+    },
+    /// Unfreeze a customer
+    Unfreeze {
+        #[arg(long)]
+        customer_id: String,
+    },
 }
 
 #[derive(Subcommand)]

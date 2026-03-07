@@ -74,3 +74,37 @@ mutation CustomerClose($input: CustomerCloseInput!) {
     }
   }
 }
+
+mutation CustomerFreeze($input: CustomerFreezeInput!) {
+  customerFreeze(input: $input) {
+    customer {
+      customerId
+      publicId
+      email
+      status
+      personalInfo {
+        firstName
+        lastName
+        companyName
+      }
+      createdAt
+    }
+  }
+}
+
+mutation CustomerUnfreeze($input: CustomerUnfreezeInput!) {
+  customerUnfreeze(input: $input) {
+    customer {
+      customerId
+      publicId
+      email
+      status
+      personalInfo {
+        firstName
+        lastName
+        companyName
+      }
+      createdAt
+    }
+  }
+}

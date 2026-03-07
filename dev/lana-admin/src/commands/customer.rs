@@ -144,7 +144,10 @@ pub async fn execute(client: &mut GraphQLClient, action: CustomerAction, json: b
             if json {
                 output::print_json(&c)?;
             } else {
-                let (first_name, last_name, company_name) = personal_info_values(
+                print_customer_lifecycle_summary(
+                    &c.customer_id,
+                    &c.public_id,
+                    &c.email,
                     c.personal_info
                         .as_ref()
                         .map(|info| info.first_name.as_str()),
@@ -152,21 +155,62 @@ pub async fn execute(client: &mut GraphQLClient, action: CustomerAction, json: b
                     c.personal_info
                         .as_ref()
                         .and_then(|info| info.company_name.as_deref()),
+                    format!("{:?}", c.status),
+                    &c.created_at,
+                    "closed",
                 );
-                let first_name = display_value(&first_name);
-                let last_name = display_value(&last_name);
-                let company_name = display_value(&company_name);
-                output::print_kv(&[
-                    ("Customer ID", &c.customer_id),
-                    ("Public ID", &c.public_id),
-                    ("Email", &c.email),
-                    ("First Name", &first_name),
-                    ("Last Name", &last_name),
-                    ("Company Name", &company_name),
-                    ("Status", &format!("{:?}", c.status)),
-                    ("Created", &c.created_at),
-                ]);
-                println!("\nCustomer closed.");
+            }
+        }
+        CustomerAction::Freeze { customer_id } => {
+            let vars = customer_freeze::Variables {
+                input: customer_freeze::CustomerFreezeInput { customer_id },
+            };
+            let data = client.execute::<CustomerFreeze>(vars).await?;
+            let c = data.customer_freeze.customer;
+            if json {
+                output::print_json(&c)?;
+            } else {
+                print_customer_lifecycle_summary(
+                    &c.customer_id,
+                    &c.public_id,
+                    &c.email,
+                    c.personal_info
+                        .as_ref()
+                        .map(|info| info.first_name.as_str()),
+                    c.personal_info.as_ref().map(|info| info.last_name.as_str()),
+                    c.personal_info
+                        .as_ref()
+                        .and_then(|info| info.company_name.as_deref()),
+                    format!("{:?}", c.status),
+                    &c.created_at,
+                    "frozen",
+                );
+            }
+        }
+        CustomerAction::Unfreeze { customer_id } => {
+            let vars = customer_unfreeze::Variables {
+                input: customer_unfreeze::CustomerUnfreezeInput { customer_id },
+            };
+            let data = client.execute::<CustomerUnfreeze>(vars).await?;
+            let c = data.customer_unfreeze.customer;
+            if json {
+                output::print_json(&c)?;
+            } else {
+                print_customer_lifecycle_summary(
+                    &c.customer_id,
+                    &c.public_id,
+                    &c.email,
+                    c.personal_info
+                        .as_ref()
+                        .map(|info| info.first_name.as_str()),
+                    c.personal_info.as_ref().map(|info| info.last_name.as_str()),
+                    c.personal_info
+                        .as_ref()
+                        .and_then(|info| info.company_name.as_deref()),
+                    format!("{:?}", c.status),
+                    &c.created_at,
+                    "unfrozen",
+                );
             }
         }
     }
@@ -208,4 +252,33 @@ fn display_value(value: &str) -> String {
     } else {
         value.to_string()
     }
+}
+
+fn print_customer_lifecycle_summary(
+    customer_id: &str,
+    public_id: &str,
+    email: &str,
+    first_name: Option<&str>,
+    last_name: Option<&str>,
+    company_name: Option<&str>,
+    status: String,
+    created_at: &str,
+    action: &str,
+) {
+    let (first_name, last_name, company_name) =
+        personal_info_values(first_name, last_name, company_name);
+    let first_name = display_value(&first_name);
+    let last_name = display_value(&last_name);
+    let company_name = display_value(&company_name);
+    output::print_kv(&[
+        ("Customer ID", customer_id),
+        ("Public ID", public_id),
+        ("Email", email),
+        ("First Name", &first_name),
+        ("Last Name", &last_name),
+        ("Company Name", &company_name),
+        ("Status", &status),
+        ("Created", created_at),
+    ]);
+    println!("\nCustomer {action}.");
 }

@@ -114,6 +114,22 @@ pub struct CustomerGetByEmail;
 )]
 pub struct CustomerClose;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/customer.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct CustomerFreeze;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
+    query_path = "src/graphql/customer.graphql",
+    response_derives = "Debug, Clone, Serialize"
+)]
+pub struct CustomerUnfreeze;
+
 // -- Deposit Account operations --
 
 #[derive(GraphQLQuery)]
