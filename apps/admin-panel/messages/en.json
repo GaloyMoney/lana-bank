@@ -1519,10 +1519,12 @@
         "title": "Create Committee",
         "description": "Create a new committee by providing the required information",
         "fields": {
-          "name": "Committee Name"
+          "name": "Committee Name",
+          "initialMember": "Initial Member"
         },
         "placeholders": {
-          "name": "Enter the committee name"
+          "name": "Enter the committee name",
+          "selectMember": "Select a member"
         },
         "buttons": {
           "create": "Create Committee"

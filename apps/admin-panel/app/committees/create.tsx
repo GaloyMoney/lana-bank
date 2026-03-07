@@ -17,8 +17,15 @@ import {
 import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@lana/web/ui/select"
 
-import { useCreateCommitteeMutation } from "@/lib/graphql/generated"
+import { useCreateCommitteeMutation, useUsersQuery } from "@/lib/graphql/generated"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
@@ -60,11 +67,14 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
       },
     })
 
+  const { data: userData, loading: usersLoading } = useUsersQuery()
+
   const isLoading = loading || isNavigating
 
   const [formValues, setFormValues] = useState({
     name: "",
   })
+  const [selectedUserId, setSelectedUserId] = useState<string>("")
 
   const [error, setError] = useState<string | null>(null)
 
@@ -85,6 +95,7 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
         variables: {
           input: {
             name: formValues.name,
+            memberUserIds: [selectedUserId],
           },
         },
         onCompleted: (data) => {
@@ -113,6 +124,7 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
     setFormValues({
       name: "",
     })
+    setSelectedUserId("")
     setError(null)
     reset()
   }
@@ -148,12 +160,33 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
             />
           </div>
 
+          <div>
+            <Label>{t("fields.initialMember")}</Label>
+            <Select
+              value={selectedUserId}
+              onValueChange={setSelectedUserId}
+              disabled={isLoading || usersLoading}
+            >
+              <SelectTrigger data-testid="committee-create-member-select">
+                <SelectValue placeholder={t("placeholders.selectMember")} />
+              </SelectTrigger>
+              <SelectContent>
+                {userData?.users.map((user) => (
+                  <SelectItem key={user.userId} value={user.userId}>
+                    {user.email} {user.role?.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {error && <p className="text-destructive">{error}</p>}
 
           <DialogFooter>
             <Button
               type="submit"
               loading={isLoading}
+              disabled={!selectedUserId}
               data-testid="committee-create-submit-button"
             >
               {t("buttons.create")}

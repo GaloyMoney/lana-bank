@@ -11,7 +11,6 @@ import { t } from "../support/translation"
 const CF = "CreditFacilities"
 const CFP = "CreditFacilityProposals"
 const PCF = "PendingCreditFacilities"
-const Committee = "Committees.CommitteeDetails"
 const Policy = "Policies.PolicyDetails"
 const Disbursals = "Disbursals"
 
@@ -74,6 +73,7 @@ describe("credit facility", () => {
 
   it("should add admin to credit facility and disbursal approvers", () => {
     const committeeName = `${Date.now()}-CF-and-Disbursal-Approvers`
+    const usersQuery = `query Users { users { userId email } }`
     const createCommitteeMutation = `mutation CreateCommittee($input: CommitteeCreateInput!) {
       committeeCreate(input: $input) {
         committee {
@@ -81,24 +81,19 @@ describe("credit facility", () => {
         }
       }
     }`
-    cy.graphqlRequest<CreateCommitteeMutationResult>(createCommitteeMutation, {
-      input: { name: committeeName },
-    }).then((response) => {
-      const committeeId = response.data?.committeeCreate.committee.committeeId
-      cy.visit(`/committees/${committeeId}`)
-      cy.get('[data-testid="committee-add-member-button"]').click()
-      cy.get('[data-testid="committee-add-user-select"]').should("be.visible").click()
-      cy.get('[role="option"]')
-        .contains("admin")
-        .then((option) => {
-          cy.wrap(option).click()
-          cy.get('[data-testid="committee-add-user-submit-button"]').click()
-          cy.contains(t(Committee + ".AddUserCommitteeDialog.success")).should(
-            "be.visible",
-          )
-          cy.contains(option.text().split(" ")[0]).should("be.visible")
-        })
+    cy.graphqlRequest<{ users: { userId: string; email: string }[] }>(
+      usersQuery,
+      {},
+    ).then((usersResponse) => {
+      const adminUser = usersResponse.data?.users.find((u) =>
+        u.email.includes("admin"),
+      )
+      if (!adminUser) throw new Error("Admin user not found")
 
+      return cy.graphqlRequest<CreateCommitteeMutationResult>(createCommitteeMutation, {
+        input: { name: committeeName, memberUserIds: [adminUser.userId] },
+      })
+    }).then(() => {
       cy.visit(`/policies`)
       cy.get('[data-testid="table-row-1"] > :nth-child(3) > a').should(
         "be.visible",
