@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useMemo } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
@@ -9,6 +9,7 @@ import {
   HiChevronRight,
   HiChevronUp,
   HiChevronDown,
+  HiSelector,
   HiInformationCircle,
 } from "react-icons/hi"
 import SimpleBar from "simplebar-react"
@@ -41,11 +42,9 @@ import LayerLabel from "@/app/journal/layer-label"
 import {
   DebitOrCredit,
   JournalEntriesQuery,
-  JournalEntriesSort,
   JournalEntriesSortBy,
   SortDirection,
 } from "@/lib/graphql/generated"
-import { camelToScreamingSnake } from "@/lib/utils"
 
 type JournalEntry = JournalEntriesQuery["journalEntries"]["edges"][number]["node"]
 
@@ -100,8 +99,8 @@ gql`
 const getColumns = (
   t: ReturnType<typeof useTranslations>,
   tDesc: ReturnType<typeof useTranslations>,
-  sort: JournalEntriesSort,
-  onSortToggle: (columnKey: string) => void,
+  sortState: { column: JournalEntriesSortBy | null; direction: SortDirection | null },
+  onSortToggle: (columnKey: JournalEntriesSortBy) => void,
 ) => [
   {
     key: "effective",
@@ -116,15 +115,18 @@ const getColumns = (
     label: (
       <button
         className="flex items-center gap-1 cursor-pointer"
-        onClick={() => onSortToggle("createdAt")}
+        onClick={() => onSortToggle(JournalEntriesSortBy.CreatedAt)}
       >
         {t("table.createdAt")}
-        {sort.by === JournalEntriesSortBy.CreatedAt &&
-          (sort.direction === SortDirection.Asc ? (
+        {sortState.column === JournalEntriesSortBy.CreatedAt ? (
+          sortState.direction === SortDirection.Asc ? (
             <HiChevronUp className="h-4 w-4 text-blue-500" />
           ) : (
             <HiChevronDown className="h-4 w-4 text-blue-500" />
-          ))}
+          )
+        ) : (
+          <HiSelector className="h-4 w-4" />
+        )}
       </button>
     ),
     width: "w-[10%]",
@@ -298,23 +300,27 @@ const JournalPage: React.FC = () => {
     handleNextPage: nextPage,
     handlePreviousPage: prevPage,
     pageSize,
-    sort,
     onSort,
   } = useJournalPagination()
 
+  const [sortState, setSortState] = useState<{
+    column: JournalEntriesSortBy | null
+    direction: SortDirection | null
+  }>({ column: null, direction: null })
+
   const handleSortToggle = useCallback(
-    (columnKey: string) => {
-      const by = camelToScreamingSnake(columnKey) as JournalEntriesSort["by"]
-      const direction =
-        sort.by === by && sort.direction === SortDirection.Desc
-          ? SortDirection.Asc
-          : SortDirection.Desc
-      onSort({ by, direction })
+    (by: JournalEntriesSortBy) => {
+      const newDirection =
+        sortState.column === by && sortState.direction === SortDirection.Asc
+          ? SortDirection.Desc
+          : SortDirection.Asc
+      setSortState({ column: by, direction: newDirection })
+      onSort({ by, direction: newDirection })
     },
-    [sort, onSort],
+    [sortState, onSort],
   )
 
-  const columns = useMemo(() => getColumns(t, tDesc, sort, handleSortToggle), [t, tDesc, sort, handleSortToggle])
+  const columns = useMemo(() => getColumns(t, tDesc, sortState, handleSortToggle), [t, tDesc, sortState, handleSortToggle])
 
   const handleNextPage = async () => {
     await nextPage()
