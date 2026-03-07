@@ -37,9 +37,12 @@ describe("Governance Test", () => {
       .should("have.value", committeeName)
     cy.takeScreenshot("3_step-fill-committee-name")
 
-    cy.get('[data-testid="committee-create-member-select"]').click()
-    cy.get('[role="option"]').contains("admin").click()
-    cy.get('[data-testid="committee-create-add-member-button"]').click()
+    cy.get('[role="dialog"]')
+      .find('[data-testid^="table-row-"]')
+      .contains("admin")
+      .closest('[data-testid^="table-row-"]')
+      .click()
+    cy.takeScreenshot("3b_step-select-member")
 
     cy.get('[data-testid="committee-create-submit-button"]').click()
     cy.takeScreenshot("4_step-submit-committee-creation")
@@ -70,20 +73,20 @@ describe("Governance Test", () => {
     cy.get('[data-testid="committee-add-member-button"]').click()
     cy.takeScreenshot("8_step-click-add-member-button")
 
-    cy.get('[data-testid="committee-add-user-select"]').should("be.visible").click()
-    cy.get('[role="option"]')
+    cy.get('[role="dialog"]')
+      .find('[data-testid^="table-row-"]')
       .contains("admin")
-      .then((option) => {
-        cy.wrap(option).click()
-        cy.takeScreenshot("9_step-select-admin-role")
-        cy.get('[data-testid="committee-add-user-submit-button"]').click()
-        cy.takeScreenshot("10_step-submit-add-member")
-        cy.contains(
-          t("Committees.CommitteeDetails.AddUserCommitteeDialog.success"),
-        ).should("be.visible")
-        cy.takeScreenshot("11_step-verify-member-added")
-        cy.contains(option.text().split(" ")[0]).should("be.visible")
-      })
+      .closest('[data-testid^="table-row-"]')
+      .click()
+    cy.takeScreenshot("9_step-select-user")
+
+    cy.get('[data-testid="committee-add-user-submit-button"]').click()
+    cy.takeScreenshot("10_step-submit-add-member")
+
+    cy.contains(
+      t("Committees.CommitteeDetails.AddUserCommitteeDialog.success"),
+    ).should("be.visible")
+    cy.takeScreenshot("11_step-verify-member-added")
   })
 
   it("attach a committee to a policy", () => {

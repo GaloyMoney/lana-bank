@@ -73,7 +73,7 @@ describe("credit facility", () => {
 
   it("should add admin to credit facility and disbursal approvers", () => {
     const committeeName = `${Date.now()}-CF-and-Disbursal-Approvers`
-    const usersQuery = `query Users { users { userId email } }`
+    const usersQuery = `query Users($first: Int!) { users(first: $first) { edges { node { userId email } } } }`
     const createCommitteeMutation = `mutation CreateCommittee($input: CommitteeCreateInput!) {
       committeeCreate(input: $input) {
         committee {
@@ -81,13 +81,13 @@ describe("credit facility", () => {
         }
       }
     }`
-    cy.graphqlRequest<{ data: { users: { userId: string; email: string }[] } }>(
+    cy.graphqlRequest<{ data: { users: { edges: { node: { userId: string; email: string } }[] } } }>(
       usersQuery,
-      {},
+      { first: 100 },
     ).then((usersResponse) => {
-      const adminUser = usersResponse.data?.users.find(
-        (u: { email: string }) => u.email.includes("admin"),
-      )
+      const adminUser = usersResponse.data?.users.edges
+        .map((e) => e.node)
+        .find((u) => u.email.includes("admin"))
       if (!adminUser) throw new Error("Admin user not found")
 
       return cy.graphqlRequest<CreateCommitteeMutationResult>(createCommitteeMutation, {
