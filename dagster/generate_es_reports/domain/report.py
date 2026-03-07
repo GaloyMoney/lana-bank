@@ -78,7 +78,7 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
                     sequence_level_element,
                     f"{{{self.target_namespace}}}" + f"{field}",
                 )
-                new_field_element.text = str(value) if value is not None else None
+                new_field_element.text = value
 
         xml_string = ElementTree.tostring(xml_root_element, encoding="unicode")
 

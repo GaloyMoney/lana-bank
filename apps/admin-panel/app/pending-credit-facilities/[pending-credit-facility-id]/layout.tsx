@@ -22,6 +22,7 @@ gql`
   fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
     id
     pendingCreditFacilityId
+    creditFacilityId
     collateralId
     approvalProcessId
     createdAt

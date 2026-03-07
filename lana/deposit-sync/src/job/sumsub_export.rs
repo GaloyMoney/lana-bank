@@ -123,8 +123,6 @@ where
             .find_by_id_without_audit(account.account_holder_id)
             .await?;
 
-        // Valid use case branching
-        // lint:allow(service-conditionals)
         if customer.should_sync_financial_transactions() {
             let amount_usd: f64 = amount.to_usd().try_into()?;
             self.sumsub_client
@@ -164,8 +162,6 @@ where
             .find_by_id_without_audit(account.account_holder_id)
             .await?;
 
-        // Valid use case branching
-        // lint:allow(service-conditionals)
         if customer.should_sync_financial_transactions() {
             let amount_usd: f64 = amount.to_usd().try_into()?;
             self.sumsub_client

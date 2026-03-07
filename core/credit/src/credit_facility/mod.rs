@@ -610,8 +610,6 @@ where
 
         let credit_facility = self.repo.find_by_id(id).await?;
 
-        // To short circuit the ledger lookup
-        // lint:allow(service-conditionals)
         if credit_facility
             .interest_accrual_cycle_in_progress()
             .is_some()

@@ -41,9 +41,7 @@ export const useJournalPagination = () => {
     error,
     displayData,
     currentPage,
-    hasNextPage:
-      data?.journalEntries?.pageInfo.hasNextPage ||
-      (data?.journalEntries?.edges.length || 0) > currentPage * PAGE_SIZE,
+    hasNextPage: data?.journalEntries?.pageInfo.hasNextPage,
     handleNextPage,
     handlePreviousPage,
     pageSize: PAGE_SIZE,

@@ -134,14 +134,6 @@
     "sumsub-api-secret": {
       "title": "SumSub API Secret",
       "description": "API secret for SumSub KYC verification service."
-    },
-    "sumsub-kyc-flow-name": {
-      "title": "SumSub KYC Flow Name",
-      "description": "Name of the SumSub flow used for KYC verification."
-    },
-    "sumsub-kyb-flow-name": {
-      "title": "SumSub KYB Flow Name",
-      "description": "Name of the SumSub flow used for KYB verification."
     }
   },
   "interestInterval": {
@@ -1676,6 +1668,7 @@
     "status": {
       "active": "Active",
       "frozen": "Frozen",
+      "inactive": "Inactive",
       "closed": "Closed"
     },
     "DepositAccountDetails": {

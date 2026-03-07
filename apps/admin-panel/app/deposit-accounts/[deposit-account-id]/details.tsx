@@ -120,7 +120,8 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
           {t("buttons.unfreezeDepositAccount")}
         </Button>
       )}
-      {depositAccount.status === DepositAccountStatus.Active && (
+      {(depositAccount.status === DepositAccountStatus.Active ||
+        depositAccount.status === DepositAccountStatus.Inactive) && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

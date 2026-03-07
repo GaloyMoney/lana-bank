@@ -1,5 +1,3 @@
-import datetime
-import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Literal, Optional, Tuple, TypedDict
 
@@ -152,7 +150,6 @@ def _process_single_asset(
             contents = fetcher.fetch_table_contents_as_of(table_name, as_of_date)
             return (contents.fields, contents.records)
 
-        effective_as_of = as_of_date if report_job.supports_as_of else None
         result = generate_single_report(
             fetch_table=fetch_table,
             fetch_table_as_of=fetch_table_as_of,
@@ -163,7 +160,7 @@ def _process_single_asset(
             file_output_config=file_config,
             run_id=run_id,
             log=log,
-            as_of_date=effective_as_of,
+            as_of_date=as_of_date if report_job.supports_as_of else None,
         )
         return asset_key, result
 
@@ -213,23 +210,6 @@ def create_file_report_multi_asset():
     def file_report_assets(context: dg.AssetExecutionContext, config: FileReportConfig):
         from opentelemetry import context as otel_context
 
-        # Default as_of_date to yesterday if not explicitly provided
-        effective_as_of_date = (
-            config.as_of_date
-            or (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
-        )
-
-        # Fail early if any selected report requires as_of_date but none was resolved
-        for k in context.selected_asset_keys:
-            report_job, _ = asset_key_to_job_config[k]
-            if report_job.supports_as_of and not effective_as_of_date:
-                raise dg.Failure(
-                    description=(
-                        f"Report {k.to_user_string()} requires 'as_of_date' "
-                        f"but none was provided and no default could be resolved."
-                    )
-                )
-
         dw_bq = context.resources.dw_bq
         file_reports_bucket = context.resources.file_reports_bucket
         credentials_dict = dw_bq.get_credentials_dict()
@@ -265,7 +245,7 @@ def create_file_report_multi_asset():
                         run_id=context.run_id,
                         log=context.log.info,
                         otel_parent_ctx=batch_ctx,
-                        as_of_date=effective_as_of_date,
+                        as_of_date=config.as_of_date,
                     ): k
                     for k in context.selected_asset_keys
                 }
@@ -276,9 +256,7 @@ def create_file_report_multi_asset():
                         yield _build_materialize_result(asset_key, result)
                     except Exception as e:
                         context.log.error(
-                            f"Failed to generate report for "
-                            f"{asset_key.to_user_string()}: {type(e).__name__}: {e}\n"
-                            f"{traceback.format_exc()}"
+                            f"Failed to generate report for {asset_key.to_user_string()}: {e}"
                         )
                         failed_assets.append((asset_key, e))
 

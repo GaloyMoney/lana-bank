@@ -22,6 +22,10 @@ pub use lana_app::credit::{
 pub struct PendingCreditFacility {
     id: ID,
     pending_credit_facility_id: UUID,
+    /// Canonical credit facility identifier reserved for this facility.
+    /// Today this matches `pendingCreditFacilityId`, but clients should use
+    /// this field when they need the active facility reference.
+    credit_facility_id: UUID,
     collateral_id: UUID,
     status: PendingCreditFacilityStatus,
     approval_process_id: UUID,
@@ -154,6 +158,7 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
         Self {
             id: pending_credit_facility.id.to_global_id(),
             pending_credit_facility_id: UUID::from(pending_credit_facility.id),
+            credit_facility_id: UUID::from(CreditFacilityId::from(pending_credit_facility.id)),
             collateral_id: UUID::from(pending_credit_facility.collateral_id),
             approval_process_id: UUID::from(pending_credit_facility.approval_process_id),
             created_at: created_at.into(),

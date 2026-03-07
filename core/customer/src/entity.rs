@@ -20,7 +20,7 @@ pub enum CustomerEvent {
         party_id: PartyId,
         customer_type: CustomerType,
         public_id: PublicId,
-        conversion: CustomerConversion,
+        applicant_id: Option<String>,
         level: KycLevel,
     },
     Frozen {
@@ -42,7 +42,8 @@ pub struct Customer {
     pub customer_type: CustomerType,
     pub status: CustomerStatus,
     pub level: KycLevel,
-    pub conversion: CustomerConversion,
+    #[builder(setter(into))]
+    pub applicant_id: Option<String>,
     pub public_id: PublicId,
     events: EntityEvents<CustomerEvent>,
 }
@@ -61,32 +62,11 @@ impl Customer {
     }
 
     pub fn has_been_verified(&self) -> bool {
-        matches!(self.conversion, CustomerConversion::SumsubApproved { .. })
-    }
-
-    pub fn applicant_id(&self) -> Option<&str> {
-        self.conversion.applicant_id()
+        self.applicant_id.is_some()
     }
 
     pub fn may_attach_product(&self, require_verified: bool) -> bool {
         !self.is_closed() && !self.is_frozen() && (!require_verified || self.has_been_verified())
-    }
-
-    pub(crate) fn assert_may_attach_product(
-        &self,
-        require_verified: bool,
-    ) -> Result<(), CustomerError> {
-        if !self.may_attach_product(require_verified) {
-            return Err(CustomerError::CustomerNotEligibleForProduct);
-        }
-        Ok(())
-    }
-
-    pub(crate) fn assert_not_closed(&self) -> Result<(), CustomerError> {
-        if self.is_closed() {
-            return Err(CustomerError::CustomerIsClosed);
-        }
-        Ok(())
     }
 
     pub fn is_closed(&self) -> bool {
@@ -154,7 +134,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     party_id,
                     customer_type,
                     public_id,
-                    conversion,
+                    applicant_id,
                     level,
                 } => {
                     builder = builder
@@ -164,7 +144,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .status(CustomerStatus::Active)
                         .public_id(public_id.clone())
                         .level(*level)
-                        .conversion(conversion.clone());
+                        .applicant_id(applicant_id.clone());
                 }
                 CustomerEvent::Frozen { status } => {
                     builder = builder.status(*status);
@@ -190,7 +170,8 @@ pub struct NewCustomer {
     pub(crate) customer_type: CustomerType,
     #[builder(setter(into))]
     pub(crate) public_id: PublicId,
-    pub(crate) conversion: CustomerConversion,
+    #[builder(setter(into))]
+    pub(crate) applicant_id: Option<String>,
     pub(crate) level: KycLevel,
     #[builder(setter(skip), default)]
     pub(crate) status: CustomerStatus,
@@ -211,7 +192,7 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 party_id: self.party_id,
                 customer_type: self.customer_type,
                 public_id: self.public_id,
-                conversion: self.conversion,
+                applicant_id: self.applicant_id,
                 level: self.level,
             }],
         )

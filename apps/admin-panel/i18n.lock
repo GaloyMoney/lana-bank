@@ -100,10 +100,6 @@ checksums:
     Configurations/sumsub-api-key/description: c07793f938e83089516c7abe29a82a3d
     Configurations/sumsub-api-secret/title: 804c2c14a63732c2eb2a061c89f31d5d
     Configurations/sumsub-api-secret/description: 2a8a57a5820fde00d3bd152bd6c12e89
-    Configurations/sumsub-kyc-flow-name/title: 7a8cc6d8c60935799db2b1ebe45f6efd
-    Configurations/sumsub-kyc-flow-name/description: 0c7b6fc98ad0173d78299bb5240756f1
-    Configurations/sumsub-kyb-flow-name/title: 2276544d137de16a2dc19ed4747bc1de
-    Configurations/sumsub-kyb-flow-name/description: 1ab1a3f640cab64eca47b33deba920d9
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
@@ -1010,6 +1006,7 @@ checksums:
     DepositAccounts/table/errors/general: b7c40c4ed6a172c29cfc88b4ccfccf71
     DepositAccounts/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     DepositAccounts/status/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
+    DepositAccounts/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     DepositAccounts/status/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/title: 23d240412c0bf14efcff84a2325587be
     DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/customerEmail: ebca1f74384e364c0bbc0782c0b14d93

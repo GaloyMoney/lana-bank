@@ -183,7 +183,7 @@ impl Prospect {
             .party_id(self.party_id)
             .customer_type(self.customer_type)
             .public_id(self.public_id.clone())
-            .conversion(CustomerConversion::SumsubApproved { applicant_id })
+            .applicant_id(Some(applicant_id))
             .level(level)
             .build()
             .expect("Could not build customer from prospect");
@@ -207,7 +207,7 @@ impl Prospect {
             .party_id(self.party_id)
             .customer_type(self.customer_type)
             .public_id(self.public_id.clone())
-            .conversion(CustomerConversion::ManuallyConverted)
+            .applicant_id(None)
             .level(KycLevel::Basic)
             .build()
             .expect("Could not build customer from prospect");

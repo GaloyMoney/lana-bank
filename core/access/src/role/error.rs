@@ -20,8 +20,6 @@ pub enum RoleError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("RoleError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
-    #[error("RoleError - SuperuserRoleCannotBeAssigned")]
-    SuperuserRoleCannotBeAssigned,
 }
 
 impl ErrorSeverity for RoleError {
@@ -34,7 +32,6 @@ impl ErrorSeverity for RoleError {
             Self::Query(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
-            Self::SuperuserRoleCannotBeAssigned => Level::WARN,
         }
     }
 }

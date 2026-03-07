@@ -1,40 +1,44 @@
--- Auto-generated rollup table for DepositAccountEvent
-CREATE TABLE core_deposit_account_events_rollup (
+-- Auto-generated rollup table for CustomerEvent
+CREATE TABLE core_customer_events_rollup (
   id UUID NOT NULL,
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
-  account_holder_id UUID,
-  account_ids JSONB,
-  activity VARCHAR,
+  applicant_id VARCHAR,
+  customer_type VARCHAR,
+  level VARCHAR,
+  party_id UUID,
   public_id VARCHAR,
-  status VARCHAR
+  status VARCHAR,
+
+  -- Toggle fields
+  is_kyc_approved BOOLEAN DEFAULT false
 ,
   PRIMARY KEY (id, version)
 );
 
 
--- Auto-generated trigger function for DepositAccountEvent
-CREATE OR REPLACE FUNCTION core_deposit_account_events_rollup_trigger()
+-- Auto-generated trigger function for CustomerEvent
+CREATE OR REPLACE FUNCTION core_customer_events_rollup_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
   event_type TEXT;
-  current_row core_deposit_account_events_rollup%ROWTYPE;
-  new_row core_deposit_account_events_rollup%ROWTYPE;
+  current_row core_customer_events_rollup%ROWTYPE;
+  new_row core_customer_events_rollup%ROWTYPE;
 BEGIN
   event_type := NEW.event_type;
 
   -- Load the previous version if this isn't the first event
   IF NEW.sequence > 1 THEN
     SELECT * INTO current_row
-    FROM core_deposit_account_events_rollup
+    FROM core_customer_events_rollup
     WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'activity_updated', 'frozen', 'unfrozen', 'closed') THEN
+  IF event_type NOT IN ('initialized', 'frozen', 'unfrozen', 'closed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -47,16 +51,20 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
-    new_row.account_ids := (NEW.event -> 'account_ids');
-    new_row.activity := (NEW.event ->> 'activity');
+    new_row.applicant_id := (NEW.event ->> 'applicant_id');
+    new_row.customer_type := (NEW.event ->> 'customer_type');
+    new_row.is_kyc_approved := false;
+    new_row.level := (NEW.event ->> 'level');
+    new_row.party_id := (NEW.event ->> 'party_id')::UUID;
     new_row.public_id := (NEW.event ->> 'public_id');
-    new_row.status := (NEW.event ->> 'status');
+    new_row.status := 'active';
   ELSE
     -- Default all fields to current values
-    new_row.account_holder_id := current_row.account_holder_id;
-    new_row.account_ids := current_row.account_ids;
-    new_row.activity := current_row.activity;
+    new_row.applicant_id := current_row.applicant_id;
+    new_row.customer_type := current_row.customer_type;
+    new_row.is_kyc_approved := current_row.is_kyc_approved;
+    new_row.level := current_row.level;
+    new_row.party_id := current_row.party_id;
     new_row.public_id := current_row.public_id;
     new_row.status := current_row.status;
   END IF;
@@ -64,13 +72,11 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
-      new_row.account_ids := (NEW.event -> 'account_ids');
-      new_row.activity := (NEW.event ->> 'activity');
+      new_row.applicant_id := (NEW.event ->> 'applicant_id');
+      new_row.customer_type := (NEW.event ->> 'customer_type');
+      new_row.level := (NEW.event ->> 'level');
+      new_row.party_id := (NEW.event ->> 'party_id')::UUID;
       new_row.public_id := (NEW.event ->> 'public_id');
-      new_row.status := (NEW.event ->> 'status');
-    WHEN 'activity_updated' THEN
-      new_row.activity := (NEW.event ->> 'activity');
     WHEN 'frozen' THEN
       new_row.status := (NEW.event ->> 'status');
     WHEN 'unfrozen' THEN
@@ -79,15 +85,17 @@ BEGIN
       new_row.status := (NEW.event ->> 'status');
   END CASE;
 
-  INSERT INTO core_deposit_account_events_rollup (
+  INSERT INTO core_customer_events_rollup (
     id,
     version,
     created_at,
     modified_at,
     event_type,
-    account_holder_id,
-    account_ids,
-    activity,
+    applicant_id,
+    customer_type,
+    is_kyc_approved,
+    level,
+    party_id,
     public_id,
     status
   )
@@ -97,9 +105,11 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.event_type,
-    new_row.account_holder_id,
-    new_row.account_ids,
-    new_row.activity,
+    new_row.applicant_id,
+    new_row.customer_type,
+    new_row.is_kyc_approved,
+    new_row.level,
+    new_row.party_id,
     new_row.public_id,
     new_row.status
   );
@@ -109,8 +119,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- Auto-generated trigger for DepositAccountEvent
-CREATE TRIGGER core_deposit_account_events_rollup_trigger
-  AFTER INSERT ON core_deposit_account_events
+-- Auto-generated trigger for CustomerEvent
+CREATE TRIGGER core_customer_events_rollup_trigger
+  AFTER INSERT ON core_customer_events
   FOR EACH ROW
-  EXECUTE FUNCTION core_deposit_account_events_rollup_trigger();
+  EXECUTE FUNCTION core_customer_events_rollup_trigger();

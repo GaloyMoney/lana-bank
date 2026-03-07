@@ -9,25 +9,10 @@ use super::{
 };
 
 pub use lana_app::customer::{
-    Customer as DomainCustomer, CustomerConversion, CustomerStatus, CustomerType, CustomersCursor,
+    Customer as DomainCustomer, CustomerStatus, CustomerType, CustomersCursor,
     CustomersFilters as DomainCustomersFilters, CustomersSortBy as DomainCustomersSortBy, KycLevel,
     PersonalInfo, Sort,
 };
-
-#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ConversionReason {
-    SumsubApproved,
-    ManuallyConverted,
-}
-
-impl From<&CustomerConversion> for ConversionReason {
-    fn from(conversion: &CustomerConversion) -> Self {
-        match conversion {
-            CustomerConversion::SumsubApproved { .. } => ConversionReason::SumsubApproved,
-            CustomerConversion::ManuallyConverted => ConversionReason::ManuallyConverted,
-        }
-    }
-}
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -80,11 +65,7 @@ impl Customer {
     }
 
     async fn applicant_id(&self) -> Option<&str> {
-        self.entity.applicant_id()
-    }
-
-    async fn conversion_reason(&self) -> ConversionReason {
-        ConversionReason::from(&self.entity.conversion)
+        self.entity.applicant_id.as_deref()
     }
 
     async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {

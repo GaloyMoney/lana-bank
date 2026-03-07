@@ -107,7 +107,11 @@ where
         let role_id = role_id.into();
         let role: Role = self.roles.find_by_id(role_id).await?;
 
-        role.assert_not_superuser()?;
+        if role.is_superuser() {
+            return Err(CoreAccessError::AuthorizationError(
+                authz::error::AuthorizationError::NotAuthorized,
+            ));
+        }
 
         let user = self.users.create_user(sub, email, &role).await?;
         Ok(user)
@@ -300,7 +304,11 @@ where
 
         let role = self.roles.find_by_id(role_id).await?;
 
-        role.assert_not_superuser()?;
+        if role.is_superuser() {
+            return Err(CoreAccessError::AuthorizationError(
+                authz::error::AuthorizationError::NotAuthorized,
+            ));
+        }
 
         let user = self.users.update_role_of_user(sub, user_id, &role).await?;
 

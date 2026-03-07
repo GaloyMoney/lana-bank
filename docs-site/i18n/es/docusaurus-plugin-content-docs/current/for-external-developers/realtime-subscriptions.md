@@ -79,6 +79,7 @@ subscription PendingFacilityCollateral($id: UUID!) {
     effective
     pendingCreditFacility {
       pendingCreditFacilityId
+      creditFacilityId
       status
       facilityAmount
     }
@@ -88,14 +89,14 @@ subscription PendingFacilityCollateral($id: UUID!) {
 
 ### Facilidad de Crédito Pendiente Completada
 
-Se dispara cuando una facilidad de crédito pendiente transiciona a un estado terminal (aprobada y activada, o denegada).
+Se dispara cuando una facilidad de crédito pendiente transiciona a un estado terminal (aprobada y activada o denegada).
 
 **Campos del payload:**
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `status` | `PendingCreditFacilityStatus!` | `PENDING_COLLATERALIZATION` o `COMPLETED` |
-| `recordedAt` | `Timestamp!` | Cuándo se registró la completación |
+| `recordedAt` | `Timestamp!` | Cuándo se registró la finalización |
 | `pendingCreditFacility` | `PendingCreditFacility!` | El objeto completo de la facilidad de crédito pendiente |
 
 ```graphql
@@ -105,6 +106,7 @@ subscription PendingFacilityCompleted($id: UUID!) {
     recordedAt
     pendingCreditFacility {
       pendingCreditFacilityId
+      creditFacilityId
       status
       facilityAmount
     }

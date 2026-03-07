@@ -421,10 +421,26 @@ impl From<ChartOfAccountsIntegrationConfigAction> for CoreDepositAction {
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum DepositAccountStatus {
+    Inactive,
     #[default]
     Active,
     Frozen,
     Closed,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum DepositAccountHolderStatus {
+    Active,
+    Inactive,
+}
+
+impl From<DepositAccountHolderStatus> for DepositAccountStatus {
+    fn from(status: DepositAccountHolderStatus) -> Self {
+        match status {
+            DepositAccountHolderStatus::Active => DepositAccountStatus::Active,
+            DepositAccountHolderStatus::Inactive => DepositAccountStatus::Inactive,
+        }
+    }
 }
 
 #[derive(Clone, Copy)]

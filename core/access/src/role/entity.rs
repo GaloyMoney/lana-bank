@@ -5,7 +5,6 @@ use std::collections::HashSet;
 
 use es_entity::*;
 
-use super::error::RoleError;
 use crate::{PermissionSetId, primitives::RoleId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -83,13 +82,6 @@ impl Role {
 
     pub fn is_superuser(&self) -> bool {
         self.name == crate::primitives::ROLE_NAME_SUPERUSER
-    }
-
-    pub(crate) fn assert_not_superuser(&self) -> Result<(), RoleError> {
-        if self.is_superuser() {
-            return Err(RoleError::SuperuserRoleCannotBeAssigned);
-        }
-        Ok(())
     }
 }
 

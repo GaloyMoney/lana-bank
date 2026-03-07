@@ -331,6 +331,74 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "deposit.update_account_status_for_holder", skip(self))]
+    pub async fn update_account_status_for_holder(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        status: DepositAccountHolderStatus,
+    ) -> Result<(), CoreDepositError> {
+        let mut op = self.deposit_accounts.begin_op().await?;
+        self.update_account_status_for_holder_in_op(&mut op, sub, holder_id, status)
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "deposit.update_account_status_for_holder_in_op",
+        skip(self, op)
+    )]
+    pub async fn update_account_status_for_holder_in_op(
+        &self,
+        op: &mut es_entity::DbOp<'static>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        status: DepositAccountHolderStatus,
+    ) -> Result<(), CoreDepositError> {
+        let holder_id = holder_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_UPDATE_STATUS,
+            )
+            .await?;
+
+        let accounts = self
+            .deposit_accounts
+            .list_for_account_holder_id_by_id_in_op(
+                &mut *op,
+                holder_id,
+                Default::default(),
+                Default::default(),
+            )
+            .await?;
+
+        for mut account in accounts.entities.into_iter() {
+            match account.update_status_via_holder(status) {
+                Ok(result) if result.did_execute() => {
+                    self.deposit_accounts.update_in_op(op, &mut account).await?;
+                }
+                Err(DepositAccountError::CannotUpdateClosedAccount(_)) => {
+                    tracing::warn!("Skipping update error if account already closed");
+                    continue;
+                }
+                Err(DepositAccountError::CannotUpdateFrozenAccount(_)) => {
+                    tracing::warn!("Skipping update error if account already frozen");
+                    continue;
+                }
+                Err(e) => {
+                    return Err(e.into());
+                }
+                Ok(_) => continue,
+            }
+        }
+        Ok(())
+    }
+
+    #[record_error_severity]
     #[instrument(name = "deposit.account_history", skip(self))]
     pub async fn account_history(
         &self,
@@ -712,7 +780,8 @@ where
                     self.deposit_accounts.update_in_op(op, &mut account).await?;
                     self.ledger.freeze_account_in_op(op, &account, sub).await?;
                 }
-                Err(DepositAccountError::CannotUpdateClosedAccount(_)) => {
+                Err(DepositAccountError::CannotUpdateClosedAccount(_))
+                | Err(DepositAccountError::CannotFreezeInactiveAccount(_)) => {
                     tracing::warn!(
                         account_id = %account.id,
                         "Skipping freeze for account that cannot be frozen"
@@ -1271,6 +1340,7 @@ where
     ) -> Result<(), CoreDepositError> {
         let account = self.deposit_accounts.find_by_id(deposit_account_id).await?;
         match account.status {
+            DepositAccountStatus::Inactive => Err(CoreDepositError::DepositAccountInactive),
             DepositAccountStatus::Frozen => Err(CoreDepositError::DepositAccountFrozen),
             DepositAccountStatus::Closed => Err(CoreDepositError::DepositAccountClosed),
             DepositAccountStatus::Active => Ok(()),

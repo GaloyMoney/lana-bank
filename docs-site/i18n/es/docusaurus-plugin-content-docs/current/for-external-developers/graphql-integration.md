@@ -112,6 +112,25 @@ query GetCustomers($first: Int!, $after: String) {
 
 Para obtener la siguiente página, pasa el valor de `endCursor` como parámetro `after`.
 
+## IDs de Facilidades Pendientes
+
+Cuando consultes un `PendingCreditFacility` desde la API de administración, solicita ambos IDs explícitamente:
+
+```graphql
+query PendingFacilityIds($id: UUID!) {
+  pendingCreditFacility(id: $id) {
+    pendingCreditFacilityId
+    creditFacilityId
+    status
+  }
+}
+```
+
+Usa `pendingCreditFacilityId` para las consultas y suscripciones de facilidades pendientes. Usa
+`creditFacilityId` como referencia canónica de la facilidad cuando necesites consultar la
+`CreditFacility` activa. En la implementación actual ambos valores son el mismo UUID,
+pero los clientes deben leer `creditFacilityId` en lugar de asumir esa equivalencia.
+
 ## Manejo de errores
 
 Los errores de GraphQL se devuelven en el array `errors` de la respuesta:
@@ -132,10 +151,10 @@ Los errores de GraphQL se devuelven en el array `errors` de la respuesta:
 ```
 
 | Tipo de error | Descripción | Acción |
-|------------|-------------|--------|
+|---------------|-------------|--------|
 | `FORBIDDEN` | Permisos insuficientes | Verifica las credenciales de la API y el rol |
 | `UNAUTHENTICATED` | Token inválido o expirado | Actualiza el token de acceso |
-| `BAD_USER_INPUT` | Datos de entrada inválidos | Verifica los parámetros de la solicitud |
+| `BAD_USER_INPUT` | Datos de entrada no válidos | Revisa los parámetros de la solicitud |
 | `INTERNAL_SERVER_ERROR` | Error del servidor | Reintenta con retroceso exponencial |
 
 ## Encabezados requeridos
@@ -147,5 +166,5 @@ Content-Type: application/json
 
 ## Referencias de la API
 
-- [Referencia de la API de administración](../apis/admin-api) — Operaciones y tipos completos de administración
-- [Referencia de la API de cliente](../apis/customer-api) — Operaciones completas de cliente
+- [Referencia de la API de administración](../apis/admin-api/api-reference.mdx) — Operaciones y tipos completos de administración
+- [Referencia de la API de cliente](../apis/customer-api/api-reference.mdx) — Operaciones completas de cliente
