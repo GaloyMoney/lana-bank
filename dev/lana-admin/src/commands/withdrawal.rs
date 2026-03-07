@@ -1,4 +1,5 @@
 use anyhow::Result;
+use serde_json::json;
 
 use crate::cli::WithdrawalAction;
 use crate::client::GraphQLClient;
@@ -26,7 +27,19 @@ pub async fn execute(
             let data = client.execute::<WithdrawalInitiate>(vars).await?;
             let w = data.withdrawal_initiate.withdrawal;
             if json {
-                output::print_json(&w)?;
+                output::print_json(&json!({
+                    "withdrawalId": w.withdrawal_id,
+                    "approvalProcessId": w.approval_process_id,
+                    "accountId": w.account_id,
+                    "amount": w.amount,
+                    "status": format!("{:?}", w.status),
+                    "accountStatus": format!("{:?}", w.account.status),
+                    "createdAt": w.created_at,
+                    "publicId": w.public_id,
+                    "reference": w.reference,
+                    "settledBalance": w.account.balance.settled,
+                    "pendingBalance": w.account.balance.pending,
+                }))?;
             } else {
                 let settled = scalar(&w.account.balance.settled);
                 let pending = scalar(&w.account.balance.pending);
@@ -47,7 +60,17 @@ pub async fn execute(
             let data = client.execute::<WithdrawalConfirm>(vars).await?;
             let w = data.withdrawal_confirm.withdrawal;
             if json {
-                output::print_json(&w)?;
+                output::print_json(&json!({
+                    "withdrawalId": w.withdrawal_id,
+                    "accountId": w.account_id,
+                    "amount": w.amount,
+                    "status": format!("{:?}", w.status),
+                    "createdAt": w.created_at,
+                    "publicId": w.public_id,
+                    "reference": w.reference,
+                    "settledBalance": w.account.balance.settled,
+                    "pendingBalance": w.account.balance.pending,
+                }))?;
             } else {
                 let settled = scalar(&w.account.balance.settled);
                 let pending = scalar(&w.account.balance.pending);
@@ -66,7 +89,17 @@ pub async fn execute(
             let data = client.execute::<WithdrawalCancel>(vars).await?;
             let w = data.withdrawal_cancel.withdrawal;
             if json {
-                output::print_json(&w)?;
+                output::print_json(&json!({
+                    "withdrawalId": w.withdrawal_id,
+                    "accountId": w.account_id,
+                    "amount": w.amount,
+                    "status": format!("{:?}", w.status),
+                    "createdAt": w.created_at,
+                    "publicId": w.public_id,
+                    "reference": w.reference,
+                    "settledBalance": w.account.balance.settled,
+                    "pendingBalance": w.account.balance.pending,
+                }))?;
             } else {
                 let settled = scalar(&w.account.balance.settled);
                 let pending = scalar(&w.account.balance.pending);
@@ -85,7 +118,15 @@ pub async fn execute(
             let data = client.execute::<WithdrawalRevert>(vars).await?;
             let w = data.withdrawal_revert.withdrawal;
             if json {
-                output::print_json(&w)?;
+                output::print_json(&json!({
+                    "withdrawalId": w.withdrawal_id,
+                    "accountId": w.account_id,
+                    "amount": w.amount,
+                    "status": format!("{:?}", w.status),
+                    "createdAt": w.created_at,
+                    "publicId": w.public_id,
+                    "reference": w.reference,
+                }))?;
             } else {
                 output::print_kv(&[
                     ("Withdrawal ID", &w.withdrawal_id),
@@ -99,10 +140,20 @@ pub async fn execute(
             match data.withdrawal {
                 Some(w) => {
                     if json {
-                        output::print_json(&w)?;
+                        output::print_json(&json!({
+                            "withdrawalId": w.withdrawal_id,
+                            "approvalProcessId": w.approval_process_id,
+                            "accountId": w.account_id,
+                            "amount": w.amount,
+                            "status": format!("{:?}", w.status),
+                            "createdAt": w.created_at,
+                            "publicId": w.public_id,
+                            "reference": w.reference,
+                        }))?;
                     } else {
                         output::print_kv(&[
                             ("Withdrawal ID", &w.withdrawal_id),
+                            ("Approval Process ID", &w.approval_process_id),
                             ("Status", &format!("{:?}", w.status)),
                         ]);
                     }

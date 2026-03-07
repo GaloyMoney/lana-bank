@@ -18,12 +18,20 @@ use url::Url;
 struct TokenResponse {
     access_token: String,
     expires_in: u64,
+    #[serde(default)]
+    refresh_token: String,
+    #[serde(default)]
+    refresh_expires_in: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SessionFile {
     access_token: String,
     expires_at: u64,
+    #[serde(default)]
+    refresh_token: String,
+    #[serde(default)]
+    refresh_expires_at: u64,
     #[serde(default = "default_admin_url")]
     admin_url: String,
     keycloak_url: String,
@@ -173,6 +181,8 @@ pub fn load_saved_session_info() -> anyhow::Result<SavedSessionInfo> {
 fn save_session(
     token: &str,
     expires_in: u64,
+    refresh_token: &str,
+    refresh_expires_in: u64,
     admin_url: &str,
     keycloak_url: &str,
     keycloak_client_id: &str,
@@ -182,6 +192,8 @@ fn save_session(
     let session = SessionFile {
         access_token: token.to_string(),
         expires_at: now_epoch() + expires_in.saturating_sub(30),
+        refresh_token: refresh_token.to_string(),
+        refresh_expires_at: now_epoch() + refresh_expires_in.saturating_sub(30),
         admin_url: admin_url.to_string(),
         keycloak_url: keycloak_url.to_string(),
         keycloak_client_id: keycloak_client_id.to_string(),
@@ -211,7 +223,7 @@ fn write_session_files(session: &SessionFile) {
     }
 }
 
-fn load_session(
+fn load_matching_session(
     admin_url: &str,
     keycloak_url: &str,
     keycloak_client_id: &str,
@@ -225,11 +237,7 @@ fn load_session(
     {
         return None;
     }
-    if now_epoch() < session.expires_at {
-        Some(session)
-    } else {
-        None
-    }
+    Some(session)
 }
 
 pub fn clear_session() {
@@ -265,22 +273,41 @@ impl AuthClient {
             return Ok(cached.access_token.clone());
         }
 
-        if let Some(session) = load_session(
+        if let Some(session) = load_matching_session(
             &self.admin_url,
             &self.keycloak_url,
             &self.keycloak_client_id,
             &self.username,
         ) {
-            write_session_files(&session);
-            let remaining = session.expires_at.saturating_sub(now_epoch());
-            self.cached = Some(CachedToken {
-                access_token: session.access_token.clone(),
-                expires_at: Instant::now() + Duration::from_secs(remaining),
-            });
-            return Ok(session.access_token);
+            if now_epoch() < session.expires_at {
+                write_session_files(&session);
+                let remaining = session.expires_at.saturating_sub(now_epoch());
+                self.cached = Some(CachedToken {
+                    access_token: session.access_token.clone(),
+                    expires_at: Instant::now() + Duration::from_secs(remaining),
+                });
+                return Ok(session.access_token);
+            }
+
+            if !session.refresh_token.is_empty() && now_epoch() < session.refresh_expires_at {
+                match self.fetch_token_refresh_grant(&session.refresh_token).await {
+                    Ok(token_resp) => return self.save_and_cache_token(token_resp),
+                    Err((status, body)) => {
+                        eprintln!(
+                            "Saved refresh token failed ({status}). Falling back to login flow: {body}"
+                        );
+                        self.invalidate();
+                    }
+                }
+            }
         }
 
         self.fetch_token().await
+    }
+
+    pub fn invalidate(&mut self) {
+        self.cached = None;
+        clear_session();
     }
 
     async fn fetch_token(&mut self) -> anyhow::Result<String> {
@@ -365,6 +392,54 @@ impl AuthClient {
             (
                 reqwest::StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Failed to parse Keycloak token response: {e}"),
+            )
+        })
+    }
+
+    async fn fetch_token_refresh_grant(
+        &self,
+        refresh_token: &str,
+    ) -> Result<TokenResponse, (reqwest::StatusCode, String)> {
+        let url = format!(
+            "{}/realms/internal/protocol/openid-connect/token",
+            self.keycloak_url
+        );
+
+        let params = [
+            ("client_id", self.keycloak_client_id.as_str()),
+            ("refresh_token", refresh_token),
+            ("grant_type", "refresh_token"),
+        ];
+
+        let resp = self
+            .http
+            .post(&url)
+            .form(&params)
+            .send()
+            .await
+            .map_err(|e| {
+                (
+                    reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Failed to reach Keycloak refresh endpoint: {e}"),
+                )
+            })?;
+
+        let status = resp.status();
+        let body = resp.text().await.map_err(|e| {
+            (
+                reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to read Keycloak refresh response: {e}"),
+            )
+        })?;
+
+        if !status.is_success() {
+            return Err((status, body));
+        }
+
+        serde_json::from_str(&body).map_err(|e| {
+            (
+                reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to parse Keycloak refresh response: {e}"),
             )
         })
     }
@@ -551,6 +626,8 @@ impl AuthClient {
         save_session(
             &token_resp.access_token,
             token_resp.expires_in,
+            &token_resp.refresh_token,
+            token_resp.refresh_expires_in,
             &self.admin_url,
             &self.keycloak_url,
             &self.keycloak_client_id,

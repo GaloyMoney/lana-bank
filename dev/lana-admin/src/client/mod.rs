@@ -123,21 +123,31 @@ impl GraphQLClient {
             true,
             false,
         );
-        let token = self.auth.get_token().await?;
-        let request_url = self.validated_request_url()?;
+        for attempt in 0..=1 {
+            let token = self.auth.get_token().await?;
+            let request_url = self.validated_request_url()?;
 
-        let mut req = self
-            .http
-            .post(request_url)
-            .header("Authorization", format!("Bearer {token}"))
-            .json(&body);
-        if let Some(ref host) = self.host_header {
-            req = req.header("Host", host);
+            let mut req = self
+                .http
+                .post(request_url)
+                .header("Authorization", format!("Bearer {token}"))
+                .json(&body);
+            if let Some(ref host) = self.host_header {
+                req = req.header("Host", host);
+            }
+
+            let resp = req.send().await.context("Failed to reach admin server")?;
+
+            match self.parse_response(resp).await {
+                Err(err) if attempt == 0 && is_retryable_auth_error(&err) => {
+                    self.auth.invalidate();
+                    continue;
+                }
+                other => return other,
+            }
         }
 
-        let resp = req.send().await.context("Failed to reach admin server")?;
-
-        self.parse_response(resp).await
+        unreachable!("request retry loop should always return")
     }
 
     pub async fn execute_multipart<Q: GraphQLQuery>(
@@ -182,37 +192,50 @@ impl GraphQLClient {
 
         self.debug_print_multipart_operation(&body, &uploads);
 
-        let mut form = reqwest::multipart::Form::new()
-            .text("operations", body.to_string())
-            .text("map", serde_json::Value::Object(map).to_string());
+        let operations_json = body.to_string();
+        let map_json = serde_json::Value::Object(map).to_string();
 
-        for (idx, upload) in uploads.iter().enumerate() {
-            let file_bytes = std::fs::read(&upload.file_path)
-                .with_context(|| format!("Failed to read file '{}'", upload.file_path))?;
-            let filename = Path::new(&upload.file_path)
-                .file_name()
-                .and_then(|f| f.to_str())
-                .unwrap_or("upload.bin")
-                .to_string();
-            let part = reqwest::multipart::Part::bytes(file_bytes).file_name(filename);
-            form = form.part(idx.to_string(), part);
+        for attempt in 0..=1 {
+            let mut form = reqwest::multipart::Form::new()
+                .text("operations", operations_json.clone())
+                .text("map", map_json.clone());
+
+            for (idx, upload) in uploads.iter().enumerate() {
+                let file_bytes = std::fs::read(&upload.file_path)
+                    .with_context(|| format!("Failed to read file '{}'", upload.file_path))?;
+                let filename = Path::new(&upload.file_path)
+                    .file_name()
+                    .and_then(|f| f.to_str())
+                    .unwrap_or("upload.bin")
+                    .to_string();
+                let part = reqwest::multipart::Part::bytes(file_bytes).file_name(filename);
+                form = form.part(idx.to_string(), part);
+            }
+
+            let token = self.auth.get_token().await?;
+            let request_url = self.validated_request_url()?;
+
+            let mut req = self
+                .http
+                .post(request_url)
+                .header("Authorization", format!("Bearer {token}"))
+                .multipart(form);
+            if let Some(ref host) = self.host_header {
+                req = req.header("Host", host);
+            }
+
+            let resp = req.send().await.context("Failed to reach admin server")?;
+
+            match self.parse_response(resp).await {
+                Err(err) if attempt == 0 && is_retryable_auth_error(&err) => {
+                    self.auth.invalidate();
+                    continue;
+                }
+                other => return other,
+            }
         }
 
-        let token = self.auth.get_token().await?;
-        let request_url = self.validated_request_url()?;
-
-        let mut req = self
-            .http
-            .post(request_url)
-            .header("Authorization", format!("Bearer {token}"))
-            .multipart(form);
-        if let Some(ref host) = self.host_header {
-            req = req.header("Host", host);
-        }
-
-        let resp = req.send().await.context("Failed to reach admin server")?;
-
-        self.parse_response(resp).await
+        unreachable!("multipart request retry loop should always return")
     }
 
     async fn parse_response<R: DeserializeOwned>(
@@ -341,6 +364,17 @@ impl GraphQLClient {
             ),
         }
     }
+}
+
+fn is_retryable_auth_error(err: &anyhow::Error) -> bool {
+    let message = err.to_string().to_ascii_lowercase();
+    message.contains("http 401")
+        || message.contains("http 403")
+        || message.contains("unauthorized")
+        || message.contains("unauthenticated")
+        || message.contains("invalid token")
+        || message.contains("token expired")
+        || message.contains("expired token")
 }
 
 fn set_path_to_null(value: &mut serde_json::Value, path: &str) -> anyhow::Result<()> {

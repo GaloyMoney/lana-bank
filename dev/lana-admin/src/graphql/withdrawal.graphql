@@ -1,6 +1,12 @@
 query WithdrawalFind($id: UUID!) {
   withdrawal(id: $id) {
     withdrawalId
+    accountId
+    approvalProcessId
+    amount
     status
+    createdAt
+    publicId
+    reference
   }
 }

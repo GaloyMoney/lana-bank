@@ -1,4 +1,4 @@
-use clap::{ArgAction, Parser, Subcommand};
+use clap::{ArgAction, Parser, Subcommand, ValueEnum};
 
 const CLI_AFTER_HELP: &str = r#"Examples:
   lana-admin auth login \
@@ -513,11 +513,23 @@ pub enum CreditFacilityAction {
         id: String,
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         approved: bool,
+        #[arg(long, value_enum)]
+        wait_for: Option<ProposalConcludeWaitFor>,
+        #[arg(long, default_value_t = 60)]
+        wait_timeout_secs: u64,
+        #[arg(long, default_value_t = 1000)]
+        wait_interval_ms: u64,
     },
     /// Get a pending credit facility by ID
     PendingGet {
         #[arg(long)]
         id: String,
+        #[arg(long, value_enum)]
+        wait_for: Option<PendingCreditFacilityWaitFor>,
+        #[arg(long, default_value_t = 60)]
+        wait_timeout_secs: u64,
+        #[arg(long, default_value_t = 1000)]
+        wait_interval_ms: u64,
     },
     /// List credit facility proposals
     ProposalList {
@@ -549,6 +561,12 @@ pub enum CreditFacilityAction {
         credit_facility_id: String,
         #[arg(long)]
         amount: String,
+        #[arg(long, value_enum)]
+        wait_for: Option<DisbursalInitiateWaitFor>,
+        #[arg(long, default_value_t = 60)]
+        wait_timeout_secs: u64,
+        #[arg(long, default_value_t = 1000)]
+        wait_interval_ms: u64,
     },
     /// Record a partial payment
     PartialPaymentRecord {
@@ -557,6 +575,24 @@ pub enum CreditFacilityAction {
         #[arg(long)]
         amount: String,
     },
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+pub enum ProposalConcludeWaitFor {
+    /// Wait until the pending credit facility is queryable
+    PendingReady,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+pub enum PendingCreditFacilityWaitFor {
+    /// Wait until the pending credit facility reaches COMPLETED
+    Completed,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
+pub enum DisbursalInitiateWaitFor {
+    /// Wait until the initiated disbursal reaches CONFIRMED
+    Confirmed,
 }
 
 #[derive(Subcommand)]

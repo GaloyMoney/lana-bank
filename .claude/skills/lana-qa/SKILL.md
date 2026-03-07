@@ -74,4 +74,8 @@ The dependency graph is embedded in the binary. Do not rely on local YAML copies
 - Use `workflow deps` before running a deep stateful step.
 - Run mutating commands with `--json` so IDs and statuses are easy to inspect.
 - Use `--preview-graphql` when you want to inspect the request shape without sending it.
+- Use credit wait helpers instead of ad-hoc polling when available:
+  - `credit facility proposal-conclude --wait-for pending-ready`
+  - `credit facility pending-get --wait-for completed`
+  - `credit facility disbursal-initiate --wait-for confirmed`
 - Keep deposit and credit flows dependency-ordered. Do not close/freeze entities before later steps that still need them.

@@ -1,4 +1,5 @@
 use anyhow::Result;
+use serde_json::json;
 
 use crate::cli::ProspectAction;
 use crate::client::GraphQLClient;
@@ -23,7 +24,15 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
             let data = client.execute::<ProspectCreate>(vars).await?;
             let p = data.prospect_create.prospect;
             if json {
-                output::print_json(&p)?;
+                output::print_json(&json!({
+                    "prospectId": p.prospect_id,
+                    "publicId": p.public_id,
+                    "email": p.email,
+                    "telegramHandle": p.telegram_handle,
+                    "customerType": format!("{:?}", p.customer_type),
+                    "stage": format!("{:?}", p.stage),
+                    "createdAt": p.created_at,
+                }))?;
             } else {
                 output::print_kv(&[
                     ("Prospect ID", &p.prospect_id),
@@ -92,7 +101,21 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
             match data.prospect {
                 Some(p) => {
                     if json {
-                        output::print_json(&p)?;
+                        output::print_json(&json!({
+                            "prospectId": p.prospect_id,
+                            "publicId": p.public_id,
+                            "email": p.email,
+                            "telegramHandle": p.telegram_handle,
+                            "customerType": format!("{:?}", p.customer_type),
+                            "firstName": p.personal_info.as_ref().map(|info| info.first_name.clone()).unwrap_or_default(),
+                            "lastName": p.personal_info.as_ref().map(|info| info.last_name.clone()).unwrap_or_default(),
+                            "companyName": p.personal_info.as_ref().and_then(|info| info.company_name.clone()).unwrap_or_default(),
+                            "stage": format!("{:?}", p.stage),
+                            "kycStatus": format!("{:?}", p.kyc_status),
+                            "level": format!("{:?}", p.level),
+                            "createdAt": p.created_at,
+                            "applicantId": p.applicant_id,
+                        }))?;
                     } else {
                         let (first_name, last_name, company_name) = personal_info_values(
                             p.personal_info
@@ -133,7 +156,13 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
             let data = client.execute::<ProspectConvert>(vars).await?;
             let c = data.prospect_convert.customer;
             if json {
-                output::print_json(&c)?;
+                output::print_json(&json!({
+                    "customerId": c.customer_id,
+                    "publicId": c.public_id,
+                    "email": c.email,
+                    "customerType": format!("{:?}", c.customer_type),
+                    "createdAt": c.created_at,
+                }))?;
             } else {
                 output::print_kv(&[
                     ("Customer ID", &c.customer_id),
@@ -152,7 +181,15 @@ pub async fn execute(client: &mut GraphQLClient, action: ProspectAction, json: b
             let data = client.execute::<ProspectClose>(vars).await?;
             let p = data.prospect_close.prospect;
             if json {
-                output::print_json(&p)?;
+                output::print_json(&json!({
+                    "prospectId": p.prospect_id,
+                    "publicId": p.public_id,
+                    "email": p.email,
+                    "firstName": p.personal_info.as_ref().map(|info| info.first_name.clone()).unwrap_or_default(),
+                    "lastName": p.personal_info.as_ref().map(|info| info.last_name.clone()).unwrap_or_default(),
+                    "companyName": p.personal_info.as_ref().and_then(|info| info.company_name.clone()).unwrap_or_default(),
+                    "stage": format!("{:?}", p.stage),
+                }))?;
             } else {
                 let (first_name, last_name, company_name) = personal_info_values(
                     p.personal_info

@@ -1,4 +1,5 @@
 use anyhow::Result;
+use serde_json::json;
 
 use crate::cli::LoanAgreementAction;
 use crate::client::GraphQLClient;
@@ -17,7 +18,11 @@ pub async fn execute(
             match data.loan_agreement {
                 Some(la) => {
                     if json {
-                        output::print_json(&la)?;
+                        output::print_json(&json!({
+                            "loanAgreementId": la.loan_agreement_id,
+                            "status": format!("{:?}", la.status),
+                            "createdAt": la.created_at,
+                        }))?;
                     } else {
                         output::print_kv(&[
                             ("Loan Agreement ID", &la.loan_agreement_id),
@@ -30,13 +35,19 @@ pub async fn execute(
             }
         }
         LoanAgreementAction::Generate { customer_id } => {
+            let requested_customer_id = customer_id.clone();
             let vars = loan_agreement_generate::Variables {
                 input: loan_agreement_generate::LoanAgreementGenerateInput { customer_id },
             };
             let data = client.execute::<LoanAgreementGenerate>(vars).await?;
             let la = data.loan_agreement_generate.loan_agreement;
             if json {
-                output::print_json(&la)?;
+                output::print_json(&json!({
+                    "loanAgreementId": la.loan_agreement_id,
+                    "customerId": requested_customer_id,
+                    "status": format!("{:?}", la.status),
+                    "createdAt": la.created_at,
+                }))?;
             } else {
                 output::print_kv(&[
                     ("Loan Agreement ID", &la.loan_agreement_id),
@@ -57,7 +68,10 @@ pub async fn execute(
                 .await?;
             let result = data.loan_agreement_download_link_generate;
             if json {
-                output::print_json(&result)?;
+                output::print_json(&json!({
+                    "loanAgreementId": result.loan_agreement_id,
+                    "link": result.link,
+                }))?;
             } else {
                 output::print_kv(&[
                     ("Loan Agreement ID", &result.loan_agreement_id),

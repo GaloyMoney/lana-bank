@@ -1,4 +1,5 @@
 use anyhow::Result;
+use serde_json::json;
 
 use crate::cli::DepositAccountAction;
 use crate::client::GraphQLClient;
@@ -21,7 +22,13 @@ pub async fn record_deposit(
     let data = client.execute::<DepositRecord>(vars).await?;
     let d = data.deposit_record.deposit;
     if json {
-        output::print_json(&d)?;
+        output::print_json(&json!({
+            "depositId": d.deposit_id,
+            "depositAccountId": d.account.deposit_account_id,
+            "amount": d.amount,
+            "settledBalance": d.account.balance.settled,
+            "pendingBalance": d.account.balance.pending,
+        }))?;
     } else {
         let amount = scalar(&d.amount);
         let settled = scalar(&d.account.balance.settled);
@@ -49,7 +56,14 @@ pub async fn execute(
             let data = client.execute::<DepositAccountCreate>(vars).await?;
             let a = data.deposit_account_create.account;
             if json {
-                output::print_json(&a)?;
+                output::print_json(&json!({
+                    "depositAccountId": a.deposit_account_id,
+                    "customerId": a.customer_id,
+                    "publicId": a.public_id,
+                    "status": format!("{:?}", a.status),
+                    "activity": format!("{:?}", a.activity),
+                    "createdAt": a.created_at,
+                }))?;
             } else {
                 output::print_kv(&[
                     ("Account ID", &a.deposit_account_id),
@@ -106,7 +120,16 @@ pub async fn execute(
             match data.deposit_account {
                 Some(a) => {
                     if json {
-                        output::print_json(&a)?;
+                        output::print_json(&json!({
+                            "depositAccountId": a.deposit_account_id,
+                            "customerId": a.customer_id,
+                            "publicId": a.public_id,
+                            "status": format!("{:?}", a.status),
+                            "activity": format!("{:?}", a.activity),
+                            "createdAt": a.created_at,
+                            "settledBalance": a.balance.settled,
+                            "pendingBalance": a.balance.pending,
+                        }))?;
                     } else {
                         let settled = scalar(&a.balance.settled);
                         let pending = scalar(&a.balance.pending);
@@ -132,7 +155,11 @@ pub async fn execute(
             let data = client.execute::<DepositAccountFreeze>(vars).await?;
             let a = data.deposit_account_freeze.account;
             if json {
-                output::print_json(&a)?;
+                output::print_json(&json!({
+                    "depositAccountId": a.deposit_account_id,
+                    "status": format!("{:?}", a.status),
+                    "settledBalance": a.balance.settled,
+                }))?;
             } else {
                 let settled = scalar(&a.balance.settled);
                 output::print_kv(&[
@@ -149,7 +176,11 @@ pub async fn execute(
             let data = client.execute::<DepositAccountUnfreeze>(vars).await?;
             let a = data.deposit_account_unfreeze.account;
             if json {
-                output::print_json(&a)?;
+                output::print_json(&json!({
+                    "depositAccountId": a.deposit_account_id,
+                    "status": format!("{:?}", a.status),
+                    "settledBalance": a.balance.settled,
+                }))?;
             } else {
                 let settled = scalar(&a.balance.settled);
                 output::print_kv(&[
@@ -166,7 +197,11 @@ pub async fn execute(
             let data = client.execute::<DepositAccountClose>(vars).await?;
             let a = data.deposit_account_close.account;
             if json {
-                output::print_json(&a)?;
+                output::print_json(&json!({
+                    "depositAccountId": a.deposit_account_id,
+                    "status": format!("{:?}", a.status),
+                    "settledBalance": a.balance.settled,
+                }))?;
             } else {
                 let settled = scalar(&a.balance.settled);
                 output::print_kv(&[

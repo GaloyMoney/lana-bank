@@ -49,6 +49,7 @@ mutation DepositRecord($input: DepositRecordInput!) {
       depositId
       amount
       account {
+        depositAccountId
         balance {
           settled
           pending
@@ -62,8 +63,13 @@ mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
   withdrawalInitiate(input: $input) {
     withdrawal {
       withdrawalId
+      accountId
       approvalProcessId
+      amount
       status
+      createdAt
+      publicId
+      reference
       account {
         status
         balance {
@@ -79,7 +85,12 @@ mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
   withdrawalConfirm(input: $input) {
     withdrawal {
       withdrawalId
+      accountId
+      amount
       status
+      createdAt
+      publicId
+      reference
       account {
         balance {
           settled
@@ -94,7 +105,12 @@ mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
   withdrawalCancel(input: $input) {
     withdrawal {
       withdrawalId
+      accountId
+      amount
       status
+      createdAt
+      publicId
+      reference
       account {
         balance {
           settled
@@ -109,7 +125,12 @@ mutation WithdrawalRevert($input: WithdrawalRevertInput!) {
   withdrawalRevert(input: $input) {
     withdrawal {
       withdrawalId
+      accountId
+      amount
       status
+      createdAt
+      publicId
+      reference
     }
   }
 }

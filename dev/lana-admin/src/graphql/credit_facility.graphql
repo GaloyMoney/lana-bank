@@ -2,6 +2,7 @@ mutation CreditFacilityProposalCreate($input: CreditFacilityProposalCreateInput!
   creditFacilityProposalCreate(input: $input) {
     creditFacilityProposal {
       creditFacilityProposalId
+      approvalProcessId
       status
       facilityAmount
       createdAt
@@ -79,6 +80,12 @@ mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiate
       status
       createdAt
       publicId
+      creditFacility {
+        creditFacilityId
+      }
+      approvalProcess {
+        approvalProcessId
+      }
     }
   }
 }
@@ -86,6 +93,7 @@ mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiate
 query CreditFacilityProposalGet($id: UUID!) {
   creditFacilityProposal(id: $id) {
     creditFacilityProposalId
+    approvalProcessId
     status
   }
 }
@@ -94,6 +102,8 @@ mutation CreditFacilityProposalCustomerApprovalConclude($input: CreditFacilityPr
   creditFacilityProposalCustomerApprovalConclude(input: $input) {
     creditFacilityProposal {
       creditFacilityProposalId
+      approvalProcessId
+      status
     }
   }
 }
@@ -102,7 +112,11 @@ query PendingCreditFacilityGet($id: UUID!) {
   pendingCreditFacility(id: $id) {
     pendingCreditFacilityId
     collateralId
+    approvalProcessId
     status
+    createdAt
+    facilityAmount
+    collateralizationState
     wallet {
       address
     }

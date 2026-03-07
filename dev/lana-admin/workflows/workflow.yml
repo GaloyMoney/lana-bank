@@ -261,7 +261,7 @@ steps:
       overdue-days: "50"
       liquidation-days: "360"
     capture:
-      credit_facility_proposal_id: ".creditFacilityProposalId"
+      credit_facility_proposal_id: ".proposalId"
 
   - id: credit_facility_proposal_get
     depends_on: [credit_facility_proposal_create]
