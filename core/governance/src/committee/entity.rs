@@ -103,11 +103,23 @@ impl TryFromEvents<CommitteeEvent> for Committee {
 }
 
 #[derive(Debug, Builder)]
+#[builder(build_fn(validate = "Self::validate"))]
 pub struct NewCommittee {
     #[builder(setter(into))]
     pub(super) id: CommitteeId,
     pub(super) name: String,
     pub(super) member_ids: HashSet<CommitteeMemberId>,
+}
+
+impl NewCommitteeBuilder {
+    fn validate(&self) -> Result<(), String> {
+        if let Some(ref member_ids) = self.member_ids {
+            if member_ids.is_empty() {
+                return Err("Committee must have at least one member".to_string());
+            }
+        }
+        Ok(())
+    }
 }
 
 impl NewCommittee {

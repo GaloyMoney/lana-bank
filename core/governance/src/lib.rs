@@ -363,12 +363,6 @@ where
         name: String,
         member_ids: HashSet<CommitteeMemberId>,
     ) -> Result<Committee, GovernanceError> {
-        if member_ids.is_empty() {
-            return Err(GovernanceError::CommitteeError(
-                committee::error::CommitteeError::CommitteeMustHaveAtLeastOneMember,
-            ));
-        }
-
         self.authz
             .enforce_permission(
                 sub,
@@ -382,7 +376,7 @@ where
             .name(name)
             .member_ids(member_ids)
             .build()
-            .expect("Could not build new committee");
+            .map_err(|_| committee::error::CommitteeError::CommitteeMustHaveAtLeastOneMember)?;
 
         let mut db = self.committee_repo.begin_op().await?;
         let committee = self
