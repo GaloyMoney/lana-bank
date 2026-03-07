@@ -20,7 +20,7 @@ pub enum CustomerEvent {
         party_id: PartyId,
         customer_type: CustomerType,
         public_id: PublicId,
-        applicant_id: Option<String>,
+        conversion: CustomerConversion,
         level: KycLevel,
     },
     Frozen {
@@ -42,8 +42,7 @@ pub struct Customer {
     pub customer_type: CustomerType,
     pub status: CustomerStatus,
     pub level: KycLevel,
-    #[builder(setter(into))]
-    pub applicant_id: Option<String>,
+    pub conversion: CustomerConversion,
     pub public_id: PublicId,
     events: EntityEvents<CustomerEvent>,
 }
@@ -62,7 +61,11 @@ impl Customer {
     }
 
     pub fn has_been_verified(&self) -> bool {
-        self.applicant_id.is_some()
+        matches!(self.conversion, CustomerConversion::SumsubApproved(_))
+    }
+
+    pub fn applicant_id(&self) -> Option<&str> {
+        self.conversion.applicant_id()
     }
 
     pub fn may_attach_product(&self, require_verified: bool) -> bool {
@@ -151,7 +154,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     party_id,
                     customer_type,
                     public_id,
-                    applicant_id,
+                    conversion,
                     level,
                 } => {
                     builder = builder
@@ -161,7 +164,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .status(CustomerStatus::Active)
                         .public_id(public_id.clone())
                         .level(*level)
-                        .applicant_id(applicant_id.clone());
+                        .conversion(conversion.clone());
                 }
                 CustomerEvent::Frozen { status } => {
                     builder = builder.status(*status);
@@ -187,8 +190,7 @@ pub struct NewCustomer {
     pub(crate) customer_type: CustomerType,
     #[builder(setter(into))]
     pub(crate) public_id: PublicId,
-    #[builder(setter(into))]
-    pub(crate) applicant_id: Option<String>,
+    pub(crate) conversion: CustomerConversion,
     pub(crate) level: KycLevel,
     #[builder(setter(skip), default)]
     pub(crate) status: CustomerStatus,
@@ -209,7 +211,7 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 party_id: self.party_id,
                 customer_type: self.customer_type,
                 public_id: self.public_id,
-                applicant_id: self.applicant_id,
+                conversion: self.conversion,
                 level: self.level,
             }],
         )

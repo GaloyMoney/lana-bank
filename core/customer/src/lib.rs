@@ -357,7 +357,7 @@ where
             .create_prospect(sub, email, telegram_handle, customer_type)
             .await?;
 
-        match prospect.convert_manually()? {
+        match prospect.convert_manually(&sub.to_string())? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -783,7 +783,7 @@ where
             .find_by_id_in_op(&mut db, prospect_id)
             .await?;
 
-        match prospect.convert_manually() {
+        match prospect.convert_manually(&sub.to_string()) {
             Ok(es_entity::Idempotent::Executed(new_customer)) => {
                 self.prospect_repo
                     .update_in_op(&mut db, &mut prospect)

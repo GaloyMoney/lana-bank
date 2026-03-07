@@ -183,7 +183,9 @@ impl Prospect {
             .party_id(self.party_id)
             .customer_type(self.customer_type)
             .public_id(self.public_id.clone())
-            .applicant_id(Some(applicant_id))
+            .conversion(CustomerConversion::SumsubApproved(SumsubApproved {
+                applicant_id,
+            }))
             .level(level)
             .build()
             .expect("Could not build customer from prospect");
@@ -191,7 +193,10 @@ impl Prospect {
         Ok(Idempotent::Executed(new_customer))
     }
 
-    pub fn convert_manually(&mut self) -> Result<Idempotent<NewCustomer>, ProspectError> {
+    pub fn convert_manually(
+        &mut self,
+        converted_by: &str,
+    ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::ManuallyConverted { .. }
@@ -207,7 +212,9 @@ impl Prospect {
             .party_id(self.party_id)
             .customer_type(self.customer_type)
             .public_id(self.public_id.clone())
-            .applicant_id(None)
+            .conversion(CustomerConversion::ManuallyConverted(ManuallyConverted {
+                converted_by: converted_by.to_string(),
+            }))
             .level(KycLevel::Basic)
             .build()
             .expect("Could not build customer from prospect");
