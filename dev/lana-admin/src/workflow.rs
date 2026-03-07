@@ -4,8 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{cli::WorkflowAction, output};
 
-const SEED_CUSTOMER_CREDIT_FACILITY: &str =
-    include_str!("../workflows/seed_customer_credit_facility.yaml");
+const WORKFLOW_YAML: &str = include_str!("../workflows/workflow.yml");
 
 #[derive(Debug, Clone, Deserialize)]
 struct WorkflowDefinition {
@@ -114,7 +113,7 @@ fn workflow_deps(target_step: &str, include_read_only: bool, json: bool) -> anyh
 }
 
 fn load_workflow() -> anyhow::Result<WorkflowDefinition> {
-    serde_yaml::from_str(SEED_CUSTOMER_CREDIT_FACILITY)
+    serde_yaml::from_str(WORKFLOW_YAML)
         .context("failed to parse embedded workflow dependency graph")
 }
 
