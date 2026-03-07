@@ -6,7 +6,9 @@ mod entity_query_infallible;
 mod graphql_id_naming;
 mod repo_in_op_usage;
 mod reqwest_in_lib;
+mod service_assert_before_mutate;
 mod service_conditionals;
+mod service_lint_utils;
 mod transaction_commit;
 mod unwrap_usage;
 
@@ -18,6 +20,7 @@ pub use entity_query_infallible::EntityQueryInfallibleRule;
 pub use graphql_id_naming::GraphqlIdNamingRule;
 pub use repo_in_op_usage::RepoInOpUsageRule;
 pub use reqwest_in_lib::ReqwestInLibRule;
+pub use service_assert_before_mutate::ServiceAssertBeforeMutateRule;
 pub use service_conditionals::ServiceConditionalsRule;
 pub use transaction_commit::TransactionCommitRule;
 pub use unwrap_usage::UnwrapUsageRule;
