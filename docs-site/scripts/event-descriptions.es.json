@@ -81,7 +81,8 @@
       "CustomerAccountKycVerificationUpdated": "Cambio el estado de verificacion KYC",
       "CustomerEmailUpdated": "Se actualizo el email del cliente",
       "CustomerFrozen": "Se congelo una cuenta de cliente, bloqueando operaciones financieras",
-      "CustomerUnfrozen": "Se descongelo una cuenta de cliente previamente congelada, restaurando operaciones normales"
+      "CustomerUnfrozen": "Se descongelo una cuenta de cliente previamente congelada, restaurando operaciones normales",
+      "CustomerClosed": "La cuenta del cliente fue cerrada"
     }
   },
   "CoreDepositEvent": {
