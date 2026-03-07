@@ -5,6 +5,7 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { ActivityStatusBadge } from "../customers/activity-status-badge"
+
 import { DepositAccountStatusBadge } from "./status-badge"
 
 import {
