@@ -61,21 +61,17 @@ impl Query {
         maybe_fetch_one!(User, ctx, app.access().users().find_by_id(sub, id))
     }
 
-    async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
+    async fn users(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<UserCursor, User, EmptyFields, EmptyFields>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let users: Vec<_> = app
+        list_with_cursor!(UserCursor, User, ctx, after, first, |query| app
             .access()
             .users()
-            .list_users(sub)
-            .await?
-            .into_iter()
-            .map(User::from)
-            .collect();
-        loader
-            .feed_many(users.iter().map(|u| (u.entity.id, u.clone())))
-            .await;
-        Ok(users)
+            .list_users(sub, query))
     }
 
     async fn role(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Role>> {

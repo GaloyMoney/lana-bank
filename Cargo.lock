@@ -1173,6 +1173,7 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
+ "base64",
  "chrono",
  "derive_builder",
  "es-entity",

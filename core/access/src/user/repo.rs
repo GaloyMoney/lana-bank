@@ -1,12 +1,12 @@
 use es_entity::clock::ClockHandle;
-use sqlx::PgPool;
+use sqlx::{PgPool, Row, types::Uuid};
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{primitives::*, public::CoreAccessEvent, publisher::UserPublisher};
 
-use super::entity::*;
+use super::{cursor::UserCursor, entity::*, error::*};
 
 #[derive(EsRepo)]
 #[es_repo(
@@ -46,6 +46,57 @@ where
         self.publisher
             .publish_user_in_op(op, entity, new_events)
             .await
+    }
+
+    pub async fn list_users(
+        &self,
+        args: PaginatedQueryArgs<UserCursor>,
+    ) -> Result<PaginatedQueryRet<User, UserCursor>, UserError> {
+        let first = args.first as i64;
+        let cursor_id = args.after.map(|c| sqlx::types::Uuid::from(c.id));
+
+        let rows = sqlx::query(
+            r#"SELECT id FROM core_users
+               WHERE ($2::UUID IS NULL OR id > $2)
+               ORDER BY id ASC
+               LIMIT $1"#,
+        )
+        .bind(first + 1)
+        .bind(cursor_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        let ids: Vec<UserId> = rows
+            .into_iter()
+            .map(|r| {
+                let id: Uuid = r.get("id");
+                UserId::from(id)
+            })
+            .collect();
+
+        let has_next_page = ids.len() > args.first;
+        let ids_to_load = if has_next_page {
+            &ids[..args.first]
+        } else {
+            &ids
+        };
+
+        let mut users_map = self.find_all(ids_to_load).await?;
+
+        let mut entities = Vec::new();
+        for id in ids_to_load {
+            if let Some(user) = users_map.remove(id) {
+                entities.push(user);
+            }
+        }
+
+        let end_cursor = entities.last().map(UserCursor::from);
+
+        Ok(PaginatedQueryRet {
+            entities,
+            has_next_page,
+            end_cursor,
+        })
     }
 }
 

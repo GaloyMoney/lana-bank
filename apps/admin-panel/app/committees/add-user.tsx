@@ -23,6 +23,7 @@ import {
 } from "@lana/web/ui/select"
 
 import { useCommitteeAddUserMutation, useUsersQuery } from "@/lib/graphql/generated"
+import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 
 gql`
   mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
@@ -47,7 +48,11 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
 }) => {
   const t = useTranslations("Committees.CommitteeDetails.AddUserCommitteeDialog")
   const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation()
-  const { data: userData, loading: usersLoading } = useUsersQuery()
+  const { data: userData, loading: usersLoading } = useUsersQuery({
+    variables: {
+      first: DEFAULT_PAGESIZE * 10,
+    },
+  })
 
   const [selectedUserId, setSelectedUserId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -111,7 +116,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
               <SelectValue placeholder={t("placeholders.selectUser")} />
             </SelectTrigger>
             <SelectContent>
-              {userData?.users.map((user) => (
+              {userData?.users.edges.map(({ node: user }) => (
                 <SelectItem key={user.userId} value={user.userId}>
                   {user.email} {user.role?.name}
                 </SelectItem>

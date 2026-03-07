@@ -1,3 +1,4 @@
+mod cursor;
 mod entity;
 pub mod error;
 mod repo;
@@ -13,6 +14,7 @@ use tracing_macros::record_error_severity;
 
 use crate::{Role, primitives::*, public::*, publisher::UserPublisher};
 
+pub use cursor::UserCursor;
 pub use entity::User;
 use entity::*;
 // UserEvent is available internally and conditionally publicly
@@ -21,7 +23,6 @@ pub use entity::UserEvent;
 #[cfg(not(feature = "json-schema"))]
 pub(crate) use entity::UserEvent;
 pub use error::*;
-pub use repo::user_cursor::UsersByCreatedAtCursor;
 use repo::*;
 
 pub struct Users<Audit, E>
@@ -197,7 +198,8 @@ where
     pub async fn list_users(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-    ) -> Result<Vec<User>, UserError> {
+        query: es_entity::PaginatedQueryArgs<UserCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<User, UserCursor>, UserError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -206,19 +208,14 @@ where
             )
             .await?;
 
-        Ok(self
-            .repo
-            .list_by_email(Default::default(), es_entity::ListDirection::Ascending)
-            .await?
-            .entities)
+        self.repo.list_users(query).await
     }
 
     pub async fn list_users_without_audit(
         &self,
-        query: es_entity::PaginatedQueryArgs<UsersByCreatedAtCursor>,
-        direction: es_entity::ListDirection,
-    ) -> Result<es_entity::PaginatedQueryRet<User, UsersByCreatedAtCursor>, UserError> {
-        Ok(self.repo.list_by_created_at(query, direction).await?)
+        query: es_entity::PaginatedQueryArgs<UserCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<User, UserCursor>, UserError> {
+        self.repo.list_users(query).await
     }
 
     pub async fn subject_can_update_role_of_user(

@@ -14,7 +14,11 @@ import {
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
-import DataTable, { Column } from "../../components/data-table"
+import PaginatedTable, {
+  Column,
+  DEFAULT_PAGESIZE,
+  PaginatedData,
+} from "../../components/paginated-table"
 
 import { useRolesQuery } from "@/lib/graphql/generated"
 import { usePermissionDisplay } from "@/hooks/use-permission-display"
@@ -43,6 +47,11 @@ gql`
         node {
           ...RoleFields
         }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }
@@ -97,16 +106,15 @@ function RolesAndPermissionsPage() {
     data: rolesData,
     loading,
     error,
+    fetchMore,
   } = useRolesQuery({
-    variables: { first: 100 },
+    variables: { first: DEFAULT_PAGESIZE },
   })
-
-  const roles = rolesData?.roles.edges.map((edge) => edge.node) || []
 
   const columns: Column<Role>[] = [
     {
       key: "name",
-      header: t("table.headers.name"),
+      label: t("table.headers.name"),
       render: (name, role) => (
         <div>
           <div className="font-medium">{name}</div>
@@ -118,22 +126,17 @@ function RolesAndPermissionsPage() {
     },
     {
       key: "createdAt",
-      header: t("table.headers.createdAt"),
+      label: t("table.headers.createdAt"),
       render: (createdAt) => <DateWithTooltip value={createdAt} />,
     },
     {
       key: "permissionSets",
-      width: "60%",
-      header: t("table.headers.permissionSets"),
+      label: t("table.headers.permissionSets"),
       render: (permissionSets) => (
         <CompactPermissionSets permissionSets={permissionSets} maxShow={4} />
       ),
     },
   ]
-
-  if (error) {
-    return <div className="text-destructive">{error.message}</div>
-  }
 
   return (
     <Card>
@@ -142,11 +145,14 @@ function RolesAndPermissionsPage() {
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
-          data={roles}
+        {error && <p className="text-destructive text-sm">{error.message}</p>}
+        <PaginatedTable<Role>
+          data={rolesData?.roles as PaginatedData<Role>}
           columns={columns}
           loading={loading}
-          emptyMessage={t("table.emptyMessage")}
+          fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+          pageSize={DEFAULT_PAGESIZE}
+          noDataText={t("table.emptyMessage")}
           navigateTo={(role) => `/roles-and-permissions/${role.roleId}`}
         />
       </CardContent>
