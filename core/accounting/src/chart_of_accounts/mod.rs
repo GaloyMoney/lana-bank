@@ -184,6 +184,7 @@ where
                 .await?;
         }
 
+        // lint:allow(service-conditionals) — post-mutation read of new account IDs
         let new_trial_balance_account_ids = chart
             .trial_balance_account_ids_from_new_accounts(&new_account_set_ids)
             .collect();
@@ -239,6 +240,7 @@ where
 
         op.commit().await?;
 
+        // lint:allow(service-conditionals) — post-mutation read of new account IDs
         let new_account_set_ids = &chart
             .trial_balance_account_ids_from_new_accounts(&new_account_set_ids)
             .collect::<Vec<_>>();
@@ -301,6 +303,7 @@ where
 
         op.commit().await?;
 
+        // lint:allow(service-conditionals) — post-mutation read of new account ID
         let new_account_set_id = chart.trial_balance_account_id_from_new_account(account_set_id);
         Ok((chart, new_account_set_id))
     }
@@ -344,6 +347,7 @@ where
         tx_details: ClosingTxDetails,
     ) -> Result<(), ChartOfAccountsError> {
         let mut chart = self.repo.find_by_id_in_op(&mut *op, chart_id).await?;
+        // lint:allow(service-conditionals) — reads config needed as input for post_closing_tx_as_of
         let account_codes = ClosingAccountCodes::from(
             &chart
                 .accounting_base_config()
@@ -465,6 +469,7 @@ where
         let mut op = self.repo.begin_op().await?;
         let mut chart = self.find_by_reference_in_op(&mut op, chart_ref).await?;
 
+        // lint:allow(service-conditionals) — idempotency: return existing before creating
         if let Some(id) = chart.find_manual_transaction_account(&account_id_or_code) {
             return Ok(id);
         }

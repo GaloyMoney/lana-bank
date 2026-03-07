@@ -7,20 +7,29 @@ use walkdir::WalkDir;
 
 use crate::{Violation, WorkspaceRule};
 
-/// Rule that flags service functions that inspect entity state in conditionals
-/// (Tell, Don't Ask violation).
+/// Rule that flags two Tell-Don't-Ask anti-patterns in service functions:
 ///
-/// **Phase 1** – Scan `entity.rs` files, collect `&self` method names from
-/// structs that derive `EsEntity`.  Only read-only query methods are collected;
-/// `&mut self` mutation methods are intentionally excluded.
+/// 1. **Conditional on entity state** – a service inspects entity state (via a
+///    `&self` query method) inside an `if` / `match` condition.
+///
+/// 2. **Query + mutation co-occurrence** – a service calls `&self` query/
+///    assertion methods on an entity variable that is *also* mutated (via
+///    `&mut self` methods) in the same function.  The validation should live
+///    inside the entity's mutation method instead.
+///
+/// **Phase 1** – Scan `entity.rs` files, collect both `&self` (query) and
+/// `&mut self` (mutation) method names from structs that derive `EsEntity`.
 ///
 /// **Phase 2** – Scan remaining Rust source files.  For each function body,
 /// track variables that originate from repository `find_*` / `maybe_find_by_*`
-/// calls and flag `if` / `match` conditions that call a registered entity
-/// query method on one of those variables.
+/// calls and:
+///   a) flag `if` / `match` conditions that call a query method on a tracked
+///      variable, and
+///   b) flag query method calls on a tracked variable when that same variable
+///      also has mutation method calls in the same function.
 ///
 /// Suppression: place `// lint:allow(service-conditionals)` on the flagged line
-/// or the line immediately above it.
+/// or up to 3 lines above it.
 pub struct ServiceConditionalsRule;
 
 impl ServiceConditionalsRule {
@@ -40,10 +49,19 @@ const DIRS_TO_CHECK: &[&str] = &["core", "lana", "lib"];
 
 // ── Phase 1: Entity Method Registry ──────────────────────────────────
 
-/// Collect all `&self` method names from `EsEntity` structs across `entity.rs`
-/// files in the workspace.
-fn collect_entity_query_methods(workspace_root: &Path) -> HashSet<String> {
-    let mut all_methods = HashSet::new();
+/// Registry of entity method names, split by receiver type.
+struct EntityMethods {
+    /// `&self` query / assertion methods.
+    query: HashSet<String>,
+    /// `&mut self` mutation methods.
+    mutation: HashSet<String>,
+}
+
+/// Collect `&self` and `&mut self` method names from `EsEntity` structs across
+/// `entity.rs` files in the workspace.
+fn collect_entity_methods(workspace_root: &Path) -> EntityMethods {
+    let mut all_query = HashSet::new();
+    let mut all_mutation = HashSet::new();
 
     for dir in DIRS_TO_CHECK {
         let dir_path = workspace_root.join(dir);
@@ -72,14 +90,18 @@ fn collect_entity_query_methods(workspace_root: &Path) -> HashSet<String> {
                 continue;
             }
 
-            // Pass 2: collect &self methods on those structs
+            // Pass 2: collect &self and &mut self methods on those structs
             let mut mc = EntityMethodCollector::new(&collector.es_entity_structs);
             mc.visit_file(&parsed);
-            all_methods.extend(mc.query_methods);
+            all_query.extend(mc.query_methods);
+            all_mutation.extend(mc.mutation_methods);
         }
     }
 
-    all_methods
+    EntityMethods {
+        query: all_query,
+        mutation: all_mutation,
+    }
 }
 
 /// First-pass visitor: collect struct names that derive `EsEntity`.
@@ -115,10 +137,12 @@ impl<'ast> Visit<'ast> for EsEntityCollector {
     }
 }
 
-/// Second-pass visitor: collect `&self` method names from `EsEntity` impl blocks.
+/// Second-pass visitor: collect `&self` and `&mut self` method names from
+/// `EsEntity` impl blocks.
 struct EntityMethodCollector<'a> {
     es_entity_structs: &'a HashSet<String>,
     query_methods: HashSet<String>,
+    mutation_methods: HashSet<String>,
     current_impl_struct: Option<String>,
 }
 
@@ -127,6 +151,7 @@ impl<'a> EntityMethodCollector<'a> {
         Self {
             es_entity_structs,
             query_methods: HashSet::new(),
+            mutation_methods: HashSet::new(),
             current_impl_struct: None,
         }
     }
@@ -156,16 +181,31 @@ impl<'a> Visit<'a> for EntityMethodCollector<'a> {
 
     fn visit_impl_item_fn(&mut self, node: &'a syn::ImplItemFn) {
         if self.current_impl_struct.is_some() {
-            let has_immutable_self = node.sig.inputs.iter().any(|arg| {
-                if let syn::FnArg::Receiver(receiver) = arg {
-                    receiver.mutability.is_none() && receiver.reference.is_some()
-                } else {
-                    false
-                }
-            });
+            let (has_immutable_self, has_mut_self) =
+                node.sig
+                    .inputs
+                    .iter()
+                    .fold((false, false), |(imm, mt), arg| {
+                        if let syn::FnArg::Receiver(receiver) = arg {
+                            if receiver.reference.is_some() {
+                                if receiver.mutability.is_some() {
+                                    (imm, true)
+                                } else {
+                                    (true, mt)
+                                }
+                            } else {
+                                (imm, mt)
+                            }
+                        } else {
+                            (imm, mt)
+                        }
+                    });
 
+            let name = node.sig.ident.to_string();
             if has_immutable_self {
-                self.query_methods.insert(node.sig.ident.to_string());
+                self.query_methods.insert(name);
+            } else if has_mut_self {
+                self.mutation_methods.insert(name);
             }
         }
         syn::visit::visit_impl_item_fn(self, node);
@@ -223,7 +263,7 @@ fn expr_to_simple_ident(expr: &syn::Expr) -> Option<String> {
 }
 
 /// Scan all Rust source files in the workspace for violations.
-fn scan_service_files(workspace_root: &Path, query_methods: &HashSet<String>) -> Vec<Violation> {
+fn scan_service_files(workspace_root: &Path, methods: &EntityMethods) -> Vec<Violation> {
     let mut violations = Vec::new();
 
     for dir in DIRS_TO_CHECK {
@@ -249,7 +289,7 @@ fn scan_service_files(workspace_root: &Path, query_methods: &HashSet<String>) ->
                 .strip_prefix(workspace_root)
                 .unwrap_or(entry.path());
 
-            let mut visitor = ServiceFunctionVisitor::new(relative_path, query_methods, &content);
+            let mut visitor = ServiceFunctionVisitor::new(relative_path, methods, &content);
             visitor.visit_file(&parsed);
             violations.extend(visitor.violations);
         }
@@ -260,22 +300,21 @@ fn scan_service_files(workspace_root: &Path, query_methods: &HashSet<String>) ->
 
 // ── Visitors for Phase 2 ─────────────────────────────────────────────
 
-/// Top-level visitor: enters every function, runs the two sub-passes on its
-/// body, and continues traversal so that sibling / nested functions are also
-/// checked.
+/// Top-level visitor: enters every function, runs the sub-passes on its body,
+/// and continues traversal so that sibling / nested functions are also checked.
 struct ServiceFunctionVisitor<'a> {
     violations: Vec<Violation>,
     path: &'a Path,
-    query_methods: &'a HashSet<String>,
+    methods: &'a EntityMethods,
     source: &'a str,
 }
 
 impl<'a> ServiceFunctionVisitor<'a> {
-    fn new(path: &'a Path, query_methods: &'a HashSet<String>, source: &'a str) -> Self {
+    fn new(path: &'a Path, methods: &'a EntityMethods, source: &'a str) -> Self {
         Self {
             violations: Vec::new(),
             path,
-            query_methods,
+            methods,
             source,
         }
     }
@@ -289,16 +328,46 @@ impl<'a> ServiceFunctionVisitor<'a> {
             return;
         }
 
+        let source_lines: Vec<&str> = self.source.lines().collect();
+
         // Sub-pass 2: check conditionals for entity query method calls.
         let mut checker = ConditionalChecker::new(
             self.path,
             fn_name,
             &var_collector.entity_vars,
-            self.query_methods,
-            self.source,
+            &self.methods.query,
+            &source_lines,
         );
         checker.visit_block(block);
         self.violations.extend(checker.violations);
+
+        // Sub-pass 3: flag query calls on variables that are also mutated.
+        let mut call_collector = EntityCallCollector::new(
+            &var_collector.entity_vars,
+            &self.methods.query,
+            &self.methods.mutation,
+        );
+        call_collector.visit_block(block);
+
+        for (var_name, method_name, line) in &call_collector.query_calls {
+            if call_collector.vars_with_mutations.contains(var_name)
+                && !is_suppressed(*line, &source_lines)
+            {
+                self.violations.push(
+                    Violation::new(
+                        RULE_NAME,
+                        self.path.display().to_string(),
+                        format!(
+                            "in function `{}`: `{}.{}()` queries entity state \
+                             but `{}` is also mutated — move the validation \
+                             into the entity's mutation method",
+                            fn_name, var_name, method_name, var_name,
+                        ),
+                    )
+                    .with_line(*line),
+                );
+            }
+        }
     }
 }
 
@@ -343,6 +412,24 @@ impl<'ast> Visit<'ast> for RepoFindVarCollector {
     fn visit_item_fn(&mut self, _node: &'ast syn::ItemFn) {}
 }
 
+/// Returns `true` when the given 1-indexed line is suppressed via a
+/// `// lint:allow(service-conditionals)` comment on the same line or up to
+/// 3 lines above (to handle multi-line `if` / `match` conditions where the
+/// method call and the `if` keyword are on different lines).
+fn is_suppressed(line: usize, source_lines: &[&str]) -> bool {
+    for offset in 0..=3 {
+        if line > offset {
+            let idx = line - 1 - offset;
+            if idx < source_lines.len()
+                && source_lines[idx].contains("lint:allow(service-conditionals)")
+            {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// Checks `if` / `match` conditions for entity query method calls on tracked
 /// variables.
 struct ConditionalChecker<'a> {
@@ -351,7 +438,7 @@ struct ConditionalChecker<'a> {
     fn_name: String,
     entity_vars: &'a HashSet<String>,
     query_methods: &'a HashSet<String>,
-    source_lines: Vec<&'a str>,
+    source_lines: &'a [&'a str],
 }
 
 impl<'a> ConditionalChecker<'a> {
@@ -360,7 +447,7 @@ impl<'a> ConditionalChecker<'a> {
         fn_name: &str,
         entity_vars: &'a HashSet<String>,
         query_methods: &'a HashSet<String>,
-        source: &'a str,
+        source_lines: &'a [&'a str],
     ) -> Self {
         Self {
             violations: Vec::new(),
@@ -368,26 +455,8 @@ impl<'a> ConditionalChecker<'a> {
             fn_name: fn_name.to_string(),
             entity_vars,
             query_methods,
-            source_lines: source.lines().collect(),
+            source_lines,
         }
-    }
-
-    /// Returns `true` when the given 1-indexed line is suppressed via a
-    /// `// lint:allow(service-conditionals)` comment on the same line or up to
-    /// 3 lines above (to handle multi-line `if` / `match` conditions where the
-    /// method call and the `if` keyword are on different lines).
-    fn is_suppressed(&self, line: usize) -> bool {
-        for offset in 0..=3 {
-            if line > offset {
-                let idx = line - 1 - offset;
-                if idx < self.source_lines.len()
-                    && self.source_lines[idx].contains("lint:allow(service-conditionals)")
-                {
-                    return true;
-                }
-            }
-        }
-        false
     }
 
     /// Recursively search an expression for a method call of the form
@@ -440,10 +509,61 @@ impl<'a> ConditionalChecker<'a> {
     }
 }
 
+/// Collects all entity query and mutation method calls on tracked variables
+/// within a single function body.  After visiting, `query_calls` contains
+/// every `(var, method, line)` tuple for `&self` calls, and
+/// `vars_with_mutations` contains every variable that also has a `&mut self`
+/// call.
+struct EntityCallCollector<'a> {
+    entity_vars: &'a HashSet<String>,
+    query_methods: &'a HashSet<String>,
+    mutation_methods: &'a HashSet<String>,
+    query_calls: Vec<(String, String, usize)>,
+    vars_with_mutations: HashSet<String>,
+}
+
+impl<'a> EntityCallCollector<'a> {
+    fn new(
+        entity_vars: &'a HashSet<String>,
+        query_methods: &'a HashSet<String>,
+        mutation_methods: &'a HashSet<String>,
+    ) -> Self {
+        Self {
+            entity_vars,
+            query_methods,
+            mutation_methods,
+            query_calls: Vec::new(),
+            vars_with_mutations: HashSet::new(),
+        }
+    }
+}
+
+impl<'ast> Visit<'ast> for EntityCallCollector<'_> {
+    fn visit_expr_method_call(&mut self, node: &'ast syn::ExprMethodCall) {
+        let method_name = node.method.to_string();
+
+        if let Some(var_name) = expr_to_simple_ident(&node.receiver)
+            && self.entity_vars.contains(&var_name)
+        {
+            if self.query_methods.contains(&method_name) {
+                let line = node.method.span().start().line;
+                self.query_calls.push((var_name.clone(), method_name, line));
+            } else if self.mutation_methods.contains(&method_name) {
+                self.vars_with_mutations.insert(var_name);
+            }
+        }
+
+        syn::visit::visit_expr_method_call(self, node);
+    }
+
+    // Don't descend into nested function definitions.
+    fn visit_item_fn(&mut self, _node: &'ast syn::ItemFn) {}
+}
+
 impl<'a> Visit<'a> for ConditionalChecker<'a> {
     fn visit_expr_if(&mut self, node: &'a syn::ExprIf) {
         if let Some((var_name, method_name, line)) = self.find_entity_query_call(&node.cond)
-            && !self.is_suppressed(line)
+            && !is_suppressed(line, self.source_lines)
         {
             self.violations.push(
                 Violation::new(
@@ -463,7 +583,7 @@ impl<'a> Visit<'a> for ConditionalChecker<'a> {
 
     fn visit_expr_match(&mut self, node: &'a syn::ExprMatch) {
         if let Some((var_name, method_name, line)) = self.find_entity_query_call(&node.expr)
-            && !self.is_suppressed(line)
+            && !is_suppressed(line, self.source_lines)
         {
             self.violations.push(
                 Violation::new(
@@ -497,13 +617,13 @@ impl WorkspaceRule for ServiceConditionalsRule {
     }
 
     fn check_workspace(&self, workspace_root: &Path) -> Result<Vec<Violation>> {
-        let query_methods = collect_entity_query_methods(workspace_root);
+        let methods = collect_entity_methods(workspace_root);
 
-        if query_methods.is_empty() {
+        if methods.query.is_empty() && methods.mutation.is_empty() {
             return Ok(Vec::new());
         }
 
-        Ok(scan_service_files(workspace_root, &query_methods))
+        Ok(scan_service_files(workspace_root, &methods))
     }
 }
 
@@ -513,27 +633,50 @@ impl WorkspaceRule for ServiceConditionalsRule {
 mod tests {
     use super::*;
 
-    /// Helper: collect entity query (&self) methods from code that contains
-    /// EsEntity structs.
-    fn collect_methods(code: &str) -> HashSet<String> {
+    /// Helper: collect entity methods from code that contains EsEntity structs.
+    fn collect_methods_full(code: &str) -> (HashSet<String>, HashSet<String>) {
         let file = syn::parse_file(code).expect("Failed to parse");
         let mut collector = EsEntityCollector::new();
         collector.visit_file(&file);
 
         if collector.es_entity_structs.is_empty() {
-            return HashSet::new();
+            return (HashSet::new(), HashSet::new());
         }
 
         let mut mc = EntityMethodCollector::new(&collector.es_entity_structs);
         mc.visit_file(&file);
-        mc.query_methods
+        (mc.query_methods, mc.mutation_methods)
     }
 
-    /// Helper: check service code with a pre-built set of entity query methods.
+    /// Helper: collect entity query (&self) methods only.
+    fn collect_methods(code: &str) -> HashSet<String> {
+        collect_methods_full(code).0
+    }
+
+    /// Helper: check service code with a pre-built set of entity methods.
     fn check_service_code(code: &str, query_methods: &HashSet<String>) -> Vec<Violation> {
+        let methods = EntityMethods {
+            query: query_methods.clone(),
+            mutation: HashSet::new(),
+        };
         let file = syn::parse_file(code).expect("Failed to parse");
-        let mut visitor =
-            ServiceFunctionVisitor::new(Path::new("test_service.rs"), query_methods, code);
+        let mut visitor = ServiceFunctionVisitor::new(Path::new("test_service.rs"), &methods, code);
+        visitor.visit_file(&file);
+        visitor.violations
+    }
+
+    /// Helper: check service code with both query and mutation method sets.
+    fn check_service_code_full(
+        code: &str,
+        query_methods: &HashSet<String>,
+        mutation_methods: &HashSet<String>,
+    ) -> Vec<Violation> {
+        let methods = EntityMethods {
+            query: query_methods.clone(),
+            mutation: mutation_methods.clone(),
+        };
+        let file = syn::parse_file(code).expect("Failed to parse");
+        let mut visitor = ServiceFunctionVisitor::new(Path::new("test_service.rs"), &methods, code);
         visitor.visit_file(&file);
         visitor.violations
     }
@@ -945,5 +1088,222 @@ mod tests {
             &methods,
         );
         assert_eq!(violations.len(), 1);
+    }
+
+    // ── Phase 1 mutation collection tests ───────────────────────────
+
+    #[test]
+    fn collects_mutation_methods() {
+        let (query, mutation) = collect_methods_full(
+            r#"
+            #[derive(EsEntity)]
+            pub struct Account {
+                id: EntityId,
+            }
+            impl Account {
+                pub fn status(&self) -> Status { Status::Active }
+                pub fn freeze(&mut self) -> Idempotent<()> { Idempotent::Executed(()) }
+                pub fn close(&mut self) -> Result<Idempotent<()>, Error> { Ok(Idempotent::Executed(())) }
+            }
+        "#,
+        );
+        assert!(query.contains("status"));
+        assert!(!query.contains("freeze"));
+        assert!(!query.contains("close"));
+        assert!(mutation.contains("freeze"));
+        assert!(mutation.contains("close"));
+        assert!(!mutation.contains("status"));
+    }
+
+    // ── Query + mutation co-occurrence tests ────────────────────────
+
+    #[test]
+    fn flags_query_when_same_var_is_mutated() {
+        let query: HashSet<String> = ["assert_allowed".to_string()].into();
+        let mutation: HashSet<String> = ["initiate".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<(), Error> {
+                    let mut entity = self.repo.find_by_id(id).await?;
+                    entity.assert_allowed()?;
+                    entity.initiate(data)?;
+                    self.repo.update(&mut entity).await?;
+                    Ok(())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        assert_eq!(
+            violations.len(),
+            1,
+            "Expected 1 co-occurrence violation: {:?}",
+            violations
+        );
+        assert!(violations[0].message.contains("assert_allowed"));
+        assert!(violations[0].message.contains("also mutated"));
+    }
+
+    #[test]
+    fn no_flag_query_only_no_mutation() {
+        let query: HashSet<String> = ["status".to_string()].into();
+        let mutation: HashSet<String> = ["close".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<Status, Error> {
+                    let entity = self.repo.find_by_id(id).await?;
+                    Ok(entity.status())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        assert!(
+            violations.is_empty(),
+            "Query-only (no mutation on same var) should not be flagged: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn no_flag_mutation_only_no_query() {
+        let query: HashSet<String> = ["status".to_string()].into();
+        let mutation: HashSet<String> = ["close".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<(), Error> {
+                    let mut entity = self.repo.find_by_id(id).await?;
+                    entity.close()?;
+                    self.repo.update(&mut entity).await?;
+                    Ok(())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        assert!(
+            violations.is_empty(),
+            "Mutation-only (no query on same var) should not be flagged: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn no_flag_query_and_mutation_on_different_vars() {
+        let query: HashSet<String> = ["is_active".to_string()].into();
+        let mutation: HashSet<String> = ["close".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<(), Error> {
+                    let source = self.repo.find_by_id(id1).await?;
+                    let mut target = self.repo.find_by_id(id2).await?;
+                    if source.is_active() {
+                        target.close()?;
+                        self.repo.update(&mut target).await?;
+                    }
+                    Ok(())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        // Only the conditional violation (source.is_active() in if), NOT
+        // a co-occurrence violation because query and mutation are on
+        // different variables.
+        assert_eq!(violations.len(), 1);
+        assert!(violations[0].message.contains("conditional"));
+    }
+
+    #[test]
+    fn flags_multiple_queries_when_var_also_mutated() {
+        let query: HashSet<String> =
+            ["assert_allowed".to_string(), "assert_valid".to_string()].into();
+        let mutation: HashSet<String> = ["execute".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<(), Error> {
+                    let mut entity = self.repo.find_by_id(id).await?;
+                    entity.assert_allowed()?;
+                    entity.assert_valid()?;
+                    entity.execute(data)?;
+                    self.repo.update(&mut entity).await?;
+                    Ok(())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        assert_eq!(
+            violations.len(),
+            2,
+            "Both query calls should be flagged: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn suppression_works_for_co_occurrence() {
+        let query: HashSet<String> = ["assert_allowed".to_string()].into();
+        let mutation: HashSet<String> = ["initiate".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<(), Error> {
+                    let mut entity = self.repo.find_by_id(id).await?;
+                    // lint:allow(service-conditionals)
+                    entity.assert_allowed()?;
+                    entity.initiate(data)?;
+                    self.repo.update(&mut entity).await?;
+                    Ok(())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        assert!(
+            violations.is_empty(),
+            "Suppression should prevent co-occurrence violation: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn conditional_query_with_mutation_triggers_both_rules() {
+        let query: HashSet<String> = ["is_closed".to_string()].into();
+        let mutation: HashSet<String> = ["reopen".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<(), Error> {
+                    let mut entity = self.repo.find_by_id(id).await?;
+                    if entity.is_closed() {
+                        entity.reopen()?;
+                        self.repo.update(&mut entity).await?;
+                    }
+                    Ok(())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        // Both rules fire: conditional check + co-occurrence
+        assert_eq!(
+            violations.len(),
+            2,
+            "Both conditional and co-occurrence rules should fire: {:?}",
+            violations
+        );
     }
 }

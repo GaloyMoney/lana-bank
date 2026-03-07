@@ -335,6 +335,7 @@ where
             .process_repo
             .find_by_id_in_op(&mut db, process_id)
             .await?;
+        // lint:allow(service-conditionals) — reads committee_id needed to look up eligible voters for deny()
         let eligible = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
                 .find_by_id_in_op(&mut db, committee_id)

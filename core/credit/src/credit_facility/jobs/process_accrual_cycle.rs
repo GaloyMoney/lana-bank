@@ -556,6 +556,7 @@ where
             .await?;
 
         let new_cycle_data = res.map(|periods| {
+            // lint:allow(service-conditionals) — post-mutation read of newly started cycle ID
             let new_accrual_cycle_id = credit_facility
                 .interest_accrual_cycle_in_progress()
                 .expect("First accrual cycle not found")
