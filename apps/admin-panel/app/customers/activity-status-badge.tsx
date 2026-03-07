@@ -15,9 +15,9 @@ const getStatusConfig = (status: Activity) => {
         translationKey: "inactive",
         variant: "secondary" as const,
       }
-    case Activity.Suspended:
+    case Activity.Escheatable:
       return {
-        translationKey: "suspended",
+        translationKey: "escheatable",
         variant: "destructive" as const,
       }
     default: {
@@ -32,7 +32,7 @@ interface ActivityStatusBadgeProps {
 }
 
 export const ActivityStatusBadge: React.FC<ActivityStatusBadgeProps> = ({ status }) => {
-  const t = useTranslations("Customers.CustomerDetails.details.status")
+  const t = useTranslations("Customers.status")
   if (!status) return null
 
   const { translationKey, variant } = getStatusConfig(status)

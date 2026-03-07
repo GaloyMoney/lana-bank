@@ -11,8 +11,6 @@ mod sync_customer_unfreeze;
 mod sync_email;
 mod sync_party_keycloak;
 pub(crate) mod unfreeze_customer_deposits;
-mod update_customer_activity_status;
-mod update_last_activity_date;
 mod update_user_email;
 
 pub use activate_holder_account::ActivateHolderAccountJobInitializer;
@@ -28,6 +26,4 @@ pub use sync_customer_unfreeze::*;
 pub use sync_email::*;
 pub use sync_party_keycloak::*;
 pub use unfreeze_customer_deposits::UnfreezeCustomerDepositsJobInitializer;
-pub use update_customer_activity_status::*;
-pub use update_last_activity_date::*;
 pub use update_user_email::*;

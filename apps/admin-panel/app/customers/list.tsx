@@ -38,7 +38,6 @@ gql`
           customerId
           publicId
           status
-          activity
           level
           email
           telegramHandle

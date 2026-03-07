@@ -8,6 +8,7 @@ CREATE TABLE core_deposit_account_events_rollup (
   -- Flattened fields from the event JSON
   account_holder_id UUID,
   account_ids JSONB,
+  activity VARCHAR,
   public_id VARCHAR,
   status VARCHAR
 ,
@@ -33,7 +34,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'account_holder_status_updated', 'frozen', 'unfrozen', 'closed') THEN
+  IF event_type NOT IN ('initialized', 'activity_updated', 'account_holder_status_updated', 'frozen', 'unfrozen', 'closed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -48,12 +49,14 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
     new_row.account_ids := (NEW.event -> 'account_ids');
+    new_row.activity := (NEW.event ->> 'activity');
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.status := (NEW.event ->> 'status');
   ELSE
     -- Default all fields to current values
     new_row.account_holder_id := current_row.account_holder_id;
     new_row.account_ids := current_row.account_ids;
+    new_row.activity := current_row.activity;
     new_row.public_id := current_row.public_id;
     new_row.status := current_row.status;
   END IF;
@@ -63,8 +66,11 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
       new_row.account_ids := (NEW.event -> 'account_ids');
+      new_row.activity := (NEW.event ->> 'activity');
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.status := (NEW.event ->> 'status');
+    WHEN 'activity_updated' THEN
+      new_row.activity := (NEW.event ->> 'activity');
     WHEN 'account_holder_status_updated' THEN
       new_row.status := (NEW.event ->> 'status');
     WHEN 'frozen' THEN
@@ -83,6 +89,7 @@ BEGIN
     event_type,
     account_holder_id,
     account_ids,
+    activity,
     public_id,
     status
   )
@@ -94,6 +101,7 @@ BEGIN
     new_row.event_type,
     new_row.account_holder_id,
     new_row.account_ids,
+    new_row.activity,
     new_row.public_id,
     new_row.status
   );

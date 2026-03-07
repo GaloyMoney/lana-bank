@@ -6,7 +6,7 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
-graphql = ["dep:async-graphql", "cala-ledger/graphql"]
+graphql = ["dep:async-graphql", "cala-ledger/graphql", "core-customer/graphql"]
 json-schema = [
     "dep:schemars",
     "es-entity/json-schema",
@@ -14,6 +14,7 @@ json-schema = [
     "job/json-schema",
     "money/json-schema",
     "public-id/json-schema",
+    "core-customer/json-schema",
 ]
 
 [dependencies]
@@ -63,3 +64,4 @@ rand = { workspace = true }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 rust_decimal_macros = { workspace = true }
+serial_test = { workspace = true }

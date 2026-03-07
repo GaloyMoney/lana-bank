@@ -52,8 +52,8 @@ This categorization is used in the chart of accounts to place deposit liabilitie
 ```mermaid
 stateDiagram-v2
     [*] --> Active : Account created
-    Active --> Inactive : Customer becomes inactive
-    Inactive --> Active : Customer becomes active
+    Active --> Inactive : Operational inactivation
+    Inactive --> Active : Reactivate
     Active --> Frozen : Freeze
     Frozen --> Active : Unfreeze
     Active --> Closed : Close (zero balance required)
@@ -62,9 +62,11 @@ stateDiagram-v2
 | Status | Description | Deposits Allowed | Withdrawals Allowed |
 |--------|-------------|:---:|:---:|
 | **Active** | Normal operations | Yes | Yes |
-| **Inactive** | Customer activity lapsed | No | No |
+| **Inactive** | Operationally inactive account | No | No |
 | **Frozen** | Compliance hold or dispute | No | No |
 | **Closed** | Permanently deactivated | No | No |
+
+Account activity is tracked separately from account status. The system classifies each deposit account as `Active`, `Inactive`, or `Escheatable` for dormancy monitoring by deriving the last activity date from the latest ledger transaction on the account, or from the account creation date when no transactions exist yet. The operational `status` above continues to control whether deposits and withdrawals are allowed.
 
 ### Freeze Account
 

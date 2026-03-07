@@ -1,5 +1,6 @@
 mod helpers;
 
+use chrono::{DateTime, Duration, TimeZone, Utc};
 use rust_decimal_macros::dec;
 use uuid::Uuid;
 
@@ -9,24 +10,24 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_customer::{CustomerType, Customers};
 use core_deposit::*;
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
+use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
 use helpers::{action, event, object};
 use obix::test_utils::expect_event;
 
-async fn setup() -> anyhow::Result<(
-    CoreDeposit<
-        authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
-        event::DummyEvent,
-    >,
-    Customers<
-        authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
-        event::DummyEvent,
-    >,
-    obix::Outbox<event::DummyEvent>,
-    job::Jobs,
-)> {
+type TestPerms = authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>;
+type TestDeposit = CoreDeposit<TestPerms, event::DummyEvent>;
+type TestCustomers = Customers<TestPerms, event::DummyEvent>;
+type TestOutbox = obix::Outbox<event::DummyEvent>;
+type TestSetup = (TestDeposit, TestCustomers, TestOutbox, job::Jobs);
+
+async fn setup() -> anyhow::Result<TestSetup> {
+    let (setup, _clock_ctrl) = setup_at(Utc::now()).await?;
+    Ok(setup)
+}
+
+async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockController)> {
     let pool = helpers::init_pool().await?;
-    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, clock_ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start));
 
     let outbox = obix::Outbox::<event::DummyEvent>::init(
         &pool,
@@ -42,11 +43,13 @@ async fn setup() -> anyhow::Result<(
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
+        .clock(clock.clone())
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
+            .clock(clock.clone())
             .build()
             .unwrap(),
     )
@@ -85,7 +88,7 @@ async fn setup() -> anyhow::Result<(
     )
     .await?;
 
-    Ok((deposit, customers, outbox, jobs))
+    Ok(((deposit, customers, outbox, jobs), clock_ctrl))
 }
 
 #[tokio::test]
@@ -201,7 +204,7 @@ async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
 
 /// `DepositInitialized` is published when a deposit is recorded via `CoreDeposit::record_deposit()`.
 ///
-/// This event is consumed by `lana` deposit sync (SumSub export) and `lana` customer sync (update last activity date).
+/// This event is consumed by `lana` deposit sync for downstream integrations.
 ///
 /// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
@@ -245,7 +248,7 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
 /// `WithdrawalConfirmed` is published when a withdrawal is confirmed via
 /// `CoreDeposit::confirm_withdrawal()`.
 ///
-/// This event is consumed by `lana` deposit sync (SumSub export) and `lana` customer sync (update last activity date).
+/// This event is consumed by `lana` deposit sync for downstream integrations.
 ///
 /// The event contains a snapshot with the withdrawal id, deposit account id, and amount.
 ///
@@ -321,7 +324,7 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
 
 /// `DepositReverted` is published when a deposit is reverted via `CoreDeposit::revert_deposit()`.
 ///
-/// This event is consumed by `lana` customer sync (update last activity date).
+/// This event is emitted for downstream integrations and audit visibility.
 ///
 /// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
@@ -358,6 +361,132 @@ async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
     assert_eq!(recorded.id, reverted.id);
     assert_eq!(recorded.deposit_account_id, reverted.deposit_account_id);
     assert_eq!(recorded.amount, reverted.amount);
+
+    Ok(())
+}
+
+#[tokio::test]
+#[serial_test::file_serial(core_deposit_activity_status)]
+async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date()
+-> anyhow::Result<()> {
+    let start = Utc.with_ymd_and_hms(2015, 1, 1, 0, 0, 0).unwrap();
+    let ((deposit, customers, _outbox, _jobs), clock_ctrl) = setup_at(start).await?;
+
+    let customer = customers
+        .create_customer_bypassing_kyc(
+            &DummySubject,
+            format!("user{}@example.com", Uuid::new_v4()),
+            format!("telegram{}", Uuid::new_v4()),
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
+    let now = start + Duration::days(4_000);
+
+    deposit.perform_activity_status_update(now).await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Escheatable);
+
+    clock_ctrl
+        .advance(std::time::Duration::from_secs(3_600 * 24 * 60 * 60))
+        .await;
+    deposit
+        .record_deposit(
+            &DummySubject,
+            account.id,
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
+            None,
+        )
+        .await?;
+    deposit.perform_activity_status_update(now).await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Inactive);
+
+    clock_ctrl
+        .advance(std::time::Duration::from_secs(370 * 24 * 60 * 60))
+        .await;
+    deposit
+        .record_deposit(
+            &DummySubject,
+            account.id,
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
+            None,
+        )
+        .await?;
+    deposit.perform_activity_status_update(now).await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Active);
+
+    Ok(())
+}
+
+#[tokio::test]
+#[serial_test::file_serial(core_deposit_activity_status)]
+async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::Result<()> {
+    let start = Utc.with_ymd_and_hms(2015, 1, 1, 0, 0, 0).unwrap();
+    let ((deposit, customers, _outbox, _jobs), clock_ctrl) = setup_at(start).await?;
+
+    let customer = customers
+        .create_customer_bypassing_kyc(
+            &DummySubject,
+            format!("user{}@example.com", Uuid::new_v4()),
+            format!("telegram{}", Uuid::new_v4()),
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
+    deposit
+        .record_deposit(
+            &DummySubject,
+            account.id,
+            UsdCents::try_from_usd(dec!(1_000)).unwrap(),
+            None,
+        )
+        .await?;
+
+    let now = start + Duration::days(4_000);
+
+    deposit.perform_activity_status_update(now).await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Escheatable);
+
+    clock_ctrl
+        .advance(std::time::Duration::from_secs(3_600 * 24 * 60 * 60))
+        .await;
+    deposit
+        .initiate_withdrawal(
+            &DummySubject,
+            account.id,
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
+            None,
+        )
+        .await?;
+    deposit.perform_activity_status_update(now).await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Inactive);
+
+    clock_ctrl
+        .advance(std::time::Duration::from_secs(370 * 24 * 60 * 60))
+        .await;
+    deposit
+        .initiate_withdrawal(
+            &DummySubject,
+            account.id,
+            UsdCents::try_from_usd(dec!(100)).unwrap(),
+            None,
+        )
+        .await?;
+    deposit.perform_activity_status_update(now).await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Active);
 
     Ok(())
 }

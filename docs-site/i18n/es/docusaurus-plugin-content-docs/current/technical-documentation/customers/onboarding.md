@@ -10,37 +10,39 @@ Este documento describe el flujo completo de incorporación de clientes, desde e
 
 ## Flujo de Onboarding
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                    1. CREACIÓN DEL CLIENTE                         │
-│  ┌──────────────┐                                                  │
-│  │ Admin crea   │───▶ Cliente en estado PENDING                    │
-│  │   cliente    │                                                  │
-│  └──────────────┘                                                  │
-└────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                    2. VERIFICACIÓN KYC                             │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐         │
-│  │ Solicitud    │───▶│   Sumsub     │───▶│  Resultado   │         │
-│  │   enviada    │    │  Verifica    │    │   recibido   │         │
-│  └──────────────┘    └──────────────┘    └──────────────┘         │
-└────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌────────────────────────────────────────────────────────────────────┐
-│                    3. APROVISIONAMIENTO                            │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐         │
-│  │ Usuario en   │───▶│  Cuenta de   │───▶│   Cliente    │         │
-│  │  Keycloak    │    │   depósito   │    │    ACTIVO    │         │
-│  └──────────────┘    └──────────────┘    └──────────────┘         │
-└────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph S1["1. Creación del Cliente"]
+        CREATE["El administrador crea al cliente<br/>(email, tipo, ID de Telegram)"] --> PENDING["Registro de cliente creado<br/>KYC = Verificación pendiente"]
+    end
+    subgraph S2["2. Verificación KYC"]
+        LINK["El operador genera<br/>el enlace de verificación de Sumsub"] --> CUST["El cliente completa<br/>la verificación de identidad"] --> HOOK["Sumsub envía<br/>la notificación webhook"]
+        HOOK --> RESULT{¿Aprobado?}
+        RESULT -->|Sí| APPROVED["KYC = Verificado<br/>Nivel = Básico"]
+        RESULT -->|No| REJECTED["KYC = Rechazado"]
+    end
+    subgraph S3["3. Aprovisionamiento"]
+        APPROVED --> KC["Usuario de Keycloak creado<br/>(por evento outbox)"]
+        KC --> EMAIL["Correo de bienvenida enviado<br/>con credenciales"]
+        EMAIL --> DEPACC["Cuenta de depósito creada"]
+        DEPACC --> ACTIVE["Cliente listo<br/>para operar"]
+    end
+    S1 --> S2
 ```
 
 ## Paso 1: Creación del Cliente
 
-### Desde el Panel de Administración
+Un operador crea al cliente proporcionando:
+
+- **Dirección de correo electrónico** (obligatorio): se usa para el inicio de sesión en Keycloak y comunicaciones. Debe ser única.
+- **ID de Telegram** (opcional): canal de contacto alternativo.
+- **Tipo de cliente** (obligatorio): determina el flujo de verificación KYC (KYC para personas físicas, KYB para empresas) y el tratamiento contable para las cuentas del cliente.
+
+El nuevo cliente comienza con:
+- Estado de verificación KYC: `Verificación pendiente`
+- Nivel KYC: `No verificado`
+
+No es posible realizar operaciones financieras hasta que la verificación KYC haya finalizado. El cliente aún no tiene una cuenta de depósito ni acceso al portal.
 
 1. Navegar a **Clientes** > **Nuevo Cliente**
 2. Completar información básica:

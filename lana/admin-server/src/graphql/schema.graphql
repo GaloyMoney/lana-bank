@@ -63,7 +63,7 @@ type AccountingCsvDownloadLinkGeneratePayload {
 enum Activity {
 	INACTIVE
 	ACTIVE
-	SUSPENDED
+	ESCHEATABLE
 }
 
 scalar AnnualRatePct
@@ -1026,7 +1026,6 @@ type Customer {
 	customerId: UUID!
 	status: CustomerStatus!
 	kycVerification: KycVerification!
-	activity: Activity!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
@@ -1227,6 +1226,7 @@ type DepositAccount {
 	customerId: UUID!
 	createdAt: Timestamp!
 	status: DepositAccountStatus!
+	activity: Activity!
 	publicId: PublicId!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!

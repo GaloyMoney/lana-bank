@@ -394,7 +394,7 @@
       "notVerified": "No Verificado",
       "active": "Activo",
       "inactive": "Inactivo",
-      "suspended": "Suspendido"
+      "escheatable": "Sujeto a escheatment"
     },
     "customerType": {
       "individual": "Individual",
@@ -473,7 +473,7 @@
         "status": {
           "active": "Activo",
           "inactive": "Inactivo",
-          "suspended": "Suspendido"
+          "escheatable": "Sujeto a escheatment"
         },
         "actions": {
           "editTelegram": "Editar handle de Telegram"
@@ -512,7 +512,8 @@
         "labels": {
           "checkingSettled": "Saldo Liquidado de Cuenta Corriente (USD)",
           "pendingWithdrawals": "Retiros Pendientes (USD)",
-          "status": "Estado"
+          "status": "Estado",
+          "activity": "Actividad"
         },
         "buttons": {
           "viewDetails": "Ver Detalles"
@@ -1657,7 +1658,8 @@
           "settledBalance": "Saldo Liquidado",
           "pendingBalance": "Saldo Pendiente",
           "createdAt": "Fecha de Creación",
-          "status": "Estado"
+          "status": "Estado",
+          "activity": "Actividad"
         },
         "buttons": {
           "viewLedgerAccount": "Ver Cuenta del Libro Mayor",

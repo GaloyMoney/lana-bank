@@ -20,6 +20,7 @@ gql`
     depositAccountId
     createdAt
     status
+    activity
     balance {
       settled
       pending

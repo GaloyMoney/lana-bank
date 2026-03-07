@@ -1334,7 +1334,6 @@ export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit
     relationshipsToOmit.add('Customer');
     return {
         __typename: 'Customer',
-        activity: overrides && overrides.hasOwnProperty('activity') ? overrides.activity! : Activity.Active,
         applicantId: overrides && overrides.hasOwnProperty('applicantId') ? overrides.applicantId! : generateMockValue.applicantId(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacilities: overrides && overrides.hasOwnProperty('creditFacilities') ? overrides.creditFacilities! : [relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit)],
@@ -1602,6 +1601,7 @@ export const mockDepositAccount = (overrides?: Partial<DepositAccount>, _relatio
     relationshipsToOmit.add('DepositAccount');
     return {
         __typename: 'DepositAccount',
+        activity: overrides && overrides.hasOwnProperty('activity') ? overrides.activity! : Activity.Active,
         balance: overrides && overrides.hasOwnProperty('balance') ? overrides.balance! : relationshipsToOmit.has('DepositAccountBalance') ? {} as DepositAccountBalance : mockDepositAccountBalance({}, relationshipsToOmit),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),

@@ -38,23 +38,22 @@ where
     ) -> Result<(), sqlx::Error> {
         use CustomerEvent::*;
         let publish_events = new_events
-            .filter_map(|event| match &event.event {
-                Initialized { .. } => Some(CoreCustomerEvent::CustomerCreated {
+            .map(|event| match &event.event {
+                Initialized { .. } => CoreCustomerEvent::CustomerCreated {
                     entity: PublicCustomer::from(entity),
-                }),
-                KycRejected { .. } => Some(CoreCustomerEvent::CustomerKycUpdated {
+                },
+                KycRejected { .. } => CoreCustomerEvent::CustomerKycUpdated {
                     entity: PublicCustomer::from(entity),
-                }),
-                Frozen { .. } => Some(CoreCustomerEvent::CustomerFrozen {
+                },
+                Frozen { .. } => CoreCustomerEvent::CustomerFrozen {
                     entity: PublicCustomer::from(entity),
-                }),
-                Unfrozen { .. } => Some(CoreCustomerEvent::CustomerUnfrozen {
+                },
+                Unfrozen { .. } => CoreCustomerEvent::CustomerUnfrozen {
                     entity: PublicCustomer::from(entity),
-                }),
-                Closed { .. } => Some(CoreCustomerEvent::CustomerClosed {
+                },
+                Closed { .. } => CoreCustomerEvent::CustomerClosed {
                     entity: PublicCustomer::from(entity),
-                }),
-                _ => None,
+                },
             })
             .collect::<Vec<_>>();
         self.outbox

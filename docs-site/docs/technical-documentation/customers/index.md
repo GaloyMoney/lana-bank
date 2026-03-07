@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # Customer Management
 
-The Customer Management system is the identity foundation for all financial operations in Lana. Every deposit account, credit facility, and financial transaction ultimately links back to a customer record. The system covers the full customer lifecycle, from initial registration and KYC verification through ongoing relationship management and activity monitoring.
+The Customer Management system is the identity foundation for all financial operations in Lana. Every deposit account, credit facility, and financial transaction ultimately links back to a customer record. The system covers the full customer lifecycle, from initial registration and KYC verification through ongoing relationship management.
 
 ## Customer Types
 
@@ -30,33 +30,31 @@ A customer progresses through several states from creation to active operations:
 
 ```mermaid
 graph LR
-    CREATE["Created<br/>(Inactive)"] --> KYC["KYC<br/>Verification"]
+    CREATE["Created<br/>(Pending KYC)"] --> KYC["KYC<br/>Verification"]
     KYC --> PROV["Provisioning<br/>(Keycloak + Deposit Account)"]
     PROV --> ACTIVE["Active<br/>Customer"]
-    ACTIVE --> INACTIVE["Inactive<br/>(automatic)"]
-    INACTIVE --> ACTIVE
-    ACTIVE --> SUSPENDED["Suspended<br/>(automatic)"]
+    ACTIVE --> FROZEN["Frozen"]
+    FROZEN --> ACTIVE
     ACTIVE --> CLOSED["Closed"]
-    INACTIVE --> CLOSED
-    SUSPENDED --> CLOSED
+    FROZEN --> CLOSED
 ```
 
-1. **Creation**: An operator creates the customer record in the admin panel with email, optional Telegram ID, and customer type. The customer starts in `Inactive` status with KYC verification `Pending`.
+1. **Creation**: An operator creates the customer record in the admin panel with email, optional Telegram ID, and customer type. The customer starts with KYC verification `Pending`.
 2. **KYC verification**: The operator generates a Sumsub verification link. The customer completes identity verification through Sumsub's interface. Sumsub notifies the system via webhook when verification concludes.
 3. **Provisioning**: When KYC is approved, the system emits events that trigger downstream provisioning. A Keycloak user account is created so the customer can authenticate, a welcome email is sent with credentials, and a deposit account is created.
 4. **Active operations**: The customer can now access the customer portal, receive deposits, and apply for credit facilities.
 
-## Activity Status
+## Deposit Account Activity
 
-Customer activity status is managed automatically by a periodic background job. The system tracks each customer's last activity date and applies configurable thresholds to determine whether the customer should be considered active, inactive, or suspended.
+Deposit account activity is managed automatically by a periodic background job. The system derives each deposit account's last activity date from the latest transaction recorded on the account, or falls back to the deposit account creation date when no transactions exist yet. It then applies configurable thresholds to determine whether that account should be considered active, inactive, or escheatable.
 
 | Status | Condition | Effect |
 |--------|-----------|--------|
-| **Active** | Activity within the last year | Full operational access |
-| **Inactive** | No activity for 1-10 years | Account operations paused; deposit accounts become inactive |
-| **Suspended** | No activity for over 10 years | Account suspended pending escheatment review |
+| **Active** | Activity within the last year | Account is shown as recently active |
+| **Inactive** | No activity for 1-10 years | Account is shown as inactive for operator follow-up |
+| **Escheatable** | No activity for over 10 years | Account is shown as long-dormant and past the escheatment threshold |
 
-When a customer's activity status changes, all of their deposit accounts are updated to match. An inactive customer's deposit accounts cannot process new deposits or withdrawals until the customer becomes active again. The activity date is updated whenever the customer performs any financial operation.
+This state belongs to the deposit account, not to the customer. Activity is separate from the deposit account's operational `status`, so an inactive or escheatable activity state does not by itself block deposits or withdrawals.
 
 ## KYC Verification States
 
@@ -86,7 +84,7 @@ When a customer is closed, the system disables the associated Keycloak user acco
 
 | Component | Module | Purpose |
 |-----------|--------|---------|
-| **Customer Management** | core-customer | Customer entity, profiles, KYC state, activity tracking |
+| **Customer Management** | core-customer | Customer entity, profiles, and KYC state |
 | **KYC Processing** | core-customer (kyc) | Sumsub API integration, webhook callback handling |
 | **Document Storage** | core-document-storage | File upload, cloud storage, download link generation |
 | **User Onboarding** | lana-user-onboarding | Keycloak user provisioning on customer creation events |
@@ -104,4 +102,3 @@ The customer record is referenced by virtually every other module in the system:
 
 - [Onboarding Process](onboarding) - Complete onboarding flow with Sumsub KYC
 - [Document Management](documents) - Customer document handling
-

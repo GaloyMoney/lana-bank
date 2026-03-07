@@ -394,7 +394,7 @@
       "notVerified": "Not Verified",
       "active": "Active",
       "inactive": "Inactive",
-      "suspended": "Suspended"
+      "escheatable": "Escheatable"
     },
     "customerType": {
       "individual": "Individual",
@@ -473,7 +473,7 @@
         "status": {
           "active": "Active",
           "inactive": "Inactive",
-          "suspended": "Suspended"
+          "escheatable": "Escheatable"
         },
         "actions": {
           "editTelegram": "Edit Telegram Handle"
@@ -512,7 +512,8 @@
         "labels": {
           "checkingSettled": "Checking Settled Balance (USD)",
           "pendingWithdrawals": "Pending Withdrawals (USD)",
-          "status": "Status"
+          "status": "Status",
+          "activity": "Activity"
         },
         "buttons": {
           "viewDetails": "View Details"
@@ -1657,7 +1658,8 @@
           "settledBalance": "Settled Balance",
           "pendingBalance": "Pending Balance",
           "createdAt": "Created At",
-          "status": "Status"
+          "status": "Status",
+          "activity": "Activity"
         },
         "buttons": {
           "viewLedgerAccount": "View Ledger Account",

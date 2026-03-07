@@ -194,7 +194,6 @@ impl LanaApp {
         let customer_sync = CustomerSync::init(
             &mut jobs,
             &outbox,
-            &customers,
             &deposits,
             config.customer_sync,
             customer_kyc.sumsub_client().clone(),

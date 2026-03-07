@@ -5,12 +5,14 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    primitives::{DepositAccountHolderId, DepositAccountId, DepositAccountStatus, PublicId},
+    primitives::{
+        Activity, DepositAccountHolderId, DepositAccountId, DepositAccountStatus, PublicId,
+    },
     public::CoreDepositEvent,
     publisher::DepositPublisher,
 };
 
-use super::entity::*;
+use super::{entity::*, error::*};
 
 #[derive(EsRepo)]
 #[es_repo(
@@ -21,6 +23,7 @@ use super::entity::*;
             list_for(by(created_at, id)),
             update(persist = false)
         ),
+        activity(ty = "Activity", list_for),
         public_id(ty = "PublicId", list_by),
         status(ty = "DepositAccountStatus", list_for, update(accessor = "status"))
     ),
@@ -70,6 +73,23 @@ where
         self.publisher
             .publish_deposit_account_in_op(op, entity, new_events)
             .await
+    }
+
+    pub async fn list_all(&self) -> Result<Vec<DepositAccount>, DepositAccountError> {
+        let mut accounts = Vec::new();
+        let mut next = Some(PaginatedQueryArgs::<
+            deposit_account_cursor::DepositAccountsByIdCursor,
+        >::default());
+
+        while let Some(query) = next.take() {
+            let mut ret = self
+                .list_by_id(query, es_entity::ListDirection::Descending)
+                .await?;
+            accounts.append(&mut ret.entities);
+            next = ret.into_next_query();
+        }
+
+        Ok(accounts)
     }
 }
 

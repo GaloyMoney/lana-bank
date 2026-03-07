@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT activity, id FROM core_customers WHERE ((activity = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT created_at, id FROM core_deposit_accounts WHERE COALESCE(account_holder_id = $1, $1 IS NULL) AND COALESCE(activity = $2, $2 IS NULL) AND COALESCE(status = $3, $3 IS NULL) AND (COALESCE((created_at, id) < ($6, $5), $5 IS NULL)) ORDER BY created_at DESC, id DESC LIMIT $4) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $7 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_deposit_account_events e ON i.id = e.id ORDER BY i.created_at desc, i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,9 +31,12 @@
     ],
     "parameters": {
       "Left": [
+        "Uuid",
+        "Text",
         "Text",
         "Int8",
         "Uuid",
+        "Timestamptz",
         "Bool"
       ]
     },
@@ -45,5 +48,5 @@
       false
     ]
   },
-  "hash": "70f77721b882268b3cabde8626af1e4f657bc529edac1b2c5beb4026e8ee80fd"
+  "hash": "e14b9af9c5878ecac560ae213344317478da88e411b711d4ae286d73e1926c9c"
 }

@@ -19,15 +19,15 @@ import { DepositAccountStatusBadge } from "../status-badge"
 
 import FreezeDepositAccountDialog from "./freeze-deposit-account"
 import CloseDepositAccountDialog from "./close-deposit-account"
+import UnfreezeDepositAccountDialog from "./unfreeze-deposit-account"
 
+import { ActivityStatusBadge } from "@/app/customers/activity-status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import Balance from "@/components/balance/balance"
-
 import {
   GetDepositAccountDetailsQuery,
   DepositAccountStatus,
 } from "@/lib/graphql/generated"
-import UnfreezeDepositAccountDialog from "@/app/deposit-accounts/[deposit-account-id]/unfreeze-deposit-account"
 
 type DepositAccountDetailsProps = {
   depositAccount: NonNullable<GetDepositAccountDetailsQuery["depositAccountByPublicId"]>
@@ -95,6 +95,10 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
     {
       label: t("fields.status"),
       value: <DepositAccountStatusBadge status={depositAccount.status} />,
+    },
+    {
+      label: t("fields.activity"),
+      value: <ActivityStatusBadge status={depositAccount.activity} />,
     },
   ]
 

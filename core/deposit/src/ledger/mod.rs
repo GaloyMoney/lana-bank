@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use audit::SystemSubject;
+use chrono::{DateTime, Utc};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -332,6 +333,35 @@ impl DepositLedger {
             has_next_page: ret.has_next_page,
             end_cursor: ret.end_cursor.map(U::from),
         })
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "deposit_ledger.last_activity_date", skip_all, fields(account_id = tracing::field::Empty))]
+    pub async fn last_activity_date(
+        &self,
+        id: impl Into<AccountId>,
+    ) -> Result<Option<DateTime<Utc>>, DepositLedgerError> {
+        let id = id.into();
+        tracing::Span::current().record("account_id", tracing::field::debug(&id));
+
+        let ret = self
+            .cala
+            .entries()
+            .list_for_account_id(
+                id,
+                es_entity::PaginatedQueryArgs {
+                    first: 1,
+                    after: None,
+                },
+                es_entity::ListDirection::Descending,
+            )
+            .await?;
+
+        Ok(ret
+            .entities
+            .into_iter()
+            .next()
+            .map(|entry| entry.created_at()))
     }
 
     #[record_error_severity]
