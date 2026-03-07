@@ -1,0 +1,26 @@
+name: Lana Admin Schema Compat
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/lana-admin-schema-compat.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "dev/lana-admin/**"
+      - "lana/admin-server/src/graphql/schema.graphql"
+
+jobs:
+  schema-compat:
+    name: Lana Admin Schema Compat
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo check lana-admin
+        run: cargo check -p lana-admin
+
+      - name: Validate lana-admin GraphQL documents
+        run: cargo run -p lana-admin -- schema check --schema-file lana/admin-server/src/graphql/schema.graphql
