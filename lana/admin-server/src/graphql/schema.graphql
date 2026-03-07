@@ -444,6 +444,11 @@ enum ConfigType {
 	COMPLEX
 }
 
+enum ConversionReason {
+	SUMSUB_APPROVED
+	MANUALLY_CONVERTED
+}
+
 input CreditFacilitiesFilter {
 	status: CreditFacilityStatus
 	collateralizationState: CollateralizationState
@@ -1031,6 +1036,7 @@ type Customer {
 	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String
+	conversionReason: ConversionReason!
 	customerType: CustomerType!
 	personalInfo: PersonalInfo
 	depositAccount: DepositAccount

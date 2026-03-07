@@ -185,6 +185,23 @@ pub enum CustomerStatus {
     Closed,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum CustomerConversion {
+    SumsubApproved { applicant_id: String },
+    ManuallyConverted,
+}
+
+impl CustomerConversion {
+    pub fn applicant_id(&self) -> Option<&str> {
+        match self {
+            CustomerConversion::SumsubApproved { applicant_id } => Some(applicant_id),
+            CustomerConversion::ManuallyConverted => None,
+        }
+    }
+}
+
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 pub type ProspectAllOrOne = AllOrOne<ProspectId>;

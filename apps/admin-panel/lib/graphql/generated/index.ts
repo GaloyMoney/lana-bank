@@ -482,6 +482,11 @@ export enum ConfigType {
   Uint = 'UINT'
 }
 
+export enum ConversionReason {
+  ManuallyConverted = 'MANUALLY_CONVERTED',
+  SumsubApproved = 'SUMSUB_APPROVED'
+}
+
 export type CreditFacilitiesFilter = {
   collateralizationState?: InputMaybe<CollateralizationState>;
   status?: InputMaybe<CreditFacilityStatus>;
@@ -1049,6 +1054,7 @@ export enum CustodiansSortBy {
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
+  conversionReason: ConversionReason;
   createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
   creditFacilityProposals: Array<CreditFacilityProposal>;

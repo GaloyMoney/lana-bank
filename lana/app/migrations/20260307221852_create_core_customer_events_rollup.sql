@@ -6,7 +6,7 @@ CREATE TABLE core_customer_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
-  applicant_id VARCHAR,
+  conversion JSONB,
   customer_type VARCHAR,
   level VARCHAR,
   party_id UUID,
@@ -51,16 +51,16 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.applicant_id := (NEW.event ->> 'applicant_id');
+    new_row.conversion := (NEW.event -> 'conversion');
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.is_kyc_approved := false;
     new_row.level := (NEW.event ->> 'level');
     new_row.party_id := (NEW.event ->> 'party_id')::UUID;
     new_row.public_id := (NEW.event ->> 'public_id');
-    new_row.status := 'active';
+    new_row.status := (NEW.event ->> 'status');
   ELSE
     -- Default all fields to current values
-    new_row.applicant_id := current_row.applicant_id;
+    new_row.conversion := current_row.conversion;
     new_row.customer_type := current_row.customer_type;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
     new_row.level := current_row.level;
@@ -72,7 +72,7 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.applicant_id := (NEW.event ->> 'applicant_id');
+      new_row.conversion := (NEW.event -> 'conversion');
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.level := (NEW.event ->> 'level');
       new_row.party_id := (NEW.event ->> 'party_id')::UUID;
@@ -91,7 +91,7 @@ BEGIN
     created_at,
     modified_at,
     event_type,
-    applicant_id,
+    conversion,
     customer_type,
     is_kyc_approved,
     level,
@@ -105,7 +105,7 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.event_type,
-    new_row.applicant_id,
+    new_row.conversion,
     new_row.customer_type,
     new_row.is_kyc_approved,
     new_row.level,
