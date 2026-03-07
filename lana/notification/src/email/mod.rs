@@ -130,10 +130,7 @@ where
                 end_cursor,
             } = self
                 .users
-                .list_users_without_audit(
-                    es_entity::PaginatedQueryArgs { first: 20, after },
-                    es_entity::ListDirection::Descending,
-                )
+                .list_users_without_audit(es_entity::PaginatedQueryArgs { first: 20, after })
                 .await?;
             (after, has_next_page) = (end_cursor, next_page);
 
@@ -180,10 +177,7 @@ where
                 end_cursor,
             } = self
                 .users
-                .list_users_without_audit(
-                    es_entity::PaginatedQueryArgs { first: 20, after },
-                    es_entity::ListDirection::Descending,
-                )
+                .list_users_without_audit(es_entity::PaginatedQueryArgs { first: 20, after })
                 .await?;
             (after, has_next_page) = (end_cursor, next_page);
 
@@ -297,10 +291,7 @@ where
                 end_cursor,
             } = self
                 .users
-                .list_users_without_audit(
-                    es_entity::PaginatedQueryArgs { first: 20, after },
-                    es_entity::ListDirection::Descending,
-                )
+                .list_users_without_audit(es_entity::PaginatedQueryArgs { first: 20, after })
                 .await?;
             (after, has_next_page) = (end_cursor, next_page);
 

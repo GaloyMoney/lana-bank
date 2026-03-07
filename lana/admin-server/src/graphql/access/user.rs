@@ -2,6 +2,7 @@ use async_graphql::*;
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 use lana_app::access::user::User as DomainUser;
+pub use lana_app::access::user::UserCursor;
 
 use super::Role;
 

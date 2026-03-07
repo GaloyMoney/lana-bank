@@ -90,3 +90,123 @@ async fn create_user_publishes_event() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn list_users_pagination() -> anyhow::Result<()> {
+    let pool = helpers::init_pool().await?;
+    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
+
+    let audit = TestAudit;
+    let authz: Authorization<TestAudit, AuthRoleToken> = Authorization::init(&pool, &audit).await?;
+
+    let test_role_id = RoleId::new();
+    authz
+        .add_permission_to_role(
+            &test_role_id,
+            &CoreAccessObject::all_roles(),
+            &CoreAccessAction::ROLE_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &test_role_id,
+            &CoreAccessObject::all_users(),
+            &CoreAccessAction::USER_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &test_role_id,
+            &CoreAccessObject::all_users(),
+            &CoreAccessAction::USER_LIST,
+        )
+        .await?;
+    authz
+        .assign_role_to_subject(TestSubject, test_role_id)
+        .await?;
+
+    let config = AccessConfig {
+        superuser_email: None,
+    };
+
+    let access = CoreAccess::init(
+        &pool,
+        config,
+        CoreAccessAction::actions(),
+        &[],
+        &authz,
+        &outbox,
+        clock,
+    )
+    .await?;
+
+    let role = access
+        .create_role(
+            &TestSubject,
+            format!("test-role-{}", uuid::Uuid::new_v4()),
+            Vec::<PermissionSetId>::new(),
+        )
+        .await?;
+
+    for _i in 0..5 {
+        access
+            .create_user(
+                &TestSubject,
+                format!("test-{}@example.com", uuid::Uuid::new_v4()),
+                role.id,
+            )
+            .await?;
+    }
+
+    // Page 1
+    let page1 = access
+        .users()
+        .list_users(
+            &TestSubject,
+            es_entity::PaginatedQueryArgs {
+                first: 2,
+                after: None,
+            },
+        )
+        .await?;
+    assert_eq!(page1.entities.len(), 2);
+    assert!(page1.has_next_page);
+    assert!(page1.end_cursor.is_some());
+
+    // Page 2
+    let page2 = access
+        .users()
+        .list_users(
+            &TestSubject,
+            es_entity::PaginatedQueryArgs {
+                first: 2,
+                after: page1.end_cursor,
+            },
+        )
+        .await?;
+    assert_eq!(page2.entities.len(), 2);
+    assert!(page2.has_next_page);
+
+    // Final Page
+    let page3 = access
+        .users()
+        .list_users(
+            &TestSubject,
+            es_entity::PaginatedQueryArgs {
+                first: 2,
+                after: page2.end_cursor,
+            },
+        )
+        .await?;
+    assert!(!page3.entities.is_empty());
+
+    Ok(())
+}

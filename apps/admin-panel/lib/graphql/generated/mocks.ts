@@ -3067,7 +3067,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         transactionTemplates: overrides && overrides.hasOwnProperty('transactionTemplates') ? overrides.transactionTemplates! : relationshipsToOmit.has('TransactionTemplateConnection') ? {} as TransactionTemplateConnection : mockTransactionTemplateConnection({}, relationshipsToOmit),
         trialBalance: overrides && overrides.hasOwnProperty('trialBalance') ? overrides.trialBalance! : relationshipsToOmit.has('TrialBalance') ? {} as TrialBalance : mockTrialBalance({}, relationshipsToOmit),
         user: overrides && overrides.hasOwnProperty('user') ? overrides.user! : relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit),
-        users: overrides && overrides.hasOwnProperty('users') ? overrides.users! : [relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit)],
+        users: overrides && overrides.hasOwnProperty('users') ? overrides.users! : relationshipsToOmit.has('UserConnection') ? {} as UserConnection : mockUserConnection({}, relationshipsToOmit),
         withdrawal: overrides && overrides.hasOwnProperty('withdrawal') ? overrides.withdrawal! : relationshipsToOmit.has('Withdrawal') ? {} as Withdrawal : mockWithdrawal({}, relationshipsToOmit),
         withdrawalByPublicId: overrides && overrides.hasOwnProperty('withdrawalByPublicId') ? overrides.withdrawalByPublicId! : relationshipsToOmit.has('Withdrawal') ? {} as Withdrawal : mockWithdrawal({}, relationshipsToOmit),
         withdrawals: overrides && overrides.hasOwnProperty('withdrawals') ? overrides.withdrawals! : relationshipsToOmit.has('WithdrawalConnection') ? {} as WithdrawalConnection : mockWithdrawalConnection({}, relationshipsToOmit),
@@ -3567,6 +3567,17 @@ export const mockUser = (overrides?: Partial<User>, _relationshipsToOmit: Set<st
     };
 };
 
+export const mockUserConnection = (overrides?: Partial<UserConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UserConnection' } & UserConnection => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('UserConnection');
+    return {
+        __typename: 'UserConnection',
+        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('UserEdge') ? {} as UserEdge : mockUserEdge({}, relationshipsToOmit)],
+        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit)],
+        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
+    };
+};
+
 export const mockUserCreateInput = (overrides?: Partial<UserCreateInput>, _relationshipsToOmit: Set<string> = new Set()): UserCreateInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('UserCreateInput');
@@ -3582,6 +3593,16 @@ export const mockUserCreatePayload = (overrides?: Partial<UserCreatePayload>, _r
     return {
         __typename: 'UserCreatePayload',
         user: overrides && overrides.hasOwnProperty('user') ? overrides.user! : relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit),
+    };
+};
+
+export const mockUserEdge = (overrides?: Partial<UserEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UserEdge' } & UserEdge => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('UserEdge');
+    return {
+        __typename: 'UserEdge',
+        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
+        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit),
     };
 };
 

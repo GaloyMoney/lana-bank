@@ -2413,7 +2413,7 @@ type Query {
 	me: Me!
 	dashboard: Dashboard!
 	user(id: UUID!): User
-	users: [User!]!
+	users(first: Int!, after: String): UserConnection!
 	role(id: UUID!): Role
 	roles(first: Int!, after: String): RoleConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
@@ -2859,6 +2859,21 @@ type User {
 	userCanUpdateRoleOfUser: Boolean!
 }
 
+type UserConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [UserEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [User!]!
+}
+
 input UserCreateInput {
 	email: String!
 	roleId: UUID!
@@ -2866,6 +2881,20 @@ input UserCreateInput {
 
 type UserCreatePayload {
 	user: User!
+}
+
+"""
+An edge in a connection.
+"""
+type UserEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: User!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 input UserUpdateRoleInput {
