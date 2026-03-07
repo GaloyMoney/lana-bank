@@ -43,18 +43,18 @@ Cada obligación rastrea:
 
 ## Ciclo de vida de la obligación
 
-Cada obligación sigue una máquina de estados basada en el tiempo. Las transiciones ocurren automáticamente a través de trabajos en segundo plano que monitorean las fechas y activan los cambios de estado.
+Cada obligación sigue una máquina de estados impulsada por el tiempo. Las transiciones ocurren automáticamente mediante un procesamiento por lotes al final del día que evalúa todas las obligaciones frente a la fecha actual y provoca los cambios de estado.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> NotYetDue: Obligation created
-    NotYetDue --> Due: Due date reached
-    NotYetDue --> Paid: Fully paid early
-    Due --> Overdue: Grace period expired
-    Due --> Paid: Fully paid
-    Overdue --> Defaulted: Default period expired
-    Overdue --> Paid: Fully paid
-    Defaulted --> Paid: Fully paid
+    [*] --> NotYetDue: Obligación creada
+    NotYetDue --> Due: Llega la fecha de vencimiento
+    NotYetDue --> Paid: Totalmente pagada anticipadamente
+    Due --> Overdue: Vence el período de gracia
+    Due --> Paid: Totalmente pagada
+    Overdue --> Defaulted: Finaliza el período de incumplimiento
+    Overdue --> Paid: Totalmente pagada
+    Defaulted --> Paid: Totalmente pagada
     Paid --> [*]
 ```
 
@@ -64,19 +64,17 @@ El estado inicial para cada nueva obligación. El prestatario está al tanto del
 
 ### Vencida
 
-La fecha de vencimiento de la obligación ha llegado. Ahora se espera que el prestatario realice el pago. El sistema transiciona las obligaciones de Aún no vencida a Vencida automáticamente cuando se alcanza la fecha de vencimiento a través del trabajo en segundo plano obligation-due.
+Ha llegado la fecha de vencimiento de la obligación. Ahora se espera que el prestatario realice el pago. El sistema transiciona automáticamente las obligaciones de 'Aún no vencida' a 'Vencida' cuando se alcanza la fecha de vencimiento durante el procesamiento al final del día.
 
 ### Atrasada
 
-El prestatario no ha pagado dentro del período de gracia después de la fecha de vencimiento. El período de gracia está controlado por el parámetro de término `obligation_overdue_duration_from_due`. Por ejemplo, si este se establece en 7 días, una obligación que vencía el 1 de enero se vuelve atrasada el 8 de enero. El trabajo en segundo plano obligation-overdue maneja esta transición.
+El prestatario no ha realizado el pago dentro del período de gracia después de la fecha de vencimiento. El período de gracia está controlado por el parámetro de términos `obligation_overdue_duration_from_due`. Por ejemplo, si este se establece en 7 días, una obligación que vencía el 1 de enero pasa a estar atrasada el 8 de enero.
 
-Las obligaciones atrasadas señalan un riesgo crediticio creciente y pueden activar alertas operativas o requisitos de reporte.
+Las obligaciones atrasadas indican un riesgo crediticio creciente y pueden activar alertas operativas o requisitos de reporte.
 
 ### En mora
 
-La obligación ha permanecido impaga mucho más allá de su fecha de vencimiento. El período de mora está controlado por el parámetro de término `obligation_liquidation_duration_from_due`. Esto representa un estado de morosidad más grave y puede activar procedimientos de liquidación contra la garantía de la facilidad.
-
-El trabajo en segundo plano obligation-defaulted maneja esta transición.
+La obligación ha permanecido impaga mucho más allá de su fecha de vencimiento. El período de incumplimiento está controlado por el parámetro de términos `obligation_liquidation_duration_from_due`. Esto representa un estado de morosidad más grave y puede desencadenar procedimientos de liquidación sobre la garantía de la facilidad.
 
 ### Pagada
 

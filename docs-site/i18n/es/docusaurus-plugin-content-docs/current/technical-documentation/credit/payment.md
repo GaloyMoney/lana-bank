@@ -12,7 +12,35 @@ Los eventos emitidos desde los pagos actualizan los planes de pago, saldos y cie
 
 ## Asignación de Pago
 
-Cuando se recibe un pago, se asigna a las obligaciones pendientes basándose en reglas de prioridad. Cada registro de `AsignaciónDePago` vincula una porción del pago a una obligación específica, reduciendo su saldo pendiente.
+Cuando se registra un pago en una línea de crédito, ocurre la siguiente secuencia:
+
+```mermaid
+flowchart TD
+    A[Pago registrado] --> B[Pago acreditado a la cuenta de retención]
+    B --> C[Tarea de asignación activada]
+    C --> D[Recuperar todas las obligaciones pendientes]
+    D --> E[Ordenar obligaciones por prioridad]
+    E --> F{¿Queda monto del pago?}
+    F -->|Sí| G[Asignar a la obligación de mayor prioridad]
+    G --> H[Crear registro de PaymentAllocation]
+    H --> I[Registrar movimiento en el libro mayor]
+    I --> J{¿Obligación pagada completamente?}
+    J -->|Sí| K[Marcar obligación como Pagada]
+    J -->|No| L[Reducir saldo pendiente]
+    K --> F
+    L --> F
+    F -->|No| M[Asignación completada]
+```
+
+1. **Registro de Pago**: El monto del pago se registra y acredita en una cuenta de retención en el libro mayor. Esta cuenta de retención actúa como una etapa temporal antes de distribuir los fondos a las obligaciones individuales. El sistema valida que la fecha efectiva del pago no sea anterior a la fecha de activación de la línea: los pagos anteriores a la activación son rechazados.
+
+2. **Activación de la tarea de asignación**: El evento de registro del pago activa un proceso en segundo plano que gestiona la distribución de los fondos entre las obligaciones pendientes.
+
+3. **Recuperación y ordenación de obligaciones**: El sistema recupera todas las obligaciones pendientes de la línea de crédito y las ordena conforme a las reglas de prioridad.
+
+4. **Asignación secuencial**: El sistema recorre la lista ordenada de obligaciones, asignando tanto del pago como sea posible a cada una. Por cada asignación, una transacción del libro mayor transfiere los fondos de la cuenta de retención a la cuenta por cobrar correspondiente.
+
+5. **Verificación de finalización**: Tras cada asignación, el sistema comprueba si la obligación ha sido totalmente cubierta. Si el saldo pendiente llega a cero, la obligación se marca como Pagada.
 
 ## Prioridad de asignación
 
