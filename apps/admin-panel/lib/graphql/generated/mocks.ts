@@ -583,6 +583,7 @@ export const mockCommitteeCreateInput = (overrides?: Partial<CommitteeCreateInpu
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CommitteeCreateInput');
     return {
+        memberUserIds: overrides && overrides.hasOwnProperty('memberUserIds') ? overrides.memberUserIds! : [generateMockValue.uuid()],
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };

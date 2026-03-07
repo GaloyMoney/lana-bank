@@ -393,6 +393,7 @@ type CommitteeConnection {
 
 input CommitteeCreateInput {
 	name: String!
+	memberUserIds: [UUID!]!
 }
 
 type CommitteeCreatePayload {

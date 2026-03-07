@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use super::error::CommitteeError;
 use crate::primitives::{CommitteeId, CommitteeMemberId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -44,13 +45,19 @@ impl Committee {
         Idempotent::Executed(())
     }
 
-    pub(crate) fn remove_member(&mut self, member_id: CommitteeMemberId) -> Idempotent<()> {
+    pub(crate) fn remove_member(
+        &mut self,
+        member_id: CommitteeMemberId,
+    ) -> Result<Idempotent<()>, CommitteeError> {
         if !self.members().contains(&member_id) {
-            return Idempotent::AlreadyApplied;
+            return Ok(Idempotent::AlreadyApplied);
+        }
+        if self.n_members() <= 1 {
+            return Err(CommitteeError::CannotRemoveLastMember);
         }
         self.events
             .push(CommitteeEvent::MemberRemoved { member_id });
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
     pub fn n_members(&self) -> usize {
@@ -96,10 +103,23 @@ impl TryFromEvents<CommitteeEvent> for Committee {
 }
 
 #[derive(Debug, Builder)]
+#[builder(build_fn(validate = "Self::validate", error = "CommitteeError"))]
 pub struct NewCommittee {
     #[builder(setter(into))]
     pub(super) id: CommitteeId,
     pub(super) name: String,
+    pub(super) member_ids: HashSet<CommitteeMemberId>,
+}
+
+impl NewCommitteeBuilder {
+    fn validate(&self) -> Result<(), CommitteeError> {
+        if let Some(ref member_ids) = self.member_ids
+            && member_ids.is_empty()
+        {
+            return Err(CommitteeError::CommitteeMustHaveAtLeastOneMember);
+        }
+        Ok(())
+    }
 }
 
 impl NewCommittee {
@@ -110,12 +130,13 @@ impl NewCommittee {
 
 impl IntoEvents<CommitteeEvent> for NewCommittee {
     fn into_events(self) -> EntityEvents<CommitteeEvent> {
-        EntityEvents::init(
-            self.id,
-            [CommitteeEvent::Initialized {
-                id: self.id,
-                name: self.name,
-            }],
-        )
+        let mut events: Vec<CommitteeEvent> = vec![CommitteeEvent::Initialized {
+            id: self.id,
+            name: self.name,
+        }];
+        for member_id in self.member_ids {
+            events.push(CommitteeEvent::MemberAdded { member_id });
+        }
+        EntityEvents::init(self.id, events)
     }
 }

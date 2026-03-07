@@ -1519,18 +1519,22 @@
         "title": "Create Committee",
         "description": "Create a new committee by providing the required information",
         "fields": {
-          "name": "Committee Name"
+          "name": "Committee Name",
+          "members": "Members"
         },
         "placeholders": {
-          "name": "Enter the committee name"
+          "name": "Enter the committee name",
+          "selectMember": "Select a member"
         },
         "buttons": {
-          "create": "Create Committee"
+          "create": "Create Committee",
+          "addMember": "Add"
         },
         "success": "Committee created successfully",
         "errors": {
           "failed": "Failed to create committee. Please try again.",
-          "general": "An unexpected error occurred. Please try again."
+          "general": "An unexpected error occurred. Please try again.",
+          "atLeastOneMember": "A committee must have at least one member."
         }
       },
       "RemoveUserCommitteeDialog": {

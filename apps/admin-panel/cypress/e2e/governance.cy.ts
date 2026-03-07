@@ -37,6 +37,10 @@ describe("Governance Test", () => {
       .should("have.value", committeeName)
     cy.takeScreenshot("3_step-fill-committee-name")
 
+    cy.get('[data-testid="committee-create-member-select"]').click()
+    cy.get('[role="option"]').contains("admin").click()
+    cy.get('[data-testid="committee-create-add-member-button"]').click()
+
     cy.get('[data-testid="committee-create-submit-button"]').click()
     cy.takeScreenshot("4_step-submit-committee-creation")
 
