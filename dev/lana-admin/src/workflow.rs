@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{cli::WorkflowAction, output};
 
-const WORKFLOW_YAML: &str = include_str!("../workflows/workflow.yml");
+const WORKFLOW_YAML: &str = include_str!("./workflow.yml");
 
 #[derive(Debug, Clone, Deserialize)]
 struct WorkflowDefinition {
