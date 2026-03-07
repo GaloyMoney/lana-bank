@@ -922,11 +922,15 @@ checksums:
     Committees/CommitteeDetails/create/title: 061eaa5152ceb07002a0ab2aea9ef97c
     Committees/CommitteeDetails/create/description: dc65b9ddc9e423ba158bc9731224d041
     Committees/CommitteeDetails/create/fields/name: 953a3d0624105ad80a8346dadf4702e4
+    Committees/CommitteeDetails/create/fields/members: 0932e80cba1e3e0a7f52bb67ff31da32
     Committees/CommitteeDetails/create/placeholders/name: 9758637ca1b4df6cc750a2e840f86032
+    Committees/CommitteeDetails/create/placeholders/selectMember: 7f8f8a1c52b2fd9b5c145ccdce12bbef
     Committees/CommitteeDetails/create/buttons/create: 061eaa5152ceb07002a0ab2aea9ef97c
+    Committees/CommitteeDetails/create/buttons/addMember: 87c4a663507f2bcbbf79934af8164e13
     Committees/CommitteeDetails/create/success: d7c17f2c506bcd45f952470b54d62b62
     Committees/CommitteeDetails/create/errors/failed: 5c953007c38d21e46831f4e5f2d45a29
     Committees/CommitteeDetails/create/errors/general: dd9aef0a9c3638442bc8f6151feb33d6
+    Committees/CommitteeDetails/create/errors/atLeastOneMember: ccfad780b1b26735da117a05ca982279
     Committees/CommitteeDetails/RemoveUserCommitteeDialog/title: d24758439fbb18bac350f0f47b56e8d2
     Committees/CommitteeDetails/RemoveUserCommitteeDialog/description: fba25990bcc05dd50b8fe386bb670458
     Committees/CommitteeDetails/RemoveUserCommitteeDialog/buttons/cancel: 2e2a849c2223911717de8caa2c71bade

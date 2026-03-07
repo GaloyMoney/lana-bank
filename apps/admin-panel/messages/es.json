@@ -1519,18 +1519,22 @@
         "title": "Crear Comité",
         "description": "Crear un nuevo comité proporcionando la información requerida",
         "fields": {
-          "name": "Nombre del Comité"
+          "name": "Nombre del Comité",
+          "members": "Miembros"
         },
         "placeholders": {
-          "name": "Ingrese el nombre del comité"
+          "name": "Ingrese el nombre del comité",
+          "selectMember": "Seleccionar un miembro"
         },
         "buttons": {
-          "create": "Crear Comité"
+          "create": "Crear Comité",
+          "addMember": "Añadir"
         },
         "success": "Comité creado exitosamente",
         "errors": {
           "failed": "Error al crear el comité. Por favor intente de nuevo.",
-          "general": "Ocurrió un error inesperado. Por favor intente de nuevo."
+          "general": "Ocurrió un error inesperado. Por favor intente de nuevo.",
+          "atLeastOneMember": "Un comité debe tener al menos un miembro."
         }
       },
       "RemoveUserCommitteeDialog": {
