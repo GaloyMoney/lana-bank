@@ -7,6 +7,7 @@ mod commands;
 mod date;
 mod graphql;
 mod output;
+mod schema;
 mod show_query;
 mod workflow;
 
@@ -32,6 +33,7 @@ fn default_preview_profile() -> SavedLoginProfile {
 pub async fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
     match cli.command {
         Command::Workflow { action } => workflow::execute(action, cli.json),
+        Command::Schema { action } => schema::execute(action, cli.json).await,
         Command::Auth { action } => match action {
             AuthAction::Login {
                 admin_url,
@@ -330,7 +332,10 @@ pub async fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
                         commands::custodian::execute(&mut client, action, cli.json).await
                     }
                 },
-                Command::Auth { .. } | Command::Workflow { .. } | Command::Version => {
+                Command::Auth { .. }
+                | Command::Workflow { .. }
+                | Command::Schema { .. }
+                | Command::Version => {
                     unreachable!()
                 }
             };

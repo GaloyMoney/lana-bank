@@ -53,10 +53,11 @@ pub fn run_show_query(args: &[OsString]) -> Result<()> {
 
     let path_refs: Vec<&str> = path.iter().map(String::as_str).collect();
 
-    if matches!(path_refs.as_slice(), ["auth", ..]) {
-        println!(
-            "No GraphQL query/mutation: `auth` commands are local credential/session actions."
-        );
+    if matches!(
+        path_refs.as_slice(),
+        ["auth", ..] | ["workflow", ..] | ["schema", ..]
+    ) {
+        println!("No GraphQL query/mutation: this command is a local CLI action.");
         return Ok(());
     }
 

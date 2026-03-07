@@ -3754,6 +3754,7 @@ dependencies = [
  "clap",
  "comfy-table",
  "graphql_client",
+ "graphql_client_codegen",
  "rand 0.10.0",
  "reqwest 0.13.2",
  "rustls 0.23.37",
@@ -3761,6 +3762,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "sha2",
+ "tempfile",
  "tokio",
  "url",
 ]

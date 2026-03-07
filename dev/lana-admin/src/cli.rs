@@ -12,6 +12,11 @@ const CLI_AFTER_HELP: &str = r#"Examples:
   lana-admin workflow deps \
     --step credit_facility_partial_payment_record
 
+  lana-admin schema check
+
+  lana-admin schema check \
+    --admin-url https://admin.staging.galoy.io/graphql
+
   lana-admin customer list --first 5 --json
 
   lana-admin accounting manual-transaction \
@@ -165,6 +170,11 @@ pub enum Command {
         #[command(subcommand)]
         action: WorkflowAction,
     },
+    /// Validate embedded GraphQL documents against a schema
+    Schema {
+        #[command(subcommand)]
+        action: SchemaAction,
+    },
     /// Show CLI version and (if logged in) server build info
     Version,
 }
@@ -211,6 +221,19 @@ pub enum WorkflowAction {
         /// Include read-only steps in the output
         #[arg(long)]
         all: bool,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum SchemaAction {
+    /// Check embedded GraphQL documents against a local schema file or remote admin API introspection
+    Check {
+        /// Local GraphQL schema file (defaults to lana/admin-server/src/graphql/schema.graphql)
+        #[arg(long, conflicts_with = "admin_url")]
+        schema_file: Option<std::path::PathBuf>,
+        /// Remote admin GraphQL URL to introspect and validate against
+        #[arg(long, conflicts_with = "schema_file")]
+        admin_url: Option<String>,
     },
 }
 

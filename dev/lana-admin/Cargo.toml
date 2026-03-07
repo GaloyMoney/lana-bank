@@ -18,6 +18,7 @@ tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 graphql_client = { workspace = true }
+graphql_client_codegen = "0.14.0"
 anyhow = { workspace = true }
 comfy-table = { workspace = true }
 url = { workspace = true }
@@ -27,3 +28,4 @@ rand = { workspace = true }
 rustls = { workspace = true }
 chrono = { workspace = true }
 serde_yaml = { workspace = true }
+tempfile = { workspace = true }
