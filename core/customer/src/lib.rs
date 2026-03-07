@@ -23,6 +23,7 @@ use authz::PermissionCheck;
 use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
+use domain_config::ExposedDomainConfigsReadOnly;
 use es_entity::clock::ClockHandle;
 use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
@@ -63,6 +64,7 @@ where
     customer_activity_repo: CustomerActivityRepo,
     document_storage: DocumentStorage,
     public_ids: PublicIds,
+    domain_configs: ExposedDomainConfigsReadOnly,
     config: CustomerConfig,
 }
 
@@ -81,6 +83,7 @@ where
             customer_activity_repo: self.customer_activity_repo.clone(),
             document_storage: self.document_storage.clone(),
             public_ids: self.public_ids.clone(),
+            domain_configs: self.domain_configs.clone(),
             config: self.config.clone(),
         }
     }
@@ -99,6 +102,7 @@ where
         outbox: &Outbox<E>,
         document_storage: DocumentStorage,
         public_id_service: PublicIds,
+        domain_configs: &ExposedDomainConfigsReadOnly,
         clock: ClockHandle,
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
@@ -117,6 +121,7 @@ where
             customer_activity_repo,
             document_storage,
             public_ids: public_id_service,
+            domain_configs: domain_configs.clone(),
             config: CustomerConfig::default(),
         }
     }
@@ -278,7 +283,12 @@ where
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
         let customer = self.repo.find_by_id_in_op(&mut *op, id.into()).await?;
-        if !customer.may_attach_product() {
+        let require_verified = self
+            .domain_configs
+            .get_without_audit_in_op::<RequireVerifiedCustomerForAccount>(op)
+            .await?
+            .value();
+        if !customer.may_attach_product(require_verified) {
             return Err(CustomerError::CustomerNotEligibleForProduct);
         }
         Ok(customer)

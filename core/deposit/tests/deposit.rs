@@ -66,6 +66,7 @@ async fn setup() -> anyhow::Result<(
         &outbox,
         document_storage,
         public_ids.clone(),
+        &exposed_domain_configs,
         clock.clone(),
     );
 

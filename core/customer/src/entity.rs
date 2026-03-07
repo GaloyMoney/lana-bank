@@ -66,8 +66,8 @@ impl Customer {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn may_attach_product(&self) -> bool {
-        !self.is_closed() && !self.is_frozen()
+    pub fn may_attach_product(&self, require_verified: bool) -> bool {
+        !self.is_closed() && !self.is_frozen() && (!require_verified || self.applicant_id.is_some())
     }
 
     pub fn is_closed(&self) -> bool {

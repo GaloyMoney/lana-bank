@@ -602,6 +602,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         &outbox,
         document_storage,
         public_ids,
+        &domain_configs,
         clock.clone(),
     );
 

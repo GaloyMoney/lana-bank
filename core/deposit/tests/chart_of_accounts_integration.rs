@@ -102,6 +102,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &outbox,
         document_storage.clone(),
         public_ids.clone(),
+        &exposed_domain_configs,
         clock.clone(),
     );
 
