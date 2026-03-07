@@ -31,8 +31,10 @@ pub enum GovernanceError {
     DomainConfigError(#[from] domain_config::error::DomainConfigError),
     #[error("GovernanceError - SubjectIsNotCommitteeMember")]
     SubjectIsNotCommitteeMember,
-    #[error("GovernanceError - AutoApproveNotAllowed: policy must have a committee assigned")]
-    AutoApproveNotAllowed,
+    #[error(
+        "GovernanceError - DefaultCommitteeNotFound: the default committee must be bootstrapped before policies can be created with RequireCommitteeApproval enabled"
+    )]
+    DefaultCommitteeNotFound,
 }
 
 impl ErrorSeverity for GovernanceError {
@@ -46,7 +48,7 @@ impl ErrorSeverity for GovernanceError {
             Self::AuditError(e) => e.severity(),
             Self::DomainConfigError(e) => e.severity(),
             Self::SubjectIsNotCommitteeMember => Level::WARN,
-            Self::AutoApproveNotAllowed => Level::WARN,
+            Self::DefaultCommitteeNotFound => Level::ERROR,
         }
     }
 }

@@ -18,6 +18,12 @@ pub mod action {
         }
     }
 
+    impl From<domain_config::DomainConfigAction> for DummyAction {
+        fn from(_: domain_config::DomainConfigAction) -> Self {
+            Self
+        }
+    }
+
     impl std::fmt::Display for DummyAction {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "dummy")
@@ -39,6 +45,12 @@ pub mod object {
 
     impl From<governance::GovernanceObject> for DummyObject {
         fn from(_: governance::GovernanceObject) -> Self {
+            Self
+        }
+    }
+
+    impl From<domain_config::DomainConfigObject> for DummyObject {
+        fn from(_: domain_config::DomainConfigObject) -> Self {
             Self
         }
     }

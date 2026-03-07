@@ -94,12 +94,83 @@ where
         }
     }
 
+    /// Bootstraps a default committee with a single member (the super-admin).
+    /// This is idempotent: if the committee already exists, the member is added
+    /// if not already present.
+    #[record_error_severity]
+    #[tracing::instrument(name = "governance.bootstrap_default_committee", skip(self))]
+    pub async fn bootstrap_default_committee(
+        &self,
+        member_id: impl Into<CommitteeMemberId> + std::fmt::Debug,
+    ) -> Result<Committee, GovernanceError> {
+        let member_id = member_id.into();
+
+        let mut db = self.committee_repo.begin_op().await?;
+        self.authz
+            .audit()
+            .record_system_entry_in_op(
+                &mut db,
+                audit::SystemActor::BOOTSTRAP,
+                GovernanceObject::all_committees(),
+                GovernanceAction::COMMITTEE_CREATE,
+            )
+            .await?;
+
+        let mut committee = match self
+            .committee_repo
+            .maybe_find_by_name_in_op(&mut db, DEFAULT_COMMITTEE_NAME)
+            .await?
+        {
+            Some(committee) => committee,
+            None => {
+                let new_committee = NewCommittee::builder()
+                    .id(CommitteeId::new())
+                    .name(DEFAULT_COMMITTEE_NAME.to_string())
+                    .build()
+                    .expect("Could not build new committee");
+                self.committee_repo
+                    .create_in_op(&mut db, new_committee)
+                    .await?
+            }
+        };
+
+        if committee.add_member(member_id).did_execute() {
+            self.committee_repo
+                .update_in_op(&mut db, &mut committee)
+                .await?;
+        }
+
+        db.commit().await?;
+        Ok(committee)
+    }
+
+    async fn auto_approval_allowed(&self) -> Result<bool, GovernanceError> {
+        if let Some(domain_configs) = &self.domain_configs {
+            let require_committee = domain_configs
+                .get_without_audit::<RequireCommitteeApproval>()
+                .await?
+                .value();
+            return Ok(!require_committee);
+        }
+        Ok(true)
+    }
+
     #[record_error_severity]
     #[tracing::instrument(name = "governance.init_policy", skip(self), fields(process_type = ?process_type, policy_id = tracing::field::Empty))]
     pub async fn init_policy(
         &self,
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
+        if let Some(existing) = self
+            .policy_repo
+            .maybe_find_by_process_type(process_type.clone())
+            .await?
+        {
+            return Ok(existing);
+        }
+
+        let auto_approval_allowed = self.auto_approval_allowed().await?;
+
         let mut db = self.policy_repo.begin_op().await?;
         self.authz
             .audit()
@@ -111,12 +182,24 @@ where
             )
             .await?;
 
-        let new_policy = NewPolicy::builder()
-            .id(PolicyId::new())
-            .process_type(process_type.clone())
-            .rules(ApprovalRules::SystemAutoApprove)
-            .build()
-            .expect("Could not build new policy");
+        let rules = if !auto_approval_allowed {
+            let committee = self
+                .committee_repo
+                .find_by_name_in_op(&mut db, DEFAULT_COMMITTEE_NAME)
+                .await?;
+            Some(ApprovalRules::Committee {
+                committee_id: committee.id,
+            })
+        } else {
+            None
+        };
+
+        let new_policy = NewPolicy::try_new(
+            PolicyId::new(),
+            process_type.clone(),
+            rules,
+            auto_approval_allowed,
+        )?;
 
         match self
             .policy_repo
@@ -257,17 +340,6 @@ where
             .policy_repo
             .find_by_process_type_in_op(&mut *db, process_type)
             .await?;
-        if let Some(domain_configs) = &self.domain_configs
-            && matches!(policy.rules, ApprovalRules::SystemAutoApprove)
-        {
-            let require_committee = domain_configs
-                .get_without_audit_in_op::<RequireCommitteeApproval>(&mut *db)
-                .await?
-                .value();
-            if require_committee {
-                return Err(GovernanceError::AutoApproveNotAllowed);
-            }
-        }
         self.authz
             .audit()
             .record_system_entry_in_op(

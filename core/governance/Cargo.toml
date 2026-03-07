@@ -34,4 +34,5 @@ schemars = { workspace = true, optional = true }
 anyhow = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 obix = { workspace = true, features = ["test-utils"] }
+serde_json = { workspace = true }
 tokio = { workspace = true }

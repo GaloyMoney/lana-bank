@@ -9,12 +9,12 @@ use governance::{
 use helpers::{action, event, object};
 use obix::test_utils::expect_event;
 
+type TestAuthz = authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>;
+type TestGovernance = Governance<TestAuthz, event::DummyEvent>;
+
 /// Creates a test setup with all required dependencies for governance tests.
 async fn setup() -> anyhow::Result<(
-    Governance<
-        authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
-        event::DummyEvent,
-    >,
+    TestGovernance,
     obix::Outbox<event::DummyEvent>,
     sqlx::PgPool,
 )> {
@@ -29,7 +29,7 @@ async fn setup() -> anyhow::Result<(
     )
     .await?;
 
-    let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
+    let authz = TestAuthz::new();
     let governance = Governance::new(&pool, &authz, &outbox, clock.clone(), None);
 
     Ok((governance, outbox, pool))
@@ -80,6 +80,188 @@ async fn approval_process_concluded_publishes_event() -> anyhow::Result<()> {
     assert_eq!(recorded.process_type, process_type);
     assert_eq!(recorded.status, ApprovalProcessStatus::Approved);
     assert_eq!(recorded.target_ref, target_ref);
+
+    Ok(())
+}
+
+/// When `RequireCommitteeApproval` is enabled and a default committee exists,
+/// `init_policy` should create the policy with the default committee's rules
+/// instead of `SystemAutoApprove`.
+#[tokio::test]
+async fn init_policy_uses_default_committee_when_require_committee_enabled() -> anyhow::Result<()> {
+    let pool = helpers::init_pool().await?;
+    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let authz = TestAuthz::new();
+
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
+
+    // Initialize domain configs with RequireCommitteeApproval=true
+    let startup_configs = vec![(
+        "require-committee-approval".to_string(),
+        serde_json::Value::Bool(true),
+    )];
+    let (_, _, exposed_readonly) = domain_config::init(
+        &pool,
+        &authz,
+        domain_config::EncryptionConfig::default(),
+        startup_configs,
+    )
+    .await?;
+
+    let governance = Governance::new(
+        &pool,
+        &authz,
+        &outbox,
+        clock.clone(),
+        Some(&exposed_readonly),
+    );
+
+    // Bootstrap default committee so init_policy can use it
+    let member_id = governance::CommitteeMemberId::new();
+    let committee = governance.bootstrap_default_committee(member_id).await?;
+
+    let process_type = ApprovalProcessType::new("test-uses-default-committee");
+    let policy = governance.init_policy(process_type).await?;
+    assert_eq!(
+        policy.rules,
+        governance::ApprovalRules::Committee {
+            committee_id: committee.id
+        },
+        "Policy should use default committee when RequireCommitteeApproval is enabled"
+    );
+
+    Ok(())
+}
+
+/// When `RequireCommitteeApproval` is enabled but no default committee has been
+/// bootstrapped, `init_policy` should fail with `DefaultCommitteeNotFound`.
+#[tokio::test]
+async fn init_policy_fails_without_default_committee_when_require_committee_enabled()
+-> anyhow::Result<()> {
+    let pool = helpers::init_pool().await?;
+    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let authz = TestAuthz::new();
+
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
+
+    let startup_configs = vec![(
+        "require-committee-approval".to_string(),
+        serde_json::Value::Bool(true),
+    )];
+    let (_, _, exposed_readonly) = domain_config::init(
+        &pool,
+        &authz,
+        domain_config::EncryptionConfig::default(),
+        startup_configs,
+    )
+    .await?;
+
+    let governance = Governance::new(
+        &pool,
+        &authz,
+        &outbox,
+        clock.clone(),
+        Some(&exposed_readonly),
+    );
+
+    // Do NOT bootstrap default committee
+    let process_type = ApprovalProcessType::new("test-no-default-committee");
+    let result = governance.init_policy(process_type).await;
+    assert!(
+        result.is_err(),
+        "init_policy should fail when default committee is not bootstrapped"
+    );
+    assert!(
+        matches!(
+            result.err().unwrap(),
+            governance::error::GovernanceError::DefaultCommitteeNotFound
+        ),
+        "Expected DefaultCommitteeNotFound error"
+    );
+
+    Ok(())
+}
+
+/// When `RequireCommitteeApproval` is enabled but a policy already exists
+/// (created before the config was enabled), `init_policy` should return
+/// the existing policy without error.
+#[tokio::test]
+async fn init_policy_returns_existing_policy_when_require_committee_enabled() -> anyhow::Result<()>
+{
+    let pool = helpers::init_pool().await?;
+    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let authz = TestAuthz::new();
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
+
+    // Step 1: Create policy WITHOUT RequireCommitteeApproval (config disabled)
+    let governance_no_config = Governance::new(&pool, &authz, &outbox, clock.clone(), None);
+    let process_type = ApprovalProcessType::new("test-existing-policy-before-config");
+    let policy = governance_no_config
+        .init_policy(process_type.clone())
+        .await?;
+
+    // Step 2: Enable RequireCommitteeApproval and recreate governance
+    let startup_configs = vec![(
+        "require-committee-approval".to_string(),
+        serde_json::Value::Bool(true),
+    )];
+    let (_, _, exposed_readonly) = domain_config::init(
+        &pool,
+        &authz,
+        domain_config::EncryptionConfig::default(),
+        startup_configs,
+    )
+    .await?;
+    let governance_with_config = Governance::new(
+        &pool,
+        &authz,
+        &outbox,
+        clock.clone(),
+        Some(&exposed_readonly),
+    );
+
+    // Step 3: init_policy for the same process_type should return existing policy
+    let existing = governance_with_config
+        .init_policy(process_type.clone())
+        .await?;
+    assert_eq!(existing.id, policy.id);
+
+    Ok(())
+}
+
+/// `bootstrap_default_committee` creates a committee with the given member
+/// and is idempotent — calling it twice should not fail.
+#[tokio::test]
+async fn bootstrap_default_committee_is_idempotent() -> anyhow::Result<()> {
+    let (governance, _outbox, _pool) = setup().await?;
+
+    let member_id = governance::CommitteeMemberId::new();
+
+    let committee1 = governance.bootstrap_default_committee(member_id).await?;
+    let committee2 = governance.bootstrap_default_committee(member_id).await?;
+
+    assert_eq!(committee1.id, committee2.id);
+    assert_eq!(committee1.name, governance::DEFAULT_COMMITTEE_NAME);
+    assert_eq!(committee2.members().len(), 1);
+    assert!(committee2.members().contains(&member_id));
 
     Ok(())
 }
