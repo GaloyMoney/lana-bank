@@ -361,7 +361,7 @@ For example, staging enables artificial time (useful for testing time-dependent 
 # gcp/galoy-staging/lana-bank/main.tf
 module "lana-bank" {
   source                 = "../../../modules/lana-bank/"
-  lana_domain            = "staging.lana.galoy.io"
+  lana_domain            = "staging.galoy.io"
   enable_artificial_time = true
   additional_bq_owners   = ["dev-team@galoy.io"]
 }
