@@ -167,6 +167,7 @@ pub struct PersonalInfo {
     pub date_of_birth: Option<String>,
     pub nationality: Option<String>,
     pub address: Option<String>,
+    pub company_name: Option<String>,
 }
 
 impl PersonalInfo {
@@ -177,6 +178,7 @@ impl PersonalInfo {
             date_of_birth: None,
             nationality: None,
             address: None,
+            company_name: None,
         }
     }
 }
@@ -189,6 +191,7 @@ impl From<&sumsub::ApplicantInfo> for PersonalInfo {
             date_of_birth: info.dob.clone(),
             nationality: info.nationality().map(String::from),
             address: info.primary_address().map(String::from),
+            company_name: info.company_name().map(String::from),
         }
     }
 }

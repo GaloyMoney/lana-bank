@@ -2240,6 +2240,7 @@ type PersonalInfo {
 	dateOfBirth: String
 	nationality: String
 	address: String
+	companyName: String
 }
 
 type Policy {

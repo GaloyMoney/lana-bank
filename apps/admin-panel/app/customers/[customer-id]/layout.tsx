@@ -8,12 +8,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 import { ScrollArea, ScrollBar } from "@lana/web/ui/scroll-area"
 
 import { CustomerDetailsCard } from "./details"
+import { CustomerPersonalInfoCard } from "./personal-info-card"
+import { CustomerCompanyInfoCard } from "./company-info-card"
 import { KycStatus } from "./kyc-status"
 import { DepositAccount } from "./deposit-account"
 
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 import {
   Customer as CustomerType,
+  CustomerType as CustomerTypeEnum,
   useGetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
@@ -41,6 +44,7 @@ gql`
       dateOfBirth
       nationality
       address
+      companyName
     }
     depositAccount {
       id
@@ -134,6 +138,11 @@ export default function CustomerLayout({
     <main className="max-w-7xl m-auto">
       <CustomerDetailsCard customer={data.customerByPublicId} />
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
+        {data.customerByPublicId.customerType === CustomerTypeEnum.Individual ? (
+          <CustomerPersonalInfoCard customer={data.customerByPublicId} />
+        ) : (
+          <CustomerCompanyInfoCard customer={data.customerByPublicId} />
+        )}
         <KycStatus
           kycVerification={data.customerByPublicId.kycVerification}
           level={data.customerByPublicId.level}

@@ -21,6 +21,13 @@ pub struct ApplicantDetails<T = String> {
     pub applicant_type: String,
 }
 
+/// Company information for KYB applicants
+#[derive(Debug, Deserialize, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct CompanyInfo {
+    pub company_name: Option<String>,
+}
+
 /// Applicant personal information
 #[derive(Debug, Deserialize, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
@@ -32,9 +39,15 @@ pub struct ApplicantInfo {
     pub dob: Option<String>,
     pub addresses: Option<Vec<Address>>,
     pub id_docs: Option<Vec<IdDocument>>,
+    pub company_info: Option<CompanyInfo>,
 }
 
 impl ApplicantInfo {
+    /// Get the company name from companyInfo
+    pub fn company_name(&self) -> Option<&str> {
+        self.company_info.as_ref()?.company_name.as_deref()
+    }
+
     /// Get the applicant's first name
     pub fn first_name(&self) -> Option<&str> {
         self.first_name.as_deref()

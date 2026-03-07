@@ -246,9 +246,12 @@ checksums:
     Prospects/ProspectDetails/details/labels/nationality: 676a006a7f9c4e1d976e31d470a7cd7c
     Prospects/ProspectDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
     Prospects/ProspectDetails/details/labels/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    Prospects/ProspectDetails/details/labels/companyName: 70257e0f30640404fa82289d393a5021
     Prospects/ProspectDetails/details/buttons/closeProspect: 13c6753109d70226efe543d03070f75e
     Prospects/ProspectDetails/details/buttons/convertToCustomer: 10f8a6e3404e4489083453a7e0ad7c21
     Prospects/ProspectDetails/details/buttons/viewCustomer: 232903fb7e397b92489b7a3c62edb67f
+    Prospects/ProspectDetails/personalInfo/title: a363a765f3481693e690afb0533e1229
+    Prospects/ProspectDetails/companyInfo/title: 1e6f40ee99785e1748f2261b7e58c8d2
     Prospects/ProspectDetails/closeProspect/title: 13c6753109d70226efe543d03070f75e
     Prospects/ProspectDetails/closeProspect/description: 6a2da01dfda42062fdae4c2096a04737
     Prospects/ProspectDetails/closeProspect/buttons/close: 13c6753109d70226efe543d03070f75e
@@ -338,6 +341,7 @@ checksums:
     Customers/CustomerDetails/details/labels/dateOfBirth: 8c0517839acdee5c6fff3f23e1f1aeb2
     Customers/CustomerDetails/details/labels/nationality: 676a006a7f9c4e1d976e31d470a7cd7c
     Customers/CustomerDetails/details/labels/address: 5a9a8bc26f90d84c90105690a2eb23a1
+    Customers/CustomerDetails/details/labels/companyName: 70257e0f30640404fa82289d393a5021
     Customers/CustomerDetails/details/customerStatus/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/customerStatus/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
     Customers/CustomerDetails/details/customerStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
@@ -346,6 +350,8 @@ checksums:
     Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
     Customers/CustomerDetails/details/actions/editTelegram: 4ae315a304c3159b982b203be81a5f98
     Customers/CustomerDetails/details/buttons/close: c6bf9acb5e3f853ff3172fd6d607fbb8
+    Customers/CustomerDetails/personalInfo/title: a363a765f3481693e690afb0533e1229
+    Customers/CustomerDetails/companyInfo/title: 1e6f40ee99785e1748f2261b7e58c8d2
     Customers/CustomerDetails/closeCustomer/title: c6bf9acb5e3f853ff3172fd6d607fbb8
     Customers/CustomerDetails/closeCustomer/description: 862b695beacd54f83995de902963b849
     Customers/CustomerDetails/closeCustomer/buttons/close: 2c2e22f8424a1031de89063bd0022e16
