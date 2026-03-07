@@ -31,14 +31,12 @@ query CustomerGet($id: UUID!) {
     customerType
     status
     level
-    kycVerification
     personalInfo {
       firstName
       lastName
       companyName
     }
     createdAt
-    applicantId
   }
 }
 
@@ -51,14 +49,12 @@ query CustomerGetByEmail($email: String!) {
     customerType
     status
     level
-    kycVerification
     personalInfo {
       firstName
       lastName
       companyName
     }
     createdAt
-    applicantId
   }
 }
 

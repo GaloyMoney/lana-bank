@@ -90,9 +90,7 @@ pub async fn execute(client: &mut GraphQLClient, action: CustomerAction, json: b
                             ("Company Name", &company_name),
                             ("Status", &format!("{:?}", c.status)),
                             ("Level", &format!("{:?}", c.level)),
-                            ("KYC", &format!("{:?}", c.kyc_verification)),
                             ("Created", &c.created_at),
-                            ("Applicant ID", &c.applicant_id),
                         ]);
                     }
                 }
@@ -130,9 +128,7 @@ pub async fn execute(client: &mut GraphQLClient, action: CustomerAction, json: b
                             ("Company Name", &company_name),
                             ("Status", &format!("{:?}", c.status)),
                             ("Level", &format!("{:?}", c.level)),
-                            ("KYC", &format!("{:?}", c.kyc_verification)),
                             ("Created", &c.created_at),
-                            ("Applicant ID", &c.applicant_id),
                         ]);
                     }
                 }
