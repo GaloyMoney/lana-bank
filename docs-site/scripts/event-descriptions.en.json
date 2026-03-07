@@ -33,57 +33,39 @@
   },
   "CoreCreditEvent": {
     "module_description": "Events related to credit facility lifecycle and operations.",
-    "subsections": {
-      "Facility Lifecycle": [
-        "FacilityProposalCreated",
-        "FacilityProposalApproved",
-        "FacilityActivated",
-        "FacilityCompleted"
-      ],
-      "Collateral Events": [
-        "PendingCreditFacilityCollateralizationChanged",
-        "FacilityCollateralUpdated",
-        "FacilityCollateralizationChanged"
-      ],
-      "Payment Events": [
-        "FacilityRepaymentRecorded",
-        "DisbursalSettled",
-        "AccrualPosted"
-      ],
-      "Obligation Events": [
-        "ObligationCreated",
-        "ObligationDue",
-        "ObligationOverdue",
-        "ObligationDefaulted",
-        "ObligationCompleted"
-      ],
-      "Liquidation Events": [
-        "PartialLiquidationInitiated",
-        "PartialLiquidationCollateralSentOut",
-        "PartialLiquidationProceedsReceived",
-        "PartialLiquidationCompleted"
-      ]
-    },
     "events": {
       "FacilityProposalCreated": "A credit facility proposal was created",
-      "FacilityProposalApproved": "A proposal was approved",
+      "FacilityProposalConcluded": "A credit facility proposal was concluded",
       "FacilityActivated": "A credit facility was activated",
       "FacilityCompleted": "A credit facility was fully repaid and closed",
       "PendingCreditFacilityCollateralizationChanged": "Collateralization state changed for pending facility",
-      "FacilityCollateralUpdated": "Collateral amount was updated",
+      "PendingCreditFacilityCompleted": "A pending credit facility was completed",
       "FacilityCollateralizationChanged": "Collateralization state changed for active facility",
-      "FacilityRepaymentRecorded": "A repayment was recorded",
       "DisbursalSettled": "A disbursal was settled",
+      "DisbursalApprovalConcluded": "A disbursal approval process was concluded",
       "AccrualPosted": "Interest accrual was posted",
+      "PartialLiquidationInitiated": "A partial liquidation was initiated"
+    }
+  },
+  "CoreCreditCollateralEvent": {
+    "module_description": "Events related to credit facility collateral management and liquidation.",
+    "events": {
+      "CollateralUpdated": "Collateral amount was updated",
+      "LiquidationCollateralSentOut": "Collateral was sent for liquidation",
+      "LiquidationProceedsReceived": "Liquidation proceeds were received",
+      "LiquidationCompleted": "Liquidation was completed"
+    }
+  },
+  "CoreCreditCollectionEvent": {
+    "module_description": "Events related to credit facility obligations and payment collection.",
+    "events": {
+      "PaymentCreated": "A payment was created",
+      "PaymentAllocationCreated": "A payment allocation was created",
       "ObligationCreated": "A new obligation was created",
       "ObligationDue": "An obligation became due",
       "ObligationOverdue": "An obligation became overdue",
       "ObligationDefaulted": "An obligation defaulted",
-      "ObligationCompleted": "An obligation was fully paid",
-      "PartialLiquidationInitiated": "A partial liquidation was initiated",
-      "PartialLiquidationCollateralSentOut": "Collateral was sent for liquidation",
-      "PartialLiquidationProceedsReceived": "Liquidation proceeds were received",
-      "PartialLiquidationCompleted": "Liquidation was completed"
+      "ObligationCompleted": "An obligation was fully paid"
     }
   },
   "CoreCustodyEvent": {
@@ -131,6 +113,12 @@
     "module_description": "Events related to approval workflows.",
     "events": {
       "ApprovalProcessConcluded": "An approval process was concluded"
+    }
+  },
+  "CoreTimeEvent": {
+    "module_description": "Events related to end-of-day processing.",
+    "events": {
+      "EndOfDay": "End of day was reached for the configured timezone"
     }
   }
 }

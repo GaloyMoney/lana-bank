@@ -57,7 +57,7 @@ is_allowed_lingo_failure() {
 }
 
 cleanup() {
-  rm -f "$LINGO_DIR/en" "$LINGO_DIR/es"
+  rm -f "$LINGO_DIR/en" "$LINGO_DIR/es" "$LINGO_DIR/scripts"
   [ -n "$ES_WALKTHROUGH_SNAPSHOT" ] && rm -rf "$ES_WALKTHROUGH_SNAPSHOT"
   true
 }
@@ -69,6 +69,7 @@ mkdir -p "$ES_DIR"
 # -n prevents following existing symlinks (avoids creating nested artifacts like docs/docs)
 ln -sfn ../docs "$LINGO_DIR/en"
 ln -sfn ../i18n/es/docusaurus-plugin-content-docs/current "$LINGO_DIR/es"
+ln -sfn ../scripts "$LINGO_DIR/scripts"
 
 # ── Snapshot ES walkthrough sections before Lingo.dev can mangle them ──
 ES_WALKTHROUGH_SNAPSHOT="$(mktemp -d)"

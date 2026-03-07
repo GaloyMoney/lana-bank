@@ -11,6 +11,13 @@
         "[locale]/*/*.md",
         "[locale]/*/*/*.md"
       ]
+    },
+    "json": {
+      "include": [
+        "scripts/api-descriptions.[locale].json",
+        "scripts/event-descriptions.[locale].json"
+      ],
+      "lockedKeys": ["_meta", "_meta.*"]
     }
   },
   "$schema": "https://lingo.dev/schema/i18n.json"

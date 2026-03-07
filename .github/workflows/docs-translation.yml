@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "docs-site/docs/**/*.md"
+      - "docs-site/scripts/api-descriptions.en.json"
+      - "docs-site/scripts/event-descriptions.en.json"
   workflow_dispatch:
 
 concurrency:
@@ -33,6 +35,7 @@ jobs:
       - name: Commit translations
         run: |
           git add docs-site/i18n/es/
+          git add docs-site/scripts/api-descriptions.es.json docs-site/scripts/event-descriptions.es.json
           if [ -f docs-site/.lingo-docs/i18n.lock ]; then
             git add docs-site/.lingo-docs/i18n.lock
           fi

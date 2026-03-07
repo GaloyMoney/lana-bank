@@ -23,7 +23,7 @@ const path = require("path");
 
 const SCRIPTS_DIR = __dirname;
 const ROOT_DIR = path.join(__dirname, "..");
-const DESCRIPTIONS_FILE = path.join(SCRIPTS_DIR, "api-descriptions.json");
+const DESCRIPTIONS_FILE = path.join(SCRIPTS_DIR, "api-descriptions.en.json");
 const DESCRIPTIONS_ES_FILE = path.join(SCRIPTS_DIR, "api-descriptions.es.json");
 
 const SCHEMA_FILES = {
@@ -110,7 +110,7 @@ function validateDescriptions() {
   const esDescriptions = loadDescriptions(DESCRIPTIONS_ES_FILE);
 
   if (!enDescriptions) {
-    errors.push("English descriptions file not found: api-descriptions.json");
+    errors.push("English descriptions file not found: api-descriptions.en.json");
     return { errors, warnings };
   }
 
@@ -193,7 +193,7 @@ function main() {
     }
     console.log(`\n${errors.length} error(s) found.`);
     console.log("\nTo fix:");
-    console.log("  1. For missing descriptions: Add descriptions to both api-descriptions.json and api-descriptions.es.json");
+    console.log("  1. For missing descriptions: Add descriptions to api-descriptions.en.json (Spanish is auto-translated)");
     console.log("  2. For default descriptions: Replace placeholder text with actual descriptions");
     console.log("  3. Run 'pnpm run generate-api-docs' to regenerate documentation");
     process.exit(1);

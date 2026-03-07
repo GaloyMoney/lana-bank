@@ -33,57 +33,39 @@
   },
   "CoreCreditEvent": {
     "module_description": "Eventos relacionados con el ciclo de vida y operaciones de facilidades de credito.",
-    "subsections": {
-      "Ciclo de Vida de Facilidad": [
-        "FacilityProposalCreated",
-        "FacilityProposalApproved",
-        "FacilityActivated",
-        "FacilityCompleted"
-      ],
-      "Eventos de Colateral": [
-        "PendingCreditFacilityCollateralizationChanged",
-        "FacilityCollateralUpdated",
-        "FacilityCollateralizationChanged"
-      ],
-      "Eventos de Pago": [
-        "FacilityRepaymentRecorded",
-        "DisbursalSettled",
-        "AccrualPosted"
-      ],
-      "Eventos de Obligacion": [
-        "ObligationCreated",
-        "ObligationDue",
-        "ObligationOverdue",
-        "ObligationDefaulted",
-        "ObligationCompleted"
-      ],
-      "Eventos de Liquidacion": [
-        "PartialLiquidationInitiated",
-        "PartialLiquidationCollateralSentOut",
-        "PartialLiquidationProceedsReceived",
-        "PartialLiquidationCompleted"
-      ]
-    },
     "events": {
       "FacilityProposalCreated": "Se creo una propuesta de facilidad de credito",
-      "FacilityProposalApproved": "Se aprobo una propuesta",
+      "FacilityProposalConcluded": "FacilityProposalConcluded",
       "FacilityActivated": "Se activo una facilidad de credito",
       "FacilityCompleted": "Una facilidad de credito fue totalmente pagada y cerrada",
       "PendingCreditFacilityCollateralizationChanged": "Cambio el estado de colateralizacion para facilidad pendiente",
-      "FacilityCollateralUpdated": "Se actualizo el monto del colateral",
+      "PendingCreditFacilityCompleted": "PendingCreditFacilityCompleted",
       "FacilityCollateralizationChanged": "Cambio el estado de colateralizacion para facilidad activa",
-      "FacilityRepaymentRecorded": "Se registro un pago",
       "DisbursalSettled": "Se liquido un desembolso",
+      "DisbursalApprovalConcluded": "DisbursalApprovalConcluded",
       "AccrualPosted": "Se registro el devengamiento de intereses",
+      "PartialLiquidationInitiated": "Se inicio una liquidacion parcial"
+    }
+  },
+  "CoreCreditCollateralEvent": {
+    "module_description": "CoreCreditCollateralEvent module_description",
+    "events": {
+      "CollateralUpdated": "CollateralUpdated",
+      "LiquidationCollateralSentOut": "LiquidationCollateralSentOut",
+      "LiquidationProceedsReceived": "LiquidationProceedsReceived",
+      "LiquidationCompleted": "LiquidationCompleted"
+    }
+  },
+  "CoreCreditCollectionEvent": {
+    "module_description": "CoreCreditCollectionEvent module_description",
+    "events": {
+      "PaymentCreated": "PaymentCreated",
+      "PaymentAllocationCreated": "PaymentAllocationCreated",
       "ObligationCreated": "Se creo una nueva obligacion",
       "ObligationDue": "Una obligacion vencio",
       "ObligationOverdue": "Una obligacion entro en mora",
       "ObligationDefaulted": "Una obligacion entro en incumplimiento",
-      "ObligationCompleted": "Una obligacion fue completamente pagada",
-      "PartialLiquidationInitiated": "Se inicio una liquidacion parcial",
-      "PartialLiquidationCollateralSentOut": "Se envio colateral para liquidacion",
-      "PartialLiquidationProceedsReceived": "Se recibieron los ingresos de liquidacion",
-      "PartialLiquidationCompleted": "Se completo la liquidacion"
+      "ObligationCompleted": "Una obligacion fue completamente pagada"
     }
   },
   "CoreCustodyEvent": {
@@ -99,7 +81,8 @@
       "CustomerAccountKycVerificationUpdated": "Cambio el estado de verificacion KYC",
       "CustomerEmailUpdated": "Se actualizo el email del cliente",
       "CustomerFrozen": "Se congelo una cuenta de cliente, bloqueando operaciones financieras",
-      "CustomerUnfrozen": "Se descongelo una cuenta de cliente previamente congelada, restaurando operaciones normales"
+      "CustomerUnfrozen": "Se descongelo una cuenta de cliente previamente congelada, restaurando operaciones normales",
+      "CustomerClosed": "La cuenta del cliente fue cerrada"
     }
   },
   "CoreDepositEvent": {
@@ -130,6 +113,12 @@
     "module_description": "Eventos relacionados con flujos de aprobacion.",
     "events": {
       "ApprovalProcessConcluded": "Se concluyo un proceso de aprobacion"
+    }
+  },
+  "CoreTimeEvent": {
+    "module_description": "CoreTimeEvent module_description",
+    "events": {
+      "EndOfDay": "EndOfDay"
     }
   }
 }
