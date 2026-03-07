@@ -20,6 +20,12 @@
             "null"
           ]
         },
+        "companyName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "dateOfBirth": {
           "type": [
             "string",
