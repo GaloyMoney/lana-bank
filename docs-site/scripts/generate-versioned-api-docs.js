@@ -159,7 +159,7 @@ function addVersionedCategoryKeys(dir, version, prefix) {
  * Generate events documentation for a specific version
  */
 function generateEventsDocs(eventsSchemaPath, outputPath) {
-  const DESCRIPTIONS_PATH = path.join(__dirname, "event-descriptions.json");
+  const DESCRIPTIONS_PATH = path.join(__dirname, "event-descriptions.en.json");
 
   if (!fs.existsSync(eventsSchemaPath)) {
     console.log(`  Events schema not found: ${eventsSchemaPath}`);

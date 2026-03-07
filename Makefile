@@ -133,7 +133,7 @@ prep-docs:
 # Validate docs-site API descriptions (mirrors CI workflow)
 check-docs: prep-docs
 	cd docs-site && pnpm run validate-api-descriptions
-	cd docs-site && git checkout scripts/api-descriptions.json scripts/api-descriptions.es.json
+	cd docs-site && git checkout scripts/api-descriptions.en.json scripts/api-descriptions.es.json
 
 test-cypress-in-ci:
 	@echo "--- Starting Cypress Tests ---"
