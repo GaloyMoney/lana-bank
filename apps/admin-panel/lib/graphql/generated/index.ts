@@ -4301,6 +4301,13 @@ export type GetCustomerDocumentsQueryVariables = Exact<{
 
 export type GetCustomerDocumentsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'CustomerDocument', id: string, filename: string, customerDocumentId: string }> } | null };
 
+export type CustomerFreezeMutationVariables = Exact<{
+  input: CustomerFreezeInput;
+}>;
+
+
+export type CustomerFreezeMutation = { __typename?: 'Mutation', customerFreeze: { __typename?: 'CustomerFreezePayload', customer: { __typename?: 'Customer', id: string, status: CustomerStatus } } };
+
 export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
 
 export type GetCustomerBasicDetailsQueryVariables = Exact<{
@@ -4323,6 +4330,13 @@ export type GetCustomerPendingCreditFacilitiesQueryVariables = Exact<{
 
 
 export type GetCustomerPendingCreditFacilitiesQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, pendingCreditFacilities: Array<{ __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, createdAt: string, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: PendingCreditFacilityStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
+
+export type CustomerUnfreezeMutationVariables = Exact<{
+  input: CustomerUnfreezeInput;
+}>;
+
+
+export type CustomerUnfreezeMutation = { __typename?: 'Mutation', customerUnfreeze: { __typename?: 'CustomerUnfreezePayload', customer: { __typename?: 'Customer', id: string, status: CustomerStatus } } };
 
 export type CustomerEmailUpdateMutationVariables = Exact<{
   input: CustomerEmailUpdateInput;
@@ -8511,6 +8525,42 @@ export type GetCustomerDocumentsQueryHookResult = ReturnType<typeof useGetCustom
 export type GetCustomerDocumentsLazyQueryHookResult = ReturnType<typeof useGetCustomerDocumentsLazyQuery>;
 export type GetCustomerDocumentsSuspenseQueryHookResult = ReturnType<typeof useGetCustomerDocumentsSuspenseQuery>;
 export type GetCustomerDocumentsQueryResult = Apollo.QueryResult<GetCustomerDocumentsQuery, GetCustomerDocumentsQueryVariables>;
+export const CustomerFreezeDocument = gql`
+    mutation CustomerFreeze($input: CustomerFreezeInput!) {
+  customerFreeze(input: $input) {
+    customer {
+      id
+      status
+    }
+  }
+}
+    `;
+export type CustomerFreezeMutationFn = Apollo.MutationFunction<CustomerFreezeMutation, CustomerFreezeMutationVariables>;
+
+/**
+ * __useCustomerFreezeMutation__
+ *
+ * To run a mutation, you first call `useCustomerFreezeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerFreezeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerFreezeMutation, { data, loading, error }] = useCustomerFreezeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustomerFreezeMutation(baseOptions?: Apollo.MutationHookOptions<CustomerFreezeMutation, CustomerFreezeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerFreezeMutation, CustomerFreezeMutationVariables>(CustomerFreezeDocument, options);
+      }
+export type CustomerFreezeMutationHookResult = ReturnType<typeof useCustomerFreezeMutation>;
+export type CustomerFreezeMutationResult = Apollo.MutationResult<CustomerFreezeMutation>;
+export type CustomerFreezeMutationOptions = Apollo.BaseMutationOptions<CustomerFreezeMutation, CustomerFreezeMutationVariables>;
 export const GetCustomerBasicDetailsDocument = gql`
     query GetCustomerBasicDetails($id: PublicId!) {
   customerByPublicId(id: $id) {
@@ -8671,6 +8721,42 @@ export type GetCustomerPendingCreditFacilitiesQueryHookResult = ReturnType<typeo
 export type GetCustomerPendingCreditFacilitiesLazyQueryHookResult = ReturnType<typeof useGetCustomerPendingCreditFacilitiesLazyQuery>;
 export type GetCustomerPendingCreditFacilitiesSuspenseQueryHookResult = ReturnType<typeof useGetCustomerPendingCreditFacilitiesSuspenseQuery>;
 export type GetCustomerPendingCreditFacilitiesQueryResult = Apollo.QueryResult<GetCustomerPendingCreditFacilitiesQuery, GetCustomerPendingCreditFacilitiesQueryVariables>;
+export const CustomerUnfreezeDocument = gql`
+    mutation CustomerUnfreeze($input: CustomerUnfreezeInput!) {
+  customerUnfreeze(input: $input) {
+    customer {
+      id
+      status
+    }
+  }
+}
+    `;
+export type CustomerUnfreezeMutationFn = Apollo.MutationFunction<CustomerUnfreezeMutation, CustomerUnfreezeMutationVariables>;
+
+/**
+ * __useCustomerUnfreezeMutation__
+ *
+ * To run a mutation, you first call `useCustomerUnfreezeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerUnfreezeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerUnfreezeMutation, { data, loading, error }] = useCustomerUnfreezeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustomerUnfreezeMutation(baseOptions?: Apollo.MutationHookOptions<CustomerUnfreezeMutation, CustomerUnfreezeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerUnfreezeMutation, CustomerUnfreezeMutationVariables>(CustomerUnfreezeDocument, options);
+      }
+export type CustomerUnfreezeMutationHookResult = ReturnType<typeof useCustomerUnfreezeMutation>;
+export type CustomerUnfreezeMutationResult = Apollo.MutationResult<CustomerUnfreezeMutation>;
+export type CustomerUnfreezeMutationOptions = Apollo.BaseMutationOptions<CustomerUnfreezeMutation, CustomerUnfreezeMutationVariables>;
 export const CustomerEmailUpdateDocument = gql`
     mutation CustomerEmailUpdate($input: CustomerEmailUpdateInput!) {
   customerEmailUpdate(input: $input) {

@@ -495,7 +495,9 @@
           "editTelegram": "Editar handle de Telegram"
         },
         "buttons": {
-          "close": "Close Customer"
+          "close": "Close Customer",
+          "freeze": "Freeze Customer",
+          "unfreeze": "Unfreeze Customer"
         }
       },
       "personalInfo": {
@@ -511,6 +513,22 @@
           "close": "Close"
         },
         "success": "Customer closed successfully"
+      },
+      "freezeCustomer": {
+        "title": "Freeze Customer",
+        "description": "Are you sure you want to freeze this customer?",
+        "buttons": {
+          "freeze": "Freeze"
+        },
+        "success": "Customer frozen successfully"
+      },
+      "unfreezeCustomer": {
+        "title": "Unfreeze Customer",
+        "description": "Are you sure you want to unfreeze this customer?",
+        "buttons": {
+          "unfreeze": "Unfreeze"
+        },
+        "success": "Customer unfrozen successfully"
       },
       "kycStatus": {
         "title": "KYC",
