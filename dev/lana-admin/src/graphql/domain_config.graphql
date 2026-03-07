@@ -3,8 +3,11 @@ query DomainConfigsList {
     edges {
       node {
         domainConfigId
+        configType
+        encrypted
         key
         value
+        isSet
       }
     }
   }
@@ -14,8 +17,11 @@ mutation DomainConfigUpdate($input: DomainConfigUpdateInput!) {
   domainConfigUpdate(input: $input) {
     domainConfig {
       domainConfigId
+      configType
+      encrypted
       key
       value
+      isSet
     }
   }
 }

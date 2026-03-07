@@ -24,11 +24,17 @@ pub async fn execute(
                         vec![
                             e.node.domain_config_id.clone(),
                             e.node.key.clone(),
+                            format!("{:?}", e.node.config_type),
+                            e.node.encrypted.to_string(),
+                            e.node.is_set.to_string(),
                             e.node.value.to_string(),
                         ]
                     })
                     .collect();
-                output::print_table(&["Config ID", "Key", "Value"], rows);
+                output::print_table(
+                    &["Config ID", "Key", "Type", "Encrypted", "Is Set", "Value"],
+                    rows,
+                );
             }
         }
         DomainConfigAction::Update {
@@ -50,6 +56,9 @@ pub async fn execute(
                 output::print_kv(&[
                     ("Config ID", &dc.domain_config_id),
                     ("Key", &dc.key),
+                    ("Type", &format!("{:?}", dc.config_type)),
+                    ("Encrypted", &dc.encrypted.to_string()),
+                    ("Is Set", &dc.is_set.to_string()),
                     ("Value", &dc.value.to_string()),
                 ]);
             }

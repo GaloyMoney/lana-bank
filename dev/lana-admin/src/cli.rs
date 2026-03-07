@@ -69,10 +69,40 @@ Minimal Komainu example:
 Use the same provider key and schema family that was used when creating the custodian."#;
 
 const DOMAIN_CONFIG_VALUE_HELP: &str = r#"JSON value for the target config key.
+Inspect the expected type with:
+  lana-admin system domain-config list --json
+
+Value shape by configType:
+  Bool      -> true
+  String    -> '"notifications@example.com"'
+  Int/Uint  -> 365
+  Decimal   -> '"12.34"'
+  Timezone  -> '"America/New_York"'
+  Time      -> '"17:00:00"'
+  Complex   -> '{"key":"value"}' or '[...]'
+
+Current exposed system domain-config keys in this repo:
+  require-verified-customer-for-account        -> Bool
+  sumsub-api-key                               -> String (encrypted)
+  sumsub-api-secret                            -> String (encrypted)
+  sumsub-kyc-flow-name                         -> String
+  sumsub-kyb-flow-name                         -> String
+  deposit-activity-inactive-threshold-days     -> Uint
+  deposit-activity-escheatable-threshold-days  -> Uint
+  timezone                                     -> Timezone
+  closing-time                                 -> Time
+  notification-email-from-email                -> String
+  notification-email-from-name                 -> String
+
+Note:
+  No current exposed system domain-config key in this repo uses Complex/Object JSON.
+
 Examples:
   --value-json '"notifications@example.com"'
-  --value-json '123'
-  --value-json '{"enabled":true}'"#;
+  --value-json '365'
+  --value-json 'true'
+  --value-json '"America/New_York"'
+  --value-json '"17:00:00"'"#;
 
 #[derive(Parser)]
 #[command(
