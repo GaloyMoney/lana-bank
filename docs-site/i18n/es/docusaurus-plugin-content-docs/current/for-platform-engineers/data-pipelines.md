@@ -328,3 +328,11 @@ meltano run tap-postgres target-bigquery
 # Ejecutar con selección de tablas
 
 meltano run tap-postgres target-bigquery --select core_credit_facility_events
+
+### Permisos de BigQuery
+
+| Rol | Nivel de acceso |
+|------|-----------------|
+| Ingeniero de datos | Acceso total |
+| Analista | Solo lectura de marts |
+| Reportes | Lectura de vistas específicas |
