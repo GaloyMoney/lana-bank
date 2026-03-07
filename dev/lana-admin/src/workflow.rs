@@ -29,6 +29,15 @@ struct WorkflowDeps<'a> {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+struct WorkflowListStepView<'a> {
+    id: &'a str,
+    command: &'a str,
+    depends_on: Vec<&'a str>,
+    mutating: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct WorkflowStepView<'a> {
     index: usize,
     id: &'a str,
@@ -47,16 +56,24 @@ pub fn execute(action: WorkflowAction, json: bool) -> anyhow::Result<()> {
 fn workflow_list(json: bool) -> anyhow::Result<()> {
     let workflow = load_workflow()?;
     let steps = collect_step_views(&workflow, None, true)?;
+    let catalog: Vec<_> = steps
+        .iter()
+        .map(|step| WorkflowListStepView {
+            id: step.id,
+            command: step.command,
+            depends_on: step.depends_on.clone(),
+            mutating: step.mutating,
+        })
+        .collect();
 
     if json {
-        return output::print_json(&steps);
+        return output::print_json(&catalog);
     }
 
-    let rows = steps
+    let rows = catalog
         .iter()
         .map(|step| {
             vec![
-                step.index.to_string(),
                 step.id.to_string(),
                 step.command.to_string(),
                 if step.mutating {
@@ -72,7 +89,7 @@ fn workflow_list(json: bool) -> anyhow::Result<()> {
             ]
         })
         .collect();
-    output::print_table(&["#", "Step ID", "Command", "Type", "Depends On"], rows);
+    output::print_table(&["Step ID", "Command", "Type", "Depends On"], rows);
     Ok(())
 }
 
