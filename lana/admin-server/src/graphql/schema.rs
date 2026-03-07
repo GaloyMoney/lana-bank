@@ -6,6 +6,7 @@ use futures::StreamExt;
 use futures::stream::Stream;
 use obix::out::OutboxEventMarker;
 
+use lana_app::access::user::{UsersSortBy as DomainUsersSortBy, user_cursor::UsersCursor};
 use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
 use lana_app::customer::{CoreCustomerEvent, prospect_cursor::ProspectsCursor};
@@ -61,21 +62,24 @@ impl Query {
         maybe_fetch_one!(User, ctx, app.access().users().find_by_id(sub, id))
     }
 
-    async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
+    async fn users(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+        #[graphql(default_with = "Some(UsersSort::default())")] sort: Option<UsersSort>,
+    ) -> async_graphql::Result<Connection<UsersCursor, User, EmptyFields, EmptyFields>> {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let users: Vec<_> = app
-            .access()
-            .users()
-            .list_users(sub)
-            .await?
-            .into_iter()
-            .map(User::from)
-            .collect();
-        loader
-            .feed_many(users.iter().map(|u| (u.entity.id, u.clone())))
-            .await;
-        Ok(users)
+        list_with_combo_cursor!(
+            UsersCursor,
+            User,
+            DomainUsersSortBy::from(sort),
+            ctx,
+            after,
+            first,
+            |query| app.access().users().list_users(sub, query, sort.into())
+        )
     }
 
     async fn role(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Role>> {

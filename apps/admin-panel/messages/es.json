@@ -1520,8 +1520,15 @@
         "description": "Crear un nuevo comité proporcionando la información requerida",
         "fields": {
           "name": "Nombre del Comité",
-          "members": "Miembros"
+          "selectedMembers": "Miembros Seleccionados",
+          "noMembersSelected": "No hay miembros seleccionados",
+          "users": "Usuarios"
         },
+        "columns": {
+          "email": "Correo Electrónico",
+          "role": "Rol"
+        },
+        "selected": "Seleccionado",
         "placeholders": {
           "name": "Ingrese el nombre del comité",
           "selectMember": "Seleccionar un miembro"
@@ -1553,6 +1560,11 @@
       "AddUserCommitteeDialog": {
         "title": "Añadir Usuario al Comité",
         "description": "Seleccione un usuario para añadir a este comité",
+        "columns": {
+          "email": "Correo Electrónico",
+          "role": "Rol"
+        },
+        "selectedUser": "Seleccionado",
         "placeholders": {
           "selectUser": "Seleccione un usuario"
         },
@@ -1996,7 +2008,8 @@
     "table": {
       "headers": {
         "email": "Correo Electrónico",
-        "role": "Rol"
+        "role": "Rol",
+        "createdAt": "Fecha de Creación"
       },
       "noRolesAssigned": "Sin roles asignados",
       "emptyMessage": "No se encontraron usuarios"

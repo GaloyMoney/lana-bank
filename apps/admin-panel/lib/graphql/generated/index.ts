@@ -2762,7 +2762,7 @@ export type Query = {
   transactionTemplates: TransactionTemplateConnection;
   trialBalance: TrialBalance;
   user?: Maybe<User>;
-  users: Array<User>;
+  users: UserConnection;
   withdrawal?: Maybe<Withdrawal>;
   withdrawalByPublicId?: Maybe<Withdrawal>;
   withdrawals: WithdrawalConnection;
@@ -3106,6 +3106,13 @@ export type QueryTrialBalanceArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryUsersArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+  sort?: InputMaybe<UsersSort>;
 };
 
 
@@ -3524,6 +3531,16 @@ export type User = {
   userId: Scalars['UUID']['output'];
 };
 
+export type UserConnection = {
+  __typename?: 'UserConnection';
+  /** A list of edges. */
+  edges: Array<UserEdge>;
+  /** A list of nodes. */
+  nodes: Array<User>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
 export type UserCreateInput = {
   email: Scalars['String']['input'];
   roleId: Scalars['UUID']['input'];
@@ -3532,6 +3549,15 @@ export type UserCreateInput = {
 export type UserCreatePayload = {
   __typename?: 'UserCreatePayload';
   user: User;
+};
+
+/** An edge in a connection. */
+export type UserEdge = {
+  __typename?: 'UserEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: User;
 };
 
 export type UserUpdateRoleInput = {
@@ -3543,6 +3569,16 @@ export type UserUpdateRolePayload = {
   __typename?: 'UserUpdateRolePayload';
   user: User;
 };
+
+export type UsersSort = {
+  by?: UsersSortBy;
+  direction?: SortDirection;
+};
+
+export enum UsersSortBy {
+  CreatedAt = 'CREATED_AT',
+  Email = 'EMAIL'
+}
 
 export type VisibleNavigationItems = {
   __typename?: 'VisibleNavigationItems';
@@ -5143,10 +5179,14 @@ export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __type
 
 export type UserFieldsFragment = { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } };
 
-export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
+export type UsersQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<UsersSort>;
+}>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', id: string, userId: string, email: string, createdAt: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> };
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'UserEdge', cursor: string, node: { __typename?: 'User', id: string, userId: string, email: string, createdAt: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } };
 
 export type UserUpdateRoleMutationVariables = Exact<{
   input: UserUpdateRoleInput;
@@ -12585,9 +12625,20 @@ export type UserCreateMutationHookResult = ReturnType<typeof useUserCreateMutati
 export type UserCreateMutationResult = Apollo.MutationResult<UserCreateMutation>;
 export type UserCreateMutationOptions = Apollo.BaseMutationOptions<UserCreateMutation, UserCreateMutationVariables>;
 export const UsersDocument = gql`
-    query Users {
-  users {
-    ...UserFields
+    query Users($first: Int!, $after: String, $sort: UsersSort) {
+  users(first: $first, after: $after, sort: $sort) {
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        ...UserFields
+      }
+    }
   }
 }
     ${UserFieldsFragmentDoc}`;
@@ -12604,10 +12655,13 @@ export const UsersDocument = gql`
  * @example
  * const { data, loading, error } = useUsersQuery({
  *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */
-export function useUsersQuery(baseOptions?: Apollo.QueryHookOptions<UsersQuery, UsersQueryVariables>) {
+export function useUsersQuery(baseOptions: Apollo.QueryHookOptions<UsersQuery, UsersQueryVariables> & ({ variables: UsersQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
       }

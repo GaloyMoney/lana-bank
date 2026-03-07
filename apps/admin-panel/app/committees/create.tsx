@@ -17,16 +17,22 @@ import {
 import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@lana/web/ui/select"
 
-import { useCreateCommitteeMutation, useUsersQuery } from "@/lib/graphql/generated"
+import PaginatedTable, {
+  Column,
+  DEFAULT_PAGESIZE,
+  PaginatedData,
+} from "@/components/paginated-table"
+
+import {
+  User,
+  SortDirection,
+  UsersSort,
+  useCreateCommitteeMutation,
+  useUsersQuery,
+} from "@/lib/graphql/generated"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   mutation CreateCommittee($input: CommitteeCreateInput!) {
@@ -67,40 +73,39 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
       },
     })
 
-  const { data: userData, loading: usersLoading } = useUsersQuery()
+  const [sortBy, setSortBy] = useState<UsersSort | null>(null)
+
+  const { data: userData, loading: usersLoading, fetchMore } = useUsersQuery({
+    variables: { first: DEFAULT_PAGESIZE, sort: sortBy },
+    skip: !openCreateCommitteeDialog,
+  })
 
   const isLoading = loading || isNavigating
 
-  const [formValues, setFormValues] = useState({
-    name: "",
-  })
-  const [selectedUserId, setSelectedUserId] = useState<string>("")
-  const [memberUserIds, setMemberUserIds] = useState<string[]>([])
-
+  const [name, setName] = useState("")
+  const [members, setMembers] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [name]: value,
-    }))
-  }
+  const memberUserIds = Object.keys(members)
 
-  const handleAddMember = () => {
-    if (selectedUserId && !memberUserIds.includes(selectedUserId)) {
-      setMemberUserIds((prev) => [...prev, selectedUserId])
-      setSelectedUserId("")
-    }
+  const handleToggleMember = (user: User) => {
+    setMembers((prev) => {
+      const next = { ...prev }
+      if (user.userId in next) {
+        delete next[user.userId]
+      } else {
+        next[user.userId] = user.email
+      }
+      return next
+    })
   }
 
   const handleRemoveMember = (userId: string) => {
-    setMemberUserIds((prev) => prev.filter((id) => id !== userId))
-  }
-
-  const getUserEmail = (userId: string) => {
-    const user = userData?.users.find((u) => u.userId === userId)
-    return user?.email || userId
+    setMembers((prev) => {
+      const next = { ...prev }
+      delete next[userId]
+      return next
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,7 +121,7 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
       await createCommittee({
         variables: {
           input: {
-            name: formValues.name,
+            name,
             memberUserIds,
           },
         },
@@ -143,18 +148,32 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
   }
 
   const resetForm = () => {
-    setFormValues({
-      name: "",
-    })
-    setSelectedUserId("")
-    setMemberUserIds([])
+    setName("")
+    setMembers({})
     setError(null)
     reset()
   }
 
-  const availableUsers = userData?.users.filter(
-    (user) => !memberUserIds.includes(user.userId),
-  )
+  const columns: Column<User>[] = [
+    {
+      key: "email",
+      label: t("columns.email"),
+      sortable: true,
+    },
+    {
+      key: "role",
+      label: t("columns.role"),
+      render: (role) => role?.name || "",
+    },
+    {
+      key: "userId",
+      label: "",
+      render: (userId) =>
+        userId in members ? (
+          <span className="text-xs font-medium text-primary">{t("selected")}</span>
+        ) : null,
+    },
+  ]
 
   return (
     <Dialog
@@ -166,7 +185,7 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
         }
       }}
     >
-      <DialogContent>
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
@@ -180,63 +199,64 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
               type="text"
               required
               placeholder={t("placeholders.name")}
-              value={formValues.name}
-              onChange={handleChange}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
               data-testid="committee-create-name-input"
             />
           </div>
 
-          <div>
-            <Label>{t("fields.members")}</Label>
-            <div className="flex gap-2">
-              <Select
-                value={selectedUserId}
-                onValueChange={setSelectedUserId}
-                disabled={isLoading || usersLoading}
-              >
-                <SelectTrigger data-testid="committee-create-member-select">
-                  <SelectValue placeholder={t("placeholders.selectMember")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableUsers?.map((user) => (
-                    <SelectItem key={user.userId} value={user.userId}>
-                      {user.email} {user.role?.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddMember}
-                disabled={!selectedUserId || isLoading}
-                data-testid="committee-create-add-member-button"
-              >
-                {t("buttons.addMember")}
-              </Button>
-            </div>
-            {memberUserIds.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {memberUserIds.map((userId) => (
-                  <li
-                    key={userId}
-                    className="flex items-center justify-between rounded bg-muted px-2 py-1 text-sm"
-                  >
-                    <span>{getUserEmail(userId)}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveMember(userId)}
-                      disabled={isLoading}
+          <div className="space-y-6">
+            <div>
+              <Label>{t("fields.selectedMembers")}</Label>
+              {memberUserIds.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {memberUserIds.map((userId) => (
+                    <span
+                      key={userId}
+                      className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
                     >
-                      ✕
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
+                      {members[userId]}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMember(userId)}
+                        disabled={isLoading}
+                        className="ml-0.5 inline-flex items-center rounded-full p-0.5 hover:bg-muted-foreground/20 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t("fields.noMembersSelected")}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label>{t("fields.users")}</Label>
+              <div className="mt-2">
+                <PaginatedTable<User>
+                  columns={columns}
+                  data={userData?.users as PaginatedData<User>}
+                  loading={usersLoading}
+                  fetchMore={async (cursor) =>
+                    fetchMore({ variables: { after: cursor } })
+                  }
+                  pageSize={DEFAULT_PAGESIZE}
+                  style="compact"
+                  onClick={handleToggleMember}
+                  onSort={(column, direction) => {
+                    setSortBy({
+                      by: camelToScreamingSnake(column as string) as UsersSort["by"],
+                      direction: direction as SortDirection,
+                    })
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {error && <p className="text-destructive">{error}</p>}

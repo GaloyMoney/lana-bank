@@ -1520,8 +1520,15 @@
         "description": "Create a new committee by providing the required information",
         "fields": {
           "name": "Committee Name",
-          "members": "Members"
+          "selectedMembers": "Selected Members",
+          "noMembersSelected": "No members selected",
+          "users": "Users"
         },
+        "columns": {
+          "email": "Email",
+          "role": "Role"
+        },
+        "selected": "Selected",
         "placeholders": {
           "name": "Enter the committee name",
           "selectMember": "Select a member"
@@ -1553,6 +1560,11 @@
       "AddUserCommitteeDialog": {
         "title": "Add User to Committee",
         "description": "Select a user to add to this committee",
+        "columns": {
+          "email": "Email",
+          "role": "Role"
+        },
+        "selectedUser": "Selected",
         "placeholders": {
           "selectUser": "Select a user"
         },
@@ -1996,7 +2008,8 @@
     "table": {
       "headers": {
         "email": "Email",
-        "role": "Role"
+        "role": "Role",
+        "createdAt": "Created At"
       },
       "noRolesAssigned": "No roles Assigned",
       "emptyMessage": "No users found"
