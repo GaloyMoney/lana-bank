@@ -1,0 +1,80 @@
+query CustomersList($first: Int!, $after: String) {
+  customers(first: $first, after: $after) {
+    nodes {
+      customerId
+      publicId
+    email
+    telegramHandle
+    customerType
+    status
+    level
+    personalInfo {
+      firstName
+        lastName
+        companyName
+      }
+      createdAt
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+query CustomerGet($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    publicId
+    email
+    telegramHandle
+    customerType
+    status
+    level
+    kycVerification
+    personalInfo {
+      firstName
+      lastName
+      companyName
+    }
+    createdAt
+    applicantId
+  }
+}
+
+query CustomerGetByEmail($email: String!) {
+  customerByEmail(email: $email) {
+    customerId
+    publicId
+    email
+    telegramHandle
+    customerType
+    status
+    level
+    kycVerification
+    personalInfo {
+      firstName
+      lastName
+      companyName
+    }
+    createdAt
+    applicantId
+  }
+}
+
+mutation CustomerClose($input: CustomerCloseInput!) {
+  customerClose(input: $input) {
+    customer {
+      customerId
+      publicId
+      email
+      status
+      personalInfo {
+        firstName
+        lastName
+        companyName
+      }
+      createdAt
+    }
+  }
+}

@@ -96,7 +96,8 @@
           || pkgs.lib.hasInfix "/lib/gotenberg/config/" path
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path
-          || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path;
+          || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path
+          || pkgs.lib.hasInfix "/dev/lana-admin/src/graphql/" path;
       };
 
       commonArgs = {
@@ -137,6 +138,15 @@
         // {
           pname = "lana-cli-debug";
           cargoExtraArgs = "-p lana-cli --features mock-custodian,sumsub-testing";
+          src = rustSource;
+        }
+      );
+
+      lana-admin-debug = craneLib.buildPackage (
+        individualCrateArgs
+        // {
+          pname = "lana-admin-debug";
+          cargoExtraArgs = "-p lana-admin";
           src = rustSource;
         }
       );
@@ -293,6 +303,7 @@
         packages = {
           default = lana-cli-debug;
           lana-cli-debug = lana-cli-debug;
+          lana-admin-debug = lana-admin-debug;
           lana-cli-release = lana-cli-release;
 
           lana-deps = cargoArtifacts;
@@ -375,6 +386,7 @@
                 pkgs.poppler-utils
                 pkgs.libuuid
                 lana-cli-debug
+                lana-admin-debug
               ];
               postBuild = ''
                 mkdir -p $out/bin
@@ -387,6 +399,7 @@
 
                 # Set environment variables needed by bats tests
                 export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
+                export LANACLI="${lana-admin-debug}/bin/lana-admin"
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"

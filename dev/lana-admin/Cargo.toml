@@ -1,0 +1,28 @@
+[package]
+name = "lana-admin"
+version = "0.1.0"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+
+[[bin]]
+name = "lana-admin"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+reqwest = { workspace = true, features = ["form"] }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+graphql_client = { workspace = true }
+anyhow = { workspace = true }
+comfy-table = { workspace = true }
+url = { workspace = true }
+base64 = { workspace = true }
+sha2 = { workspace = true }
+rand = { workspace = true }
+rustls = { workspace = true }
+chrono = { workspace = true }

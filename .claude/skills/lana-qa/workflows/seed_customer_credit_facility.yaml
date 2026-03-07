@@ -1,0 +1,360 @@
+version: 1
+name: seed_customer_credit_facility
+description: >
+  Deterministic seed workflow covering IAM setup plus deposit and credit-facility
+  lifecycles with the current lana-admin command namespaces. It creates and
+  converts a prospect, exercises deposit states, and runs a credit flow from
+  proposal through collateral update, disbursal, payment, and loan agreement.
+
+inputs:
+  ts: runtime_epoch_seconds
+  email: "cli-${LANA_ENV}-${TS}@mailinator.com"
+  user_email: "cli-user-${LANA_ENV}-${TS}@mailinator.com"
+  telegram_handle: "cli_${LANA_ENV}_${TS}"
+  reference_base: "${LANA_ENV}-${TS}"
+  reference_cancel: "${reference_base}-cancel"
+  reference_confirm: "${reference_base}-confirm"
+  reference_revert: "${reference_base}-revert"
+  reference_closeout: "${reference_base}-closeout"
+
+state:
+  role_id_primary: null
+  role_id_secondary: null
+  user_id: null
+  prospect_id: null
+  customer_id: null
+  deposit_account_id: null
+  withdrawal_cancel_id: null
+  approval_process_cancel_id: null
+  withdrawal_confirm_id: null
+  approval_process_confirm_id: null
+  withdrawal_revert_id: null
+  approval_process_revert_id: null
+  withdrawal_closeout_id: null
+  approval_process_closeout_id: null
+  credit_facility_proposal_id: null
+  pending_credit_facility_id: null
+  credit_facility_id: null
+  collateral_id: null
+  disbursal_id: null
+  loan_agreement_id: null
+
+policy:
+  continue_on_failure: true
+  default_mode: best_effort
+
+steps:
+  - id: role_list
+    command: iam role list
+    args:
+      first: "2"
+    capture:
+      role_id_primary: ".[0].roleId"
+      role_id_secondary: ".[1].roleId // .[0].roleId"
+
+  - id: role_get_primary
+    depends_on: [role_list]
+    command: iam role get
+    args:
+      id: "${state.role_id_primary}"
+
+  - id: user_create
+    depends_on: [role_list]
+    command: iam user create
+    args:
+      email: "${user_email}"
+      role-id: "${state.role_id_primary}"
+    capture:
+      user_id: ".userId"
+
+  - id: user_update_role
+    depends_on: [user_create, role_list]
+    command: iam user update-role
+    args:
+      user-id: "${state.user_id}"
+      role-id: "${state.role_id_secondary}"
+
+  - id: prospect_create
+    command: prospect create
+    args:
+      email: "${email}"
+      telegram-handle: "${telegram_handle}"
+      customer-type: "INDIVIDUAL"
+    capture:
+      prospect_id: ".prospectId"
+
+  - id: prospect_convert
+    depends_on: [prospect_create]
+    command: prospect convert
+    args:
+      prospect-id: "${state.prospect_id}"
+    capture:
+      customer_id: ".customerId"
+
+  - id: customer_get
+    depends_on: [prospect_convert]
+    command: customer get
+    args:
+      id: "${state.customer_id}"
+
+  - id: customer_get_by_email
+    depends_on: [prospect_convert]
+    command: customer get-by-email
+    args:
+      email: "${email}"
+
+  - id: deposit_account_create
+    depends_on: [prospect_convert]
+    command: deposit account create
+    args:
+      customer-id: "${state.customer_id}"
+    capture:
+      deposit_account_id: ".depositAccountId"
+
+  - id: deposit_account_get
+    depends_on: [deposit_account_create]
+    command: deposit account get
+    args:
+      id: "${state.deposit_account_id}"
+
+  - id: deposit_record_initial
+    depends_on: [deposit_account_create]
+    command: deposit record
+    args:
+      deposit-account-id: "${state.deposit_account_id}"
+      amount: "150000"
+
+  - id: withdrawal_initiate_cancel
+    depends_on: [deposit_record_initial]
+    command: deposit withdrawal initiate
+    args:
+      deposit-account-id: "${state.deposit_account_id}"
+      amount: "150000"
+      reference: "${reference_cancel}"
+    capture:
+      withdrawal_cancel_id: ".withdrawalId"
+      approval_process_cancel_id: ".approvalProcessId"
+
+  - id: withdrawal_find_cancel
+    depends_on: [withdrawal_initiate_cancel]
+    command: deposit withdrawal find
+    args:
+      id: "${state.withdrawal_cancel_id}"
+
+  - id: withdrawal_cancel
+    depends_on: [withdrawal_find_cancel]
+    command: deposit withdrawal cancel
+    args:
+      withdrawal-id: "${state.withdrawal_cancel_id}"
+
+  - id: withdrawal_initiate_confirm
+    depends_on: [withdrawal_cancel]
+    command: deposit withdrawal initiate
+    args:
+      deposit-account-id: "${state.deposit_account_id}"
+      amount: "120000"
+      reference: "${reference_confirm}"
+    capture:
+      withdrawal_confirm_id: ".withdrawalId"
+      approval_process_confirm_id: ".approvalProcessId"
+
+  - id: withdrawal_find_confirm
+    depends_on: [withdrawal_initiate_confirm]
+    command: deposit withdrawal find
+    args:
+      id: "${state.withdrawal_confirm_id}"
+
+  - id: withdrawal_confirm
+    depends_on: [withdrawal_find_confirm]
+    command: deposit withdrawal confirm
+    args:
+      withdrawal-id: "${state.withdrawal_confirm_id}"
+
+  - id: withdrawal_initiate_revert
+    depends_on: [withdrawal_confirm]
+    command: deposit withdrawal initiate
+    args:
+      deposit-account-id: "${state.deposit_account_id}"
+      amount: "100"
+      reference: "${reference_revert}"
+    capture:
+      withdrawal_revert_id: ".withdrawalId"
+      approval_process_revert_id: ".approvalProcessId"
+
+  - id: withdrawal_find_revert
+    depends_on: [withdrawal_initiate_revert]
+    command: deposit withdrawal find
+    args:
+      id: "${state.withdrawal_revert_id}"
+
+  - id: withdrawal_confirm_revert
+    depends_on: [withdrawal_find_revert]
+    command: deposit withdrawal confirm
+    args:
+      withdrawal-id: "${state.withdrawal_revert_id}"
+
+  - id: withdrawal_revert
+    depends_on: [withdrawal_confirm_revert]
+    command: deposit withdrawal revert
+    args:
+      withdrawal-id: "${state.withdrawal_revert_id}"
+
+  - id: deposit_freeze
+    depends_on: [withdrawal_revert]
+    command: deposit account freeze
+    args:
+      deposit-account-id: "${state.deposit_account_id}"
+
+  - id: deposit_unfreeze
+    depends_on: [deposit_freeze]
+    command: deposit account unfreeze
+    args:
+      deposit-account-id: "${state.deposit_account_id}"
+
+  - id: deposit_record_after_unfreeze
+    depends_on: [deposit_unfreeze]
+    command: deposit record
+    args:
+      deposit-account-id: "${state.deposit_account_id}"
+      amount: "40000"
+
+  - id: withdrawal_initiate_closeout
+    depends_on: [deposit_record_after_unfreeze]
+    command: deposit withdrawal initiate
+    args:
+      deposit-account-id: "${state.deposit_account_id}"
+      amount: "70000"
+      reference: "${reference_closeout}"
+    capture:
+      withdrawal_closeout_id: ".withdrawalId"
+      approval_process_closeout_id: ".approvalProcessId"
+
+  - id: withdrawal_find_closeout
+    depends_on: [withdrawal_initiate_closeout]
+    command: deposit withdrawal find
+    args:
+      id: "${state.withdrawal_closeout_id}"
+
+  - id: withdrawal_confirm_closeout
+    depends_on: [withdrawal_find_closeout]
+    command: deposit withdrawal confirm
+    args:
+      withdrawal-id: "${state.withdrawal_closeout_id}"
+
+  - id: deposit_close
+    depends_on: [withdrawal_confirm_closeout]
+    command: deposit account close
+    args:
+      deposit-account-id: "${state.deposit_account_id}"
+
+  - id: credit_facility_proposal_create
+    depends_on: [prospect_convert]
+    command: credit facility proposal-create
+    args:
+      customer-id: "${state.customer_id}"
+      facility-amount: "100000"
+      annual-rate: "12"
+      accrual-interval: "END_OF_DAY"
+      accrual-cycle-interval: "END_OF_MONTH"
+      one-time-fee-rate: "5"
+      disbursal-policy: "MULTIPLE_DISBURSAL"
+      duration-months: "3"
+      initial-cvl: "140"
+      margin-call-cvl: "125"
+      liquidation-cvl: "105"
+      interest-due-days: "0"
+      overdue-days: "50"
+      liquidation-days: "360"
+    capture:
+      credit_facility_proposal_id: ".creditFacilityProposalId"
+
+  - id: credit_facility_proposal_get
+    depends_on: [credit_facility_proposal_create]
+    command: credit facility proposal-get
+    args:
+      id: "${state.credit_facility_proposal_id}"
+
+  - id: credit_facility_proposal_list
+    depends_on: [credit_facility_proposal_create]
+    command: credit facility proposal-list
+    args:
+      first: "10"
+
+  - id: proposal_conclude
+    depends_on: [credit_facility_proposal_create]
+    command: credit facility proposal-conclude
+    args:
+      id: "${state.credit_facility_proposal_id}"
+      approved: "true"
+
+  - id: pending_get
+    depends_on: [proposal_conclude]
+    command: credit facility pending-get
+    args:
+      id: "${state.credit_facility_proposal_id}"
+    capture:
+      pending_credit_facility_id: ".pendingCreditFacilityId"
+      credit_facility_id: ".pendingCreditFacilityId"
+      collateral_id: ".collateralId"
+
+  - id: collateral_update
+    depends_on: [pending_get]
+    command: credit collateral update
+    args:
+      collateral-id: "${state.collateral_id}"
+      collateral: "1000000000"
+      effective: "2026-01-01"
+
+  - id: credit_facility_get
+    depends_on: [collateral_update]
+    command: credit facility get
+    args:
+      id: "${state.credit_facility_id}"
+
+  - id: credit_facility_find
+    depends_on: [credit_facility_get]
+    command: credit facility find
+    args:
+      id: "${state.credit_facility_id}"
+
+  - id: credit_facility_list
+    depends_on: [credit_facility_get]
+    command: credit facility list
+    args:
+      first: "10"
+
+  - id: credit_facility_disbursal_initiate
+    depends_on: [credit_facility_find]
+    command: credit facility disbursal-initiate
+    args:
+      credit-facility-id: "${state.credit_facility_id}"
+      amount: "50000"
+    capture:
+      disbursal_id: ".disbursalId"
+
+  - id: credit_facility_partial_payment_record
+    depends_on: [credit_facility_disbursal_initiate]
+    command: credit facility partial-payment-record
+    args:
+      credit-facility-id: "${state.credit_facility_id}"
+      amount: "1000"
+
+  - id: loan_agreement_generate
+    depends_on: [prospect_convert]
+    command: credit loan-agreement generate
+    args:
+      customer-id: "${state.customer_id}"
+    capture:
+      loan_agreement_id: ".loanAgreementId"
+
+  - id: loan_agreement_find
+    depends_on: [loan_agreement_generate]
+    command: credit loan-agreement find
+    args:
+      id: "${state.loan_agreement_id}"
+
+  - id: loan_agreement_download_link
+    depends_on: [loan_agreement_generate]
+    command: credit loan-agreement download-link
+    args:
+      loan-agreement-id: "${state.loan_agreement_id}"
