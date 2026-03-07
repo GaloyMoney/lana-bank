@@ -433,6 +433,7 @@ export type CommitteeConnection = {
 };
 
 export type CommitteeCreateInput = {
+  memberUserIds: Array<Scalars['UUID']['input']>;
   name: Scalars['String']['input'];
 };
 

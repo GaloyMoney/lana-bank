@@ -52,6 +52,7 @@ impl Committee {
 #[derive(InputObject)]
 pub struct CommitteeCreateInput {
     pub name: String,
+    pub member_user_ids: Vec<UUID>,
 }
 crate::mutation_payload! { CommitteeCreatePayload, committee: Committee }
 
