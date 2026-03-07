@@ -161,17 +161,18 @@ where
         &self,
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
+        let auto_approval_allowed = self.auto_approval_allowed().await?;
+
+        let mut db = self.policy_repo.begin_op().await?;
+
         if let Some(existing) = self
             .policy_repo
-            .maybe_find_by_process_type(process_type.clone())
+            .maybe_find_by_process_type_in_op(&mut db, process_type.clone())
             .await?
         {
             return Ok(existing);
         }
 
-        let auto_approval_allowed = self.auto_approval_allowed().await?;
-
-        let mut db = self.policy_repo.begin_op().await?;
         self.authz
             .audit()
             .record_system_entry_in_op(

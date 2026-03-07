@@ -4,6 +4,18 @@
       "oneOf": [
         {
           "properties": {
+            "type": {
+              "const": "system_auto_approve",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
             "committee_id": {
               "format": "uuid",
               "type": "string"
@@ -16,18 +28,6 @@
           "required": [
             "type",
             "committee_id"
-          ],
-          "type": "object"
-        },
-        {
-          "properties": {
-            "type": {
-              "const": "system_auto_approve",
-              "type": "string"
-            }
-          },
-          "required": [
-            "type"
           ],
           "type": "object"
         }
