@@ -237,3 +237,25 @@ flowchart LR
 ```
 
 Este ciclo se repite anualmente. Cada año fiscal proporciona un límite claro para la presentación de informes financieros y garantiza que los libros del banco se cierren y se trasladen correctamente a intervalos regulares.
+
+```mermaid
+flowchart LR
+    A[Initializar el primer año fiscal] --> B[Operar durante el año]
+    B --> C[Cerrar meses 1-12 secuencialmente]
+    C --> D[Cerrar año fiscal]
+    D --> E[Abrir el siguiente año fiscal]
+    E --> B
+```
+
+Este ciclo se repite anualmente. Cada año fiscal marca un límite claro para la presentación de informes financieros y garantiza que los libros del banco se cierren y trasladen correctamente en intervalos regulares.
+
+```mermaid
+flowchart LR
+    A[Inicializar el primer año fiscal] --> B[Operar durante el año]
+    B --> C[Cerrar meses 1-12 secuencialmente]
+    C --> D[Cerrar el año fiscal]
+    D --> E[Abrir el siguiente año fiscal]
+    E --> B
+```
+
+Este ciclo se repite cada año. Cada año fiscal proporciona un límite claro para los informes financieros y garantiza que los libros del banco se cierren y trasladen correctamente a intervalos regulares.

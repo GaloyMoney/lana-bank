@@ -12,7 +12,35 @@ Los eventos emitidos desde los pagos actualizan los planes de pago, saldos y cie
 
 ## Asignación de Pago
 
-Cuando se recibe un pago, se asigna a las obligaciones pendientes basándose en reglas de prioridad. Cada registro de `AsignaciónDePago` vincula una porción del pago a una obligación específica, reduciendo su saldo pendiente.
+Cuando se registra un pago en una línea de crédito, ocurre la siguiente secuencia:
+
+```mermaid
+flowchart TD
+    A[Pago registrado] --> B[Pago acreditado a la cuenta de retención]
+    B --> C[Tarea de asignación activada]
+    C --> D[Recuperar todas las obligaciones pendientes]
+    D --> E[Ordenar obligaciones por prioridad]
+    E --> F{¿Queda monto del pago?}
+    F -->|Sí| G[Asignar a la obligación de mayor prioridad]
+    G --> H[Crear registro de PaymentAllocation]
+    H --> I[Registrar movimiento en el libro mayor]
+    I --> J{¿Obligación pagada completamente?}
+    J -->|Sí| K[Marcar obligación como Pagada]
+    J -->|No| L[Reducir saldo pendiente]
+    K --> F
+    L --> F
+    F -->|No| M[Asignación completada]
+```
+
+1. **Registro de pago**: El monto del pago se registra y se acredita en una cuenta de retención en el libro mayor. Esta cuenta de retención actúa como una etapa temporal antes de distribuir los fondos a las obligaciones individuales.
+
+2. **Activación de la tarea de asignación**: El registro del pago activa un proceso de asignación en segundo plano, que gestiona la distribución de fondos entre las obligaciones pendientes.
+
+3. **Recuperación y ordenación de obligaciones**: El sistema recupera todas las obligaciones pendientes de la línea de crédito y las ordena según las reglas de prioridad descritas a continuación.
+
+4. **Asignación secuencial**: El sistema recorre la lista ordenada de obligaciones, asignando la mayor cantidad posible del pago a cada una. Por cada asignación, una transacción en el libro mayor mueve fondos de la cuenta de retención a la cuenta por cobrar correspondiente.
+
+5. **Verificación de finalización**: Después de cada asignación, el sistema verifica si la obligación está completamente satisfecha. Si el saldo pendiente llega a cero, la obligación se marca como Pagada.
 
 ## Prioridad de asignación
 
