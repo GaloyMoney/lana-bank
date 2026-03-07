@@ -186,33 +186,18 @@ pub enum CustomerStatus {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Union))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CustomerConversion {
-    SumsubApproved(SumsubApproved),
-    ManuallyConverted(ManuallyConverted),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::SimpleObject))]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-pub struct SumsubApproved {
-    pub applicant_id: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::SimpleObject))]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-pub struct ManuallyConverted {
-    pub converted_by: String,
+    SumsubApproved { applicant_id: String },
+    ManuallyConverted,
 }
 
 impl CustomerConversion {
     pub fn applicant_id(&self) -> Option<&str> {
         match self {
-            CustomerConversion::SumsubApproved(s) => Some(&s.applicant_id),
-            CustomerConversion::ManuallyConverted(_) => None,
+            CustomerConversion::SumsubApproved { applicant_id } => Some(applicant_id),
+            CustomerConversion::ManuallyConverted => None,
         }
     }
 }

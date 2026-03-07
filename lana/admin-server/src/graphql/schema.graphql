@@ -444,6 +444,11 @@ enum ConfigType {
 	COMPLEX
 }
 
+enum ConversionReason {
+	SUMSUB_APPROVED
+	MANUALLY_CONVERTED
+}
+
 input CreditFacilitiesFilter {
 	status: CreditFacilityStatus
 	collateralizationState: CollateralizationState
@@ -1031,7 +1036,7 @@ type Customer {
 	telegramHandle: String!
 	publicId: PublicId!
 	applicantId: String
-	conversion: CustomerConversion!
+	conversionReason: ConversionReason!
 	customerType: CustomerType!
 	personalInfo: PersonalInfo
 	depositAccount: DepositAccount
@@ -1064,8 +1069,6 @@ type CustomerConnection {
 	"""
 	nodes: [Customer!]!
 }
-
-union CustomerConversion = SumsubApproved | ManuallyConverted
 
 type CustomerDocument {
 	id: ID!
@@ -1982,10 +1985,6 @@ type ManualTransactionExecutePayload {
 	transaction: LedgerTransaction!
 }
 
-type ManuallyConverted {
-	convertedBy: String!
-}
-
 type Me {
 	user: User!
 	visibleNavigationItems: VisibleNavigationItems!
@@ -2675,10 +2674,6 @@ type Subscription {
 	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
 	realtimePriceUpdated: RealtimePrice!
 	reportRunUpdated: ReportRunUpdatedPayload!
-}
-
-type SumsubApproved {
-	applicantId: String!
 }
 
 input SumsubPermalinkCreateInput {

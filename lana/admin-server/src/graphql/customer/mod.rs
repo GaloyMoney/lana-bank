@@ -14,6 +14,21 @@ pub use lana_app::customer::{
     PersonalInfo, Sort,
 };
 
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConversionReason {
+    SumsubApproved,
+    ManuallyConverted,
+}
+
+impl From<&CustomerConversion> for ConversionReason {
+    fn from(conversion: &CustomerConversion) -> Self {
+        match conversion {
+            CustomerConversion::SumsubApproved { .. } => ConversionReason::SumsubApproved,
+            CustomerConversion::ManuallyConverted => ConversionReason::ManuallyConverted,
+        }
+    }
+}
+
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Customer {
@@ -68,8 +83,8 @@ impl Customer {
         self.entity.applicant_id()
     }
 
-    async fn conversion(&self) -> &CustomerConversion {
-        &self.entity.conversion
+    async fn conversion_reason(&self) -> ConversionReason {
+        ConversionReason::from(&self.entity.conversion)
     }
 
     async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {

@@ -61,7 +61,7 @@ impl Customer {
     }
 
     pub fn has_been_verified(&self) -> bool {
-        matches!(self.conversion, CustomerConversion::SumsubApproved(_))
+        matches!(self.conversion, CustomerConversion::SumsubApproved { .. })
     }
 
     pub fn applicant_id(&self) -> Option<&str> {
