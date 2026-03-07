@@ -31,7 +31,6 @@ gql`
     status
     email
     telegramHandle
-    activity
     level
     applicantId
     customerType
@@ -48,6 +47,7 @@ gql`
     depositAccount {
       id
       status
+      activity
       publicId
       depositAccountId
       balance {
@@ -151,6 +151,7 @@ export default function CustomerLayout({
             balance={data.customerByPublicId.depositAccount.balance}
             publicId={data.customerByPublicId.depositAccount.publicId}
             status={data.customerByPublicId.depositAccount.status}
+            activity={data.customerByPublicId.depositAccount.activity}
           />
         ) : (
           <span className="rounded-md bg-muted px-2 py-1 text-sm font-medium text-muted-foreground md:w-full w-1/4 text-center flex items-center justify-center">

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM cala_velocity_limits WHERE name = $1) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $2 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN cala_velocity_limit_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT public_id, id FROM core_customers WHERE COALESCE(customer_type = $1, $1 IS NULL) AND COALESCE(status = $2, $2 IS NULL) AND (COALESCE((public_id, id) > ($5, $4), $4 IS NULL)) ORDER BY public_id ASC, id ASC LIMIT $3) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $6 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.public_id asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -32,6 +32,10 @@
     "parameters": {
       "Left": [
         "Text",
+        "Text",
+        "Int8",
+        "Uuid",
+        "Text",
         "Bool"
       ]
     },
@@ -43,5 +47,5 @@
       false
     ]
   },
-  "hash": "0046003258dead0623870f8e45f0168052a44bbdc0d64e22aec833ad47c541bd"
+  "hash": "3e551f5c96e87346649a03e62c3d413bba07d52beb3c9cf17b1acf0cc45c31a6"
 }

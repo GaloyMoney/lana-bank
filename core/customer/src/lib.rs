@@ -2,7 +2,6 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod config;
-mod customer_activity_repo;
 mod entity;
 pub mod error;
 pub mod kyc;
@@ -13,7 +12,6 @@ pub mod public;
 mod publisher;
 mod repo;
 
-use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -29,7 +27,6 @@ use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
 pub use config::*;
-pub use customer_activity_repo::CustomerActivityRepo;
 pub use entity::Customer;
 use error::*;
 pub use party::{Party, PartyRepo};
@@ -61,11 +58,9 @@ where
     repo: CustomerRepo<E>,
     prospect_repo: ProspectRepo<E>,
     party_repo: PartyRepo<E>,
-    customer_activity_repo: CustomerActivityRepo,
     document_storage: DocumentStorage,
     public_ids: PublicIds,
     domain_configs: ExposedDomainConfigsReadOnly,
-    config: CustomerConfig,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
@@ -80,11 +75,9 @@ where
             repo: self.repo.clone(),
             prospect_repo: self.prospect_repo.clone(),
             party_repo: self.party_repo.clone(),
-            customer_activity_repo: self.customer_activity_repo.clone(),
             document_storage: self.document_storage.clone(),
             public_ids: self.public_ids.clone(),
             domain_configs: self.domain_configs.clone(),
-            config: self.config.clone(),
         }
     }
 }
@@ -111,18 +104,15 @@ where
         let prospect_repo = ProspectRepo::new(pool, &prospect_publisher, clock.clone());
         let party_publisher = PartyPublisher::new(outbox);
         let party_repo = PartyRepo::new(pool, &party_publisher, clock);
-        let customer_activity_repo = CustomerActivityRepo::new(pool.clone());
         Self {
             repo,
             prospect_repo,
             party_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
-            customer_activity_repo,
             document_storage,
             public_ids: public_id_service,
             domain_configs: domain_configs.clone(),
-            config: CustomerConfig::default(),
         }
     }
 
@@ -1211,71 +1201,6 @@ where
             )
             .await?;
         self.find_all_documents(ids).await
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "customer.record_last_activity_date", skip(self))]
-    pub async fn record_last_activity_date(
-        &self,
-        customer_id: CustomerId,
-        activity_date: DateTime<Utc>,
-    ) -> Result<(), CustomerError> {
-        self.customer_activity_repo
-            .upsert_activity(customer_id, activity_date)
-            .await?;
-        Ok(())
-    }
-
-    async fn update_customers_by_activity_and_date_range(
-        &self,
-        start_threshold: DateTime<Utc>,
-        end_threshold: DateTime<Utc>,
-        activity: Activity,
-    ) -> Result<(), CustomerError> {
-        let customer_ids = self
-            .customer_activity_repo
-            .find_customers_needing_activity_update(start_threshold, end_threshold, activity)
-            .await?;
-        let all_customers = self.repo.find_all::<Customer>(&customer_ids).await?;
-        let mut customers: Vec<_> = all_customers
-            .into_values()
-            .filter_map(|mut c| c.update_activity(activity).did_execute().then_some(c))
-            .collect();
-        self.repo.update_all(&mut customers).await?;
-
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "customer.perform_customer_activity_status_update", skip(self))]
-    pub async fn perform_customer_activity_status_update(
-        &self,
-        now: DateTime<Utc>,
-    ) -> Result<(), CustomerError> {
-        let escheatment_date = self.config.get_escheatment_threshold_date(now);
-        let inactive_date = self.config.get_inactive_threshold_date(now);
-
-        // Update customers with very old activity (10+ years) to Suspended
-        self.update_customers_by_activity_and_date_range(
-            EARLIEST_SEARCH_START,
-            escheatment_date,
-            Activity::Suspended,
-        )
-        .await?;
-
-        // Update customers with old activity (1-10 years) to Inactive
-        self.update_customers_by_activity_and_date_range(
-            escheatment_date,
-            inactive_date,
-            Activity::Inactive,
-        )
-        .await?;
-
-        // Update customers with recent activity (<1 year) to Active
-        self.update_customers_by_activity_and_date_range(inactive_date, now, Activity::Active)
-            .await?;
-
-        Ok(())
     }
 
     #[record_error_severity]

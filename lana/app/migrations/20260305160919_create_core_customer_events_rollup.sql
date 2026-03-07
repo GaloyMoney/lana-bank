@@ -6,7 +6,6 @@ CREATE TABLE core_customer_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
-  activity VARCHAR,
   applicant_id VARCHAR,
   customer_type VARCHAR,
   level VARCHAR,
@@ -39,7 +38,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'activity_updated', 'closed', 'frozen', 'unfrozen') THEN
+  IF event_type NOT IN ('initialized', 'frozen', 'unfrozen', 'closed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -52,7 +51,6 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.activity := (NEW.event ->> 'activity');
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.is_kyc_approved := false;
@@ -62,7 +60,6 @@ BEGIN
     new_row.status := 'active';
   ELSE
     -- Default all fields to current values
-    new_row.activity := current_row.activity;
     new_row.applicant_id := current_row.applicant_id;
     new_row.customer_type := current_row.customer_type;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
@@ -75,19 +72,16 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.activity := (NEW.event ->> 'activity');
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.level := (NEW.event ->> 'level');
       new_row.party_id := (NEW.event ->> 'party_id')::UUID;
       new_row.public_id := (NEW.event ->> 'public_id');
-    WHEN 'activity_updated' THEN
-      new_row.activity := (NEW.event ->> 'activity');
-    WHEN 'closed' THEN
-      new_row.status := (NEW.event ->> 'status');
     WHEN 'frozen' THEN
       new_row.status := (NEW.event ->> 'status');
     WHEN 'unfrozen' THEN
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'closed' THEN
       new_row.status := (NEW.event ->> 'status');
   END CASE;
 
@@ -97,7 +91,6 @@ BEGIN
     created_at,
     modified_at,
     event_type,
-    activity,
     applicant_id,
     customer_type,
     is_kyc_approved,
@@ -112,7 +105,6 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.event_type,
-    new_row.activity,
     new_row.applicant_id,
     new_row.customer_type,
     new_row.is_kyc_approved,

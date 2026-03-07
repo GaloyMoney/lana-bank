@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT created_at, id FROM cala_velocity_limits WHERE (COALESCE((created_at, id) > ($3, $2), $2 IS NULL)) ORDER BY created_at ASC, id ASC LIMIT $1) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN cala_velocity_limit_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT party_id, id FROM core_customers WHERE COALESCE(customer_type = $1, $1 IS NULL) AND COALESCE(status = $2, $2 IS NULL) AND (COALESCE((party_id, id) > ($5, $4), $4 IS NULL)) ORDER BY party_id ASC, id ASC LIMIT $3) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $6 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.party_id asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,9 +31,11 @@
     ],
     "parameters": {
       "Left": [
+        "Text",
+        "Text",
         "Int8",
         "Uuid",
-        "Timestamptz",
+        "Uuid",
         "Bool"
       ]
     },
@@ -45,5 +47,5 @@
       false
     ]
   },
-  "hash": "f35d39aee843237572f108d57e83c0458333bad27aef0ea76c94f1ca389e0ba0"
+  "hash": "2af1f8964e05865f0ca2ccfac9ac4e418ff21b4aff487df30d8eb6cde00ae18e"
 }

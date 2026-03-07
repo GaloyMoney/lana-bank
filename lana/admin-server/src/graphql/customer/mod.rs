@@ -9,7 +9,7 @@ use super::{
 };
 
 pub use lana_app::customer::{
-    Activity, Customer as DomainCustomer, CustomerStatus, CustomerType, CustomersCursor,
+    Customer as DomainCustomer, CustomerStatus, CustomerType, CustomersCursor,
     CustomersFilters as DomainCustomersFilters, CustomersSortBy as DomainCustomersSortBy, KycLevel,
     PersonalInfo, Sort,
 };
@@ -20,7 +20,6 @@ pub struct Customer {
     id: ID,
     customer_id: UUID,
     status: CustomerStatus,
-    activity: Activity,
     level: KycLevel,
     created_at: Timestamp,
 
@@ -34,7 +33,6 @@ impl From<DomainCustomer> for Customer {
             id: customer.id.to_global_id(),
             customer_id: UUID::from(customer.id),
             status: customer.status,
-            activity: customer.activity,
             level: customer.level,
             created_at: customer.created_at().into(),
             entity: Arc::new(customer),

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE core_customers SET party_id = $2, activity = $3, public_id = $4, status = $5 WHERE id = $1",
+  "query": "UPDATE core_customers SET party_id = $2, public_id = $3, status = $4 WHERE id = $1",
   "describe": {
     "columns": [],
     "parameters": {
@@ -8,11 +8,10 @@
         "Uuid",
         "Uuid",
         "Varchar",
-        "Varchar",
         "Varchar"
       ]
     },
     "nullable": []
   },
-  "hash": "be895fc157f10e36968af16e4a3e25fd61847d51a8b523d8872aad6f44ff3b6f"
+  "hash": "a706dc68dbba9487972c85a2d709af6fc2f7126caff0b6961b733941ccfbf55d"
 }

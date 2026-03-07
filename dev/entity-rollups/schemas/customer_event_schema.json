@@ -1,13 +1,5 @@
 {
   "$defs": {
-    "Activity": {
-      "enum": [
-        "inactive",
-        "active",
-        "suspended"
-      ],
-      "type": "string"
-    },
     "CustomerStatus": {
       "enum": [
         "active",
@@ -41,9 +33,6 @@
   "oneOf": [
     {
       "properties": {
-        "activity": {
-          "$ref": "#/$defs/Activity"
-        },
         "applicant_id": {
           "type": [
             "string",
@@ -77,25 +66,8 @@
         "id",
         "party_id",
         "customer_type",
-        "activity",
         "public_id",
         "level"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "activity": {
-          "$ref": "#/$defs/Activity"
-        },
-        "type": {
-          "const": "activity_updated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "activity"
       ],
       "type": "object"
     },
