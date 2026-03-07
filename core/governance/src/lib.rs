@@ -361,7 +361,14 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
+        member_ids: HashSet<CommitteeMemberId>,
     ) -> Result<Committee, GovernanceError> {
+        if member_ids.is_empty() {
+            return Err(GovernanceError::CommitteeError(
+                committee::error::CommitteeError::CommitteeMustHaveAtLeastOneMember,
+            ));
+        }
+
         self.authz
             .enforce_permission(
                 sub,
@@ -373,6 +380,7 @@ where
         let new_committee = NewCommittee::builder()
             .id(CommitteeId::new())
             .name(name)
+            .member_ids(member_ids)
             .build()
             .expect("Could not build new committee");
 
@@ -456,7 +464,7 @@ where
             .await?;
 
         let mut committee = self.committee_repo.find_by_id(committee_id).await?;
-        if committee.remove_member(member_id.into()).did_execute() {
+        if committee.remove_member(member_id.into())?.did_execute() {
             self.committee_repo.update(&mut committee).await?;
         }
 

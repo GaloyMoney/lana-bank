@@ -2314,7 +2314,11 @@ impl Mutation {
             CommitteeCreatePayload,
             Committee,
             ctx,
-            app.governance().create_committee(sub, input.name)
+            app.governance().create_committee(
+                sub,
+                input.name,
+                input.member_user_ids.into_iter().map(Into::into).collect(),
+            )
         )
     }
 
