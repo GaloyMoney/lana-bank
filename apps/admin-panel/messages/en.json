@@ -1638,7 +1638,8 @@
         "customer": "Customer",
         "settledBalance": "Settled Balance",
         "pendingBalance": "Pending Balance",
-        "status": "Status"
+        "status": "Status",
+        "activity": "Activity"
       },
       "errors": {
         "general": "An error occurred while fetching deposit accounts."

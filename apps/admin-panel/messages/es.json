@@ -1638,7 +1638,8 @@
         "customer": "Cliente",
         "settledBalance": "Saldo Liquidado",
         "pendingBalance": "Saldo Pendiente",
-        "status": "Estado"
+        "status": "Estado",
+        "activity": "Actividad"
       },
       "errors": {
         "general": "Ocurrió un error al obtener las cuentas de depósito."

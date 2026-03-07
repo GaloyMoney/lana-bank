@@ -1363,6 +1363,7 @@ export type DepositAccountUnfreezePayload = {
 };
 
 export type DepositAccountsFilter = {
+  activity?: InputMaybe<Activity>;
   status?: InputMaybe<DepositAccountStatus>;
 };
 
@@ -4362,7 +4363,7 @@ export type DepositAccountCreateMutationVariables = Exact<{
 
 export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, kycVerification: KycVerification, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, activity: Activity, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
 
-export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: string, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
+export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
 
 export type DepositAccountsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4372,7 +4373,7 @@ export type DepositAccountsQueryVariables = Exact<{
 }>;
 
 
-export type DepositAccountsQuery = { __typename?: 'Query', depositAccounts: { __typename?: 'DepositAccountConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountEdge', cursor: string, node: { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: string, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } } }> } };
+export type DepositAccountsQuery = { __typename?: 'Query', depositAccounts: { __typename?: 'DepositAccountConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountEdge', cursor: string, node: { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } } }> } };
 
 export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
 
@@ -5813,6 +5814,7 @@ export const DepositAccountFieldsFragmentDoc = gql`
   publicId
   createdAt
   status
+  activity
   balance {
     settled
     pending

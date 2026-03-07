@@ -340,6 +340,7 @@ impl Query {
     > {
         let filter = DomainDepositAccountsFilters {
             status: filter.as_ref().and_then(|f| f.status),
+            activity: filter.as_ref().and_then(|f| f.activity),
             ..Default::default()
         };
         let sort = sort.unwrap_or_default();

@@ -182,6 +182,7 @@ impl DepositAccount {
 #[derive(InputObject)]
 pub struct DepositAccountsFilter {
     pub status: Option<DepositAccountStatus>,
+    pub activity: Option<Activity>,
 }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]

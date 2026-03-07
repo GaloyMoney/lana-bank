@@ -1349,6 +1349,7 @@ type DepositAccountUnfreezePayload {
 
 input DepositAccountsFilter {
 	status: DepositAccountStatus
+	activity: Activity
 }
 
 input DepositAccountsSort {

@@ -1753,6 +1753,7 @@ export const mockDepositAccountsFilter = (overrides?: Partial<DepositAccountsFil
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DepositAccountsFilter');
     return {
+        activity: overrides && overrides.hasOwnProperty('activity') ? overrides.activity! : Activity.Active,
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : DepositAccountStatus.Active,
     };
 };
