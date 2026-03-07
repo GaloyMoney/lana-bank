@@ -155,7 +155,6 @@ async fn process_facility_message(
                 .find_by_id(sub, id)
                 .await?
                 .expect("cf exists");
-            // lint:allow(service-conditionals)
             if facility.interest_accrual_cycle_in_progress().is_none() {
                 let total_outstanding_amount = app.credit().outstanding(&facility).await?;
                 app.record_payment_with_date(
