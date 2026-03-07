@@ -1676,7 +1676,6 @@
     "status": {
       "active": "Active",
       "frozen": "Frozen",
-      "inactive": "Inactive",
       "closed": "Closed"
     },
     "DepositAccountDetails": {

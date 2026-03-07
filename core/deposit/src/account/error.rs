@@ -19,8 +19,6 @@ pub enum DepositAccountError {
     Find(#[from] DepositAccountFindError),
     #[error("DepositAccountError - Query: {0}")]
     Query(#[from] DepositAccountQueryError),
-    #[error("DepositAccountError - CannotFreezeInactiveAccount: {0}")]
-    CannotFreezeInactiveAccount(crate::DepositAccountId),
     #[error("DepositAccountError - CannotUpdateClosedAccount: {0}")]
     CannotUpdateClosedAccount(crate::DepositAccountId),
     #[error("DepositAccountError - CannotUpdateFrozenAccount")]
@@ -37,7 +35,6 @@ impl ErrorSeverity for DepositAccountError {
             Self::Modify(_) => Level::ERROR,
             Self::Find(_) => Level::ERROR,
             Self::Query(_) => Level::ERROR,
-            Self::CannotFreezeInactiveAccount(_) => Level::WARN,
             Self::CannotUpdateClosedAccount(_) => Level::WARN,
             Self::CannotUpdateFrozenAccount(_) => Level::WARN,
             Self::BalanceIsNotZero => Level::WARN,

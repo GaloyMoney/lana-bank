@@ -34,7 +34,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'activity_updated', 'account_holder_status_updated', 'frozen', 'unfrozen', 'closed') THEN
+  IF event_type NOT IN ('initialized', 'activity_updated', 'frozen', 'unfrozen', 'closed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -71,8 +71,6 @@ BEGIN
       new_row.status := (NEW.event ->> 'status');
     WHEN 'activity_updated' THEN
       new_row.activity := (NEW.event ->> 'activity');
-    WHEN 'account_holder_status_updated' THEN
-      new_row.status := (NEW.event ->> 'status');
     WHEN 'frozen' THEN
       new_row.status := (NEW.event ->> 'status');
     WHEN 'unfrozen' THEN

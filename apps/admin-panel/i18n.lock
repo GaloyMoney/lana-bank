@@ -1010,7 +1010,6 @@ checksums:
     DepositAccounts/table/errors/general: b7c40c4ed6a172c29cfc88b4ccfccf71
     DepositAccounts/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     DepositAccounts/status/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
-    DepositAccounts/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     DepositAccounts/status/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/title: 23d240412c0bf14efcff84a2325587be
     DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
