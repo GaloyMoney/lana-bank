@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO deposit_account_activity (deposit_account_id, last_activity_date)\n            VALUES ($1, $2)\n            ON CONFLICT (deposit_account_id)\n            DO UPDATE SET\n                last_activity_date = GREATEST(COALESCE(deposit_account_activity.last_activity_date, $2), $2)\n\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7c066a39a01096c7c248b63352e074355c82591a681356715451e60d2272b7e0"
+}

@@ -4,7 +4,7 @@ use es_entity::Sort;
 use crate::primitives::*;
 
 pub use lana_app::deposit::{
-    DepositAccount as DomainDepositAccount, DepositAccountHistoryCursor,
+    DepositAccount as DomainDepositAccount, DepositAccountActivity, DepositAccountHistoryCursor,
     DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry, DepositAccountStatus,
     DepositAccountsSortBy as DomainDepositAccountsSortBy,
 };
@@ -22,6 +22,7 @@ pub struct DepositAccount {
     customer_id: UUID,
     created_at: Timestamp,
     status: DepositAccountStatus,
+    activity: DepositAccountActivity,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainDepositAccount>,
@@ -35,6 +36,7 @@ impl From<DomainDepositAccount> for DepositAccount {
             customer_id: account.account_holder_id.into(),
             created_at: account.created_at().into(),
             status: account.status,
+            activity: account.activity,
 
             entity: Arc::new(account),
         }

@@ -461,3 +461,26 @@ pub enum DepositStatus {
     Confirmed,
     Reverted,
 }
+
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    Serialize,
+    Deserialize,
+    Eq,
+    PartialEq,
+    strum::Display,
+    strum::EnumString,
+    Default,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
+pub enum DepositAccountActivity {
+    #[default]
+    Inactive,
+    Active,
+    Suspended,
+}

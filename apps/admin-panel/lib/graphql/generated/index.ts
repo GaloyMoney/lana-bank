@@ -108,12 +108,6 @@ export type AccountingCsvDownloadLinkGeneratePayload = {
   link: AccountingCsvDownloadLink;
 };
 
-export enum Activity {
-  Active = 'ACTIVE',
-  Inactive = 'INACTIVE',
-  Suspended = 'SUSPENDED'
-}
-
 export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
   approvalProcessId: Scalars['UUID']['output'];
@@ -1047,7 +1041,6 @@ export enum CustodiansSortBy {
 
 export type Customer = {
   __typename?: 'Customer';
-  activity: Activity;
   applicantId: Scalars['String']['output'];
   createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
@@ -1244,6 +1237,7 @@ export type Deposit = {
 
 export type DepositAccount = {
   __typename?: 'DepositAccount';
+  activity: DepositAccountActivity;
   balance: DepositAccountBalance;
   createdAt: Scalars['Timestamp']['output'];
   customer: Customer;
@@ -1263,6 +1257,12 @@ export type DepositAccountHistoryArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };
+
+export enum DepositAccountActivity {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE',
+  Suspended = 'SUSPENDED'
+}
 
 export type DepositAccountBalance = {
   __typename?: 'DepositAccountBalance';
@@ -4260,14 +4260,14 @@ export type GetCustomerDocumentsQueryVariables = Exact<{
 
 export type GetCustomerDocumentsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'CustomerDocument', id: string, filename: string, customerDocumentId: string }> } | null };
 
-export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
+export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, kycVerification: KycVerification, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
 
 export type GetCustomerBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, kycVerification: KycVerification, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
 
 export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4305,7 +4305,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, status: CustomerStatus, activity: Activity, level: KycLevel, email: string, telegramHandle: string, applicantId: string, customerType: CustomerType, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, status: CustomerStatus, level: KycLevel, email: string, telegramHandle: string, applicantId: string, customerType: CustomerType, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4358,7 +4358,7 @@ export type DepositAccountCreateMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
+export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, status: CustomerStatus, email: string, telegramHandle: string, kycVerification: KycVerification, level: KycLevel, applicantId: string, customerType: CustomerType, createdAt: string, publicId: any, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null } | null, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
 
 export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: string, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
 
@@ -5750,7 +5750,6 @@ export const CustomerDetailsFragmentFragmentDoc = gql`
   email
   telegramHandle
   kycVerification
-  activity
   level
   applicantId
   customerType
@@ -8703,7 +8702,6 @@ export const CustomersDocument = gql`
         customerId
         publicId
         status
-        activity
         level
         email
         telegramHandle

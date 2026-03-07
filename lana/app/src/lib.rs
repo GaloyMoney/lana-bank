@@ -54,7 +54,7 @@ pub mod access {
 
 pub mod customer {
     pub use core_customer::{
-        Activity, CUSTOMER_REF_TARGET, CoreCustomerEvent, Customer, CustomerDocumentId, CustomerId,
+        CUSTOMER_REF_TARGET, CoreCustomerEvent, Customer, CustomerDocumentId, CustomerId,
         CustomerStatus, CustomerType, CustomersCursor, CustomersFilters, CustomersSortBy, KycLevel,
         KycStatus, KycVerification, PROSPECT_REF_TARGET, Party, PartyId, PersonalInfo, Prospect,
         ProspectId, ProspectStage, ProspectsFilters, ProspectsSortBy, PublicProspect,
@@ -111,13 +111,14 @@ pub mod audit {
 pub mod deposit {
     pub use core_deposit::{
         ChartOfAccountsIntegrationConfig, CoreDepositEvent, DEPOSIT_ACCOUNT_ENTITY_TYPE,
-        DEPOSIT_TRANSACTION_ENTITY_TYPE, Deposit, DepositAccount, DepositAccountBalance,
-        DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositAccountStatus,
-        DepositAccountsByCreatedAtCursor, DepositAccountsCursor, DepositAccountsFilters,
-        DepositAccountsSortBy, DepositId, DepositStatus, DepositsByCreatedAtCursor, DepositsCursor,
-        DepositsFilters, DepositsSortBy, WITHDRAWAL_TRANSACTION_ENTITY_TYPE, Withdrawal,
-        WithdrawalId, WithdrawalStatus, WithdrawalsByCreatedAtCursor, WithdrawalsCursor,
-        WithdrawalsFilters, WithdrawalsSortBy, error,
+        DEPOSIT_TRANSACTION_ENTITY_TYPE, Deposit, DepositAccount, DepositAccountActivity,
+        DepositAccountBalance, DepositAccountHistoryCursor, DepositAccountHistoryEntry,
+        DepositAccountStatus, DepositAccountsByCreatedAtCursor, DepositAccountsCursor,
+        DepositAccountsFilters, DepositAccountsSortBy, DepositId, DepositStatus,
+        DepositsByCreatedAtCursor, DepositsCursor, DepositsFilters, DepositsSortBy,
+        WITHDRAWAL_TRANSACTION_ENTITY_TYPE, Withdrawal, WithdrawalId, WithdrawalStatus,
+        WithdrawalsByCreatedAtCursor, WithdrawalsCursor, WithdrawalsFilters, WithdrawalsSortBy,
+        error,
     };
 
     pub type Deposits =

@@ -60,12 +60,6 @@ type AccountingCsvDownloadLinkGeneratePayload {
 	link: AccountingCsvDownloadLink!
 }
 
-enum Activity {
-	INACTIVE
-	ACTIVE
-	SUSPENDED
-}
-
 scalar AnnualRatePct
 
 type ApprovalProcess {
@@ -1025,7 +1019,6 @@ type Customer {
 	customerId: UUID!
 	status: CustomerStatus!
 	kycVerification: KycVerification!
-	activity: Activity!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
@@ -1226,6 +1219,7 @@ type DepositAccount {
 	customerId: UUID!
 	createdAt: Timestamp!
 	status: DepositAccountStatus!
+	activity: DepositAccountActivity!
 	publicId: PublicId!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
@@ -1233,6 +1227,12 @@ type DepositAccount {
 	balance: DepositAccountBalance!
 	customer: Customer!
 	ledgerAccounts: DepositAccountLedgerAccounts!
+}
+
+enum DepositAccountActivity {
+	INACTIVE
+	ACTIVE
+	SUSPENDED
 }
 
 type DepositAccountBalance {

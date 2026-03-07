@@ -29,7 +29,6 @@ gql`
     email
     telegramHandle
     kycVerification
-    activity
     level
     applicantId
     customerType

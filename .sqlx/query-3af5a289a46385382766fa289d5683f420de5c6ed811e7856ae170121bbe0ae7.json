@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE core_customers SET party_id = $2, kyc_verification = $3, public_id = $4, status = $5 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3af5a289a46385382766fa289d5683f420de5c6ed811e7856ae170121bbe0ae7"
+}

@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_deposit_accounts (id, account_holder_id, public_id, status, activity, created_at) VALUES ($1, $2, $3, $4, $5, COALESCE($6, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "51ff931755ca2e8b2ea6f9d4d7a9bb05661c06edac8f2005a45d76708af034cd"
+}

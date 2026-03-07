@@ -3,7 +3,9 @@
 
 mod account;
 mod chart_of_accounts_integration;
+mod config;
 mod deposit;
+mod deposit_account_activity_repo;
 mod deposit_account_balance;
 pub mod error;
 mod for_subject;
@@ -17,13 +19,16 @@ mod withdrawal;
 
 use std::sync::Arc;
 
+use chrono::{DateTime, Utc};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use config::*;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
+use deposit_account_activity_repo::DepositAccountActivityRepo;
 use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -89,6 +94,8 @@ where
     customers: Customers<Perms, E>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
     domain_configs: ExposedDomainConfigsReadOnly,
+    deposit_account_activity_repo: DepositAccountActivityRepo,
+    activity_config: DepositAccountActivityConfig,
 }
 
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
@@ -113,6 +120,8 @@ where
             customers: self.customers.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             domain_configs: self.domain_configs.clone(),
+            deposit_account_activity_repo: self.deposit_account_activity_repo.clone(),
+            activity_config: self.activity_config.clone(),
         }
     }
 }
@@ -179,6 +188,8 @@ where
         );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
+        let deposit_account_activity_repo = DepositAccountActivityRepo::new(pool.clone());
+
         let res = Self {
             deposit_accounts: accounts,
             deposits,
@@ -193,6 +204,8 @@ where
             customers: customers.clone(),
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc.clone(),
             domain_configs: domain_configs.clone(),
+            deposit_account_activity_repo,
+            activity_config: DepositAccountActivityConfig::default(),
         };
         Ok(res)
     }
@@ -1255,5 +1268,77 @@ where
             DepositAccountStatus::Closed => Err(CoreDepositError::DepositAccountClosed),
             DepositAccountStatus::Active => Ok(()),
         }
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "deposit.record_deposit_account_activity", skip(self))]
+    pub async fn record_deposit_account_activity(
+        &self,
+        deposit_account_id: DepositAccountId,
+        activity_date: DateTime<Utc>,
+    ) -> Result<(), CoreDepositError> {
+        self.deposit_account_activity_repo
+            .upsert_activity(deposit_account_id, activity_date)
+            .await?;
+        Ok(())
+    }
+
+    async fn update_accounts_by_activity_and_date_range(
+        &self,
+        start_threshold: DateTime<Utc>,
+        end_threshold: DateTime<Utc>,
+        activity: DepositAccountActivity,
+    ) -> Result<(), CoreDepositError> {
+        let account_ids = self
+            .deposit_account_activity_repo
+            .find_accounts_needing_activity_update(start_threshold, end_threshold, activity)
+            .await?;
+        let all_accounts = self
+            .deposit_accounts
+            .find_all::<DepositAccount>(&account_ids)
+            .await?;
+        let mut accounts: Vec<_> = all_accounts
+            .into_values()
+            .filter_map(|mut a| a.update_activity(activity).did_execute().then_some(a))
+            .collect();
+        self.deposit_accounts.update_all(&mut accounts).await?;
+
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "deposit.perform_deposit_account_activity_status_update",
+        skip(self)
+    )]
+    pub async fn perform_deposit_account_activity_status_update(
+        &self,
+        now: DateTime<Utc>,
+    ) -> Result<(), CoreDepositError> {
+        let escheatment_date = self.activity_config.get_escheatment_threshold_date(now);
+        let inactive_date = self.activity_config.get_inactive_threshold_date(now);
+
+        self.update_accounts_by_activity_and_date_range(
+            EARLIEST_SEARCH_START,
+            escheatment_date,
+            DepositAccountActivity::Suspended,
+        )
+        .await?;
+
+        self.update_accounts_by_activity_and_date_range(
+            escheatment_date,
+            inactive_date,
+            DepositAccountActivity::Inactive,
+        )
+        .await?;
+
+        self.update_accounts_by_activity_and_date_range(
+            inactive_date,
+            now,
+            DepositAccountActivity::Active,
+        )
+        .await?;
+
+        Ok(())
     }
 }

@@ -47,7 +47,6 @@ pub struct Customer {
     pub party_id: PartyId,
     pub customer_type: CustomerType,
     pub kyc_verification: KycVerification,
-    pub activity: Activity,
     pub status: CustomerStatus,
     pub level: KycLevel,
     #[builder(setter(into))]
@@ -81,18 +80,6 @@ impl Customer {
 
     pub fn should_sync_financial_transactions(&self) -> bool {
         self.kyc_verification.is_verified()
-    }
-
-    pub(crate) fn update_activity(&mut self, activity: Activity) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CustomerEvent::ActivityUpdated { activity: existing_activity, .. } if existing_activity == &activity,
-            => CustomerEvent::ActivityUpdated { .. }
-        );
-        self.events
-            .push(CustomerEvent::ActivityUpdated { activity });
-        self.activity = activity;
-        Idempotent::Executed(())
     }
 
     pub(crate) fn close(&mut self) -> Idempotent<()> {
@@ -161,25 +148,24 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     id,
                     party_id,
                     customer_type,
-                    activity,
                     public_id,
                     applicant_id,
                     level,
                     kyc_verification,
+                    ..
                 } => {
                     builder = builder
                         .id(*id)
                         .party_id(*party_id)
                         .customer_type(*customer_type)
-                        .activity(*activity)
                         .status(CustomerStatus::Active)
                         .public_id(public_id.clone())
                         .level(*level)
                         .kyc_verification(*kyc_verification)
                         .applicant_id(applicant_id.clone());
                 }
-                CustomerEvent::ActivityUpdated { activity, .. } => {
-                    builder = builder.activity(*activity);
+                CustomerEvent::ActivityUpdated { .. } => {
+                    // Activity tracking moved to DepositAccount; kept for event deserialization
                 }
                 CustomerEvent::KycRejected { .. } => {
                     builder = builder.kyc_verification(KycVerification::Rejected);
@@ -207,7 +193,6 @@ pub struct NewCustomer {
     pub(crate) party_id: PartyId,
     pub(crate) customer_type: CustomerType,
     pub(crate) kyc_verification: KycVerification,
-    pub(crate) activity: Activity,
     #[builder(setter(into))]
     pub(crate) public_id: PublicId,
     #[builder(setter(into))]
@@ -231,7 +216,7 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 id: self.id,
                 party_id: self.party_id,
                 customer_type: self.customer_type,
-                activity: self.activity,
+                activity: Activity::Active,
                 public_id: self.public_id,
                 applicant_id: self.applicant_id,
                 level: self.level,

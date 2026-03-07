@@ -10,7 +10,6 @@ fail-on-warnings = []
 
 core-customer = { workspace = true }
 core-deposit = { workspace = true }
-core-time-events = { workspace = true }
 governance = { workspace = true }
 
 es-entity = { workspace = true }

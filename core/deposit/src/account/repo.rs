@@ -5,7 +5,10 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    primitives::{DepositAccountHolderId, DepositAccountId, DepositAccountStatus, PublicId},
+    primitives::{
+        DepositAccountActivity, DepositAccountHolderId, DepositAccountId, DepositAccountStatus,
+        PublicId,
+    },
     public::CoreDepositEvent,
     publisher::DepositPublisher,
 };
@@ -22,7 +25,8 @@ use super::entity::*;
             update(persist = false)
         ),
         public_id(ty = "PublicId", list_by),
-        status(ty = "DepositAccountStatus", list_for, update(accessor = "status"))
+        status(ty = "DepositAccountStatus", list_for, update(accessor = "status")),
+        activity(ty = "DepositAccountActivity", update(accessor = "activity"))
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
@@ -124,6 +128,44 @@ mod deposit_account_status_sqlx {
     }
 
     impl PgHasArrayType for DepositAccountStatus {
+        fn array_type_info() -> PgTypeInfo {
+            <String as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
+    }
+}
+
+mod deposit_account_activity_sqlx {
+    use sqlx::{Type, postgres::*};
+
+    use crate::primitives::DepositAccountActivity;
+
+    impl Type<Postgres> for DepositAccountActivity {
+        fn type_info() -> PgTypeInfo {
+            <String as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <String as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for DepositAccountActivity {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for DepositAccountActivity {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
+        }
+    }
+
+    impl PgHasArrayType for DepositAccountActivity {
         fn array_type_info() -> PgTypeInfo {
             <String as sqlx::postgres::PgHasArrayType>::array_type_info()
         }

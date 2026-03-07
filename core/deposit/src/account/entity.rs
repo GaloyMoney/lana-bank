@@ -19,9 +19,14 @@ pub enum DepositAccountEvent {
         account_ids: DepositAccountLedgerAccountIds,
         status: DepositAccountStatus,
         public_id: PublicId,
+        #[serde(default = "default_activity")]
+        activity: DepositAccountActivity,
     },
     AccountHolderStatusUpdated {
         status: DepositAccountStatus,
+    },
+    ActivityUpdated {
+        activity: DepositAccountActivity,
     },
     Frozen {
         status: DepositAccountStatus,
@@ -34,6 +39,10 @@ pub enum DepositAccountEvent {
     },
 }
 
+fn default_activity() -> DepositAccountActivity {
+    DepositAccountActivity::Active
+}
+
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EntityHydrationError"))]
 pub struct DepositAccount {
@@ -41,6 +50,7 @@ pub struct DepositAccount {
     pub account_holder_id: DepositAccountHolderId,
     pub account_ids: DepositAccountLedgerAccountIds,
     pub status: DepositAccountStatus,
+    pub activity: DepositAccountActivity,
     pub public_id: PublicId,
 
     events: EntityEvents<DepositAccountEvent>,
@@ -59,6 +69,18 @@ impl DepositAccount {
 
     pub fn is_frozen(&self) -> bool {
         self.status == DepositAccountStatus::Frozen
+    }
+
+    pub(crate) fn update_activity(&mut self, activity: DepositAccountActivity) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DepositAccountEvent::ActivityUpdated { activity: existing_activity, .. } if existing_activity == &activity,
+            => DepositAccountEvent::ActivityUpdated { .. }
+        );
+        self.events
+            .push(DepositAccountEvent::ActivityUpdated { activity });
+        self.activity = activity;
+        Idempotent::Executed(())
     }
 
     pub fn update_status_via_holder(
@@ -146,6 +168,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     status,
                     public_id,
                     account_ids,
+                    activity,
                     ..
                 } => {
                     builder = builder
@@ -153,10 +176,14 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                         .account_holder_id(*account_holder_id)
                         .account_ids(*account_ids)
                         .status(*status)
+                        .activity(*activity)
                         .public_id(public_id.clone())
                 }
                 DepositAccountEvent::AccountHolderStatusUpdated { status, .. } => {
                     builder = builder.status(*status);
+                }
+                DepositAccountEvent::ActivityUpdated { activity, .. } => {
+                    builder = builder.activity(*activity);
                 }
                 DepositAccountEvent::Frozen { status, .. } => {
                     builder = builder.status(*status);
@@ -185,6 +212,8 @@ pub struct NewDepositAccount {
     pub(super) public_id: PublicId,
     #[builder(setter(skip), default)]
     pub(super) status: DepositAccountStatus,
+    #[builder(setter(skip), default = "DepositAccountActivity::Active")]
+    pub(super) activity: DepositAccountActivity,
 }
 
 impl NewDepositAccount {
@@ -202,6 +231,7 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
                 account_holder_id: self.account_holder_id,
                 account_ids: self.account_ids,
                 status: DepositAccountStatus::Active,
+                activity: DepositAccountActivity::Active,
                 public_id: self.public_id,
             }],
         )
@@ -214,7 +244,8 @@ mod tests {
     use public_id::PublicId;
 
     use crate::{
-        DepositAccountHolderId, DepositAccountHolderStatus, DepositAccountId, DepositAccountStatus,
+        DepositAccountActivity, DepositAccountHolderId, DepositAccountHolderStatus,
+        DepositAccountId, DepositAccountStatus,
     };
 
     use super::{
@@ -228,6 +259,7 @@ mod tests {
             account_holder_id: DepositAccountHolderId::new(),
             account_ids: DepositAccountLedgerAccountIds::new(id),
             status: DepositAccountStatus::Active,
+            activity: DepositAccountActivity::Active,
             public_id: PublicId::new("1"),
         }]
     }
@@ -367,6 +399,44 @@ mod tests {
             account.update_status_via_holder(DepositAccountHolderStatus::Inactive),
             Err(DepositAccountError::CannotUpdateClosedAccount(_))
         ));
+    }
+
+    #[test]
+    fn update_activity_idempotency() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+
+        assert_eq!(account.activity, DepositAccountActivity::Active);
+
+        assert!(
+            account
+                .update_activity(DepositAccountActivity::Inactive)
+                .did_execute()
+        );
+        assert_eq!(account.activity, DepositAccountActivity::Inactive);
+
+        assert!(
+            account
+                .update_activity(DepositAccountActivity::Inactive)
+                .was_already_applied()
+        );
+
+        assert!(
+            account
+                .update_activity(DepositAccountActivity::Active)
+                .did_execute()
+        );
+        assert_eq!(account.activity, DepositAccountActivity::Active);
+
+        assert!(
+            account
+                .update_activity(DepositAccountActivity::Suspended)
+                .did_execute()
+        );
+        assert_eq!(account.activity, DepositAccountActivity::Suspended);
     }
 
     #[test]

@@ -186,7 +186,6 @@ impl Prospect {
             .applicant_id(applicant_id)
             .kyc_verification(KycVerification::Verified)
             .level(level)
-            .activity(Activity::Active)
             .build()
             .expect("Could not build customer from prospect");
 
@@ -212,7 +211,6 @@ impl Prospect {
             .applicant_id("manual-conversion")
             .kyc_verification(KycVerification::NoKyc)
             .level(KycLevel::Basic)
-            .activity(Activity::Active)
             .build()
             .expect("Could not build customer from prospect");
 

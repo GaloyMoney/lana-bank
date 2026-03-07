@@ -16,7 +16,6 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
 };
-use core_time_events::CoreTimeEvent;
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
@@ -28,8 +27,7 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<GovernanceEvent>,
 {
     _phantom: std::marker::PhantomData<(Perms, E)>,
     _outbox: Outbox<E>,
@@ -41,8 +39,7 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -62,15 +59,14 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreTimeEvent>,
+        + OutboxEventMarker<GovernanceEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(name = "customer_sync.init", skip_all)]
     pub async fn init(
         jobs: &mut ::job::Jobs,
         outbox: &Outbox<E>,
-        customers: &Customers<Perms, E>,
+        _customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
         config: CustomerSyncConfig,
         sumsub_client: sumsub::SumsubClient,
@@ -109,22 +105,6 @@ where
                 jobs,
                 OutboxEventJobConfig::new(SYNC_EMAIL_JOB),
                 SyncEmailHandler::new(update_user_email_spawner),
-            )
-            .await?;
-
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(UPDATE_LAST_ACTIVITY_DATE),
-                UpdateLastActivityDateHandler::new(customers, deposit),
-            )
-            .await?;
-
-        outbox
-            .register_event_handler(
-                jobs,
-                OutboxEventJobConfig::new(UPDATE_CUSTOMER_ACTIVITY_STATUS),
-                UpdateCustomerActivityStatusHandler::new(customers),
             )
             .await?;
 

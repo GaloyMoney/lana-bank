@@ -15,6 +15,7 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
 };
+use core_time_events::CoreTimeEvent;
 use governance::GovernanceEvent;
 use obix::out::{Outbox, OutboxEventJobConfig, OutboxEventMarker};
 use sumsub::SumsubClient;
@@ -28,6 +29,7 @@ where
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
@@ -41,6 +43,7 @@ where
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
@@ -62,6 +65,7 @@ where
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreTimeEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
@@ -79,6 +83,22 @@ where
                 jobs,
                 OutboxEventJobConfig::new(SUMSUB_EXPORT_JOB),
                 SumsubExportHandler::new(sumsub_client, deposits, customers),
+            )
+            .await?;
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(UPDATE_DEPOSIT_ACCOUNT_ACTIVITY_DATE),
+                UpdateDepositAccountActivityDateHandler::new(deposits),
+            )
+            .await?;
+
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(UPDATE_DEPOSIT_ACCOUNT_ACTIVITY_STATUS),
+                UpdateDepositAccountActivityStatusHandler::new(deposits),
             )
             .await?;
 

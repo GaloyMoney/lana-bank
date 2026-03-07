@@ -10,7 +10,6 @@ import { formatDate } from "@lana/web/utils"
 import { Label } from "@lana/web/ui/label"
 import { Button } from "@lana/web/ui/button"
 
-import { ActivityStatusBadge } from "../activity-status-badge"
 import { CustomerStatusBadge } from "../customer-status-badge"
 
 import { CustomerTypeBadge } from "../customer-type-badge"
@@ -76,10 +75,6 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
     {
       label: t("labels.customerStatus"),
       value: <CustomerStatusBadge status={customer.status} />,
-    },
-    {
-      label: t("labels.activity"),
-      value: <ActivityStatusBadge status={customer.activity} />,
     },
     {
       label: t("labels.customerType"),

@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT da.deposit_account_id\n            FROM deposit_account_activity da\n            JOIN core_deposit_accounts c ON da.deposit_account_id = c.id\n            WHERE da.last_activity_date >= $1\n              AND da.last_activity_date < $2\n              AND c.activity != $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "deposit_account_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Timestamptz",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "59ca24054b73bd7141b373b8445c90bbca821a9922b9763d808840ea2838d6e8"
+}

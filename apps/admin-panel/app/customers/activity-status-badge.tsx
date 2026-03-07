@@ -1,21 +1,21 @@
 import { Badge } from "@lana/web/ui/badge"
 import { useTranslations } from "next-intl"
 
-import { Activity } from "@/lib/graphql/generated"
+import { DepositAccountActivity } from "@/lib/graphql/generated"
 
-const getStatusConfig = (status: Activity) => {
+const getStatusConfig = (status: DepositAccountActivity) => {
   switch (status) {
-    case Activity.Active:
+    case DepositAccountActivity.Active:
       return {
         translationKey: "active",
         variant: "success" as const,
       }
-    case Activity.Inactive:
+    case DepositAccountActivity.Inactive:
       return {
         translationKey: "inactive",
         variant: "secondary" as const,
       }
-    case Activity.Suspended:
+    case DepositAccountActivity.Suspended:
       return {
         translationKey: "suspended",
         variant: "destructive" as const,
@@ -28,7 +28,7 @@ const getStatusConfig = (status: Activity) => {
 }
 
 interface ActivityStatusBadgeProps {
-  status: Activity | undefined
+  status: DepositAccountActivity | undefined
 }
 
 export const ActivityStatusBadge: React.FC<ActivityStatusBadgeProps> = ({ status }) => {
