@@ -834,11 +834,7 @@ where
 
         let payment_id = PaymentId::new();
         let effective = effective.into();
-        // @@ change to assert style fn
-        // lint:allow(service-conditionals)
-        if !credit_facility.check_payment_date(effective) {
-            return Err(CreditFacilityError::PaymentBeforeFacilityActivation.into());
-        }
+        credit_facility.assert_payment_date_allowed(effective)?;
         let initiated_by = sub;
         self.collections
             .payments()

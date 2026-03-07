@@ -278,10 +278,7 @@ where
             .get_without_audit_in_op::<RequireVerifiedCustomerForAccount>(op)
             .await?
             .value();
-        // lint:allow(service-conditionals)
-        if !customer.may_attach_product(require_verified) {
-            return Err(CustomerError::CustomerNotEligibleForProduct);
-        }
+        customer.assert_may_attach_product(require_verified)?;
         Ok(customer)
     }
 
@@ -973,10 +970,7 @@ where
             .await?;
 
         let customer = self.repo.find_by_party_id(party_id).await?;
-        // lint:allow(service-conditionals)
-        if customer.is_closed() {
-            return Err(CustomerError::CustomerIsClosed);
-        }
+        customer.assert_not_closed()?;
         let mut party = self.party_repo.find_by_id(party_id).await?;
         if party
             .update_telegram_handle(new_telegram_handle)
@@ -1006,10 +1000,7 @@ where
             .await?;
 
         let customer = self.repo.find_by_party_id(party_id).await?;
-        // lint:allow(service-conditionals)
-        if customer.is_closed() {
-            return Err(CustomerError::CustomerIsClosed);
-        }
+        customer.assert_not_closed()?;
         let mut party = self.party_repo.find_by_id(party_id).await?;
         if party.update_email(new_email).did_execute() {
             self.party_repo.update(&mut party).await?;

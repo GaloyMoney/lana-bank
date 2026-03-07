@@ -453,8 +453,14 @@ impl CreditFacility {
         Idempotent::Executed(())
     }
 
-    pub(crate) fn check_payment_date(&self, effective: chrono::NaiveDate) -> bool {
-        effective >= self.activated_at.date_naive()
+    pub(crate) fn assert_payment_date_allowed(
+        &self,
+        effective: chrono::NaiveDate,
+    ) -> Result<(), CreditFacilityError> {
+        if effective < self.activated_at.date_naive() {
+            return Err(CreditFacilityError::PaymentBeforeFacilityActivation);
+        }
+        Ok(())
     }
 
     fn last_started_accrual_cycle(&self) -> Option<InterestAccrualCycleInCreditFacility> {
