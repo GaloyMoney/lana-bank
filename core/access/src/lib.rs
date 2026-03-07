@@ -320,8 +320,9 @@ where
     pub async fn list_roles(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<RolesByNameCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<Role, RolesByNameCursor>, CoreAccessError> {
+        query: es_entity::PaginatedQueryArgs<role_cursor::RolesCursor>,
+        sort: es_entity::Sort<RolesSortBy>,
+    ) -> Result<es_entity::PaginatedQueryRet<Role, role_cursor::RolesCursor>, CoreAccessError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -331,7 +332,7 @@ where
             .await?;
         Ok(self
             .roles
-            .list_by_name(query, es_entity::ListDirection::Descending)
+            .list_for_filters(Default::default(), sort, query)
             .await?)
     }
 

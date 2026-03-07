@@ -48,6 +48,17 @@ where
     }
 }
 
+impl From<(RolesSortBy, &Role)> for role_cursor::RolesCursor {
+    fn from(role_with_sort: (RolesSortBy, &Role)) -> Self {
+        let (sort, role) = role_with_sort;
+        match sort {
+            RolesSortBy::CreatedAt => role_cursor::RolesByCreatedAtCursor::from(role).into(),
+            RolesSortBy::Id => role_cursor::RolesByIdCursor::from(role).into(),
+            RolesSortBy::Name => role_cursor::RolesByNameCursor::from(role).into(),
+        }
+    }
+}
+
 impl<E> Clone for RoleRepo<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,

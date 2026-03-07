@@ -1,10 +1,12 @@
 use async_graphql::*;
+use es_entity::Sort;
 
 use crate::graphql::access::PermissionSet;
 use crate::graphql::loader::LanaDataLoader;
+use crate::graphql::primitives::SortDirection;
 use crate::primitives::*;
 use lana_app::access::role::Role as DomainRole;
-pub use lana_app::access::role::RolesByNameCursor;
+use lana_app::access::role::RolesSortBy as DomainRolesSortBy;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -67,3 +69,42 @@ pub struct RoleRemovePermissionSetsInput {
     pub permission_set_ids: Vec<UUID>,
 }
 crate::mutation_payload! { RoleRemovePermissionSetsPayload, role: Role }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum RolesSortBy {
+    #[default]
+    CreatedAt,
+    Name,
+}
+
+impl From<RolesSortBy> for DomainRolesSortBy {
+    fn from(by: RolesSortBy) -> Self {
+        match by {
+            RolesSortBy::CreatedAt => DomainRolesSortBy::CreatedAt,
+            RolesSortBy::Name => DomainRolesSortBy::Name,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct RolesSort {
+    #[graphql(default)]
+    pub by: RolesSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<RolesSort> for Sort<DomainRolesSortBy> {
+    fn from(sort: RolesSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<RolesSort> for DomainRolesSortBy {
+    fn from(sort: RolesSort) -> Self {
+        sort.by.into()
+    }
+}
