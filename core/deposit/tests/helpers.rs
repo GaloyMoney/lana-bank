@@ -6,7 +6,9 @@ use cala_ledger::{CalaLedger, JournalId, account_set::AccountSetMemberId};
 use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
 use core_customer::RequireVerifiedCustomerForAccount;
 use core_deposit::{DepositOmnibusAccountSetSpec, DepositSummaryAccountSetSpec};
-use domain_config::{EncryptionConfig, ExposedDomainConfigsReadOnly, InternalDomainConfigs};
+use domain_config::{
+    EncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
+};
 use rand::RngExt;
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
@@ -17,7 +19,11 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 pub async fn init_domain_configs(
     pool: &sqlx::PgPool,
     authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
-) -> anyhow::Result<(InternalDomainConfigs, ExposedDomainConfigsReadOnly)> {
+) -> anyhow::Result<(
+    InternalDomainConfigs,
+    ExposedDomainConfigs<authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>>,
+    ExposedDomainConfigsReadOnly,
+)> {
     let startup_configs: Vec<(String, serde_json::Value)> = vec![];
     let (internal, exposed, exposed_readonly) =
         domain_config::init(pool, authz, EncryptionConfig::default(), startup_configs).await?;
@@ -26,7 +32,7 @@ pub async fn init_domain_configs(
     let _ = exposed
         .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
         .await;
-    Ok((internal, exposed_readonly))
+    Ok((internal, exposed, exposed_readonly))
 }
 
 pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {

@@ -93,7 +93,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         "deposit-chart-of-accounts-integration",
     )
     .await?;
-    let (internal_domain_configs, exposed_domain_configs) =
+    let (internal_domain_configs, _writable_domain_configs, exposed_domain_configs) =
         helpers::init_domain_configs(&pool, &authz).await?;
 
     let customers = Customers::new(

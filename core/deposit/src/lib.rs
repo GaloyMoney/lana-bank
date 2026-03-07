@@ -42,6 +42,7 @@ pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, error::ChartOfAccountsIntegrationError,
 };
 use config::*;
+pub use config::{DepositActivityEscheatableThresholdDays, DepositActivityInactiveThresholdDays};
 use deposit::*;
 pub use deposit::{
     Deposit, DepositsByCreatedAtCursor, DepositsCursor, DepositsFilters, DepositsSortBy,
@@ -92,7 +93,6 @@ where
     customers: Customers<Perms, E>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
     domain_configs: ExposedDomainConfigsReadOnly,
-    config: DepositActivityConfig,
 }
 
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
@@ -117,7 +117,6 @@ where
             customers: self.customers.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             domain_configs: self.domain_configs.clone(),
-            config: self.config.clone(),
         }
     }
 }
@@ -198,7 +197,6 @@ where
             customers: customers.clone(),
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc.clone(),
             domain_configs: domain_configs.clone(),
-            config: DepositActivityConfig::default(),
         };
         Ok(res)
     }
@@ -918,15 +916,37 @@ where
             .unwrap_or_else(|| account.created_at()))
     }
 
-    fn activity_for_last_activity_date(
+    async fn activity_threshold_dates(
         &self,
-        last_activity_date: DateTime<Utc>,
         now: DateTime<Utc>,
-    ) -> Activity {
-        let escheatment_date = self.config.get_escheatment_threshold_date(now);
-        let inactive_date = self.config.get_inactive_threshold_date(now);
+    ) -> Result<(DateTime<Utc>, DateTime<Utc>), CoreDepositError> {
+        let inactive_threshold_days = self
+            .domain_configs
+            .get_without_audit::<DepositActivityInactiveThresholdDays>()
+            .await?
+            .value();
+        let escheatable_threshold_days = self
+            .domain_configs
+            .get_without_audit::<DepositActivityEscheatableThresholdDays>()
+            .await?
+            .value();
+        let thresholds = DepositActivityThresholds::try_new(
+            inactive_threshold_days,
+            escheatable_threshold_days,
+        )?;
 
-        if last_activity_date < escheatment_date {
+        Ok((
+            thresholds.inactive_threshold_date(now)?,
+            thresholds.escheatable_threshold_date(now)?,
+        ))
+    }
+
+    fn activity_for_last_activity_date(
+        last_activity_date: DateTime<Utc>,
+        inactive_date: DateTime<Utc>,
+        escheatable_date: DateTime<Utc>,
+    ) -> Activity {
+        if last_activity_date < escheatable_date {
             Activity::Escheatable
         } else if last_activity_date < inactive_date {
             Activity::Inactive
@@ -943,12 +963,17 @@ where
     ) -> Result<(), CoreDepositError> {
         // TODO: Optimize this daily job to avoid scanning all accounts and doing
         // per-account last-activity lookups.
+        let (inactive_date, escheatable_date) = self.activity_threshold_dates(now).await?;
         let accounts = self.deposit_accounts.list_all().await?;
         let mut accounts_to_update = Vec::new();
 
         for mut account in accounts {
             let last_activity_date = self.last_activity_date_for_account(&account).await?;
-            let activity = self.activity_for_last_activity_date(last_activity_date, now);
+            let activity = Self::activity_for_last_activity_date(
+                last_activity_date,
+                inactive_date,
+                escheatable_date,
+            );
 
             if account.update_activity(activity).did_execute() {
                 accounts_to_update.push(account);

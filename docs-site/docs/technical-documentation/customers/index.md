@@ -46,13 +46,13 @@ graph LR
 
 ## Deposit Account Activity
 
-Deposit account activity is managed automatically by a periodic background job. The system derives each deposit account's last activity date from the latest transaction recorded on the account, or falls back to the deposit account creation date when no transactions exist yet. It then applies configurable thresholds to determine whether that account should be considered active, inactive, or escheatable.
+Deposit account activity is managed automatically by a periodic background job. The system derives each deposit account's last activity date from the latest transaction recorded on the account, or falls back to the deposit account creation date when no transactions exist yet. It then applies configurable thresholds to determine whether that account should be considered active, inactive, or escheatable. By default, those thresholds are 365 days for `Inactive` and 3650 days for `Escheatable`, and operators can change them in the admin app through the exposed domain configs `deposit-activity-inactive-threshold-days` and `deposit-activity-escheatable-threshold-days`.
 
 | Status | Condition | Effect |
 |--------|-----------|--------|
-| **Active** | Activity within the last year | Account is shown as recently active |
-| **Inactive** | No activity for 1-10 years | Account is shown as inactive for operator follow-up |
-| **Escheatable** | No activity for over 10 years | Account is shown as long-dormant and past the escheatment threshold |
+| **Active** | Activity within the configured inactive threshold (default: 365 days) | Account is shown as recently active |
+| **Inactive** | No activity beyond the inactive threshold and below the escheatable threshold (defaults: 365-3650 days) | Account is shown as inactive for operator follow-up |
+| **Escheatable** | No activity beyond the configured escheatable threshold (default: 3650 days) | Account is shown as long-dormant and past the escheatment threshold |
 
 This state belongs to the deposit account, not to the customer. Activity is separate from the deposit account's operational `status`, so an inactive or escheatable activity state does not by itself block deposits or withdrawals.
 

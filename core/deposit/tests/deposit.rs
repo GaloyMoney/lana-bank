@@ -18,7 +18,14 @@ type TestPerms = authz::dummy::DummyPerms<action::DummyAction, object::DummyObje
 type TestDeposit = CoreDeposit<TestPerms, event::DummyEvent>;
 type TestCustomers = Customers<TestPerms, event::DummyEvent>;
 type TestOutbox = obix::Outbox<event::DummyEvent>;
-type TestSetup = (TestDeposit, TestCustomers, TestOutbox, job::Jobs);
+type TestExposedDomainConfigs = domain_config::ExposedDomainConfigs<TestPerms>;
+type TestSetup = (
+    TestDeposit,
+    TestCustomers,
+    TestOutbox,
+    job::Jobs,
+    TestExposedDomainConfigs,
+);
 
 async fn setup() -> anyhow::Result<TestSetup> {
     let (setup, _clock_ctrl) = setup_at(Utc::now()).await?;
@@ -60,7 +67,7 @@ async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockContr
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
 
-    let (internal_domain_configs, exposed_domain_configs) =
+    let (internal_domain_configs, exposed_domain_configs, exposed_domain_configs_readonly) =
         helpers::init_domain_configs(&pool, &authz).await?;
 
     let customers = Customers::new(
@@ -69,7 +76,7 @@ async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockContr
         &outbox,
         document_storage,
         public_ids.clone(),
-        &exposed_domain_configs,
+        &exposed_domain_configs_readonly,
         clock.clone(),
     );
 
@@ -83,17 +90,20 @@ async fn setup_at(start: DateTime<Utc>) -> anyhow::Result<(TestSetup, ClockContr
         journal_id,
         &public_ids,
         &customers,
-        &exposed_domain_configs,
+        &exposed_domain_configs_readonly,
         &internal_domain_configs,
     )
     .await?;
 
-    Ok(((deposit, customers, outbox, jobs), clock_ctrl))
+    Ok((
+        (deposit, customers, outbox, jobs, exposed_domain_configs),
+        clock_ctrl,
+    ))
 }
 
 #[tokio::test]
 async fn deposit() -> anyhow::Result<()> {
-    let (deposit, customers, _outbox, _jobs) = setup().await?;
+    let (deposit, customers, _outbox, _jobs, _domain_configs) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -127,7 +137,7 @@ async fn deposit() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn revert_deposit() -> anyhow::Result<()> {
-    let (deposit, customers, _outbox, _jobs) = setup().await?;
+    let (deposit, customers, _outbox, _jobs, _domain_configs) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -173,7 +183,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
 /// The event contains a snapshot with the deposit account id and account holder id.
 #[tokio::test]
 async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs) = setup().await?;
+    let (deposit, customers, outbox, _jobs, _domain_configs) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -209,7 +219,7 @@ async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
 /// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
 async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs) = setup().await?;
+    let (deposit, customers, outbox, _jobs, _domain_configs) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -256,7 +266,7 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
 /// via the governance → outbox → jobs pipeline.
 #[tokio::test]
 async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, mut jobs) = setup().await?;
+    let (deposit, customers, outbox, mut jobs, _domain_configs) = setup().await?;
     jobs.start_poll().await?;
 
     let customer = customers
@@ -329,7 +339,7 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
 /// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
 async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs) = setup().await?;
+    let (deposit, customers, outbox, _jobs, _domain_configs) = setup().await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -367,10 +377,45 @@ async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
 
 #[tokio::test]
 #[serial_test::file_serial(core_deposit_activity_status)]
+async fn deposit_account_activity_uses_configurable_thresholds() -> anyhow::Result<()> {
+    let start = Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap();
+    let ((deposit, customers, _outbox, _jobs, domain_configs), _clock_ctrl) =
+        setup_at(start).await?;
+
+    domain_configs
+        .update::<DepositActivityInactiveThresholdDays>(&DummySubject, 30)
+        .await?;
+    domain_configs
+        .update::<DepositActivityEscheatableThresholdDays>(&DummySubject, 60)
+        .await?;
+
+    let customer = customers
+        .create_customer_bypassing_kyc(
+            &DummySubject,
+            format!("user{}@example.com", Uuid::new_v4()),
+            format!("telegram{}", Uuid::new_v4()),
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
+    let now = start + Duration::days(45);
+
+    deposit.perform_activity_status_update(now).await?;
+
+    let account = deposit.find_account_by_id_without_audit(account.id).await?;
+    assert_eq!(account.activity, Activity::Inactive);
+
+    Ok(())
+}
+
+#[tokio::test]
+#[serial_test::file_serial(core_deposit_activity_status)]
 async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date()
 -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2015, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs), clock_ctrl) = setup_at(start).await?;
+    let ((deposit, customers, _outbox, _jobs, _domain_configs), clock_ctrl) =
+        setup_at(start).await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(
@@ -428,7 +473,8 @@ async fn deposit_account_activity_updates_from_ledger_activity_or_creation_date(
 #[serial_test::file_serial(core_deposit_activity_status)]
 async fn deposit_account_activity_updates_from_withdrawal_history() -> anyhow::Result<()> {
     let start = Utc.with_ymd_and_hms(2015, 1, 1, 0, 0, 0).unwrap();
-    let ((deposit, customers, _outbox, _jobs), clock_ctrl) = setup_at(start).await?;
+    let ((deposit, customers, _outbox, _jobs, _domain_configs), clock_ctrl) =
+        setup_at(start).await?;
 
     let customer = customers
         .create_customer_bypassing_kyc(

@@ -42,7 +42,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
 
-    let (internal_domain_configs, exposed_domain_configs) =
+    let (internal_domain_configs, _writable_domain_configs, exposed_domain_configs) =
         helpers::init_domain_configs(&pool, &authz).await?;
 
     let customers = Customers::new(

@@ -66,7 +66,7 @@ stateDiagram-v2
 | **Frozen** | Compliance hold or dispute | No | No |
 | **Closed** | Permanently deactivated | No | No |
 
-Account activity is tracked separately from account status. The system classifies each deposit account as `Active`, `Inactive`, or `Escheatable` for dormancy monitoring by deriving the last activity date from the latest ledger transaction on the account, or from the account creation date when no transactions exist yet. The operational `status` above continues to control whether deposits and withdrawals are allowed.
+Account activity is tracked separately from account status. The system classifies each deposit account as `Active`, `Inactive`, or `Escheatable` for dormancy monitoring by deriving the last activity date from the latest ledger transaction on the account, or from the account creation date when no transactions exist yet. By default, accounts become `Inactive` after 365 days without activity and `Escheatable` after 3650 days, and these thresholds can be changed from the admin app through the exposed domain configs `deposit-activity-inactive-threshold-days` and `deposit-activity-escheatable-threshold-days`. The operational `status` above continues to control whether deposits and withdrawals are allowed.
 
 ### Freeze Account
 
