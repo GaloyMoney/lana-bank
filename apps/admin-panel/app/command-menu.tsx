@@ -50,6 +50,7 @@ import {
   ApprovalProcessStatus,
   CreditFacilityStatus,
   WithdrawalStatus,
+  useDomainConfigsQuery,
 } from "@/lib/graphql/generated"
 
 import { usePublicIdSearch } from "@/hooks/use-public-id-search"
@@ -116,6 +117,14 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
     type: null,
     action: null,
   })
+
+  const { data: domainConfigsData } = useDomainConfigsQuery({
+    variables: { first: 100 },
+  })
+  const manualCollateralEnabled =
+    domainConfigsData?.domainConfigs.nodes.find(
+      (c) => c.key === "manual-collateral",
+    )?.value !== false
 
   const search = usePublicIdSearch()
   const getActiveEntity = () => {
@@ -209,6 +218,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
       allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
       condition: () =>
         facility?.userCanUpdateCollateral &&
+        manualCollateralEnabled &&
         facility?.status !== CreditFacilityStatus.Closed &&
         facility?.status !== CreditFacilityStatus.Matured,
     },

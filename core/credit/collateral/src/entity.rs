@@ -167,7 +167,11 @@ impl Collateral {
         &mut self,
         new_amount: Satoshis,
         effective: chrono::NaiveDate,
+        manual_collateral_enabled: bool,
     ) -> Result<Idempotent<CollateralUpdate>, CollateralError> {
+        if !manual_collateral_enabled {
+            return Err(CollateralError::ManualCollateralDisabled);
+        }
         if self.custody_wallet_id.is_some() {
             return Err(CollateralError::ManualUpdateError);
         }
@@ -542,6 +546,7 @@ mod tests {
                 .record_collateral_update_via_manual_input(
                     initial_amount,
                     chrono::Utc::now().date_naive(),
+                    true,
                 )
                 .unwrap();
 
@@ -584,6 +589,7 @@ mod tests {
                 .record_collateral_update_via_manual_input(
                     Satoshis::from(100000),
                     chrono::Utc::now().date_naive(),
+                    true,
                 )
                 .unwrap();
 
