@@ -4,7 +4,7 @@ use authz::dummy::DummySubject;
 use uuid::Uuid;
 
 use core_customer::{
-    CoreCustomerEvent, CustomerId, CustomerType, KycStatus, KycVerification, PersonalInfo,
+    CoreCustomerEvent, CustomerId, CustomerStatus, CustomerType, KycStatus, PersonalInfo,
     ProspectStage,
 };
 use helpers::event;
@@ -140,13 +140,13 @@ async fn prospect_closed_event_on_close_prospect() -> anyhow::Result<()> {
 }
 
 /// When a prospect has been approved and converted to a customer, a subsequent
-/// SumSub decline callback should update the Customer's kyc_verification to Rejected
-/// instead of modifying the Prospect's kyc_status.
+/// SumSub decline callback should freeze the Customer rather than modifying the
+/// Prospect's kyc_status.
 ///
 /// This ensures that post-conversion KYC rejections are properly routed to the
-/// Customer entity and emit a CustomerKycUpdated event.
+/// Customer entity and emit a CustomerFrozen event.
 #[tokio::test]
-async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Result<()> {
+async fn decline_after_approval_freezes_customer() -> anyhow::Result<()> {
     let (customers, outbox) = helpers::setup().await?;
 
     // Create a prospect and approve KYC to convert to customer
@@ -172,14 +172,14 @@ async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Resul
         .handle_kyc_approved(prospect.id, applicant_id.clone(), PersonalInfo::dummy())
         .await?;
 
-    assert_eq!(customer.kyc_verification, KycVerification::Verified);
+    assert_eq!(customer.status, CustomerStatus::Active);
 
     // Now decline KYC (simulating a SumSub RED callback after approval)
     let (_prospect_returned, recorded) = event::expect_event(
         &outbox,
         || customers.handle_kyc_declined(prospect.id, applicant_id.clone()),
         |_result, e| match e {
-            CoreCustomerEvent::CustomerKycUpdated { entity }
+            CoreCustomerEvent::CustomerFrozen { entity }
                 if entity.id == CustomerId::from(prospect.id) =>
             {
                 Some(entity.clone())
@@ -189,8 +189,8 @@ async fn decline_after_approval_updates_customer_not_prospect() -> anyhow::Resul
     )
     .await?;
 
-    // Customer should be rejected
-    assert_eq!(recorded.kyc_verification, KycVerification::Rejected);
+    // Customer should be frozen
+    assert_eq!(recorded.status, CustomerStatus::Frozen);
 
     // Prospect kyc_status should remain Approved (not changed to Declined)
     let prospect_after = customers

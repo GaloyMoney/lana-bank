@@ -165,7 +165,6 @@ impl LanaApp {
             &outbox,
             documents.clone(),
             public_ids.clone(),
-            &exposed_domain_configs_readonly,
             clock.clone(),
         );
         let deposits = Deposits::init(

@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 
 use crate::{
     entity::Customer,
-    primitives::{CustomerId, CustomerStatus, KycVerification, PartyId},
+    primitives::{CustomerId, CustomerStatus, PartyId},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,7 +13,6 @@ use crate::{
 pub struct PublicCustomer {
     pub id: CustomerId,
     pub party_id: PartyId,
-    pub kyc_verification: KycVerification,
     pub status: CustomerStatus,
 }
 
@@ -22,7 +21,6 @@ impl From<&Customer> for PublicCustomer {
         PublicCustomer {
             id: entity.id,
             party_id: entity.party_id,
-            kyc_verification: entity.kyc_verification,
             status: entity.status,
         }
     }

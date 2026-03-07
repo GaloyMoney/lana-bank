@@ -161,7 +161,6 @@ type Customer {
 	id: ID!
 	customerId: UUID!
 	status: CustomerStatus!
-	kycVerification: KycVerification!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
@@ -308,12 +307,6 @@ enum KycLevel {
 	NOT_KYCED
 	BASIC
 	ADVANCED
-}
-
-enum KycVerification {
-	NO_KYC
-	VERIFIED
-	REJECTED
 }
 
 type Me {

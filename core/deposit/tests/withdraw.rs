@@ -51,7 +51,6 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         &outbox,
         document_storage.clone(),
         public_ids.clone(),
-        &exposed_domain_configs,
         clock.clone(),
     );
 

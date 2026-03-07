@@ -1,5 +1,13 @@
 {
   "$defs": {
+    "Activity": {
+      "enum": [
+        "inactive",
+        "active",
+        "suspended"
+      ],
+      "type": "string"
+    },
     "CustomerStatus": {
       "enum": [
         "active",
@@ -27,22 +35,17 @@
         "Advanced"
       ],
       "type": "string"
-    },
-    "KycVerification": {
-      "enum": [
-        "no-kyc",
-        "verified",
-        "rejected"
-      ],
-      "type": "string"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
+        "activity": {
+          "$ref": "#/$defs/Activity"
+        },
         "applicant_id": {
-          "type": "string"
+          "type": ["string", "null"]
         },
         "customer_type": {
           "$ref": "#/$defs/CustomerType"
@@ -50,9 +53,6 @@
         "id": {
           "format": "uuid",
           "type": "string"
-        },
-        "kyc_verification": {
-          "$ref": "#/$defs/KycVerification"
         },
         "level": {
           "$ref": "#/$defs/KycLevel"
@@ -74,22 +74,25 @@
         "id",
         "party_id",
         "customer_type",
+        "activity",
         "public_id",
-        "applicant_id",
-        "level",
-        "kyc_verification"
+        "level"
       ],
       "type": "object"
     },
     {
       "properties": {
+        "activity": {
+          "$ref": "#/$defs/Activity"
+        },
         "type": {
-          "const": "kyc_rejected",
+          "const": "activity_updated",
           "type": "string"
         }
       },
       "required": [
-        "type"
+        "type",
+        "activity"
       ],
       "type": "object"
     },

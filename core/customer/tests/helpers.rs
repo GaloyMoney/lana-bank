@@ -35,22 +35,12 @@ pub async fn setup() -> anyhow::Result<(
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let public_ids = public_id::PublicIds::new(&pool);
 
-    let startup_configs: Vec<(String, serde_json::Value)> = vec![];
-    let (_, _, exposed_domain_configs_readonly) = domain_config::init(
-        &pool,
-        &authz,
-        domain_config::EncryptionConfig::default(),
-        startup_configs,
-    )
-    .await?;
-
     let customers = Customers::new(
         &pool,
         &authz,
         &outbox,
         document_storage,
         public_ids,
-        &exposed_domain_configs_readonly,
         clock.clone(),
     );
 

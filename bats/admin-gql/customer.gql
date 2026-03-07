@@ -4,7 +4,6 @@ query Customer($id: UUID!) {
     applicantId
     level
     status
-    kycVerification
     email
     depositAccount {
       depositAccountId

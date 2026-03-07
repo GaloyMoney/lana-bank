@@ -92,7 +92,6 @@ async fn setup_with_clock_control() -> anyhow::Result<(
         &outbox,
         document_storage,
         public_ids,
-        &domain_configs,
         clock.clone(),
     );
 

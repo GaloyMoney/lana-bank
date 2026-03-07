@@ -2,50 +2,45 @@ import { Badge } from "@lana/web/ui/badge"
 import { useTranslations } from "next-intl"
 
 import { cn } from "@lana/web/utils"
-import { BadgeCheck, Clock, CircleX } from "lucide-react"
+import { BadgeCheck, Clock } from "lucide-react"
 
-import { KycVerification } from "@/lib/graphql/generated"
+import { KycLevel } from "@/lib/graphql/generated"
 
-const getStatusConfig = (status: KycVerification) => {
-  switch (status) {
-    case KycVerification.Verified:
+const getStatusConfig = (level: KycLevel) => {
+  switch (level) {
+    case KycLevel.Basic:
+    case KycLevel.Advanced:
       return {
         icon: BadgeCheck,
         translationKey: "verified",
         className: "text-green-600",
       }
-    case KycVerification.NoKyc:
+    case KycLevel.NotKyced:
       return {
         icon: Clock,
         translationKey: "noKyc",
         className: "text-muted-foreground",
       }
-    case KycVerification.Rejected:
-      return {
-        icon: CircleX,
-        translationKey: "rejected",
-        className: "text-destructive",
-      }
     default: {
-      const exhaustiveCheck: never = status
+      const exhaustiveCheck: never = level
       return exhaustiveCheck
     }
   }
 }
 
 interface KycStatusBadgeProps {
-  status: KycVerification | undefined
+  level: KycLevel | undefined
 }
 
-export const KycStatusBadge: React.FC<KycStatusBadgeProps> = ({ status }) => {
+export const KycStatusBadge: React.FC<KycStatusBadgeProps> = ({ level }) => {
   const t = useTranslations("Customers.CustomerDetails.kycStatus")
-  if (!status) return null
+  if (!level) return null
 
   const {
     icon: Icon,
     translationKey,
     className: statusClassName,
-  } = getStatusConfig(status)
+  } = getStatusConfig(level)
 
   return (
     <Badge variant="ghost" className={cn("flex items-center gap-1", statusClassName)}>

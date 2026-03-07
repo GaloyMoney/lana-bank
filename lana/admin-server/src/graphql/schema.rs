@@ -155,7 +155,6 @@ impl Query {
     ) -> async_graphql::Result<Connection<CustomersCursor, Customer, EmptyFields, EmptyFields>>
     {
         let filter = DomainCustomersFilters {
-            kyc_verification: filter.as_ref().and_then(|f| f.kyc_verification),
             customer_type: filter.as_ref().and_then(|f| f.customer_type),
             status: filter.as_ref().and_then(|f| f.status),
         };
