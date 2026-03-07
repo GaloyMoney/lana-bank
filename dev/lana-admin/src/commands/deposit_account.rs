@@ -61,7 +61,6 @@ pub async fn execute(
                     "customerId": a.customer_id,
                     "publicId": a.public_id,
                     "status": format!("{:?}", a.status),
-                    "activity": format!("{:?}", a.activity),
                     "createdAt": a.created_at,
                 }))?;
             } else {
@@ -70,7 +69,6 @@ pub async fn execute(
                     ("Customer ID", &a.customer_id),
                     ("Public ID", &a.public_id),
                     ("Status", &format!("{:?}", a.status)),
-                    ("Activity", &format!("{:?}", a.activity)),
                     ("Created", &a.created_at),
                 ]);
             }

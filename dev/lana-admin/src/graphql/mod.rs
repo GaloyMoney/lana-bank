@@ -35,7 +35,7 @@ pub struct BuildInfoGet;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/prospect.graphql",
+    query_path = "src/graphql/prospect_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct ProspectCreate;
@@ -59,7 +59,7 @@ pub struct ProspectGet;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/prospect.graphql",
+    query_path = "src/graphql/prospect_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct ProspectConvert;
@@ -75,7 +75,7 @@ pub struct ProspectClose;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/prospect.graphql",
+    query_path = "src/graphql/prospect_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct SumsubPermalinkCreate;
@@ -119,7 +119,7 @@ pub struct CustomerClose;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/deposit_account.graphql",
+    query_path = "src/graphql/deposit_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct DepositAccountCreate;
@@ -143,7 +143,7 @@ pub struct DepositAccountGet;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/deposit_account.graphql",
+    query_path = "src/graphql/deposit_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct DepositRecord;
@@ -151,7 +151,7 @@ pub struct DepositRecord;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/deposit_account.graphql",
+    query_path = "src/graphql/deposit_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct WithdrawalInitiate;
@@ -159,7 +159,7 @@ pub struct WithdrawalInitiate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/deposit_account.graphql",
+    query_path = "src/graphql/deposit_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct WithdrawalConfirm;
@@ -167,7 +167,7 @@ pub struct WithdrawalConfirm;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/deposit_account.graphql",
+    query_path = "src/graphql/deposit_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct WithdrawalCancel;
@@ -175,7 +175,7 @@ pub struct WithdrawalCancel;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/deposit_account.graphql",
+    query_path = "src/graphql/deposit_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct WithdrawalRevert;
@@ -183,7 +183,7 @@ pub struct WithdrawalRevert;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/deposit_account.graphql",
+    query_path = "src/graphql/deposit_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct DepositAccountFreeze;
@@ -191,7 +191,7 @@ pub struct DepositAccountFreeze;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/deposit_account.graphql",
+    query_path = "src/graphql/deposit_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct DepositAccountUnfreeze;
@@ -199,7 +199,7 @@ pub struct DepositAccountUnfreeze;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "../../lana/admin-server/src/graphql/schema.graphql",
-    query_path = "src/graphql/deposit_account.graphql",
+    query_path = "src/graphql/deposit_mutations.graphql",
     response_derives = "Debug, Clone, Serialize"
 )]
 pub struct DepositAccountClose;

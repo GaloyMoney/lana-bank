@@ -243,7 +243,7 @@ steps:
       deposit-account-id: "${state.deposit_account_id}"
 
   - id: credit_facility_proposal_create
-    depends_on: [prospect_convert]
+    depends_on: [prospect_convert, deposit_account_create]
     command: credit facility proposal-create
     args:
       customer-id: "${state.customer_id}"

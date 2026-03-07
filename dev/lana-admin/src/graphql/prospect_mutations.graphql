@@ -1,0 +1,31 @@
+mutation ProspectCreate($input: ProspectCreateInput!) {
+  prospectCreate(input: $input) {
+    prospect {
+      prospectId
+      publicId
+      email
+      telegramHandle
+      customerType
+      stage
+      createdAt
+    }
+  }
+}
+
+mutation ProspectConvert($input: ProspectConvertInput!) {
+  prospectConvert(input: $input) {
+    customer {
+      customerId
+      publicId
+      email
+      customerType
+      createdAt
+    }
+  }
+}
+
+mutation SumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
+  sumsubPermalinkCreate(input: $input) {
+    url
+  }
+}
