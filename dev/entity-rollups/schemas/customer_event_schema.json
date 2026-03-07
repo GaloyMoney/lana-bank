@@ -45,7 +45,10 @@
           "$ref": "#/$defs/Activity"
         },
         "applicant_id": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "customer_type": {
           "$ref": "#/$defs/CustomerType"
