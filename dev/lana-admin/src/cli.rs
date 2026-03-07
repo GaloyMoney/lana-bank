@@ -7,6 +7,8 @@ const CLI_AFTER_HELP: &str = r#"Examples:
     --keycloak-client-id admin-panel \
     --username galoysuperuser@mailinator.com
 
+  lana-admin workflow list
+
   lana-admin workflow deps \
     --step credit_facility_partial_payment_record
 
@@ -199,6 +201,8 @@ pub enum AuthAction {
 
 #[derive(Subcommand)]
 pub enum WorkflowAction {
+    /// List all steps in the built-in dependency graph
+    List,
     /// Show required steps for a target step in the built-in dependency graph
     Deps {
         /// Target workflow step id
