@@ -171,7 +171,9 @@ fn collect_step_views<'a>(
         .iter()
         .filter(|step| {
             needed.contains(step.id.as_str())
-                && (include_read_only || is_mutating_command(&step.command))
+                && (include_read_only
+                    || is_mutating_command(&step.command)
+                    || target_step == Some(step.id.as_str()))
         })
         .map(|step| step.id.as_str())
         .collect();
