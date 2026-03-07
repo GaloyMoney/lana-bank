@@ -41,7 +41,7 @@ Each obligation tracks:
 
 ## Obligation Lifecycle
 
-Every obligation follows a time-driven state machine. Transitions happen automatically through background jobs that monitor dates and trigger status changes.
+Every obligation follows a time-driven state machine. Transitions happen automatically through end-of-day batch processing that evaluates all obligations against the current date and triggers status changes.
 
 ```mermaid
 stateDiagram-v2
@@ -62,19 +62,17 @@ The initial state for every new obligation. The borrower is aware of the upcomin
 
 ### Due
 
-The obligation's due date has arrived. The borrower is now expected to make payment. The system transitions obligations from Not Yet Due to Due automatically when the due date is reached through the obligation-due background job.
+The obligation's due date has arrived. The borrower is now expected to make payment. The system transitions obligations from Not Yet Due to Due automatically when the due date is reached during end-of-day processing.
 
 ### Overdue
 
-The borrower has failed to pay within the grace period after the due date. The grace period is controlled by the `obligation_overdue_duration_from_due` term parameter. For example, if this is set to 7 days, an obligation that was due on January 1st becomes overdue on January 8th. The obligation-overdue background job handles this transition.
+The borrower has failed to pay within the grace period after the due date. The grace period is controlled by the `obligation_overdue_duration_from_due` term parameter. For example, if this is set to 7 days, an obligation that was due on January 1st becomes overdue on January 8th.
 
 Overdue obligations signal increasing credit risk and may trigger operational alerts or reporting requirements.
 
 ### Defaulted
 
 The obligation has remained unpaid well beyond its due date. The default period is controlled by the `obligation_liquidation_duration_from_due` term parameter. This represents a more severe delinquency state and may trigger liquidation proceedings against the facility's collateral.
-
-The obligation-defaulted background job handles this transition.
 
 ### Paid
 
