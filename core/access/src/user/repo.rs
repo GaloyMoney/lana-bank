@@ -49,6 +49,17 @@ where
     }
 }
 
+impl From<(UsersSortBy, &User)> for user_cursor::UsersCursor {
+    fn from(user_with_sort: (UsersSortBy, &User)) -> Self {
+        let (sort, user) = user_with_sort;
+        match sort {
+            UsersSortBy::CreatedAt => user_cursor::UsersByCreatedAtCursor::from(user).into(),
+            UsersSortBy::Id => user_cursor::UsersByIdCursor::from(user).into(),
+            UsersSortBy::Email => user_cursor::UsersByEmailCursor::from(user).into(),
+        }
+    }
+}
+
 impl<E> Clone for UserRepo<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,

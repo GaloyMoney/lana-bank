@@ -1,9 +1,12 @@
 use async_graphql::*;
+use es_entity::Sort;
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 use lana_app::access::user::User as DomainUser;
+pub use lana_app::access::user::UsersSortBy as DomainUsersSortBy;
 
 use super::Role;
+use crate::graphql::primitives::SortDirection;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -81,3 +84,42 @@ pub struct UserUpdateRoleInput {
     pub role_id: UUID,
 }
 mutation_payload! { UserUpdateRolePayload, user: User }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum UsersSortBy {
+    #[default]
+    CreatedAt,
+    Email,
+}
+
+impl From<UsersSortBy> for DomainUsersSortBy {
+    fn from(by: UsersSortBy) -> Self {
+        match by {
+            UsersSortBy::CreatedAt => DomainUsersSortBy::CreatedAt,
+            UsersSortBy::Email => DomainUsersSortBy::Email,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct UsersSort {
+    #[graphql(default)]
+    pub by: UsersSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
+impl From<UsersSort> for Sort<DomainUsersSortBy> {
+    fn from(sort: UsersSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<UsersSort> for DomainUsersSortBy {
+    fn from(sort: UsersSort) -> Self {
+        sort.by.into()
+    }
+}

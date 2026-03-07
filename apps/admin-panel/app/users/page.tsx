@@ -1,4 +1,5 @@
 "use client"
+import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -9,10 +10,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@lana/web/ui/card"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
-import DataTable, { Column } from "../../components/data-table"
+import PaginatedTable, {
+  Column,
+  DEFAULT_PAGESIZE,
+  PaginatedData,
+} from "../../components/paginated-table"
 
-import { useUsersQuery } from "@/lib/graphql/generated"
+import {
+  User,
+  UsersSort,
+  SortDirection,
+  useUsersQuery,
+} from "@/lib/graphql/generated"
+
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment UserFields on User {
@@ -25,9 +38,20 @@ gql`
     createdAt
   }
 
-  query Users {
-    users {
-      ...UserFields
+  query Users($first: Int!, $after: String, $sort: UsersSort) {
+    users(first: $first, after: $after, sort: $sort) {
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        startCursor
+        endCursor
+      }
+      edges {
+        cursor
+        node {
+          ...UserFields
+        }
+      }
     }
   }
 
@@ -40,26 +64,35 @@ gql`
   }
 `
 
-type User = NonNullable<
-  NonNullable<ReturnType<typeof useUsersQuery>["data"]>
->["users"][number]
-
 function UsersPage() {
   const t = useTranslations("Users")
+  const [sortBy, setSortBy] = useState<UsersSort | null>(null)
 
-  const { data: usersList, loading } = useUsersQuery()
+  const { data, loading, fetchMore } = useUsersQuery({
+    variables: {
+      first: DEFAULT_PAGESIZE,
+      sort: sortBy,
+    },
+  })
 
   const columns: Column<User>[] = [
     {
       key: "email",
-      header: t("table.headers.email"),
+      label: t("table.headers.email"),
+      sortable: true,
     },
     {
       key: "role",
-      header: t("table.headers.role"),
+      label: t("table.headers.role"),
       render: (role) => (
         <div>{role?.name ? <>{role.name}</> : t("table.noRolesAssigned")}</div>
       ),
+    },
+    {
+      key: "createdAt",
+      label: t("table.headers.createdAt"),
+      sortable: true,
+      render: (createdAt) => <DateWithTooltip value={createdAt} />,
     },
   ]
 
@@ -71,12 +104,19 @@ function UsersPage() {
           <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable
-            data={usersList?.users || []}
+          <PaginatedTable<User>
             columns={columns}
+            data={data?.users as PaginatedData<User>}
             loading={loading}
-            emptyMessage={t("table.emptyMessage")}
+            fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+            pageSize={DEFAULT_PAGESIZE}
             navigateTo={(user) => `/users/${user.userId}`}
+            onSort={(column, direction) => {
+              setSortBy({
+                by: camelToScreamingSnake(column as string) as UsersSort["by"],
+                direction: direction as SortDirection,
+              })
+            }}
           />
         </CardContent>
       </Card>

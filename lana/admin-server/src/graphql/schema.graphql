@@ -2415,7 +2415,7 @@ type Query {
 	me: Me!
 	dashboard: Dashboard!
 	user(id: UUID!): User
-	users: [User!]!
+	users(first: Int!, after: String, sort: UsersSort = {by: CREATED_AT, direction: DESC}): UserConnection!
 	role(id: UUID!): Role
 	roles(first: Int!, after: String): RoleConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
@@ -2861,6 +2861,21 @@ type User {
 	userCanUpdateRoleOfUser: Boolean!
 }
 
+type UserConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [UserEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [User!]!
+}
+
 input UserCreateInput {
 	email: String!
 	roleId: UUID!
@@ -2870,6 +2885,20 @@ type UserCreatePayload {
 	user: User!
 }
 
+"""
+An edge in a connection.
+"""
+type UserEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: User!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 input UserUpdateRoleInput {
 	userId: UUID!
 	roleId: UUID!
@@ -2877,6 +2906,16 @@ input UserUpdateRoleInput {
 
 type UserUpdateRolePayload {
 	user: User!
+}
+
+input UsersSort {
+	by: UsersSortBy! = CREATED_AT
+	direction: SortDirection! = DESC
+}
+
+enum UsersSortBy {
+	CREATED_AT
+	EMAIL
 }
 
 type VisibleNavigationItems {

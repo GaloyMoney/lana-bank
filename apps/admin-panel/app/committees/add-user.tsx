@@ -14,15 +14,22 @@ import {
   DialogTitle,
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@lana/web/ui/select"
 
-import { useCommitteeAddUserMutation, useUsersQuery } from "@/lib/graphql/generated"
+import PaginatedTable, {
+  Column,
+  DEFAULT_PAGESIZE,
+  PaginatedData,
+} from "@/components/paginated-table"
+
+import {
+  User,
+  SortDirection,
+  UsersSort,
+  useCommitteeAddUserMutation,
+  useUsersQuery,
+} from "@/lib/graphql/generated"
+
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
@@ -47,16 +54,24 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
 }) => {
   const t = useTranslations("Committees.CommitteeDetails.AddUserCommitteeDialog")
   const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation()
-  const { data: userData, loading: usersLoading } = useUsersQuery()
+  const [sortBy, setSortBy] = useState<UsersSort | null>(null)
 
-  const [selectedUserId, setSelectedUserId] = useState<string>("")
+  const { data: userData, loading: usersLoading, fetchMore } = useUsersQuery({
+    variables: { first: DEFAULT_PAGESIZE, sort: sortBy },
+    skip: !openAddUserDialog,
+  })
+
+  const [selectedUser, setSelectedUser] = useState<{
+    userId: string
+    email: string
+  } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    if (!selectedUserId) {
+    if (!selectedUser) {
       setError(t("errors.selectUser"))
       return
     }
@@ -66,7 +81,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
         variables: {
           input: {
             committeeId,
-            userId: selectedUserId,
+            userId: selectedUser.userId,
           },
         },
       })
@@ -85,10 +100,23 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
   }
 
   const resetForm = () => {
-    setSelectedUserId("")
+    setSelectedUser(null)
     setError(null)
     reset()
   }
+
+  const columns: Column<User>[] = [
+    {
+      key: "email",
+      label: t("columns.email"),
+      sortable: true,
+    },
+    {
+      key: "role",
+      label: t("columns.role"),
+      render: (role) => role?.name || "",
+    },
+  ]
 
   return (
     <Dialog
@@ -100,24 +128,33 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
         }
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-            <SelectTrigger data-testid="committee-add-user-select">
-              <SelectValue placeholder={t("placeholders.selectUser")} />
-            </SelectTrigger>
-            <SelectContent>
-              {userData?.users.map((user) => (
-                <SelectItem key={user.userId} value={user.userId}>
-                  {user.email} {user.role?.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {selectedUser && (
+            <p className="text-sm text-muted-foreground">
+              {t("selectedUser")}: <strong>{selectedUser.email}</strong>
+            </p>
+          )}
+
+          <PaginatedTable<User>
+            columns={columns}
+            data={userData?.users as PaginatedData<User>}
+            loading={usersLoading}
+            fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+            pageSize={DEFAULT_PAGESIZE}
+            style="compact"
+            onClick={(user) => setSelectedUser({ userId: user.userId, email: user.email })}
+            onSort={(column, direction) => {
+              setSortBy({
+                by: camelToScreamingSnake(column as string) as UsersSort["by"],
+                direction: direction as SortDirection,
+              })
+            }}
+          />
 
           {error && <p className="text-destructive text-sm">{error}</p>}
 
@@ -125,7 +162,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
             <Button
               type="submit"
               data-testid="committee-add-user-submit-button"
-              disabled={loading || usersLoading || !selectedUserId}
+              disabled={loading || usersLoading || !selectedUser}
             >
               {t("buttons.addUser")}
             </Button>

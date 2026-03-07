@@ -23,6 +23,7 @@ pub(crate) use entity::UserEvent;
 pub use error::*;
 pub use repo::user_cursor::UsersByCreatedAtCursor;
 use repo::*;
+pub use repo::{UsersSortBy, user_cursor};
 
 pub struct Users<Audit, E>
 where
@@ -197,7 +198,9 @@ where
     pub async fn list_users(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-    ) -> Result<Vec<User>, UserError> {
+        query: es_entity::PaginatedQueryArgs<user_cursor::UsersCursor>,
+        sort: es_entity::Sort<UsersSortBy>,
+    ) -> Result<es_entity::PaginatedQueryRet<User, user_cursor::UsersCursor>, UserError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -208,9 +211,8 @@ where
 
         Ok(self
             .repo
-            .list_by_email(Default::default(), es_entity::ListDirection::Ascending)
-            .await?
-            .entities)
+            .list_for_filters(Default::default(), sort, query)
+            .await?)
     }
 
     pub async fn list_users_without_audit(
