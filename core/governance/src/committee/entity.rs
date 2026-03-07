@@ -113,10 +113,10 @@ pub struct NewCommittee {
 
 impl NewCommitteeBuilder {
     fn validate(&self) -> Result<(), CommitteeError> {
-        if let Some(ref member_ids) = self.member_ids {
-            if member_ids.is_empty() {
-                return Err(CommitteeError::CommitteeMustHaveAtLeastOneMember);
-            }
+        if let Some(ref member_ids) = self.member_ids
+            && member_ids.is_empty()
+        {
+            return Err(CommitteeError::CommitteeMustHaveAtLeastOneMember);
         }
         Ok(())
     }
