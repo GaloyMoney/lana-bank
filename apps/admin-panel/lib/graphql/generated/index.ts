@@ -3078,6 +3078,7 @@ export type QueryRoleArgs = {
 export type QueryRolesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<RolesSort>;
 };
 
 
@@ -3277,6 +3278,16 @@ export type RoleRemovePermissionSetsPayload = {
   __typename?: 'RoleRemovePermissionSetsPayload';
   role: Role;
 };
+
+export type RolesSort = {
+  by?: RolesSortBy;
+  direction?: SortDirection;
+};
+
+export enum RolesSortBy {
+  CreatedAt = 'CREATED_AT',
+  Name = 'NAME'
+}
 
 export enum SortDirection {
   Asc = 'ASC',
@@ -5046,10 +5057,11 @@ export type RoleFieldsFragment = { __typename?: 'Role', id: string, roleId: stri
 export type RolesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<RolesSort>;
 }>;
 
 
-export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleConnection', edges: Array<{ __typename?: 'RoleEdge', node: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } };
+export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'RoleEdge', cursor: string, node: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } };
 
 export type TermsTemplateQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -12173,9 +12185,16 @@ export type PermissionSetsLazyQueryHookResult = ReturnType<typeof usePermissionS
 export type PermissionSetsSuspenseQueryHookResult = ReturnType<typeof usePermissionSetsSuspenseQuery>;
 export type PermissionSetsQueryResult = Apollo.QueryResult<PermissionSetsQuery, PermissionSetsQueryVariables>;
 export const RolesDocument = gql`
-    query Roles($first: Int!, $after: String) {
-  roles(first: $first, after: $after) {
+    query Roles($first: Int!, $after: String, $sort: RolesSort) {
+  roles(first: $first, after: $after, sort: $sort) {
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
     edges {
+      cursor
       node {
         ...RoleFields
       }
@@ -12198,6 +12217,7 @@ export const RolesDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */

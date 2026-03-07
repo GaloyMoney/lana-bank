@@ -2409,7 +2409,7 @@ type Query {
 	user(id: UUID!): User
 	users(first: Int!, after: String, sort: UsersSort = {by: CREATED_AT, direction: DESC}): UserConnection!
 	role(id: UUID!): Role
-	roles(first: Int!, after: String): RoleConnection!
+	roles(first: Int!, after: String, sort: RolesSort = {by: CREATED_AT, direction: DESC}): RoleConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
@@ -2634,6 +2634,16 @@ input RoleRemovePermissionSetsInput {
 
 type RoleRemovePermissionSetsPayload {
 	role: Role!
+}
+
+input RolesSort {
+	by: RolesSortBy! = CREATED_AT
+	direction: SortDirection! = DESC
+}
+
+enum RolesSortBy {
+	CREATED_AT
+	NAME
 }
 
 scalar Satoshis

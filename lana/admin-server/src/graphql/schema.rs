@@ -6,6 +6,7 @@ use futures::StreamExt;
 use futures::stream::Stream;
 use obix::out::OutboxEventMarker;
 
+use lana_app::access::role::{RolesSortBy as DomainRolesSortBy, role_cursor::RolesCursor};
 use lana_app::access::user::{UsersSortBy as DomainUsersSortBy, user_cursor::UsersCursor};
 use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
@@ -92,11 +93,19 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<RolesByNameCursor, Role, EmptyFields, EmptyFields>> {
+        #[graphql(default_with = "Some(RolesSort::default())")] sort: Option<RolesSort>,
+    ) -> async_graphql::Result<Connection<RolesCursor, Role, EmptyFields, EmptyFields>> {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(RolesByNameCursor, Role, ctx, after, first, |query| app
-            .access()
-            .list_roles(sub, query))
+        list_with_combo_cursor!(
+            RolesCursor,
+            Role,
+            DomainRolesSortBy::from(sort),
+            ctx,
+            after,
+            first,
+            |query| app.access().list_roles(sub, query, sort.into())
+        )
     }
 
     async fn permission_sets(

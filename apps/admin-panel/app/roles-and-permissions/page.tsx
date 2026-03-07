@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -11,13 +12,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@lana/web/ui/card"
-
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
-import DataTable, { Column } from "../../components/data-table"
+import PaginatedTable, {
+  Column,
+  DEFAULT_PAGESIZE,
+  PaginatedData,
+} from "../../components/paginated-table"
 
-import { useRolesQuery } from "@/lib/graphql/generated"
+import {
+  RolesSort,
+  SortDirection,
+  useRolesQuery,
+} from "@/lib/graphql/generated"
+
 import { usePermissionDisplay } from "@/hooks/use-permission-display"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment PermissionSetFields on PermissionSet {
@@ -37,9 +47,16 @@ gql`
     }
   }
 
-  query Roles($first: Int!, $after: String) {
-    roles(first: $first, after: $after) {
+  query Roles($first: Int!, $after: String, $sort: RolesSort) {
+    roles(first: $first, after: $after, sort: $sort) {
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        startCursor
+        endCursor
+      }
       edges {
+        cursor
         node {
           ...RoleFields
         }
@@ -92,21 +109,20 @@ function CompactPermissionSets({
 
 function RolesAndPermissionsPage() {
   const t = useTranslations("RolesAndPermissions")
+  const [sortBy, setSortBy] = useState<RolesSort | null>(null)
 
-  const {
-    data: rolesData,
-    loading,
-    error,
-  } = useRolesQuery({
-    variables: { first: 100 },
+  const { data, loading, fetchMore } = useRolesQuery({
+    variables: {
+      first: DEFAULT_PAGESIZE,
+      sort: sortBy,
+    },
   })
-
-  const roles = rolesData?.roles.edges.map((edge) => edge.node) || []
 
   const columns: Column<Role>[] = [
     {
       key: "name",
-      header: t("table.headers.name"),
+      label: t("table.headers.name"),
+      sortable: true,
       render: (name, role) => (
         <div>
           <div className="font-medium">{name}</div>
@@ -118,22 +134,18 @@ function RolesAndPermissionsPage() {
     },
     {
       key: "createdAt",
-      header: t("table.headers.createdAt"),
+      label: t("table.headers.createdAt"),
+      sortable: true,
       render: (createdAt) => <DateWithTooltip value={createdAt} />,
     },
     {
       key: "permissionSets",
-      width: "60%",
-      header: t("table.headers.permissionSets"),
+      label: t("table.headers.permissionSets"),
       render: (permissionSets) => (
         <CompactPermissionSets permissionSets={permissionSets} maxShow={4} />
       ),
     },
   ]
-
-  if (error) {
-    return <div className="text-destructive">{error.message}</div>
-  }
 
   return (
     <Card>
@@ -142,12 +154,19 @@ function RolesAndPermissionsPage() {
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
-          data={roles}
+        <PaginatedTable<Role>
           columns={columns}
+          data={data?.roles as PaginatedData<Role>}
           loading={loading}
-          emptyMessage={t("table.emptyMessage")}
+          fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+          pageSize={DEFAULT_PAGESIZE}
           navigateTo={(role) => `/roles-and-permissions/${role.roleId}`}
+          onSort={(column, direction) => {
+            setSortBy({
+              by: camelToScreamingSnake(column as string) as RolesSort["by"],
+              direction: direction as SortDirection,
+            })
+          }}
         />
       </CardContent>
     </Card>

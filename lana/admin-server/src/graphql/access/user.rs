@@ -3,7 +3,7 @@ use es_entity::Sort;
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 use lana_app::access::user::User as DomainUser;
-pub use lana_app::access::user::UsersSortBy as DomainUsersSortBy;
+use lana_app::access::user::UsersSortBy as DomainUsersSortBy;
 
 use super::Role;
 use crate::graphql::primitives::SortDirection;

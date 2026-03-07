@@ -11,4 +11,4 @@ pub(crate) use entity::RoleEvent;
 pub use error::RoleError;
 pub(super) use repo::RoleRepo;
 
-pub use repo::role_cursor::*;
+pub use repo::{RolesSortBy, role_cursor};
