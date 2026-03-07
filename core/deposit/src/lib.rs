@@ -909,6 +909,8 @@ where
         &self,
         account: &DepositAccount,
     ) -> Result<DateTime<Utc>, CoreDepositError> {
+        // FIXME: This currently treats any ledger entry as customer activity.
+        // Admin freeze/unfreeze ledger movements should not reset dormancy.
         Ok(self
             .ledger
             .last_activity_date(account.id)
