@@ -8,6 +8,43 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     Ok(pool)
 }
 
+/// Removes any "default" committee and its related data from the database.
+/// Used for test isolation when testing the "no default committee" scenario.
+pub async fn delete_default_committee(pool: &sqlx::PgPool) -> anyhow::Result<()> {
+    let committee_ids = r#"SELECT id FROM core_committees WHERE name = 'default'"#;
+    let policy_ids =
+        format!("SELECT id FROM core_policies WHERE committee_id IN ({committee_ids})");
+    sqlx::query(&format!(
+        "DELETE FROM core_policy_events_rollup WHERE id IN ({policy_ids})"
+    ))
+    .execute(pool)
+    .await?;
+    sqlx::query(&format!(
+        "DELETE FROM core_policy_events WHERE id IN ({policy_ids})"
+    ))
+    .execute(pool)
+    .await?;
+    sqlx::query(&format!(
+        "DELETE FROM core_policies WHERE committee_id IN ({committee_ids})"
+    ))
+    .execute(pool)
+    .await?;
+    sqlx::query(&format!(
+        "DELETE FROM core_committee_events_rollup WHERE id IN ({committee_ids})"
+    ))
+    .execute(pool)
+    .await?;
+    sqlx::query(&format!(
+        "DELETE FROM core_committee_events WHERE id IN ({committee_ids})"
+    ))
+    .execute(pool)
+    .await?;
+    sqlx::query("DELETE FROM core_committees WHERE name = 'default'")
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
 pub mod action {
     #[derive(Clone, Copy, Debug, PartialEq)]
     pub struct DummyAction;

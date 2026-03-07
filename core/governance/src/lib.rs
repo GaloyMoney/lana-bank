@@ -126,6 +126,7 @@ where
                 let new_committee = NewCommittee::builder()
                     .id(CommitteeId::new())
                     .name(DEFAULT_COMMITTEE_NAME.to_string())
+                    .member_ids(std::collections::HashSet::from([member_id]))
                     .build()
                     .expect("Could not build new committee");
                 self.committee_repo
@@ -186,8 +187,9 @@ where
         let rules = if !auto_approval_allowed {
             let committee = self
                 .committee_repo
-                .find_by_name_in_op(&mut db, DEFAULT_COMMITTEE_NAME)
-                .await?;
+                .maybe_find_by_name_in_op(&mut db, DEFAULT_COMMITTEE_NAME)
+                .await?
+                .ok_or(GovernanceError::DefaultCommitteeNotFound)?;
             Some(ApprovalRules::Committee {
                 committee_id: committee.id,
             })

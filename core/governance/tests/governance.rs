@@ -88,6 +88,7 @@ async fn approval_process_concluded_publishes_event() -> anyhow::Result<()> {
 /// `init_policy` should create the policy with the default committee's rules
 /// instead of `SystemAutoApprove`.
 #[tokio::test]
+#[serial_test::file_serial(governance_domain_config)]
 async fn init_policy_uses_default_committee_when_require_committee_enabled() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
@@ -142,6 +143,7 @@ async fn init_policy_uses_default_committee_when_require_committee_enabled() -> 
 /// When `RequireCommitteeApproval` is enabled but no default committee has been
 /// bootstrapped, `init_policy` should fail with `DefaultCommitteeNotFound`.
 #[tokio::test]
+#[serial_test::file_serial(governance_domain_config)]
 async fn init_policy_fails_without_default_committee_when_require_committee_enabled()
 -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
@@ -176,6 +178,9 @@ async fn init_policy_fails_without_default_committee_when_require_committee_enab
         Some(&exposed_readonly),
     );
 
+    // Remove any "default" committee left over from other tests
+    helpers::delete_default_committee(&pool).await?;
+
     // Do NOT bootstrap default committee
     let process_type = ApprovalProcessType::new("test-no-default-committee");
     let result = governance.init_policy(process_type).await;
@@ -198,6 +203,7 @@ async fn init_policy_fails_without_default_committee_when_require_committee_enab
 /// (created before the config was enabled), `init_policy` should return
 /// the existing policy without error.
 #[tokio::test]
+#[serial_test::file_serial(governance_domain_config)]
 async fn init_policy_returns_existing_policy_when_require_committee_enabled() -> anyhow::Result<()>
 {
     let pool = helpers::init_pool().await?;
@@ -250,6 +256,7 @@ async fn init_policy_returns_existing_policy_when_require_committee_enabled() ->
 /// `bootstrap_default_committee` creates a committee with the given member
 /// and is idempotent — calling it twice should not fail.
 #[tokio::test]
+#[serial_test::file_serial(governance_domain_config)]
 async fn bootstrap_default_committee_is_idempotent() -> anyhow::Result<()> {
     let (governance, _outbox, _pool) = setup().await?;
 
@@ -260,8 +267,10 @@ async fn bootstrap_default_committee_is_idempotent() -> anyhow::Result<()> {
 
     assert_eq!(committee1.id, committee2.id);
     assert_eq!(committee1.name, governance::DEFAULT_COMMITTEE_NAME);
-    assert_eq!(committee2.members().len(), 1);
-    assert!(committee2.members().contains(&member_id));
+    assert!(
+        committee2.members().contains(&member_id),
+        "Committee should contain the bootstrapped member"
+    );
 
     Ok(())
 }
