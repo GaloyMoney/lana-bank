@@ -44,39 +44,48 @@ Eventos relacionados con la gestion de usuarios y roles.
 
 Eventos relacionados con el ciclo de vida y operaciones de facilidades de credito.
 
-### Ciclo de Vida de Facilidad
-
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `FacilityProposalCreated` | Se creo una propuesta de facilidad de credito | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `FacilityProposalConcluded` | FacilityProposalConcluded | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `PendingCreditFacilityCollateralizationChanged` | Cambio el estado de colateralizacion para facilidad pendiente | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
+| `PendingCreditFacilityCompleted` | PendingCreditFacilityCompleted | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
 | `FacilityActivated` | Se activo una facilidad de credito | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 | `FacilityCompleted` | Una facilidad de credito fue totalmente pagada y cerrada | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
-
-### Eventos de Colateral
-
-| Event | Description | Payload Fields |
-|-------|-------------|----------------|
-| `PendingCreditFacilityCollateralizationChanged` | Cambio el estado de colateralizacion para facilidad pendiente | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
 | `FacilityCollateralizationChanged` | Cambio el estado de colateralizacion para facilidad activa | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
-
-### Eventos de Pago
-
-| Event | Description | Payload Fields |
-|-------|-------------|----------------|
 | `DisbursalSettled` | Se liquido un desembolso | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
+| `DisbursalApprovalConcluded` | DisbursalApprovalConcluded | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
 | `AccrualPosted` | Se registro el devengamiento de intereses | `entity.credit_facility_id`, `entity.due_at`, `entity.id`, `entity.period`, `entity.posting` |
-
-### Eventos de Liquidacion
-
-| Event | Description | Payload Fields |
-|-------|-------------|----------------|
 | `PartialLiquidationInitiated` | Se inicio una liquidacion parcial | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 
+---
+
+## CreditCollateral Events
+
+CoreCreditCollateralEvent module_description
+
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `FacilityProposalConcluded` | No description available | `entity.amount`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `PendingCreditFacilityCompleted` | No description available | `entity.amount`, `entity.collateralization`, `entity.completed_at`, `entity.created_at`, `entity.customer_id`, `entity.id`, `entity.status`, `entity.terms` |
-| `DisbursalApprovalConcluded` | No description available | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
+| `CollateralUpdated` | CollateralUpdated | `entity.adjustment`, `entity.amount`, `entity.id`, `entity.secured_loan_id` |
+| `LiquidationCollateralSentOut` | LiquidationCollateralSentOut | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at`, `secured_loan_id` |
+| `LiquidationProceedsReceived` | LiquidationProceedsReceived | `amount`, `effective`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at`, `secured_loan_id` |
+| `LiquidationCompleted` | LiquidationCompleted | `liquidation_id`, `secured_loan_id` |
+
+---
+
+## CreditCollection Events
+
+CoreCreditCollectionEvent module_description
+
+| Event | Description | Payload Fields |
+|-------|-------------|----------------|
+| `PaymentCreated` | PaymentCreated | `entity.amount`, `entity.beneficiary_id`, `entity.effective`, `entity.id`, `entity.recorded_at` |
+| `PaymentAllocationCreated` | PaymentAllocationCreated | `entity.amount`, `entity.beneficiary_id`, `entity.effective`, `entity.id`, `entity.obligation_id`, `entity.obligation_type`, `entity.recorded_at` |
+| `ObligationCreated` | Se creo una nueva obligacion | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
+| `ObligationDue` | Una obligacion vencio | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
+| `ObligationOverdue` | Una obligacion entro en mora | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
+| `ObligationDefaulted` | Una obligacion entro en incumplimiento | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
+| `ObligationCompleted` | Una obligacion fue completamente pagada | `entity.beneficiary_id`, `entity.defaulted_at`, `entity.due_at`, `entity.effective`, `entity.id`, `entity.initial_amount`, `entity.obligation_type`, `entity.outstanding_amount`, `entity.overdue_at`, `entity.recorded_at` |
 
 ---
 
@@ -154,6 +163,16 @@ Eventos relacionados con flujos de aprobacion.
 
 ---
 
+## Time Events
+
+CoreTimeEvent module_description
+
+| Event | Description | Payload Fields |
+|-------|-------------|----------------|
+| `EndOfDay` | EndOfDay | `closing_time`, `day`, `timezone` |
+
+---
+
 ## Referencia de Tipos de Eventos
 
 Todos los tipos de eventos siguen la convencion de nombres: `core.<module>.<event-name>`
@@ -162,12 +181,15 @@ Todos los tipos de eventos siguen la convencion de nombres: `core.<module>.<even
 |--------|-------------------|
 | Access | `core.access.*` |
 | Credit | `core.credit.*` |
+| CreditCollateral | `core.credit-collateral.*` |
+| CreditCollection | `core.credit-collection.*` |
 | Custody | `core.custody.*` |
 | Customer | `core.customer.*` |
 | Deposit | `core.deposit.*` |
 | Price | `core.price.*` |
 | Report | `core.report.*` |
 | Governance | `governance.*` |
+| Time | `core.time.*` |
 
 ---
 

@@ -21,12 +21,15 @@ const OUTPUT_ES_PATH = path.join(__dirname, '../i18n/es/docusaurus-plugin-conten
 const MODULE_ORDER = [
   { key: 'Access', enumName: 'CoreAccessEvent', prefix: 'core.access' },
   { key: 'Credit', enumName: 'CoreCreditEvent', prefix: 'core.credit' },
+  { key: 'CreditCollateral', enumName: 'CoreCreditCollateralEvent', prefix: 'core.credit-collateral' },
+  { key: 'CreditCollection', enumName: 'CoreCreditCollectionEvent', prefix: 'core.credit-collection' },
   { key: 'Custody', enumName: 'CoreCustodyEvent', prefix: 'core.custody' },
   { key: 'Customer', enumName: 'CoreCustomerEvent', prefix: 'core.customer' },
   { key: 'Deposit', enumName: 'CoreDepositEvent', prefix: 'core.deposit' },
   { key: 'Price', enumName: 'CorePriceEvent', prefix: 'core.price' },
   { key: 'Report', enumName: 'CoreReportEvent', prefix: 'core.report' },
   { key: 'Governance', enumName: 'GovernanceEvent', prefix: 'governance' },
+  { key: 'Time', enumName: 'CoreTimeEvent', prefix: 'core.time' },
 ];
 
 /**
@@ -143,34 +146,13 @@ function extractInlinedEvents(variant) {
 /**
  * Generate markdown for a single module's events
  */
-function generateModuleMarkdown(moduleName, events, descriptions, subsections) {
+function generateModuleMarkdown(moduleName, events, descriptions) {
   const moduleDesc = descriptions?.module_description || `Events related to ${moduleName.toLowerCase()}.`;
   const eventDescriptions = descriptions?.events || {};
 
   let md = `## ${moduleName} Events\n\n`;
   md += `${moduleDesc}\n\n`;
-
-  // Check if we have subsections defined
-  if (subsections && Object.keys(subsections).length > 0) {
-    for (const [subsectionName, eventNames] of Object.entries(subsections)) {
-      const subsectionEvents = events.filter(e => eventNames.includes(e.name));
-      if (subsectionEvents.length === 0) continue;
-
-      md += `### ${subsectionName}\n\n`;
-      md += generateEventsTable(subsectionEvents, eventDescriptions);
-      md += '\n';
-    }
-
-    // Add any events not in subsections
-    const subsectionedEvents = new Set(Object.values(subsections).flat());
-    const remainingEvents = events.filter(e => !subsectionedEvents.has(e.name));
-    if (remainingEvents.length > 0) {
-      md += generateEventsTable(remainingEvents, eventDescriptions);
-    }
-  } else {
-    md += generateEventsTable(events, eventDescriptions);
-  }
-
+  md += generateEventsTable(events, eventDescriptions);
   md += '\n---\n\n';
   return md;
 }
@@ -239,8 +221,7 @@ ${t.event_structure_intro || 'Each event is wrapped in an envelope with the foll
     }
 
     const moduleDescriptions = descriptions[module.enumName] || {};
-    const subsections = moduleDescriptions.subsections || {};
-    md += generateModuleMarkdown(module.key, events, moduleDescriptions, subsections);
+    md += generateModuleMarkdown(module.key, events, moduleDescriptions);
   }
 
   // Event Types Reference
