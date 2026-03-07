@@ -152,7 +152,16 @@ fn setup_gcp_credentials() -> anyhow::Result<()> {
     Ok(())
 }
 
+fn check_port_available(port: u16, name: &str) -> anyhow::Result<()> {
+    std::net::TcpListener::bind(std::net::SocketAddr::from(([0, 0, 0, 0], port)))
+        .with_context(|| format!("{name} port {port} is already in use"))?;
+    Ok(())
+}
+
 async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
+    check_port_available(config.admin_server.port, "Admin server")?;
+    check_port_available(config.customer_server.port, "Customer server")?;
+
     tracing_utils::init_tracer(config.tracing)?;
     store_server_pid(lana_home, std::process::id())?;
 
