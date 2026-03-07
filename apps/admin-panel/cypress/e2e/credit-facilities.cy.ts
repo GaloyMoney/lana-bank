@@ -81,12 +81,12 @@ describe("credit facility", () => {
         }
       }
     }`
-    cy.graphqlRequest<{ users: { userId: string; email: string }[] }>(
+    cy.graphqlRequest<{ data: { users: { userId: string; email: string }[] } }>(
       usersQuery,
       {},
     ).then((usersResponse) => {
-      const adminUser = usersResponse.data?.users.find((u) =>
-        u.email.includes("admin"),
+      const adminUser = usersResponse.data?.users.find(
+        (u: { email: string }) => u.email.includes("admin"),
       )
       if (!adminUser) throw new Error("Admin user not found")
 
