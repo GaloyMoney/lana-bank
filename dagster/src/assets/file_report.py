@@ -213,9 +213,11 @@ def create_file_report_multi_asset():
     def file_report_assets(context: dg.AssetExecutionContext, config: FileReportConfig):
         from opentelemetry import context as otel_context
 
-        effective_as_of_date = config.as_of_date or (
-            datetime.date.today() - datetime.timedelta(days=1)
-        ).isoformat()
+        # Default as_of_date to yesterday if not explicitly provided
+        effective_as_of_date = (
+            config.as_of_date
+            or (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+        )
 
         # Fail early if any selected report requires as_of_date but none was resolved
         for k in context.selected_asset_keys:
