@@ -38,15 +38,15 @@ graph LR
 
 ## Actividad de la cuenta de depósito
 
-La actividad de las cuentas de depósito se gestiona automáticamente mediante un proceso en segundo plano periódico. El sistema determina la última fecha de actividad de cada cuenta de depósito a partir de la transacción más reciente registrada en la cuenta, o utiliza la fecha de creación de la cuenta si aún no existen transacciones. Luego, aplica umbrales configurables para determinar si la cuenta debe considerarse activa, inactiva o suspendida.
+La actividad de las cuentas de depósito se gestiona automáticamente mediante un proceso periódico en segundo plano. El sistema determina la última fecha de actividad de cada cuenta de depósito a partir de la transacción más reciente registrada o, si no existen transacciones, utiliza la fecha de creación de la cuenta. Después, aplica umbrales configurables para determinar si esa cuenta debe considerarse activa, inactiva o sujeta a abandono. Por defecto, esos umbrales son de 365 días para `Inactiva` y 3650 días para `Abandonada`, y los operadores pueden modificarlos en la aplicación de administración mediante las configuraciones de dominio `deposit-activity-inactive-threshold-days` y `deposit-activity-escheatable-threshold-days`.
 
 | Estado | Condición | Efecto |
 |--------|-----------|--------|
-| **Activa** | Actividad durante el último año | La cuenta se muestra como recientemente activa |
-| **Inactiva** | Sin actividad durante 1-10 años | La cuenta se muestra como inactiva para seguimiento del operador |
-| **Suspendida** | Sin actividad durante más de 10 años | La cuenta se muestra como inactiva por mucho tiempo para seguimiento del operador |
+| **Activa** | Actividad dentro del umbral configurado para inactividad (por defecto: 365 días) | La cuenta se muestra como recientemente activa |
+| **Inactiva** | Sin actividad después del umbral de inactividad y antes del de abandono (por defecto: 365-3650 días) | La cuenta se muestra como inactiva para seguimiento del operador |
+| **Abandonada** | Sin actividad luego del umbral configurado para abandono (por defecto: 3650 días) | La cuenta se muestra como inactiva durante mucho tiempo y pasada el umbral de abandono |
 
-Este estado pertenece a la cuenta de depósito, no al cliente. La actividad es independiente del `status` operativo de la cuenta de depósito, por lo que un estado de actividad inactivo o suspendido no bloquea por sí solo los depósitos o retiros.
+Este estado pertenece a la cuenta de depósito, no al cliente. La actividad es independiente del `status` operativo de la cuenta de depósito, por lo que un estado de actividad inactivo o abandonado no bloquea por sí solo los depósitos o retiros.
 
 ## Estados del Cliente
 

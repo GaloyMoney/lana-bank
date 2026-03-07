@@ -147,7 +147,24 @@ La actividad de la cuenta se registra por separado del estado de la cuenta. El s
 | ForeignAgencyOrSubsidiary | Cuenta foránea | Agencias extranjeras |
 | NonDomiciledCompany | Cuenta no residente | Empresas no domiciliadas |
 
-## Estados de Cuenta
+```mermaid
+stateDiagram-v2
+    [*] --> Active : Cuenta creada
+    Active --> Inactive : Inactivación operativa
+    Inactive --> Active : Reactivación
+    Active --> Frozen : Congelar
+    Frozen --> Active : Descongelar
+    Active --> Closed : Cerrar (se requiere saldo cero)
+```
+
+| Estado | Descripción | Depósitos permitidos | Retiros permitidos |
+|--------|-------------|:---:|:---:|
+| **Activa** | Operaciones normales | Sí | Sí |
+| **Inactiva** | Cuenta operativamente inactiva | No | No |
+| **Congelada** | Retención por cumplimiento o disputa | No | No |
+| **Cerrada** | Desactivada permanentemente | No | No |
+
+La actividad de la cuenta se rastrea por separado del estado de la cuenta. El sistema clasifica cada cuenta de depósito como `Activa`, `Inactiva` o `Escheatable` para el monitoreo de inactividad, obteniendo la fecha de la última actividad de la transacción más reciente en el libro mayor de la cuenta, o de la fecha de creación si aún no existen transacciones. Por defecto, las cuentas se vuelven `Inactivas` tras 365 días sin actividad y `Escheatable` después de 3650 días, y estos umbrales pueden modificarse desde la aplicación administrativa a través de las configuraciones de dominio `deposit-activity-inactive-threshold-days` y `deposit-activity-escheatable-threshold-days`. El `estado` operativo anterior sigue controlando si se permiten depósitos y retiros.
 
 | Estado | Descripción |
 |--------|-------------|

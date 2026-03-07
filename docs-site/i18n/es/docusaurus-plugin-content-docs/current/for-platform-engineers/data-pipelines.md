@@ -283,7 +283,24 @@ sqlfluff lint models/
 sqlfluff fix models/
 ```
 
-### Airflow - Orquestación Opcional
+version: 2
+
+models:
+  - name: stg_customers
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+      - name: email
+        tests:
+          - not_null
+          - unique
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['ACTIVO', 'INACTIVO', 'ESQUIABLE']
+```
 
 Para orquestación avanzada, Airflow puede usarse como alternativa a los schedules de Meltano:
 
