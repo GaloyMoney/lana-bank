@@ -381,6 +381,7 @@ where
             .find_by_id_in_op(op, credit_facility_id)
             .await?;
 
+        // lint:allow(service-conditionals)
         if credit_facility
             .interest_accrual_cycle_in_progress()
             .is_none()

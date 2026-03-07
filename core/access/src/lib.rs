@@ -107,6 +107,7 @@ where
         let role_id = role_id.into();
         let role: Role = self.roles.find_by_id(role_id).await?;
 
+        // lint:allow(service-conditionals)
         if role.is_superuser() {
             return Err(CoreAccessError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
@@ -304,6 +305,7 @@ where
 
         let role = self.roles.find_by_id(role_id).await?;
 
+        // lint:allow(service-conditionals)
         if role.is_superuser() {
             return Err(CoreAccessError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,

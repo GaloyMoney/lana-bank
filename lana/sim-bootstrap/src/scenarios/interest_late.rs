@@ -184,6 +184,7 @@ pub async fn interest_late_scenario(
             .await?
             .expect("facility exists");
 
+        // lint:allow(service-conditionals)
         if facility.interest_accrual_cycle_in_progress().is_some() {
             tokio::time::sleep(MIN_EVENT_WAIT).await;
             clock_ctrl.advance(TEN_MINUTES).await;

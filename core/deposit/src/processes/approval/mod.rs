@@ -80,6 +80,7 @@ where
         approved: bool,
     ) -> Result<Withdrawal, WithdrawalError> {
         let mut withdraw = self.repo.find_by_id_in_op(&mut *op, id).await?;
+        // lint:allow(service-conditionals)
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
         }

@@ -278,6 +278,7 @@ where
             .get_without_audit_in_op::<RequireVerifiedCustomerForAccount>(op)
             .await?
             .value();
+        // lint:allow(service-conditionals)
         if !customer.may_attach_product(require_verified) {
             return Err(CustomerError::CustomerNotEligibleForProduct);
         }
@@ -972,6 +973,7 @@ where
             .await?;
 
         let customer = self.repo.find_by_party_id(party_id).await?;
+        // lint:allow(service-conditionals)
         if customer.is_closed() {
             return Err(CustomerError::CustomerIsClosed);
         }
@@ -1004,6 +1006,7 @@ where
             .await?;
 
         let customer = self.repo.find_by_party_id(party_id).await?;
+        // lint:allow(service-conditionals)
         if customer.is_closed() {
             return Err(CustomerError::CustomerIsClosed);
         }
@@ -1035,6 +1038,7 @@ where
             .await?;
 
         let customer = self.repo.find_by_id(customer_id).await?;
+        // lint:allow(service-conditionals)
         if customer.is_closed() {
             return Err(CustomerError::CustomerIsClosed);
         }
