@@ -32,15 +32,15 @@ flowchart TD
     F -->|No| M[Asignación completada]
 ```
 
-1. **Registro de Pago**: El monto del pago se registra y acredita en una cuenta de retención en el libro mayor. Esta cuenta de retención actúa como una etapa temporal antes de distribuir los fondos a las obligaciones individuales. El sistema valida que la fecha efectiva del pago no sea anterior a la fecha de activación de la línea: los pagos anteriores a la activación son rechazados.
+1. **Registro de pago**: El monto del pago se registra y se acredita en una cuenta de retención en el libro mayor. Esta cuenta de retención actúa como una etapa temporal antes de distribuir los fondos a las obligaciones individuales.
 
-2. **Activación de la tarea de asignación**: El evento de registro del pago activa un proceso en segundo plano que gestiona la distribución de los fondos entre las obligaciones pendientes.
+2. **Activación de la tarea de asignación**: El registro del pago activa un proceso de asignación en segundo plano, que gestiona la distribución de fondos entre las obligaciones pendientes.
 
-3. **Recuperación y ordenación de obligaciones**: El sistema recupera todas las obligaciones pendientes de la línea de crédito y las ordena conforme a las reglas de prioridad.
+3. **Recuperación y ordenación de obligaciones**: El sistema recupera todas las obligaciones pendientes de la línea de crédito y las ordena según las reglas de prioridad descritas a continuación.
 
-4. **Asignación secuencial**: El sistema recorre la lista ordenada de obligaciones, asignando tanto del pago como sea posible a cada una. Por cada asignación, una transacción del libro mayor transfiere los fondos de la cuenta de retención a la cuenta por cobrar correspondiente.
+4. **Asignación secuencial**: El sistema recorre la lista ordenada de obligaciones, asignando la mayor cantidad posible del pago a cada una. Por cada asignación, una transacción en el libro mayor mueve fondos de la cuenta de retención a la cuenta por cobrar correspondiente.
 
-5. **Verificación de finalización**: Tras cada asignación, el sistema comprueba si la obligación ha sido totalmente cubierta. Si el saldo pendiente llega a cero, la obligación se marca como Pagada.
+5. **Verificación de finalización**: Después de cada asignación, el sistema verifica si la obligación está completamente satisfecha. Si el saldo pendiente llega a cero, la obligación se marca como Pagada.
 
 ## Prioridad de asignación
 

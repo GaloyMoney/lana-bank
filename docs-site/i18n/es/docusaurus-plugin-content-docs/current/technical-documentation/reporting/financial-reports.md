@@ -52,7 +52,7 @@ query GetTrialBalance($input: TrialBalanceInput!) {
 }
 ```
 
-### Ejemplo de Salida
+El balance general presenta la situación financiera del banco como una instantánea en una fecha determinada, organizada según la ecuación contable fundamental: **Activos = Pasivos + Patrimonio**.
 
 ```
 BALANZA DE COMPROBACIÓN

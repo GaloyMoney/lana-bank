@@ -353,3 +353,8 @@ Segregación de Responsabilidad de Comandos y Consultas (CQRS):
 - Rutas de lectura optimizadas
 - Operaciones de escritura separadas
 - Consistencia eventual cuando sea apropiado
+
+Separación de responsabilidad de comandos y consultas (CQRS):
+- Rutas de lectura optimizadas
+- Operaciones de escritura por separado
+- Consistencia eventual cuando corresponde
