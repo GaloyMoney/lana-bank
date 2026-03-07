@@ -1711,6 +1711,15 @@ export enum InterestInterval {
   EndOfMonth = 'END_OF_MONTH'
 }
 
+export type JournalEntriesSort = {
+  by?: JournalEntriesSortBy;
+  direction?: SortDirection;
+};
+
+export enum JournalEntriesSortBy {
+  CreatedAt = 'CREATED_AT'
+}
+
 export type JournalEntry = {
   __typename?: 'JournalEntry';
   amount: JournalEntryAmount;
@@ -2957,6 +2966,7 @@ export type QueryFiscalYearsArgs = {
 export type QueryJournalEntriesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+  sort?: InputMaybe<JournalEntriesSort>;
 };
 
 
@@ -4571,6 +4581,7 @@ export type ExecuteManualTransactionMutation = { __typename?: 'Mutation', manual
 export type JournalEntriesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<JournalEntriesSort>;
 }>;
 
 
@@ -9854,8 +9865,8 @@ export type ExecuteManualTransactionMutationHookResult = ReturnType<typeof useEx
 export type ExecuteManualTransactionMutationResult = Apollo.MutationResult<ExecuteManualTransactionMutation>;
 export type ExecuteManualTransactionMutationOptions = Apollo.BaseMutationOptions<ExecuteManualTransactionMutation, ExecuteManualTransactionMutationVariables>;
 export const JournalEntriesDocument = gql`
-    query JournalEntries($first: Int!, $after: String) {
-  journalEntries(first: $first, after: $after) {
+    query JournalEntries($first: Int!, $after: String, $sort: JournalEntriesSort) {
+  journalEntries(first: $first, after: $after, sort: $sort) {
     edges {
       cursor
       node {
@@ -9915,6 +9926,7 @@ export const JournalEntriesDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */

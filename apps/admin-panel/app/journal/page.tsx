@@ -1,10 +1,16 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
-import { HiChevronLeft, HiChevronRight, HiInformationCircle } from "react-icons/hi"
+import {
+  HiChevronLeft,
+  HiChevronRight,
+  HiChevronUp,
+  HiChevronDown,
+  HiInformationCircle,
+} from "react-icons/hi"
 import SimpleBar from "simplebar-react"
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@lana/web/ui/card"
@@ -32,13 +38,20 @@ import Balance from "@/components/balance/balance"
 import { TableLoadingSkeleton } from "@/components/table-loading-skeleton"
 import { TruncatedTextCell } from "@/app/components/truncated-text-cell"
 import LayerLabel from "@/app/journal/layer-label"
-import { DebitOrCredit, JournalEntriesQuery } from "@/lib/graphql/generated"
+import {
+  DebitOrCredit,
+  JournalEntriesQuery,
+  JournalEntriesSort,
+  JournalEntriesSortBy,
+  SortDirection,
+} from "@/lib/graphql/generated"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 type JournalEntry = JournalEntriesQuery["journalEntries"]["edges"][number]["node"]
 
 gql`
-  query JournalEntries($first: Int!, $after: String) {
-    journalEntries(first: $first, after: $after) {
+  query JournalEntries($first: Int!, $after: String, $sort: JournalEntriesSort) {
+    journalEntries(first: $first, after: $after, sort: $sort) {
       edges {
         cursor
         node {
@@ -87,6 +100,8 @@ gql`
 const getColumns = (
   t: ReturnType<typeof useTranslations>,
   tDesc: ReturnType<typeof useTranslations>,
+  sort: JournalEntriesSort,
+  onSortToggle: (columnKey: string) => void,
 ) => [
   {
     key: "effective",
@@ -98,7 +113,20 @@ const getColumns = (
   },
   {
     key: "createdAt",
-    label: t("table.createdAt"),
+    label: (
+      <button
+        className="flex items-center gap-1 cursor-pointer"
+        onClick={() => onSortToggle("createdAt")}
+      >
+        {t("table.createdAt")}
+        {sort.by === JournalEntriesSortBy.CreatedAt &&
+          (sort.direction === SortDirection.Asc ? (
+            <HiChevronUp className="h-4 w-4 text-blue-500" />
+          ) : (
+            <HiChevronDown className="h-4 w-4 text-blue-500" />
+          ))}
+      </button>
+    ),
     width: "w-[10%]",
     align: "left",
     render: (entry: JournalEntry) => <DateWithTooltip value={entry.createdAt} />,
@@ -259,7 +287,6 @@ const JournalPageCard: React.FC<{ children: React.ReactNode }> = ({ children }) 
 const JournalPage: React.FC = () => {
   const t = useTranslations("Journal")
   const tDesc = useTranslations("TransactionDescriptions")
-  const columns = useMemo(() => getColumns(t, tDesc), [t, tDesc])
   const scrollContainerRef = React.useRef<React.ComponentRef<typeof SimpleBar>>(null)
 
   const {
@@ -271,7 +298,23 @@ const JournalPage: React.FC = () => {
     handleNextPage: nextPage,
     handlePreviousPage: prevPage,
     pageSize,
+    sort,
+    onSort,
   } = useJournalPagination()
+
+  const handleSortToggle = useCallback(
+    (columnKey: string) => {
+      const by = camelToScreamingSnake(columnKey) as JournalEntriesSort["by"]
+      const direction =
+        sort.by === by && sort.direction === SortDirection.Desc
+          ? SortDirection.Asc
+          : SortDirection.Desc
+      onSort({ by, direction })
+    },
+    [sort, onSort],
+  )
+
+  const columns = useMemo(() => getColumns(t, tDesc, sort, handleSortToggle), [t, tDesc, sort, handleSortToggle])
 
   const handleNextPage = async () => {
     await nextPage()

@@ -885,9 +885,14 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(JournalEntriesSort::default())")] sort: Option<
+            JournalEntriesSort,
+        >,
     ) -> async_graphql::Result<Connection<JournalEntryCursor, JournalEntry, EmptyFields, EmptyFields>>
     {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let sort = sort.unwrap_or_default();
+        let direction: es_entity::ListDirection = sort.direction.into();
 
         query(
             after,
@@ -897,7 +902,11 @@ impl Query {
             |after, _, first, _| async move {
                 let first: usize = first.expect("First always exists");
                 let query_args = es_entity::PaginatedQueryArgs { first, after };
-                let res = app.accounting().journal().entries(sub, query_args).await?;
+                let res = app
+                    .accounting()
+                    .journal()
+                    .entries(sub, query_args, direction)
+                    .await?;
 
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection

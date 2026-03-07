@@ -44,6 +44,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         args: es_entity::PaginatedQueryArgs<JournalEntryCursor>,
+        direction: es_entity::ListDirection,
     ) -> Result<es_entity::PaginatedQueryRet<JournalEntry, JournalEntryCursor>, JournalError> {
         self.authz
             .enforce_permission(
@@ -63,11 +64,7 @@ where
         let ret = self
             .cala
             .entries()
-            .list_for_journal_id(
-                self.journal_id,
-                cala_cursor,
-                es_entity::ListDirection::Descending,
-            )
+            .list_for_journal_id(self.journal_id, cala_cursor, direction)
             .await?;
 
         let entities = ret
