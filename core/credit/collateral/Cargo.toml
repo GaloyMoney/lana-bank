@@ -20,6 +20,7 @@ core-credit-collection = { path = "../collection" }
 
 audit = { workspace = true }
 authz = { workspace = true }
+permission-sets-macro = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
 
