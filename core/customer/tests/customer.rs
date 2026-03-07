@@ -3,9 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use uuid::Uuid;
 
-use core_customer::{
-    CoreCustomerEvent, CustomerStatus, CustomerType, KycVerification, PersonalInfo,
-};
+use core_customer::{CoreCustomerEvent, CustomerStatus, CustomerType, PersonalInfo};
 use helpers::event;
 
 /// CustomerCreated event is published when a prospect's KYC is approved
@@ -14,8 +12,6 @@ use helpers::event;
 /// This typically happens when an external KYC provider (e.g., SumSub) notifies
 /// the system that identity verification has passed. The prospect is converted
 /// into a customer.
-///
-/// The event contains a snapshot of the newly created customer with kyc_verification set to Verified.
 #[tokio::test]
 async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
     let (customers, outbox) = helpers::setup().await?;
@@ -52,7 +48,6 @@ async fn customer_created_event_on_kyc_approved() -> anyhow::Result<()> {
     .await?;
 
     assert_eq!(recorded.id, created_customer.id);
-    assert_eq!(recorded.kyc_verification, KycVerification::Verified);
 
     Ok(())
 }

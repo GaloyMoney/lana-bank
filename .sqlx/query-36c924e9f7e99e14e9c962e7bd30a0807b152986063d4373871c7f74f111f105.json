@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_customers (id, party_id, customer_type, public_id, status, created_at) VALUES ($1, $2, $3, $4, $5, COALESCE($6, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "36c924e9f7e99e14e9c962e7bd30a0807b152986063d4373871c7f74f111f105"
+}

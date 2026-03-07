@@ -208,7 +208,6 @@ export type Customer = {
   depositAccount: DepositAccount;
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  kycVerification: KycVerification;
   level: KycLevel;
   personalInfo?: Maybe<PersonalInfo>;
   status: CustomerStatus;
@@ -352,12 +351,6 @@ export enum KycLevel {
   Advanced = 'ADVANCED',
   Basic = 'BASIC',
   NotKyced = 'NOT_KYCED'
-}
-
-export enum KycVerification {
-  NoKyc = 'NO_KYC',
-  Rejected = 'REJECTED',
-  Verified = 'VERIFIED'
 }
 
 export type Me = {
@@ -511,7 +504,7 @@ export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', id: string, customerId: any, kycVerification: KycVerification, level: KycLevel, createdAt: string, email: string, telegramHandle: string, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: string, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: string, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }> } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Me', customer: { __typename?: 'Customer', id: string, customerId: any, level: KycLevel, createdAt: string, email: string, telegramHandle: string, personalInfo?: { __typename?: 'PersonalInfo', firstName: string, lastName: string, dateOfBirth?: string | null, nationality?: string | null, address?: string | null, companyName?: string | null } | null, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: string, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: string, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: string, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: string, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }> } } };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -718,7 +711,6 @@ export const MeDocument = gql`
     customer {
       id
       customerId
-      kycVerification
       level
       createdAt
       email

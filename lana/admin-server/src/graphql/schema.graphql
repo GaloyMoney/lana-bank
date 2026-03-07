@@ -1025,13 +1025,12 @@ type Customer {
 	id: ID!
 	customerId: UUID!
 	status: CustomerStatus!
-	kycVerification: KycVerification!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
 	telegramHandle: String!
 	publicId: PublicId!
-	applicantId: String!
+	applicantId: String
 	customerType: CustomerType!
 	personalInfo: PersonalInfo
 	depositAccount: DepositAccount
@@ -1172,7 +1171,6 @@ type CustomerUnfreezePayload {
 }
 
 input CustomersFilter {
-	kycVerification: KycVerification
 	customerType: CustomerType
 	status: CustomerStatus
 }
@@ -1774,12 +1772,6 @@ enum KycStatus {
 	ON_HOLD
 	APPROVED
 	DECLINED
-}
-
-enum KycVerification {
-	NO_KYC
-	VERIFIED
-	REJECTED
 }
 
 enum Layer {

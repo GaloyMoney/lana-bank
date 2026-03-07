@@ -119,7 +119,6 @@ CREATE TABLE core_party_events (
 CREATE TABLE core_customers (
   id UUID PRIMARY KEY,
   party_id UUID NOT NULL REFERENCES core_parties(id),
-  kyc_verification VARCHAR NOT NULL,
   customer_type VARCHAR NOT NULL,
   status VARCHAR NOT NULL DEFAULT 'active',
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),

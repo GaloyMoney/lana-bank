@@ -359,10 +359,7 @@ where
             .create_prospect(sub, email, telegram_handle, customer_type)
             .await?;
 
-        let applicant_id = format!("create-customer-{}", prospect.id);
-        let _ = prospect.start_kyc(applicant_id.clone())?;
-
-        match prospect.approve_kyc(&applicant_id, KycLevel::Basic)? {
+        match prospect.convert_manually()? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -625,9 +622,7 @@ where
             Err(prospect::ProspectError::AlreadyConverted) => {
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
-                let kyc_changed = customer.reject_kyc().did_execute();
-                let frozen = customer.freeze()?.did_execute();
-                if kyc_changed || frozen {
+                if customer.freeze()?.did_execute() {
                     self.repo.update(&mut customer).await?;
                 }
             }
@@ -664,9 +659,7 @@ where
             Err(prospect::ProspectError::AlreadyConverted) => {
                 let customer_id = CustomerId::from(prospect_id);
                 let mut customer = self.repo.find_by_id(customer_id).await?;
-                let kyc_changed = customer.reject_kyc().did_execute();
-                let frozen = customer.freeze()?.did_execute();
-                if kyc_changed || frozen {
+                if customer.freeze()?.did_execute() {
                     self.repo.update(&mut customer).await?;
                 }
             }

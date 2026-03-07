@@ -20,11 +20,9 @@ pub enum CustomerEvent {
         party_id: PartyId,
         customer_type: CustomerType,
         public_id: PublicId,
-        applicant_id: String,
+        applicant_id: Option<String>,
         level: KycLevel,
-        kyc_verification: KycVerification,
     },
-    KycRejected {},
     Frozen {
         status: CustomerStatus,
     },
@@ -42,11 +40,10 @@ pub struct Customer {
     pub id: CustomerId,
     pub party_id: PartyId,
     pub customer_type: CustomerType,
-    pub kyc_verification: KycVerification,
     pub status: CustomerStatus,
     pub level: KycLevel,
     #[builder(setter(into))]
-    pub applicant_id: String,
+    pub applicant_id: Option<String>,
     pub public_id: PublicId,
     events: EntityEvents<CustomerEvent>,
 }
@@ -64,10 +61,12 @@ impl Customer {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn has_been_verified(&self) -> bool {
+        self.applicant_id.is_some()
+    }
+
     pub fn may_attach_product(&self, require_verified: bool) -> bool {
-        !self.is_closed()
-            && !self.is_frozen()
-            && (!require_verified || self.kyc_verification.is_verified())
+        !self.is_closed() && !self.is_frozen() && (!require_verified || self.has_been_verified())
     }
 
     pub fn is_closed(&self) -> bool {
@@ -75,7 +74,7 @@ impl Customer {
     }
 
     pub fn should_sync_financial_transactions(&self) -> bool {
-        self.kyc_verification.is_verified()
+        self.has_been_verified()
     }
 
     pub(crate) fn close(&mut self) -> Idempotent<()> {
@@ -83,16 +82,6 @@ impl Customer {
         let status = CustomerStatus::Closed;
         self.events.push(CustomerEvent::Closed { status });
         self.status = status;
-        Idempotent::Executed(())
-    }
-
-    pub fn reject_kyc(&mut self) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CustomerEvent::KycRejected { .. }
-        );
-        self.events.push(CustomerEvent::KycRejected {});
-        self.kyc_verification = KycVerification::Rejected;
         Idempotent::Executed(())
     }
 
@@ -147,7 +136,6 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     public_id,
                     applicant_id,
                     level,
-                    kyc_verification,
                 } => {
                     builder = builder
                         .id(*id)
@@ -156,11 +144,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .status(CustomerStatus::Active)
                         .public_id(public_id.clone())
                         .level(*level)
-                        .kyc_verification(*kyc_verification)
                         .applicant_id(applicant_id.clone());
-                }
-                CustomerEvent::KycRejected { .. } => {
-                    builder = builder.kyc_verification(KycVerification::Rejected);
                 }
                 CustomerEvent::Frozen { status } => {
                     builder = builder.status(*status);
@@ -184,11 +168,10 @@ pub struct NewCustomer {
     pub(crate) id: CustomerId,
     pub(crate) party_id: PartyId,
     pub(crate) customer_type: CustomerType,
-    pub(crate) kyc_verification: KycVerification,
     #[builder(setter(into))]
     pub(crate) public_id: PublicId,
     #[builder(setter(into))]
-    pub(crate) applicant_id: String,
+    pub(crate) applicant_id: Option<String>,
     pub(crate) level: KycLevel,
     #[builder(setter(skip), default)]
     pub(crate) status: CustomerStatus,
@@ -211,7 +194,6 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 public_id: self.public_id,
                 applicant_id: self.applicant_id,
                 level: self.level,
-                kyc_verification: self.kyc_verification,
             }],
         )
     }

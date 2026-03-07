@@ -31,7 +31,6 @@ gql`
     status
     email
     telegramHandle
-    kycVerification
     level
     applicantId
     customerType
@@ -144,7 +143,6 @@ export default function CustomerLayout({
           <CustomerCompanyInfoCard customer={data.customerByPublicId} />
         )}
         <KycStatus
-          kycVerification={data.customerByPublicId.kycVerification}
           level={data.customerByPublicId.level}
           applicantId={data.customerByPublicId.applicantId}
         />

@@ -42,9 +42,6 @@ where
                 Initialized { .. } => CoreCustomerEvent::CustomerCreated {
                     entity: PublicCustomer::from(entity),
                 },
-                KycRejected { .. } => CoreCustomerEvent::CustomerKycUpdated {
-                    entity: PublicCustomer::from(entity),
-                },
                 Frozen { .. } => CoreCustomerEvent::CustomerFrozen {
                     entity: PublicCustomer::from(entity),
                 },

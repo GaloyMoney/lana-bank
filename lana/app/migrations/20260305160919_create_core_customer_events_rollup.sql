@@ -8,7 +8,6 @@ CREATE TABLE core_customer_events_rollup (
   -- Flattened fields from the event JSON
   applicant_id VARCHAR,
   customer_type VARCHAR,
-  kyc_verification VARCHAR,
   level VARCHAR,
   party_id UUID,
   public_id VARCHAR,
@@ -39,7 +38,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'kyc_rejected', 'closed') THEN
+  IF event_type NOT IN ('initialized', 'frozen', 'unfrozen', 'closed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -55,7 +54,6 @@ BEGIN
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.is_kyc_approved := false;
-    new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
     new_row.level := (NEW.event ->> 'level');
     new_row.party_id := (NEW.event ->> 'party_id')::UUID;
     new_row.public_id := (NEW.event ->> 'public_id');
@@ -65,7 +63,6 @@ BEGIN
     new_row.applicant_id := current_row.applicant_id;
     new_row.customer_type := current_row.customer_type;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
-    new_row.kyc_verification := current_row.kyc_verification;
     new_row.level := current_row.level;
     new_row.party_id := current_row.party_id;
     new_row.public_id := current_row.public_id;
@@ -77,11 +74,13 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
       new_row.customer_type := (NEW.event ->> 'customer_type');
-      new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
       new_row.level := (NEW.event ->> 'level');
       new_row.party_id := (NEW.event ->> 'party_id')::UUID;
       new_row.public_id := (NEW.event ->> 'public_id');
-    WHEN 'kyc_rejected' THEN
+    WHEN 'frozen' THEN
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'unfrozen' THEN
+      new_row.status := (NEW.event ->> 'status');
     WHEN 'closed' THEN
       new_row.status := (NEW.event ->> 'status');
   END CASE;
@@ -95,7 +94,6 @@ BEGIN
     applicant_id,
     customer_type,
     is_kyc_approved,
-    kyc_verification,
     level,
     party_id,
     public_id,
@@ -110,7 +108,6 @@ BEGIN
     new_row.applicant_id,
     new_row.customer_type,
     new_row.is_kyc_approved,
-    new_row.kyc_verification,
     new_row.level,
     new_row.party_id,
     new_row.public_id,

@@ -11,7 +11,7 @@ use super::{
 pub use lana_app::customer::{
     Customer as DomainCustomer, CustomerStatus, CustomerType, CustomersCursor,
     CustomersFilters as DomainCustomersFilters, CustomersSortBy as DomainCustomersSortBy, KycLevel,
-    KycVerification, PersonalInfo, Sort,
+    PersonalInfo, Sort,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -20,7 +20,6 @@ pub struct Customer {
     id: ID,
     customer_id: UUID,
     status: CustomerStatus,
-    kyc_verification: KycVerification,
     level: KycLevel,
     created_at: Timestamp,
 
@@ -34,7 +33,6 @@ impl From<DomainCustomer> for Customer {
             id: customer.id.to_global_id(),
             customer_id: UUID::from(customer.id),
             status: customer.status,
-            kyc_verification: customer.kyc_verification,
             level: customer.level,
             created_at: customer.created_at().into(),
             entity: Arc::new(customer),
@@ -66,8 +64,8 @@ impl Customer {
         &self.entity.public_id
     }
 
-    async fn applicant_id(&self) -> &str {
-        &self.entity.applicant_id
+    async fn applicant_id(&self) -> Option<&str> {
+        self.entity.applicant_id.as_deref()
     }
 
     async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {
@@ -267,7 +265,6 @@ impl From<CustomersSort> for Sort<DomainCustomersSortBy> {
 
 #[derive(InputObject)]
 pub struct CustomersFilter {
-    pub kyc_verification: Option<KycVerification>,
     pub customer_type: Option<CustomerType>,
     pub status: Option<CustomerStatus>,
 }

@@ -5,7 +5,8 @@ pub use es_entity::Sort;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use crate::{primitives::*, public::CoreCustomerEvent, publisher::*};
+use crate::primitives::*;
+use crate::{public::CoreCustomerEvent, publisher::*};
 
 use super::entity::*;
 
@@ -14,7 +15,6 @@ use super::entity::*;
     entity = "Customer",
     columns(
         party_id(ty = "PartyId", list_by),
-        kyc_verification(ty = "KycVerification", list_for),
         customer_type(ty = "CustomerType", list_for, update(persist = false)),
         public_id(ty = "PublicId", list_by),
         status(ty = "CustomerStatus", list_for)
@@ -98,47 +98,6 @@ mod customer_status_sqlx {
     }
 
     impl PgHasArrayType for CustomerStatus {
-        fn array_type_info() -> PgTypeInfo {
-            <String as sqlx::postgres::PgHasArrayType>::array_type_info()
-        }
-    }
-}
-
-mod account_status_sqlx {
-    use sqlx::{Type, postgres::*};
-
-    use crate::primitives::KycVerification;
-
-    impl Type<Postgres> for KycVerification {
-        fn type_info() -> PgTypeInfo {
-            <String as Type<Postgres>>::type_info()
-        }
-
-        fn compatible(ty: &PgTypeInfo) -> bool {
-            <String as Type<Postgres>>::compatible(ty)
-        }
-    }
-
-    impl sqlx::Encode<'_, Postgres> for KycVerification {
-        fn encode_by_ref(
-            &self,
-            buf: &mut PgArgumentBuffer,
-        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
-            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
-        }
-    }
-
-    impl<'r> sqlx::Decode<'r, Postgres> for KycVerification {
-        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
-            let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
-            match s.as_str() {
-                "pending-verification" | "no-kyc" => Ok(KycVerification::NoKyc),
-                _ => Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?),
-            }
-        }
-    }
-
-    impl PgHasArrayType for KycVerification {
         fn array_type_info() -> PgTypeInfo {
             <String as sqlx::postgres::PgHasArrayType>::array_type_info()
         }
