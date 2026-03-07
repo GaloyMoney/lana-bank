@@ -58,12 +58,12 @@ Analyze the PR diff and categorize:
 
 ### API changes
 
-1. Add or update operation descriptions in `docs-site/scripts/api-descriptions.json`
+1. Add or update operation descriptions in `docs-site/scripts/api-descriptions.en.json`
 2. For new operations, write a clear English description. For removed operations, keep stale entries — versioned docs may still reference them.
 
 ### Domain event changes
 
-1. Add or update event descriptions in `docs-site/scripts/event-descriptions.json`
+1. Add or update event descriptions in `docs-site/scripts/event-descriptions.en.json`
 2. Regenerate event docs:
    ```bash
    cd docs-site && pnpm run generate-events-docs
@@ -74,6 +74,7 @@ Analyze the PR diff and categorize:
 
 - Update the relevant pages under `docs-site/docs/` that describe the changed functionality
 - If a new concept or workflow was introduced, create a new doc page
+- **Write at the right level of abstraction.** Document domain behavior changes (e.g., "obligations now transition via end-of-day batch processing" instead of "per-obligation scheduled jobs"). Skip implementation edge cases (e.g., validation rules for rare error paths) and details that are already obvious from the UI. If a user wouldn't need to know it to understand the system, leave it out.
 
 ### New doc pages
 
@@ -87,7 +88,7 @@ Run API description validation if any API-related files changed:
 cd docs-site && pnpm run validate-api-descriptions
 ```
 
-This checks that all current operations have descriptions and none use placeholder text. It validates both English and Spanish files — if Spanish descriptions are missing for new operations, that's expected and will be resolved by lingo.dev after merge.
+This checks that all current operations have descriptions and none use placeholder text. It validates both English and Spanish files — if Spanish descriptions are missing for new operations, that's expected and will be resolved by the lingo.dev translation workflow after merge.
 
 ## Step 4: Verify Build
 

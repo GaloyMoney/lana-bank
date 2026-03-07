@@ -3,7 +3,7 @@
 /**
  * Post-processing script for auto-generated API docs:
  * 1. Adds unique translation keys to _category_.yml files for i18n
- * 2. Injects descriptions from api-descriptions.json into operation pages
+ * 2. Injects descriptions from api-descriptions.en.json into operation pages
  */
 
 const fs = require("fs");
@@ -14,7 +14,7 @@ const DOCS_DIR = path.join(__dirname, "..", "docs");
 const SCRIPTS_DIR = __dirname;
 const I18N_ES_DOCS_DIR = path.join(__dirname, "..", "i18n", "es", "docusaurus-plugin-content-docs", "current");
 const API_DIRS = ["apis/admin-api", "apis/customer-api"];
-const DESCRIPTIONS_FILE = path.join(SCRIPTS_DIR, "api-descriptions.json");
+const DESCRIPTIONS_FILE = path.join(SCRIPTS_DIR, "api-descriptions.en.json");
 const DESCRIPTIONS_ES_FILE = path.join(SCRIPTS_DIR, "api-descriptions.es.json");
 
 
@@ -400,7 +400,7 @@ function main() {
 
   if (newOpsAdded > 0) {
     saveDescriptions(descriptions);
-    console.log(`\nAdded ${newOpsAdded} new operations to api-descriptions.json with placeholder descriptions.`);
+    console.log(`\nAdded ${newOpsAdded} new operations to api-descriptions.en.json with placeholder descriptions.`);
   }
 
   console.log(`\nDone! Updated ${descriptionsUpdated} operation descriptions.`);

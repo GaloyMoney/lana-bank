@@ -12,7 +12,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SCHEMA_PATH = path.join(__dirname, '../schemas/lana_events.json');
-const DESCRIPTIONS_EN_PATH = path.join(__dirname, 'event-descriptions.json');
+const DESCRIPTIONS_EN_PATH = path.join(__dirname, 'event-descriptions.en.json');
 const DESCRIPTIONS_ES_PATH = path.join(__dirname, 'event-descriptions.es.json');
 const OUTPUT_EN_PATH = path.join(__dirname, '../docs/apis/events/events.md');
 const OUTPUT_ES_PATH = path.join(__dirname, '../i18n/es/docusaurus-plugin-content-docs/current/apis/events/events.md');
