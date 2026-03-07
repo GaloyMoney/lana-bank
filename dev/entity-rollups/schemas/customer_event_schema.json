@@ -1,5 +1,37 @@
 {
   "$defs": {
+    "CustomerConversion": {
+      "oneOf": [
+        {
+          "properties": {
+            "applicant_id": {
+              "type": "string"
+            },
+            "type": {
+              "const": "sumsub_approved",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "applicant_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "manually_converted",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "CustomerStatus": {
       "enum": [
         "active",
@@ -33,11 +65,8 @@
   "oneOf": [
     {
       "properties": {
-        "applicant_id": {
-          "type": [
-            "string",
-            "null"
-          ]
+        "conversion": {
+          "$ref": "#/$defs/CustomerConversion"
         },
         "customer_type": {
           "$ref": "#/$defs/CustomerType"
@@ -67,6 +96,7 @@
         "party_id",
         "customer_type",
         "public_id",
+        "conversion",
         "level"
       ],
       "type": "object"
