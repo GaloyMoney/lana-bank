@@ -286,7 +286,7 @@ checksums:
     Customers/status/notVerified: fb164eed05b30673bc6852ddadbc6f27
     Customers/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/status/inactive: 239e3b722db75bbafc6c628a2685eed2
-    Customers/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
+    Customers/status/escheatable: 2a5fdde04073d903f065da081da11ec9
     Customers/customerType/individual: 52ebce389ed97a13b6089802055ed667
     Customers/customerType/governmentEntity: f528833b92b299e24071fe069cf3ed82
     Customers/customerType/privateCompany: c74836e7192c45f43c2445cf6d78c358
@@ -347,7 +347,7 @@ checksums:
     Customers/CustomerDetails/details/customerStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
-    Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
+    Customers/CustomerDetails/details/status/escheatable: 2a5fdde04073d903f065da081da11ec9
     Customers/CustomerDetails/details/actions/editTelegram: 4ae315a304c3159b982b203be81a5f98
     Customers/CustomerDetails/details/buttons/close: c6bf9acb5e3f853ff3172fd6d607fbb8
     Customers/CustomerDetails/personalInfo/title: a363a765f3481693e690afb0533e1229
