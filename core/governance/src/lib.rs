@@ -3,6 +3,7 @@
 
 mod approval_process;
 mod committee;
+pub mod config;
 pub mod error;
 mod policy;
 mod primitives;
@@ -16,10 +17,12 @@ use std::collections::{HashMap, HashSet};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use domain_config::ExposedDomainConfigsReadOnly;
 use obix::out::{Outbox, OutboxEventMarker};
 
 pub use approval_process::{error as approval_process_error, *};
 pub use committee::{error as committee_error, *};
+pub use config::*;
 use error::*;
 use policy::error::PolicyError;
 pub use policy::{error as policy_error, *};
@@ -43,6 +46,7 @@ where
     process_repo: ApprovalProcessRepo,
     authz: Perms,
     outbox: Outbox<E>,
+    domain_configs: Option<ExposedDomainConfigsReadOnly>,
 }
 
 impl<Perms, E> Clone for Governance<Perms, E>
@@ -57,6 +61,7 @@ where
             process_repo: self.process_repo.clone(),
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
+            domain_configs: self.domain_configs.clone(),
         }
     }
 }
@@ -68,7 +73,13 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>, clock: ClockHandle) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: &Perms,
+        outbox: &Outbox<E>,
+        clock: ClockHandle,
+        domain_configs: Option<&ExposedDomainConfigsReadOnly>,
+    ) -> Self {
         let committee_repo = CommitteeRepo::new(pool, clock.clone());
         let policy_repo = PolicyRepo::new(pool, clock.clone());
         let process_repo = ApprovalProcessRepo::new(pool, clock);
@@ -79,7 +90,70 @@ where
             process_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
+            domain_configs: domain_configs.cloned(),
         }
+    }
+
+    /// Bootstraps a default committee with a single member (the super-admin).
+    /// This is idempotent: if the committee already exists, the member is added
+    /// if not already present.
+    #[record_error_severity]
+    #[tracing::instrument(name = "governance.bootstrap_default_committee", skip(self))]
+    pub async fn bootstrap_default_committee(
+        &self,
+        member_id: impl Into<CommitteeMemberId> + std::fmt::Debug,
+    ) -> Result<Committee, GovernanceError> {
+        let member_id = member_id.into();
+
+        let mut db = self.committee_repo.begin_op().await?;
+        self.authz
+            .audit()
+            .record_system_entry_in_op(
+                &mut db,
+                audit::SystemActor::BOOTSTRAP,
+                GovernanceObject::all_committees(),
+                GovernanceAction::COMMITTEE_CREATE,
+            )
+            .await?;
+
+        let mut committee = match self
+            .committee_repo
+            .maybe_find_by_name_in_op(&mut db, DEFAULT_COMMITTEE_NAME)
+            .await?
+        {
+            Some(committee) => committee,
+            None => {
+                let new_committee = NewCommittee::builder()
+                    .id(CommitteeId::new())
+                    .name(DEFAULT_COMMITTEE_NAME.to_string())
+                    .member_ids(std::collections::HashSet::from([member_id]))
+                    .build()
+                    .expect("Could not build new committee");
+                self.committee_repo
+                    .create_in_op(&mut db, new_committee)
+                    .await?
+            }
+        };
+
+        if committee.add_member(member_id).did_execute() {
+            self.committee_repo
+                .update_in_op(&mut db, &mut committee)
+                .await?;
+        }
+
+        db.commit().await?;
+        Ok(committee)
+    }
+
+    async fn auto_approval_allowed(&self) -> Result<bool, GovernanceError> {
+        if let Some(domain_configs) = &self.domain_configs {
+            let require_committee = domain_configs
+                .get_without_audit::<RequireCommitteeApproval>()
+                .await?
+                .value();
+            return Ok(!require_committee);
+        }
+        Ok(true)
     }
 
     #[record_error_severity]
@@ -88,7 +162,18 @@ where
         &self,
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
+        let auto_approval_allowed = self.auto_approval_allowed().await?;
+
         let mut db = self.policy_repo.begin_op().await?;
+
+        if let Some(existing) = self
+            .policy_repo
+            .maybe_find_by_process_type_in_op(&mut db, process_type.clone())
+            .await?
+        {
+            return Ok(existing);
+        }
+
         self.authz
             .audit()
             .record_system_entry_in_op(
@@ -99,12 +184,25 @@ where
             )
             .await?;
 
-        let new_policy = NewPolicy::builder()
-            .id(PolicyId::new())
-            .process_type(process_type.clone())
-            .rules(ApprovalRules::SystemAutoApprove)
-            .build()
-            .expect("Could not build new policy");
+        let rules = if !auto_approval_allowed {
+            let committee = self
+                .committee_repo
+                .maybe_find_by_name_in_op(&mut db, DEFAULT_COMMITTEE_NAME)
+                .await?
+                .ok_or(GovernanceError::DefaultCommitteeNotFound)?;
+            Some(ApprovalRules::Committee {
+                committee_id: committee.id,
+            })
+        } else {
+            None
+        };
+
+        let new_policy = NewPolicy::try_new(
+            PolicyId::new(),
+            process_type.clone(),
+            rules,
+            auto_approval_allowed,
+        )?;
 
         match self
             .policy_repo

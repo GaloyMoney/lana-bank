@@ -4,12 +4,15 @@ use std::collections::HashSet;
 
 use crate::primitives::CommitteeId;
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ApprovalRules {
-    Committee { committee_id: CommitteeId },
+    #[default]
     SystemAutoApprove,
+    Committee {
+        committee_id: CommitteeId,
+    },
 }
 
 impl ApprovalRules {

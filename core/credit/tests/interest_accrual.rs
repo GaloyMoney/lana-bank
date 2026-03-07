@@ -39,7 +39,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
     >::new();
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
-    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone(), None);
     let public_ids = PublicIds::new(&pool);
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()

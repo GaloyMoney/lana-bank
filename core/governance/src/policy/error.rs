@@ -20,6 +20,10 @@ pub enum PolicyError {
     Query(#[from] PolicyQueryError),
     #[error("PolicyError - DuplicateApprovalProcessType")]
     DuplicateApprovalProcessType,
+    #[error(
+        "PolicyError - AutoApproveNotAllowed: cannot create or update policy with SystemAutoApprove when RequireCommitteeApproval is enabled"
+    )]
+    AutoApproveNotAllowed,
 }
 
 impl From<sqlx::Error> for PolicyError {
@@ -52,6 +56,7 @@ impl ErrorSeverity for PolicyError {
             Self::Find(_) => Level::ERROR,
             Self::Query(_) => Level::ERROR,
             Self::DuplicateApprovalProcessType => Level::WARN,
+            Self::AutoApproveNotAllowed => Level::WARN,
         }
     }
 }

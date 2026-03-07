@@ -14,6 +14,7 @@ permission-sets-macro = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
+domain-config = { workspace = true }
 
 es-entity = { workspace = true }
 uuid = { workspace = true }
@@ -33,4 +34,6 @@ schemars = { workspace = true, optional = true }
 anyhow = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 obix = { workspace = true, features = ["test-utils"] }
+serde_json = { workspace = true }
+serial_test = { workspace = true }
 tokio = { workspace = true }

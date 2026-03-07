@@ -105,6 +105,7 @@ impl LanaApp {
             )
             .await?;
 
+        let superuser_email = config.access.superuser_email.clone();
         let access = Access::init(
             &pool,
             config.access,
@@ -127,7 +128,23 @@ impl LanaApp {
         .await?;
 
         let dashboard = Dashboard::init(&pool, &authz, &mut jobs, &outbox).await?;
-        let governance = Governance::new(&pool, &authz, &outbox, clock.clone());
+        let governance = Governance::new(
+            &pool,
+            &authz,
+            &outbox,
+            clock.clone(),
+            Some(&exposed_domain_configs_readonly),
+        );
+        if let Some(ref email) = superuser_email {
+            let superuser = access
+                .users()
+                .find_by_email(None, email)
+                .await
+                .map_err(crate::access::error::CoreAccessError::from)?;
+            if let Some(superuser) = superuser {
+                governance.bootstrap_default_committee(superuser.id).await?;
+            }
+        }
         let storage = Storage::new(&config.storage);
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
