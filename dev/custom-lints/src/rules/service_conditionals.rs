@@ -12,10 +12,11 @@ use crate::{Violation, WorkspaceRule};
 /// 1. **Conditional on entity state** – a service inspects entity state (via a
 ///    `&self` query method) inside an `if` / `match` condition.
 ///
-/// 2. **Query + mutation co-occurrence** – a service calls `&self` query/
-///    assertion methods on an entity variable that is *also* mutated (via
-///    `&mut self` methods) in the same function.  The validation should live
-///    inside the entity's mutation method instead.
+/// 2. **Assertion + mutation co-occurrence** – a service calls `assert_*`
+///    `&self` methods on an entity variable that is *also* mutated (via
+///    `&mut self` methods) in the same function.  The assertion should live
+///    inside the entity's mutation method instead.  Plain data-reading queries
+///    (e.g. `entity.name()`, `entity.storage_path()`) are NOT flagged.
 ///
 /// **Phase 1** – Scan `entity.rs` files, collect both `&self` (query) and
 /// `&mut self` (mutation) method names from structs that derive `EsEntity`.
@@ -218,6 +219,9 @@ impl<'a> Visit<'a> for EntityMethodCollector<'a> {
 const REPO_FIND_PREFIXES: &[&str] = &["find_by_", "maybe_find_by_"];
 const REPO_FIND_EXACT: &[&str] = &["find_all"];
 
+/// Only `assert_*` methods are flagged by the assertion+mutation sub-rule.
+const ASSERTION_PREFIX: &str = "assert_";
+
 fn is_repo_find_method(name: &str) -> bool {
     let base = name.strip_suffix("_in_op").unwrap_or(name);
     REPO_FIND_EXACT.contains(&base)
@@ -341,7 +345,8 @@ impl<'a> ServiceFunctionVisitor<'a> {
         checker.visit_block(block);
         self.violations.extend(checker.violations);
 
-        // Sub-pass 3: flag query calls on variables that are also mutated.
+        // Sub-pass 3: flag assertion-style query calls on variables that are
+        // also mutated (assert_, check_, validate_, ensure_, verify_).
         let mut call_collector = EntityCallCollector::new(
             &var_collector.entity_vars,
             &self.methods.query,
@@ -349,7 +354,7 @@ impl<'a> ServiceFunctionVisitor<'a> {
         );
         call_collector.visit_block(block);
 
-        for (var_name, method_name, line) in &call_collector.query_calls {
+        for (var_name, method_name, line) in &call_collector.assertion_calls {
             if call_collector.vars_with_mutations.contains(var_name)
                 && !is_suppressed(*line, &source_lines)
             {
@@ -358,8 +363,8 @@ impl<'a> ServiceFunctionVisitor<'a> {
                         RULE_NAME,
                         self.path.display().to_string(),
                         format!(
-                            "in function `{}`: `{}.{}()` queries entity state \
-                             but `{}` is also mutated — move the validation \
+                            "in function `{}`: `{}.{}()` validates entity state \
+                             but `{}` is also mutated — move the assertion \
                              into the entity's mutation method",
                             fn_name, var_name, method_name, var_name,
                         ),
@@ -509,16 +514,17 @@ impl<'a> ConditionalChecker<'a> {
     }
 }
 
-/// Collects all entity query and mutation method calls on tracked variables
-/// within a single function body.  After visiting, `query_calls` contains
-/// every `(var, method, line)` tuple for `&self` calls, and
-/// `vars_with_mutations` contains every variable that also has a `&mut self`
-/// call.
+/// Collects assertion-style entity query calls and mutation calls on tracked
+/// variables within a single function body.  After visiting, `assertion_calls`
+/// contains every `(var, method, line)` for assertion-prefixed `&self` calls,
+/// and `vars_with_mutations` contains every variable that also has a
+/// `&mut self` call.
 struct EntityCallCollector<'a> {
     entity_vars: &'a HashSet<String>,
     query_methods: &'a HashSet<String>,
     mutation_methods: &'a HashSet<String>,
-    query_calls: Vec<(String, String, usize)>,
+    /// Only assertion-prefixed query calls (assert_, check_, validate_, …).
+    assertion_calls: Vec<(String, String, usize)>,
     vars_with_mutations: HashSet<String>,
 }
 
@@ -532,10 +538,14 @@ impl<'a> EntityCallCollector<'a> {
             entity_vars,
             query_methods,
             mutation_methods,
-            query_calls: Vec::new(),
+            assertion_calls: Vec::new(),
             vars_with_mutations: HashSet::new(),
         }
     }
+}
+
+fn is_assertion_method(name: &str) -> bool {
+    name.starts_with(ASSERTION_PREFIX)
 }
 
 impl<'ast> Visit<'ast> for EntityCallCollector<'_> {
@@ -545,9 +555,10 @@ impl<'ast> Visit<'ast> for EntityCallCollector<'_> {
         if let Some(var_name) = expr_to_simple_ident(&node.receiver)
             && self.entity_vars.contains(&var_name)
         {
-            if self.query_methods.contains(&method_name) {
+            if self.query_methods.contains(&method_name) && is_assertion_method(&method_name) {
                 let line = node.method.span().start().line;
-                self.query_calls.push((var_name.clone(), method_name, line));
+                self.assertion_calls
+                    .push((var_name.clone(), method_name, line));
             } else if self.mutation_methods.contains(&method_name) {
                 self.vars_with_mutations.insert(var_name);
             }
@@ -1115,7 +1126,7 @@ mod tests {
         assert!(!mutation.contains("status"));
     }
 
-    // ── Query + mutation co-occurrence tests ────────────────────────
+    // ── Assertion + mutation co-occurrence tests ──────────────────────
 
     #[test]
     fn flags_query_when_same_var_is_mutated() {
@@ -1279,7 +1290,7 @@ mod tests {
     }
 
     #[test]
-    fn conditional_query_with_mutation_triggers_both_rules() {
+    fn non_assertion_query_with_mutation_only_triggers_conditional_rule() {
         let query: HashSet<String> = ["is_closed".to_string()].into();
         let mutation: HashSet<String> = ["reopen".to_string()].into();
         let violations = check_service_code_full(
@@ -1298,11 +1309,95 @@ mod tests {
             &query,
             &mutation,
         );
-        // Both rules fire: conditional check + co-occurrence
+        // Only conditional rule fires — is_closed is not assert_* so
+        // co-occurrence rule does NOT fire.
+        assert_eq!(
+            violations.len(),
+            1,
+            "Only conditional rule should fire for non-assert_ methods: {:?}",
+            violations
+        );
+        assert!(violations[0].message.contains("conditional"));
+    }
+
+    #[test]
+    fn non_assertion_data_read_with_mutation_not_flagged() {
+        let query: HashSet<String> = ["storage_path".to_string()].into();
+        let mutation: HashSet<String> = ["delete".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<(), Error> {
+                    let mut entity = self.repo.find_by_id(id).await?;
+                    let path = entity.storage_path();
+                    entity.delete()?;
+                    self.repo.update(&mut entity).await?;
+                    Ok(())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        assert!(
+            violations.is_empty(),
+            "Non-assertion reads should not be flagged by co-occurrence rule: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn check_prefix_with_mutation_not_flagged() {
+        let query: HashSet<String> = ["check_payment_date".to_string()].into();
+        let mutation: HashSet<String> = ["record_payment".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<(), Error> {
+                    let mut entity = self.repo.find_by_id(id).await?;
+                    entity.check_payment_date(date)?;
+                    entity.record_payment(data)?;
+                    self.repo.update(&mut entity).await?;
+                    Ok(())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        // check_ is NOT an assertion prefix — only assert_ is
+        assert!(
+            violations.is_empty(),
+            "check_ prefix should not be flagged by co-occurrence rule: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn conditional_assert_with_mutation_triggers_both_rules() {
+        let query: HashSet<String> = ["assert_allowed".to_string()].into();
+        let mutation: HashSet<String> = ["execute".to_string()].into();
+        let violations = check_service_code_full(
+            r#"
+            impl Svc {
+                async fn foo(&self) -> Result<(), Error> {
+                    let mut entity = self.repo.find_by_id(id).await?;
+                    if entity.assert_allowed().is_ok() {
+                        entity.execute(data)?;
+                        self.repo.update(&mut entity).await?;
+                    }
+                    Ok(())
+                }
+            }
+        "#,
+            &query,
+            &mutation,
+        );
+        // Both rules fire: conditional check + assertion co-occurrence
         assert_eq!(
             violations.len(),
             2,
-            "Both conditional and co-occurrence rules should fire: {:?}",
+            "Both conditional and assertion co-occurrence rules should fire: {:?}",
             violations
         );
     }

@@ -229,7 +229,6 @@ impl DocumentStorage {
         let mut document = self.repo.find_by_id(document_id).await?;
 
         let _ = document.download_link_generated();
-        // lint:allow(service-conditionals) — reads path needed for external storage call
         let document_location = document.storage_path();
 
         let link = self
@@ -256,7 +255,6 @@ impl DocumentStorage {
             .find_by_id_in_op(&mut db, document_id.into())
             .await?;
 
-        // lint:allow(service-conditionals) — reads path needed for external storage call
         let document_location = document.path_for_removal();
         self.storage
             .remove(cloud_storage::LocationInStorage {
