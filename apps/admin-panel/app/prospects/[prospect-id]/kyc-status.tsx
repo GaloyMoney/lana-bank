@@ -101,7 +101,7 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
               href={effectiveVerificationLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-500 underline overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]"
+              className="text-blue-500 underline overflow-hidden text-ellipsis whitespace-nowrap max-w-[250px]"
             >
               {effectiveVerificationLink}
             </a>
@@ -153,7 +153,7 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
       title={t("title")}
       badge={<KycStatusBadge status={kycStatus} />}
       details={details}
-      className="w-full md:w-1/4"
+      className="w-full md:w-1/3"
       columns={1}
     />
   )
