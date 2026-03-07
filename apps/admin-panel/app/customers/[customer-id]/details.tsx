@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
-import { XCircle } from "lucide-react"
+import { XCircle, Snowflake, Sun } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { formatDate } from "@lana/web/utils"
@@ -17,6 +17,8 @@ import { CustomerTypeBadge } from "../customer-type-badge"
 import UpdateTelegramHandleDialog from "./update-telegram-handle"
 import UpdateEmailDialog from "./update-email"
 import CloseCustomerDialog from "./close-customer"
+import FreezeCustomerDialog from "./freeze-customer"
+import UnfreezeCustomerDialog from "./unfreeze-customer"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetCustomerBasicDetailsQuery, CustomerStatus } from "@/lib/graphql/generated"
@@ -31,6 +33,8 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
   const [openUpdateTelegramHandleDialog, setOpenUpdateTelegramHandleDialog] = useState(false)
   const [openUpdateEmailDialog, setOpenUpdateEmailDialog] = useState(false)
   const [openCloseDialog, setOpenCloseDialog] = useState(false)
+  const [openFreezeDialog, setOpenFreezeDialog] = useState(false)
+  const [openUnfreezeDialog, setOpenUnfreezeDialog] = useState(false)
 
   const details: DetailItemProps[] = [
     {
@@ -73,10 +77,24 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
   ]
 
   const footerContent = customer.status !== CustomerStatus.Closed && (
-    <Button variant="destructive" onClick={() => setOpenCloseDialog(true)}>
-      <XCircle />
-      {t("buttons.close")}
-    </Button>
+    <div className="flex gap-2">
+      {customer.status === CustomerStatus.Active && (
+        <Button variant="destructive" onClick={() => setOpenFreezeDialog(true)}>
+          <Snowflake />
+          {t("buttons.freeze")}
+        </Button>
+      )}
+      {customer.status === CustomerStatus.Frozen && (
+        <Button onClick={() => setOpenUnfreezeDialog(true)}>
+          <Sun />
+          {t("buttons.unfreeze")}
+        </Button>
+      )}
+      <Button variant="destructive" onClick={() => setOpenCloseDialog(true)}>
+        <XCircle />
+        {t("buttons.close")}
+      </Button>
+    </div>
   )
 
   return (
@@ -102,6 +120,16 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
         customerId={customer.customerId}
         openCloseDialog={openCloseDialog}
         setOpenCloseDialog={setOpenCloseDialog}
+      />
+      <FreezeCustomerDialog
+        customerId={customer.customerId}
+        openFreezeDialog={openFreezeDialog}
+        setOpenFreezeDialog={setOpenFreezeDialog}
+      />
+      <UnfreezeCustomerDialog
+        customerId={customer.customerId}
+        openUnfreezeDialog={openUnfreezeDialog}
+        setOpenUnfreezeDialog={setOpenUnfreezeDialog}
       />
     </>
   )
