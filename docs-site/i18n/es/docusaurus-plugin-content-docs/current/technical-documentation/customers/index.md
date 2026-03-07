@@ -18,23 +18,24 @@ El sistema de gestión de clientes es la base de identidad para todas las operac
 
 ## Ciclo de Vida del Cliente
 
-Un cliente progresa a través de varios estados desde la creación hasta las operaciones activas:
+Un cliente pasa por varios estados desde su creación hasta las operaciones activas:
 
-mermaid
+```mermaid
 graph LR
     CREATE["Creado<br/>(KYC pendiente)"] --> KYC["Verificación<br/>KYC"]
-    KYC --> PROV["Aprovisionamiento<br/>(Keycloak + cuenta de depósito)"]
-    PROV --> ACTIVE["Cliente<br/>activo"]
+    KYC --> PROV["Aprovisionamiento<br/>(Keycloak + Cuenta de Depósito)"]
+    PROV --> ACTIVE["Cliente<br/>Activo"]
     ACTIVE --> FROZEN["Congelado"]
     FROZEN --> ACTIVE
     ACTIVE --> CLOSED["Cerrado"]
     FROZEN --> CLOSED
 ```
 
-1. **Creación**: Un operador crea el registro del cliente en el panel de administración con correo electrónico, ID de Telegram opcional y tipo de cliente. El cliente comienza con la verificación KYC en estado `Pendiente`.
-2. **Verificación KYC**: El operador genera un enlace de verificación de Sumsub. El cliente completa la verificación de identidad a través de la interfaz de Sumsub. Sumsub notifica al sistema mediante webhook cuando concluye la verificación.
-3. **Aprovisionamiento**: Cuando se aprueba el KYC, el sistema emite eventos que activan el aprovisionamiento posterior. Se crea una cuenta de usuario de Keycloak para que el cliente pueda autenticarse, se envía un correo electrónico de bienvenida con las credenciales y se crea una cuenta de depósito.
-4. **Operaciones activas**: El cliente ahora puede acceder al portal de clientes, recibir depósitos y solicitar líneas de crédito.
+1. **Creación**: Un operador crea el registro de cliente en el panel de administración, ingresando correo electrónico, ID de Telegram (opcional) y tipo de cliente. El cliente inicia con verificación KYC en estado `Pendiente`.
+2. **Verificación KYC**: El operador genera un enlace de verificación de Sumsub. El cliente completa la verificación de identidad a través de la plataforma de Sumsub. Cuando finaliza la verificación, Sumsub notifica al sistema mediante webhook.
+3. **Aprovisionamiento**: Cuando se aprueba el KYC, el sistema emite eventos que activan el aprovisionamiento: se crea una cuenta de usuario en Keycloak para que el cliente pueda autenticarse, se envía un correo electrónico de bienvenida con las credenciales y se crea una cuenta de depósito.
+4. **Operaciones activas**: El cliente ahora puede acceder al portal, recibir depósitos y solicitar líneas de crédito.
+5. **Controles operativos**: Un operador puede congelar o descongelar al cliente desde el panel de administración. Al congelar, se suspenden las operaciones del cliente en Lana y se rechaza al solicitante en Sumsub. Al descongelar, se restauran las operaciones y se aprueba nuevamente al solicitante.
 
 ## Actividad de la cuenta de depósito
 
@@ -68,10 +69,20 @@ Un operador puede cerrar una cuenta de cliente a través del panel de administra
 
 Cuando se cierra un cliente, el sistema desactiva la cuenta de usuario de Keycloak asociada, impidiendo futuras autenticaciones en el portal del cliente.
 
+## Congelación y Descongelación de un Cliente
+
+Un operador puede congelar a un cliente activo desde el panel de administración cuando se necesita suspender la relación temporalmente sin cerrarla de forma permanente.
+
+- Un cliente en estado `Congelado` no puede realizar operaciones normales en Lana.
+- Las cuentas de depósito del cliente se sincronizan a través de los trabajos de sincronización, de modo que el acceso a los productos aguas abajo queda bloqueado de forma uniforme.
+- El solicitante correspondiente en Sumsub es rechazado cuando el cliente se congela y aprobado cuando se descongela.
+
+Descongelar retorna al cliente a estado `Activo` y restaura el estado correspondiente en Sumsub.
+
 ## Componentes del sistema
 
 | Componente | Módulo | Propósito |
-|-----------|--------|---------|
+|-----------|--------|-----------|
 | **Gestión de clientes** | core-customer | Entidad de cliente, perfiles y estado KYC |
 | **Procesamiento KYC** | core-customer (kyc) | Integración con API de Sumsub, manejo de callbacks de webhook |
 | **Almacenamiento de documentos** | core-document-storage | Carga de archivos, almacenamiento en la nube, generación de enlaces de descarga |
@@ -88,5 +99,5 @@ El registro de cliente es referenciado por prácticamente todos los demás módu
 
 ## Documentación relacionada
 
-- [Proceso de incorporación](onboarding) - Flujo completo de incorporación con KYC Sumsub
+- [Proceso de incorporación](onboarding) - Flujo completo de incorporación con KYC de Sumsub
 - [Gestión de documentos](documents) - Manejo de documentos del cliente

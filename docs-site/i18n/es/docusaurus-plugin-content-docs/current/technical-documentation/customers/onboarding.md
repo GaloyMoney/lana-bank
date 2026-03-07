@@ -59,7 +59,12 @@ No es posible realizar operaciones financieras hasta que la verificación KYC ha
 | telegramHandle | String | No | ID de Telegram para notificaciones |
 | customerType | Enum | Sí | Clasificación del cliente |
 
-### Via API GraphQL
+Lana se integra con Sumsub para la verificación de identidad. Esta integración utiliza dos canales:
+
+1. **Llamadas API salientes**: el sistema llama a la API REST de Sumsub para crear enlaces de verificación (permalinks) que los clientes utilizan para enviar sus documentos de identidad.
+2. **Webhooks entrantes**: Sumsub llama al endpoint webhook del sistema cuando los resultados de la verificación están disponibles. Todas las notificaciones se procesan de forma asíncrona mediante una cola de entrada para mayor confiabilidad.
+
+Después del onboarding, la integración sigue activa para controles operativos: cuando un operador congela o descongela un cliente en Lana, los trabajos de sincronización de clientes propagan ese cambio a Sumsub rechazando o aprobando al solicitante.
 
 ```graphql
 mutation CreateCustomer($input: CustomerCreateInput!) {
@@ -131,11 +136,13 @@ Cuando el KYC es aprobado, automáticamente:
 
 ### Cuenta de Depósito
 
-Simultáneamente se crea:
-
-1. Cuenta de depósito en el sistema
-2. Cuentas contables en el libro mayor
-3. Relación cliente-cuenta establecida
+| Acción | Descripción | Permiso requerido |
+|--------|-------------|---------------------|
+| Crear cliente | Nuevo registro | CUSTOMER_CREATE |
+| Ver cliente | Consultar información | CUSTOMER_READ |
+| Iniciar KYC | Iniciar verificación | CUSTOMER_UPDATE |
+| Congelar / descongelar | Suspender temporalmente o restaurar las operaciones del cliente y sincronizar el estado de aprobación de la solicitud en Sumsub | CUSTOMER_FREEZE / CUSTOMER_UNFREEZE |
+| Cerrar cliente | Cerrar permanentemente la relación | CUSTOMER_CLOSE |
 
 ### Eventos Generados
 
