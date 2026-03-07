@@ -1,6 +1,6 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import datetime
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Literal, Optional, Tuple, TypedDict
 
 import requests
@@ -214,9 +214,10 @@ def create_file_report_multi_asset():
         from opentelemetry import context as otel_context
 
         # Default as_of_date to yesterday if not explicitly provided
-        effective_as_of_date = config.as_of_date or (
-            datetime.date.today() - datetime.timedelta(days=1)
-        ).isoformat()
+        effective_as_of_date = (
+            config.as_of_date
+            or (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+        )
 
         # Fail early if any selected report requires as_of_date but none was resolved
         for k in context.selected_asset_keys:
