@@ -66,8 +66,12 @@ impl Customer {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn has_been_verified(&self) -> bool {
+        self.applicant_id.is_some()
+    }
+
     pub fn may_attach_product(&self, require_verified: bool) -> bool {
-        !self.is_closed() && !self.is_frozen() && (!require_verified || self.applicant_id.is_some())
+        !self.is_closed() && !self.is_frozen() && (!require_verified || self.has_been_verified())
     }
 
     pub fn is_closed(&self) -> bool {
@@ -75,7 +79,7 @@ impl Customer {
     }
 
     pub fn should_sync_financial_transactions(&self) -> bool {
-        self.applicant_id.is_some()
+        self.has_been_verified()
     }
 
     pub(crate) fn update_activity(&mut self, activity: Activity) -> Idempotent<()> {
