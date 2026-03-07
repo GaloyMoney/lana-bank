@@ -1519,10 +1519,12 @@
         "title": "Crear Comité",
         "description": "Crear un nuevo comité proporcionando la información requerida",
         "fields": {
-          "name": "Nombre del Comité"
+          "name": "Nombre del Comité",
+          "initialMember": "Miembro inicial"
         },
         "placeholders": {
-          "name": "Ingrese el nombre del comité"
+          "name": "Ingrese el nombre del comité",
+          "selectMember": "Selecciona un miembro"
         },
         "buttons": {
           "create": "Crear Comité"
