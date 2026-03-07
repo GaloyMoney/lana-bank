@@ -68,6 +68,9 @@ impl DepositAccount {
     }
 
     pub(crate) fn update_activity(&mut self, activity: Activity) -> Idempotent<()> {
+        if self.activity == Activity::Escheatable {
+            return Idempotent::AlreadyApplied;
+        }
         idempotency_guard!(
             self.events.iter_all().rev(),
             DepositAccountEvent::ActivityUpdated { activity: existing_activity, .. } if existing_activity == &activity,
@@ -283,6 +286,32 @@ mod tests {
 
         assert!(account.update_activity(Activity::Active).did_execute());
         assert_eq!(account.activity, Activity::Active);
+    }
+
+    #[test]
+    fn escheatable_activity_is_terminal() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+
+        assert!(account.update_activity(Activity::Escheatable).did_execute());
+        assert_eq!(account.activity, Activity::Escheatable);
+
+        assert!(
+            account
+                .update_activity(Activity::Inactive)
+                .was_already_applied()
+        );
+        assert_eq!(account.activity, Activity::Escheatable);
+
+        assert!(
+            account
+                .update_activity(Activity::Active)
+                .was_already_applied()
+        );
+        assert_eq!(account.activity, Activity::Escheatable);
     }
 
     #[test]
