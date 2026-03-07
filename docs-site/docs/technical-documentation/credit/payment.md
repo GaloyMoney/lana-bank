@@ -30,7 +30,7 @@ flowchart TD
     F -->|No| M[Allocation complete]
 ```
 
-1. **Payment Recording**: The payment amount is recorded and credited to a payment holding account in the ledger. This holding account acts as a temporary staging area before funds are distributed to individual obligations. The system validates that the payment's effective date is not earlier than the facility's activation date — payments before a facility is active are rejected.
+1. **Payment Recording**: The payment amount is recorded and credited to a payment holding account in the ledger. This holding account acts as a temporary staging area before funds are distributed to individual obligations.
 
 2. **Allocation Job Triggered**: The payment recording event triggers the allocation background job, which handles the distribution of funds across outstanding obligations.
 

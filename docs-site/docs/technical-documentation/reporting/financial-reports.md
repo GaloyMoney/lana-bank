@@ -32,7 +32,7 @@ The trial balance aggregates balances across all child accounts under each first
 
 ## Balance Sheet
 
-The balance sheet presents the bank's financial position as a point-in-time snapshot for a specified as-of date, organized into the fundamental accounting equation: **Assets = Liabilities + Equity**. By default, the balance sheet shows the current date, but operators can select any past date to view a historical snapshot.
+The balance sheet presents the bank's financial position as a point-in-time snapshot for a specified as-of date, organized into the fundamental accounting equation: **Assets = Liabilities + Equity**.
 
 ### Structure
 
