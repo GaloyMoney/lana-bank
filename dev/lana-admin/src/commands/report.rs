@@ -5,6 +5,15 @@ use crate::client::GraphQLClient;
 use crate::graphql::*;
 use crate::output;
 
+fn format_extensions(files: &[find_report_run::FindReportRunReportRunReportsFiles]) -> String {
+    let exts: Vec<&str> = files.iter().map(|file| file.extension.as_str()).collect();
+    if exts.is_empty() {
+        "none".to_string()
+    } else {
+        exts.join(", ")
+    }
+}
+
 pub async fn execute(client: &mut GraphQLClient, action: ReportAction, json: bool) -> Result<()> {
     match action {
         ReportAction::Find { id } => {
@@ -18,8 +27,21 @@ pub async fn execute(client: &mut GraphQLClient, action: ReportAction, json: boo
                         output::print_kv(&[
                             ("Report Run ID", &r.report_run_id),
                             ("State", &format!("{:?}", r.state)),
-                            ("Reports", &format!("{:?}", r.reports)),
+                            ("Report Count", &r.reports.len().to_string()),
                         ]);
+                        println!();
+                        if r.reports.is_empty() {
+                            println!("Reports: none");
+                        } else {
+                            let rows: Vec<Vec<String>> = r
+                                .reports
+                                .iter()
+                                .map(|report| {
+                                    vec![report.report_id.clone(), format_extensions(&report.files)]
+                                })
+                                .collect();
+                            output::print_table(&["Report ID", "Files"], rows);
+                        }
                     }
                 }
                 None => output::not_found("Report run", json),
@@ -34,9 +56,15 @@ pub async fn execute(client: &mut GraphQLClient, action: ReportAction, json: boo
             } else {
                 let rows: Vec<Vec<String>> = nodes
                     .iter()
-                    .map(|r| vec![r.report_run_id.clone(), format!("{:?}", r.state)])
+                    .map(|r| {
+                        vec![
+                            r.report_run_id.clone(),
+                            format!("{:?}", r.state),
+                            r.reports.len().to_string(),
+                        ]
+                    })
                     .collect();
-                output::print_table(&["Report Run ID", "State"], rows);
+                output::print_table(&["Report Run ID", "State", "Reports"], rows);
             }
         }
         ReportAction::DownloadLink {
