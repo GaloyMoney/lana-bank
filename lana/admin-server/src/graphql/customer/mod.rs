@@ -9,7 +9,7 @@ use super::{
 };
 
 pub use lana_app::customer::{
-    Customer as DomainCustomer, CustomerStatus, CustomerType, CustomersCursor,
+    Customer as DomainCustomer, CustomerConversion, CustomerStatus, CustomerType, CustomersCursor,
     CustomersFilters as DomainCustomersFilters, CustomersSortBy as DomainCustomersSortBy, KycLevel,
     PersonalInfo, Sort,
 };
@@ -65,7 +65,11 @@ impl Customer {
     }
 
     async fn applicant_id(&self) -> Option<&str> {
-        self.entity.applicant_id.as_deref()
+        self.entity.applicant_id()
+    }
+
+    async fn conversion(&self) -> &CustomerConversion {
+        &self.entity.conversion
     }
 
     async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {

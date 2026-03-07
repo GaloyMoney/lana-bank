@@ -1049,6 +1049,7 @@ export enum CustodiansSortBy {
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
+  conversion: CustomerConversion;
   createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
   creditFacilityProposals: Array<CreditFacilityProposal>;
@@ -1086,6 +1087,8 @@ export type CustomerConnection = {
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
 };
+
+export type CustomerConversion = ManuallyConverted | SumsubApproved;
 
 export type CustomerDocument = {
   __typename?: 'CustomerDocument';
@@ -1978,6 +1981,11 @@ export type ManualTransactionExecuteInput = {
 export type ManualTransactionExecutePayload = {
   __typename?: 'ManualTransactionExecutePayload';
   transaction: LedgerTransaction;
+};
+
+export type ManuallyConverted = {
+  __typename?: 'ManuallyConverted';
+  convertedBy: Scalars['String']['output'];
 };
 
 export type Me = {
@@ -3346,6 +3354,11 @@ export type SubscriptionProspectKycUpdatedArgs = {
 
 export type SubscriptionWithdrawalApprovalConcludedArgs = {
   withdrawalId: Scalars['UUID']['input'];
+};
+
+export type SumsubApproved = {
+  __typename?: 'SumsubApproved';
+  applicantId: Scalars['String']['output'];
 };
 
 export type SumsubPermalinkCreateInput = {
