@@ -5,9 +5,12 @@ import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
 import { ProspectDetailsCard } from "./details"
+import { ProspectPersonalInfoCard } from "./personal-info-card"
+import { ProspectCompanyInfoCard } from "./company-info-card"
 import { ProspectKycStatus } from "./kyc-status"
 
 import {
+  CustomerType,
   useGetProspectBasicDetailsQuery,
   useProspectKycUpdatedSubscription,
 } from "@/lib/graphql/generated"
@@ -36,6 +39,7 @@ gql`
       dateOfBirth
       nationality
       address
+      companyName
     }
     customer {
       publicId
@@ -109,6 +113,11 @@ export default function ProspectLayout({
     <main className="max-w-7xl m-auto">
       <ProspectDetailsCard prospect={prospect} />
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
+        {prospect.customerType === CustomerType.Individual ? (
+          <ProspectPersonalInfoCard prospect={prospect} />
+        ) : (
+          <ProspectCompanyInfoCard prospect={prospect} />
+        )}
         <ProspectKycStatus
           prospectId={prospect.prospectId}
           kycStatus={prospect.kycStatus}

@@ -21,6 +21,7 @@ gql`
           dateOfBirth
           nationality
           address
+          companyName
         }
         depositAccount {
           id

@@ -323,13 +323,20 @@
           "dateOfBirth": "Date of Birth",
           "nationality": "Nationality",
           "address": "Address",
-          "customer": "Customer"
+          "customer": "Customer",
+          "companyName": "Company Name"
         },
         "buttons": {
           "closeProspect": "Close Prospect",
           "convertToCustomer": "Convert to Customer",
           "viewCustomer": "View Customer"
         }
+      },
+      "personalInfo": {
+        "title": "Personal Information"
+      },
+      "companyInfo": {
+        "title": "Company Information"
       },
       "closeProspect": {
         "title": "Close Prospect",
@@ -455,7 +462,8 @@
           "lastName": "Last Name",
           "dateOfBirth": "Date of Birth",
           "nationality": "Nationality",
-          "address": "Address"
+          "address": "Address",
+          "companyName": "Company Name"
         },
         "customerStatus": {
           "active": "Active",
@@ -473,6 +481,12 @@
         "buttons": {
           "close": "Close Customer"
         }
+      },
+      "personalInfo": {
+        "title": "Personal Information"
+      },
+      "companyInfo": {
+        "title": "Company Information"
       },
       "closeCustomer": {
         "title": "Close Customer",

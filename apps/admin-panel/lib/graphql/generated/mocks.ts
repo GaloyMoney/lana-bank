@@ -2786,6 +2786,7 @@ export const mockPersonalInfo = (overrides?: Partial<PersonalInfo>, _relationshi
     return {
         __typename: 'PersonalInfo',
         address: overrides && overrides.hasOwnProperty('address') ? overrides.address! : faker.lorem.word(),
+        companyName: overrides && overrides.hasOwnProperty('companyName') ? overrides.companyName! : faker.lorem.word(),
         dateOfBirth: overrides && overrides.hasOwnProperty('dateOfBirth') ? overrides.dateOfBirth! : faker.lorem.word(),
         firstName: overrides && overrides.hasOwnProperty('firstName') ? overrides.firstName! : faker.lorem.word(),
         lastName: overrides && overrides.hasOwnProperty('lastName') ? overrides.lastName! : faker.lorem.word(),

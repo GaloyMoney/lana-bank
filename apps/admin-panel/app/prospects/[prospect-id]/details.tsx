@@ -37,8 +37,6 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({ prospe
   )
   const showConvertButton = requireVerifiedCustomer?.value === false
 
-  const personalInfo = prospect.personalInfo
-
   const details: DetailItemProps[] = [
     {
       label: t("labels.stage"),
@@ -58,23 +56,6 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({ prospe
       label: t("labels.customerType"),
       value: <CustomerTypeBadge customerType={prospect.customerType} />,
     },
-    {
-      label: t("labels.firstName"),
-      value: personalInfo?.firstName ?? "-",
-    },
-    {
-      label: t("labels.lastName"),
-      value: personalInfo?.lastName ?? "-",
-    },
-    ...(personalInfo?.dateOfBirth
-      ? [{ label: t("labels.dateOfBirth"), value: personalInfo.dateOfBirth }]
-      : []),
-    ...(personalInfo?.nationality
-      ? [{ label: t("labels.nationality"), value: personalInfo.nationality }]
-      : []),
-    ...(personalInfo?.address
-      ? [{ label: t("labels.address"), value: personalInfo.address }]
-      : []),
     ...(prospect.customer
       ? [
           {
