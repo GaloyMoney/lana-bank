@@ -11,14 +11,14 @@ After a commit has been deployed to staging (typically confirmed by `lana-deploy
 
 | Service | URL |
 |---------|-----|
-| Admin Panel | https://admin.staging.lana.galoy.io |
-| Admin GraphQL | https://admin.staging.lana.galoy.io/graphql |
+| Admin Panel | https://admin.staging.galoy.io |
+| Admin GraphQL | https://admin.staging.galoy.io/graphql |
 
 ## Authentication
 
 The superuser account for staging is `galoysuperuser@mailinator.com` (no password).
 
-Staging Keycloak is at `https://auth.staging.lana.galoy.io`, realm `internal`, client `admin-panel`. The client uses PKCE (no password grant), but the account has no password so the login form auto-completes on email submission.
+Staging Keycloak is at `https://auth.staging.galoy.io`, realm `internal`, client `admin-panel`. The client uses PKCE (no password grant), but the account has no password so the login form auto-completes on email submission.
 
 To get a token programmatically (authorization code flow with PKCE):
 
@@ -37,13 +37,13 @@ cookie_file = tempfile.mktemp(suffix='.txt', prefix='kc-cookies-')
 # 2. Get login page (captures session cookies + form action)
 auth_params = urllib.parse.urlencode({
     'client_id': 'admin-panel',
-    'redirect_uri': 'https://admin.staging.lana.galoy.io/',
+    'redirect_uri': 'https://admin.staging.galoy.io/',
     'response_type': 'code',
     'scope': 'openid profile email',
     'code_challenge': code_challenge,
     'code_challenge_method': 'S256',
 })
-auth_url = f'https://auth.staging.lana.galoy.io/realms/internal/protocol/openid-connect/auth?{auth_params}'
+auth_url = f'https://auth.staging.galoy.io/realms/internal/protocol/openid-connect/auth?{auth_params}'
 r1 = subprocess.run(['curl', '-s', '-c', cookie_file, auth_url], capture_output=True, text=True)
 form_action = html_mod.unescape(re.findall(r'action="([^"]+)"', r1.stdout)[0])
 
@@ -61,12 +61,12 @@ token_data = urllib.parse.urlencode({
     'client_id': 'admin-panel',
     'grant_type': 'authorization_code',
     'code': auth_code,
-    'redirect_uri': 'https://admin.staging.lana.galoy.io/',
+    'redirect_uri': 'https://admin.staging.galoy.io/',
     'code_verifier': code_verifier,
 })
 r3 = subprocess.run([
     'curl', '-s', '-X', 'POST',
-    'https://auth.staging.lana.galoy.io/realms/internal/protocol/openid-connect/token',
+    'https://auth.staging.galoy.io/realms/internal/protocol/openid-connect/token',
     '-H', 'Content-Type: application/x-www-form-urlencoded',
     '-d', token_data
 ], capture_output=True, text=True)
@@ -146,7 +146,7 @@ PAYLOAD=$(jq -n --arg query "$QUERY" --argjson variables "$VARIABLES" \
   '{query: $query, variables: $variables}')
 
 # Execute
-curl -s -X POST https://admin.staging.lana.galoy.io/graphql \
+curl -s -X POST https://admin.staging.galoy.io/graphql \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "$PAYLOAD"

@@ -365,7 +365,7 @@ Por ejemplo, staging habilita el tiempo artificial (útil para probar caracterí
 
 module "lana-bank" {
   source                 = "../../../modules/lana-bank/"
-  lana_domain            = "staging.lana.galoy.io"
+  lana_domain            = "staging.galoy.io"
   enable_artificial_time = true
   additional_bq_owners   = ["dev-team@galoy.io"]
 }
