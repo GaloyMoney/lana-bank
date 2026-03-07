@@ -8,6 +8,7 @@ mod date;
 mod graphql;
 mod output;
 mod show_query;
+mod workflow;
 
 use clap::Parser;
 use serde_json::json;
@@ -30,6 +31,7 @@ fn default_preview_profile() -> SavedLoginProfile {
 
 pub async fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
     match cli.command {
+        Command::Workflow { action } => workflow::execute(action, cli.json),
         Command::Auth { action } => match action {
             AuthAction::Login {
                 admin_url,
@@ -328,7 +330,9 @@ pub async fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
                         commands::custodian::execute(&mut client, action, cli.json).await
                     }
                 },
-                Command::Auth { .. } | Command::Version => unreachable!(),
+                Command::Auth { .. } | Command::Workflow { .. } | Command::Version => {
+                    unreachable!()
+                }
             };
 
             match result {

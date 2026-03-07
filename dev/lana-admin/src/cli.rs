@@ -7,6 +7,10 @@ const CLI_AFTER_HELP: &str = r#"Examples:
     --keycloak-client-id admin-panel \
     --username galoysuperuser@mailinator.com
 
+  lana-admin workflow deps \
+    --workflow seed_customer_credit_facility \
+    --step credit_facility_partial_payment_record
+
   lana-admin customer list --first 5 --json
 
   lana-admin accounting manual-transaction \
@@ -155,6 +159,11 @@ pub enum Command {
         #[command(subcommand)]
         action: AuthAction,
     },
+    /// Inspect built-in workflow dependency graphs
+    Workflow {
+        #[command(subcommand)]
+        action: WorkflowAction,
+    },
     /// Show CLI version and (if logged in) server build info
     Version,
 }
@@ -187,6 +196,24 @@ pub enum AuthAction {
     Info,
     /// Clear cached session token
     Logout,
+}
+
+#[derive(Subcommand)]
+pub enum WorkflowAction {
+    /// List built-in workflows
+    List,
+    /// Show required steps for a workflow target step
+    Deps {
+        /// Embedded workflow name
+        #[arg(long, default_value = "seed_customer_credit_facility")]
+        workflow: String,
+        /// Target workflow step id
+        #[arg(long)]
+        step: String,
+        /// Include read-only steps in the output
+        #[arg(long)]
+        all: bool,
+    },
 }
 
 #[derive(Subcommand)]
