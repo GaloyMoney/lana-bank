@@ -8,6 +8,10 @@ use crate::Violation;
 
 pub(super) const DIRS_TO_CHECK: &[&str] = &["core", "lana", "lib"];
 
+/// Directories excluded from Phase 2 service-file scanning.
+/// These contain bootstrap / simulation code, not production services.
+const EXCLUDED_DIRS: &[&str] = &["lana/sim-bootstrap"];
+
 // ── Phase 1: Entity Method Registry ──────────────────────────────────
 
 /// Registry of entity method names, split by receiver type.
@@ -282,6 +286,13 @@ where
                 .path()
                 .strip_prefix(workspace_root)
                 .unwrap_or(entry.path());
+
+            if EXCLUDED_DIRS
+                .iter()
+                .any(|exc| relative_path.starts_with(exc))
+            {
+                continue;
+            }
 
             violations.extend(check_fn(relative_path, &parsed, &content));
         }
