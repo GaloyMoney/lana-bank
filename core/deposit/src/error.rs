@@ -38,8 +38,6 @@ pub enum CoreDepositError {
     ChartIdMismatch,
     #[error("CoreDepositError - DepositConfigAlreadyExists")]
     DepositConfigAlreadyExists,
-    #[error("CoreDepositError - DepositAccountInactive")]
-    DepositAccountInactive,
     #[error("CoreDepositError - DepositAccountFrozen")]
     DepositAccountFrozen,
     #[error("CoreDepositError - DepositAccountClosed")]
@@ -159,7 +157,6 @@ impl ErrorSeverity for CoreDepositError {
             Self::DepositAccountNotFound => Level::WARN,
             Self::ChartIdMismatch => Level::ERROR,
             Self::DepositConfigAlreadyExists => Level::WARN,
-            Self::DepositAccountInactive => Level::WARN,
             Self::DepositAccountFrozen => Level::WARN,
             Self::DepositAccountClosed => Level::WARN,
             Self::WithdrawalBuilderError(_) => Level::ERROR,

@@ -1,6 +1,4 @@
-pub(crate) mod activate_holder_account;
 mod create_keycloak_user;
-mod customer_active_sync;
 pub(crate) mod deactivate_sumsub_applicant;
 mod disable_keycloak_user;
 pub(crate) mod freeze_customer_deposits;
@@ -13,9 +11,7 @@ mod sync_party_keycloak;
 pub(crate) mod unfreeze_customer_deposits;
 mod update_user_email;
 
-pub use activate_holder_account::ActivateHolderAccountJobInitializer;
 pub use create_keycloak_user::*;
-pub use customer_active_sync::*;
 pub use deactivate_sumsub_applicant::DeactivateSumsubApplicantJobInitializer;
 pub use disable_keycloak_user::*;
 pub use freeze_customer_deposits::FreezeCustomerDepositsJobInitializer;

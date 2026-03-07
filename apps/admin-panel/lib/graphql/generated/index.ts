@@ -1347,8 +1347,7 @@ export type DepositAccountLedgerAccounts = {
 export enum DepositAccountStatus {
   Active = 'ACTIVE',
   Closed = 'CLOSED',
-  Frozen = 'FROZEN',
-  Inactive = 'INACTIVE'
+  Frozen = 'FROZEN'
 }
 
 export type DepositAccountUnfreezeInput = {

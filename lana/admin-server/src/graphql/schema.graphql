@@ -1331,7 +1331,6 @@ type DepositAccountLedgerAccounts {
 }
 
 enum DepositAccountStatus {
-	INACTIVE
 	ACTIVE
 	FROZEN
 	CLOSED
