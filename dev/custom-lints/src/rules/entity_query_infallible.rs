@@ -99,6 +99,12 @@ impl<'a> ImplVisitor<'a> {
             return;
         }
 
+        // `assert_*` methods are allowed to return `Result<(), E>` — they are
+        // validation guards, not data queries.
+        if fn_name.starts_with("assert_") && returns_result_unit(&node.sig.output) {
+            return;
+        }
+
         // Check if return type contains Result
         if returns_result(&node.sig.output) {
             let struct_name = self.current_impl_struct.as_deref().unwrap_or("unknown");
@@ -150,6 +156,29 @@ fn type_contains_result(ty: &syn::Type) -> bool {
         syn::Type::Paren(paren) => type_contains_result(&paren.elem),
         _ => false,
     }
+}
+
+/// Check if the return type is exactly `Result<(), E>` (unit Ok type).
+fn returns_result_unit(output: &syn::ReturnType) -> bool {
+    let syn::ReturnType::Type(_, ty) = output else {
+        return false;
+    };
+    let syn::Type::Path(type_path) = ty.as_ref() else {
+        return false;
+    };
+    let Some(segment) = type_path.path.segments.last() else {
+        return false;
+    };
+    if segment.ident != "Result" {
+        return false;
+    }
+    let syn::PathArguments::AngleBracketed(args) = &segment.arguments else {
+        return false;
+    };
+    let Some(syn::GenericArgument::Type(ok_ty)) = args.args.first() else {
+        return false;
+    };
+    matches!(ok_ty, syn::Type::Tuple(t) if t.elems.is_empty())
 }
 
 impl<'a> Visit<'a> for ImplVisitor<'a> {
@@ -450,5 +479,76 @@ mod tests {
         let violations = check_code(code);
         assert_eq!(violations.len(), 1);
         assert!(violations[0].message.contains("Result"));
+    }
+
+    #[test]
+    fn test_assert_method_returning_result_unit_allowed() {
+        let code = r#"
+            #[derive(EsEntity)]
+            pub struct MyEntity {
+                id: EntityId,
+                events: EntityEvents<MyEvent>,
+            }
+
+            impl MyEntity {
+                pub(crate) fn assert_disbursal_allowed(&self, date: Date) -> Result<(), MyError> {
+                    Ok(())
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert!(
+            violations.is_empty(),
+            "assert_* returning Result<(), E> should be allowed: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn test_assert_method_returning_result_non_unit_flagged() {
+        let code = r#"
+            #[derive(EsEntity)]
+            pub struct MyEntity {
+                id: EntityId,
+                events: EntityEvents<MyEvent>,
+            }
+
+            impl MyEntity {
+                pub fn assert_valid(&self) -> Result<Data, MyError> {
+                    Ok(Data {})
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert_eq!(
+            violations.len(),
+            1,
+            "assert_* returning Result<Data, E> should still be flagged: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn test_non_assert_method_returning_result_unit_flagged() {
+        let code = r#"
+            #[derive(EsEntity)]
+            pub struct MyEntity {
+                id: EntityId,
+                events: EntityEvents<MyEvent>,
+            }
+
+            impl MyEntity {
+                pub fn validate(&self) -> Result<(), MyError> {
+                    Ok(())
+                }
+            }
+        "#;
+        let violations = check_code(code);
+        assert_eq!(
+            violations.len(),
+            1,
+            "Non-assert_* methods returning Result<(), E> should be flagged: {:?}",
+            violations
+        );
     }
 }
