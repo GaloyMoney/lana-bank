@@ -381,14 +381,6 @@ where
             .find_by_id_in_op(op, credit_facility_id)
             .await?;
 
-        // lint:allow(service-conditionals)
-        if credit_facility
-            .interest_accrual_cycle_in_progress()
-            .is_none()
-        {
-            return Ok(AccrualOutcome::NoCycleInProgress);
-        }
-
         let account_ids = credit_facility.account_ids;
         let collateral_account_id = self
             .collaterals
@@ -413,6 +405,7 @@ where
                     accrued_count: recorded.accrued_count,
                 })
             }
+            Err(CreditFacilityError::NoAccrualCycleInProgress) => AccrualOutcome::NoCycleInProgress,
             Err(CreditFacilityError::InterestAccrualCycleError(
                 InterestAccrualCycleError::NoNextAccrualPeriod,
             )) => AccrualOutcome::AllPeriodsComplete,

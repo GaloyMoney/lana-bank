@@ -1029,10 +1029,7 @@ where
             .await?;
 
         let customer = self.repo.find_by_id(customer_id).await?;
-        // lint:allow(service-conditionals)
-        if customer.is_closed() {
-            return Err(CustomerError::CustomerIsClosed);
-        }
+        customer.assert_not_closed()?;
 
         let document = self
             .document_storage

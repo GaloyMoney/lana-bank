@@ -79,15 +79,15 @@ impl Customer {
         Ok(())
     }
 
-    pub fn is_closed(&self) -> bool {
-        self.status == CustomerStatus::Closed
-    }
-
     pub(crate) fn assert_not_closed(&self) -> Result<(), CustomerError> {
         if self.is_closed() {
             return Err(CustomerError::CustomerIsClosed);
         }
         Ok(())
+    }
+
+    pub fn is_closed(&self) -> bool {
+        self.status == CustomerStatus::Closed
     }
 
     pub fn should_sync_financial_transactions(&self) -> bool {
