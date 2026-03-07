@@ -20,6 +20,8 @@ pub enum CommitteeError {
     Query(#[from] CommitteeQueryError),
     #[error("CommitteeError - CannotRemoveLastMember")]
     CannotRemoveLastMember,
+    #[error("CommitteeError - UninitializedField: {0}")]
+    UninitializedField(#[from] derive_builder::UninitializedFieldError),
     #[error("CommitteeError - CommitteeMustHaveAtLeastOneMember")]
     CommitteeMustHaveAtLeastOneMember,
 }
@@ -32,6 +34,7 @@ impl ErrorSeverity for CommitteeError {
             Self::Modify(_) => Level::ERROR,
             Self::Find(_) => Level::ERROR,
             Self::Query(_) => Level::ERROR,
+            Self::UninitializedField(_) => Level::ERROR,
             Self::CannotRemoveLastMember => Level::WARN,
             Self::CommitteeMustHaveAtLeastOneMember => Level::WARN,
         }

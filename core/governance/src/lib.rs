@@ -375,8 +375,7 @@ where
             .id(CommitteeId::new())
             .name(name)
             .member_ids(member_ids)
-            .build()
-            .map_err(|_| committee::error::CommitteeError::CommitteeMustHaveAtLeastOneMember)?;
+            .build()?;
 
         let mut db = self.committee_repo.begin_op().await?;
         let committee = self
