@@ -320,6 +320,23 @@ impl CreditFacility {
         self.terms.is_single_disbursal()
     }
 
+    pub(crate) fn assert_disbursal_allowed(
+        &self,
+        initiated_at: DateTime<Utc>,
+        cvl: CVLPct,
+    ) -> Result<(), CreditFacilityError> {
+        if self.terms.is_single_disbursal() {
+            return Err(CreditFacilityError::OnlyOneDisbursalAllowed);
+        }
+        if initiated_at >= self.matures_at() {
+            return Err(CreditFacilityError::DisbursalPastMaturityDate);
+        }
+        if !self.terms.is_disbursal_allowed(cvl) {
+            return Err(CreditFacilityError::BelowMarginLimit);
+        }
+        Ok(())
+    }
+
     fn is_matured(&self) -> bool {
         self.events
             .iter_all()
@@ -434,10 +451,6 @@ impl CreditFacility {
 
         self.events.push(CreditFacilityEvent::Matured {});
         Idempotent::Executed(())
-    }
-
-    pub(crate) fn check_disbursal_date(&self, initiated_at: DateTime<Utc>) -> bool {
-        initiated_at < self.matures_at()
     }
 
     pub(crate) fn check_payment_date(&self, effective: chrono::NaiveDate) -> bool {

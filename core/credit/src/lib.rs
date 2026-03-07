@@ -665,15 +665,6 @@ where
             .find_eligible_for_product_without_audit_in_op(&mut db, customer_id)
             .await?;
 
-        // lint:allow(service-conditionals)
-        if facility.is_single_disbursal() {
-            return Err(CreditFacilityError::OnlyOneDisbursalAllowed.into());
-        }
-        // lint:allow(service-conditionals)
-        if !facility.check_disbursal_date(now) {
-            return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
-        }
-
         let collateral = self
             .collaterals
             .find_by_id_without_audit_in_op(&mut db, facility.collateral_id)
@@ -687,9 +678,7 @@ where
 
         let price = self.price.usd_cents_per_btc().await;
         let cvl = balance.with_added_disbursal(amount).current_cvl(price);
-        if !facility.terms.is_disbursal_allowed(cvl) {
-            return Err(CreditFacilityError::BelowMarginLimit.into());
-        }
+        facility.assert_disbursal_allowed(now, cvl)?;
         let disbursal_id = DisbursalId::new();
         let due_date = facility.maturity_date;
         let overdue_date = facility
@@ -845,6 +834,7 @@ where
 
         let payment_id = PaymentId::new();
         let effective = effective.into();
+        // @@ change to assert style fn
         // lint:allow(service-conditionals)
         if !credit_facility.check_payment_date(effective) {
             return Err(CreditFacilityError::PaymentBeforeFacilityActivation.into());
