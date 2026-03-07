@@ -6,41 +6,7 @@ sidebar_position: 1
 
 # Gestión de Clientes
 
-El sistema de Gestión de Clientes abarca el ciclo de vida completo del cliente, desde el registro inicial y la verificación KYC hasta el estado de cuenta activa.
-
-```mermaid
-graph TD
-    subgraph Frontend["Estructura del Portal de Clientes"]
-        ROOT_PAGE["app/page.tsx<br/>Página Principal"]
-        LAYOUT["app/layout.tsx<br/>Layout Principal"]
-    end
-
-    subgraph SharedComponents["Componentes Compartidos"]
-        STORYBOOK["@storybook<br/>Biblioteca UI"]
-        THEME["Theme Provider<br/>next/themes"]
-        CSS["Tailwind CSS<br/>(Definición CSS)"]
-    end
-
-    subgraph GQL["Integración GraphQL"]
-        GQL_COMP["components/*<br/>Componentes UI"]
-        GQL_API["GraphQL API<br/>customer-server"]
-    end
-
-    subgraph Auth["Flujo de Autenticación"]
-        AUTH_CFG["Auth.ts<br/>Config NextAuth"]
-        AUTH_MIDDLEWARE["appAuthProvider.tsx<br/>Ruta API Auth"]
-        OIDC["OIDC Provider<br/>KeycloakProvider"]
-        JWT["JWT Session<br/>JwtLibrary"]
-    end
-
-    STORYBOOK --> CSS
-    THEME --> CSS
-    ROOT_PAGE --> GQL_COMP
-    GQL_COMP --> GQL_API
-    AUTH_CFG --> OIDC
-    AUTH_MIDDLEWARE --> AUTH_CFG
-    OIDC --> JWT
-```
+El sistema de gestión de clientes es la base de identidad para todas las operaciones financieras en Lana. Cada cuenta de depósito, línea de crédito y transacción financiera se vincula en última instancia a un registro de cliente. El sistema cubre el ciclo de vida completo del cliente, desde el registro inicial y la verificación KYC hasta la gestión continua de la relación.
 
 ## Componentes del Sistema
 
@@ -52,39 +18,35 @@ graph TD
 
 ## Ciclo de Vida del Cliente
 
-Un cliente progresa a través de varios estados desde su creación hasta las operaciones activas:
+Un cliente progresa a través de varios estados desde la creación hasta las operaciones activas:
 
-```mermaid
+mermaid
 graph LR
-    CREATE["Creado<br/>(Inactivo)"] --> KYC["Verificación<br/>KYC"]
-    KYC --> PROV["Aprovisionamiento<br/>(Keycloak + Cuenta de Depósito)"]
-    PROV --> ACTIVE["Cliente<br/>Activo"]
-    ACTIVE --> INACTIVE["Inactivo<br/>(automático)"]
-    INACTIVE --> ACTIVE
-    ACTIVE --> SUSPENDED["Suspendido<br/>(automático)"]
+    CREATE["Creado<br/>(KYC pendiente)"] --> KYC["Verificación<br/>KYC"]
+    KYC --> PROV["Aprovisionamiento<br/>(Keycloak + cuenta de depósito)"]
+    PROV --> ACTIVE["Cliente<br/>activo"]
+    ACTIVE --> FROZEN["Congelado"]
+    FROZEN --> ACTIVE
     ACTIVE --> CLOSED["Cerrado"]
-    INACTIVE --> CLOSED
-    SUSPENDED --> CLOSED
+    FROZEN --> CLOSED
 ```
 
-1. **Creación**: Un operador crea el registro del cliente en el panel de administración con correo electrónico, ID de Telegram opcional y tipo de cliente. El cliente comienza en estado `Inactivo` con verificación KYC `Pendiente`.
+1. **Creación**: Un operador crea el registro del cliente en el panel de administración con correo electrónico, ID de Telegram opcional y tipo de cliente. El cliente comienza con la verificación KYC en estado `Pendiente`.
 2. **Verificación KYC**: El operador genera un enlace de verificación de Sumsub. El cliente completa la verificación de identidad a través de la interfaz de Sumsub. Sumsub notifica al sistema mediante webhook cuando concluye la verificación.
 3. **Aprovisionamiento**: Cuando se aprueba el KYC, el sistema emite eventos que activan el aprovisionamiento posterior. Se crea una cuenta de usuario de Keycloak para que el cliente pueda autenticarse, se envía un correo electrónico de bienvenida con las credenciales y se crea una cuenta de depósito.
-4. **Operaciones activas**: El cliente ahora puede acceder al portal del cliente, recibir depósitos y solicitar líneas de crédito.
+4. **Operaciones activas**: El cliente ahora puede acceder al portal de clientes, recibir depósitos y solicitar líneas de crédito.
 
-## Tipos de Cliente
+## Actividad de la cuenta de depósito
 
-El sistema soporta múltiples tipos de cliente para clasificación regulatoria:
+La actividad de las cuentas de depósito se gestiona automáticamente mediante un proceso periódico en segundo plano. El sistema determina la última fecha de actividad de cada cuenta de depósito a partir de la transacción más reciente registrada o, si no existen transacciones, utiliza la fecha de creación de la cuenta. Después, aplica umbrales configurables para determinar si esa cuenta debe considerarse activa, inactiva o sujeta a abandono. Por defecto, esos umbrales son de 365 días para `Inactiva` y 3650 días para `Abandonada`, y los operadores pueden modificarlos en la aplicación de administración mediante las configuraciones de dominio `deposit-activity-inactive-threshold-days` y `deposit-activity-escheatable-threshold-days`.
 
-| Tipo | Descripción | Tratamiento Contable |
-|------|-------------|---------------------|
-| INDIVIDUAL | Persona natural | Cuentas individuales |
-| GOVERNMENT_ENTITY | Organización gubernamental | Cuentas gubernamentales |
-| PRIVATE_COMPANY | Corporación privada | Cuentas empresariales |
-| BANK | Institución bancaria | Cuentas interbancarias |
-| FINANCIAL_INSTITUTION | Empresa de servicios financieros | Cuentas institucionales |
-| FOREIGN_AGENCY_OR_SUBSIDIARY | Agencia/sucursal extranjera | Cuentas foráneas |
-| NON_DOMICILED_COMPANY | Corporación no domiciliada | Cuentas no residentes |
+| Estado | Condición | Efecto |
+|--------|-----------|--------|
+| **Activa** | Actividad dentro del umbral configurado para inactividad (por defecto: 365 días) | La cuenta se muestra como recientemente activa |
+| **Inactiva** | Sin actividad después del umbral de inactividad y antes del de abandono (por defecto: 365-3650 días) | La cuenta se muestra como inactiva para seguimiento del operador |
+| **Abandonada** | Sin actividad luego del umbral configurado para abandono (por defecto: 3650 días) | La cuenta se muestra como inactiva durante mucho tiempo y pasada el umbral de abandono |
+
+Este estado pertenece a la cuenta de depósito, no al cliente. La actividad es independiente del `status` operativo de la cuenta de depósito, por lo que un estado de actividad inactivo o abandonado no bloquea por sí solo los depósitos o retiros.
 
 ## Estados del Cliente
 
@@ -110,10 +72,10 @@ Cuando se cierra un cliente, el sistema desactiva la cuenta de usuario de Keyclo
 
 | Componente | Módulo | Propósito |
 |-----------|--------|---------|
-| **Gestión de clientes** | core-customer | Entidad de cliente, perfiles, estado KYC, seguimiento de actividad |
-| **Procesamiento KYC** | core-customer (kyc) | Integración API Sumsub, manejo de callbacks webhook |
+| **Gestión de clientes** | core-customer | Entidad de cliente, perfiles y estado KYC |
+| **Procesamiento KYC** | core-customer (kyc) | Integración con API de Sumsub, manejo de callbacks de webhook |
 | **Almacenamiento de documentos** | core-document-storage | Carga de archivos, almacenamiento en la nube, generación de enlaces de descarga |
-| **Incorporación de usuarios** | lana-user-onboarding | Aprovisionamiento de usuarios Keycloak en eventos de creación de clientes |
+| **Incorporación de usuarios** | lana-user-onboarding | Aprovisionamiento de usuarios en Keycloak mediante eventos de creación de clientes |
 
 ## Integración con otros módulos
 

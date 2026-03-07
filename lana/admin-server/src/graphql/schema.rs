@@ -154,7 +154,6 @@ impl Query {
             kyc_verification: filter.as_ref().and_then(|f| f.kyc_verification),
             customer_type: filter.as_ref().and_then(|f| f.customer_type),
             status: filter.as_ref().and_then(|f| f.status),
-            ..Default::default()
         };
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
@@ -341,6 +340,7 @@ impl Query {
     > {
         let filter = DomainDepositAccountsFilters {
             status: filter.as_ref().and_then(|f| f.status),
+            activity: filter.as_ref().and_then(|f| f.activity),
             ..Default::default()
         };
         let sort = sort.unwrap_or_default();

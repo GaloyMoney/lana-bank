@@ -119,6 +119,14 @@
       "title": "Require verified customer for account",
       "description": "When enabled, customers must be KYC-verified before creating deposit accounts or credit facilities."
     },
+    "deposit-activity-inactive-threshold-days": {
+      "title": "Deposit activity inactive threshold (days)",
+      "description": "Number of days without activity before a deposit account is classified as inactive."
+    },
+    "deposit-activity-escheatable-threshold-days": {
+      "title": "Deposit activity escheatable threshold (days)",
+      "description": "Number of days without activity before a deposit account is classified as escheatable. This must be greater than the inactive threshold."
+    },
     "sumsub-api-key": {
       "title": "SumSub API Key",
       "description": "API key for SumSub KYC verification service."
@@ -394,7 +402,7 @@
       "notVerified": "Not Verified",
       "active": "Active",
       "inactive": "Inactive",
-      "suspended": "Suspended"
+      "escheatable": "Escheatable"
     },
     "customerType": {
       "individual": "Individual",
@@ -473,7 +481,7 @@
         "status": {
           "active": "Active",
           "inactive": "Inactive",
-          "suspended": "Suspended"
+          "escheatable": "Escheatable"
         },
         "actions": {
           "editTelegram": "Edit Telegram Handle"
@@ -512,7 +520,8 @@
         "labels": {
           "checkingSettled": "Checking Settled Balance (USD)",
           "pendingWithdrawals": "Pending Withdrawals (USD)",
-          "status": "Status"
+          "status": "Status",
+          "activity": "Activity"
         },
         "buttons": {
           "viewDetails": "View Details"
@@ -1637,7 +1646,8 @@
         "customer": "Customer",
         "settledBalance": "Settled Balance",
         "pendingBalance": "Pending Balance",
-        "status": "Status"
+        "status": "Status",
+        "activity": "Activity"
       },
       "errors": {
         "general": "An error occurred while fetching deposit accounts."
@@ -1657,7 +1667,8 @@
           "settledBalance": "Settled Balance",
           "pendingBalance": "Pending Balance",
           "createdAt": "Created At",
-          "status": "Status"
+          "status": "Status",
+          "activity": "Activity"
         },
         "buttons": {
           "viewLedgerAccount": "View Ledger Account",

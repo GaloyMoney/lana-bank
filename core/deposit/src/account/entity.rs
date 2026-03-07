@@ -18,7 +18,12 @@ pub enum DepositAccountEvent {
         account_holder_id: DepositAccountHolderId,
         account_ids: DepositAccountLedgerAccountIds,
         status: DepositAccountStatus,
+        #[serde(default = "default_account_activity")]
+        activity: Activity,
         public_id: PublicId,
+    },
+    ActivityUpdated {
+        activity: Activity,
     },
     AccountHolderStatusUpdated {
         status: DepositAccountStatus,
@@ -41,6 +46,7 @@ pub struct DepositAccount {
     pub account_holder_id: DepositAccountHolderId,
     pub account_ids: DepositAccountLedgerAccountIds,
     pub status: DepositAccountStatus,
+    pub activity: Activity,
     pub public_id: PublicId,
 
     events: EntityEvents<DepositAccountEvent>,
@@ -59,6 +65,21 @@ impl DepositAccount {
 
     pub fn is_frozen(&self) -> bool {
         self.status == DepositAccountStatus::Frozen
+    }
+
+    pub(crate) fn update_activity(&mut self, activity: Activity) -> Idempotent<()> {
+        if self.activity == Activity::Escheatable {
+            return Idempotent::AlreadyApplied;
+        }
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DepositAccountEvent::ActivityUpdated { activity: existing_activity, .. } if existing_activity == &activity,
+            => DepositAccountEvent::ActivityUpdated { .. }
+        );
+        self.events
+            .push(DepositAccountEvent::ActivityUpdated { activity });
+        self.activity = activity;
+        Idempotent::Executed(())
     }
 
     pub fn update_status_via_holder(
@@ -144,6 +165,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     id,
                     account_holder_id,
                     status,
+                    activity,
                     public_id,
                     account_ids,
                     ..
@@ -153,7 +175,11 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                         .account_holder_id(*account_holder_id)
                         .account_ids(*account_ids)
                         .status(*status)
+                        .activity(*activity)
                         .public_id(public_id.clone())
+                }
+                DepositAccountEvent::ActivityUpdated { activity, .. } => {
+                    builder = builder.activity(*activity);
                 }
                 DepositAccountEvent::AccountHolderStatusUpdated { status, .. } => {
                     builder = builder.status(*status);
@@ -183,6 +209,8 @@ pub struct NewDepositAccount {
     pub(super) account_ids: DepositAccountLedgerAccountIds,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
+    #[builder(setter(skip), default = "Activity::Active")]
+    pub(super) activity: Activity,
     #[builder(setter(skip), default)]
     pub(super) status: DepositAccountStatus,
 }
@@ -202,10 +230,15 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
                 account_holder_id: self.account_holder_id,
                 account_ids: self.account_ids,
                 status: DepositAccountStatus::Active,
+                activity: self.activity,
                 public_id: self.public_id,
             }],
         )
     }
+}
+
+fn default_account_activity() -> Activity {
+    Activity::Active
 }
 
 #[cfg(test)]
@@ -214,7 +247,8 @@ mod tests {
     use public_id::PublicId;
 
     use crate::{
-        DepositAccountHolderId, DepositAccountHolderStatus, DepositAccountId, DepositAccountStatus,
+        Activity, DepositAccountHolderId, DepositAccountHolderStatus, DepositAccountId,
+        DepositAccountStatus,
     };
 
     use super::{
@@ -228,8 +262,56 @@ mod tests {
             account_holder_id: DepositAccountHolderId::new(),
             account_ids: DepositAccountLedgerAccountIds::new(id),
             status: DepositAccountStatus::Active,
+            activity: Activity::Active,
             public_id: PublicId::new("1"),
         }]
+    }
+
+    #[test]
+    fn update_activity_idempotency() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+
+        assert!(account.update_activity(Activity::Inactive).did_execute());
+        assert_eq!(account.activity, Activity::Inactive);
+
+        assert!(
+            account
+                .update_activity(Activity::Inactive)
+                .was_already_applied()
+        );
+
+        assert!(account.update_activity(Activity::Active).did_execute());
+        assert_eq!(account.activity, Activity::Active);
+    }
+
+    #[test]
+    fn escheatable_activity_is_terminal() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+
+        assert!(account.update_activity(Activity::Escheatable).did_execute());
+        assert_eq!(account.activity, Activity::Escheatable);
+
+        assert!(
+            account
+                .update_activity(Activity::Inactive)
+                .was_already_applied()
+        );
+        assert_eq!(account.activity, Activity::Escheatable);
+
+        assert!(
+            account
+                .update_activity(Activity::Active)
+                .was_already_applied()
+        );
+        assert_eq!(account.activity, Activity::Escheatable);
     }
 
     #[test]

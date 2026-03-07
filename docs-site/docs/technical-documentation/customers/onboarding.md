@@ -13,7 +13,7 @@ Customer onboarding is a multi-step process that establishes the customer's iden
 ```mermaid
 graph TD
     subgraph S1["1. Customer Creation"]
-        CREATE["Admin creates customer<br/>(email, type, Telegram ID)"] --> PENDING["Customer record created<br/>KYC = Pending Verification<br/>Activity = Inactive"]
+        CREATE["Admin creates customer<br/>(email, type, Telegram ID)"] --> PENDING["Customer record created<br/>KYC = Pending Verification"]
     end
     subgraph S2["2. KYC Verification"]
         LINK["Operator generates<br/>Sumsub verification link"] --> CUST["Customer completes<br/>identity verification"] --> HOOK["Sumsub sends<br/>webhook callback"]
@@ -40,7 +40,6 @@ An operator creates the customer by providing:
 
 The new customer starts with:
 - KYC verification status: `Pending Verification`
-- Activity status: `Inactive`
 - KYC level: `Not KYCed`
 
 No financial operations are possible until KYC verification completes. The customer does not yet have a deposit account or portal access.
@@ -188,4 +187,3 @@ changes driven by webhook updates.
 **Step 12.** Confirm KYC link was created.
 
 ![KYC link created](/img/screenshots/current/en/customers.cy.ts/15_kyc_link_created.png)
-

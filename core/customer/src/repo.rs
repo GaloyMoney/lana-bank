@@ -15,7 +15,6 @@ use super::entity::*;
     columns(
         party_id(ty = "PartyId", list_by),
         kyc_verification(ty = "KycVerification", list_for),
-        activity(ty = "Activity", list_for),
         customer_type(ty = "CustomerType", list_for, update(persist = false)),
         public_id(ty = "PublicId", list_by),
         status(ty = "CustomerStatus", list_for)

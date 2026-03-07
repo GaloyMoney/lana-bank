@@ -227,7 +227,7 @@ models:
       - name: status
         tests:
           - accepted_values:
-              values: ['ACTIVE', 'INACTIVE', 'SUSPENDED']
+              values: ['ACTIVE', 'INACTIVE', 'ESCHEATABLE']
 ```
 
 ### Custom Tests
@@ -267,4 +267,3 @@ order by 1
 | Data Engineer | Full access |
 | Analyst | Read marts only |
 | Reporting | Read specific views |
-

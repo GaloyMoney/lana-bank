@@ -80,7 +80,7 @@ El proceso de verificación KYC se integra con SumSub. Un cliente comienza en es
 
 El módulo gestiona documentos asociados al cliente, almacenándolos en la nube y permitiendo la generación de enlaces de descarga temporales. Los documentos pueden archivarse o eliminarse según sea necesario.
 
-Para el cumplimiento de regulaciones de cuentas inactivas, el sistema rastrea la última actividad de cada cliente. Un job periódico clasifica automáticamente a los clientes según su actividad: **Active** si han tenido actividad reciente (menos de un año), **Inactive** si han estado entre uno y diez años sin actividad, y **Suspended** si exceden diez años. Esta clasificación puede afectar el estado de sus cuentas de depósito.
+Para el cumplimiento de regulaciones sobre cuentas inactivas, el sistema rastrea la última actividad de cada cuenta de depósito. Un job periódico clasifica automáticamente las cuentas de depósito según su actividad: **Active** si han tenido actividad reciente (menos de un año), **Inactive** si han estado entre uno y diez años sin actividad, y **Suspended** si exceden diez años. Esta clasificación es independiente del estado operativo de la cuenta y por sí sola no congela ni cierra la cuenta.
 
 #### 2.1.4 Custodia
 

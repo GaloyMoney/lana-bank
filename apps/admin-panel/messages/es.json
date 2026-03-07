@@ -119,6 +119,14 @@
       "title": "Requerir cliente verificado para cuenta",
       "description": "Cuando está habilitado, los clientes deben estar verificados por KYC antes de crear cuentas de depósito o líneas de crédito."
     },
+    "deposit-activity-inactive-threshold-days": {
+      "title": "Umbral de inactividad de actividad de depósitos (días)",
+      "description": "Número de días sin actividad antes de que una cuenta de depósito sea clasificada como inactiva."
+    },
+    "deposit-activity-escheatable-threshold-days": {
+      "title": "Umbral de escheatment de actividad de depósitos (días)",
+      "description": "Número de días sin actividad antes de que una cuenta de depósito sea clasificada como sujeta a escheatment. Debe ser mayor que el umbral de inactividad."
+    },
     "sumsub-api-key": {
       "title": "Clave API de SumSub",
       "description": "Clave API para el servicio de verificación KYC de SumSub."
@@ -394,7 +402,7 @@
       "notVerified": "No Verificado",
       "active": "Activo",
       "inactive": "Inactivo",
-      "suspended": "Suspendido"
+      "escheatable": "Sujeto a escheatment"
     },
     "customerType": {
       "individual": "Individual",
@@ -473,7 +481,7 @@
         "status": {
           "active": "Activo",
           "inactive": "Inactivo",
-          "suspended": "Suspendido"
+          "escheatable": "Sujeto a escheatment"
         },
         "actions": {
           "editTelegram": "Editar handle de Telegram"
@@ -512,7 +520,8 @@
         "labels": {
           "checkingSettled": "Saldo Liquidado de Cuenta Corriente (USD)",
           "pendingWithdrawals": "Retiros Pendientes (USD)",
-          "status": "Estado"
+          "status": "Estado",
+          "activity": "Actividad"
         },
         "buttons": {
           "viewDetails": "Ver Detalles"
@@ -1637,7 +1646,8 @@
         "customer": "Cliente",
         "settledBalance": "Saldo Liquidado",
         "pendingBalance": "Saldo Pendiente",
-        "status": "Estado"
+        "status": "Estado",
+        "activity": "Actividad"
       },
       "errors": {
         "general": "Ocurrió un error al obtener las cuentas de depósito."
@@ -1657,7 +1667,8 @@
           "settledBalance": "Saldo Liquidado",
           "pendingBalance": "Saldo Pendiente",
           "createdAt": "Fecha de Creación",
-          "status": "Estado"
+          "status": "Estado",
+          "activity": "Actividad"
         },
         "buttons": {
           "viewLedgerAccount": "Ver Cuenta del Libro Mayor",

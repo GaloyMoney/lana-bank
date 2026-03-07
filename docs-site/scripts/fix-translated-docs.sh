@@ -100,6 +100,19 @@ find_walkthrough_zone() {
   echo "$first_line:$end_line"
 }
 
+replace_trailing_section() {
+  local file="$1" heading="$2"
+  local start_line tmp
+
+  start_line=$(grep -n -m1 -F "$heading" "$file" | cut -d: -f1)
+  [ -n "$start_line" ] || return 1
+
+  tmp=$(mktemp)
+  head -n "$((start_line - 1))" "$file" > "$tmp"
+  cat >> "$tmp"
+  mv "$tmp" "$file"
+}
+
 # ── Step 1: Fix /en/ → /es/ screenshot paths ─────────────────────────
 echo "Step 1: Fixing /en/ → /es/ screenshot paths..."
 fix1_count=0
@@ -214,6 +227,48 @@ while IFS= read -r en_file; do
   restore_count=$((restore_count + 1))
 done < <(find "$DOCS_DIR" -name '*.md' -type f)
 echo "  Processed $restore_count file(s)"
+
+# ── Step 3: Normalize repeated Lingo tail sections ────────────────────
+echo "Step 3: Normalizing repeated tail sections..."
+
+replace_trailing_section \
+  "$ES_DIR/for-platform-engineers/system-architecture.md" \
+  "### Patrón CQRS" <<'EOF'
+### Patrón CQRS
+
+Segregación de responsabilidad de comandos y consultas:
+- Rutas de lectura optimizadas
+- Operaciones de escritura separadas
+- Consistencia eventual cuando sea apropiado
+EOF
+
+replace_trailing_section \
+  "$ES_DIR/technical-documentation/accounting/fiscal-year.md" \
+  "### Resumen del flujo de trabajo" <<'EOF'
+### Resumen del flujo de trabajo
+
+```mermaid
+flowchart LR
+    A[Inicializar primer ejercicio fiscal] --> B[Operar durante el año]
+    B --> C[Cerrar meses 1-12 secuencialmente]
+    C --> D[Cerrar ejercicio fiscal]
+    D --> E[Abrir siguiente ejercicio fiscal]
+    E --> B
+```
+
+Este ciclo se repite anualmente. Cada ejercicio fiscal proporciona un límite claro para la presentación de informes financieros y garantiza que los libros del banco se cierren y trasladen adecuadamente a intervalos regulares.
+EOF
+
+replace_trailing_section \
+  "$ES_DIR/technical-documentation/credit/disbursal.md" \
+  "## Qué verificar después del paso 29" <<'EOF'
+## Qué verificar después del paso 29
+
+- El estado del desembolso es `Confirmed`.
+- El desembolso es visible bajo la facilidad y cliente esperados.
+- El historial de la facilidad refleja la actividad de ejecución/liquidación.
+- Las vistas de repago muestran el impacto de la obligación para el nuevo principal.
+EOF
 
 # ── Validation ────────────────────────────────────────────────────────
 echo "Validation..."

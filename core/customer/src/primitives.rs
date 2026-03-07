@@ -48,31 +48,6 @@ pub enum KycVerification {
 
 #[derive(
     Debug,
-    Copy,
-    Clone,
-    Serialize,
-    Deserialize,
-    Eq,
-    PartialEq,
-    strum::Display,
-    strum::EnumString,
-    Default,
-    sqlx::Type,
-)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(rename_all = "kebab-case")]
-#[strum(serialize_all = "kebab-case")]
-#[sqlx(type_name = "text")]
-pub enum Activity {
-    #[default]
-    Inactive,
-    Active,
-    Suspended,
-}
-
-#[derive(
-    Debug,
     Default,
     Deserialize,
     Clone,

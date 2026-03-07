@@ -7,11 +7,13 @@ import { ArrowRight } from "lucide-react"
 
 import { Button } from "@lana/web/ui/button"
 
+import { ActivityStatusBadge } from "@/app/customers/activity-status-badge"
 import { DepositAccountStatusBadge } from "@/app/deposit-accounts/status-badge"
 
 import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
+  Activity,
   DepositAccountStatus,
   GetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
@@ -22,12 +24,14 @@ type DepositAccountProps = {
   >["balance"]
   publicId: string
   status: DepositAccountStatus
+  activity: Activity
 }
 
 export const DepositAccount: React.FC<DepositAccountProps> = ({
   balance,
   publicId,
   status,
+  activity,
 }) => {
   const t = useTranslations("Customers.CustomerDetails.depositAccount")
   const router = useRouter()
@@ -49,13 +53,17 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
       label: t("labels.status"),
       value: <DepositAccountStatusBadge status={status} />,
     },
+    {
+      label: t("labels.activity"),
+      value: <ActivityStatusBadge status={activity} />,
+    },
   ]
 
   return (
     <DetailsCard
       title={t("title")}
       details={details}
-      columns={3}
+      columns={4}
       className="w-full md:w-3/4"
       publicId={publicId}
       footerContent={

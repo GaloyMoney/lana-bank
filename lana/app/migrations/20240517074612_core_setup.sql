@@ -120,7 +120,6 @@ CREATE TABLE core_customers (
   id UUID PRIMARY KEY,
   party_id UUID NOT NULL REFERENCES core_parties(id),
   kyc_verification VARCHAR NOT NULL,
-  activity VARCHAR NOT NULL DEFAULT 'disabled',
   customer_type VARCHAR NOT NULL,
   status VARCHAR NOT NULL DEFAULT 'active',
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
@@ -136,13 +135,6 @@ CREATE TABLE core_customer_events (
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
-
-CREATE TABLE customer_activity (
-  customer_id UUID PRIMARY KEY REFERENCES core_customers(id),
-  last_activity_date TIMESTAMPTZ NOT NULL
-);
-
-CREATE INDEX idx_customer_activity_last_activity_date ON customer_activity(last_activity_date);
 
 CREATE TABLE core_prospects (
   id UUID PRIMARY KEY,
@@ -168,6 +160,7 @@ CREATE TABLE core_deposit_accounts (
   account_holder_id UUID NOT NULL,
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   status VARCHAR NOT NULL,
+  activity VARCHAR NOT NULL DEFAULT 'active',
   created_at TIMESTAMPTZ NOT NULL
 );
 

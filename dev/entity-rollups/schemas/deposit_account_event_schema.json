@@ -1,5 +1,13 @@
 {
   "$defs": {
+    "Activity": {
+      "enum": [
+        "inactive",
+        "active",
+        "escheatable"
+      ],
+      "type": "string"
+    },
     "DepositAccountLedgerAccountIds": {
       "properties": {
         "deposit_account_id": {
@@ -38,6 +46,10 @@
         "account_ids": {
           "$ref": "#/$defs/DepositAccountLedgerAccountIds"
         },
+        "activity": {
+          "$ref": "#/$defs/Activity",
+          "default": "active"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -60,6 +72,22 @@
         "account_ids",
         "status",
         "public_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "activity": {
+          "$ref": "#/$defs/Activity"
+        },
+        "type": {
+          "const": "activity_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "activity"
       ],
       "type": "object"
     },

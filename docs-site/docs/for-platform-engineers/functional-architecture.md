@@ -78,7 +78,7 @@ The KYC verification process integrates with SumSub. A customer begins in **Pend
 
 The module manages documents associated with the customer, storing them in the cloud and allowing generation of temporary download links. Documents can be archived or deleted as needed.
 
-For compliance with inactive account regulations, the system tracks the last activity of each customer. A periodic job automatically classifies customers according to their activity: **Active** if they have had recent activity (less than one year), **Inactive** if they have been between one and ten years without activity, and **Suspended** if they exceed ten years. This classification can affect the state of their deposit accounts.
+For compliance with inactive account regulations, the system tracks the last activity of each deposit account. A periodic job automatically classifies deposit accounts according to their activity: **Active** if they have had recent activity (less than one year), **Inactive** if they have been between one and ten years without activity, and **Escheatable** if they exceed ten years. This classification is separate from the account's operational status and does not by itself freeze or close the account.
 
 #### 2.1.4 Custody
 

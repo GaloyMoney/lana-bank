@@ -43,6 +43,31 @@ es_entity::entity_id! {
 
 pub use money::UsdCents;
 
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    Serialize,
+    Deserialize,
+    Eq,
+    PartialEq,
+    strum::Display,
+    strum::EnumString,
+    Default,
+    sqlx::Type,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
+#[sqlx(type_name = "text")]
+pub enum Activity {
+    #[default]
+    Inactive,
+    Active,
+    Escheatable,
+}
+
 pub const DEPOSIT_ACCOUNT_ENTITY_TYPE: chart_primitives::EntityType =
     chart_primitives::EntityType::new("DepositAccount");
 pub const DEPOSIT_TRANSACTION_ENTITY_TYPE: chart_primitives::EntityType =

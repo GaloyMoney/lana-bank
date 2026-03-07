@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT party_id, id FROM core_customers WHERE COALESCE(kyc_verification = $1, $1 IS NULL) AND COALESCE(activity = $2, $2 IS NULL) AND COALESCE(customer_type = $3, $3 IS NULL) AND COALESCE(status = $4, $4 IS NULL) AND (COALESCE((party_id, id) > ($7, $6), $6 IS NULL)) ORDER BY party_id ASC, id ASC LIMIT $5) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $8 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.party_id asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT party_id, id FROM core_customers WHERE COALESCE(kyc_verification = $1, $1 IS NULL) AND COALESCE(customer_type = $2, $2 IS NULL) AND COALESCE(status = $3, $3 IS NULL) AND (COALESCE((party_id, id) > ($6, $5), $5 IS NULL)) ORDER BY party_id ASC, id ASC LIMIT $4) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $7 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.party_id asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -34,7 +34,6 @@
         "Text",
         "Text",
         "Text",
-        "Text",
         "Int8",
         "Uuid",
         "Uuid",
@@ -49,5 +48,5 @@
       false
     ]
   },
-  "hash": "6365a70302463e00397f797cbf9e21ee5998b29f758b31c79b8ca70d5695feeb"
+  "hash": "2b324bda7f7b3c866af0bd4bad18ec234473f40e7ab178e52295e97ac9fb6c44"
 }
