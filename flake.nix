@@ -97,6 +97,7 @@
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path
+          || pkgs.lib.hasInfix "/dev/lana-admin/src/workflow.yml" path
           || pkgs.lib.hasInfix "/dev/lana-admin/src/graphql/" path;
       };
 
