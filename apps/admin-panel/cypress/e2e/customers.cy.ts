@@ -182,6 +182,24 @@ describe("Customers", () => {
     cy.takeScreenshot("customer_deposit_account_created")
   })
 
+  it("should freeze and unfreeze the customer", () => {
+    cy.visit(`/customers/${testCustomerPublicId}`)
+
+    cy.get('[data-testid="freeze-customer-button"]').should("be.visible").click()
+    cy.contains(t("Customers.CustomerDetails.freezeCustomer.title")).should("be.visible")
+    cy.get('[data-testid="freeze-customer-dialog-button"]').click()
+    cy.contains(t("Customers.CustomerDetails.freezeCustomer.success")).should("be.visible")
+    cy.get('[data-testid="unfreeze-customer-button"]').should("be.visible")
+    cy.takeScreenshot("customer_frozen")
+
+    cy.get('[data-testid="unfreeze-customer-button"]').click()
+    cy.contains(t("Customers.CustomerDetails.unfreezeCustomer.title")).should("be.visible")
+    cy.get('[data-testid="unfreeze-customer-dialog-button"]').click()
+    cy.contains(t("Customers.CustomerDetails.unfreezeCustomer.success")).should("be.visible")
+    cy.get('[data-testid="freeze-customer-button"]').should("be.visible")
+    cy.takeScreenshot("customer_unfrozen")
+  })
+
   it("should upload a document", function () {
     if (!Cypress.env("GOOGLE_CLOUD_AVAILABLE")) {
       this.skip()

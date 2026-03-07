@@ -495,6 +495,8 @@
           "editTelegram": "Edit Telegram Handle"
         },
         "buttons": {
+          "freeze": "Freeze Customer",
+          "unfreeze": "Unfreeze Customer",
           "close": "Close Customer"
         }
       },
@@ -511,6 +513,22 @@
           "close": "Close"
         },
         "success": "Customer closed successfully"
+      },
+      "freezeCustomer": {
+        "title": "Freeze Customer",
+        "description": "Are you sure you want to freeze this customer? This will block customer operations in Lana and reject the applicant in Sumsub.",
+        "buttons": {
+          "freeze": "Freeze Customer"
+        },
+        "success": "Customer frozen successfully"
+      },
+      "unfreezeCustomer": {
+        "title": "Unfreeze Customer",
+        "description": "Are you sure you want to unfreeze this customer? This will restore customer operations in Lana and approve the applicant in Sumsub.",
+        "buttons": {
+          "unfreeze": "Unfreeze Customer"
+        },
+        "success": "Customer unfrozen successfully"
       },
       "kycStatus": {
         "title": "KYC",

@@ -8,28 +8,28 @@ use tracing_macros::record_error_severity;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct DeactivateSumsubApplicantConfig {
+pub struct ActivateSumsubApplicantConfig {
     pub customer_id: CustomerId,
 }
 
-pub const DEACTIVATE_SUMSUB_APPLICANT_COMMAND: JobType =
-    JobType::new("command.customer-sync.deactivate-sumsub-applicant");
+pub const ACTIVATE_SUMSUB_APPLICANT_COMMAND: JobType =
+    JobType::new("command.customer-sync.activate-sumsub-applicant");
 
-pub struct DeactivateSumsubApplicantJobInitializer {
+pub struct ActivateSumsubApplicantJobInitializer {
     sumsub_client: sumsub::SumsubClient,
 }
 
-impl DeactivateSumsubApplicantJobInitializer {
+impl ActivateSumsubApplicantJobInitializer {
     pub fn new(sumsub_client: sumsub::SumsubClient) -> Self {
         Self { sumsub_client }
     }
 }
 
-impl JobInitializer for DeactivateSumsubApplicantJobInitializer {
-    type Config = DeactivateSumsubApplicantConfig;
+impl JobInitializer for ActivateSumsubApplicantJobInitializer {
+    type Config = ActivateSumsubApplicantConfig;
 
     fn job_type(&self) -> JobType {
-        DEACTIVATE_SUMSUB_APPLICANT_COMMAND
+        ACTIVATE_SUMSUB_APPLICANT_COMMAND
     }
 
     fn init(
@@ -37,23 +37,23 @@ impl JobInitializer for DeactivateSumsubApplicantJobInitializer {
         job: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(DeactivateSumsubApplicantJobRunner {
+        Ok(Box::new(ActivateSumsubApplicantJobRunner {
             config: job.config()?,
             sumsub_client: self.sumsub_client.clone(),
         }))
     }
 }
 
-pub struct DeactivateSumsubApplicantJobRunner {
-    config: DeactivateSumsubApplicantConfig,
+pub struct ActivateSumsubApplicantJobRunner {
+    config: ActivateSumsubApplicantConfig,
     sumsub_client: sumsub::SumsubClient,
 }
 
 #[async_trait]
-impl JobRunner for DeactivateSumsubApplicantJobRunner {
+impl JobRunner for ActivateSumsubApplicantJobRunner {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "customer_sync.deactivate_sumsub_applicant_job.process_command",
+        name = "customer_sync.activate_sumsub_applicant_job.process_command",
         skip(self, _current_job),
         fields(customer_id = %self.config.customer_id),
     )]
@@ -63,10 +63,10 @@ impl JobRunner for DeactivateSumsubApplicantJobRunner {
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         if let Err(e) = self
             .sumsub_client
-            .reject_applicant(self.config.customer_id)
+            .approve_applicant(self.config.customer_id)
             .await
         {
-            tracing::warn!("Failed to reject SumSub applicant: {e}");
+            tracing::warn!("Failed to approve SumSub applicant: {e}");
         }
 
         Ok(JobCompletion::Complete)

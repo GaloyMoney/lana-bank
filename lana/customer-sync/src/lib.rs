@@ -139,13 +139,24 @@ where
             )
             .await?;
 
-        let deactivate_sumsub_applicant_spawner =
-            jobs.add_initializer(DeactivateSumsubApplicantJobInitializer::new(sumsub_client));
+        let deactivate_sumsub_applicant_spawner = jobs.add_initializer(
+            DeactivateSumsubApplicantJobInitializer::new(sumsub_client.clone()),
+        );
         outbox
             .register_event_handler(
                 jobs,
                 OutboxEventJobConfig::new(CUSTOMER_SYNC_DEACTIVATE_SUMSUB_APPLICANT),
                 SyncCustomerFreezeSumsubHandler::new(deactivate_sumsub_applicant_spawner),
+            )
+            .await?;
+
+        let activate_sumsub_applicant_spawner =
+            jobs.add_initializer(ActivateSumsubApplicantJobInitializer::new(sumsub_client));
+        outbox
+            .register_event_handler(
+                jobs,
+                OutboxEventJobConfig::new(CUSTOMER_SYNC_ACTIVATE_SUMSUB_APPLICANT),
+                SyncCustomerUnfreezeSumsubHandler::new(activate_sumsub_applicant_spawner),
             )
             .await?;
 

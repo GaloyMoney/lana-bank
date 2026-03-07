@@ -43,6 +43,7 @@ graph LR
 2. **KYC verification**: The operator generates a Sumsub verification link. The customer completes identity verification through Sumsub's interface. Sumsub notifies the system via webhook when verification concludes.
 3. **Provisioning**: When KYC is approved, the system emits events that trigger downstream provisioning. A Keycloak user account is created so the customer can authenticate, a welcome email is sent with credentials, and a deposit account is created.
 4. **Active operations**: The customer can now access the customer portal, receive deposits, and apply for credit facilities.
+5. **Operational controls**: An operator can freeze or unfreeze the customer from the admin panel. Freezing suspends customer operations in Lana and rejects the applicant in Sumsub. Unfreezing restores the customer and approves the applicant again.
 
 ## Deposit Account Activity
 
@@ -79,6 +80,16 @@ An operator can close a customer account through the admin panel. Closing is a p
 - No **pending withdrawals** on any deposit account
 
 When a customer is closed, the system disables the associated Keycloak user account, preventing further authentication to the customer portal.
+
+## Freezing and Unfreezing a Customer
+
+An operator can freeze an active customer from the admin panel when the relationship needs to be temporarily suspended without permanently closing it.
+
+- A `Frozen` customer cannot use normal customer operations in Lana.
+- The customer's deposit accounts are synchronized through the customer-sync jobs so downstream product access is blocked consistently.
+- The matching Sumsub applicant is rejected when the customer is frozen and approved when the customer is unfrozen.
+
+Unfreezing returns the customer to `Active` status and restores the related Sumsub applicant state.
 
 ## System Components
 

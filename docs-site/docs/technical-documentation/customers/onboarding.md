@@ -53,6 +53,8 @@ Lana integrates with Sumsub for identity verification. The integration uses two 
 1. **Outbound API calls** - The system calls Sumsub's REST API to create verification links (permalinks) that customers use to submit their identity documents.
 2. **Inbound webhooks** - Sumsub calls the system's webhook endpoint when verification results are available. All callbacks are processed asynchronously through an inbox queue for reliability.
 
+After onboarding, the integration remains active for operational controls as well: when an operator freezes or unfreezes a customer in Lana, the customer-sync jobs propagate that change to Sumsub by rejecting or approving the applicant.
+
 ### Verification Levels
 
 The customer type automatically determines which Sumsub verification level is applied:
@@ -126,7 +128,8 @@ After provisioning completes, the customer can:
 | Create customer | New registration | CUSTOMER_CREATE |
 | View customer | Query information | CUSTOMER_READ |
 | Start KYC | Begin verification | CUSTOMER_UPDATE |
-| Deactivate | Suspend account | CUSTOMER_UPDATE |
+| Freeze / unfreeze | Temporarily suspend or restore customer operations and sync the applicant approval state with Sumsub | CUSTOMER_FREEZE / CUSTOMER_UNFREEZE |
+| Close customer | Permanently close the relationship | CUSTOMER_CLOSE |
 
 ## Admin Panel Walkthrough: Customer Creation and KYC
 

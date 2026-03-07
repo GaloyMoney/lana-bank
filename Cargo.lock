@@ -1812,6 +1812,7 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "uuid",
 ]
 
 [[package]]

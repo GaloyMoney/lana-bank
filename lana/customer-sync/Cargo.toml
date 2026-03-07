@@ -27,3 +27,6 @@ thiserror = { workspace = true }
 keycloak-client = { workspace = true }
 lana-events = { workspace = true }
 sumsub = { workspace = true }
+
+[dev-dependencies]
+uuid = { workspace = true }

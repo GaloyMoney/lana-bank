@@ -201,11 +201,12 @@ impl SumsubClient {
         }
     }
 
-    /// Deactivate an applicant's profile by external user ID.
+    /// Reject an applicant by external user ID.
     ///
-    /// This marks the applicant as deactivated in SumSub so they are treated
-    /// as non-existent and excluded from duplicate checks.
-    pub async fn deactivate_applicant<T>(&self, external_user_id: T) -> Result<(), SumsubError>
+    /// Sumsub models this through the applicant presence endpoint, marking the
+    /// applicant as deactivated so they are treated as non-existent and
+    /// excluded from duplicate checks.
+    pub async fn reject_applicant<T>(&self, external_user_id: T) -> Result<(), SumsubError>
     where
         T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
     {
@@ -220,7 +221,30 @@ impl SumsubClient {
 
         let response = self.client.patch(full_url).headers(headers).send().await?;
 
-        self.handle_simple_response(response, "Failed to deactivate applicant")
+        self.handle_simple_response(response, "Failed to reject applicant")
+            .await
+    }
+
+    /// Approve an applicant by external user ID.
+    ///
+    /// Sumsub models this through the applicant presence endpoint, restoring a
+    /// previously deactivated applicant to active status.
+    pub async fn approve_applicant<T>(&self, external_user_id: T) -> Result<(), SumsubError>
+    where
+        T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
+    {
+        let applicant_details = self.get_applicant_details(external_user_id).await?;
+        let applicant_id = &applicant_details.id;
+
+        let method = "PATCH";
+        let url_path = format!("/resources/applicants/{applicant_id}/presence/activated");
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
+
+        let headers = self.get_headers(method, &url_path, None)?;
+
+        let response = self.client.patch(full_url).headers(headers).send().await?;
+
+        self.handle_simple_response(response, "Failed to approve applicant")
             .await
     }
 

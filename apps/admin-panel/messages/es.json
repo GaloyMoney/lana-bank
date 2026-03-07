@@ -495,6 +495,8 @@
           "editTelegram": "Editar handle de Telegram"
         },
         "buttons": {
+          "freeze": "Congelar cliente",
+          "unfreeze": "Descongelar cliente",
           "close": "Close Customer"
         }
       },
@@ -511,6 +513,22 @@
           "close": "Close"
         },
         "success": "Customer closed successfully"
+      },
+      "freezeCustomer": {
+        "title": "Congelar cliente",
+        "description": "¿Está seguro de que desea congelar este cliente? Esto bloqueará las operaciones del cliente en Lana y rechazará al solicitante en Sumsub.",
+        "buttons": {
+          "freeze": "Congelar cliente"
+        },
+        "success": "Cliente congelado correctamente"
+      },
+      "unfreezeCustomer": {
+        "title": "Descongelar cliente",
+        "description": "¿Está seguro de que desea descongelar este cliente? Esto restaurará las operaciones del cliente en Lana y aprobará al solicitante en Sumsub.",
+        "buttons": {
+          "unfreeze": "Descongelar cliente"
+        },
+        "success": "Cliente descongelado correctamente"
       },
       "kycStatus": {
         "title": "KYC",
