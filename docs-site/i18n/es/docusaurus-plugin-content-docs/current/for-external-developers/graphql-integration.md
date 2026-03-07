@@ -112,9 +112,28 @@ query GetCustomers($first: Int!, $after: String) {
 
 Para obtener la siguiente página, pasa el valor de `endCursor` como parámetro `after`.
 
+## IDs de facilidades pendientes
+
+Cuando consultes un `PendingCreditFacility` desde la API de administración, solicita explícitamente ambos IDs:
+
+```graphql
+query PendingFacilityIds($id: UUID!) {
+  pendingCreditFacility(id: $id) {
+    pendingCreditFacilityId
+    creditFacilityId
+    status
+  }
+}
+```
+
+Utiliza `pendingCreditFacilityId` para consultas y subscripciones relacionadas con facilidades pendientes. Utiliza
+`creditFacilityId` como la referencia canónica de la facilidad una vez que debas consultar la
+`CreditFacility` activa. En la implementación actual ambos valores son el mismo UUID,
+pero los clientes deben leer `creditFacilityId` en lugar de asumir esa equivalencia.
+
 ## Manejo de errores
 
-Los errores de GraphQL se devuelven en el array `errors` de la respuesta:
+Los errores de GraphQL se devuelven en el arreglo `errors` de la respuesta:
 
 ```json
 {
@@ -135,8 +154,8 @@ Los errores de GraphQL se devuelven en el array `errors` de la respuesta:
 |------------|-------------|--------|
 | `FORBIDDEN` | Permisos insuficientes | Verifica las credenciales de la API y el rol |
 | `UNAUTHENTICATED` | Token inválido o expirado | Actualiza el token de acceso |
-| `BAD_USER_INPUT` | Datos de entrada inválidos | Verifica los parámetros de la solicitud |
-| `INTERNAL_SERVER_ERROR` | Error del servidor | Reintenta con retroceso exponencial |
+| `BAD_USER_INPUT` | Datos de entrada no válidos | Verifica los parámetros de la solicitud |
+| `INTERNAL_SERVER_ERROR` | Error del lado del servidor | Reintenta con retroceso exponencial |
 
 ## Encabezados requeridos
 
@@ -147,5 +166,5 @@ Content-Type: application/json
 
 ## Referencias de la API
 
-- [Referencia de la API de administración](../apis/admin-api) — Operaciones y tipos completos de administración
-- [Referencia de la API de cliente](../apis/customer-api) — Operaciones completas de cliente
+- [Referencia de la API de administración](../apis/admin-api/api-reference.mdx) — Operaciones y tipos completos de administración
+- [Referencia de la API de cliente](../apis/customer-api/api-reference.mdx) — Operaciones completas de cliente

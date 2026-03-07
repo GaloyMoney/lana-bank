@@ -79,6 +79,7 @@ subscription PendingFacilityCollateral($id: UUID!) {
     effective
     pendingCreditFacility {
       pendingCreditFacilityId
+      creditFacilityId
       status
       facilityAmount
     }
@@ -105,6 +106,7 @@ subscription PendingFacilityCompleted($id: UUID!) {
     recordedAt
     pendingCreditFacility {
       pendingCreditFacilityId
+      creditFacilityId
       status
       facilityAmount
     }

@@ -2431,6 +2431,12 @@ export type PendingCreditFacility = {
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
   collateralizationState: PendingCreditFacilityCollateralizationState;
   createdAt: Scalars['Timestamp']['output'];
+  /**
+   * Canonical credit facility identifier reserved for this facility.
+   * Today this matches `pendingCreditFacilityId`, but clients should use
+   * this field when they need the active facility reference.
+   */
+  creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
   customer: Customer;
   facilityAmount: Scalars['UsdCents']['output'];
@@ -4798,7 +4804,7 @@ export type CreditAccountSetOptionsQueryVariables = Exact<{ [key: string]: never
 
 export type CreditAccountSetOptionsQuery = { __typename?: 'Query', offBalanceSheet: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, asset: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, liability: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, equity: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, revenue: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, costOfRevenue: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, expenses: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }> };
 
-export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
       | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
     , marginCallCvl:
@@ -4817,7 +4823,7 @@ export type GetPendingCreditFacilityLayoutDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
         | { __typename: 'FiniteCvlPct', value: any }
         | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4836,7 +4842,7 @@ export type PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables =
 }>;
 
 
-export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCollateralizationUpdated: { __typename?: 'PendingCreditFacilityCollateralizationPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCollateralizationUpdated: { __typename?: 'PendingCreditFacilityCollateralizationPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -4855,7 +4861,7 @@ export type PendingCreditFacilityCompletedSubscriptionVariables = Exact<{
 }>;
 
 
-export type PendingCreditFacilityCompletedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCompleted: { __typename?: 'PendingCreditFacilityCompletedPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type PendingCreditFacilityCompletedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCompleted: { __typename?: 'PendingCreditFacilityCompletedPayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCvlPct', value: any }
           | { __typename: 'InfiniteCvlPct', isInfinite: boolean }
         , marginCallCvl:
@@ -6206,6 +6212,7 @@ export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
     fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
   id
   pendingCreditFacilityId
+  creditFacilityId
   collateralId
   approvalProcessId
   createdAt
