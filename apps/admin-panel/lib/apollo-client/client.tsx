@@ -168,7 +168,7 @@ export const makeClient = ({
             ...relayStylePagination(),
             keyArgs: ["subject", "authorized", "object", "action"],
           },
-          journalEntries: relayStylePagination(),
+          journalEntries: { ...relayStylePagination(), keyArgs: ["sort"] },
           transactionTemplates: relayStylePagination(),
           ledgerTransactionsForTemplateCode: {
             ...relayStylePagination(),

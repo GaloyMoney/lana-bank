@@ -1,14 +1,25 @@
 import { useState, useMemo, useCallback } from "react"
 
-import { useJournalEntriesQuery } from "@/lib/graphql/generated"
+import {
+  useJournalEntriesQuery,
+  JournalEntriesSort,
+  JournalEntriesSortBy,
+  SortDirection,
+} from "@/lib/graphql/generated"
 
 const PAGE_SIZE = 50
 
+const DEFAULT_SORT: JournalEntriesSort = {
+  by: JournalEntriesSortBy.CreatedAt,
+  direction: SortDirection.Desc,
+}
+
 export const useJournalPagination = () => {
   const [currentPage, setCurrentPage] = useState(1)
+  const [sort, setSort] = useState<JournalEntriesSort>(DEFAULT_SORT)
 
   const { data, loading, error, fetchMore } = useJournalEntriesQuery({
-    variables: { first: PAGE_SIZE },
+    variables: { first: PAGE_SIZE, sort },
   })
 
   const displayData = useMemo(() => {
@@ -36,14 +47,25 @@ export const useJournalPagination = () => {
     setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev))
   }, [])
 
+  const onSort = useCallback(
+    (newSort: JournalEntriesSort) => {
+      setSort(newSort)
+      setCurrentPage(1)
+    },
+    [],
+  )
+
   return {
     loading,
     error,
     displayData,
     currentPage,
-    hasNextPage: data?.journalEntries?.pageInfo.hasNextPage,
+    hasNextPage:
+      data?.journalEntries?.pageInfo.hasNextPage ||
+      (data?.journalEntries?.edges.length || 0) > currentPage * PAGE_SIZE,
     handleNextPage,
     handlePreviousPage,
     pageSize: PAGE_SIZE,
+    onSort,
   }
 }

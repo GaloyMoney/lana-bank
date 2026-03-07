@@ -1703,6 +1703,15 @@ enum InterestInterval {
 	END_OF_DAY
 }
 
+input JournalEntriesSort {
+	by: JournalEntriesSortBy! = CREATED_AT
+	direction: SortDirection! = DESC
+}
+
+enum JournalEntriesSortBy {
+	CREATED_AT
+}
+
 type JournalEntry {
 	id: ID!
 	journalEntryId: UUID!
@@ -2454,7 +2463,7 @@ type Query {
 	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
-	journalEntries(first: Int!, after: String): JournalEntryConnection!
+	journalEntries(first: Int!, after: String, sort: JournalEntriesSort = {by: CREATED_AT, direction: DESC}): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
 	descendantAccountSetsByCategory(category: AccountCategory!): [AccountInfo!]!

@@ -10,6 +10,22 @@ use super::{ledger_account::LedgerAccount, ledger_transaction::LedgerTransaction
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 
+use super::super::primitives::SortDirection;
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum JournalEntriesSortBy {
+    #[default]
+    CreatedAt,
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
+pub struct JournalEntriesSort {
+    #[graphql(default)]
+    pub by: JournalEntriesSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
+}
+
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct JournalEntry {
