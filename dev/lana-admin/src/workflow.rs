@@ -24,6 +24,7 @@ struct WorkflowStep {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct WorkflowListEntry<'a> {
     name: &'a str,
     version: i64,
@@ -32,6 +33,7 @@ struct WorkflowListEntry<'a> {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct WorkflowDeps<'a> {
     workflow: &'a str,
     target_step: &'a str,
@@ -40,6 +42,7 @@ struct WorkflowDeps<'a> {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct WorkflowDepsStep<'a> {
     index: usize,
     id: &'a str,
@@ -138,14 +141,19 @@ fn load_all_workflows() -> anyhow::Result<Vec<WorkflowDefinition>> {
 }
 
 fn load_workflow(name: &str) -> anyhow::Result<WorkflowDefinition> {
-    match name {
+    let mut workflow: WorkflowDefinition = match name {
         "seed_customer_credit_facility" => serde_yaml::from_str(SEED_CUSTOMER_CREDIT_FACILITY)
             .context("failed to parse embedded workflow seed_customer_credit_facility"),
         _ => bail!(
             "unknown workflow `{name}`. Available workflows: {}",
             available_workflow_names().join(", ")
         ),
-    }
+    }?;
+
+    workflow.description = workflow
+        .description
+        .map(|description| description.trim().to_string());
+    Ok(workflow)
 }
 
 fn available_workflow_names() -> Vec<&'static str> {
