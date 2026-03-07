@@ -100,6 +100,10 @@ checksums:
     Configurations/sumsub-api-key/description: c07793f938e83089516c7abe29a82a3d
     Configurations/sumsub-api-secret/title: 804c2c14a63732c2eb2a061c89f31d5d
     Configurations/sumsub-api-secret/description: 2a8a57a5820fde00d3bd152bd6c12e89
+    Configurations/sumsub-kyc-flow-name/title: 7a8cc6d8c60935799db2b1ebe45f6efd
+    Configurations/sumsub-kyc-flow-name/description: 0c7b6fc98ad0173d78299bb5240756f1
+    Configurations/sumsub-kyb-flow-name/title: 2276544d137de16a2dc19ed4747bc1de
+    Configurations/sumsub-kyb-flow-name/description: 1ab1a3f640cab64eca47b33deba920d9
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
