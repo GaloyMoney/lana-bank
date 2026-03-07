@@ -2114,6 +2114,12 @@ enum PendingCreditFacilitiesSortBy {
 type PendingCreditFacility {
 	id: ID!
 	pendingCreditFacilityId: UUID!
+	"""
+	Canonical credit facility identifier reserved for this facility.
+	Today this matches `pendingCreditFacilityId`, but clients should use
+	this field when they need the active facility reference.
+	"""
+	creditFacilityId: UUID!
 	collateralId: UUID!
 	status: PendingCreditFacilityStatus!
 	approvalProcessId: UUID!

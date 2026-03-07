@@ -44,7 +44,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
 
   const { publicId: facilityPublicId } = usePublicIdForCreditFacility(
     pendingDetails.status === PendingCreditFacilityStatus.Completed
-      ? pendingDetails.pendingCreditFacilityId
+      ? pendingDetails.creditFacilityId
       : undefined,
   )
 
