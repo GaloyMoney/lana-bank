@@ -56,12 +56,11 @@ The `auth login` command reads `LANA_ADMIN_URL`, `LANA_KEYCLOAK_URL`, `LANA_KEYC
 Use the CLI as the source of truth for dependency sequencing:
 
 ```bash
-"${CLI[@]}" workflow list
-"${CLI[@]}" workflow deps --workflow seed_customer_credit_facility --step credit_facility_partial_payment_record
-"${CLI[@]}" workflow deps --workflow seed_customer_credit_facility --step deposit_close --all
+"${CLI[@]}" workflow deps --step credit_facility_partial_payment_record
+"${CLI[@]}" workflow deps --step deposit_close --all
 ```
 
-The workflow is embedded in the binary. Do not rely on local YAML copies or helper scripts.
+The dependency graph is embedded in the binary. Do not rely on local YAML copies or helper scripts.
 
 ## Known Environment Notes
 

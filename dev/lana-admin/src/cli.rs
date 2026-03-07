@@ -8,7 +8,6 @@ const CLI_AFTER_HELP: &str = r#"Examples:
     --username galoysuperuser@mailinator.com
 
   lana-admin workflow deps \
-    --workflow seed_customer_credit_facility \
     --step credit_facility_partial_payment_record
 
   lana-admin customer list --first 5 --json
@@ -200,13 +199,8 @@ pub enum AuthAction {
 
 #[derive(Subcommand)]
 pub enum WorkflowAction {
-    /// List built-in workflows
-    List,
-    /// Show required steps for a workflow target step
+    /// Show required steps for a target step in the built-in dependency graph
     Deps {
-        /// Embedded workflow name
-        #[arg(long, default_value = "seed_customer_credit_facility")]
-        workflow: String,
         /// Target workflow step id
         #[arg(long)]
         step: String,

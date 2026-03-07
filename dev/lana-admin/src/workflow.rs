@@ -9,9 +9,6 @@ const SEED_CUSTOMER_CREDIT_FACILITY: &str =
 
 #[derive(Debug, Clone, Deserialize)]
 struct WorkflowDefinition {
-    version: i64,
-    name: String,
-    description: Option<String>,
     steps: Vec<WorkflowStep>,
 }
 
@@ -25,17 +22,7 @@ struct WorkflowStep {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct WorkflowListEntry<'a> {
-    name: &'a str,
-    version: i64,
-    description: Option<&'a str>,
-    step_count: usize,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 struct WorkflowDeps<'a> {
-    workflow: &'a str,
     target_step: &'a str,
     include_read_only: bool,
     steps: Vec<WorkflowDepsStep<'a>>,
@@ -53,56 +40,14 @@ struct WorkflowDepsStep<'a> {
 
 pub fn execute(action: WorkflowAction, json: bool) -> anyhow::Result<()> {
     match action {
-        WorkflowAction::List => list_workflows(json),
-        WorkflowAction::Deps {
-            workflow,
-            step,
-            all,
-        } => workflow_deps(&workflow, &step, all, json),
+        WorkflowAction::Deps { step, all } => workflow_deps(&step, all, json),
     }
 }
 
-fn list_workflows(json: bool) -> anyhow::Result<()> {
-    let workflows = load_all_workflows()?;
-    let entries: Vec<_> = workflows
-        .iter()
-        .map(|workflow| WorkflowListEntry {
-            name: &workflow.name,
-            version: workflow.version,
-            description: workflow.description.as_deref(),
-            step_count: workflow.steps.len(),
-        })
-        .collect();
-
-    if json {
-        return output::print_json(&entries);
-    }
-
-    let rows = entries
-        .iter()
-        .map(|entry| {
-            vec![
-                entry.name.to_string(),
-                entry.version.to_string(),
-                entry.step_count.to_string(),
-                entry.description.unwrap_or_default().to_string(),
-            ]
-        })
-        .collect();
-    output::print_table(&["Workflow", "Version", "Steps", "Description"], rows);
-    Ok(())
-}
-
-fn workflow_deps(
-    workflow_name: &str,
-    target_step: &str,
-    include_read_only: bool,
-    json: bool,
-) -> anyhow::Result<()> {
-    let workflow = load_workflow(workflow_name)?;
+fn workflow_deps(target_step: &str, include_read_only: bool, json: bool) -> anyhow::Result<()> {
+    let workflow = load_workflow()?;
     let steps = collect_dependency_steps(&workflow, target_step, include_read_only)?;
     let deps = WorkflowDeps {
-        workflow: &workflow.name,
         target_step,
         include_read_only,
         steps,
@@ -112,7 +57,6 @@ fn workflow_deps(
         return output::print_json(&deps);
     }
 
-    println!("Workflow: {}", deps.workflow);
     println!("Target Step: {}", deps.target_step);
     println!(
         "Include Read Only: {}",
@@ -136,28 +80,9 @@ fn workflow_deps(
     Ok(())
 }
 
-fn load_all_workflows() -> anyhow::Result<Vec<WorkflowDefinition>> {
-    Ok(vec![load_workflow("seed_customer_credit_facility")?])
-}
-
-fn load_workflow(name: &str) -> anyhow::Result<WorkflowDefinition> {
-    let mut workflow: WorkflowDefinition = match name {
-        "seed_customer_credit_facility" => serde_yaml::from_str(SEED_CUSTOMER_CREDIT_FACILITY)
-            .context("failed to parse embedded workflow seed_customer_credit_facility"),
-        _ => bail!(
-            "unknown workflow `{name}`. Available workflows: {}",
-            available_workflow_names().join(", ")
-        ),
-    }?;
-
-    workflow.description = workflow
-        .description
-        .map(|description| description.trim().to_string());
-    Ok(workflow)
-}
-
-fn available_workflow_names() -> Vec<&'static str> {
-    vec!["seed_customer_credit_facility"]
+fn load_workflow() -> anyhow::Result<WorkflowDefinition> {
+    serde_yaml::from_str(SEED_CUSTOMER_CREDIT_FACILITY)
+        .context("failed to parse embedded workflow dependency graph")
 }
 
 fn collect_dependency_steps<'a>(
@@ -173,8 +98,7 @@ fn collect_dependency_steps<'a>(
 
     if !step_by_id.contains_key(target_step) {
         bail!(
-            "step `{target_step}` not found in workflow `{}`. Available steps: {}",
-            workflow.name,
+            "step `{target_step}` not found in embedded dependency graph. Available steps: {}",
             workflow
                 .steps
                 .iter()
