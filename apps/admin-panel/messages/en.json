@@ -731,7 +731,7 @@
           "manualCustodian": "Manual",
           "termsTemplate": "Terms Template",
           "creditFacilityTerms": "Credit Facility Terms",
-          "interestRate": "Nominal Interest Rate",
+          "interestRate": "Nominal Interest Rate (%)",
           "initialCvl": "Initial CVL (%)",
           "duration": "Duration",
           "months": "months",
@@ -762,6 +762,7 @@
           "btcUsdRate": "BTC/USD:",
           "noTemplates": "No terms templates available please create one or manually specify the terms below.",
           "fillAllFields": "Please fill in all the fields.",
+          "cvlOrderError": "Initial CVL must be greater than Margin Call CVL, which must be greater than Liquidation CVL.",
           "success": "Credit Facility Proposal created successfully"
         }
       }
@@ -1455,7 +1456,8 @@
         },
         "errors": {
           "general": "An unexpected error occurred. Please try again.",
-          "updateFailed": "Failed to update Terms Template"
+          "updateFailed": "Failed to update Terms Template",
+          "cvlOrderError": "Initial CVL must be greater than Margin Call CVL, which must be greater than Liquidation CVL."
         },
         "success": {
           "updated": "Terms Template updated successfully"
@@ -1494,7 +1496,8 @@
         },
         "errors": {
           "general": "An unexpected error occurred. Please try again.",
-          "creationFailed": "Failed to create Terms Template"
+          "creationFailed": "Failed to create Terms Template",
+          "cvlOrderError": "Initial CVL must be greater than Margin Call CVL, which must be greater than Liquidation CVL."
         },
         "success": {
           "created": "Terms Template created successfully"

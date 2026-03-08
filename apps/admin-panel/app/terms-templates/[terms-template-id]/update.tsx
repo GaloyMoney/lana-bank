@@ -99,6 +99,19 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     e.preventDefault()
     setError(null)
 
+    const initialCvlNum = parseFloat(formValues.initialCvl)
+    const marginCallCvlNum = parseFloat(formValues.marginCallCvl)
+    const liquidationCvlNum = parseFloat(formValues.liquidationCvl)
+    if (
+      initialCvlNum <= marginCallCvlNum ||
+      marginCallCvlNum <= liquidationCvlNum
+    ) {
+      const errorMsg = t("errors.cvlOrderError")
+      setError(errorMsg)
+      toast.error(errorMsg)
+      return
+    }
+
     try {
       const { data } = await updateTermsTemplate({
         variables: {
@@ -193,6 +206,10 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.annualRate")}
                   value={formValues.annualRate}
                   onChange={handleChange}
+                  min={0}
+                  max={50}
+                  step="any"
+                  endAdornment="%"
                 />
               </div>
               <div>
@@ -204,7 +221,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                     value={formValues.durationUnits}
                     onChange={handleChange}
                     placeholder={t("placeholders.durationUnits")}
-                    min={0}
+                    min={1}
+                    max={120}
                     required
                     endAdornment={`${t("fields.months")}`}
                   />
@@ -220,6 +238,10 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.oneTimeFeeRate")}
                   value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
+                  min={0}
+                  max={10}
+                  step="any"
+                  endAdornment="%"
                 />
               </div>
               <div>
@@ -258,6 +280,9 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.initialCvl")}
                   value={formValues.initialCvl}
                   onChange={handleChange}
+                  min={100}
+                  max={500}
+                  step="any"
                 />
               </div>
               <div>
@@ -270,6 +295,9 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.marginCallCvl")}
                   value={formValues.marginCallCvl}
                   onChange={handleChange}
+                  min={100}
+                  max={500}
+                  step="any"
                 />
               </div>
               <div>
@@ -282,6 +310,9 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.liquidationCvl")}
                   value={formValues.liquidationCvl}
                   onChange={handleChange}
+                  min={100}
+                  max={500}
+                  step="any"
                 />
               </div>
             </div>
