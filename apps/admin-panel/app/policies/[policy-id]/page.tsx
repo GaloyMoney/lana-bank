@@ -6,10 +6,13 @@ import { useTranslations } from "next-intl"
 
 import { PolicyDetailsCard } from "./details"
 
+import { NotFound } from "@/components/not-found"
+
+
 import { useGetPolicyDetailsQuery } from "@/lib/graphql/generated"
 import { CommitteeUsers } from "@/app/committees/[committee-id]/users"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
-import { formatProcessType } from "@/lib/utils"
+import { useProcessTypeLabel } from "@/app/actions/hooks"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useCreateContext } from "@/app/create"
 
@@ -45,6 +48,8 @@ function PolicyPage({
   const { setPolicy } = useCreateContext()
   const navTranslations = useTranslations("Sidebar.navItems")
 
+  const processTypeLabel = useProcessTypeLabel()
+
   const { data, loading, error } = useGetPolicyDetailsQuery({
     variables: { id: policyId },
   })
@@ -54,7 +59,7 @@ function PolicyPage({
       setCustomLinks([
         { title: navTranslations("policies"), href: "/policies" },
         {
-          title: formatProcessType(data.policy.approvalProcessType),
+          title: processTypeLabel(data.policy.approvalProcessType),
           isCurrentPage: true,
         },
       ])
@@ -75,7 +80,7 @@ function PolicyPage({
     return <DetailsPageSkeleton tabs={0} detailItems={3} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.policy) return <div>Not found</div>
+  if (!data?.policy) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto">

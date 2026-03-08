@@ -2,7 +2,7 @@
 
 import { gql } from "@apollo/client"
 import { ChevronsUpDown, LogOut, Globe } from "lucide-react"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 import { Badge } from "@lana/web/ui/badge"
@@ -40,6 +40,7 @@ export function UserBlock() {
   const { logout } = useLogout()
   const { data, loading } = useAvatarQuery()
   const locale = useLocale()
+  const t = useTranslations("Sidebar.footer")
 
   const switchLocale = (newLocale: string) => {
     document.cookie = `NEXT_LOCALE=${newLocale};path=/`
@@ -99,7 +100,7 @@ export function UserBlock() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="font-normal text-sm">
-              Language
+              {t("language")}
             </DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => switchLocale("en")}
@@ -122,7 +123,7 @@ export function UserBlock() {
               onClick={logout}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Log out
+              {t("logOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

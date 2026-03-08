@@ -6,6 +6,9 @@ import { useTranslations } from "next-intl"
 
 import { CustomerPendingCreditFacilitiesTable } from "./list"
 
+import { NotFound } from "@/components/not-found"
+
+
 import { useGetCustomerPendingCreditFacilitiesQuery } from "@/lib/graphql/generated"
 
 gql`
@@ -45,7 +48,7 @@ export default function CustomerPendingCreditFacilitiesPage({
 
   if (loading) return <div>{commonT("loading")}</div>
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.customerByPublicId) return <div>{commonT("notFound")}</div>
+  if (!data?.customerByPublicId) return <NotFound />
 
   return (
     <CustomerPendingCreditFacilitiesTable

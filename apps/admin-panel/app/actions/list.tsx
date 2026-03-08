@@ -22,7 +22,7 @@ import {
   ApprovalProcessType,
   useAllActionsQuery,
 } from "@/lib/graphql/generated"
-import { formatProcessType } from "@/lib/utils"
+import { useProcessTypeLabel } from "@/app/actions/hooks"
 import DataTable, { Column } from "@/components/data-table"
 
 gql`
@@ -89,6 +89,7 @@ type ActionNode = NonNullable<
 
 const List: React.FC<ListProps> = ({ dashboard = false }) => {
   const t = useTranslations("Actions.table")
+  const processTypeLabel = useProcessTypeLabel()
   const { data, loading } = useAllActionsQuery({
     fetchPolicy: "cache-and-network",
   })
@@ -145,7 +146,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
     {
       key: "approvalProcessType",
       header: t("headers.type"),
-      render: (type) => formatProcessType(type),
+      render: (type) => processTypeLabel(type),
     },
     {
       key: "createdAt",

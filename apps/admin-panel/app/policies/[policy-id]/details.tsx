@@ -8,7 +8,7 @@ import { CommitteeAssignmentDialog } from "./assign-to-committee"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { ApprovalRules, GetPolicyDetailsQuery } from "@/lib/graphql/generated"
-import { formatRule, formatProcessType } from "@/lib/utils"
+import { useProcessTypeLabel, useRuleLabel } from "@/app/actions/hooks"
 
 type PolicyDetailsProps = {
   policy: NonNullable<GetPolicyDetailsQuery["policy"]>
@@ -16,6 +16,8 @@ type PolicyDetailsProps = {
 
 export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
   const t = useTranslations("Policies.PolicyDetails.DetailsCard")
+  const processTypeLabel = useProcessTypeLabel()
+  const ruleLabel = useRuleLabel()
 
   const [openAssignDialog, setOpenAssignDialog] = React.useState(false)
   const policyRuleType = policy.rules.__typename
@@ -23,11 +25,11 @@ export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
   const details: DetailItemProps[] = [
     {
       label: t("fields.processType"),
-      value: formatProcessType(policy.approvalProcessType),
+      value: processTypeLabel(policy.approvalProcessType),
     },
     {
       label: t("fields.rule"),
-      value: formatRule(policy.rules as ApprovalRules),
+      value: ruleLabel(policy.rules as ApprovalRules),
     },
     ...(policyRuleType === "CommitteeApproval"
       ? [

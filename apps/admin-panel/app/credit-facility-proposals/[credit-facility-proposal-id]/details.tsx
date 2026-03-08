@@ -23,7 +23,7 @@ import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
-import { removeUnderscore } from "@/lib/utils"
+import { CustomerLabel } from "@/app/customers/customer-label"
 
 type CreditFacilityProposalDetailsCardProps = {
   proposalDetails: NonNullable<
@@ -45,7 +45,12 @@ const CreditFacilityProposalDetailsCard: React.FC<
   const details: DetailItemProps[] = [
     {
       label: t("details.customer"),
-      value: `${proposalDetails.customer.email} (${removeUnderscore(proposalDetails.customer.customerType)})`,
+      value: (
+        <CustomerLabel
+          email={proposalDetails.customer.email}
+          customerType={proposalDetails.customer.customerType}
+        />
+      ),
       href: `/customers/${proposalDetails.customer.publicId}`,
     },
     {

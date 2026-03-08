@@ -25,7 +25,7 @@ import {
   ApprovalProcessFieldsFragment,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { formatProcessType } from "@/lib/utils"
+import { useProcessTypeLabel } from "@/app/actions/hooks"
 
 gql`
   mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!, $reason: String!) {
@@ -50,6 +50,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
 }) => {
   const t = useTranslations("Actions.ApprovalProcess.Deny")
   const tCommon = useTranslations("Common")
+  const processTypeLabel = useProcessTypeLabel()
 
   const client = useApolloClient()
   const [error, setError] = React.useState<string | null>(null)
@@ -113,7 +114,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
         <DetailsGroup layout="horizontal">
           <DetailItem
             label={t("fields.processType")}
-            value={formatProcessType(approvalProcess?.approvalProcessType)}
+            value={processTypeLabel(approvalProcess?.approvalProcessType)}
           />
           <DetailItem
             label={t("fields.createdAt")}

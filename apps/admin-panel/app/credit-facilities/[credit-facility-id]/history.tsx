@@ -12,7 +12,8 @@ import {
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCreditFacilityHistoryQuery, CollateralDirection } from "@/lib/graphql/generated"
-import { formatCollateralDirection, cn } from "@/lib/utils"
+import { cn } from "@/lib/utils"
+import { useCollateralDirectionLabel } from "@/app/credit-facilities/hooks"
 import DataTable, { Column } from "@/components/data-table"
 
 type CreditFacilityHistoryProps = {
@@ -25,6 +26,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
   creditFacility,
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.History")
+  const collateralDirectionLabel = useCollateralDirectionLabel()
 
   const columns: Column<HistoryEntry>[] = [
     {
@@ -39,7 +41,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
               <div className="flex flex-row gap-1">
                 <div>{t("entryTypes.collateralUpdated")}</div>
                 <div className="text-textColor-secondary text-sm">
-                  {formatCollateralDirection(entry.direction)}
+                  {collateralDirectionLabel(entry.direction)}
                 </div>
               </div>
             )

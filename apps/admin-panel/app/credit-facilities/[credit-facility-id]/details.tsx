@@ -26,7 +26,7 @@ import {
 } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { removeUnderscore } from "@/lib/utils"
+import { CustomerLabel } from "@/app/customers/customer-label"
 import Balance from "@/components/balance/balance"
 import { useLoanAgreement } from "@/hooks/use-loan-agreement"
 
@@ -59,7 +59,12 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const details: DetailItemProps[] = [
     {
       label: t("details.customer"),
-      value: `${creditFacilityDetails.customer.email} (${removeUnderscore(creditFacilityDetails.customer.customerType)})`,
+      value: (
+        <CustomerLabel
+          email={creditFacilityDetails.customer.email}
+          customerType={creditFacilityDetails.customer.customerType}
+        />
+      ),
       href: `/customers/${creditFacilityDetails.customer.publicId}`,
     },
     {

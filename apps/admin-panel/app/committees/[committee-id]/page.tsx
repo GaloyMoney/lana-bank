@@ -5,9 +5,12 @@ import React, { useEffect, use } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
+
 import { CommitteeDetailsCard } from "./details"
 
 import { CommitteeUsers } from "./users"
+
+import { NotFound } from "@/components/not-found"
 
 import { useGetCommitteeDetailsQuery } from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
@@ -33,6 +36,7 @@ function CommitteePage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const { setCommittee } = useCreateContext()
   const navTranslations = useTranslations("Sidebar.navItems")
+
 
   const { data, loading, error } = useGetCommitteeDetailsQuery({
     variables: { id: committeeId },
@@ -61,7 +65,7 @@ function CommitteePage({
     return <DetailsPageSkeleton tabs={0} detailItems={3} tabsCards={1} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.committee) return <div>Not found</div>
+  if (!data?.committee) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto">

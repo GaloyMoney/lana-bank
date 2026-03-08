@@ -6,6 +6,9 @@ import { useTranslations } from "next-intl"
 
 import { CustomerCreditFacilityProposalsTable } from "./list"
 
+import { NotFound } from "@/components/not-found"
+
+
 import { useGetCustomerCreditFacilityProposalsQuery } from "@/lib/graphql/generated"
 
 gql`
@@ -41,7 +44,7 @@ export default function CustomerCreditFacilityProposalsPage({
 
   if (loading) return <div>{commonT("loading")}</div>
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.customerByPublicId) return <div>{commonT("notFound")}</div>
+  if (!data?.customerByPublicId) return <NotFound />
 
   return (
     <CustomerCreditFacilityProposalsTable

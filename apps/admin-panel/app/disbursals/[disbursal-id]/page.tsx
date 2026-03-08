@@ -3,11 +3,14 @@ import React, { useEffect, use } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
+
 import LedgerTransactions from "../../../components/ledger-transactions"
 
 import { DisbursalDetailsCard } from "./details"
 
 import { VotersCard } from "./voters"
+
+import { NotFound } from "@/components/not-found"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import {
@@ -95,6 +98,7 @@ function DisbursalPage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
 
+
   useEffect(() => {
     data?.disbursalByPublicId && setDisbursal(data.disbursalByPublicId)
     return () => setDisbursal(null)
@@ -120,7 +124,7 @@ function DisbursalPage({
     return <DetailsPageSkeleton tabs={0} detailItems={5} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.disbursalByPublicId) return <div>Not found</div>
+  if (!data?.disbursalByPublicId) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto space-y-2">

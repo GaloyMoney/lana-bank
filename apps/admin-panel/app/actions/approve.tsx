@@ -22,7 +22,7 @@ import {
   ApprovalProcessFieldsFragment,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { formatProcessType } from "@/lib/utils"
+import { useProcessTypeLabel } from "@/app/actions/hooks"
 
 gql`
   fragment ApprovalProcessFields on ApprovalProcess {
@@ -88,6 +88,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
 }) => {
   const t = useTranslations("Actions.ApprovalProcess.Approve")
   const tCommon = useTranslations("Common")
+  const processTypeLabel = useProcessTypeLabel()
 
   const [error, setError] = React.useState<string | null>(null)
   const [approveProcess, { loading }] = useApprovalProcessApproveMutation({
@@ -159,7 +160,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
             <DetailsGroup layout="horizontal">
               <DetailItem
                 label={t("fields.processType")}
-                value={formatProcessType(approvalProcess?.approvalProcessType)}
+                value={processTypeLabel(approvalProcess?.approvalProcessType)}
               />
               <DetailItem
                 label={t("fields.createdAt")}

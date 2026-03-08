@@ -5,6 +5,9 @@ import { useTranslations } from "next-intl"
 
 import UserDetailsCard from "./details"
 
+import { NotFound } from "@/components/not-found"
+
+
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { useGetUserDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -28,6 +31,7 @@ function UserPage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
 
+
   const { data, loading, error } = useGetUserDetailsQuery({
     variables: { id: userId },
   })
@@ -50,7 +54,7 @@ function UserPage({
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.user) return <div>Not found</div>
+  if (!data?.user) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto">
