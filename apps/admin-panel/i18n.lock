@@ -1737,6 +1737,15 @@ checksums:
     Auth/IdleSessionDialog/description: 187addc99d1c3cec67cab0b7c32415df
     Auth/IdleSessionDialog/buttons/logout: 9a236bb8f8bec867ec0d0950d38bcc71
     Auth/IdleSessionDialog/buttons/staySignedIn: dced170d3bb1bf1d4c7c0b8db2f597e2
+    EntityEvents/user/initialized: c0201a921e6aab7e30cb20b36d95974e
+    EntityEvents/user/role_updated: ceddf8ebf52707814318f50f299fbda3
+    EntityEvents/customer/initialized: 7ab1610e784ed474c0261061a37ed784
+    EntityEvents/customer/frozen: 2d5beadb8def55dd1ec5fdf7defb1690
+    EntityEvents/customer/unfrozen: 8584d4d6248fdc760a6bb3232026b116
+    EntityEvents/customer/closed: d0306e3b07e8e74e8b9decd6928fc927
+    EntityEvents/role/initialized: 29b5fc125fe819dec23f877ef543681e
+    EntityEvents/role/permission_set_added: 0fcd474bea09f58c1e86756589c06739
+    EntityEvents/role/permission_set_removed: 46738fdd6c9c6ea45fc46023cd9953eb
   aafe99efd8562d4095906d30010fcd19:
     Permissions/access_viewer/description: e47f0f1513dd3c253c5d1f0ed10c2e58
     Permissions/access_viewer/label: 9cf21f792a7ba07d3a092d992600388c
