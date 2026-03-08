@@ -113,10 +113,7 @@ pub const DISBURSAL_TRANSACTION_ENTITY_TYPE: chart_primitives::EntityType =
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
-permission_sets_macro::permission_sets! {
-    CreditWriter("Can create and manage credit facilities, update collateral, initiate and settle disbursals, record interest, and process obligations"),
-    CreditViewer("Can view credit facilities, disbursals, obligations, and related loan information"),
-}
+pub use core_credit_collateral::{PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER};
 
 pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("credit_facility");
