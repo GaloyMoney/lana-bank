@@ -145,10 +145,13 @@ where
         Ok(committee)
     }
 
-    async fn auto_approval_allowed(&self) -> Result<bool, GovernanceError> {
+    async fn auto_approval_allowed_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+    ) -> Result<bool, GovernanceError> {
         if let Some(domain_configs) = &self.domain_configs {
             let require_committee = domain_configs
-                .get_without_audit::<RequireCommitteeApproval>()
+                .get_without_audit_in_op::<RequireCommitteeApproval>(op)
                 .await?
                 .value();
             return Ok(!require_committee);
@@ -162,9 +165,8 @@ where
         &self,
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
-        let auto_approval_allowed = self.auto_approval_allowed().await?;
-
         let mut db = self.policy_repo.begin_op().await?;
+        let auto_approval_allowed = self.auto_approval_allowed_in_op(&mut db).await?;
 
         if let Some(existing) = self
             .policy_repo
