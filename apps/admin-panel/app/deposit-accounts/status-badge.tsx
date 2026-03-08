@@ -2,33 +2,39 @@
 
 import { useTranslations } from "next-intl"
 
-import { Badge } from "@lana/web/ui/badge"
+import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
 import { DepositAccountStatus } from "@/lib/graphql/generated"
 
-export const DepositAccountStatusBadge: React.FC<{ status: DepositAccountStatus }> = ({
-  status,
-}) => {
-  const t = useTranslations("DepositAccounts.status")
-
-  const getVariant = (status: DepositAccountStatus) => {
-    switch (status) {
-      case DepositAccountStatus.Active:
-        return "success"
-      case DepositAccountStatus.Frozen:
-        return "destructive"
-      case DepositAccountStatus.Closed:
-        return "destructive"
-      default: {
-        const exhaustiveCheck: never = status
-        return exhaustiveCheck
-      }
+const getConfig = (
+  status: DepositAccountStatus,
+  t: ReturnType<typeof useTranslations<"DepositAccounts.status">>,
+): { label: string; variant: BadgeProps["variant"] } => {
+  switch (status) {
+    case DepositAccountStatus.Active:
+      return { label: t("active"), variant: "success" }
+    case DepositAccountStatus.Frozen:
+      return { label: t("frozen"), variant: "destructive" }
+    case DepositAccountStatus.Closed:
+      return { label: t("closed"), variant: "destructive" }
+    default: {
+      const exhaustiveCheck: never = status
+      return exhaustiveCheck
     }
   }
+}
+
+export const DepositAccountStatusBadge: React.FC<{
+  status: DepositAccountStatus
+  plain?: boolean
+}> = ({ status, plain }) => {
+  const t = useTranslations("DepositAccounts.status")
+  const { label, variant } = getConfig(status, t)
+  if (plain) return label
 
   return (
-    <Badge data-testid="deposit-account-status-badge" variant={getVariant(status)}>
-      {t(status.toLowerCase())}
+    <Badge data-testid="deposit-account-status-badge" variant={variant}>
+      {label}
     </Badge>
   )
 }

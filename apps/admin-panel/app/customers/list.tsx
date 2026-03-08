@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { CustomerStatusBadge } from "./customer-status-badge"
+import { CustomerTypeBadge } from "./customer-type-badge"
 
 import {
   CustomerStatus,
@@ -91,12 +92,14 @@ const CustomersList = () => {
       key: "status",
       label: t("columns.status"),
       filterValues: Object.values(CustomerStatus),
+      filterLabel: (status) => <CustomerStatusBadge status={status} plain />,
       render: (status) => <CustomerStatusBadge status={status} />,
     },
     {
       key: "customerType",
       label: t("columns.customerType"),
       filterValues: Object.values(CustomerType),
+      filterLabel: (type) => <CustomerTypeBadge customerType={type} />,
     },
     {
       key: "depositAccount",

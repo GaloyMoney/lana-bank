@@ -2,12 +2,13 @@
 
 import { gql } from "@apollo/client"
 import { use } from "react"
-import { useTranslations } from "next-intl"
 
 import PendingCreditFacilityDetailsCard from "./details"
 import { PendingCreditFacilityCollateral } from "./collateral-card"
 
 import { PendingCreditFacilityTermsCard } from "./terms-card"
+
+import { NotFound } from "@/components/not-found"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
@@ -126,7 +127,7 @@ export default function PendingCreditFacilityLayout({
   params: Promise<{ "pending-credit-facility-id": string }>
 }) {
   const { "pending-credit-facility-id": pendingId } = use(params)
-  const commonT = useTranslations("Common")
+
 
   const { data, loading, error } = useGetPendingCreditFacilityLayoutDetailsQuery({
     variables: { pendingCreditFacilityId: pendingId },
@@ -147,7 +148,7 @@ export default function PendingCreditFacilityLayout({
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.pendingCreditFacility) return <div>{commonT("notFound")}</div>
+  if (!data?.pendingCreditFacility) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto">

@@ -6,6 +6,9 @@ import { useTranslations } from "next-intl"
 
 import { RoleDetailsCard } from "./details"
 
+import { NotFound } from "@/components/not-found"
+
+
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { useRoleQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -29,6 +32,7 @@ function RolePage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
 
+
   const { data, loading, error } = useRoleQuery({
     variables: { id: roleId },
   })
@@ -51,7 +55,7 @@ function RolePage({
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.role) return <div>Not found</div>
+  if (!data?.role) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto">

@@ -1,97 +1,48 @@
 import { useTranslations } from "next-intl"
-import { Badge } from "@lana/web/ui/badge"
+import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
 import {
   CollateralizationState,
   InterestInterval,
   Period,
-  PendingCreditFacilityCollateralizationState,
 } from "@/lib/graphql/generated"
+
+const getCollateralizationConfig = (
+  state: CollateralizationState,
+  t: ReturnType<typeof useTranslations<"CreditFacilities.collateralizationState">>,
+): { label: string; variant: BadgeProps["variant"] } => {
+  switch (state) {
+    case CollateralizationState.FullyCollateralized:
+      return { label: t("fullyCollateralized"), variant: "success" }
+    case CollateralizationState.NoCollateral:
+      return { label: t("noCollateral"), variant: "secondary" }
+    case CollateralizationState.NoExposure:
+      return { label: t("noExposure"), variant: "secondary" }
+    case CollateralizationState.UnderLiquidationThreshold:
+      return { label: t("underLiquidationThreshold"), variant: "destructive" }
+    case CollateralizationState.UnderMarginCallThreshold:
+      return { label: t("underMarginCallThreshold"), variant: "destructive" }
+    default: {
+      const exhaustiveCheck: never = state
+      return exhaustiveCheck
+    }
+  }
+}
 
 export const CollateralizationStateLabel = ({
   state,
+  plain,
 }: {
   state: CollateralizationState
+  plain?: boolean
 }) => {
   const t = useTranslations("CreditFacilities.collateralizationState")
   if (!state) return null
 
-  const variant = () => {
-    switch (state) {
-      case CollateralizationState.FullyCollateralized:
-        return "success"
-      case CollateralizationState.NoCollateral:
-        return "secondary"
-      case CollateralizationState.NoExposure:
-        return "secondary"
-      case CollateralizationState.UnderLiquidationThreshold:
-        return "destructive"
-      case CollateralizationState.UnderMarginCallThreshold:
-        return "destructive"
-      default:
-        return "outline"
-    }
-  }
+  const { label, variant } = getCollateralizationConfig(state, t)
+  if (plain) return label
 
-  const getText = (): string => {
-    switch (state) {
-      case CollateralizationState.FullyCollateralized:
-        return t("fullyCollateralized")
-      case CollateralizationState.NoCollateral:
-        return t("noCollateral")
-      case CollateralizationState.NoExposure:
-        return t("noExposure")
-      case CollateralizationState.UnderLiquidationThreshold:
-        return t("underLiquidationThreshold")
-      case CollateralizationState.UnderMarginCallThreshold:
-        return t("underMarginCallThreshold")
-    }
-    const exhaustiveCheck: never = state
-    return exhaustiveCheck
-  }
-
-  return <Badge variant={variant()}>{getText()}</Badge>
-}
-
-export const PendingFacilityCollateralizationStateLabel = ({
-  state,
-}: {
-  state: PendingCreditFacilityCollateralizationState
-}) => {
-  const t = useTranslations("CreditFacilities.pendingCollateralizationState")
-  if (!state) return null
-
-  const variant = () => {
-    switch (state) {
-      case PendingCreditFacilityCollateralizationState.FullyCollateralized:
-        return "success"
-      case PendingCreditFacilityCollateralizationState.UnderCollateralized:
-        return "destructive"
-      case PendingCreditFacilityCollateralizationState.NotYetCollateralized:
-        return "secondary"
-      default: {
-        const exhaustiveCheck: never = state
-        return exhaustiveCheck
-      }
-    }
-  }
-
-  const getText = (): string => {
-    switch (state) {
-      case PendingCreditFacilityCollateralizationState.FullyCollateralized:
-        return t("fullyCollateralized")
-      case PendingCreditFacilityCollateralizationState.UnderCollateralized:
-        return t("underCollateralized")
-      case PendingCreditFacilityCollateralizationState.NotYetCollateralized:
-        return t("notYetCollateralized")
-      default: {
-        const exhaustiveCheck: never = state
-        return exhaustiveCheck
-      }
-    }
-  }
-
-  return <Badge variant={variant()}>{getText()}</Badge>
+  return <Badge variant={variant}>{label}</Badge>
 }
 
 export const InterestIntervalLabel = ({

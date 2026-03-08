@@ -136,6 +136,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     labelClassName: "w-[13%]",
     render: (status) => <LoanAndCreditFacilityStatusBadge status={status} />,
     filterValues: Object.values(CreditFacilityStatus),
+    filterLabel: (status) => <LoanAndCreditFacilityStatusBadge status={status} plain />,
   },
   {
     key: "customer",
@@ -157,6 +158,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     labelClassName: "w-[20%]",
     render: (state) => <CollateralizationStateLabel state={state} />,
     filterValues: Object.values(CollateralizationState),
+    filterLabel: (state) => <CollateralizationStateLabel state={state} plain />,
   },
   {
     key: "currentCvl",

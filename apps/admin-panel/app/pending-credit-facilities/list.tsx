@@ -98,18 +98,23 @@ const PendingCreditFacilities = () => {
 
 export default PendingCreditFacilities
 
-const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] => [
+const columns = (
+  t: (key: string) => string,
+): Column<PendingCreditFacility>[] => [
   {
     key: "status",
     label: t("table.headers.status"),
-    labelClassName: "w-[17%]",
+    labelClassName: "w-[25%]",
     render: (status) => <PendingCreditFacilityStatusBadge status={status} />,
     filterValues: Object.values(PendingCreditFacilityStatus),
+    filterLabel: (status) => (
+      <PendingCreditFacilityStatusBadge status={status} plain />
+    ),
   },
   {
     key: "customer",
     label: t("table.headers.customer"),
-    labelClassName: "w-[25%]",
+    labelClassName: "w-[20%]",
     render: (customer) => <div className="truncate">{customer.email}</div>,
   },
   {
@@ -120,22 +125,19 @@ const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] =>
     sortable: true,
   },
   {
-    key: "collateral",
-    label: t("table.headers.collateral"),
-    labelClassName: "w-[15%]",
-    render: (collateral) => <Balance amount={collateral.btcBalance} currency="btc" />,
-  },
-  {
     key: "collateralizationState",
     label: t("table.headers.collateralizationState"),
-    labelClassName: "w-[15%]",
+    labelClassName: "w-[17%]",
     render: (state) => <PendingFacilityCollateralizationStateLabel state={state} />,
     filterValues: Object.values(PendingCreditFacilityCollateralizationState),
+    filterLabel: (state) => (
+      <PendingFacilityCollateralizationStateLabel state={state} plain />
+    ),
   },
   {
     key: "createdAt",
     label: t("table.headers.createdAt"),
-    labelClassName: "w-[10%]",
+    labelClassName: "w-[15%]",
     render: (date) => <DateWithTooltip value={date} />,
     sortable: true,
   },

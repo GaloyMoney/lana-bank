@@ -22,7 +22,24 @@
     "close": "Cerrar",
     "submit": "Enviar",
     "set": "Establecer",
-    "copiedToClipboard": "Copiado al portapapeles"
+    "copiedToClipboard": "Copiado al portapapeles",
+    "copyId": "Copiar ID",
+    "formatRule": {
+      "noRulesDefined": "No hay reglas definidas",
+      "allMembersMustApprove": "Todos los miembros deben aprobar",
+      "systemAutoApproval": "Aprobación automática del sistema",
+      "systemManualApproval": "Aprobación manual del sistema",
+      "unknownRuleType": "Tipo de regla desconocido"
+    },
+    "formatProcessType": {
+      "creditFacilityProposal": "Propuesta de línea de crédito",
+      "withdrawal": "Retiro",
+      "disbursal": "Desembolso"
+    },
+    "formatCollateralDirection": {
+      "added": "(Agregado)",
+      "removed": "(Eliminado)"
+    }
   },
   "LedgerTransactions": {
     "title": "Partidas contables",
@@ -94,6 +111,9 @@
       "invalidInt": "Ingresa un número entero válido",
       "invalidUint": "Ingresa un número entero no negativo válido",
       "invalidDecimal": "Ingresa un valor decimal",
+      "selectTimezone": "Seleccionar zona horaria...",
+      "searchTimezone": "Buscar zona horaria...",
+      "noTimezoneFound": "No se encontró zona horaria.",
       "invalidTimezone": "Ingresa una zona horaria válida (ej., UTC, America/New_York)",
       "invalidTime": "Ingresa una hora válida en formato HH:MM:SS",
       "invalidJson": "Ingresa un JSON válido",
@@ -142,6 +162,10 @@
     "sumsub-kyb-flow-name": {
       "title": "Nombre del flujo KYB de SumSub",
       "description": "Nombre del flujo de SumSub utilizado para la verificación KYB."
+    },
+    "require-committee-approval": {
+      "title": "Requerir aprobación de comité",
+      "description": "Cuando está habilitado, no se pueden crear ni actualizar políticas con aprobación automática del sistema. Todas las políticas deben usar aprobación de comité."
     }
   },
   "interestInterval": {
@@ -197,7 +221,9 @@
     },
     "footer": {
       "appName": "Lana Bank",
-      "version": "v{version}"
+      "version": "v{version}",
+      "logOut": "Cerrar sesión",
+      "language": "Idioma"
     }
   },
   "UserBlock": {

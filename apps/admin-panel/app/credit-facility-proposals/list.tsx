@@ -100,6 +100,7 @@ const columns = (t: (key: string) => string): Column<CreditFacilityProposal>[] =
     labelClassName: "w-[20%]",
     render: (status) => <CreditFacilityProposalStatusBadge status={status} />,
     filterValues: Object.values(CreditFacilityProposalStatus),
+    filterLabel: (status) => <CreditFacilityProposalStatusBadge status={status} plain />,
   },
   {
     key: "customer",

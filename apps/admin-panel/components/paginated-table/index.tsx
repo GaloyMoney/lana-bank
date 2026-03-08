@@ -23,6 +23,7 @@ import {
 } from "@lana/web/ui/dropdown-menu"
 import { Button } from "@lana/web/ui/button"
 import { Skeleton } from "@lana/web/ui/skeleton"
+import { Badge } from "@lana/web/ui/badge"
 import {
   Table,
   TableBody,
@@ -242,23 +243,20 @@ const PaginatedTable = <T,>({
     if (activeFilterEntries.length === 0) return null
     return (
       <div
-        className="flex flex-wrap items-center gap-2 px-2 py-1.5"
+        className="flex flex-wrap items-center gap-2 px-1 py-1.5"
         role="region"
         aria-label={t("activeFilters", { defaultMessage: "Active filters" })}
       >
         {activeFilterEntries.map(([key, value]) => {
           const { label, displayValue } = formatFilterValue(key, value)
           return (
-            <span
-              key={String(key)}
-              className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 text-xs text-blue-700 dark:text-blue-300"
-            >
+            <Badge key={String(key)} variant="secondary" className="gap-1.5 pr-1">
               <span className="font-medium">{label}:</span>
               <span className="capitalize">{displayValue}</span>
               <button
                 type="button"
                 onClick={() => handleFilter(key, undefined)}
-                className="ml-0.5 inline-flex items-center rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
+                className="ml-0.5 rounded-full p-0.5 hover:bg-muted-foreground/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                 aria-label={t("removeFilter", {
                   defaultMessage: `Remove filter ${label}`,
                   label,
@@ -266,18 +264,19 @@ const PaginatedTable = <T,>({
               >
                 <HiX className="h-3 w-3" />
               </button>
-            </span>
+            </Badge>
           )
         })}
         {activeFilterEntries.length >= 2 && (
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="sm"
             onClick={clearAllFilters}
-            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 rounded"
+            className="text-xs text-muted-foreground h-auto px-1 py-0"
             aria-label={t("clearAllFilters", { defaultMessage: "Clear all filters" })}
           >
             {t("clearAll", { defaultMessage: "Clear all" })}
-          </button>
+          </Button>
         )}
       </div>
     )
@@ -534,6 +533,7 @@ const PaginatedTable = <T,>({
 
   return (
     <>
+      <ActiveFilterChips />
       <div
         ref={tableRef}
         className={`overflow-x-auto rounded-md focus:outline-none ${style === "comfortable" ? "border" : ""}`}
@@ -547,7 +547,6 @@ const PaginatedTable = <T,>({
           }
         }}
       >
-        <ActiveFilterChips />
         <Table className="table-fixed w-full">
           {showHeader && (
             <TableHeader

@@ -24,6 +24,17 @@ checksums:
     Common/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
     Common/set: 72fc8d871f1d34fd81f0cae5c4505591
     Common/copiedToClipboard: 6a3c394a9a51646bad2f72d7311b242d
+    Common/copyId: b05ed1f0745e7f8ce758658681f61707
+    Common/formatRule/noRulesDefined: c2fa3d9395c5cc7c85dde610f5b5b0aa
+    Common/formatRule/allMembersMustApprove: c828e90335daa1fb324ee374d0b3936b
+    Common/formatRule/systemAutoApproval: 7080937d79641fb6d9d8c30b5b2f0f38
+    Common/formatRule/systemManualApproval: 87122f4fd41b9c9dd4389fe733711996
+    Common/formatRule/unknownRuleType: 928526b3cbf6d0b248366853dd1893dc
+    Common/formatProcessType/creditFacilityProposal: 062cd96fc0ef418286ef0edddf72b3e7
+    Common/formatProcessType/withdrawal: 90991ef39c923572c15cac977346ee77
+    Common/formatProcessType/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
+    Common/formatCollateralDirection/added: c61d49feb36dd46ea21f2da39b431015
+    Common/formatCollateralDirection/removed: 55922af75a67010d4c951600f4ea71dc
     LedgerTransactions/title: 8c7ca0bf96c38f836a346e583121eb3d
     LedgerTransactions/description: 53bef2b7ab4f4a9dd75db1f1c5a481e0
     LedgerTransactions/entriesTitle: cfe9fa2bbeedda59de54266997e94efe
@@ -78,6 +89,9 @@ checksums:
     Configurations/domainConfigs/invalidInt: c042e286aaeb6f16f5aaa7b3cd2db3b7
     Configurations/domainConfigs/invalidUint: 2d56c5a2c1c81303a1458c98ac6dc453
     Configurations/domainConfigs/invalidDecimal: 94b1923cb4c5452baa0459f9fc37e0cc
+    Configurations/domainConfigs/selectTimezone: 64159570a4392c59dd8a6f5b08050dcc
+    Configurations/domainConfigs/searchTimezone: 88e93f05fd21dfaef1786c0cba7aecef
+    Configurations/domainConfigs/noTimezoneFound: eb3203c0414a3c43b25128d39f0445b4
     Configurations/domainConfigs/invalidTimezone: 27b8f08a8683709aa078f120512294d9
     Configurations/domainConfigs/invalidTime: 13a174a71c0c65b5362eb0668496bdf4
     Configurations/domainConfigs/invalidJson: a842443a1a3b3cd7a3d3d2ec70907f38
@@ -104,6 +118,8 @@ checksums:
     Configurations/sumsub-kyc-flow-name/description: 0c7b6fc98ad0173d78299bb5240756f1
     Configurations/sumsub-kyb-flow-name/title: 2276544d137de16a2dc19ed4747bc1de
     Configurations/sumsub-kyb-flow-name/description: 1ab1a3f640cab64eca47b33deba920d9
+    Configurations/require-committee-approval/title: d6d631c292fcddbbbec53bd620b56235
+    Configurations/require-committee-approval/description: d8a0824d999b33c3e926f10de37f8bb1
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
@@ -148,6 +164,8 @@ checksums:
     Sidebar/navItems/prospects: 8fd9acd1c9f666b0afa89fa9a1af3b96
     Sidebar/footer/appName: 7dfeb06f156f842109c07f26a73cb311
     Sidebar/footer/version: d640a8609bd8374f70e40f862250cb70
+    Sidebar/footer/logOut: 9a236bb8f8bec867ec0d0950d38bcc71
+    Sidebar/footer/language: 277fd1a41cc237a437cd1d5e4a80463b
     UserBlock/settings: 8df6777277469c1fd88cc18dde2f1cc3
     UserBlock/logout: 07948fdf20705e04a7bf68ab197512bf
     UserBlock/profile: d7878693f91303a438852d617f6d35df

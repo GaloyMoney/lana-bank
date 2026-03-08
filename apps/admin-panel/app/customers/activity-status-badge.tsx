@@ -1,25 +1,19 @@
-import { Badge } from "@lana/web/ui/badge"
+import { Badge, BadgeProps } from "@lana/web/ui/badge"
 import { useTranslations } from "next-intl"
 
 import { Activity } from "@/lib/graphql/generated"
 
-const getStatusConfig = (status: Activity) => {
+const getConfig = (
+  status: Activity,
+  t: ReturnType<typeof useTranslations<"Customers.status">>,
+): { label: string; variant: BadgeProps["variant"] } => {
   switch (status) {
     case Activity.Active:
-      return {
-        translationKey: "active",
-        variant: "success" as const,
-      }
+      return { label: t("active"), variant: "success" }
     case Activity.Inactive:
-      return {
-        translationKey: "inactive",
-        variant: "secondary" as const,
-      }
+      return { label: t("inactive"), variant: "secondary" }
     case Activity.Escheatable:
-      return {
-        translationKey: "escheatable",
-        variant: "destructive" as const,
-      }
+      return { label: t("escheatable"), variant: "destructive" }
     default: {
       const exhaustiveCheck: never = status
       return exhaustiveCheck
@@ -29,17 +23,22 @@ const getStatusConfig = (status: Activity) => {
 
 interface ActivityStatusBadgeProps {
   status: Activity | undefined
+  plain?: boolean
 }
 
-export const ActivityStatusBadge: React.FC<ActivityStatusBadgeProps> = ({ status }) => {
+export const ActivityStatusBadge: React.FC<ActivityStatusBadgeProps> = ({
+  status,
+  plain,
+}) => {
   const t = useTranslations("Customers.status")
   if (!status) return null
 
-  const { translationKey, variant } = getStatusConfig(status)
+  const { label, variant } = getConfig(status, t)
+  if (plain) return label
 
   return (
     <Badge variant={variant} className="w-fit">
-      {t(translationKey)}
+      {label}
     </Badge>
   )
 }

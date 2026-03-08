@@ -103,30 +103,36 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
     key: "publicId",
     label: t("headers.depositId"),
+    labelClassName: "w-[12%]",
     sortable: true,
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
     key: "account",
     label: t("headers.customer"),
-    render: (account) => account.customer.email,
+    labelClassName: "w-[20%]",
+    render: (account) => <div className="truncate">{account.customer.email}</div>,
   },
   {
     key: "reference",
     label: t("headers.reference"),
+    labelClassName: "w-[25%]",
     render: (reference, deposit) =>
       reference === deposit.depositId ? t("values.na") : reference,
   },
   {
     key: "amount",
     label: t("headers.amount"),
+    labelClassName: "w-[18%]",
     sortable: true,
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
   {
     key: "status",
     label: t("headers.status"),
+    labelClassName: "w-[15%]",
     render: (status) => <DepositStatusBadge status={status} />,
     filterValues: Object.values(DepositStatus),
+    filterLabel: (status) => <DepositStatusBadge status={status} plain />,
   },
 ]

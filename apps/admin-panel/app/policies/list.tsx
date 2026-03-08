@@ -9,7 +9,7 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-import { formatProcessType } from "@/lib/utils"
+import { useProcessTypeLabel } from "@/app/actions/hooks"
 
 gql`
   query Policies($first: Int!, $after: String) {
@@ -47,6 +47,7 @@ gql`
 
 const PolicyList = () => {
   const t = useTranslations("Policies.table")
+  const processTypeLabel = useProcessTypeLabel()
 
   const { data, loading, error, fetchMore } = usePoliciesQuery({
     variables: {
@@ -58,7 +59,7 @@ const PolicyList = () => {
     <div>
       {error && <p className="text-destructive text-sm">{t("errors.general")}</p>}
       <PaginatedTable
-        columns={columns(t)}
+        columns={columns(t, processTypeLabel)}
         data={data?.policies as PaginatedData<Policy>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -71,11 +72,14 @@ const PolicyList = () => {
 
 export default PolicyList
 
-const columns = (t: ReturnType<typeof useTranslations>): Column<Policy>[] => [
+const columns = (
+  t: ReturnType<typeof useTranslations>,
+  processTypeLabel: ReturnType<typeof useProcessTypeLabel>,
+): Column<Policy>[] => [
   {
     key: "approvalProcessType",
     label: t("headers.approvalProcessType"),
-    render: (type) => formatProcessType(type),
+    render: (type) => processTypeLabel(type),
   },
   {
     key: "rules",

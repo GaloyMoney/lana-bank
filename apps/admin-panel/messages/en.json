@@ -22,7 +22,24 @@
     "close": "Close",
     "submit": "Submit",
     "set": "Set",
-    "copiedToClipboard": "Copied to clipboard"
+    "copiedToClipboard": "Copied to clipboard",
+    "copyId": "Copy ID",
+    "formatRule": {
+      "noRulesDefined": "No rules defined",
+      "allMembersMustApprove": "All members must approve",
+      "systemAutoApproval": "System Auto Approval",
+      "systemManualApproval": "System Manual Approval",
+      "unknownRuleType": "Unknown rule type"
+    },
+    "formatProcessType": {
+      "creditFacilityProposal": "Credit Facility Proposal",
+      "withdrawal": "Withdrawal",
+      "disbursal": "Disbursal"
+    },
+    "formatCollateralDirection": {
+      "added": "(Added)",
+      "removed": "(Removed)"
+    }
   },
   "LedgerTransactions": {
     "title": "Ledger Transactions",
@@ -94,6 +111,9 @@
       "invalidInt": "Enter a valid integer",
       "invalidUint": "Enter a valid non-negative integer",
       "invalidDecimal": "Enter a decimal value",
+      "selectTimezone": "Select timezone...",
+      "searchTimezone": "Search timezone...",
+      "noTimezoneFound": "No timezone found.",
       "invalidTimezone": "Enter a valid timezone (e.g., UTC, America/New_York)",
       "invalidTime": "Enter a valid time in HH:MM:SS format",
       "invalidJson": "Enter valid JSON",
@@ -142,6 +162,10 @@
     "sumsub-kyb-flow-name": {
       "title": "SumSub KYB Flow Name",
       "description": "Name of the SumSub flow used for KYB verification."
+    },
+    "require-committee-approval": {
+      "title": "Require committee approval",
+      "description": "When enabled, policies with automatic system approval cannot be created or updated. All policies must use committee approval."
     }
   },
   "interestInterval": {
@@ -197,7 +221,9 @@
     },
     "footer": {
       "appName": "Lana Bank",
-      "version": "v{version}"
+      "version": "v{version}",
+      "logOut": "Log out",
+      "language": "Language"
     }
   },
   "UserBlock": {

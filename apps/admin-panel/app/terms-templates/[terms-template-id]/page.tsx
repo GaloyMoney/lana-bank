@@ -5,6 +5,9 @@ import { useTranslations } from "next-intl"
 
 import TermsTemplateDetailsCard from "./details"
 
+import { NotFound } from "@/components/not-found"
+
+
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { useTermsTemplateQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -29,6 +32,7 @@ function TermsTemplatePage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const { setTermsTemplate } = useCreateContext()
   const navTranslations = useTranslations("Sidebar.navItems")
+
   const { data, loading, error } = useTermsTemplateQuery({
     variables: { id: termsTemplateId },
   })
@@ -55,7 +59,7 @@ function TermsTemplatePage({
   if (loading && !data)
     return <DetailsPageSkeleton tabs={0} detailItems={8} tabsCards={0} />
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.termsTemplate) return <div>Not found</div>
+  if (!data?.termsTemplate) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto">

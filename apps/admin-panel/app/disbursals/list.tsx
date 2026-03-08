@@ -74,6 +74,7 @@ const Disbursals = () => {
       labelClassName: "w-[15%]",
       render: (status) => <DisbursalStatusBadge status={status} />,
       filterValues: Object.values(DisbursalStatus),
+      filterLabel: (status) => <DisbursalStatusBadge status={status} plain />,
     },
     {
       key: "creditFacility",

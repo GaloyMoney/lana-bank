@@ -4,9 +4,12 @@ import { gql } from "@apollo/client"
 import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
+
 import LedgerTransactions from "../../../components/ledger-transactions"
 
 import DepositDetailsCard from "./details"
+
+import { NotFound } from "@/components/not-found"
 
 import { useGetDepositDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -62,6 +65,7 @@ function DepositPage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
 
+
   const { data, loading, error } = useGetDepositDetailsQuery({
     variables: { publicId },
   })
@@ -86,7 +90,7 @@ function DepositPage({
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.depositByPublicId) return <div>Not found</div>
+  if (!data?.depositByPublicId) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto space-y-2">

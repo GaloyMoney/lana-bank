@@ -65,7 +65,6 @@ gql`
 
 const DepositAccounts = () => {
   const t = useTranslations("DepositAccounts.table")
-  const tActivity = useTranslations("Customers.status")
   const [filter, setFilter] = useState<DepositAccountsFilter | null>(null)
   const [sortBy, setSortBy] = useState<DepositAccountsSort | null>(null)
 
@@ -81,7 +80,7 @@ const DepositAccounts = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<DepositAccount>
-        columns={columns(t, tActivity)}
+        columns={columns(t)}
         data={data?.depositAccounts as PaginatedData<DepositAccount>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -104,20 +103,18 @@ const DepositAccounts = () => {
 
 export default DepositAccounts
 
-const columns = (
-  t: ReturnType<typeof useTranslations>,
-  tActivity: ReturnType<typeof useTranslations>,
-): Column<DepositAccount>[] => [
+const columns = (t: ReturnType<typeof useTranslations>): Column<DepositAccount>[] => [
   {
     key: "publicId",
     label: t("headers.depositAccountId"),
+    labelClassName: "w-[12%]",
     sortable: true,
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
     key: "customer",
     label: t("headers.customer"),
-    render: (customer) => customer.email,
+    render: (customer) => <div className="truncate">{customer.email}</div>,
   },
   {
     key: "balance",
@@ -134,12 +131,13 @@ const columns = (
     label: t("headers.status"),
     render: (status) => <DepositAccountStatusBadge status={status} />,
     filterValues: Object.values(DepositAccountStatus),
+    filterLabel: (status) => <DepositAccountStatusBadge status={status} plain />,
   },
   {
     key: "activity",
     label: t("headers.activity"),
     render: (activity) => <ActivityStatusBadge status={activity} />,
     filterValues: Object.values(Activity),
-    filterLabel: (activity) => tActivity(activity.toLowerCase()),
+    filterLabel: (activity) => <ActivityStatusBadge status={activity} plain />,
   },
 ]

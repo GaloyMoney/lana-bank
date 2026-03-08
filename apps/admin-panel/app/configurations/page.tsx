@@ -232,6 +232,7 @@ type TimezoneComboboxProps = {
 
 function TimezoneCombobox({ value, onChange, disabled, id }: TimezoneComboboxProps) {
   const [open, setOpen] = useState(false)
+  const t = useTranslations("Configurations.domainConfigs")
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -244,15 +245,15 @@ function TimezoneCombobox({ value, onChange, disabled, id }: TimezoneComboboxPro
           disabled={disabled}
           className="w-full justify-between font-normal"
         >
-          {value || "Select timezone..."}
+          {value || t("selectTimezone")}
           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search timezone..." />
+          <CommandInput placeholder={t("searchTimezone")} />
           <CommandList>
-            <CommandEmpty>No timezone found.</CommandEmpty>
+            <CommandEmpty>{t("noTimezoneFound")}</CommandEmpty>
             <CommandGroup>
               {ALL_TIMEZONES.map((tz) => (
                 <CommandItem

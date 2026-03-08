@@ -2,11 +2,12 @@
 
 import { gql } from "@apollo/client"
 import { use } from "react"
-import { useTranslations } from "next-intl"
 
 import CreditFacilityProposalDetailsCard from "./details"
 
 import { CreditFacilityTermsCard } from "./terms-card"
+
+import { NotFound } from "@/components/not-found"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
@@ -100,7 +101,7 @@ export default function CreditFacilityProposalLayout({
   params: Promise<{ "credit-facility-proposal-id": string }>
 }) {
   const { "credit-facility-proposal-id": proposalId } = use(params)
-  const commonT = useTranslations("Common")
+
 
   const { data, loading, error } = useGetCreditFacilityProposalLayoutDetailsQuery({
     variables: { creditFacilityProposalId: proposalId },
@@ -116,7 +117,7 @@ export default function CreditFacilityProposalLayout({
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.creditFacilityProposal) return <div>{commonT("notFound")}</div>
+  if (!data?.creditFacilityProposal) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto">

@@ -4,8 +4,11 @@ import { gql } from "@apollo/client"
 import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
+
 import DepositAccountDetailsCard from "./details"
 import { DepositAccountTransactionsTable } from "./transactions-table"
+
+import { NotFound } from "@/components/not-found"
 
 import { useGetDepositAccountDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -145,7 +148,7 @@ function DepositAccountPage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
   const { setDepositAccount } = useCreateContext()
-  const commonT = useTranslations("Common")
+
   const { data, loading, error, fetchMore } = useGetDepositAccountDetailsQuery({
     variables: {
       publicId,
@@ -174,7 +177,7 @@ function DepositAccountPage({
 
   if (loading) return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.depositAccountByPublicId) return <div>{commonT("notFound")}</div>
+  if (!data?.depositAccountByPublicId) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto space-y-2">

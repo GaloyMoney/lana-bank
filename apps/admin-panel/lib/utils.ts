@@ -1,13 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-import {
-  ApprovalProcessType,
-  ApprovalRules,
-  CollateralDirection,
-  CvlPctDataFragment,
-  GetRealtimePriceUpdatesQuery,
-} from "./graphql/generated"
+import { CvlPctDataFragment, GetRealtimePriceUpdatesQuery } from "./graphql/generated"
 
 import { Satoshis, UsdCents } from "@/types"
 
@@ -44,10 +38,6 @@ export const formatRole = (role: string) => {
     .join(" ")
 }
 
-export const formatCollateralDirection = (collateralDirection: CollateralDirection) => {
-  return collateralDirection === CollateralDirection.Add ? "(Added)" : "(Removed)"
-}
-
 export const formatTransactionType = (typename: string) => {
   return typename
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -78,33 +68,6 @@ export const calculateInitialCollateralRequired = ({
     (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
 
   return Math.floor(requiredCollateralInSats)
-}
-
-export const formatRule = (rule: ApprovalRules | null | undefined): string => {
-  if (!rule) {
-    return "No rules defined"
-  }
-
-  if (rule.__typename === "CommitteeApproval") {
-    return "All members must approve"
-  }
-
-  if (rule.__typename === "SystemApproval") {
-    return `System ${rule.autoApprove ? "Auto" : "Manual"} Approval`
-  }
-
-  return "Unknown rule type"
-}
-
-export const formatProcessType = (processType: ApprovalProcessType) => {
-  switch (processType) {
-    case ApprovalProcessType.CreditFacilityProposalApproval:
-      return "Credit Facility Proposal"
-    case ApprovalProcessType.WithdrawalApproval:
-      return "Withdrawal"
-    case ApprovalProcessType.DisbursalApproval:
-      return "Disbursal"
-  }
 }
 
 /**

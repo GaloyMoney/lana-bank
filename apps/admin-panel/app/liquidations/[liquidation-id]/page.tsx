@@ -3,12 +3,13 @@
 import { use } from "react"
 import { gql } from "@apollo/client"
 
-import { useTranslations } from "next-intl"
 
 import { LiquidationDetailsCard } from "./details"
 import { LiquidationCreditFacilityCard } from "./credit-facility-card"
 import { LiquidationCollateralSentTable } from "./collateral-sent-table"
 import { LiquidationProceedsReceivedTable } from "./payment-received-table"
+
+import { NotFound } from "@/components/not-found"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useGetLiquidationDetailsQuery } from "@/lib/graphql/generated"
@@ -105,13 +106,13 @@ function LiquidationPage({
   const { data, loading, error } = useGetLiquidationDetailsQuery({
     variables: { liquidationId },
   })
-  const commonT = useTranslations("Common")
+
 
   if (loading) {
     return <DetailsPageSkeleton tabs={0} detailItems={6} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.liquidation) return <div>{commonT("notFound")}</div>
+  if (!data?.liquidation) return <NotFound />
 
   return (
     <main className="max-w-7xl m-auto space-y-2">
