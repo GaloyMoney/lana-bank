@@ -61,6 +61,7 @@ gql`
 
 const Deposits = () => {
   const t = useTranslations("Deposits.table")
+  const tStatus = useTranslations("Deposits.DepositStatus")
   const [filter, setFilter] = useState<DepositsFilter | null>(null)
   const [sortBy, setSortBy] = useState<DepositsSort | null>(null)
 
@@ -76,7 +77,7 @@ const Deposits = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<Deposit>
-        columns={columns(t)}
+        columns={columns(t, tStatus)}
         data={data?.deposits as PaginatedData<Deposit>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -99,34 +100,43 @@ const Deposits = () => {
 
 export default Deposits
 
-const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
+const columns = (
+  t: ReturnType<typeof useTranslations>,
+  tStatus: ReturnType<typeof useTranslations>,
+): Column<Deposit>[] => [
   {
     key: "publicId",
     label: t("headers.depositId"),
+    labelClassName: "w-[12%]",
     sortable: true,
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
     key: "account",
     label: t("headers.customer"),
-    render: (account) => account.customer.email,
+    labelClassName: "w-[20%]",
+    render: (account) => <div className="truncate">{account.customer.email}</div>,
   },
   {
     key: "reference",
     label: t("headers.reference"),
+    labelClassName: "w-[25%]",
     render: (reference, deposit) =>
       reference === deposit.depositId ? t("values.na") : reference,
   },
   {
     key: "amount",
     label: t("headers.amount"),
+    labelClassName: "w-[18%]",
     sortable: true,
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
   {
     key: "status",
     label: t("headers.status"),
+    labelClassName: "w-[15%]",
     render: (status) => <DepositStatusBadge status={status} />,
     filterValues: Object.values(DepositStatus),
+    filterLabel: (status) => tStatus(status.toLowerCase()),
   },
 ]

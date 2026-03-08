@@ -53,6 +53,7 @@ gql`
 const CreditFacilityProposals = () => {
   const t = useTranslations("CreditFacilityProposals")
   const commonT = useTranslations("Common")
+  const tStatus = useTranslations("CreditFacilityProposals.status")
   const [sortBy, setSortBy] = useState<CreditFacilityProposalsSort | null>(null)
   const [filter, setFilter] = useState<CreditFacilityProposalsFilter | null>(null)
 
@@ -68,7 +69,7 @@ const CreditFacilityProposals = () => {
     <div>
       {error && <p className="text-destructive text-sm">{commonT("error")}</p>}
       <PaginatedTable<CreditFacilityProposal>
-        columns={columns(t)}
+        columns={columns(t, tStatus)}
         data={data?.creditFacilityProposals as PaginatedData<CreditFacilityProposal>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -93,13 +94,17 @@ const CreditFacilityProposals = () => {
 
 export default CreditFacilityProposals
 
-const columns = (t: (key: string) => string): Column<CreditFacilityProposal>[] => [
+const columns = (
+  t: (key: string) => string,
+  tStatus: ReturnType<typeof useTranslations>,
+): Column<CreditFacilityProposal>[] => [
   {
     key: "status",
     label: t("table.headers.status"),
     labelClassName: "w-[20%]",
     render: (status) => <CreditFacilityProposalStatusBadge status={status} />,
     filterValues: Object.values(CreditFacilityProposalStatus),
+    filterLabel: (status) => tStatus(status.toLowerCase()),
   },
   {
     key: "customer",

@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { CustomerStatusBadge } from "./customer-status-badge"
+import { CustomerTypeBadge } from "./customer-type-badge"
 
 import {
   CustomerStatus,
@@ -64,6 +65,7 @@ gql`
 
 const CustomersList = () => {
   const t = useTranslations("Customers")
+  const tStatus = useTranslations("Customers.CustomerDetails.details.customerStatus")
 
   const [sortBy, setSortBy] = useState<CustomersSort | null>(null)
   const [filter, setFilter] = useState<CustomersFilter | null>(null)
@@ -91,12 +93,14 @@ const CustomersList = () => {
       key: "status",
       label: t("columns.status"),
       filterValues: Object.values(CustomerStatus),
+      filterLabel: (status) => tStatus(status.toLowerCase()),
       render: (status) => <CustomerStatusBadge status={status} />,
     },
     {
       key: "customerType",
       label: t("columns.customerType"),
       filterValues: Object.values(CustomerType),
+      filterLabel: (type) => <CustomerTypeBadge customerType={type} />,
     },
     {
       key: "depositAccount",

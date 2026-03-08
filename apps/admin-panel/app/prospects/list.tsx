@@ -5,6 +5,8 @@ import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
+import { CustomerTypeBadge } from "../customers/customer-type-badge"
+
 import { ProspectStageBadge } from "./prospect-stage-badge"
 
 import {
@@ -87,6 +89,7 @@ const ProspectsList = () => {
       key: "customerType",
       label: t("columns.customerType"),
       filterValues: Object.values(CustomerType),
+      filterLabel: (type) => <CustomerTypeBadge customerType={type} />,
     },
   ]
 

@@ -58,6 +58,8 @@ gql`
 
 const PendingCreditFacilities = () => {
   const t = useTranslations("PendingCreditFacilities")
+  const tStatus = useTranslations("PendingCreditFacilities.status")
+  const tCollateralization = useTranslations("PendingCreditFacilities.collateralizationState")
   const [sortBy, setSortBy] = useState<PendingCreditFacilitiesSort | null>(null)
   const [filter, setFilter] = useState<PendingCreditFacilitiesFilter | null>(null)
 
@@ -73,7 +75,7 @@ const PendingCreditFacilities = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error.message}</p>}
       <PaginatedTable<PendingCreditFacility>
-        columns={columns(t)}
+        columns={columns(t, tStatus, tCollateralization)}
         data={data?.pendingCreditFacilities as PaginatedData<PendingCreditFacility>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -98,18 +100,23 @@ const PendingCreditFacilities = () => {
 
 export default PendingCreditFacilities
 
-const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] => [
+const columns = (
+  t: (key: string) => string,
+  tStatus: ReturnType<typeof useTranslations>,
+  tCollateralization: ReturnType<typeof useTranslations>,
+): Column<PendingCreditFacility>[] => [
   {
     key: "status",
     label: t("table.headers.status"),
-    labelClassName: "w-[17%]",
+    labelClassName: "w-[25%]",
     render: (status) => <PendingCreditFacilityStatusBadge status={status} />,
     filterValues: Object.values(PendingCreditFacilityStatus),
+    filterLabel: (status) => tStatus(status.toLowerCase()),
   },
   {
     key: "customer",
     label: t("table.headers.customer"),
-    labelClassName: "w-[25%]",
+    labelClassName: "w-[20%]",
     render: (customer) => <div className="truncate">{customer.email}</div>,
   },
   {
@@ -120,22 +127,17 @@ const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] =>
     sortable: true,
   },
   {
-    key: "collateral",
-    label: t("table.headers.collateral"),
-    labelClassName: "w-[15%]",
-    render: (collateral) => <Balance amount={collateral.btcBalance} currency="btc" />,
-  },
-  {
     key: "collateralizationState",
     label: t("table.headers.collateralizationState"),
-    labelClassName: "w-[15%]",
+    labelClassName: "w-[17%]",
     render: (state) => <PendingFacilityCollateralizationStateLabel state={state} />,
     filterValues: Object.values(PendingCreditFacilityCollateralizationState),
+    filterLabel: (state) => tCollateralization(state.toLowerCase()),
   },
   {
     key: "createdAt",
     label: t("table.headers.createdAt"),
-    labelClassName: "w-[10%]",
+    labelClassName: "w-[15%]",
     render: (date) => <DateWithTooltip value={date} />,
     sortable: true,
   },

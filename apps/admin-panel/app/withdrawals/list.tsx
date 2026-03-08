@@ -61,6 +61,7 @@ gql`
 
 const Withdrawals = () => {
   const t = useTranslations("Withdrawals.table")
+  const tStatus = useTranslations("Withdrawals.WithdrawalStatus")
   const [filter, setFilter] = useState<WithdrawalsFilter | null>(null)
   const [sortBy, setSortBy] = useState<WithdrawalsSort | null>(null)
 
@@ -76,7 +77,7 @@ const Withdrawals = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<Withdrawal>
-        columns={columns(t)}
+        columns={columns(t, tStatus)}
         data={data?.withdrawals as PaginatedData<Withdrawal>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -99,34 +100,43 @@ const Withdrawals = () => {
 
 export default Withdrawals
 
-const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] => [
+const columns = (
+  t: ReturnType<typeof useTranslations>,
+  tStatus: ReturnType<typeof useTranslations>,
+): Column<Withdrawal>[] => [
   {
     key: "publicId",
     label: t("headers.withdrawalId"),
+    labelClassName: "w-[12%]",
     sortable: true,
     render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
     key: "account",
     label: t("headers.customer"),
-    render: (account) => account.customer.email,
+    labelClassName: "w-[20%]",
+    render: (account) => <div className="truncate">{account.customer.email}</div>,
   },
   {
     key: "reference",
     label: t("headers.reference"),
+    labelClassName: "w-[25%]",
     render: (reference, withdrawal) =>
       reference === withdrawal.withdrawalId ? t("values.na") : reference,
   },
   {
     key: "amount",
     label: t("headers.amount"),
+    labelClassName: "w-[18%]",
     sortable: true,
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
   {
     key: "status",
     label: t("headers.status"),
+    labelClassName: "w-[15%]",
     render: (status) => <WithdrawalStatusBadge status={status} />,
     filterValues: Object.values(WithdrawalStatus),
+    filterLabel: (status) => tStatus(status.toLowerCase()),
   },
 ]

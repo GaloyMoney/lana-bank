@@ -56,6 +56,7 @@ gql`
 
 const Disbursals = () => {
   const t = useTranslations("Disbursals")
+  const tStatus = useTranslations("Disbursals.DisbursalStatus")
   const [sortBy, setSortBy] = useState<DisbursalsSort | null>(null)
   const [filter, setFilter] = useState<DisbursalsFilter | null>(null)
 
@@ -74,6 +75,7 @@ const Disbursals = () => {
       labelClassName: "w-[15%]",
       render: (status) => <DisbursalStatusBadge status={status} />,
       filterValues: Object.values(DisbursalStatus),
+      filterLabel: (status) => tStatus(status.toLowerCase()),
     },
     {
       key: "creditFacility",
