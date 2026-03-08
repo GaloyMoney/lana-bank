@@ -9,6 +9,7 @@ use encryption::Encrypted;
 use crate::{
     ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, EncryptionKey, ValueKind,
+    error::DomainConfigHydrateError,
     primitives::{DomainConfigId, DomainConfigKey, Visibility},
     value::DomainConfigValue,
 };
@@ -46,6 +47,34 @@ pub struct DomainConfig {
 }
 
 impl DomainConfig {
+    /// Asserts that the entity's current encrypted value (if any) can be
+    /// decrypted with the given encryption key.
+    pub(crate) fn assert_decryptable(
+        &self,
+        key: &EncryptionKey,
+    ) -> Result<(), DomainConfigHydrateError> {
+        if !self.encrypted {
+            return Ok(());
+        }
+
+        let Some(stored_value) = self.current_stored_value() else {
+            return Ok(());
+        };
+
+        if !stored_value.is_encrypted() {
+            return Ok(());
+        }
+
+        if stored_value.matches_key(key) {
+            return Ok(());
+        }
+
+        Err(DomainConfigHydrateError::new(
+            self.key.clone(),
+            "encrypted value cannot be decrypted with the current runtime key",
+        ))
+    }
+
     pub(super) fn current_value_plain<C>(&self) -> Option<<C::Kind as ValueKind>::Value>
     where
         C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>,

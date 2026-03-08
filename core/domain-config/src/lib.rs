@@ -145,6 +145,7 @@ pub use encryption::EncryptionConfig;
 pub use entity::DomainConfig;
 pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
+pub use error::DomainConfigHydrateError;
 #[doc(hidden)]
 pub use inventory;
 pub use primitives::{
@@ -466,7 +467,7 @@ where
     I: IntoIterator<Item = (K, serde_json::Value)>,
     K: Into<DomainConfigKey> + std::fmt::Display + Clone,
 {
-    let repo = Arc::new(DomainConfigRepo::new(pool));
+    let repo = Arc::new(DomainConfigRepo::new(pool, &encryption_config));
 
     let internal = InternalDomainConfigs::new(Arc::clone(&repo), encryption_config.clone());
     let exposed = ExposedDomainConfigs::new(Arc::clone(&repo), authz, encryption_config.clone());

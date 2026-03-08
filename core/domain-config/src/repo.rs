@@ -2,9 +2,11 @@ use es_entity::*;
 use sqlx::PgPool;
 use std::collections::HashMap;
 
+use encryption::EncryptionConfig;
+
 use crate::{
     entity::{DomainConfig, DomainConfigEvent},
-    error::DomainConfigError,
+    error::{DomainConfigError, DomainConfigHydrateError},
     primitives::{DomainConfigId, DomainConfigKey, Visibility},
 };
 
@@ -17,15 +19,24 @@ use crate::{
         visibility(ty = "Visibility", list_for(by(key)), update(persist = false)),
         encrypted(ty = "bool", list_for(by(id)), update(persist = false))
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    post_hydrate_hook(method = "validate_decryptable", error = "DomainConfigHydrateError")
 )]
 pub struct DomainConfigRepo {
     pool: PgPool,
+    encryption_config: EncryptionConfig,
 }
 
 impl DomainConfigRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub fn new(pool: &PgPool, encryption_config: &EncryptionConfig) -> Self {
+        Self {
+            pool: pool.clone(),
+            encryption_config: encryption_config.clone(),
+        }
+    }
+
+    fn validate_decryptable(&self, entity: &DomainConfig) -> Result<(), DomainConfigHydrateError> {
+        entity.assert_decryptable(&self.encryption_config.encryption_key)
     }
 
     pub async fn find_all_exposed<Out: From<DomainConfig>>(
