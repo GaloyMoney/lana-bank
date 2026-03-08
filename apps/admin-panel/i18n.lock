@@ -90,8 +90,8 @@ checksums:
     Configurations/timezone/description: d59613cf10efadb65fe77f331257bc79
     Configurations/closing-time/title: 498cd8314aac5f5cc766276362da32dc
     Configurations/closing-time/description: cd22420db68001b8b474dc55821f5d3c
-    Configurations/allow-manual-conversion/title: allow-manual-conversion-title
-    Configurations/allow-manual-conversion/description: allow-manual-conversion-description
+    Configurations/allow-manual-conversion/title: 9f217de103bd6cacdeec479ef3ed945f
+    Configurations/allow-manual-conversion/description: 653e5258d134e110971d462f894fd019
     Configurations/deposit-activity-inactive-threshold-days/title: 376246fbc9a4d8f1271ec603975fa135
     Configurations/deposit-activity-inactive-threshold-days/description: 662507a2773df057f18722f5ff0b3b63
     Configurations/deposit-activity-escheatable-threshold-days/title: 5abc7bf0e87862b406b39a0246c9d839
