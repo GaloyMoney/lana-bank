@@ -201,10 +201,10 @@ impl SumsubClient {
         }
     }
 
-    /// Reject an applicant's verification by setting the review answer to RED.
+    /// Reject an applicant's verification via SumSub's external decision API.
     ///
     /// This is used when a customer is frozen to ensure the SumSub applicant
-    /// is also marked as rejected.
+    /// is also marked as rejected with a FINAL rejection.
     pub async fn reject_applicant<T>(
         &self,
         external_user_id: T,
@@ -217,15 +217,14 @@ impl SumsubClient {
         let applicant_id = &applicant_details.id;
 
         let method = "POST";
-        let url_path = format!("/resources/applicants/{applicant_id}/status/testCompleted");
+        let url_path = format!("/resources/applicants/{applicant_id}/-/reject");
         let full_url = self.base_url.join(&url_path).expect("valid URL");
 
         let body = json!({
-            "reviewAnswer": "RED",
-            "rejectLabels": ["COMPROMISED_PERSONS"],
-            "reviewRejectType": "FINAL",
-            "clientComment": reason,
-            "moderationComment": reason
+            "note": reason,
+            "reasons": {
+                "manual": ["riskTeamDecision"]
+            }
         });
 
         let body_str = body.to_string();
