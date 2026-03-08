@@ -31,7 +31,7 @@ La balanza de comprobación muestra los saldos de todas las cuentas contables en
    - Fecha fin
 3. Hacer clic en **Generar**
 
-#### Via API GraphQL
+El balance general presenta la situación financiera del banco como una instantánea en un momento específico, organizada según la ecuación contable fundamental: **Activos = Pasivos + Patrimonio**. Por defecto, el balance general muestra la fecha actual, pero los operadores pueden seleccionar cualquier fecha pasada para ver una instantánea histórica.
 
 ```graphql
 query GetTrialBalance($input: TrialBalanceInput!) {
@@ -52,7 +52,7 @@ query GetTrialBalance($input: TrialBalanceInput!) {
 }
 ```
 
-### Ejemplo de Salida
+El balance general presenta la situación financiera del banco como una instantánea en una fecha determinada, organizada según la ecuación contable fundamental: **Activos = Pasivos + Patrimonio**.
 
 ```
 BALANZA DE COMPROBACIÓN

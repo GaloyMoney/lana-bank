@@ -100,12 +100,12 @@ Events related to customer lifecycle and KYC.
 | `CustomerKycUpdated` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
 | `PartyCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
 | `PartyEmailUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
-| `ProspectCreated` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycStarted` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycPending` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycDeclined` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectConverted` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectClosed` | No description available | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectCreated` | A new prospect was created for onboarding | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectKycStarted` | A prospect started KYC verification | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectKycPending` | A prospect's KYC verification is pending review | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectKycDeclined` | A prospect's KYC verification was declined | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectConverted` | A prospect was converted to a customer | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectClosed` | A prospect was closed without converting | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
 
 ---
 

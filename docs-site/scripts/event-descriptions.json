@@ -100,7 +100,13 @@
       "CustomerEmailUpdated": "Customer email was updated",
       "CustomerFrozen": "A customer account was frozen, blocking financial operations",
       "CustomerUnfrozen": "A previously frozen customer account was unfrozen, restoring normal operations",
-      "CustomerClosed": "Customer account was closed"
+      "CustomerClosed": "Customer account was closed",
+      "ProspectCreated": "A new prospect was created for onboarding",
+      "ProspectKycStarted": "A prospect started KYC verification",
+      "ProspectKycPending": "A prospect's KYC verification is pending review",
+      "ProspectKycDeclined": "A prospect's KYC verification was declined",
+      "ProspectConverted": "A prospect was converted to a customer",
+      "ProspectClosed": "A prospect was closed without converting"
     }
   },
   "CoreDepositEvent": {
