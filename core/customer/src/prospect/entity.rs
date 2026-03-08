@@ -191,11 +191,17 @@ impl Prospect {
         Ok(Idempotent::Executed(new_customer))
     }
 
-    pub fn convert_manually(&mut self) -> Result<Idempotent<NewCustomer>, ProspectError> {
+    pub fn convert_manually(
+        &mut self,
+        allow_manual: bool,
+    ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ProspectEvent::ManuallyConverted { .. }
         );
+        if !allow_manual {
+            return Err(ProspectError::ManualConversionNotAllowed);
+        }
         self.ensure_open()?;
         self.kyc_status = KycStatus::Approved;
         let stage = self.compute_stage();

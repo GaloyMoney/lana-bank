@@ -352,7 +352,7 @@ where
             .create_prospect(sub, email, telegram_handle, customer_type)
             .await?;
 
-        match prospect.convert_manually()? {
+        match prospect.convert_manually(true)? {
             es_entity::Idempotent::Executed(new_customer) => {
                 let mut db = self.prospect_repo.begin_op().await?;
                 self.prospect_repo
@@ -777,9 +777,6 @@ where
             .get_without_audit::<AllowManualConversion>()
             .await?
             .value();
-        if !allow_manual {
-            return Err(CustomerError::ManualConversionNotAllowed);
-        }
 
         let mut db = self.prospect_repo.begin_op().await?;
         let mut prospect = self
@@ -787,7 +784,7 @@ where
             .find_by_id_in_op(&mut db, prospect_id)
             .await?;
 
-        match prospect.convert_manually() {
+        match prospect.convert_manually(allow_manual) {
             Ok(es_entity::Idempotent::Executed(new_customer)) => {
                 self.prospect_repo
                     .update_in_op(&mut db, &mut prospect)
