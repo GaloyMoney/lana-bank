@@ -56,7 +56,7 @@ subscription CustomerKycUpdated($customerId: UUID!) {
 
 ### Actualización de Colateralización de Facilidad de Crédito Pendiente
 
-Se dispara cuando el nivel de colateralización de una facilidad de crédito pendiente cambia debido a movimientos de precio o depósitos de colateral.
+Se activa cuando el nivel de colateralización de una facilidad de crédito pendiente cambia debido a movimientos de precio o depósitos de colateral.
 
 **Campos del payload:**
 
@@ -89,14 +89,14 @@ subscription PendingFacilityCollateral($id: UUID!) {
 
 ### Facilidad de Crédito Pendiente Completada
 
-Se dispara cuando una facilidad de crédito pendiente transiciona a un estado terminal (aprobada y activada, o denegada).
+Se activa cuando una facilidad de crédito pendiente pasa a un estado terminal (aprobada y activada, o denegada).
 
 **Campos del payload:**
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `status` | `PendingCreditFacilityStatus!` | `PENDING_COLLATERALIZATION` o `COMPLETED` |
-| `recordedAt` | `Timestamp!` | Cuándo se registró la completación |
+| `recordedAt` | `Timestamp!` | Cuándo se registró la finalización |
 | `pendingCreditFacility` | `PendingCreditFacility!` | El objeto completo de la facilidad de crédito pendiente |
 
 ```graphql
