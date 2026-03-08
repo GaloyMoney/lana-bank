@@ -9,6 +9,7 @@ mod reqwest_in_lib;
 mod service_assert_before_mutate;
 mod service_conditionals;
 mod service_lint_utils;
+mod tainted_transaction_use;
 mod transaction_commit;
 mod unwrap_usage;
 
@@ -22,5 +23,6 @@ pub use repo_in_op_usage::RepoInOpUsageRule;
 pub use reqwest_in_lib::ReqwestInLibRule;
 pub use service_assert_before_mutate::ServiceAssertBeforeMutateRule;
 pub use service_conditionals::ServiceConditionalsRule;
+pub use tainted_transaction_use::TaintedTransactionUseRule;
 pub use transaction_commit::TransactionCommitRule;
 pub use unwrap_usage::UnwrapUsageRule;

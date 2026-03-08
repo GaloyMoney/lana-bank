@@ -8,7 +8,8 @@ use walkdir::WalkDir;
 use custom_lints::rules::{
     ConstructorNamingRule, DbOpConventionRule, DependencyDagRule, EntityMutateIdempotentRule,
     EntityQueryInfallibleRule, GraphqlIdNamingRule, RepoInOpUsageRule, ReqwestInLibRule,
-    ServiceAssertBeforeMutateRule, ServiceConditionalsRule, TransactionCommitRule, UnwrapUsageRule,
+    ServiceAssertBeforeMutateRule, ServiceConditionalsRule, TaintedTransactionUseRule,
+    TransactionCommitRule, UnwrapUsageRule,
 };
 use custom_lints::{LintRule, Violation, WorkspaceRule};
 
@@ -65,6 +66,7 @@ fn run() -> Result<(Vec<Violation>, String)> {
         Box::new(EntityQueryInfallibleRule::new()),
         Box::new(UnwrapUsageRule::new()),
         Box::new(RepoInOpUsageRule::new()),
+        Box::new(TaintedTransactionUseRule::new()),
     ];
 
     if !file_rules.is_empty() {
