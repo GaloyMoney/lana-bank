@@ -129,9 +129,19 @@ where
                     .member_ids(std::collections::HashSet::from([member_id]))
                     .build()
                     .expect("Could not build new committee");
-                self.committee_repo
+                match self
+                    .committee_repo
                     .create_in_op(&mut db, new_committee)
-                    .await?
+                    .await
+                {
+                    Ok(committee) => committee,
+                    Err(e) if e.was_duplicate() => {
+                        self.committee_repo
+                            .find_by_name(DEFAULT_COMMITTEE_NAME)
+                            .await?
+                    }
+                    Err(e) => return Err(e.into()),
+                }
             }
         };
 
