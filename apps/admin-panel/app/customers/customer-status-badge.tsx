@@ -1,25 +1,19 @@
-import { Badge } from "@lana/web/ui/badge"
+import { Badge, BadgeProps } from "@lana/web/ui/badge"
 import { useTranslations } from "next-intl"
 
 import { CustomerStatus } from "@/lib/graphql/generated"
 
-const getStatusConfig = (status: CustomerStatus) => {
+const getConfig = (
+  status: CustomerStatus,
+  t: ReturnType<typeof useTranslations<"Customers.CustomerDetails.details.customerStatus">>,
+): { label: string; variant: BadgeProps["variant"] } => {
   switch (status) {
     case CustomerStatus.Active:
-      return {
-        translationKey: "active",
-        variant: "success" as const,
-      }
+      return { label: t("active"), variant: "success" }
     case CustomerStatus.Frozen:
-      return {
-        translationKey: "frozen",
-        variant: "destructive" as const,
-      }
+      return { label: t("frozen"), variant: "destructive" }
     case CustomerStatus.Closed:
-      return {
-        translationKey: "closed",
-        variant: "secondary" as const,
-      }
+      return { label: t("closed"), variant: "secondary" }
     default: {
       const exhaustiveCheck: never = status
       return exhaustiveCheck
@@ -29,17 +23,22 @@ const getStatusConfig = (status: CustomerStatus) => {
 
 interface CustomerStatusBadgeProps {
   status: CustomerStatus | undefined
+  plain?: boolean
 }
 
-export const CustomerStatusBadge: React.FC<CustomerStatusBadgeProps> = ({ status }) => {
+export const CustomerStatusBadge: React.FC<CustomerStatusBadgeProps> = ({
+  status,
+  plain,
+}) => {
   const t = useTranslations("Customers.CustomerDetails.details.customerStatus")
   if (!status) return null
 
-  const { translationKey, variant } = getStatusConfig(status)
+  const { label, variant } = getConfig(status, t)
+  if (plain) return label
 
   return (
     <Badge variant={variant} className="w-fit">
-      {t(translationKey)}
+      {label}
     </Badge>
   )
 }

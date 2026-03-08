@@ -3,50 +3,43 @@ import { useTranslations } from "next-intl"
 
 import { DisbursalStatus } from "@/lib/graphql/generated"
 
-interface StatusBadgeProps extends BadgeProps {
-  status: DisbursalStatus
-}
-
-const getVariant = (status: DisbursalStatus): BadgeProps["variant"] => {
+const getConfig = (
+  status: DisbursalStatus,
+  t: ReturnType<typeof useTranslations<"Disbursals.DisbursalStatus">>,
+): { label: string; variant: BadgeProps["variant"] } => {
   switch (status) {
     case DisbursalStatus.New:
-      return "default"
+      return { label: t("new", { defaultMessage: "NEW" }), variant: "default" }
     case DisbursalStatus.Approved:
-      return "default"
+      return { label: t("approved", { defaultMessage: "APPROVED" }), variant: "default" }
     case DisbursalStatus.Confirmed:
-      return "success"
+      return { label: t("confirmed", { defaultMessage: "CONFIRMED" }), variant: "success" }
     case DisbursalStatus.Denied:
-      return "destructive"
-    default:
-      return "default"
+      return { label: t("denied", { defaultMessage: "DENIED" }), variant: "destructive" }
+    default: {
+      const exhaustiveCheck: never = status
+      return exhaustiveCheck
+    }
   }
+}
+
+interface StatusBadgeProps extends BadgeProps {
+  status: DisbursalStatus
+  plain?: boolean
 }
 
 export const DisbursalStatusBadge: React.FC<StatusBadgeProps> = ({
   status,
+  plain,
   ...props
 }) => {
   const t = useTranslations("Disbursals.DisbursalStatus")
-  const variant = getVariant(status)
-
-  const getTranslatedStatus = (status: DisbursalStatus): string => {
-    switch (status) {
-      case DisbursalStatus.New:
-        return t("new", { defaultMessage: "NEW" })
-      case DisbursalStatus.Approved:
-        return t("approved", { defaultMessage: "APPROVED" })
-      case DisbursalStatus.Confirmed:
-        return t("confirmed", { defaultMessage: "CONFIRMED" })
-      case DisbursalStatus.Denied:
-        return t("denied", { defaultMessage: "DENIED" })
-      default:
-        return String(status)
-    }
-  }
+  const { label, variant } = getConfig(status, t)
+  if (plain) return label
 
   return (
     <Badge variant={variant} {...props}>
-      {getTranslatedStatus(status)}
+      {label}
     </Badge>
   )
 }

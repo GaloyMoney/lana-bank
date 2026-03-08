@@ -61,7 +61,6 @@ gql`
 
 const Withdrawals = () => {
   const t = useTranslations("Withdrawals.table")
-  const tStatus = useTranslations("Withdrawals.WithdrawalStatus")
   const [filter, setFilter] = useState<WithdrawalsFilter | null>(null)
   const [sortBy, setSortBy] = useState<WithdrawalsSort | null>(null)
 
@@ -77,7 +76,7 @@ const Withdrawals = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<Withdrawal>
-        columns={columns(t, tStatus)}
+        columns={columns(t)}
         data={data?.withdrawals as PaginatedData<Withdrawal>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -100,10 +99,7 @@ const Withdrawals = () => {
 
 export default Withdrawals
 
-const columns = (
-  t: ReturnType<typeof useTranslations>,
-  tStatus: ReturnType<typeof useTranslations>,
-): Column<Withdrawal>[] => [
+const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] => [
   {
     key: "publicId",
     label: t("headers.withdrawalId"),
@@ -137,6 +133,6 @@ const columns = (
     labelClassName: "w-[15%]",
     render: (status) => <WithdrawalStatusBadge status={status} />,
     filterValues: Object.values(WithdrawalStatus),
-    filterLabel: (status) => tStatus(status.toLowerCase()),
+    filterLabel: (status) => <WithdrawalStatusBadge status={status} plain />,
   },
 ]

@@ -61,7 +61,6 @@ gql`
 
 const Deposits = () => {
   const t = useTranslations("Deposits.table")
-  const tStatus = useTranslations("Deposits.DepositStatus")
   const [filter, setFilter] = useState<DepositsFilter | null>(null)
   const [sortBy, setSortBy] = useState<DepositsSort | null>(null)
 
@@ -77,7 +76,7 @@ const Deposits = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<Deposit>
-        columns={columns(t, tStatus)}
+        columns={columns(t)}
         data={data?.deposits as PaginatedData<Deposit>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -100,10 +99,7 @@ const Deposits = () => {
 
 export default Deposits
 
-const columns = (
-  t: ReturnType<typeof useTranslations>,
-  tStatus: ReturnType<typeof useTranslations>,
-): Column<Deposit>[] => [
+const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
     key: "publicId",
     label: t("headers.depositId"),
@@ -137,6 +133,6 @@ const columns = (
     labelClassName: "w-[15%]",
     render: (status) => <DepositStatusBadge status={status} />,
     filterValues: Object.values(DepositStatus),
-    filterLabel: (status) => tStatus(status.toLowerCase()),
+    filterLabel: (status) => <DepositStatusBadge status={status} plain />,
   },
 ]

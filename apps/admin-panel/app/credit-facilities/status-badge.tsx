@@ -4,18 +4,17 @@ import { useTranslations } from "next-intl"
 import { CreditFacilityStatus } from "@/lib/graphql/generated"
 import { cn } from "@/lib/utils"
 
-interface LoanAndCreditFacilityStatusBadgeProps extends BadgeProps {
-  status: CreditFacilityStatus
-}
-
-const getVariant = (status: CreditFacilityStatus): BadgeProps["variant"] => {
+const getConfig = (
+  status: CreditFacilityStatus,
+  t: ReturnType<typeof useTranslations<"CreditFacilities.CreditFacilityStatus">>,
+): { label: string; variant: BadgeProps["variant"] } => {
   switch (status) {
     case CreditFacilityStatus.Active:
-      return "success"
+      return { label: t("active"), variant: "success" }
     case CreditFacilityStatus.Closed:
-      return "secondary"
+      return { label: t("closed"), variant: "secondary" }
     case CreditFacilityStatus.Matured:
-      return "secondary"
+      return { label: t("matured"), variant: "secondary" }
     default: {
       const exhaustiveCheck: never = status
       return exhaustiveCheck
@@ -23,32 +22,24 @@ const getVariant = (status: CreditFacilityStatus): BadgeProps["variant"] => {
   }
 }
 
+interface LoanAndCreditFacilityStatusBadgeProps extends BadgeProps {
+  status: CreditFacilityStatus
+  plain?: boolean
+}
+
 export const LoanAndCreditFacilityStatusBadge = ({
   status,
+  plain,
   className,
   ...otherProps
 }: LoanAndCreditFacilityStatusBadgeProps) => {
   const t = useTranslations("CreditFacilities.CreditFacilityStatus")
-  const variant = getVariant(status)
-
-  const getTranslatedStatus = (status: CreditFacilityStatus): string => {
-    switch (status) {
-      case CreditFacilityStatus.Active:
-        return t("active")
-      case CreditFacilityStatus.Closed:
-        return t("closed")
-      case CreditFacilityStatus.Matured:
-        return t("matured")
-      default: {
-        const exhaustiveCheck: never = status
-        return exhaustiveCheck
-      }
-    }
-  }
+  const { label, variant } = getConfig(status, t)
+  if (plain) return label
 
   return (
     <Badge variant={variant} className={cn(className)} {...otherProps}>
-      {getTranslatedStatus(status)}
+      {label}
     </Badge>
   )
 }

@@ -58,8 +58,6 @@ gql`
 
 const PendingCreditFacilities = () => {
   const t = useTranslations("PendingCreditFacilities")
-  const tStatus = useTranslations("PendingCreditFacilities.status")
-  const tCollateralization = useTranslations("PendingCreditFacilities.collateralizationState")
   const [sortBy, setSortBy] = useState<PendingCreditFacilitiesSort | null>(null)
   const [filter, setFilter] = useState<PendingCreditFacilitiesFilter | null>(null)
 
@@ -75,7 +73,7 @@ const PendingCreditFacilities = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error.message}</p>}
       <PaginatedTable<PendingCreditFacility>
-        columns={columns(t, tStatus, tCollateralization)}
+        columns={columns(t)}
         data={data?.pendingCreditFacilities as PaginatedData<PendingCreditFacility>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -102,8 +100,6 @@ export default PendingCreditFacilities
 
 const columns = (
   t: (key: string) => string,
-  tStatus: ReturnType<typeof useTranslations>,
-  tCollateralization: ReturnType<typeof useTranslations>,
 ): Column<PendingCreditFacility>[] => [
   {
     key: "status",
@@ -111,7 +107,9 @@ const columns = (
     labelClassName: "w-[25%]",
     render: (status) => <PendingCreditFacilityStatusBadge status={status} />,
     filterValues: Object.values(PendingCreditFacilityStatus),
-    filterLabel: (status) => tStatus(status.toLowerCase()),
+    filterLabel: (status) => (
+      <PendingCreditFacilityStatusBadge status={status} plain />
+    ),
   },
   {
     key: "customer",
@@ -132,7 +130,9 @@ const columns = (
     labelClassName: "w-[17%]",
     render: (state) => <PendingFacilityCollateralizationStateLabel state={state} />,
     filterValues: Object.values(PendingCreditFacilityCollateralizationState),
-    filterLabel: (state) => tCollateralization(state.toLowerCase()),
+    filterLabel: (state) => (
+      <PendingFacilityCollateralizationStateLabel state={state} plain />
+    ),
   },
   {
     key: "createdAt",

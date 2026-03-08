@@ -89,8 +89,6 @@ gql`
 
 const CreditFacilities = () => {
   const t = useTranslations("CreditFacilities")
-  const tStatus = useTranslations("CreditFacilities.CreditFacilityStatus")
-  const tCollateralization = useTranslations("CreditFacilities.collateralizationState")
   const [sortBy, setSortBy] = useState<CreditFacilitiesSort | null>(null)
   const [filter, setFilter] = useState<CreditFacilitiesFilter | null>(null)
 
@@ -106,7 +104,7 @@ const CreditFacilities = () => {
     <div>
       {error && <p className="text-destructive text-sm">{t("errors.general")}</p>}
       <PaginatedTable<CreditFacility>
-        columns={columns(t, tStatus, tCollateralization)}
+        columns={columns(t)}
         data={data?.creditFacilities as PaginatedData<CreditFacility>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -131,26 +129,14 @@ const CreditFacilities = () => {
 
 export default CreditFacilities
 
-const collateralizationStateKey: Record<CollateralizationState, string> = {
-  [CollateralizationState.FullyCollateralized]: "fullyCollateralized",
-  [CollateralizationState.NoCollateral]: "noCollateral",
-  [CollateralizationState.NoExposure]: "noExposure",
-  [CollateralizationState.UnderLiquidationThreshold]: "underLiquidationThreshold",
-  [CollateralizationState.UnderMarginCallThreshold]: "underMarginCallThreshold",
-}
-
-const columns = (
-  t: (key: string) => string,
-  tStatus: ReturnType<typeof useTranslations>,
-  tCollateralization: ReturnType<typeof useTranslations>,
-): Column<CreditFacility>[] => [
+const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
     key: "status",
     label: t("table.headers.status"),
     labelClassName: "w-[13%]",
     render: (status) => <LoanAndCreditFacilityStatusBadge status={status} />,
     filterValues: Object.values(CreditFacilityStatus),
-    filterLabel: (status) => tStatus(status.toLowerCase()),
+    filterLabel: (status) => <LoanAndCreditFacilityStatusBadge status={status} plain />,
   },
   {
     key: "customer",
@@ -172,7 +158,7 @@ const columns = (
     labelClassName: "w-[20%]",
     render: (state) => <CollateralizationStateLabel state={state} />,
     filterValues: Object.values(CollateralizationState),
-    filterLabel: (state) => tCollateralization(collateralizationStateKey[state]),
+    filterLabel: (state) => <CollateralizationStateLabel state={state} plain />,
   },
   {
     key: "currentCvl",

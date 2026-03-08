@@ -5,10 +5,8 @@ import { useTranslations } from "next-intl"
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
-import {
-  CollateralizationStateLabel,
-  PendingFacilityCollateralizationStateLabel,
-} from "@/app/credit-facilities/label"
+import { CollateralizationStateLabel } from "@/app/credit-facilities/label"
+import { PendingFacilityCollateralizationStateLabel } from "@/app/pending-credit-facilities/label"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCreditFacilityHistoryQuery, CollateralDirection } from "@/lib/graphql/generated"
