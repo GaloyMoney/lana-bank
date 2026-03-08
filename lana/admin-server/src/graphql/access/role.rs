@@ -1,7 +1,11 @@
-use async_graphql::*;
-use es_entity::Sort;
+use async_graphql::{
+    connection::{Connection, EmptyFields},
+    *,
+};
+use es_entity::{EsEntity as _, Sort};
 
 use crate::graphql::access::PermissionSet;
+use crate::graphql::event_timeline::{self, EventTimelineCursor, EventTimelineEntry};
 use crate::graphql::loader::LanaDataLoader;
 use crate::graphql::primitives::SortDirection;
 use crate::primitives::*;
@@ -34,6 +38,16 @@ impl Role {
             .load_many(self.entity.permission_sets.iter().copied())
             .await?;
         Ok(loaded.into_values().collect())
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 }
 

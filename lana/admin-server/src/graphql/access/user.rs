@@ -1,11 +1,15 @@
-use async_graphql::*;
-use es_entity::Sort;
+use async_graphql::{
+    connection::{Connection, EmptyFields},
+    *,
+};
+use es_entity::{EsEntity as _, Sort};
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 use lana_app::access::user::User as DomainUser;
 use lana_app::access::user::UsersSortBy as DomainUsersSortBy;
 
 use super::Role;
+use crate::graphql::event_timeline::{self, EventTimelineCursor, EventTimelineEntry};
 use crate::graphql::primitives::SortDirection;
 
 #[derive(SimpleObject, Clone)]
@@ -67,6 +71,16 @@ impl User {
             .subject_can_update_role_of_user(sub, None, false)
             .await
             .is_ok())
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 }
 

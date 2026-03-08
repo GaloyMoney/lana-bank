@@ -16,6 +16,7 @@ mod deposit_account_history;
 mod deposit_config;
 mod document;
 mod domain_config;
+mod event_timeline;
 mod loader;
 mod me;
 mod price;

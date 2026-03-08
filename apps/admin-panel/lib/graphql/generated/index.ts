@@ -1063,6 +1063,7 @@ export type Customer = {
   depositAccount?: Maybe<DepositAccount>;
   documents: Array<CustomerDocument>;
   email: Scalars['String']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   level: KycLevel;
   pendingCreditFacilities: Array<PendingCreditFacility>;
@@ -1072,6 +1073,12 @@ export type Customer = {
   telegramHandle: Scalars['String']['output'];
   transactions: Array<Transaction>;
   userCanCreateCreditFacility: Scalars['Boolean']['output'];
+};
+
+
+export type CustomerEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type CustomerCloseInput = {
@@ -1586,6 +1593,35 @@ export type Duration = {
 export type DurationInput = {
   period: Period;
   units: Scalars['Int']['input'];
+};
+
+export type EventTimelineEntry = {
+  __typename?: 'EventTimelineEntry';
+  auditEntryId?: Maybe<Scalars['AuditEntryId']['output']>;
+  eventType: Scalars['String']['output'];
+  payload: Scalars['Json']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  sequence: Scalars['Int']['output'];
+  userId?: Maybe<Scalars['AuditSubjectId']['output']>;
+};
+
+export type EventTimelineEntryConnection = {
+  __typename?: 'EventTimelineEntryConnection';
+  /** A list of edges. */
+  edges: Array<EventTimelineEntryEdge>;
+  /** A list of nodes. */
+  nodes: Array<EventTimelineEntry>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type EventTimelineEntryEdge = {
+  __typename?: 'EventTimelineEntryEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: EventTimelineEntry;
 };
 
 export type FacilityRemaining = {
@@ -3235,10 +3271,17 @@ export enum ReportRunsSortBy {
 export type Role = {
   __typename?: 'Role';
   createdAt: Scalars['Timestamp']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissionSets: Array<PermissionSet>;
   roleId: Scalars['UUID']['output'];
+};
+
+
+export type RoleEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type RoleAddPermissionSetsInput = {
@@ -3541,10 +3584,17 @@ export type User = {
   __typename?: 'User';
   createdAt: Scalars['Timestamp']['output'];
   email: Scalars['String']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   role: Role;
   userCanUpdateRoleOfUser: Scalars['Boolean']['output'];
   userId: Scalars['UUID']['output'];
+};
+
+
+export type UserEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type UserConnection = {

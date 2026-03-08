@@ -1,10 +1,18 @@
-use async_graphql::*;
+use async_graphql::{
+    connection::{Connection, EmptyFields},
+    *,
+};
+use es_entity::EsEntity as _;
 
 use crate::primitives::*;
 use lana_app::public_id::PublicId;
 
 use super::{
-    credit_facility::*, deposit_account::*, document::CustomerDocument, loader::LanaDataLoader,
+    credit_facility::*,
+    deposit_account::*,
+    document::CustomerDocument,
+    event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+    loader::LanaDataLoader,
     primitives::SortDirection,
 };
 
@@ -210,6 +218,16 @@ impl Customer {
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app.credit().subject_can_create(sub, false).await.is_ok())
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 }
 

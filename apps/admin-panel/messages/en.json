@@ -2822,5 +2822,22 @@
         "staySignedIn": "Stay signed in"
       }
     }
+  },
+  "EntityEvents": {
+    "user": {
+      "initialized": "User created",
+      "role_updated": "Role changed"
+    },
+    "customer": {
+      "initialized": "Customer created",
+      "frozen": "Customer frozen",
+      "unfrozen": "Customer unfrozen",
+      "closed": "Customer closed"
+    },
+    "role": {
+      "initialized": "Role created",
+      "permission_set_added": "Permission set added",
+      "permission_set_removed": "Permission set removed"
+    }
   }
 }

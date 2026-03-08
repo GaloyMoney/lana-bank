@@ -1045,6 +1045,7 @@ type Customer {
 	creditFacilityProposals: [CreditFacilityProposal!]!
 	documents: [CustomerDocument!]!
 	userCanCreateCreditFacility: Boolean!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 input CustomerCloseInput {
@@ -1580,6 +1581,44 @@ type Duration {
 input DurationInput {
 	period: Period!
 	units: Int!
+}
+
+type EventTimelineEntry {
+	sequence: Int!
+	eventType: String!
+	recordedAt: Timestamp!
+	payload: Json!
+	userId: AuditSubjectId
+	auditEntryId: AuditEntryId
+}
+
+type EventTimelineEntryConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [EventTimelineEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [EventTimelineEntry!]!
+}
+
+"""
+An edge in a connection.
+"""
+type EventTimelineEntryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: EventTimelineEntry!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type FacilityRemaining {
@@ -2589,6 +2628,7 @@ type Role {
 	createdAt: Timestamp!
 	name: String!
 	permissionSets: [PermissionSet!]!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 input RoleAddPermissionSetsInput {
@@ -2872,6 +2912,7 @@ type User {
 	role: Role!
 	email: String!
 	userCanUpdateRoleOfUser: Boolean!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 type UserConnection {
