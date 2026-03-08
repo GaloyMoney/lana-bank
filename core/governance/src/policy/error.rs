@@ -9,7 +9,7 @@ pub use super::repo::{
 #[derive(Error, Debug)]
 pub enum PolicyError {
     #[error("PolicyError - Sqlx: {0}")]
-    Sqlx(sqlx::Error),
+    Sqlx(#[from] sqlx::Error),
     #[error("PolicyError - Create: {0}")]
     Create(PolicyCreateError),
     #[error("PolicyError - Modify: {0}")]
@@ -24,18 +24,6 @@ pub enum PolicyError {
         "PolicyError - AutoApproveNotAllowed: cannot create or update policy with SystemAutoApprove when RequireCommitteeApproval is enabled"
     )]
     AutoApproveNotAllowed,
-}
-
-impl From<sqlx::Error> for PolicyError {
-    fn from(error: sqlx::Error) -> Self {
-        if let Some(err) = error.as_database_error()
-            && let Some(constraint) = err.constraint()
-            && constraint.contains("type")
-        {
-            return Self::DuplicateApprovalProcessType;
-        }
-        Self::Sqlx(error)
-    }
 }
 
 impl From<PolicyCreateError> for PolicyError {
