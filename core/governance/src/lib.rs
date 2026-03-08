@@ -135,11 +135,11 @@ where
                     .await
                 {
                     Ok(committee) => committee,
-                    Err(e) if e.was_duplicate() => {
-                        self.committee_repo
-                            .find_by_name(DEFAULT_COMMITTEE_NAME)
-                            .await?
-                    }
+                    Err(e) if e.was_duplicate() => self
+                        .committee_repo
+                        .maybe_find_by_name_in_op(&mut db, DEFAULT_COMMITTEE_NAME)
+                        .await?
+                        .expect("Committee must exist after duplicate error"),
                     Err(e) => return Err(e.into()),
                 }
             }
