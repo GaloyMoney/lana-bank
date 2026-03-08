@@ -217,7 +217,7 @@ impl SumsubClient {
         let applicant_id = &applicant_details.id;
 
         let method = "POST";
-        let url_path = format!("/resources/applicants/{applicant_id}/-/reject");
+        let url_path = Self::reject_applicant_path(applicant_id);
         let full_url = self.base_url.join(&url_path).expect("valid URL");
 
         let body = json!({
@@ -254,7 +254,7 @@ impl SumsubClient {
         let applicant_id = &applicant_details.id;
 
         let method = "POST";
-        let url_path = format!("/resources/applicants/{applicant_id}/approve");
+        let url_path = Self::approve_applicant_path(applicant_id);
         let full_url = self.base_url.join(&url_path).expect("valid URL");
 
         let headers = self.get_headers(method, &url_path, None)?;
@@ -690,6 +690,14 @@ impl SumsubClient {
         Ok(hex::encode(mac.finalize().into_bytes()))
     }
 
+    fn reject_applicant_path(applicant_id: &str) -> String {
+        format!("/resources/applicants/{applicant_id}/-/reject")
+    }
+
+    fn approve_applicant_path(applicant_id: &str) -> String {
+        format!("/resources/applicants/{applicant_id}/-/approve")
+    }
+
     async fn handle_api_response<T>(
         &self,
         response: reqwest::Response,
@@ -739,5 +747,22 @@ impl SumsubClient {
                 code: 500,
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SumsubClient;
+
+    #[test]
+    fn applicant_decision_paths_match_sumsub_api() {
+        assert_eq!(
+            SumsubClient::reject_applicant_path("applicant-123"),
+            "/resources/applicants/applicant-123/-/reject"
+        );
+        assert_eq!(
+            SumsubClient::approve_applicant_path("applicant-123"),
+            "/resources/applicants/applicant-123/-/approve"
+        );
     }
 }
