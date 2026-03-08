@@ -111,13 +111,13 @@
       "invalidInt": "Ingresa un número entero válido",
       "invalidUint": "Ingresa un número entero no negativo válido",
       "invalidDecimal": "Ingresa un valor decimal",
+      "selectTimezone": "Seleccionar zona horaria...",
+      "searchTimezone": "Buscar zona horaria...",
+      "noTimezoneFound": "No se encontró zona horaria.",
       "invalidTimezone": "Ingresa una zona horaria válida (ej., UTC, America/New_York)",
       "invalidTime": "Ingresa una hora válida en formato HH:MM:SS",
       "invalidJson": "Ingresa un JSON válido",
-      "invalidValue": "Ingresa un valor válido",
-      "selectTimezone": "Seleccionar zona horaria...",
-      "searchTimezone": "Buscar zona horaria...",
-      "noTimezoneFound": "No se encontró zona horaria."
+      "invalidValue": "Ingresa un valor válido"
     },
     "notification-email-from-email": {
       "title": "Correo del remitente de notificaciones",
