@@ -113,11 +113,6 @@ export default function ProspectLayout({
     <main className="max-w-7xl m-auto">
       <ProspectDetailsCard prospect={prospect} />
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
-        {prospect.customerType === CustomerType.Individual ? (
-          <ProspectPersonalInfoCard prospect={prospect} />
-        ) : (
-          <ProspectCompanyInfoCard prospect={prospect} />
-        )}
         <ProspectKycStatus
           prospectId={prospect.prospectId}
           kycStatus={prospect.kycStatus}
@@ -126,6 +121,11 @@ export default function ProspectLayout({
           verificationLink={prospect.verificationLink}
           verificationLinkCreatedAt={prospect.verificationLinkCreatedAt}
         />
+        {prospect.customerType === CustomerType.Individual ? (
+          <ProspectPersonalInfoCard prospect={prospect} />
+        ) : (
+          <ProspectCompanyInfoCard prospect={prospect} />
+        )}
       </div>
       {children}
     </main>

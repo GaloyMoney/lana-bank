@@ -48,7 +48,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({
       title={t("title")}
       badge={<KycStatusBadge level={level} />}
       details={details}
-      className="w-full md:w-1/4"
+      className="w-full md:w-[25%]"
       columns={1}
     />
   )
