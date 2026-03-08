@@ -74,7 +74,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
 
-    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone(), None);
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())

@@ -553,7 +553,7 @@ pub async fn setup() -> anyhow::Result<TestContext> {
     let authz = TestPerms::new();
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
-    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone(), None);
     let public_ids = PublicIds::new(&pool);
 
     let mut jobs = job::Jobs::init(

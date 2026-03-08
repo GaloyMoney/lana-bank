@@ -66,7 +66,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
             .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone(), None);
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())

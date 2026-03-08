@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use super::rules::ApprovalRules;
+use super::{error::PolicyError, rules::ApprovalRules};
 use crate::{approval_process::NewApprovalProcess, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -58,18 +58,29 @@ impl Policy {
             .expect("failed to build new approval process")
     }
 
-    pub fn assign_committee(&mut self, committee_id: CommitteeId) -> Idempotent<()> {
-        let rules = ApprovalRules::Committee { committee_id };
+    pub fn update_rules(
+        &mut self,
+        rules: ApprovalRules,
+        auto_approval_allowed: bool,
+    ) -> Result<Idempotent<()>, PolicyError> {
+        if matches!(rules, ApprovalRules::SystemAutoApprove) && !auto_approval_allowed {
+            return Err(PolicyError::AutoApproveNotAllowed);
+        }
 
         if self.rules == rules {
-            return Idempotent::AlreadyApplied;
+            return Ok(Idempotent::AlreadyApplied);
         }
 
         self.rules = rules;
 
         self.events
             .push(PolicyEvent::ApprovalRulesUpdated { rules: self.rules });
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
+    }
+
+    pub fn assign_committee(&mut self, committee_id: CommitteeId) -> Idempotent<()> {
+        self.update_rules(ApprovalRules::Committee { committee_id }, true)
+            .expect("Committee rules are always allowed")
     }
 }
 
@@ -107,6 +118,23 @@ pub struct NewPolicy {
 impl NewPolicy {
     pub fn builder() -> NewPolicyBuilder {
         NewPolicyBuilder::default()
+    }
+
+    pub fn try_new(
+        id: PolicyId,
+        process_type: ApprovalProcessType,
+        rules: Option<ApprovalRules>,
+        auto_approval_allowed: bool,
+    ) -> Result<Self, PolicyError> {
+        let rules = rules.unwrap_or_default();
+        if matches!(rules, ApprovalRules::SystemAutoApprove) && !auto_approval_allowed {
+            return Err(PolicyError::AutoApproveNotAllowed);
+        }
+        Ok(Self {
+            id,
+            process_type,
+            rules,
+        })
     }
 
     pub fn committee_id(&self) -> Option<CommitteeId> {
@@ -150,5 +178,30 @@ mod test {
         let _ = policy.assign_committee(committee_id);
         assert_eq!(policy.committee_id(), Some(committee_id));
         assert_eq!(policy.rules, ApprovalRules::Committee { committee_id });
+    }
+
+    #[test]
+    fn update_rules_rejects_auto_approve_when_not_allowed() {
+        let mut policy = Policy::try_from_events(init_events()).unwrap();
+        let result = policy.update_rules(ApprovalRules::SystemAutoApprove, false);
+        assert!(matches!(result, Err(PolicyError::AutoApproveNotAllowed)));
+    }
+
+    #[test]
+    fn update_rules_allows_auto_approve_when_allowed() {
+        let mut policy = Policy::try_from_events(init_events()).unwrap();
+        let result = policy.update_rules(ApprovalRules::SystemAutoApprove, true);
+        assert!(matches!(result, Ok(Idempotent::AlreadyApplied)));
+    }
+
+    #[test]
+    fn try_new_rejects_auto_approve_when_not_allowed() {
+        let result = NewPolicy::try_new(
+            PolicyId::new(),
+            ApprovalProcessType::new("test"),
+            None,
+            false,
+        );
+        assert!(matches!(result, Err(PolicyError::AutoApproveNotAllowed)));
     }
 }
