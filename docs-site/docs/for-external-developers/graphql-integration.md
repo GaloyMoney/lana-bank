@@ -112,25 +112,6 @@ query GetCustomers($first: Int!, $after: String) {
 
 To fetch the next page, pass the `endCursor` value as the `after` parameter.
 
-## Pending Facility IDs
-
-When you query a `PendingCreditFacility` from the Admin API, request both IDs explicitly:
-
-```graphql
-query PendingFacilityIds($id: UUID!) {
-  pendingCreditFacility(id: $id) {
-    pendingCreditFacilityId
-    creditFacilityId
-    status
-  }
-}
-```
-
-Use `pendingCreditFacilityId` for pending-facility queries and subscriptions. Use
-`creditFacilityId` as the canonical facility reference once you need to query the
-active `CreditFacility`. In the current implementation both values are the same UUID,
-but clients should read `creditFacilityId` instead of inferring that equivalence.
-
 ## Error Handling
 
 GraphQL errors are returned in the `errors` array of the response:
@@ -168,3 +149,4 @@ Content-Type: application/json
 
 - [Admin API Reference](../apis/admin-api/api-reference.mdx) — Complete admin operations and types
 - [Customer API Reference](../apis/customer-api/api-reference.mdx) — Complete customer operations
+
