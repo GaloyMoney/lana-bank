@@ -201,6 +201,48 @@ impl SumsubClient {
         }
     }
 
+    /// Reject an applicant's verification by setting the review answer to RED.
+    ///
+    /// This is used when a customer is frozen to ensure the SumSub applicant
+    /// is also marked as rejected.
+    pub async fn reject_applicant<T>(
+        &self,
+        external_user_id: T,
+        reason: &str,
+    ) -> Result<(), SumsubError>
+    where
+        T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
+    {
+        let applicant_details = self.get_applicant_details(external_user_id).await?;
+        let applicant_id = &applicant_details.id;
+
+        let method = "POST";
+        let url_path = format!("/resources/applicants/{applicant_id}/status/testCompleted");
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
+
+        let body = json!({
+            "reviewAnswer": "RED",
+            "rejectLabels": ["COMPROMISED_PERSONS"],
+            "reviewRejectType": "FINAL",
+            "clientComment": reason,
+            "moderationComment": reason
+        });
+
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .post(full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        self.handle_simple_response(response, "Failed to reject applicant")
+            .await
+    }
+
     /// Deactivate an applicant's profile by external user ID.
     ///
     /// This marks the applicant as deactivated in SumSub so they are treated
