@@ -242,6 +242,28 @@ impl SumsubClient {
             .await
     }
 
+    /// Approve an applicant's verification via SumSub's external decision API.
+    ///
+    /// This is used when a customer is unfrozen to restore the SumSub applicant
+    /// to an approved state after a prior compliance-driven rejection.
+    pub async fn approve_applicant<T>(&self, external_user_id: T) -> Result<(), SumsubError>
+    where
+        T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
+    {
+        let applicant_details = self.get_applicant_details(external_user_id).await?;
+        let applicant_id = &applicant_details.id;
+
+        let method = "POST";
+        let url_path = format!("/resources/applicants/{applicant_id}/approve");
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
+
+        let headers = self.get_headers(method, &url_path, None)?;
+        let response = self.client.post(full_url).headers(headers).send().await?;
+
+        self.handle_simple_response(response, "Failed to approve applicant")
+            .await
+    }
+
     /// Deactivate an applicant's profile by external user ID.
     ///
     /// This marks the applicant as deactivated in SumSub so they are treated

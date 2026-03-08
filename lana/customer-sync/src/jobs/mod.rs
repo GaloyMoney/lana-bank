@@ -1,3 +1,4 @@
+pub(crate) mod approve_sumsub_applicant;
 mod create_keycloak_user;
 pub(crate) mod deactivate_sumsub_applicant;
 mod disable_keycloak_user;
@@ -8,11 +9,13 @@ mod sync_customer_freeze;
 mod sync_customer_freeze_sumsub;
 mod sync_customer_frozen_sumsub;
 mod sync_customer_unfreeze;
+mod sync_customer_unfrozen_sumsub;
 mod sync_email;
 mod sync_party_keycloak;
 pub(crate) mod unfreeze_customer_deposits;
 mod update_user_email;
 
+pub use approve_sumsub_applicant::ApproveSumsubApplicantJobInitializer;
 pub use create_keycloak_user::*;
 pub use deactivate_sumsub_applicant::DeactivateSumsubApplicantJobInitializer;
 pub use disable_keycloak_user::*;
@@ -23,6 +26,7 @@ pub use sync_customer_freeze::*;
 pub use sync_customer_freeze_sumsub::*;
 pub use sync_customer_frozen_sumsub::*;
 pub use sync_customer_unfreeze::*;
+pub use sync_customer_unfrozen_sumsub::*;
 pub use sync_email::*;
 pub use sync_party_keycloak::*;
 pub use unfreeze_customer_deposits::UnfreezeCustomerDepositsJobInitializer;

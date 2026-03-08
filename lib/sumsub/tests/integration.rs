@@ -133,3 +133,56 @@ async fn test_reject_applicant() {
         .await
         .expect("Failed to reject applicant");
 }
+
+/// Rejects a test applicant, then restores it via the production approve endpoint.
+#[cfg(feature = "sumsub-testing")]
+#[tokio::test]
+async fn test_approve_applicant() {
+    use sumsub::{SumsubClient, testing::*};
+    use uuid::Uuid;
+
+    let config = match testing_utils::load_config_from_env() {
+        Some(config) => config,
+        None => {
+            eprintln!("Skipping test: SUMSUB_KEY and SUMSUB_SECRET must be set");
+            return;
+        }
+    };
+
+    let client = SumsubClient::new(&config);
+    let external_user_id = Uuid::new_v4().to_string();
+
+    let applicant_id = client
+        .create_applicant(&external_user_id, testing_utils::TEST_LEVEL_NAME)
+        .await
+        .expect("Failed to create applicant");
+
+    client
+        .update_applicant_info(
+            &applicant_id,
+            TEST_FIRST_NAME,
+            TEST_LAST_NAME,
+            TEST_DATE_OF_BIRTH,
+            TEST_COUNTRY_CODE,
+        )
+        .await
+        .expect("Failed to update applicant info");
+
+    client
+        .simulate_review_response(&applicant_id, REVIEW_ANSWER_GREEN)
+        .await
+        .expect("Failed to approve applicant");
+
+    client
+        .reject_applicant(
+            external_user_id.clone(),
+            "Customer account frozen by compliance",
+        )
+        .await
+        .expect("Failed to reject applicant");
+
+    client
+        .approve_applicant(external_user_id)
+        .await
+        .expect("Failed to approve applicant");
+}
