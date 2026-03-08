@@ -108,7 +108,7 @@ impl Withdrawal {
     pub fn confirm(&mut self) -> Result<Idempotent<CalaTransactionId>, WithdrawalError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            WithdrawalEvent::Confirmed { .. }
+            already_applied: WithdrawalEvent::Confirmed { .. }
         );
 
         match self.is_approved_or_denied() {
@@ -133,7 +133,7 @@ impl Withdrawal {
     pub fn revert(&mut self) -> Result<Idempotent<WithdrawalReversalData>, WithdrawalError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            WithdrawalEvent::Reverted { .. }
+            already_applied: WithdrawalEvent::Reverted { .. }
         );
 
         if self.is_cancelled() {
@@ -164,7 +164,7 @@ impl Withdrawal {
     pub fn cancel(&mut self) -> Result<Idempotent<CalaTransactionId>, WithdrawalError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            WithdrawalEvent::Cancelled { .. }
+            already_applied: WithdrawalEvent::Cancelled { .. }
         );
 
         if self.is_confirmed() {
@@ -240,7 +240,7 @@ impl Withdrawal {
     ) -> Idempotent<Option<CalaTransactionId>> {
         idempotency_guard!(
             self.events.iter_all(),
-            WithdrawalEvent::ApprovalProcessConcluded { .. }
+            already_applied: WithdrawalEvent::ApprovalProcessConcluded { .. }
         );
         let status = if approved {
             WithdrawalStatus::PendingConfirmation

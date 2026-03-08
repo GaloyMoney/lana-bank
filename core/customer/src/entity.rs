@@ -98,7 +98,7 @@ impl Customer {
     }
 
     pub(crate) fn close(&mut self) -> Idempotent<()> {
-        idempotency_guard!(self.events.iter_all().rev(), CustomerEvent::Closed { .. });
+        idempotency_guard!(self.events.iter_all().rev(), already_applied: CustomerEvent::Closed { .. });
         let status = CustomerStatus::Closed;
         self.events.push(CustomerEvent::Closed { status });
         self.status = status;
@@ -115,8 +115,8 @@ impl Customer {
         }
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustomerEvent::Frozen { .. },
-            => CustomerEvent::Unfrozen { .. }
+            already_applied: CustomerEvent::Frozen { .. },
+            resets_on: CustomerEvent::Unfrozen { .. }
         );
         let status = CustomerStatus::Frozen;
         self.events.push(CustomerEvent::Frozen { status });
@@ -130,8 +130,8 @@ impl Customer {
         }
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustomerEvent::Unfrozen { .. },
-            => CustomerEvent::Frozen { .. }
+            already_applied: CustomerEvent::Unfrozen { .. },
+            resets_on: CustomerEvent::Frozen { .. }
         );
         if !self.is_frozen() {
             return Ok(Idempotent::AlreadyApplied);

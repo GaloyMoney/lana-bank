@@ -49,8 +49,8 @@ impl Role {
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id,
-            => RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id
+            already_applied: RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id,
+            resets_on: RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id
         );
 
         self.events
@@ -66,8 +66,8 @@ impl Role {
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id,
-            => RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id
+            already_applied: RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id,
+            resets_on: RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id
         );
 
         self.events

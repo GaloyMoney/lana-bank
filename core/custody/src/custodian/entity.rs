@@ -52,10 +52,10 @@ impl Custodian {
     ) -> Result<Idempotent<()>, CustodianError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustodianEvent::ConfigUpdated { encrypted_custodian_config }
+            already_applied: CustodianEvent::ConfigUpdated { encrypted_custodian_config }
                 if encrypted_custodian_config.matches_key(key)
                     && key.decrypt_json::<CustodianConfig>(encrypted_custodian_config).ok().as_ref() == Some(&new_config),
-            => CustodianEvent::ConfigUpdated { .. }
+            resets_on: CustodianEvent::ConfigUpdated { .. }
         );
 
         if !self.encrypted_custodian_config.matches_key(key) {

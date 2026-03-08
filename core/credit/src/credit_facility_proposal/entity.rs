@@ -78,7 +78,7 @@ impl CreditFacilityProposal {
     pub(super) fn conclude_customer_approval(&mut self, approved: bool) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
-            CreditFacilityProposalEvent::CustomerApprovalConcluded { .. }
+            already_applied: CreditFacilityProposalEvent::CustomerApprovalConcluded { .. }
         );
 
         let status = if approved {
@@ -111,7 +111,7 @@ impl CreditFacilityProposal {
     > {
         idempotency_guard!(
             self.events.iter_all(),
-            CreditFacilityProposalEvent::ApprovalProcessConcluded { .. }
+            already_applied: CreditFacilityProposalEvent::ApprovalProcessConcluded { .. }
         );
 
         if !self.events.iter_all().rev().any(|event| {

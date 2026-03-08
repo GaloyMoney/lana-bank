@@ -216,7 +216,7 @@ impl PendingCreditFacility {
     ) -> Result<Idempotent<NewCreditFacilityWithInitialDisbursal>, PendingCreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all(),
-            PendingCreditFacilityEvent::Completed { .. }
+            already_applied: PendingCreditFacilityEvent::Completed { .. }
         );
 
         let cvl = balances.current_cvl(price);

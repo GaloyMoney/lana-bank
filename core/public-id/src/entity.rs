@@ -48,7 +48,7 @@ impl PublicIdEntity {
         let target_type = target_type.into();
         idempotency_guard!(
             self.events.iter_all().rev(),
-            PublicIdEntityEvent::TargetUpdated {
+            already_applied: PublicIdEntityEvent::TargetUpdated {
                 target_id: existing_id,
                 target_type: existing_type,
             } if *existing_id == target_id && existing_type == &target_type

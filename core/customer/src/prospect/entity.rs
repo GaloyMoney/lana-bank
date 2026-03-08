@@ -110,7 +110,7 @@ impl Prospect {
     pub fn start_kyc(&mut self, applicant_id: String) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycStarted { .. }
+            already_applied: ProspectEvent::KycStarted { .. }
         );
         self.ensure_open()?;
         self.applicant_id = Some(applicant_id.clone());
@@ -127,7 +127,7 @@ impl Prospect {
     pub fn set_kyc_pending(&mut self) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycPending { .. }
+            already_applied: ProspectEvent::KycPending { .. }
         );
         self.ensure_open()?;
         self.kyc_status = KycStatus::Pending;
@@ -140,7 +140,7 @@ impl Prospect {
     pub fn set_kyc_on_hold(&mut self) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycOnHold { .. }
+            already_applied: ProspectEvent::KycOnHold { .. }
         );
         self.ensure_open()?;
         self.kyc_status = KycStatus::OnHold;
@@ -157,7 +157,7 @@ impl Prospect {
     ) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycApproved { .. }
+            already_applied: ProspectEvent::KycApproved { .. }
         );
         self.ensure_open()?;
         let stored_id = self
@@ -194,7 +194,7 @@ impl Prospect {
     pub fn convert_manually(&mut self) -> Result<Idempotent<NewCustomer>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::ManuallyConverted { .. }
+            already_applied: ProspectEvent::ManuallyConverted { .. }
         );
         self.ensure_open()?;
         self.kyc_status = KycStatus::Approved;
@@ -218,7 +218,7 @@ impl Prospect {
     pub fn decline_kyc(&mut self, applicant_id: &str) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycDeclined { .. }
+            already_applied: ProspectEvent::KycDeclined { .. }
         );
         self.ensure_open()?;
         let stored_id = self
@@ -239,7 +239,7 @@ impl Prospect {
     }
 
     pub fn close(&mut self) -> Result<Idempotent<()>, ProspectError> {
-        idempotency_guard!(self.events.iter_all().rev(), ProspectEvent::Closed { .. });
+        idempotency_guard!(self.events.iter_all().rev(), already_applied: ProspectEvent::Closed { .. });
         self.ensure_open()?;
         self.stage = ProspectStage::Closed;
         let stage = self.stage;

@@ -157,8 +157,8 @@ impl DomainConfig {
     ) -> Result<Idempotent<()>, DomainConfigError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            DomainConfigEvent::Updated { value } if value.as_plain() == Some(&plaintext),
-            => DomainConfigEvent::Updated { .. }
+            already_applied: DomainConfigEvent::Updated { value } if value.as_plain() == Some(&plaintext),
+            resets_on: DomainConfigEvent::Updated { .. }
         );
 
         self.events.push(DomainConfigEvent::Updated {
@@ -173,16 +173,25 @@ impl DomainConfig {
         key: &EncryptionKey,
         plaintext: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            DomainConfigEvent::Updated { value }
-                if value.matches_key(key)
-                    && value.decrypt(key).ok().as_ref() == Some(&plaintext),
-            DomainConfigEvent::KeyRotated { value }
-                if value.matches_key(key)
-                    && key.decrypt_json::<serde_json::Value>(value).ok().as_ref() == Some(&plaintext),
-            => DomainConfigEvent::Updated { .. } | DomainConfigEvent::KeyRotated { .. }
-        );
+        for event in self.events.iter_all().rev() {
+            match event {
+                DomainConfigEvent::Updated { value }
+                    if value.matches_key(key)
+                        && value.decrypt(key).ok().as_ref() == Some(&plaintext) =>
+                {
+                    return Ok(Idempotent::AlreadyApplied);
+                }
+                DomainConfigEvent::KeyRotated { value }
+                    if value.matches_key(key)
+                        && key.decrypt_json::<serde_json::Value>(value).ok().as_ref()
+                            == Some(&plaintext) =>
+                {
+                    return Ok(Idempotent::AlreadyApplied);
+                }
+                DomainConfigEvent::Updated { .. } | DomainConfigEvent::KeyRotated { .. } => break,
+                _ => {}
+            }
+        }
 
         // Block writes if the latest event has a different key (has been rotated)
         if let Some(latest) = self.current_stored_value()

@@ -56,8 +56,8 @@ impl Wallet {
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            WalletEvent::BalanceChanged { new_balance: balance, .. } if *balance == new_balance ,
-            => WalletEvent::BalanceChanged { .. }
+            already_applied: WalletEvent::BalanceChanged { new_balance: balance, .. } if *balance == new_balance ,
+            resets_on: WalletEvent::BalanceChanged { .. }
         );
 
         self.events.push(WalletEvent::BalanceChanged {

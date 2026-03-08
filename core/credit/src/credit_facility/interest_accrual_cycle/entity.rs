@@ -281,7 +281,7 @@ impl InterestAccrualCycle {
     ) -> Idempotent<Option<NewObligation>> {
         idempotency_guard!(
             self.events.iter_all(),
-            InterestAccrualCycleEvent::InterestAccrualsPosted { .. }
+            already_applied: InterestAccrualCycleEvent::InterestAccrualsPosted { .. }
         );
 
         if interest.is_zero() {

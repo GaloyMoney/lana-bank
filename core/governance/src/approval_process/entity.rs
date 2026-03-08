@@ -106,7 +106,7 @@ impl ApprovalProcess {
     ) -> Idempotent<(bool, Option<String>)> {
         idempotency_guard!(
             self.events.iter_all(),
-            ApprovalProcessEvent::Concluded { .. },
+            already_applied: ApprovalProcessEvent::Concluded { .. },
         );
         if let Some(approved) =
             self.rules
@@ -149,11 +149,20 @@ impl ApprovalProcess {
         approver_id: CommitteeMemberId,
     ) -> Idempotent<()> {
         use ApprovalProcessEvent::*;
-        idempotency_guard!(
-            self.events.iter_all(),
-            Concluded {..},
-            Approved {approver_id: id, ..} | Denied {denier_id: id,..} if id == &approver_id,
-        );
+        for event in self.events.iter_all() {
+            match event {
+                Concluded { .. } => return Idempotent::AlreadyApplied,
+                Approved {
+                    approver_id: id, ..
+                }
+                | Denied { denier_id: id, .. }
+                    if id == &approver_id =>
+                {
+                    return Idempotent::AlreadyApplied;
+                }
+                _ => {}
+            }
+        }
 
         if !eligible_members.contains(&approver_id) {
             return Idempotent::AlreadyApplied;
@@ -172,11 +181,20 @@ impl ApprovalProcess {
         reason: String,
     ) -> Idempotent<()> {
         use ApprovalProcessEvent::*;
-        idempotency_guard!(
-            self.events.iter_all(),
-            Concluded {..},
-            Approved {approver_id: id, ..} | Denied {denier_id: id,..} if id == &denier_id,
-        );
+        for event in self.events.iter_all() {
+            match event {
+                Concluded { .. } => return Idempotent::AlreadyApplied,
+                Approved {
+                    approver_id: id, ..
+                }
+                | Denied { denier_id: id, .. }
+                    if id == &denier_id =>
+                {
+                    return Idempotent::AlreadyApplied;
+                }
+                _ => {}
+            }
+        }
 
         if !eligible_members.contains(&denier_id) {
             return Idempotent::AlreadyApplied;
