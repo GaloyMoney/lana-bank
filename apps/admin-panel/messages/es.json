@@ -147,6 +147,10 @@
       "title": "Umbral de escheatment de actividad de depósitos (días)",
       "description": "Número de días sin actividad antes de que una cuenta de depósito sea clasificada como sujeta a escheatment. Debe ser mayor que el umbral de inactividad."
     },
+    "manual-collateral": {
+      "title": "Manual collateral",
+      "description": "When enabled, allows manual collateral updates via the admin panel. Intended for testing purposes only. Custodian sync and liquidation updates are unaffected by this setting."
+    },
     "sumsub-api-key": {
       "title": "Clave API de SumSub",
       "description": "Clave API para el servicio de verificación KYC de SumSub."
