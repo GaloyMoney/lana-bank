@@ -218,7 +218,8 @@ impl Prospect {
     pub fn decline_kyc(&mut self, applicant_id: &str) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycDeclined { .. }
+            ProspectEvent::KycDeclined { .. },
+            => ProspectEvent::KycApproved { .. }
         );
         self.ensure_open()?;
         let stored_id = self
