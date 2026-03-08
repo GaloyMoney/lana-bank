@@ -366,8 +366,8 @@ impl CreditFacility {
 
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CreditFacilityEvent::PartialLiquidationInitiated { .. },
-            => CreditFacilityEvent::ProceedsFromPartialLiquidationApplied { .. }
+            already_applied: CreditFacilityEvent::PartialLiquidationInitiated { .. },
+            resets_on: CreditFacilityEvent::ProceedsFromPartialLiquidationApplied { .. }
         );
 
         if balances.total_outstanding().is_zero() {
@@ -411,11 +411,11 @@ impl CreditFacility {
     ) -> Result<Idempotent<()>, CreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CreditFacilityEvent::ProceedsFromPartialLiquidationApplied {
+            already_applied: CreditFacilityEvent::ProceedsFromPartialLiquidationApplied {
                 liquidation_id: existing,
                 ..
             } if *existing == liquidation_id,
-            => CreditFacilityEvent::PartialLiquidationInitiated { .. }
+            resets_on: CreditFacilityEvent::PartialLiquidationInitiated { .. }
         );
 
         let liquidation_initiated = self.events.iter_all().rev().any(|e| {
@@ -443,7 +443,7 @@ impl CreditFacility {
     }
 
     pub(crate) fn mature(&mut self) -> Idempotent<()> {
-        idempotency_guard!(self.events.iter_all(), CreditFacilityEvent::Matured { .. });
+        idempotency_guard!(self.events.iter_all(), already_applied: CreditFacilityEvent::Matured { .. });
 
         if self.status() == CreditFacilityStatus::Closed {
             return Idempotent::AlreadyApplied;
@@ -750,7 +750,7 @@ impl CreditFacility {
     ) -> Result<Idempotent<CreditFacilityCompletion>, CreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all(),
-            CreditFacilityEvent::Completed { .. }
+            already_applied: CreditFacilityEvent::Completed { .. }
         );
         if balances.any_outstanding_or_defaulted() {
             return Err(CreditFacilityError::OutstandingAmount);

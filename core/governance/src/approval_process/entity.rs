@@ -106,7 +106,7 @@ impl ApprovalProcess {
     ) -> Idempotent<(bool, Option<String>)> {
         idempotency_guard!(
             self.events.iter_all(),
-            ApprovalProcessEvent::Concluded { .. },
+            already_applied: ApprovalProcessEvent::Concluded { .. },
         );
         if let Some(approved) =
             self.rules
@@ -151,8 +151,8 @@ impl ApprovalProcess {
         use ApprovalProcessEvent::*;
         idempotency_guard!(
             self.events.iter_all(),
-            Concluded {..},
-            Approved {approver_id: id, ..} | Denied {denier_id: id,..} if id == &approver_id,
+            already_applied: Concluded {..},
+            already_applied: Approved {approver_id: id, ..} | Denied {denier_id: id,..} if id == &approver_id,
         );
 
         if !eligible_members.contains(&approver_id) {
@@ -174,8 +174,8 @@ impl ApprovalProcess {
         use ApprovalProcessEvent::*;
         idempotency_guard!(
             self.events.iter_all(),
-            Concluded {..},
-            Approved {approver_id: id, ..} | Denied {denier_id: id,..} if id == &denier_id,
+            already_applied: Concluded {..},
+            already_applied: Approved {approver_id: id, ..} | Denied {denier_id: id,..} if id == &denier_id,
         );
 
         if !eligible_members.contains(&denier_id) {

@@ -331,7 +331,7 @@ impl Obligation {
     ) -> Idempotent<NewPaymentAllocation> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
+            already_applied: ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
         );
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {

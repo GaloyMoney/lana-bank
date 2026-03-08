@@ -157,8 +157,8 @@ impl DomainConfig {
     ) -> Result<Idempotent<()>, DomainConfigError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            DomainConfigEvent::Updated { value } if value.as_plain() == Some(&plaintext),
-            => DomainConfigEvent::Updated { .. }
+            already_applied: DomainConfigEvent::Updated { value } if value.as_plain() == Some(&plaintext),
+            resets_on: DomainConfigEvent::Updated { .. }
         );
 
         self.events.push(DomainConfigEvent::Updated {
@@ -175,13 +175,13 @@ impl DomainConfig {
     ) -> Result<Idempotent<()>, DomainConfigError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            DomainConfigEvent::Updated { value }
+            already_applied: DomainConfigEvent::Updated { value }
                 if value.matches_key(key)
                     && value.decrypt(key).ok().as_ref() == Some(&plaintext),
-            DomainConfigEvent::KeyRotated { value }
+            already_applied: DomainConfigEvent::KeyRotated { value }
                 if value.matches_key(key)
                     && key.decrypt_json::<serde_json::Value>(value).ok().as_ref() == Some(&plaintext),
-            => DomainConfigEvent::Updated { .. } | DomainConfigEvent::KeyRotated { .. }
+            resets_on: DomainConfigEvent::Updated { .. } | DomainConfigEvent::KeyRotated { .. }
         );
 
         // Block writes if the latest event has a different key (has been rotated)

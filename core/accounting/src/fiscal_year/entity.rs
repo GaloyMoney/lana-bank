@@ -67,7 +67,7 @@ impl FiscalYear {
     ) -> Result<Idempotent<ClosingTxDetails>, FiscalYearError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            FiscalYearEvent::YearClosed { .. }
+            already_applied: FiscalYearEvent::YearClosed { .. }
         );
         if !self.is_last_month_of_year_closed() {
             return Err(FiscalYearError::LastMonthNotClosed);

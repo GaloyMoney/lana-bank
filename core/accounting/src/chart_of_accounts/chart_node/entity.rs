@@ -49,7 +49,7 @@ impl ChartNode {
     ) -> Result<Idempotent<NewAccount>, ChartOfAccountsError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ChartNodeEvent::ManualTransactionAccountAssigned { .. }
+            already_applied: ChartNodeEvent::ManualTransactionAccountAssigned { .. }
         );
         if !self.can_have_manual_transactions() {
             return Err(ChartOfAccountsError::NonLeafAccount(
@@ -76,7 +76,7 @@ impl ChartNode {
     pub fn add_child_node(&mut self, child_node_id: ChartNodeId) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ChartNodeEvent::ChildNodeAdded { child_node_id: id, .. } if id == &child_node_id
+            already_applied: ChartNodeEvent::ChildNodeAdded { child_node_id: id, .. } if id == &child_node_id
         );
 
         self.children.push(child_node_id);

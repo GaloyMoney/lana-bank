@@ -136,7 +136,7 @@ impl Chart {
     ) -> Result<Idempotent<BulkImportResult>, ChartOfAccountsError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ChartEvent::BaseConfigSet { base_config: existing, .. } if &base_config == existing,
+            already_applied: ChartEvent::BaseConfigSet { base_config: existing, .. } if &base_config == existing,
         );
         if self.base_config.is_some() {
             return Err(ChartOfAccountsError::BaseConfigAlreadyInitializedWithDifferentConfig);
@@ -475,8 +475,8 @@ impl Chart {
     pub(super) fn close_as_of(&mut self, closed_as_of: NaiveDate) -> Idempotent<NaiveDate> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ChartEvent::ClosedAsOf { closed_as_of: prev_date, .. } if prev_date >= &closed_as_of,
-            => ChartEvent::ClosedAsOf { .. }
+            already_applied: ChartEvent::ClosedAsOf { closed_as_of: prev_date, .. } if prev_date >= &closed_as_of,
+            resets_on: ChartEvent::ClosedAsOf { .. }
         );
         self.events.push(ChartEvent::ClosedAsOf { closed_as_of });
         Idempotent::Executed(closed_as_of)
@@ -512,8 +512,8 @@ impl Chart {
 
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ChartEvent::ClosingTransactionPosted { posted_as_of: prev_date, .. } if prev_date >= &posted_as_of,
-            => ChartEvent::ClosingTransactionPosted { .. }
+            already_applied: ChartEvent::ClosingTransactionPosted { posted_as_of: prev_date, .. } if prev_date >= &posted_as_of,
+            resets_on: ChartEvent::ClosingTransactionPosted { .. }
         );
 
         self.events
