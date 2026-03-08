@@ -196,6 +196,17 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       return
     }
 
+    const initialCvlNum = parseFloat(initialCvl)
+    const marginCallCvlNum = parseFloat(marginCallCvl)
+    const liquidationCvlNum = parseFloat(liquidationCvl)
+    if (
+      initialCvlNum <= marginCallCvlNum ||
+      marginCallCvlNum <= liquidationCvlNum
+    ) {
+      toast.error(t("form.messages.cvlOrderError"))
+      return
+    }
+
     try {
       await createCreditFacility({
         variables: {
@@ -394,7 +405,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
               >
                 <DetailItem
                   label={t("form.labels.interestRate")}
-                  value={formValues.annualRate + "%"}
+                  value={formValues.annualRate}
                 />
                 <DetailItem
                   label={t("form.labels.initialCvl")}
@@ -441,6 +452,10 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.annualRate}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.annualRate")}
+                    min={0}
+                    max={50}
+                    step="any"
+                    endAdornment="%"
                     required
                   />
                 </div>
@@ -452,6 +467,9 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.initialCvl}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.initialCvl")}
+                    min={100}
+                    max={500}
+                    step="any"
                     required
                   />
                 </div>
@@ -465,7 +483,8 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                       value={formValues.durationUnits}
                       onChange={handleChange}
                       placeholder={t("form.placeholders.duration")}
-                      min={0}
+                      min={1}
+                      max={120}
                       endAdornment={`${t("form.labels.months")}`}
                       required
                     />
@@ -479,6 +498,9 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.marginCallCvl}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.marginCallCvl")}
+                    min={100}
+                    max={500}
+                    step="any"
                     required
                   />
                 </div>
@@ -491,6 +513,9 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     onChange={handleChange}
                     placeholder={t("form.placeholders.structuringFeeRate")}
                     min={0}
+                    max={10}
+                    step="any"
+                    endAdornment="%"
                     required
                   />
                 </div>
@@ -502,7 +527,9 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.liquidationCvl}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.liquidationCvl")}
-                    min={0}
+                    min={100}
+                    max={500}
+                    step="any"
                     required
                   />
                 </div>

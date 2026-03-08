@@ -116,6 +116,19 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     e.preventDefault()
     setError(null)
 
+    const initialCvlNum = parseFloat(formValues.initialCvl)
+    const marginCallCvlNum = parseFloat(formValues.marginCallCvl)
+    const liquidationCvlNum = parseFloat(formValues.liquidationCvl)
+    if (
+      initialCvlNum <= marginCallCvlNum ||
+      marginCallCvlNum <= liquidationCvlNum
+    ) {
+      const errorMsg = t("errors.cvlOrderError")
+      setError(errorMsg)
+      toast.error(errorMsg)
+      return
+    }
+
     try {
       await createTermsTemplate({
         variables: {
@@ -228,6 +241,10 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.annualRate}
                   onChange={handleChange}
                   disabled={isLoading}
+                  min={0}
+                  max={50}
+                  step="any"
+                  endAdornment="%"
                   data-testid="terms-template-annual-rate-input"
                 />
               </div>
@@ -240,7 +257,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     value={formValues.durationUnits}
                     onChange={handleChange}
                     placeholder={t("placeholders.durationUnits")}
-                    min={0}
+                    min={1}
+                    max={120}
                     required
                     disabled={isLoading}
                     data-testid="terms-template-duration-units-input"
@@ -259,6 +277,10 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
                   disabled={isLoading}
+                  min={0}
+                  max={10}
+                  step="any"
+                  endAdornment="%"
                   data-testid="terms-template-one-time-fee-rate-input"
                 />
               </div>
@@ -300,6 +322,9 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.initialCvl}
                   onChange={handleChange}
                   disabled={isLoading}
+                  min={100}
+                  max={500}
+                  step="any"
                   data-testid="terms-template-initial-cvl-input"
                 />
               </div>
@@ -314,6 +339,9 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.marginCallCvl}
                   onChange={handleChange}
                   disabled={isLoading}
+                  min={100}
+                  max={500}
+                  step="any"
                   data-testid="terms-template-margin-call-cvl-input"
                 />
               </div>
@@ -328,6 +356,9 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.liquidationCvl}
                   onChange={handleChange}
                   disabled={isLoading}
+                  min={100}
+                  max={500}
+                  step="any"
                   data-testid="terms-template-liquidation-cvl-input"
                 />
               </div>
