@@ -731,7 +731,7 @@
           "manualCustodian": "Manual",
           "termsTemplate": "Plantilla de términos",
           "creditFacilityTerms": "Términos de línea de crédito",
-          "interestRate": "Tasa de interés nominal",
+          "interestRate": "Tasa de interés nominal (%)",
           "initialCvl": "CVL inicial (%)",
           "duration": "Duración",
           "months": "meses",
@@ -762,6 +762,7 @@
           "btcUsdRate": "BTC/USD:",
           "noTemplates": "No hay plantillas de términos disponibles, por favor cree una o especifique manualmente los términos a continuación.",
           "fillAllFields": "Por favor complete todos los campos.",
+          "cvlOrderError": "El CVL inicial debe ser mayor que el CVL de llamada de margen, que debe ser mayor que el CVL de liquidación.",
           "success": "Propuesta de Línea de Crédito creada con éxito"
         }
       }
@@ -1455,7 +1456,8 @@
         },
         "errors": {
           "general": "Ocurrió un error inesperado. Por favor intente de nuevo.",
-          "updateFailed": "Error al actualizar la Plantilla de Términos"
+          "updateFailed": "Error al actualizar la Plantilla de Términos",
+          "cvlOrderError": "El CVL inicial debe ser mayor que el CVL de llamada de margen, que debe ser mayor que el CVL de liquidación."
         },
         "success": {
           "updated": "Plantilla de Términos actualizada exitosamente"
@@ -1494,7 +1496,8 @@
         },
         "errors": {
           "general": "Ocurrió un error inesperado. Por favor intente de nuevo.",
-          "creationFailed": "Error al crear la Plantilla de Términos"
+          "creationFailed": "Error al crear la Plantilla de Términos",
+          "cvlOrderError": "El CVL inicial debe ser mayor que el CVL de llamada de margen, que debe ser mayor que el CVL de liquidación."
         },
         "success": {
           "created": "Plantilla de Términos creada exitosamente"
