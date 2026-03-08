@@ -257,8 +257,15 @@ impl SumsubClient {
         let url_path = Self::approve_applicant_path(applicant_id);
         let full_url = self.base_url.join(&url_path).expect("valid URL");
 
-        let headers = self.get_headers(method, &url_path, None)?;
-        let response = self.client.post(full_url).headers(headers).send().await?;
+        let body = "{}";
+        let headers = self.get_headers(method, &url_path, Some(body))?;
+        let response = self
+            .client
+            .post(full_url)
+            .headers(headers)
+            .body(body.to_string())
+            .send()
+            .await?;
 
         self.handle_simple_response(response, "Failed to approve applicant")
             .await
@@ -753,6 +760,7 @@ impl SumsubClient {
 #[cfg(test)]
 mod tests {
     use super::SumsubClient;
+    use crate::SumsubConfig;
 
     #[test]
     fn applicant_decision_paths_match_sumsub_api() {
@@ -764,5 +772,26 @@ mod tests {
             SumsubClient::approve_applicant_path("applicant-123"),
             "/resources/applicants/applicant-123/-/approve"
         );
+    }
+
+    #[test]
+    fn approve_applicant_uses_empty_json_body() {
+        let config = SumsubConfig {
+            sumsub_key: "key".to_string(),
+            sumsub_secret: "secret".to_string(),
+        };
+        let client = SumsubClient::new(&config);
+        let body = "{}";
+
+        let headers = client
+            .get_headers(
+                "POST",
+                &SumsubClient::approve_applicant_path("applicant-123"),
+                Some(body),
+            )
+            .expect("headers should be built");
+
+        assert_eq!(headers["Content-Type"], "application/json");
+        assert!(!headers["X-App-Access-Sig"].is_empty());
     }
 }
