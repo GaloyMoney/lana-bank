@@ -133,10 +133,10 @@ Los errores de GraphQL se devuelven en el array `errors` de la respuesta:
 
 | Tipo de error | Descripción | Acción |
 |------------|-------------|--------|
-| `FORBIDDEN` | Permisos insuficientes | Verifica las credenciales de la API y el rol |
+| `FORBIDDEN` | Permisos insuficientes | Verifica las credenciales y el rol de la API |
 | `UNAUTHENTICATED` | Token inválido o expirado | Actualiza el token de acceso |
 | `BAD_USER_INPUT` | Datos de entrada inválidos | Verifica los parámetros de la solicitud |
-| `INTERNAL_SERVER_ERROR` | Error del servidor | Reintenta con retroceso exponencial |
+| `INTERNAL_SERVER_ERROR` | Error del servidor | Intenta de nuevo con retroceso exponencial |
 
 ## Encabezados requeridos
 
@@ -147,10 +147,5 @@ Content-Type: application/json
 
 ## Referencias de la API
 
-- [Referencia de la API de administración](../apis/admin-api) — Operaciones y tipos completos de administración
-- [Referencia de la API de cliente](../apis/customer-api) — Operaciones completas de cliente
-
-## Referencias de la API
-
 - [Referencia de la API de administración](../apis/admin-api/api-reference.mdx) — Operaciones y tipos administrativos completos
-- [Referencia de la API de cliente](../apis/customer-api/api-reference.mdx) — Operaciones de cliente completas
+- [Referencia de la API de cliente](../apis/customer-api/api-reference.mdx) — Operaciones completas de cliente
