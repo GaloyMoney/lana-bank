@@ -46,8 +46,6 @@ pub enum CustomerError {
     CustomerIsClosed,
     #[error("CustomerError - CustomerNotEligibleForProduct")]
     CustomerNotEligibleForProduct,
-    #[error("CustomerError - ManualConversionNotAllowed")]
-    ManualConversionNotAllowed,
 }
 
 impl From<ProspectCreateError> for CustomerError {
@@ -117,7 +115,6 @@ impl ErrorSeverity for CustomerError {
             Self::DomainConfigError(_) => Level::ERROR,
             Self::CustomerIsClosed => Level::WARN,
             Self::CustomerNotEligibleForProduct => Level::WARN,
-            Self::ManualConversionNotAllowed => Level::WARN,
         }
     }
 }

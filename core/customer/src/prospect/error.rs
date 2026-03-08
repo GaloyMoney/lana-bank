@@ -37,6 +37,8 @@ pub enum ProspectError {
     AlreadyConverted,
     #[error("ProspectError - AlreadyClosed: prospect has been closed")]
     AlreadyClosed,
+    #[error("ProspectError - ManualConversionNotAllowed")]
+    ManualConversionNotAllowed,
 }
 
 impl ErrorSeverity for ProspectError {
@@ -54,6 +56,7 @@ impl ErrorSeverity for ProspectError {
             Self::KycNotStarted => Level::WARN,
             Self::AlreadyConverted => Level::WARN,
             Self::AlreadyClosed => Level::WARN,
+            Self::ManualConversionNotAllowed => Level::WARN,
         }
     }
 }
