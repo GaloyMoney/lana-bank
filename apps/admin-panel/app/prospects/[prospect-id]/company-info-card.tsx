@@ -32,7 +32,7 @@ export const ProspectCompanyInfoCard: React.FC<ProspectCompanyInfoCardProps> = (
     <DetailsCard
       title={t("companyInfo.title")}
       details={details}
-      className="md:w-full"
+      className="md:w-[75%]"
       columns={3}
     />
   )

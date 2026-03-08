@@ -64,7 +64,7 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
       title={t("title")}
       details={details}
       columns={4}
-      className="w-full md:w-3/4"
+      className="w-full"
       publicId={publicId}
       footerContent={
         <Button variant="outline" onClick={handleViewDetails}>

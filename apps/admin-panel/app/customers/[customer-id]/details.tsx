@@ -79,7 +79,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
   const footerContent = customer.status !== CustomerStatus.Closed && (
     <div className="flex gap-2">
       {customer.status === CustomerStatus.Active && (
-        <Button variant="destructive" onClick={() => setOpenFreezeDialog(true)}>
+        <Button variant="outline" onClick={() => setOpenFreezeDialog(true)}>
           <Snowflake />
           {t("buttons.freeze")}
         </Button>

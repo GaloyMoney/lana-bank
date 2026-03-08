@@ -153,7 +153,7 @@ export const ProspectKycStatus: React.FC<ProspectKycStatusProps> = ({
       title={t("title")}
       badge={<KycStatusBadge status={kycStatus} />}
       details={details}
-      className="w-full md:w-1/3"
+      className="w-full md:w-[25%]"
       columns={1}
     />
   )
