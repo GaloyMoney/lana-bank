@@ -1,3 +1,52 @@
+## [0.47.0] - 2026-03-08
+
+### 🚀 Features
+
+- *(customer)* Handle SumSub applicantOnHold callback (#4142)
+- Add column sorting to admin panel tables (#4107)
+- *(customer)* Add frozen status, close customer, and SumSub deactivation (#4112)
+- Improve P&L date range selection with fiscal period presets (#4039)
+- Add sorting for Generated At column in regulatory reporting (#4156)
+- *(customer)* Make SumSub KYC/KYB flow names configurable (#4164)
+- Add active filter chips to paginated table (#4130)
+- *(governance)* Simplify committee approval to all-must-approve (#4167)
+- *(reporting)* As-of date report generation (#3949)
+- *(governance)* Require at least one member when creating a committee (#4180)
+- *(customer)* Capture company name from SumSub KYB verification (#4186)
+- Add pagination and sorting to users list (#4189)
+- Add pagination and sorting to roles list (#4190)
+- *(lints)* Add service-conditionals lint rule (Tell, Don't Ask) (#4183)
+
+### 🐛 Bug Fixes
+
+- *(credit)* Handle NoAccrualCycleInProgress in accrue_period to prevent infinite retry (#4148)
+- *(deps)* Override dompurify to fix Dependabot alert #202 (#4150)
+- *(collection)* Downgrade obligation ConcurrentModification error severity to WARN (#4153)
+- *(customer)* Reduce false-positive alerts in KYC callback handling (#4151)
+- *(docs)* Correct Spanish version labels showing "Siguiente" instead of version numbers (#4159)
+- Correct deposits page description (#4166)
+- *(cli)* Check port availability before running initialization (#4188)
+- *(ci)* Resolve concurrency race between translation workflows (#4193)
+- *(admin-panel)* Add missing sumsub flow name translations (#4195)
+- *(admin-panel)* Fix journal pagination and add cache policies (#4196)
+
+### 🚜 Refactor
+
+- *(customer)* Remove ProspectStatus in favor of ProspectStage (#4170)
+- *(customer)* Remove KycVerification in favor of applicant_id (#4184)
+- *(deposit)* Remove DepositAccountStatus::Inactive and holder status machinery (#4205)
+
+### 🧪 Testing
+
+- Test for default value in domain config (#4109)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.46.1 [ci skip] (#4145)
+- Update apollo client for sort (#4158)
+- Update staging URLs from staging.lana.galoy.io to staging.galoy.io (#4176)
+- Move checking account activity from customer to deposit account (#4175)
+- Set default value for as-of reports, raise if no value (#4197)
 ## [0.46.1] - 2026-03-05
 
 ### 🐛 Bug Fixes
