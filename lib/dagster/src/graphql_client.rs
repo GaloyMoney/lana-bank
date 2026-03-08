@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -120,21 +120,99 @@ pub struct FileReportsRunsResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PipelineSelector {
-    pub pipeline_name: String,
-    pub repository_location_name: String,
-    pub repository_name: String,
+#[serde(tag = "__typename")]
+pub enum RunOrError {
+    Run {
+        #[serde(rename = "runId")]
+        run_id: String,
+        status: RunStatus,
+        #[serde(rename = "startTime", with = "ts_float_seconds_option")]
+        start_time: Option<DateTime<Utc>>,
+        tags: Vec<RunTag>,
+    },
+    RunNotFoundError,
+    PythonError {
+        message: String,
+    },
+}
+
+impl RunOrError {
+    fn into_run_result(self) -> Result<Option<RunResult>, DagsterError> {
+        match self {
+            Self::Run {
+                run_id,
+                status,
+                start_time,
+                tags,
+            } => Ok(Some(RunResult {
+                run_id,
+                status,
+                start_time,
+                tags,
+            })),
+            Self::RunNotFoundError => Ok(None),
+            Self::PythonError { message } => Err(DagsterError::PythonError(message)),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RunByIdData {
+    pub run_or_error: RunOrError,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RunByIdResponse {
+    pub data: RunByIdData,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetKeyInput {
+    pub path: Vec<String>,
+}
+
+impl AssetKeyInput {
+    pub fn from_path(path: Vec<String>) -> Self {
+        Self { path }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ExecutionTag {
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExecutionMetadata {
+    pub tags: Vec<ExecutionTag>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct JobOrPipelineSelector {
+    pub job_name: String,
+    pub repository_location_name: String,
+    pub repository_name: String,
+    pub asset_selection: Vec<AssetKeyInput>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExecutionParams {
-    pub selector: PipelineSelector,
+    pub selector: JobOrPipelineSelector,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub run_config_data: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub execution_metadata: Option<ExecutionMetadata>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "__typename")]
-pub enum LaunchPipelineResult {
+pub enum LaunchRunResult {
     LaunchRunSuccess {
         run: Option<LaunchRunDetails>,
     },
@@ -150,13 +228,20 @@ pub struct LaunchRunDetails {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LaunchPipelineData {
-    pub launch_pipeline_execution: LaunchPipelineResult,
+pub struct LaunchRunData {
+    pub launch_run: LaunchRunResult,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LaunchPipelineResponse {
-    pub data: LaunchPipelineData,
+pub struct LaunchRunResponse {
+    pub data: LaunchRunData,
+}
+
+#[derive(Debug)]
+pub struct LaunchFileReportRunInput {
+    pub asset_selection: Vec<AssetKeyInput>,
+    pub as_of_date: Option<NaiveDate>,
+    pub tags: Vec<ExecutionTag>,
 }
 
 #[derive(Clone)]
@@ -238,6 +323,54 @@ query FileReportsRuns($limit: Int!, $cursor: String, $pipelineName: String) {
     }
 
     #[record_error_severity]
+    #[tracing::instrument(name = "dagster.graphql_client.file_report_run", skip(self))]
+    pub async fn file_report_run(&self, run_id: &str) -> Result<Option<RunResult>, DagsterError> {
+        let query = r#"
+query FileReportRun($runId: ID!) {
+  runOrError(runId: $runId) {
+    __typename
+    ... on Run {
+      runId
+      status
+      startTime
+      tags {
+        key
+        value
+      }
+    }
+    ... on RunNotFoundError {
+      __typename
+    }
+    ... on PythonError {
+      message
+    }
+  }
+}
+"#;
+
+        let request = json!({
+            "query": query,
+            "variables": {
+                "runId": run_id,
+            }
+        });
+
+        let response = self
+            .http
+            .post(self.config.uri.clone())
+            .json(&request)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            return Err(DagsterError::ApiError);
+        }
+
+        let response_data: RunByIdResponse = response.json().await?;
+        response_data.data.run_or_error.into_run_result()
+    }
+
+    #[record_error_severity]
     #[tracing::instrument(name = "dagster.graphql_client.get_logs_for_run", skip(self))]
     pub async fn get_logs_for_run(&self, run_id: &str) -> Result<Vec<Report>, DagsterError> {
         let query = r#"
@@ -312,11 +445,14 @@ query GetLogsForRun($runId: ID!) {
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "dagster.graphql_client.trigger_file_report_run", skip(self))]
-    pub async fn trigger_file_report_run(&self) -> Result<LaunchPipelineResponse, DagsterError> {
+    #[tracing::instrument(name = "dagster.graphql_client.launch_file_report_run", skip(self, input))]
+    pub async fn launch_file_report_run(
+        &self,
+        input: LaunchFileReportRunInput,
+    ) -> Result<LaunchRunResponse, DagsterError> {
         let query = r#"
-mutation LaunchPipeline($executionParams: ExecutionParams!) {
-  launchPipelineExecution(executionParams: $executionParams) {
+mutation LaunchRun($executionParams: ExecutionParams!) {
+  launchRun(executionParams: $executionParams) {
     __typename
     ... on LaunchRunSuccess {
       run {
@@ -328,11 +464,14 @@ mutation LaunchPipeline($executionParams: ExecutionParams!) {
 "#;
 
         let execution_params = ExecutionParams {
-            selector: PipelineSelector {
-                pipeline_name: self.config.pipeline_name_for_report_generation.clone(),
+            selector: JobOrPipelineSelector {
+                job_name: self.config.pipeline_name_for_report_generation.clone(),
                 repository_location_name: self.config.repository_location_name.clone(),
                 repository_name: self.config.repository_name.clone(),
+                asset_selection: input.asset_selection,
             },
+            run_config_data: build_run_config_data(input.as_of_date),
+            execution_metadata: Some(ExecutionMetadata { tags: input.tags }),
         };
 
         let variables = json!({
@@ -355,7 +494,21 @@ mutation LaunchPipeline($executionParams: ExecutionParams!) {
             return Err(DagsterError::ApiError);
         }
 
-        let response_data: LaunchPipelineResponse = response.json().await?;
+        let response_data: LaunchRunResponse = response.json().await?;
         Ok(response_data)
     }
+}
+
+fn build_run_config_data(as_of_date: Option<NaiveDate>) -> Option<serde_json::Value> {
+    as_of_date.map(|as_of_date| {
+        json!({
+            "ops": {
+                "file_report_assets": {
+                    "config": {
+                        "as_of_date": as_of_date,
+                    }
+                }
+            }
+        })
+    })
 }

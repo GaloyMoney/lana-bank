@@ -1257,6 +1257,18 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(ReportRun, ctx, app.reports().find_report_run_by_id(sub, id))
     }
+
+    async fn available_report_definitions(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<ReportDefinition>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let definitions = app.reports().available_report_definitions(sub).await?;
+        Ok(definitions
+            .into_iter()
+            .map(ReportDefinition::from)
+            .collect())
+    }
 }
 
 pub struct Mutation;
@@ -2648,9 +2660,17 @@ impl Mutation {
     async fn trigger_report_run(
         &self,
         ctx: &Context<'_>,
+        input: TriggerReportRunInput,
     ) -> async_graphql::Result<ReportRunCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let _job_id = app.reports().trigger_report_run_job(sub).await?;
+        let _job_id = app
+            .reports()
+            .trigger_report_run_job(
+                sub,
+                input.report_definition_id,
+                input.as_of_date.map(Into::into),
+            )
+            .await?;
         Ok(ReportRunCreatePayload { run_id: None })
     }
 

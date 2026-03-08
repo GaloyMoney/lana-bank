@@ -75,6 +75,7 @@
       "accountEntryCsv": "Fetches the CSV export document for a specific ledger account",
       "reportRuns": "Returns a paginated list of all report runs",
       "reportRun": "Fetches a specific report run by its unique identifier",
+      "availableReportDefinitions": "Returns the report definitions that can be generated manually, including output formats and whether an as-of date is required",
       "prospect": "Fetches a specific prospect by their unique identifier",
       "prospectByPublicId": "Fetches a prospect by their public-facing identifier",
       "prospects": "Returns a paginated and filterable list of all prospects"
@@ -149,7 +150,7 @@
       "accountingCsvDownloadLinkGenerate": "Generates a download link for an accounting CSV document",
       "loanAgreementGenerate": "Generates a loan agreement document for a customer",
       "loanAgreementDownloadLinkGenerate": "Generates a download link for a loan agreement document",
-      "triggerReportRun": "Triggers a manual report run",
+      "triggerReportRun": "Triggers manual generation for a single report definition, with an optional as-of date when the selected report requires one",
       "reportFileGenerateDownloadLink": "Generates a download link for a report file",
       "chartOfAccountsCsvImportWithBaseConfig": "Imports a chart of accounts from a CSV file with base configuration settings",
       "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file",

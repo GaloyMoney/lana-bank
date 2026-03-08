@@ -2519,14 +2519,37 @@
     "title": "Report Management",
     "description": "Generate and manage regulatory reports, track their status, and download generated documents.",
     "availableReports": "Available Reports",
+    "availableReportsDescription": "Generate one report at a time. Reports that support as-of dates require a date before generation.",
     "noReportsAvailable": "No reports available",
+    "recentRuns": "Recent Runs",
+    "recentRunsDescription": "Track queued, running, and completed report generation runs.",
+    "availableReportsHeaders": {
+      "report": "Report",
+      "outputs": "Outputs",
+      "asOfDate": "As-Of Date",
+      "action": "Action"
+    },
+    "availableReportsValues": {
+      "asOfDate": {
+        "required": "Required",
+        "notUsed": "Not used"
+      }
+    },
     "listHeaders": {
       "generatedAt": "Generated At",
+      "report": "Report",
+      "asOfDate": "As-Of Date",
       "state": "State",
       "runType": "Run Type"
     },
     "starting": "Starting...",
     "listValues": {
+      "report": {
+        "allReports": "All reports"
+      },
+      "asOfDate": {
+        "notApplicable": "Not applicable"
+      },
       "runType": {
         "manual": "Manual",
         "scheduled": "Scheduled"
@@ -2540,12 +2563,18 @@
     },
     "ReportGeneration": {
       "generate": "Generate",
+      "generateAsOf": "Select Date",
+      "selectAsOfDate": "Select As-Of Date",
+      "selectAsOfDateDescription": "Choose the date to use for {report}.",
+      "asOfDate": "As-Of Date",
       "reportGenerationHasBeenTriggered": "Report generation has been triggered, it will appear in the list shortly",
       "reportGenerationFailed": "Report generation failed, please retry"
     }
   },
   "ReportRun": {
     "title": "Reports as of {date}",
+    "generatedAt": "Generated at {date}",
+    "asOfDate": "As-Of {date}",
     "state": {
       "failed": "Failed",
       "queued": "Queued",
@@ -2553,6 +2582,7 @@
       "success": "Success"
     },
     "noReportsAvailable": "No reports available",
+    "reportsPending": "Files will appear here once report generation finishes.",
     "norm": "Norm",
     "name": "Name",
     "download": "Download",

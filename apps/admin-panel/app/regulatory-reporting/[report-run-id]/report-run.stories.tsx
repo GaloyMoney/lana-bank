@@ -8,7 +8,7 @@ import ReportRunById from "./page"
 import faker from "@/.storybook/faker"
 import { mockReportRun } from "@/lib/graphql/generated/mocks"
 
-import { ReportRunByIdDocument } from "@/lib/graphql/generated"
+import { ReportRunByIdDocument, ReportRunType } from "@/lib/graphql/generated"
 
 const reportRunId = faker.string.uuid()
 
@@ -21,7 +21,15 @@ const ReportByIdStory = () => {
       },
       result: {
         data: {
-          reportRun: mockReportRun(),
+          reportRun: mockReportRun({
+            requestedAsOfDate: "2026-02-27",
+            requestedReport: {
+              __typename: "RequestedReport",
+              reportDefinitionId: "nrp_51/01_saldo_cuenta",
+              norm: "nrp_51",
+              name: "saldo_cuenta",
+            },
+          }),
         },
       },
     },
@@ -70,6 +78,41 @@ export const Error: Story = {
         <ReportRunById params={Promise.resolve({ "report-run-id": reportRunId })} />
       </MockedProvider>
     )
+  },
+}
+
+export const ScheduledFallback: Story = {
+  render: () => {
+    const mocks = [
+      {
+        request: {
+          query: ReportRunByIdDocument,
+          variables: { reportRunId },
+        },
+        result: {
+          data: {
+            reportRun: mockReportRun({
+              requestedAsOfDate: null,
+              requestedReport: null,
+              runType: ReportRunType.Scheduled,
+            }),
+          },
+        },
+      },
+    ]
+
+    return (
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <ReportRunById params={Promise.resolve({ "report-run-id": reportRunId })} />
+      </MockedProvider>
+    )
+  },
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: `/regulatory-reporting/${reportRunId}`,
+      },
+    },
   },
 }
 

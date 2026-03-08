@@ -2,6 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod report;
+pub mod report_definition;
 pub mod report_run;
 
 pub mod config;
@@ -24,8 +25,9 @@ pub use jobs::SyncReportsJobRunner;
 pub use primitives::*;
 pub use public::*;
 pub use publisher::ReportPublisher;
+pub use report_definition::*;
 
-use cloud_storage::Storage;
+use cloud_storage::{Storage, config::StorageConfig};
 
 use jobs::{
     SyncReportsJobConfig, SyncReportsJobInit, SyncReportsJobSpawner, TriggerReportRunJobConfig,
@@ -84,6 +86,15 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent>,
 {
+    fn report_file_storage(&self) -> Storage {
+        let reports_bucket_name = std::env::var("REPORTS_BUCKET_NAME").ok();
+        let Some(config) = reports_bucket_storage_config(reports_bucket_name.as_deref()) else {
+            return self.storage.clone();
+        };
+
+        Storage::new(&config)
+    }
+
     #[record_error_severity]
     #[tracing::instrument(name = "report.init", skip_all)]
     pub async fn init(
@@ -197,6 +208,22 @@ where
     }
 
     #[record_error_severity]
+    #[tracing::instrument(name = "report.available_report_definitions", skip(self), fields(subject = %sub))]
+    pub async fn available_report_definitions(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Vec<ReportDefinition>, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
+        Ok(available_report_definitions().to_vec())
+    }
+
+    #[record_error_severity]
     #[tracing::instrument(name = "report.list_reports_for_run", skip(self), fields(subject = %sub, run_id = %run_id))]
     pub async fn list_reports_for_run(
         &self,
@@ -277,17 +304,18 @@ where
             path: &file.path_in_bucket,
         };
 
-        let download_link = self.storage.generate_download_link(location).await?;
+        let storage = self.report_file_storage();
+        let download_link = storage.generate_download_link(location).await?;
         Ok(download_link)
     }
 
     #[record_error_severity]
     #[tracing::instrument(name = "report.reports_sync", skip(self), fields(job_id = tracing::field::Empty))]
-    pub async fn reports_sync(&self) -> Result<job::JobId, ReportError> {
+    pub async fn reports_sync(&self, dagster_run_id: Option<String>) -> Result<job::JobId, ReportError> {
         let mut db = self.report_runs.begin_op().await?;
         let job_id = job::JobId::new();
         self.sync_reports_spawner
-            .spawn_in_op(&mut db, job_id, SyncReportsJobConfig::<E>::new())
+            .spawn_in_op(&mut db, job_id, SyncReportsJobConfig::<E>::new(dagster_run_id))
             .await?;
 
         tracing::Span::current().record("job_id", job_id.to_string());
@@ -301,6 +329,8 @@ where
     pub async fn trigger_report_run_job(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        report_definition_id: String,
+        as_of_date: Option<chrono::NaiveDate>,
     ) -> Result<job::JobId, ReportError> {
         self.authz
             .enforce_permission(
@@ -310,14 +340,64 @@ where
             )
             .await?;
 
+        let report_definition =
+            find_report_definition(&report_definition_id).ok_or(ReportError::NotFound)?;
+
+        if report_definition.supports_as_of && as_of_date.is_none() {
+            return Err(ReportError::InvalidReportRunRequest(format!(
+                "report definition '{}' requires an as_of_date",
+                report_definition_id
+            )));
+        }
+
+        if !report_definition.supports_as_of && as_of_date.is_some() {
+            return Err(ReportError::InvalidReportRunRequest(format!(
+                "report definition '{}' does not support as_of_date",
+                report_definition_id
+            )));
+        }
+
         let mut db = self.report_runs.begin_op().await?;
         let job_id = job::JobId::new();
         self.trigger_report_run_spawner
-            .spawn_in_op(&mut db, job_id, TriggerReportRunJobConfig::<E>::new())
+            .spawn_in_op(
+                &mut db,
+                job_id,
+                TriggerReportRunJobConfig::<E>::new(report_definition_id, as_of_date),
+            )
             .await?;
         tracing::Span::current().record("job_id", job_id.to_string());
         db.commit().await?;
 
         Ok(job_id)
+    }
+}
+
+fn reports_bucket_storage_config(bucket_name: Option<&str>) -> Option<StorageConfig> {
+    let bucket_name = bucket_name
+        .map(str::trim)
+        .filter(|bucket_name| !bucket_name.is_empty())?;
+
+    Some(StorageConfig::new_gcp(bucket_name.to_owned()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reports_bucket_storage_config_prefers_gcp_when_bucket_present() {
+        let config = reports_bucket_storage_config(Some("test-bucket"));
+
+        match config {
+            Some(StorageConfig::Gcp(gcp)) => assert_eq!(gcp.bucket_name, "test-bucket"),
+            _ => panic!("expected GCP storage config"),
+        }
+    }
+
+    #[test]
+    fn reports_bucket_storage_config_ignores_missing_bucket() {
+        assert!(reports_bucket_storage_config(None).is_none());
+        assert!(reports_bucket_storage_config(Some("   ")).is_none());
     }
 }

@@ -7,6 +7,7 @@ use super::{super::primitives::SortDirection, report::Report};
 pub use lana_app::report::{
     ReportRun as DomainReportRun, ReportRunState as DomainReportRunState,
     ReportRunType as DomainReportRunType, ReportRunsByCreatedAtCursor,
+    RequestedReport as DomainRequestedReport,
 };
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -58,6 +59,23 @@ impl From<DomainReportRunType> for ReportRunType {
 }
 
 #[derive(SimpleObject, Clone)]
+pub struct RequestedReport {
+    report_definition_id: String,
+    norm: String,
+    name: String,
+}
+
+impl From<DomainRequestedReport> for RequestedReport {
+    fn from(requested_report: DomainRequestedReport) -> Self {
+        Self {
+            report_definition_id: requested_report.report_definition_id,
+            norm: requested_report.norm,
+            name: requested_report.name,
+        }
+    }
+}
+
+#[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct ReportRun {
     id: ID,
@@ -65,6 +83,8 @@ pub struct ReportRun {
     state: ReportRunState,
     run_type: ReportRunType,
     start_time: Option<Timestamp>,
+    requested_report: Option<RequestedReport>,
+    requested_as_of_date: Option<Date>,
 
     #[graphql(skip)]
     pub entity: Arc<DomainReportRun>,
@@ -78,6 +98,11 @@ impl From<lana_app::report::ReportRun> for ReportRun {
             state: ReportRunState::from(report_run.state),
             run_type: ReportRunType::from(report_run.run_type),
             start_time: report_run.start_time.map(|dt| dt.into()),
+            requested_report: report_run
+                .requested_report
+                .clone()
+                .map(RequestedReport::from),
+            requested_as_of_date: report_run.requested_as_of_date.map(Into::into),
             entity: Arc::new(report_run),
         }
     }
@@ -103,6 +128,12 @@ impl ReportRun {
 #[derive(SimpleObject)]
 pub struct ReportRunCreatePayload {
     pub run_id: Option<String>,
+}
+
+#[derive(InputObject)]
+pub struct TriggerReportRunInput {
+    pub report_definition_id: String,
+    pub as_of_date: Option<Date>,
 }
 
 #[derive(SimpleObject)]
