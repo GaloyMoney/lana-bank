@@ -4,6 +4,7 @@ pub(crate) mod deactivate_sumsub_applicant;
 mod disable_keycloak_user;
 pub(crate) mod freeze_customer_deposits;
 pub(crate) mod reject_sumsub_applicant;
+mod sumsub_sync_job;
 mod sync_customer_close_keycloak;
 mod sync_customer_freeze;
 mod sync_customer_freeze_sumsub;

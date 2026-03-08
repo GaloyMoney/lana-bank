@@ -6,6 +6,8 @@ use job::*;
 use core_customer::CustomerId;
 use tracing_macros::record_error_severity;
 
+use super::sumsub_sync_job::complete_on_success;
+
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DeactivateSumsubApplicantConfig {
@@ -61,14 +63,10 @@ impl JobRunner for DeactivateSumsubApplicantJobRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if let Err(e) = self
-            .sumsub_client
-            .deactivate_applicant(self.config.customer_id)
-            .await
-        {
-            tracing::warn!("Failed to deactivate SumSub applicant: {e}");
-        }
-
-        Ok(JobCompletion::Complete)
+        complete_on_success(
+            self.sumsub_client
+                .deactivate_applicant(self.config.customer_id)
+                .await,
+        )
     }
 }
