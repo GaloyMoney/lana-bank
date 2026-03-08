@@ -1,9 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+/// Sort direction for list queries.
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SortDirection {
+    /// Return results in ascending order.
     Asc,
+    /// Return results in descending order.
     #[default]
     Desc,
 }

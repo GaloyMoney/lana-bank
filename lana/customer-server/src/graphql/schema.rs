@@ -8,16 +8,18 @@ pub struct Query;
 
 #[Object]
 impl Query {
+    /// Returns the currently authenticated customer.
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<MeCustomer> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let customer = app.customers().find_for_subject(sub).await?;
         Ok(MeCustomer::from(customer))
     }
 
+    /// Returns a credit facility by its internal UUID.
     async fn credit_facility(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        #[graphql(desc = "Internal credit facility UUID.")] id: UUID,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -29,6 +31,7 @@ impl Query {
             .map(CreditFacility::from))
     }
 
+    /// Returns the latest BTC price visible to customer clients.
     async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
         let app = ctx.data_unchecked::<LanaApp>();
         let usd_cents_per_btc = app.price().usd_cents_per_btc().await;

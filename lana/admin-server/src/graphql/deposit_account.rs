@@ -14,14 +14,21 @@ use super::{
     loader::LanaDataLoader, primitives::SortDirection, withdrawal::*,
 };
 
+/// A deposit account exposed in the admin API.
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct DepositAccount {
+    /// Relay global identifier for this deposit account.
     id: ID,
+    /// Internal UUID for this deposit account.
     deposit_account_id: UUID,
+    /// Internal UUID of the customer that owns this account.
     customer_id: UUID,
+    /// When the deposit account was created.
     created_at: Timestamp,
+    /// Current lifecycle status of the account.
     status: DepositAccountStatus,
+    /// Operational activity state of the account.
     activity: Activity,
 
     #[graphql(skip)]
@@ -43,9 +50,12 @@ impl From<DomainDepositAccount> for DepositAccount {
     }
 }
 
+/// Current USD balances for a deposit account.
 #[derive(SimpleObject)]
 pub struct DepositAccountBalance {
+    /// Funds that are fully settled and available on the account.
     settled: UsdCents,
+    /// Funds that are pending settlement on the account.
     pending: UsdCents,
 }
 
@@ -58,15 +68,19 @@ impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
     }
 }
 
+/// The ledger accounts that back a deposit account.
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct DepositAccountLedgerAccounts {
+    /// Internal UUID of the active deposit account ledger account.
     deposit_account_id: UUID,
+    /// Internal UUID of the frozen deposit account ledger account.
     frozen_deposit_account_id: UUID,
 }
 
 #[ComplexObject]
 impl DepositAccountLedgerAccounts {
+    /// The active ledger account used for this deposit account.
     async fn deposit_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
@@ -76,6 +90,7 @@ impl DepositAccountLedgerAccounts {
         Ok(account)
     }
 
+    /// The ledger account used while this deposit account is frozen.
     async fn frozen_deposit_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
@@ -88,10 +103,12 @@ impl DepositAccountLedgerAccounts {
 
 #[ComplexObject]
 impl DepositAccount {
+    /// Public identifier assigned to the deposit account.
     async fn public_id(&self) -> &PublicId {
         &self.entity.public_id
     }
 
+    /// Deposits recorded against this account.
     async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let deposits = app
@@ -101,6 +118,7 @@ impl DepositAccount {
         Ok(deposits.into_iter().map(Deposit::from).collect())
     }
 
+    /// Withdrawals recorded against this account.
     async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let withdrawals = app
@@ -110,6 +128,7 @@ impl DepositAccount {
         Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
     }
 
+    /// Paginated account history, including deposits, withdrawals, and freeze events.
     async fn history(
         &self,
         ctx: &Context<'_>,
@@ -154,12 +173,14 @@ impl DepositAccount {
         .await
     }
 
+    /// Current USD balance for this account.
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccountBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let balance = app.deposits().account_balance(sub, self.entity.id).await?;
         Ok(DepositAccountBalance::from(balance))
     }
 
+    /// Customer that owns this deposit account.
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let customer = app
@@ -171,6 +192,7 @@ impl DepositAccount {
         Ok(Customer::from(customer))
     }
 
+    /// Underlying ledger accounts used to track this deposit account.
     async fn ledger_accounts(&self) -> DepositAccountLedgerAccounts {
         DepositAccountLedgerAccounts {
             deposit_account_id: self.entity.account_ids.deposit_account_id.into(),
@@ -179,16 +201,22 @@ impl DepositAccount {
     }
 }
 
+/// Filters that can be applied when listing deposit accounts.
 #[derive(InputObject)]
 pub struct DepositAccountsFilter {
+    /// Limit results to a specific account status.
     pub status: Option<DepositAccountStatus>,
+    /// Limit results to a specific account activity state.
     pub activity: Option<Activity>,
 }
 
+/// Fields available when sorting deposit account lists.
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum DepositAccountsSortBy {
+    /// Sort by when the deposit account was created.
     #[default]
     CreatedAt,
+    /// Sort by the public identifier assigned to the account.
     PublicId,
 }
 
@@ -201,10 +229,13 @@ impl From<DepositAccountsSortBy> for DomainDepositAccountsSortBy {
     }
 }
 
+/// Sort options for deposit account lists.
 #[derive(InputObject, Default, Debug, Clone, Copy)]
 pub struct DepositAccountsSort {
+    /// Field to sort deposit accounts by.
     #[graphql(default)]
     pub by: DepositAccountsSortBy,
+    /// Direction to apply to the selected sort field.
     #[graphql(default)]
     pub direction: SortDirection,
 }
