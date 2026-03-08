@@ -115,9 +115,9 @@
       "title": "Closing Time",
       "description": "Time when end-of-day processing runs (HH:MM:SS)"
     },
-    "require-verified-customer-for-account": {
-      "title": "Require verified customer for account",
-      "description": "When enabled, customers must be KYC-verified before creating deposit accounts or credit facilities."
+    "allow-manual-conversion": {
+      "title": "Allow manual conversion",
+      "description": "When enabled, admins can manually convert prospects to customers without SumSub KYC approval."
     },
     "deposit-activity-inactive-threshold-days": {
       "title": "Deposit activity inactive threshold (days)",

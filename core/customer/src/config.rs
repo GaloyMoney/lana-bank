@@ -1,12 +1,12 @@
 use domain_config::define_exposed_config;
 
 define_exposed_config! {
-    /// Controls whether KYC verification is required for account operations.
-    /// When enabled, customers must be KYC-verified before creating
-    /// deposit accounts or credit facilities.
-    pub struct RequireVerifiedCustomerForAccount(bool);
+    /// Controls whether admin manual conversion of prospects to customers is allowed.
+    /// When enabled, admins can convert prospects without SumSub KYC approval.
+    /// When disabled (default), prospects must go through SumSub KYC verification.
+    pub struct AllowManualConversion(bool);
     spec {
-        key: "require-verified-customer-for-account";
-        default: || Some(true);
+        key: "allow-manual-conversion";
+        default: || Some(false);
     }
 }

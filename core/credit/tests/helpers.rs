@@ -12,7 +12,7 @@ use core_credit::*;
 use core_credit::{CreditOmnibusAccountSetSpec, CreditSummaryAccountSetSpec};
 use core_credit_collateral::CollateralId;
 use core_custody::CustodyConfig;
-use core_customer::RequireVerifiedCustomerForAccount;
+use core_customer::AllowManualConversion;
 use document_storage::DocumentStorage;
 use domain_config::{
     EncryptionConfig as DomainEncryptionConfig, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
@@ -86,10 +86,10 @@ pub async fn init_domain_configs(
         startup_configs,
     )
     .await?;
-    // Disable the require verified customer check for tests
-    // Ignore concurrent modification - all tests want the same value (false)
+    // Enable manual conversion to allow creating customers without SumSub KYC in tests
+    // Ignore concurrent modification - all tests want the same value (true)
     let _ = exposed
-        .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
+        .update::<AllowManualConversion>(&authz::dummy::DummySubject, true)
         .await;
     Ok((internal, exposed_readonly))
 }

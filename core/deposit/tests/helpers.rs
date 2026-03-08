@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use cala_ledger::{CalaLedger, JournalId, account_set::AccountSetMemberId};
 use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, CoreAccounting};
-use core_customer::RequireVerifiedCustomerForAccount;
+use core_customer::AllowManualConversion;
 use core_deposit::{DepositOmnibusAccountSetSpec, DepositSummaryAccountSetSpec};
 use domain_config::{
     EncryptionConfig, ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
@@ -27,10 +27,10 @@ pub async fn init_domain_configs(
     let startup_configs: Vec<(String, serde_json::Value)> = vec![];
     let (internal, exposed, exposed_readonly) =
         domain_config::init(pool, authz, EncryptionConfig::default(), startup_configs).await?;
-    // Disable the require verified customer check for tests
-    // Ignore concurrent modification - all tests want the same value (false)
+    // Enable manual conversion to allow creating customers without SumSub KYC in tests
+    // Ignore concurrent modification - all tests want the same value (true)
     let _ = exposed
-        .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
+        .update::<AllowManualConversion>(&authz::dummy::DummySubject, true)
         .await;
     Ok((internal, exposed, exposed_readonly))
 }
