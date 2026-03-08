@@ -32,10 +32,10 @@ export const ProspectDetailsCard: React.FC<ProspectDetailsCardProps> = ({ prospe
   const { data: domainConfigsData } = useDomainConfigsQuery({
     variables: { first: 100 },
   })
-  const requireVerifiedCustomer = domainConfigsData?.domainConfigs.nodes.find(
-    (c) => c.key === "require-verified-customer-for-account",
+  const allowManualConversion = domainConfigsData?.domainConfigs.nodes.find(
+    (c) => c.key === "allow-manual-conversion",
   )
-  const showConvertButton = requireVerifiedCustomer?.value === false
+  const showConvertButton = allowManualConversion?.value === true
 
   const details: DetailItemProps[] = [
     {

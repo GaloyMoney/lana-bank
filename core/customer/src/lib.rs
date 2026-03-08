@@ -273,12 +273,7 @@ where
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
         let customer = self.repo.find_by_id_in_op(&mut *op, id.into()).await?;
-        let require_verified = self
-            .domain_configs
-            .get_without_audit_in_op::<RequireVerifiedCustomerForAccount>(op)
-            .await?
-            .value();
-        customer.assert_may_attach_product(require_verified)?;
+        customer.assert_may_attach_product()?;
         Ok(customer)
     }
 
@@ -776,6 +771,15 @@ where
                 CoreCustomerAction::PROSPECT_APPROVE_KYC,
             )
             .await?;
+
+        let allow_manual = self
+            .domain_configs
+            .get_without_audit::<AllowManualConversion>()
+            .await?
+            .value();
+        if !allow_manual {
+            return Err(CustomerError::ManualConversionNotAllowed);
+        }
 
         let mut db = self.prospect_repo.begin_op().await?;
         let mut prospect = self

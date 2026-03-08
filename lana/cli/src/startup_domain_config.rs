@@ -16,8 +16,8 @@ pub struct DomainConfigSetting {
 /// The key is converted from kebab-case to SCREAMING_SNAKE_CASE.
 ///
 /// Example:
-/// - Config key: `require-verified-customer-for-account`
-/// - Env var: `LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false`
+/// - Config key: `allow-manual-conversion`
+/// - Env var: `LANA_DOMAIN_CONFIG_ALLOW_MANUAL_CONVERSION=true`
 pub const DOMAIN_CONFIG_ENV_PREFIX: &str = "LANA_DOMAIN_CONFIG_";
 
 /// Parse domain config settings from environment variables.
@@ -27,7 +27,7 @@ pub const DOMAIN_CONFIG_ENV_PREFIX: &str = "LANA_DOMAIN_CONFIG_";
 ///
 /// Example:
 /// ```text
-/// LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
+/// LANA_DOMAIN_CONFIG_ALLOW_MANUAL_CONVERSION=true
 /// LANA_DOMAIN_CONFIG_SOME_OTHER_KEY=42
 /// ```
 pub fn parse_from_env() -> Result<Vec<DomainConfigSetting>> {
@@ -66,7 +66,7 @@ pub fn parse_from_env() -> Result<Vec<DomainConfigSetting>> {
 
 /// Convert an environment variable suffix from SCREAMING_SNAKE_CASE to kebab-case.
 ///
-/// Example: `REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT` -> `require-verified-customer-for-account`
+/// Example: `ALLOW_MANUAL_CONVERSION` -> `allow-manual-conversion`
 fn env_var_suffix_to_config_key(suffix: &str) -> String {
     suffix.to_lowercase().replace('_', "-")
 }
@@ -78,8 +78,8 @@ mod tests {
     #[test]
     fn env_var_suffix_to_config_key_simple() {
         assert_eq!(
-            env_var_suffix_to_config_key("REQUIRE_VERIFIED_CUSTOMER"),
-            "require-verified-customer"
+            env_var_suffix_to_config_key("ALLOW_MANUAL_CONVERSION"),
+            "allow-manual-conversion"
         );
     }
 
@@ -91,19 +91,19 @@ mod tests {
     #[test]
     fn config_key_to_env_var_suffix() {
         // Reverse conversion for documentation purposes
-        let key = "require-verified-customer";
-        let expected = "REQUIRE_VERIFIED_CUSTOMER";
+        let key = "allow-manual-conversion";
+        let expected = "ALLOW_MANUAL_CONVERSION";
         assert_eq!(key.to_uppercase().replace('-', "_"), expected);
     }
 
     #[test]
     fn config_key_to_env_var_full() {
-        let key = "require-verified-customer";
+        let key = "allow-manual-conversion";
         let env_var = format!(
             "{}{}",
             DOMAIN_CONFIG_ENV_PREFIX,
             key.to_uppercase().replace('-', "_")
         );
-        assert_eq!(env_var, "LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER");
+        assert_eq!(env_var, "LANA_DOMAIN_CONFIG_ALLOW_MANUAL_CONVERSION");
     }
 }

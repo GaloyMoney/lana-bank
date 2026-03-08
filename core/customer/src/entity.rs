@@ -60,7 +60,7 @@ impl Customer {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn has_been_verified(&self) -> bool {
+    pub fn has_sumsub_profile(&self) -> bool {
         matches!(self.conversion, CustomerConversion::SumsubApproved { .. })
     }
 
@@ -68,15 +68,12 @@ impl Customer {
         self.conversion.applicant_id()
     }
 
-    pub fn may_attach_product(&self, require_verified: bool) -> bool {
-        !self.is_closed() && !self.is_frozen() && (!require_verified || self.has_been_verified())
+    pub fn may_attach_product(&self) -> bool {
+        !self.is_closed() && !self.is_frozen()
     }
 
-    pub(crate) fn assert_may_attach_product(
-        &self,
-        require_verified: bool,
-    ) -> Result<(), CustomerError> {
-        if !self.may_attach_product(require_verified) {
+    pub(crate) fn assert_may_attach_product(&self) -> Result<(), CustomerError> {
+        if !self.may_attach_product() {
             return Err(CustomerError::CustomerNotEligibleForProduct);
         }
         Ok(())
@@ -94,7 +91,7 @@ impl Customer {
     }
 
     pub fn should_sync_financial_transactions(&self) -> bool {
-        self.has_been_verified()
+        self.has_sumsub_profile()
     }
 
     pub(crate) fn close(&mut self) -> Idempotent<()> {
