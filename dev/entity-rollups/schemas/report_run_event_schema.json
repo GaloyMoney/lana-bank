@@ -15,6 +15,25 @@
         "manual"
       ],
       "type": "string"
+    },
+    "RequestedReport": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "norm": {
+          "type": "string"
+        },
+        "report_definition_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "report_definition_id",
+        "norm",
+        "name"
+      ],
+      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -27,6 +46,23 @@
         "id": {
           "format": "uuid",
           "type": "string"
+        },
+        "requested_as_of_date": {
+          "format": "date",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "requested_report": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RequestedReport"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "run_type": {
           "$ref": "#/$defs/ReportRunType"
@@ -57,6 +93,23 @@
     },
     {
       "properties": {
+        "requested_as_of_date": {
+          "format": "date",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "requested_report": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RequestedReport"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "run_type": {
           "$ref": "#/$defs/ReportRunType"
         },

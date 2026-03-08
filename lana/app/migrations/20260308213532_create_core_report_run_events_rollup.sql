@@ -7,6 +7,8 @@ CREATE TABLE core_report_run_events_rollup (
   event_type TEXT NOT NULL,
   -- Flattened fields from the event JSON
   external_id VARCHAR,
+  requested_as_of_date VARCHAR,
+  requested_report JSONB,
   run_type VARCHAR,
   start_time TIMESTAMPTZ,
   state VARCHAR
@@ -47,12 +49,16 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.external_id := (NEW.event ->> 'external_id');
+    new_row.requested_as_of_date := (NEW.event ->> 'requested_as_of_date');
+    new_row.requested_report := (NEW.event -> 'requested_report');
     new_row.run_type := (NEW.event ->> 'run_type');
     new_row.start_time := (NEW.event ->> 'start_time')::TIMESTAMPTZ;
     new_row.state := (NEW.event ->> 'state');
   ELSE
     -- Default all fields to current values
     new_row.external_id := current_row.external_id;
+    new_row.requested_as_of_date := current_row.requested_as_of_date;
+    new_row.requested_report := current_row.requested_report;
     new_row.run_type := current_row.run_type;
     new_row.start_time := current_row.start_time;
     new_row.state := current_row.state;
@@ -62,10 +68,14 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.external_id := (NEW.event ->> 'external_id');
+      new_row.requested_as_of_date := (NEW.event ->> 'requested_as_of_date');
+      new_row.requested_report := (NEW.event -> 'requested_report');
       new_row.run_type := (NEW.event ->> 'run_type');
       new_row.start_time := (NEW.event ->> 'start_time')::TIMESTAMPTZ;
       new_row.state := (NEW.event ->> 'state');
     WHEN 'state_updated' THEN
+      new_row.requested_as_of_date := (NEW.event ->> 'requested_as_of_date');
+      new_row.requested_report := (NEW.event -> 'requested_report');
       new_row.run_type := (NEW.event ->> 'run_type');
       new_row.start_time := (NEW.event ->> 'start_time')::TIMESTAMPTZ;
       new_row.state := (NEW.event ->> 'state');
@@ -78,6 +88,8 @@ BEGIN
     modified_at,
     event_type,
     external_id,
+    requested_as_of_date,
+    requested_report,
     run_type,
     start_time,
     state
@@ -89,6 +101,8 @@ BEGIN
     new_row.modified_at,
     new_row.event_type,
     new_row.external_id,
+    new_row.requested_as_of_date,
+    new_row.requested_report,
     new_row.run_type,
     new_row.start_time,
     new_row.state
