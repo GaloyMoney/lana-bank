@@ -165,7 +165,7 @@ impl Disbursal {
     ) -> Idempotent<Option<NewObligation>> {
         idempotency_guard!(
             self.events.iter_all(),
-            DisbursalEvent::ApprovalProcessConcluded { .. }
+            already_applied: DisbursalEvent::ApprovalProcessConcluded { .. }
         );
         self.events.push(DisbursalEvent::ApprovalProcessConcluded {
             approval_process_id: self.approval_process_id,
@@ -193,7 +193,7 @@ impl Disbursal {
     ) -> Idempotent<Option<NewObligation>> {
         idempotency_guard!(
             self.events.iter_all(),
-            DisbursalEvent::ApprovalProcessConcluded { .. }
+            already_applied: DisbursalEvent::ApprovalProcessConcluded { .. }
         );
         self.events.push(DisbursalEvent::ApprovalProcessConcluded {
             approval_process_id: self.approval_process_id,
@@ -235,7 +235,7 @@ impl Disbursal {
         tx_ref: &str,
         effective: chrono::NaiveDate,
     ) -> Idempotent<NewObligation> {
-        idempotency_guard!(self.events.iter_all(), DisbursalEvent::Settled { .. });
+        idempotency_guard!(self.events.iter_all(), already_applied: DisbursalEvent::Settled { .. });
         let obligation_id = ObligationId::new();
         self.events.push(DisbursalEvent::Settled {
             ledger_tx_id: tx_id,

@@ -71,7 +71,7 @@ impl Deposit {
     pub fn revert(&mut self) -> Idempotent<DepositReversalData> {
         idempotency_guard!(
             self.events().iter_all().rev(),
-            DepositEvent::Reverted { .. }
+            already_applied: DepositEvent::Reverted { .. }
         );
 
         let ledger_tx_id = CalaTransactionId::new();

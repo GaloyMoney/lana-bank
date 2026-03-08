@@ -74,7 +74,7 @@ impl Document {
     }
 
     pub fn upload_file(&mut self) -> Idempotent<()> {
-        idempotency_guard!(self.events.iter_all(), DocumentEvent::FileUploaded { .. });
+        idempotency_guard!(self.events.iter_all(), already_applied: DocumentEvent::FileUploaded { .. });
 
         self.events.push(DocumentEvent::FileUploaded {});
         Idempotent::Executed(())
@@ -99,7 +99,7 @@ impl Document {
     }
 
     pub fn delete(&mut self) -> Idempotent<()> {
-        idempotency_guard!(self.events.iter_all(), DocumentEvent::Deleted { .. });
+        idempotency_guard!(self.events.iter_all(), already_applied: DocumentEvent::Deleted { .. });
 
         self.events.push(DocumentEvent::Deleted {});
         self.status = DocumentStatus::Deleted;
@@ -107,7 +107,7 @@ impl Document {
     }
 
     pub fn archive(&mut self) -> Idempotent<()> {
-        idempotency_guard!(self.events.iter_all(), DocumentEvent::Archived { .. });
+        idempotency_guard!(self.events.iter_all(), already_applied: DocumentEvent::Archived { .. });
 
         self.events.push(DocumentEvent::Archived {});
         self.status = DocumentStatus::Archived;

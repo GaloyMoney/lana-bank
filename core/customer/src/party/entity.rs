@@ -51,8 +51,8 @@ impl Party {
     pub fn update_email(&mut self, new_email: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            PartyEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email,
-            => PartyEvent::EmailUpdated { .. }
+            already_applied: PartyEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email,
+            resets_on: PartyEvent::EmailUpdated { .. }
         );
         self.events.push(PartyEvent::EmailUpdated {
             email: new_email.clone(),
@@ -64,7 +64,7 @@ impl Party {
     pub fn update_telegram_handle(&mut self, new_telegram_handle: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            PartyEvent::TelegramHandleUpdated { telegram_handle: existing, .. } if existing == &new_telegram_handle
+            already_applied: PartyEvent::TelegramHandleUpdated { telegram_handle: existing, .. } if existing == &new_telegram_handle
         );
         self.events.push(PartyEvent::TelegramHandleUpdated {
             telegram_handle: new_telegram_handle.clone(),
@@ -79,7 +79,7 @@ impl Party {
     ) -> Idempotent<PersonalInfo> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            PartyEvent::PersonalInfoUpdated { personal_info: existing, .. } if existing == &personal_info
+            already_applied: PartyEvent::PersonalInfoUpdated { personal_info: existing, .. } if existing == &personal_info
         );
         self.events.push(PartyEvent::PersonalInfoUpdated {
             personal_info: personal_info.clone(),

@@ -70,8 +70,8 @@ impl DepositAccount {
         }
         idempotency_guard!(
             self.events.iter_all().rev(),
-            DepositAccountEvent::ActivityUpdated { activity: existing_activity, .. } if existing_activity == &activity,
-            => DepositAccountEvent::ActivityUpdated { .. }
+            already_applied: DepositAccountEvent::ActivityUpdated { activity: existing_activity, .. } if existing_activity == &activity,
+            resets_on: DepositAccountEvent::ActivityUpdated { .. }
         );
         self.events
             .push(DepositAccountEvent::ActivityUpdated { activity });
@@ -82,8 +82,8 @@ impl DepositAccount {
     pub fn freeze(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            DepositAccountEvent::Frozen { .. },
-            => DepositAccountEvent::Unfrozen { .. }
+            already_applied: DepositAccountEvent::Frozen { .. },
+            resets_on: DepositAccountEvent::Unfrozen { .. }
         );
         if self.is_closed() {
             return Err(DepositAccountError::CannotUpdateClosedAccount(self.id));
@@ -97,8 +97,8 @@ impl DepositAccount {
     pub fn unfreeze(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            DepositAccountEvent::Unfrozen { .. },
-            => DepositAccountEvent::Frozen { .. }
+            already_applied: DepositAccountEvent::Unfrozen { .. },
+            resets_on: DepositAccountEvent::Frozen { .. }
         );
         if !self.is_frozen() {
             return Ok(Idempotent::AlreadyApplied);
@@ -115,7 +115,7 @@ impl DepositAccount {
     pub fn close(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            DepositAccountEvent::Closed { .. }
+            already_applied: DepositAccountEvent::Closed { .. }
         );
         if self.is_frozen() {
             return Err(DepositAccountError::CannotUpdateFrozenAccount(self.id));

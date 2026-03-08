@@ -73,7 +73,7 @@ impl Liquidation {
     ) -> Idempotent<LedgerTxId> {
         idempotency_guard!(
             self.events.iter_all(),
-            LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { .. },
+            already_applied: LiquidationEvent::ProceedsReceivedAndLiquidationCompleted { .. },
         );
 
         self.amount_received = amount_received;

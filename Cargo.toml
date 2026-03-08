@@ -78,7 +78,7 @@ sim-bootstrap = { path = "lana/sim-bootstrap" }
 user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
-es-entity = { version = "0.10.25", features = ["event-context", "tracing-context", "instrument"] }
+es-entity = { version = "0.10.26", features = ["event-context", "tracing-context", "instrument"] }
 cala-ledger = "0.14.1"
 cala-cel-interpreter = "0.14.1"
 job = { version = "0.6.8", features = ["es-entity"] }
