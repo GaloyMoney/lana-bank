@@ -177,7 +177,7 @@ async fn decline_after_approval_freezes_customer() -> anyhow::Result<()> {
     // Now decline KYC (simulating a SumSub RED callback after approval)
     let (_prospect_returned, recorded) = event::expect_event(
         &outbox,
-        || customers.handle_kyc_declined(prospect.id, applicant_id.clone()),
+        || customers.handle_kyc_declined_if_exists(prospect.id, applicant_id.clone()),
         |_result, e| match e {
             CoreCustomerEvent::CustomerFrozen { entity }
                 if entity.id == CustomerId::from(prospect.id) =>
@@ -193,6 +193,72 @@ async fn decline_after_approval_freezes_customer() -> anyhow::Result<()> {
     assert_eq!(recorded.status, CustomerStatus::Frozen);
 
     // Prospect kyc_status should remain Approved (not changed to Declined)
+    let prospect_after = customers
+        .find_prospect_by_id(&DummySubject, prospect.id)
+        .await?
+        .expect("prospect should still exist");
+    assert_eq!(prospect_after.kyc_status, KycStatus::Approved);
+    assert_eq!(prospect_after.stage, ProspectStage::Converted);
+
+    Ok(())
+}
+
+/// If a prospect was declined earlier, later approved, and then declined again,
+/// the second decline should still freeze the converted customer.
+///
+/// This covers the Sumsub callback history where an older `applicantReviewed=RED`
+/// exists before a later `GREEN`, followed by a new `RED`.
+#[tokio::test]
+async fn decline_after_prior_decline_and_approval_freezes_customer() -> anyhow::Result<()> {
+    let (customers, outbox) = helpers::setup().await?;
+
+    let email = format!("test-{}@example.com", Uuid::new_v4());
+    let telegram_handle = format!("telegram-{}", Uuid::new_v4());
+    let prospect = customers
+        .create_prospect(
+            &DummySubject,
+            email,
+            telegram_handle,
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let applicant_id = format!("applicant-{}", Uuid::new_v4());
+
+    customers
+        .handle_kyc_started(prospect.id, applicant_id.clone())
+        .await?;
+    customers
+        .handle_kyc_declined_if_exists(prospect.id, applicant_id.clone())
+        .await?
+        .expect("prospect should still exist");
+    customers
+        .handle_kyc_on_hold_if_exists(prospect.id)
+        .await?
+        .expect("prospect should still exist");
+
+    let customer = customers
+        .handle_kyc_approved(prospect.id, applicant_id.clone(), PersonalInfo::dummy())
+        .await?;
+
+    assert_eq!(customer.status, CustomerStatus::Active);
+
+    let (_prospect_returned, recorded) = event::expect_event(
+        &outbox,
+        || customers.handle_kyc_declined_if_exists(prospect.id, applicant_id.clone()),
+        |_result, e| match e {
+            CoreCustomerEvent::CustomerFrozen { entity }
+                if entity.id == CustomerId::from(prospect.id) =>
+            {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.status, CustomerStatus::Frozen);
+
     let prospect_after = customers
         .find_prospect_by_id(&DummySubject, prospect.id)
         .await?

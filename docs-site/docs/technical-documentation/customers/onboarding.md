@@ -78,7 +78,7 @@ When Sumsub completes a verification, it sends a webhook to the system. The call
 
 - **Applicant Created** - Confirms that Sumsub has registered the customer. Records the Sumsub applicant ID on the customer record.
 - **Applicant Reviewed (Green)** - Verification approved. Sets KYC level to `Basic` and verification status to `Verified`. Triggers downstream provisioning events.
-- **Applicant Reviewed (Red)** - Verification rejected. Sets verification status to `Rejected`. The rejection includes labels and comments explaining the reason.
+- **Applicant Reviewed (Red)** - Verification rejected. Before conversion, the prospect remains rejected. If Sumsub later sends a Red review for an already converted customer, the customer is frozen for compliance review. The rejection includes labels and comments explaining the reason.
 - **Applicant Pending** / **Personal Info Changed** - Informational events that are logged but do not change customer state.
 
 Each callback is processed exactly once through an idempotency mechanism that deduplicates based on the callback's correlation ID and timestamp.

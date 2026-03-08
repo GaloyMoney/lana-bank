@@ -86,13 +86,14 @@ Una vez creado el cliente, se puede iniciar la verificación KYC:
 
 ### Estados de KYC
 
-| Estado | Descripción | Siguiente Acción |
-|--------|-------------|------------------|
-| NOT_STARTED | KYC no iniciado | Iniciar verificación |
-| PENDING | Verificación en progreso | Esperar resultado |
-| APPROVED | Identidad verificada | Proceder a activación |
-| REJECTED | Verificación fallida | Revisar y reintentar |
-| REVIEW_NEEDED | Requiere revisión manual | Revisar en Sumsub |
+Cuando Sumsub completa una verificación, envía un webhook al sistema. El manejador de callbacks procesa varios tipos de eventos:
+
+- **Aplicante Creado**: Confirma que Sumsub ha registrado al cliente. Se almacena el ID del aplicante de Sumsub en el registro del cliente.
+- **Aplicante Revisado (Verde)**: Verificación aprobada. Se establece el nivel KYC en `Básico` y el estado de verificación en `Verificado`. Se disparan eventos de aprovisionamiento posteriores.
+- **Aplicante Revisado (Rojo)**: Verificación rechazada. Si el prospecto aún no está convertido, permanece rechazado. Si Sumsub luego envía una revisión roja para un cliente ya convertido, el cliente se congela para revisión de cumplimiento. El rechazo incluye etiquetas y comentarios que explican el motivo.
+- **Aplicante Pendiente** / **Información Personal Modificada**: Eventos informativos que se registran pero no modifican el estado del cliente.
+
+Cada callback se procesa exactamente una vez mediante un mecanismo de idempotencia que deduplica basándose en el ID de correlación y la marca temporal del callback.
 
 ### Integración con Sumsub
 

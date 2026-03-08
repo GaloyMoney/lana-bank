@@ -218,7 +218,8 @@ impl Prospect {
     pub fn decline_kyc(&mut self, applicant_id: &str) -> Result<Idempotent<()>, ProspectError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ProspectEvent::KycDeclined { .. }
+            ProspectEvent::KycDeclined { .. },
+            => ProspectEvent::KycApproved { .. }
         );
         self.ensure_open()?;
         let stored_id = self
@@ -444,6 +445,24 @@ mod tests {
             result,
             Err(ProspectError::ApplicantIdMismatch { .. })
         ));
+    }
+
+    #[test]
+    fn decline_kyc_after_decline_then_approval_returns_already_converted() {
+        let mut prospect = create_test_prospect();
+        let _ = prospect
+            .start_kyc("applicant-id".to_string())
+            .expect("start_kyc should succeed");
+        let _ = prospect
+            .decline_kyc("applicant-id")
+            .expect("decline_kyc should succeed");
+        let _ = prospect
+            .approve_kyc("applicant-id", KycLevel::Basic)
+            .expect("approve_kyc should succeed");
+
+        let result = prospect.decline_kyc("applicant-id");
+
+        assert!(matches!(result, Err(ProspectError::AlreadyConverted)));
     }
 
     #[test]

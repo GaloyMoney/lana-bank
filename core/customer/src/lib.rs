@@ -613,11 +613,8 @@ where
                 }
             }
             Err(prospect::ProspectError::AlreadyConverted) => {
-                let customer_id = CustomerId::from(prospect_id);
-                let mut customer = self.repo.find_by_id(customer_id).await?;
-                if customer.freeze()?.did_execute() {
-                    self.repo.update(&mut customer).await?;
-                }
+                self.freeze_customer_from_kyc_decline(CustomerId::from(prospect_id))
+                    .await?;
             }
             Err(e) => return Err(e.into()),
         }
@@ -625,41 +622,15 @@ where
         Ok(Some(prospect))
     }
 
-    #[record_error_severity]
-    #[instrument(name = "customer.handle_kyc_declined", skip(self))]
-    pub async fn handle_kyc_declined(
+    async fn freeze_customer_from_kyc_decline(
         &self,
-        prospect_id: ProspectId,
-        applicant_id: String,
-    ) -> Result<Prospect, CustomerError> {
-        let mut prospect = self.prospect_repo.find_by_id(prospect_id).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry(
-                crate::primitives::SUMSUB,
-                CustomerObject::prospect(prospect.id),
-                CoreCustomerAction::PROSPECT_DECLINE_KYC,
-            )
-            .await?;
-
-        match prospect.decline_kyc(&applicant_id) {
-            Ok(idempotent) => {
-                if idempotent.did_execute() {
-                    self.prospect_repo.update(&mut prospect).await?;
-                }
-            }
-            Err(prospect::ProspectError::AlreadyConverted) => {
-                let customer_id = CustomerId::from(prospect_id);
-                let mut customer = self.repo.find_by_id(customer_id).await?;
-                if customer.freeze()?.did_execute() {
-                    self.repo.update(&mut customer).await?;
-                }
-            }
-            Err(e) => return Err(e.into()),
+        customer_id: CustomerId,
+    ) -> Result<(), CustomerError> {
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+        if customer.freeze()?.did_execute() {
+            self.repo.update(&mut customer).await?;
         }
-
-        Ok(prospect)
+        Ok(())
     }
 
     #[record_error_severity]

@@ -62,9 +62,9 @@ This state belongs to the deposit account, not to the customer. Activity is sepa
 |--------|-------------|-------------|
 | **Pending Verification** | Initial state for all new customers | Generate Sumsub verification link |
 | **Verified** | Identity confirmed by Sumsub | Customer can access financial products |
-| **Rejected** | Verification failed | Review rejection reasons in Sumsub |
+| **Rejected** | Verification failed or a later Sumsub rejection was received | Review rejection reasons in Sumsub |
 
-KYC verification is a one-way gate: once verified, a customer remains verified. If verification is rejected, the operator can review the rejection reasons in the Sumsub dashboard and potentially request a new verification attempt.
+KYC approval converts the prospect into a customer, but Sumsub callbacks can still change the compliance outcome later. If verification is rejected before conversion, the prospect remains rejected. If Sumsub sends a later rejection after the customer was already verified and converted, Lana freezes the customer so operators can review the case.
 
 When KYC verification requirements are enabled in the system configuration, a customer must be verified before a deposit account can be created or a credit facility can be initiated. This is a configurable policy that the bank can enable or disable.
 

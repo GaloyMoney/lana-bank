@@ -50,11 +50,15 @@ Este estado pertenece a la cuenta de depósito, no al cliente. La actividad es i
 
 ## Estados del Cliente
 
-| Estado | Descripción |
-|--------|-------------|
-| ACTIVE | El cliente puede realizar operaciones |
-| INACTIVE | La cuenta está inactiva |
-| SUSPENDED | La cuenta está suspendida |
+| Estado | Descripción | Próxima acción |
+|--------|-------------|----------------|
+| **Verificación pendiente** | Estado inicial para todos los nuevos clientes | Generar enlace de verificación de Sumsub |
+| **Verificado** | Identidad confirmada por Sumsub | El cliente puede acceder a productos financieros |
+| **Rechazado** | Falló la verificación o Sumsub envió un rechazo posterior | Revisar motivos de rechazo en Sumsub |
+
+La aprobación de KYC convierte al prospecto en cliente, pero los callbacks de Sumsub pueden seguir cambiando el resultado de cumplimiento posteriormente. Si la verificación es rechazada antes de la conversión, el prospecto permanece rechazado. Si Sumsub envía un rechazo posterior luego de que el cliente ya fue verificado y convertido, Lana congela al cliente para que los operadores revisen el caso.
+
+Cuando los requisitos de verificación KYC están habilitados en la configuración del sistema, el cliente debe ser verificado antes de que se pueda crear una cuenta de depósito o iniciar una facilidad crediticia. Esta es una política configurable que el banco puede habilitar o deshabilitar.
 
 ## Cerrar un cliente
 
