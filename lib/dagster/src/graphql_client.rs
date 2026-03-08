@@ -445,7 +445,10 @@ query GetLogsForRun($runId: ID!) {
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "dagster.graphql_client.launch_file_report_run", skip(self, input))]
+    #[tracing::instrument(
+        name = "dagster.graphql_client.launch_file_report_run",
+        skip(self, input)
+    )]
     pub async fn launch_file_report_run(
         &self,
         input: LaunchFileReportRunInput,

@@ -7,10 +7,7 @@ use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    AS_OF_DATE_TAG_KEY,
-    CoreReportEvent,
-    REPORT_DEFINITION_ID_TAG_KEY,
-    REPORT_NAME_TAG_KEY,
+    AS_OF_DATE_TAG_KEY, CoreReportEvent, REPORT_DEFINITION_ID_TAG_KEY, REPORT_NAME_TAG_KEY,
     REPORT_NORM_TAG_KEY,
     report::{NewReport, ReportRepo},
     report_run::{NewReportRun, ReportRunRepo, ReportRunState, ReportRunType, RequestedReport},
@@ -131,9 +128,16 @@ where
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         if let Some(target_run_id) = self.config.target_run_id.as_deref() {
-            let maybe_run = self.dagster.graphql().file_report_run(target_run_id).await?;
+            let maybe_run = self
+                .dagster
+                .graphql()
+                .file_report_run(target_run_id)
+                .await?;
             let Some(run_result) = maybe_run else {
-                tracing::warn!(target_run_id, "Dagster run not visible yet, rescheduling sync");
+                tracing::warn!(
+                    target_run_id,
+                    "Dagster run not visible yet, rescheduling sync"
+                );
                 return Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
                     SYNC_REPORTS_RETRY_SECS,
                 )));
@@ -356,10 +360,7 @@ fn requested_as_of_date_from_run(
     }
 }
 
-fn tag_value<'a>(
-    run_result: &'a dagster::graphql_client::RunResult,
-    key: &str,
-) -> Option<&'a str> {
+fn tag_value<'a>(run_result: &'a dagster::graphql_client::RunResult, key: &str) -> Option<&'a str> {
     run_result
         .tags
         .iter()

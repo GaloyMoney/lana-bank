@@ -225,9 +225,9 @@ pub mod public_id {
 pub mod report {
     pub use core_report::{
         CoreReportAction, CoreReportEvent, Report, ReportConfig, ReportDefinition,
-        ReportDefinitionOutput, ReportError, ReportFile, ReportId, ReportObject, ReportOutputFormat,
-        ReportRun, ReportRunId, ReportRunState, ReportRunType, ReportRunsByCreatedAtCursor,
-        ReportsByCreatedAtCursor, RequestedReport, error,
+        ReportDefinitionOutput, ReportError, ReportFile, ReportId, ReportObject,
+        ReportOutputFormat, ReportRun, ReportRunId, ReportRunState, ReportRunType,
+        ReportRunsByCreatedAtCursor, ReportsByCreatedAtCursor, RequestedReport, error,
     };
     pub type Reports =
         core_report::CoreReports<crate::authorization::Authorization, lana_events::LanaEvent>;

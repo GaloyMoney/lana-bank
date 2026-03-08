@@ -6,12 +6,11 @@ use serde::{Deserialize, Serialize};
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
+use crate::report_run::ReportRunRepo;
 use crate::{
     AS_OF_DATE_TAG_KEY, CoreReportEvent, MANUAL_SINGLE_REPORT_TAG_KEY,
-    REPORT_DEFINITION_ID_TAG_KEY, REPORT_NAME_TAG_KEY, REPORT_NORM_TAG_KEY,
-    find_report_definition,
+    REPORT_DEFINITION_ID_TAG_KEY, REPORT_NAME_TAG_KEY, REPORT_NORM_TAG_KEY, find_report_definition,
 };
-use crate::report_run::ReportRunRepo;
 use dagster::Dagster;
 
 use super::{SyncReportsJobConfig, SyncReportsJobSpawner};

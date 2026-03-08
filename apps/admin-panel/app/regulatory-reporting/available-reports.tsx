@@ -85,24 +85,22 @@ const AvailableReports: React.FC = () => {
     refetchQueries: [ReportRunsDocument],
   })
 
-  const handleGenerate = async (
-    reportDefinitionId: string,
-    nextAsOfDate?: string,
-  ): Promise<void> => {
-    try {
-      await generateReport({
-        variables: {
-          input: {
-            reportDefinitionId,
-            asOfDate: nextAsOfDate,
-          },
+  const handleGenerate = (reportDefinitionId: string, nextAsOfDate?: string): void => {
+    generateReport({
+      variables: {
+        input: {
+          reportDefinitionId,
+          asOfDate: nextAsOfDate,
         },
+      },
+    })
+      .then(() => {
+        toast.success(t("ReportGeneration.reportGenerationHasBeenTriggered"))
+        setSelectedReport(null)
       })
-      toast.success(t("ReportGeneration.reportGenerationHasBeenTriggered"))
-      setSelectedReport(null)
-    } catch {
-      toast.error(t("ReportGeneration.reportGenerationFailed"))
-    }
+      .catch(() => {
+        toast.error(t("ReportGeneration.reportGenerationFailed"))
+      })
   }
 
   const handleDialogOpenChange = (open: boolean) => {
@@ -111,9 +109,10 @@ const AvailableReports: React.FC = () => {
     setAsOfDate(initialAsOfDate)
   }
 
-  const reportDefinitions = data?.availableReportDefinitions ?? []
+  const reportDefinitions = data?.availableReportDefinitions
   const groupedReportDefinitions = useMemo<ReportDefinitionGroup[]>(() => {
-    const sortedReports = [...reportDefinitions].sort((left, right) => {
+    const availableReportDefinitions = reportDefinitions ?? []
+    const sortedReports = [...availableReportDefinitions].sort((left, right) => {
       return (
         left.norm.localeCompare(right.norm) ||
         formatReportName(left).localeCompare(formatReportName(right))
@@ -142,7 +141,7 @@ const AvailableReports: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {error && <p className="text-destructive text-sm">{error.message}</p>}
-          {!loading && reportDefinitions.length === 0 ? (
+          {!loading && (reportDefinitions?.length ?? 0) === 0 ? (
             <p className="text-sm text-muted-foreground">{t("noReportsAvailable")}</p>
           ) : (
             <div className="space-y-6">
@@ -199,7 +198,7 @@ const AvailableReports: React.FC = () => {
                                     setSelectedReport(report)
                                     return
                                   }
-                                  void handleGenerate(report.reportDefinitionId)
+                                  handleGenerate(report.reportDefinitionId)
                                 }}
                               >
                                 {report.supportsAsOf
@@ -241,10 +240,10 @@ const AvailableReports: React.FC = () => {
             <Button
               type="button"
               disabled={!selectedReport || generating}
-              onClick={() =>
-                selectedReport &&
-                void handleGenerate(selectedReport.reportDefinitionId, asOfDate)
-              }
+              onClick={() => {
+                if (!selectedReport) return
+                handleGenerate(selectedReport.reportDefinitionId, asOfDate)
+              }}
             >
               {t("ReportGeneration.generate")}
             </Button>

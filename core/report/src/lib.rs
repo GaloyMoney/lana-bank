@@ -311,11 +311,18 @@ where
 
     #[record_error_severity]
     #[tracing::instrument(name = "report.reports_sync", skip(self), fields(job_id = tracing::field::Empty))]
-    pub async fn reports_sync(&self, dagster_run_id: Option<String>) -> Result<job::JobId, ReportError> {
+    pub async fn reports_sync(
+        &self,
+        dagster_run_id: Option<String>,
+    ) -> Result<job::JobId, ReportError> {
         let mut db = self.report_runs.begin_op().await?;
         let job_id = job::JobId::new();
         self.sync_reports_spawner
-            .spawn_in_op(&mut db, job_id, SyncReportsJobConfig::<E>::new(dagster_run_id))
+            .spawn_in_op(
+                &mut db,
+                job_id,
+                SyncReportsJobConfig::<E>::new(dagster_run_id),
+            )
             .await?;
 
         tracing::Span::current().record("job_id", job_id.to_string());
