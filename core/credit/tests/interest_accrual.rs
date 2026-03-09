@@ -339,6 +339,41 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     // 12% annual on $10,000 for 1 day: 10000 * 1 * 0.12 / 365 = 328.77 → 329 (rounded away from zero)
     assert_eq!(posting.amount, UsdCents::from(329));
 
+    // Wait for the history projection handler to process the AccrualPosted event
+    let history_entries = tokio::time::timeout(Duration::from_secs(10), async {
+        loop {
+            let entries: Vec<CreditFacilityHistoryEntry> = ctx
+                .credit
+                .histories()
+                .find_for_credit_facility_id(&DummySubject, facility_id)
+                .await
+                .expect("history query succeeds");
+            let interest_entries: Vec<_> = entries
+                .iter()
+                .filter(|e| matches!(e, CreditFacilityHistoryEntry::Interest(_)))
+                .collect();
+            if !interest_entries.is_empty() {
+                return entries;
+            }
+            tokio::time::sleep(POLL_INTERVAL).await;
+        }
+    })
+    .await
+    .expect("Timed out waiting for history projection");
+
+    let interest_entries: Vec<_> = history_entries
+        .into_iter()
+        .filter_map(|e| match e {
+            CreditFacilityHistoryEntry::Interest(accrual) => Some(accrual),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(interest_entries.len(), 1);
+    assert_eq!(interest_entries[0].cents, UsdCents::from(329));
+    assert_eq!(interest_entries[0].days, 1);
+    assert_eq!(interest_entries[0].tx_id, posting.tx_id);
+
     // `shutdown()` calls `kill_remaining_jobs`, which rewrites still-running
     // rows to `pending` with `execute_at = clock.now()`. Because this test
     // advances artificial time, those timestamps can end up ahead of wall-clock
