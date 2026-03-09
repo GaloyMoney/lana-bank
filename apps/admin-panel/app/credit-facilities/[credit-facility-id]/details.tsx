@@ -61,9 +61,10 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     generateLoanAgreementPdf(creditFacilityDetails.customer.customerId)
   }
 
-  const monthlyPaymentAmount = creditFacilityDetails.repaymentPlan.find(
+  const interestEntries = creditFacilityDetails.repaymentPlan.filter(
     (plan) => plan.repaymentType === CreditFacilityRepaymentType.Interest,
-  )?.initial
+  )
+  const monthlyPaymentAmount = (interestEntries[1] ?? interestEntries[0])?.initial
 
   const details: DetailItemProps[] = [
     {
