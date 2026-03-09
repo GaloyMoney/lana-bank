@@ -100,7 +100,7 @@ where
         let report_repo = ReportRepo::new(pool);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
-        let report_file_storage = config.report_file_storage(storage);
+        let report_file_storage = storage.clone();
 
         let sync_reports_spawner = jobs.add_initializer(SyncReportsJobInit::<E>::new(
             dagster_adapter.clone(),
