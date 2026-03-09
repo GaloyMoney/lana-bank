@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import LedgerTransactions from "../../../components/ledger-transactions"
 
 import { DisbursalDetailsCard } from "./details"
+import { DisbursalEventHistory } from "./event-history"
 
 import { VotersCard } from "./voters"
 
@@ -135,6 +136,7 @@ function DisbursalPage({
       <LedgerTransactions
         ledgerTransactions={data.disbursalByPublicId.ledgerTransactions}
       />
+      <DisbursalEventHistory publicId={publicId} />
     </main>
   )
 }

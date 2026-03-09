@@ -900,7 +900,7 @@
       },
       "eventHistory": {
         "title": "Events",
-        "description": "Timeline of changes made to this customer",
+        "description": "Timeline of changes made to this proposal",
         "emptyMessage": "No events recorded",
         "columns": {
           "event": "Event",
@@ -1269,6 +1269,18 @@
         "messages": {
           "success": "Pending credit facility collateral updated successfully"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this credit facility",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1337,6 +1349,18 @@
         "messages": {
           "success": "Disbursal initiated successfully",
           "unknownError": "An unknown error occurred"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this disbursal",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     }
@@ -1429,6 +1453,18 @@
           "invalidAmount": "Please enter a valid amount greater than 0"
         },
         "success": "Payment received recorded successfully"
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this liquidation",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1542,6 +1578,18 @@
         "success": {
           "created": "Terms Template created successfully"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this terms template",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1593,6 +1641,18 @@
         },
         "buttons": {
           "assign": "Assign Committee"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this policy",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     }
@@ -1694,6 +1754,18 @@
           "selectUser": "Please select a user",
           "failed": "Failed to add user to committee. Please try again.",
           "general": "An unexpected error occurred. Please try again."
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this committee",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     }
@@ -2974,6 +3046,27 @@
       "confirmed": "Withdrawal confirmed",
       "cancelled": "Withdrawal cancelled",
       "reverted": "Withdrawal reverted"
+    },
+    "creditFacility": {
+      "initialized": "Credit facility created"
+    },
+    "disbursal": {
+      "initialized": "Disbursal created"
+    },
+    "creditFacilityProposal": {
+      "initialized": "Proposal created"
+    },
+    "committee": {
+      "initialized": "Committee created"
+    },
+    "policy": {
+      "initialized": "Policy created"
+    },
+    "termsTemplate": {
+      "initialized": "Terms template created"
+    },
+    "liquidation": {
+      "initialized": "Liquidation created"
     }
   }
 }

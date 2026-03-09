@@ -4,6 +4,7 @@ import { gql } from "@apollo/client"
 import { use } from "react"
 
 import CreditFacilityProposalDetailsCard from "./details"
+import { CreditFacilityProposalEventHistory } from "./event-history"
 
 import { CreditFacilityTermsCard } from "./terms-card"
 
@@ -126,6 +127,9 @@ export default function CreditFacilityProposalLayout({
         <CreditFacilityTermsCard creditFacilityProposal={data.creditFacilityProposal} />
       </div>
       {children}
+      <div className="mt-2">
+        <CreditFacilityProposalEventHistory proposalId={proposalId} />
+      </div>
     </main>
   )
 }

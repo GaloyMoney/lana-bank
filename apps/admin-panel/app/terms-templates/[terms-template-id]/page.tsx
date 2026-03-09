@@ -4,6 +4,7 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import TermsTemplateDetailsCard from "./details"
+import { TermsTemplateEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -64,6 +65,9 @@ function TermsTemplatePage({
   return (
     <main className="max-w-7xl m-auto">
       <TermsTemplateDetailsCard termsTemplate={data.termsTemplate} />
+      <div className="mt-2">
+        <TermsTemplateEventHistory termsTemplateId={termsTemplateId} />
+      </div>
     </main>
   )
 }

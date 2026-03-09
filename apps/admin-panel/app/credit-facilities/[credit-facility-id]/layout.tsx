@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 
 import CreditFacilityDetailsCard from "./details"
 import { CreditFacilityCollateral } from "./collateral-card"
+import { CreditFacilityEventHistory } from "./event-history"
 import FacilityCard from "./facility-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -229,6 +230,9 @@ export default function CreditFacilityLayout({
       <div className="flex md:flex-row flex-col gap-2 my-2">
         <FacilityCard creditFacility={data.creditFacilityByPublicId} />
         <CreditFacilityCollateral creditFacility={data.creditFacilityByPublicId} />
+      </div>
+      <div className="mt-2">
+        <CreditFacilityEventHistory publicId={publicId} />
       </div>
       <Tabs
         defaultValue={TABS[0].url}

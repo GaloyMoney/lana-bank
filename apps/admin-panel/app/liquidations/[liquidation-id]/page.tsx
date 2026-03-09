@@ -7,6 +7,7 @@ import { gql } from "@apollo/client"
 import { LiquidationDetailsCard } from "./details"
 import { LiquidationCreditFacilityCard } from "./credit-facility-card"
 import { LiquidationCollateralSentTable } from "./collateral-sent-table"
+import { LiquidationEventHistory } from "./event-history"
 import { LiquidationProceedsReceivedTable } from "./payment-received-table"
 
 import { NotFound } from "@/components/not-found"
@@ -130,6 +131,7 @@ function LiquidationPage({
           paymentsReceived={data.liquidation.receivedProceeds}
         />
       </div>
+      <LiquidationEventHistory liquidationId={liquidationId} />
     </main>
   )
 }

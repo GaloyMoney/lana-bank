@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 
 
 import { CommitteeDetailsCard } from "./details"
+import { CommitteeEventHistory } from "./event-history"
 
 import { CommitteeUsers } from "./users"
 
@@ -72,6 +73,9 @@ function CommitteePage({
       <CommitteeDetailsCard committee={data.committee} />
       <div className="mt-2">
         <CommitteeUsers committee={data.committee} />
+      </div>
+      <div className="mt-2">
+        <CommitteeEventHistory committeeId={committeeId} />
       </div>
     </main>
   )

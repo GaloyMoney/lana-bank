@@ -5,6 +5,7 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { PolicyDetailsCard } from "./details"
+import { PolicyEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -89,6 +90,9 @@ function PolicyPage({
         {data.policy.rules.__typename === "CommitteeApproval" && (
           <CommitteeUsers showRemove={false} committee={data.policy.rules.committee} />
         )}
+      </div>
+      <div className="mt-2">
+        <PolicyEventHistory policyId={policyId} />
       </div>
     </main>
   )
