@@ -16,26 +16,12 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 import { Separator } from "@lana/web/ui/separator"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@lana/web/ui/dialog"
-import { Label } from "@lana/web/ui/label"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@lana/web/ui/table"
 import { formatSpacedSentenceCaseFromSnakeCase } from "@lana/web/utils"
 
-import { AsOfDateSelector, getInitialAsOfDate } from "@/components/as-of-date-selector"
+import { GenerateReportDialog } from "./generate-report-dialog"
+
+import DataTable, { Column } from "@/components/data-table"
+import { getInitialAsOfDate } from "@/components/as-of-date-selector"
 
 import {
   ReportRunsDocument,
@@ -65,7 +51,8 @@ gql`
   }
 `
 
-type AvailableReportDefinition = AvailableReportDefinitionsQuery["availableReportDefinitions"][number]
+type AvailableReportDefinition =
+  AvailableReportDefinitionsQuery["availableReportDefinitions"][number]
 type ReportDefinitionGroup = {
   norm: string
   reports: AvailableReportDefinition[]
@@ -77,7 +64,8 @@ const formatReportName = (report: AvailableReportDefinition): string =>
 const AvailableReports: React.FC = () => {
   const t = useTranslations("Reports")
   const initialAsOfDate = useMemo(() => getInitialAsOfDate(), [])
-  const [selectedReport, setSelectedReport] = useState<AvailableReportDefinition | null>(null)
+  const [selectedReport, setSelectedReport] =
+    useState<AvailableReportDefinition | null>(null)
   const [asOfDate, setAsOfDate] = useState(initialAsOfDate)
 
   const { data, loading, error } = useAvailableReportDefinitionsQuery()
@@ -132,6 +120,67 @@ const AvailableReports: React.FC = () => {
     return Array.from(reportsByNorm, ([norm, reports]) => ({ norm, reports }))
   }, [reportDefinitions])
 
+  const columns: Column<AvailableReportDefinition>[] = [
+    {
+      key: "friendlyName",
+      header: t("availableReportsHeaders.report"),
+      render: (_, report) => (
+        <div className="flex flex-col gap-1">
+          <div className="font-medium">{formatReportName(report)}</div>
+          <div className="text-xs text-muted-foreground font-mono">
+            {report.reportDefinitionId}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "outputs",
+      header: t("availableReportsHeaders.outputs"),
+      render: (outputs, report) => (
+        <div className="flex flex-wrap gap-2">
+          {outputs.map((output) => (
+            <Badge
+              key={`${report.reportDefinitionId}-${output.format}`}
+              variant="secondary"
+            >
+              {String(output.format).toUpperCase()}
+            </Badge>
+          ))}
+        </div>
+      ),
+    },
+    {
+      key: "supportsAsOf",
+      header: t("availableReportsHeaders.asOfDate"),
+      render: (supportsAsOf) =>
+        supportsAsOf
+          ? t("availableReportsValues.asOfDate.required")
+          : t("availableReportsValues.asOfDate.notUsed"),
+    },
+    {
+      key: "reportDefinitionId",
+      header: t("availableReportsHeaders.action"),
+      align: "right",
+      render: (_, report) => (
+        <Button
+          type="button"
+          disabled={generating}
+          onClick={() => {
+            if (report.supportsAsOf) {
+              setSelectedReport(report)
+              return
+            }
+            handleGenerate(report.reportDefinitionId)
+          }}
+        >
+          {report.supportsAsOf
+            ? t("ReportGeneration.generateAsOf")
+            : t("ReportGeneration.generate")}
+        </Button>
+      ),
+    },
+  ]
+
   return (
     <>
       <Card>
@@ -149,68 +198,11 @@ const AvailableReports: React.FC = () => {
                 <div key={group.norm} className="space-y-3">
                   {index > 0 && <Separator />}
                   <Badge variant="outline">{group.norm.toUpperCase()}</Badge>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t("availableReportsHeaders.report")}</TableHead>
-                          <TableHead>{t("availableReportsHeaders.outputs")}</TableHead>
-                          <TableHead>{t("availableReportsHeaders.asOfDate")}</TableHead>
-                          <TableHead className="text-right">
-                            {t("availableReportsHeaders.action")}
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {group.reports.map((report) => (
-                          <TableRow key={report.reportDefinitionId}>
-                            <TableCell>
-                              <div className="flex flex-col gap-1">
-                                <div className="font-medium">{formatReportName(report)}</div>
-                                <div className="text-xs text-muted-foreground font-mono">
-                                  {report.reportDefinitionId}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-2">
-                                {report.outputs.map((output) => (
-                                  <Badge
-                                    key={`${report.reportDefinitionId}-${output.format}`}
-                                    variant="secondary"
-                                  >
-                                    {String(output.format).toUpperCase()}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {report.supportsAsOf
-                                ? t("availableReportsValues.asOfDate.required")
-                                : t("availableReportsValues.asOfDate.notUsed")}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                type="button"
-                                disabled={generating}
-                                onClick={() => {
-                                  if (report.supportsAsOf) {
-                                    setSelectedReport(report)
-                                    return
-                                  }
-                                  handleGenerate(report.reportDefinitionId)
-                                }}
-                              >
-                                {report.supportsAsOf
-                                  ? t("ReportGeneration.generateAsOf")
-                                  : t("ReportGeneration.generate")}
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                  <DataTable<AvailableReportDefinition>
+                    data={group.reports}
+                    columns={columns}
+                    loading={loading}
+                  />
                 </div>
               ))}
             </div>
@@ -218,40 +210,20 @@ const AvailableReports: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Dialog open={selectedReport !== null} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle>{t("ReportGeneration.selectAsOfDate")}</DialogTitle>
-            <DialogDescription>
-              {selectedReport
-                ? t("ReportGeneration.selectAsOfDateDescription", {
-                    report: formatReportName(selectedReport),
-                  })
-                : null}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-2">
-              <Label>{t("ReportGeneration.asOfDate")}</Label>
-              <AsOfDateSelector asOf={asOfDate} onDateChange={setAsOfDate} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              disabled={!selectedReport || generating}
-              onClick={() => {
-                if (!selectedReport) return
-                handleGenerate(selectedReport.reportDefinitionId, asOfDate)
-              }}
-            >
-              {t("ReportGeneration.generate")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <GenerateReportDialog
+        open={selectedReport !== null}
+        onOpenChange={handleDialogOpenChange}
+        reportName={selectedReport ? formatReportName(selectedReport) : null}
+        asOfDate={asOfDate}
+        onAsOfDateChange={setAsOfDate}
+        onGenerate={() => {
+          if (!selectedReport) return
+          handleGenerate(selectedReport.reportDefinitionId, asOfDate)
+        }}
+        generating={generating}
+      />
     </>
   )
 }
 
-export { AvailableReports }
+export { AvailableReports, formatReportName }
