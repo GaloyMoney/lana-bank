@@ -9,6 +9,7 @@ use encryption::Encrypted;
 use crate::{
     ConfigFlavor, ConfigSpec, ConfigType, DomainConfigError, DomainConfigFlavorEncrypted,
     DomainConfigFlavorPlaintext, EncryptionKey, ValueKind,
+    error::DomainConfigHydrateError,
     primitives::{DomainConfigId, DomainConfigKey, Visibility},
     value::DomainConfigValue,
 };
@@ -46,6 +47,65 @@ pub struct DomainConfig {
 }
 
 impl DomainConfig {
+    /// Asserts that the entity's current business value (if any) is readable
+    /// with the given encryption key (or the deprecated key, when provided).
+    ///
+    /// The check is tolerant of key rotations that haven't yet propagated to
+    /// this runtime instance: a `KeyRotated` event written with a *different*
+    /// key is fine as long as no *new* `Updated` event was written with that
+    /// key afterwards.  Once a real business update happens with a key we
+    /// cannot read, this instance's view of the value is stale and hydration
+    /// must fail.
+    ///
+    /// `deprecated_key` is needed during key-rotation flows so that configs
+    /// still encrypted with the old key pass hydration while they are being
+    /// re-encrypted.
+    pub(crate) fn assert_decryptable(
+        &self,
+        key: &EncryptionKey,
+        deprecated_key: Option<&EncryptionKey>,
+    ) -> Result<(), DomainConfigHydrateError> {
+        if !self.encrypted {
+            return Ok(());
+        }
+
+        // Walk the event stream backwards to find the most recent
+        // value-carrying event and verify we can read it.
+        for event in self.events.iter_all().rev() {
+            match event {
+                DomainConfigEvent::Updated { value } => {
+                    if !value.is_encrypted() || value.matches_any_key(key, deprecated_key) {
+                        return Ok(());
+                    }
+                    // An `Updated` event we cannot read — a real business
+                    // value was written with a key we don't have.  No older
+                    // event can change this.
+                    return Err(DomainConfigHydrateError::new(
+                        self.key.clone(),
+                        "encrypted value cannot be decrypted with the current runtime key",
+                    ));
+                }
+                DomainConfigEvent::KeyRotated { value } => {
+                    if value.matches_key(key)
+                        || deprecated_key.is_some_and(|dk| value.matches_key(dk))
+                    {
+                        // A re-encryption we can read.  `KeyRotated` events
+                        // carry the same business value, so this confirms
+                        // readability.
+                        return Ok(());
+                    }
+                    // KeyRotated with a different key — skip and look for
+                    // an older event we can read.
+                }
+                DomainConfigEvent::Initialized { .. } => {}
+            }
+        }
+
+        // No encrypted values stored at all (no Updated events, or only
+        // a plaintext default in Initialized).
+        Ok(())
+    }
+
     pub(super) fn current_value_plain<C>(&self) -> Option<<C::Kind as ValueKind>::Value>
     where
         C: ConfigSpec<Flavor = DomainConfigFlavorPlaintext>,
@@ -834,6 +894,166 @@ mod tests {
                 .unwrap(),
             value
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // assert_decryptable (post-hydrate hook validation)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn assert_decryptable_passes_for_non_encrypted_config() {
+        let config = seed_config::<SampleComplexConfig>(DomainConfigId::new());
+        assert!(!config.encrypted);
+        assert!(
+            config
+                .assert_decryptable(&EncryptionKey::default(), None)
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn assert_decryptable_passes_when_no_value_stored() {
+        let config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        assert!(config.encrypted);
+        // No Updated events yet — only Initialized with no default.
+        assert!(
+            config
+                .assert_decryptable(&EncryptionKey::default(), None)
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn assert_decryptable_passes_when_value_matches_key() {
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let key = EncryptionKey::default();
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+
+        assert!(config.assert_decryptable(&key, None).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_passes_after_key_rotation_with_old_key() {
+        // Updated(old) → KeyRotated(new)
+        // Old-key instance can still read from the Updated event.
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let old_key = EncryptionKey::default();
+        let new_key = EncryptionKey::new([1; 32]);
+
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &old_key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+        let _ = config.rotate_encryption_key(&new_key, &old_key).unwrap();
+
+        // Old key should still pass — no new business update after rotation.
+        assert!(config.assert_decryptable(&old_key, None).is_ok());
+        // New key should also pass.
+        assert!(config.assert_decryptable(&new_key, None).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_fails_after_update_with_new_key() {
+        // Updated(old) → KeyRotated(new) → Updated(new)
+        // Old-key instance cannot read the latest business value.
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let old_key = EncryptionKey::default();
+        let new_key = EncryptionKey::new([1; 32]);
+
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &old_key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+        let _ = config.rotate_encryption_key(&new_key, &old_key).unwrap();
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &new_key,
+                SampleEncryptedConfig {
+                    secret: "new-secret".into(),
+                },
+            )
+            .unwrap();
+
+        // Old key alone should fail — there's a newer Updated event it can't read.
+        assert!(config.assert_decryptable(&old_key, None).is_err());
+        // New key should pass.
+        assert!(config.assert_decryptable(&new_key, None).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_passes_with_deprecated_key() {
+        // Updated(old) → KeyRotated(new) → Updated(new)
+        // When the old key is provided as deprecated_key alongside the new
+        // key, all events are readable — should pass.
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let old_key = EncryptionKey::default();
+        let new_key = EncryptionKey::new([1; 32]);
+
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &old_key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+        let _ = config.rotate_encryption_key(&new_key, &old_key).unwrap();
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &new_key,
+                SampleEncryptedConfig {
+                    secret: "new-secret".into(),
+                },
+            )
+            .unwrap();
+
+        // With deprecated key, the new key can read Updated(new) directly.
+        assert!(config.assert_decryptable(&new_key, Some(&old_key)).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_passes_with_deprecated_key_before_rotation() {
+        // Updated(old) only — value was written with old key, which is now
+        // the deprecated key.  The new primary key can't read it, but the
+        // deprecated key can.
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let old_key = EncryptionKey::default();
+        let new_key = EncryptionKey::new([1; 32]);
+
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &old_key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+
+        // new_key alone can't read it.
+        assert!(config.assert_decryptable(&new_key, None).is_err());
+        // But with the old key as deprecated, it passes.
+        assert!(config.assert_decryptable(&new_key, Some(&old_key)).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_fails_with_completely_unknown_key() {
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let key = EncryptionKey::default();
+        let unknown_key = EncryptionKey::new([99; 32]);
+
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+
+        assert!(config.assert_decryptable(&unknown_key, None).is_err());
     }
 
     #[test]

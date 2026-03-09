@@ -3,10 +3,40 @@ use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
 use crate::entity::NewDomainConfigBuilderError;
+use crate::primitives::DomainConfigKey;
 
 use super::repo::{
     DomainConfigCreateError, DomainConfigFindError, DomainConfigModifyError, DomainConfigQueryError,
 };
+
+/// Error returned when a hydrated [`DomainConfig`] entity contains an encrypted
+/// value that cannot be decrypted with any of the runtime encryption keys.
+#[derive(Debug)]
+pub struct DomainConfigHydrateError {
+    key: DomainConfigKey,
+    message: String,
+}
+
+impl DomainConfigHydrateError {
+    pub(crate) fn new(key: DomainConfigKey, message: impl Into<String>) -> Self {
+        Self {
+            key,
+            message: message.into(),
+        }
+    }
+}
+
+impl std::fmt::Display for DomainConfigHydrateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "post-hydrate validation failed for config '{}': {}",
+            self.key, self.message
+        )
+    }
+}
+
+impl std::error::Error for DomainConfigHydrateError {}
 
 #[derive(Error, Debug)]
 pub enum DomainConfigError {
