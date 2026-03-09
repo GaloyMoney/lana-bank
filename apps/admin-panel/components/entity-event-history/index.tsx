@@ -13,7 +13,7 @@ import PaginatedTable, {
   PaginatedData,
   DEFAULT_PAGESIZE,
 } from "@/components/paginated-table"
-import { EventPayload } from "@/components/event-payload"
+import { renderEventPayload } from "@/components/event-payload"
 import { EventHistoryConnectionFieldsFragment } from "@/lib/graphql/generated"
 
 gql`
@@ -110,14 +110,6 @@ export const EntityEventHistory: React.FC<EntityEventHistoryProps> = ({
     },
   ]
 
-  const renderExpandedRow = (node: EventNode) => {
-    const payload = node.payload as Record<string, unknown>
-    if (!payload || Object.keys(payload).filter((k) => k !== "type").length === 0) {
-      return null
-    }
-    return <EventPayload payload={payload} />
-  }
-
   return (
     <CardWrapper title={t("title")} description={t("description")}>
       <PaginatedTable
@@ -127,7 +119,9 @@ export const EntityEventHistory: React.FC<EntityEventHistoryProps> = ({
         pageSize={DEFAULT_PAGESIZE}
         fetchMore={fetchMore}
         noDataText={t("emptyMessage")}
-        renderExpandedRow={renderExpandedRow}
+        renderExpandedRow={(node) =>
+          renderEventPayload(node.payload as Record<string, unknown>)
+        }
       />
     </CardWrapper>
   )
