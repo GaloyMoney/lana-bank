@@ -65,7 +65,10 @@ export function UpdateUserRoleDialog({
     skip: !open,
   })
 
-  const roles = data?.roles.edges.map((edge) => edge.node) || []
+  const roles =
+    data?.roles.edges
+      .map((edge) => edge.node)
+      .filter((role) => role.name !== "superuser") || []
 
   const [assignRole, { loading: assignLoading }] = useUserUpdateRoleMutation({
     refetchQueries: [UserEventHistoryDocument],
