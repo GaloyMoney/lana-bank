@@ -22,6 +22,7 @@ checksums:
     Common/upload: 4a6c84aa16db0f4e5697f49b45257bc7
     Common/close: 2c2e22f8424a1031de89063bd0022e16
     Common/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
+    Common/apply: 0f03e8e3752eb120bf8ea0b8f8f5d244
     Common/set: 72fc8d871f1d34fd81f0cae5c4505591
     Common/copiedToClipboard: 6a3c394a9a51646bad2f72d7311b242d
     Common/showIds: 5045a50490a16d635ee9ddc9ed487973
