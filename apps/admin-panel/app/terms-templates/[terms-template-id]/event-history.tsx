@@ -4,6 +4,7 @@ import React from "react"
 import { gql } from "@apollo/client"
 
 import { EntityEventHistory } from "@/components/entity-event-history"
+import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useTermsTemplateEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
@@ -25,19 +26,10 @@ gql`
             payload
           }
         }
-        nodes {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User { userId, email }
-            ... on System { actor }
-          }
-          payload
-        }
         pageInfo {
           hasNextPage
+          hasPreviousPage
+          startCursor
           endCursor
         }
       }
@@ -52,16 +44,16 @@ type TermsTemplateEventHistoryProps = {
 export const TermsTemplateEventHistory: React.FC<TermsTemplateEventHistoryProps> = ({
   termsTemplateId,
 }) => {
-  const { data, loading } = useTermsTemplateEventHistoryQuery({
-    variables: { id: termsTemplateId, first: 100 },
+  const { data, loading, fetchMore } = useTermsTemplateEventHistoryQuery({
+    variables: { id: termsTemplateId, first: DEFAULT_PAGESIZE },
   })
 
   return (
     <EntityEventHistory
       translationNamespace="TermsTemplates.TermsTemplateDetails.eventHistory"
-      eventTranslationNamespace="EntityEvents.termsTemplate"
-      events={data?.termsTemplate?.eventHistory.nodes ?? []}
+      data={data?.termsTemplate?.eventHistory}
       loading={loading}
+      fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
     />
   )
 }

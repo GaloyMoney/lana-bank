@@ -4,6 +4,7 @@ import React from "react"
 import { gql } from "@apollo/client"
 
 import { EntityEventHistory } from "@/components/entity-event-history"
+import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { usePolicyEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
@@ -25,19 +26,10 @@ gql`
             payload
           }
         }
-        nodes {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User { userId, email }
-            ... on System { actor }
-          }
-          payload
-        }
         pageInfo {
           hasNextPage
+          hasPreviousPage
+          startCursor
           endCursor
         }
       }
@@ -52,16 +44,16 @@ type PolicyEventHistoryProps = {
 export const PolicyEventHistory: React.FC<PolicyEventHistoryProps> = ({
   policyId,
 }) => {
-  const { data, loading } = usePolicyEventHistoryQuery({
-    variables: { id: policyId, first: 100 },
+  const { data, loading, fetchMore } = usePolicyEventHistoryQuery({
+    variables: { id: policyId, first: DEFAULT_PAGESIZE },
   })
 
   return (
     <EntityEventHistory
       translationNamespace="Policies.PolicyDetails.eventHistory"
-      eventTranslationNamespace="EntityEvents.policy"
-      events={data?.policy?.eventHistory.nodes ?? []}
+      data={data?.policy?.eventHistory}
       loading={loading}
+      fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
     />
   )
 }

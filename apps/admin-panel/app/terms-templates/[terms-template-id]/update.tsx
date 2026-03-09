@@ -28,6 +28,7 @@ import {
 import {
   useUpdateTermsTemplateMutation,
   TermsTemplateFieldsFragment,
+  TermsTemplateEventHistoryDocument,
   DisbursalPolicy,
 } from "@/lib/graphql/generated"
 import { DEFAULT_TERMS } from "@/lib/constants/terms"
@@ -57,7 +58,9 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   const t = useTranslations("TermsTemplates.TermsTemplateDetails.UpdateTermsTemplate")
 
   const [updateTermsTemplate, { loading, error: updateTermsTemplateError }] =
-    useUpdateTermsTemplateMutation()
+    useUpdateTermsTemplateMutation({
+      refetchQueries: [TermsTemplateEventHistoryDocument],
+    })
 
   const [formValues, setFormValues] = useState({
     name: termsTemplate.name,

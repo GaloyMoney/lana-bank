@@ -4,6 +4,7 @@ import React from "react"
 import { gql } from "@apollo/client"
 
 import { EntityEventHistory } from "@/components/entity-event-history"
+import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useDisbursalEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
@@ -25,19 +26,10 @@ gql`
             payload
           }
         }
-        nodes {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User { userId, email }
-            ... on System { actor }
-          }
-          payload
-        }
         pageInfo {
           hasNextPage
+          hasPreviousPage
+          startCursor
           endCursor
         }
       }
@@ -52,16 +44,16 @@ type DisbursalEventHistoryProps = {
 export const DisbursalEventHistory: React.FC<DisbursalEventHistoryProps> = ({
   publicId,
 }) => {
-  const { data, loading } = useDisbursalEventHistoryQuery({
-    variables: { publicId, first: 100 },
+  const { data, loading, fetchMore } = useDisbursalEventHistoryQuery({
+    variables: { publicId, first: DEFAULT_PAGESIZE },
   })
 
   return (
     <EntityEventHistory
       translationNamespace="Disbursals.DisbursalDetails.eventHistory"
-      eventTranslationNamespace="EntityEvents.disbursal"
-      events={data?.disbursalByPublicId?.eventHistory.nodes ?? []}
+      data={data?.disbursalByPublicId?.eventHistory}
       loading={loading}
+      fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
     />
   )
 }

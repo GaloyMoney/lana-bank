@@ -4,6 +4,7 @@ import React from "react"
 import { gql } from "@apollo/client"
 
 import { EntityEventHistory } from "@/components/entity-event-history"
+import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useRoleEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
@@ -25,19 +26,10 @@ gql`
             payload
           }
         }
-        nodes {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User { userId, email }
-            ... on System { actor }
-          }
-          payload
-        }
         pageInfo {
           hasNextPage
+          hasPreviousPage
+          startCursor
           endCursor
         }
       }
@@ -50,16 +42,16 @@ type RoleEventHistoryProps = {
 }
 
 export const RoleEventHistory: React.FC<RoleEventHistoryProps> = ({ roleId }) => {
-  const { data, loading } = useRoleEventHistoryQuery({
-    variables: { id: roleId, first: 100 },
+  const { data, loading, fetchMore } = useRoleEventHistoryQuery({
+    variables: { id: roleId, first: DEFAULT_PAGESIZE },
   })
 
   return (
     <EntityEventHistory
       translationNamespace="RolesAndPermissions.eventHistory"
-      eventTranslationNamespace="EntityEvents.role"
-      events={data?.role?.eventHistory.nodes ?? []}
+      data={data?.role?.eventHistory}
       loading={loading}
+      fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
     />
   )
 }

@@ -3995,10 +3995,7 @@ export type CommitteeEventHistoryQueryVariables = Exact<{
 export type CommitteeEventHistoryQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type GetCommitteeDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -4073,10 +4070,7 @@ export type CreditFacilityEventHistoryQueryVariables = Exact<{
 export type CreditFacilityEventHistoryQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type CreditFacilityLayoutFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt: string, collateralizationState: CollateralizationState, activatedAt: string, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanRecordPaymentWithDate: boolean, userCanComplete: boolean, currentCvl:
     | { __typename: 'FiniteCvlPct', value: any }
@@ -4378,10 +4372,7 @@ export type CreditFacilityProposalEventHistoryQueryVariables = Exact<{
 export type CreditFacilityProposalEventHistoryQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: string, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian?: { __typename?: 'Custodian', name: string } | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
@@ -4530,10 +4521,7 @@ export type CustomerEventHistoryQueryVariables = Exact<{
 export type CustomerEventHistoryQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type CustomerFreezeMutationVariables = Exact<{
   input: CustomerFreezeInput;
@@ -4618,10 +4606,7 @@ export type DepositAccountEventHistoryQueryVariables = Exact<{
 export type DepositAccountEventHistoryQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type DepositAccountFreezeMutationVariables = Exact<{
   input: DepositAccountFreezeInput;
@@ -4686,10 +4671,7 @@ export type DepositEventHistoryQueryVariables = Exact<{
 export type DepositEventHistoryQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
 
@@ -4736,10 +4718,7 @@ export type DisbursalEventHistoryQueryVariables = Exact<{
 export type DisbursalEventHistoryQuery = { __typename?: 'Query', disbursalByPublicId?: { __typename?: 'CreditFacilityDisbursal', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type DisbursalDetailsPageFragmentFragment = { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, amount: UsdCents, createdAt: string, status: DisbursalStatus, publicId: any, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, publicId: any, customer: { __typename?: 'Customer', id: string, email: string, customerId: string, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: string, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
@@ -4997,10 +4976,7 @@ export type LiquidationEventHistoryQueryVariables = Exact<{
 export type LiquidationEventHistoryQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type LiquidationCollateralSentFragmentFragment = { __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string };
 
@@ -5201,10 +5177,7 @@ export type PolicyEventHistoryQueryVariables = Exact<{
 export type PolicyEventHistoryQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type GetPolicyDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -5273,10 +5246,7 @@ export type ProspectEventHistoryQueryVariables = Exact<{
 export type ProspectEventHistoryQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
@@ -5382,10 +5352,7 @@ export type RoleEventHistoryQueryVariables = Exact<{
 export type RoleEventHistoryQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type RoleCreateMutationVariables = Exact<{
   input: RoleCreateInput;
@@ -5425,10 +5392,7 @@ export type TermsTemplateEventHistoryQueryVariables = Exact<{
 export type TermsTemplateEventHistoryQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type TermsTemplateQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -5546,10 +5510,7 @@ export type UserEventHistoryQueryVariables = Exact<{
 export type UserEventHistoryQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type GetUserDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -5613,10 +5574,7 @@ export type WithdrawalEventHistoryQueryVariables = Exact<{
 export type WithdrawalEventHistoryQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
             | { __typename?: 'System', actor: string }
             | { __typename?: 'User', userId: string, email: string }
-           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
-          | { __typename?: 'System', actor: string }
-          | { __typename?: 'User', userId: string, email: string }
-         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type LedgerTransactionFieldsFragment = { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null };
 
@@ -7463,24 +7421,10 @@ export const CommitteeEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -7897,24 +7841,10 @@ export const CreditFacilityEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -8533,24 +8463,10 @@ export const CreditFacilityProposalEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -9192,24 +9108,10 @@ export const CustomerEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -9733,24 +9635,10 @@ export const DepositAccountEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -10118,24 +10006,10 @@ export const DepositEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -10393,24 +10267,10 @@ export const DisbursalEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -11496,24 +11356,10 @@ export const LiquidationEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -12472,24 +12318,10 @@ export const PolicyEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -12830,24 +12662,10 @@ export const ProspectEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -13455,24 +13273,10 @@ export const RoleEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -13680,24 +13484,10 @@ export const TermsTemplateEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -14088,24 +13878,10 @@ export const UserEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }
@@ -14413,24 +14189,10 @@ export const WithdrawalEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        subject {
-          ... on User {
-            userId
-            email
-          }
-          ... on System {
-            actor
-          }
-        }
-        payload
-      }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
     }

@@ -4,6 +4,7 @@ import React from "react"
 import { gql } from "@apollo/client"
 
 import { EntityEventHistory } from "@/components/entity-event-history"
+import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useCommitteeEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
@@ -25,19 +26,10 @@ gql`
             payload
           }
         }
-        nodes {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User { userId, email }
-            ... on System { actor }
-          }
-          payload
-        }
         pageInfo {
           hasNextPage
+          hasPreviousPage
+          startCursor
           endCursor
         }
       }
@@ -52,16 +44,16 @@ type CommitteeEventHistoryProps = {
 export const CommitteeEventHistory: React.FC<CommitteeEventHistoryProps> = ({
   committeeId,
 }) => {
-  const { data, loading } = useCommitteeEventHistoryQuery({
-    variables: { id: committeeId, first: 100 },
+  const { data, loading, fetchMore } = useCommitteeEventHistoryQuery({
+    variables: { id: committeeId, first: DEFAULT_PAGESIZE },
   })
 
   return (
     <EntityEventHistory
       translationNamespace="Committees.CommitteeDetails.eventHistory"
-      eventTranslationNamespace="EntityEvents.committee"
-      events={data?.committee?.eventHistory.nodes ?? []}
+      data={data?.committee?.eventHistory}
       loading={loading}
+      fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
     />
   )
 }

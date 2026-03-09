@@ -4,6 +4,7 @@ import React from "react"
 import { gql } from "@apollo/client"
 
 import { EntityEventHistory } from "@/components/entity-event-history"
+import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useLiquidationEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
@@ -25,19 +26,10 @@ gql`
             payload
           }
         }
-        nodes {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User { userId, email }
-            ... on System { actor }
-          }
-          payload
-        }
         pageInfo {
           hasNextPage
+          hasPreviousPage
+          startCursor
           endCursor
         }
       }
@@ -52,16 +44,16 @@ type LiquidationEventHistoryProps = {
 export const LiquidationEventHistory: React.FC<LiquidationEventHistoryProps> = ({
   liquidationId,
 }) => {
-  const { data, loading } = useLiquidationEventHistoryQuery({
-    variables: { liquidationId, first: 100 },
+  const { data, loading, fetchMore } = useLiquidationEventHistoryQuery({
+    variables: { liquidationId, first: DEFAULT_PAGESIZE },
   })
 
   return (
     <EntityEventHistory
       translationNamespace="Liquidations.LiquidationDetails.eventHistory"
-      eventTranslationNamespace="EntityEvents.liquidation"
-      events={data?.liquidation?.eventHistory.nodes ?? []}
+      data={data?.liquidation?.eventHistory}
       loading={loading}
+      fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
     />
   )
 }

@@ -4,6 +4,7 @@ import React from "react"
 import { gql } from "@apollo/client"
 
 import { EntityEventHistory } from "@/components/entity-event-history"
+import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 import { useCreditFacilityEventHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
@@ -25,19 +26,10 @@ gql`
             payload
           }
         }
-        nodes {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User { userId, email }
-            ... on System { actor }
-          }
-          payload
-        }
         pageInfo {
           hasNextPage
+          hasPreviousPage
+          startCursor
           endCursor
         }
       }
@@ -52,16 +44,16 @@ type CreditFacilityEventHistoryProps = {
 export const CreditFacilityEventHistory: React.FC<CreditFacilityEventHistoryProps> = ({
   publicId,
 }) => {
-  const { data, loading } = useCreditFacilityEventHistoryQuery({
-    variables: { publicId, first: 100 },
+  const { data, loading, fetchMore } = useCreditFacilityEventHistoryQuery({
+    variables: { publicId, first: DEFAULT_PAGESIZE },
   })
 
   return (
     <EntityEventHistory
       translationNamespace="CreditFacilities.CreditFacilityDetails.eventHistory"
-      eventTranslationNamespace="EntityEvents.creditFacility"
-      events={data?.creditFacilityByPublicId?.eventHistory.nodes ?? []}
+      data={data?.creditFacilityByPublicId?.eventHistory}
       loading={loading}
+      fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
     />
   )
 }

@@ -231,9 +231,6 @@ export default function CreditFacilityLayout({
         <FacilityCard creditFacility={data.creditFacilityByPublicId} />
         <CreditFacilityCollateral creditFacility={data.creditFacilityByPublicId} />
       </div>
-      <div className="mt-2">
-        <CreditFacilityEventHistory publicId={publicId} />
-      </div>
       <Tabs
         defaultValue={TABS[0].url}
         value={currentTab}
@@ -253,6 +250,9 @@ export default function CreditFacilityLayout({
           </TabsContent>
         ))}
       </Tabs>
+      <div className="mt-2">
+        <CreditFacilityEventHistory publicId={publicId} />
+      </div>
     </main>
   )
 }

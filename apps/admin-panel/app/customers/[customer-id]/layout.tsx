@@ -160,9 +160,6 @@ export default function CustomerLayout({
           {tDepositAccount("noAccount")}
         </span>
       )}
-      <div className="mt-2">
-        <CustomerEventHistory customerId={customerId} />
-      </div>
       <Tabs
         defaultValue={TABS[0].url}
         value={currentTab}
@@ -187,6 +184,9 @@ export default function CustomerLayout({
           </TabsContent>
         ))}
       </Tabs>
+      <div className="mt-2">
+        <CustomerEventHistory customerId={customerId} />
+      </div>
     </main>
   )
 }

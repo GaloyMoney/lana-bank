@@ -116,6 +116,72 @@ export const makeClient = ({
       DepositAccount: {
         fields: {
           history: relayStylePagination(),
+          eventHistory: relayStylePagination(),
+        },
+      },
+      User: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      Customer: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      Prospect: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      CreditFacility: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      CreditFacilityProposal: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      CreditFacilityDisbursal: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      Committee: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      Policy: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      TermsTemplate: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      Liquidation: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      Deposit: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      Withdrawal: {
+        fields: {
+          eventHistory: relayStylePagination(),
+        },
+      },
+      Role: {
+        fields: {
+          eventHistory: relayStylePagination(),
         },
       },
       Query: {

@@ -1155,6 +1155,18 @@
           "success": "Partial payment processed successfully"
         }
       },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this credit facility",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
+      },
       "CreditFacilityCollateralUpdate": {
         "dialog": {
           "title": "Update Credit Facility Collateral",
@@ -2992,81 +3004,6 @@
         "logout": "Log out",
         "staySignedIn": "Stay signed in"
       }
-    }
-  },
-  "EntityEvents": {
-    "columns": {
-      "event": "Event",
-      "details": "Details",
-      "subject": "Performed By",
-      "auditEntryId": "Audit Entry",
-      "recordedAt": "Recorded At"
-    },
-    "user": {
-      "initialized": "User created",
-      "role_updated": "Role changed"
-    },
-    "customer": {
-      "initialized": "Customer created",
-      "frozen": "Customer frozen",
-      "unfrozen": "Customer unfrozen",
-      "closed": "Customer closed"
-    },
-    "role": {
-      "initialized": "Role created",
-      "permission_set_added": "Permission set added",
-      "permission_set_removed": "Permission set removed"
-    },
-    "prospect": {
-      "initialized": "Prospect created",
-      "kyc_started": "KYC started",
-      "kyc_approved": "KYC approved",
-      "kyc_pending": "KYC pending",
-      "kyc_on_hold": "KYC on hold",
-      "kyc_declined": "KYC declined",
-      "manually_converted": "Manually converted",
-      "verification_link_created": "Verification link created",
-      "closed": "Prospect closed"
-    },
-    "depositAccount": {
-      "initialized": "Account created",
-      "activity_updated": "Activity updated",
-      "frozen": "Account frozen",
-      "unfrozen": "Account unfrozen",
-      "closed": "Account closed"
-    },
-    "deposit": {
-      "initialized": "Deposit created",
-      "reverted": "Deposit reverted"
-    },
-    "withdrawal": {
-      "initialized": "Withdrawal created",
-      "approval_process_concluded": "Approval process concluded",
-      "denied": "Withdrawal denied",
-      "confirmed": "Withdrawal confirmed",
-      "cancelled": "Withdrawal cancelled",
-      "reverted": "Withdrawal reverted"
-    },
-    "creditFacility": {
-      "initialized": "Credit facility created"
-    },
-    "disbursal": {
-      "initialized": "Disbursal created"
-    },
-    "creditFacilityProposal": {
-      "initialized": "Proposal created"
-    },
-    "committee": {
-      "initialized": "Committee created"
-    },
-    "policy": {
-      "initialized": "Policy created"
-    },
-    "termsTemplate": {
-      "initialized": "Terms template created"
-    },
-    "liquidation": {
-      "initialized": "Liquidation created"
     }
   }
 }
