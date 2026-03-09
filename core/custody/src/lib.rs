@@ -550,7 +550,7 @@ where
         db: &mut DbOp<'_>,
         custodian_id: CustodianId,
         wallet_label: &str,
-    ) -> Result<Wallet, CoreCustodyError> {
+    ) -> Result<Option<Wallet>, CoreCustodyError> {
         self.lock_custodian_in_op(db, custodian_id).await?;
 
         let mut custodian = self
@@ -575,8 +575,8 @@ where
             self.custodians.update_in_op(db, &mut custodian).await?;
         }
 
-        let new_wallet = if let Some(external_wallet) = external_wallet {
-            NewWallet::builder()
+        if let Some(external_wallet) = external_wallet {
+            let new_wallet = NewWallet::builder()
                 .id(WalletId::new())
                 .custodian_id(custodian_id)
                 .external_wallet_id(external_wallet.external_id)
@@ -584,22 +584,13 @@ where
                 .address(external_wallet.address)
                 .network(external_wallet.network)
                 .build()
-                .expect("all fields for new wallet provided")
+                .expect("all fields for new wallet provided");
+
+            let wallet = self.wallets.create_in_op(db, new_wallet).await?;
+            Ok(Some(wallet))
         } else {
-            NewWallet::builder()
-                .id(WalletId::new())
-                .custodian_id(custodian_id)
-                .external_wallet_id("manual".to_string())
-                .custodian_response(serde_json::Value::Null)
-                .address("manual_manual_manual_manual_manual_manual_1".to_string())
-                .network(WalletNetwork::Testnet4)
-                .build()
-                .expect("placeholder wallet fields provided")
-        };
-
-        let wallet = self.wallets.create_in_op(db, new_wallet).await?;
-
-        Ok(wallet)
+            Ok(None)
+        }
     }
 
     async fn lock_custodian_in_op(

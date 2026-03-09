@@ -202,7 +202,7 @@ where
                     )
                     .await?;
 
-                let wallet_id = Some(wallet.id);
+                let wallet_id = wallet.map(|w| w.id);
 
                 self.collaterals
                     .create_in_op(
