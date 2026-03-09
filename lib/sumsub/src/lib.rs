@@ -220,6 +220,8 @@ impl SumsubClient {
         let url_path = Self::reject_applicant_path(applicant_id);
         let full_url = self.base_url.join(&url_path).expect("valid URL");
 
+        // TODO: Replace these hard-coded SumSub rejection fields once compliance
+        // confirms the canonical reject label and note for Lana customer freezes.
         let body = json!({
             "note": reason,
             "reasons": {
