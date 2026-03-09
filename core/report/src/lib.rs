@@ -6,6 +6,7 @@ pub mod report_definition;
 pub mod report_run;
 
 pub mod config;
+mod dagster_adapter;
 pub mod error;
 pub mod public;
 
@@ -29,6 +30,7 @@ pub use report_definition::*;
 
 use cloud_storage::{Storage, config::StorageConfig};
 
+use dagster_adapter::DagsterReportAdapter;
 use jobs::{
     SyncReportsJobConfig, SyncReportsJobInit, SyncReportsJobSpawner, TriggerReportRunJobConfig,
     TriggerReportRunJobInit, TriggerReportRunJobSpawner,
@@ -53,7 +55,6 @@ where
     authz: Perms,
     reports: ReportRepo,
     report_runs: ReportRunRepo<E>,
-    dagster: Dagster,
     storage: Storage,
     config: ReportConfig,
     sync_reports_spawner: SyncReportsJobSpawner<E>,
@@ -70,7 +71,6 @@ where
             authz: self.authz.clone(),
             reports: self.reports.clone(),
             report_runs: self.report_runs.clone(),
-            dagster: self.dagster.clone(),
             storage: self.storage.clone(),
             config: self.config.clone(),
             sync_reports_spawner: self.sync_reports_spawner.clone(),
@@ -107,24 +107,25 @@ where
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
         let dagster = Dagster::new(config.dagster.clone());
+        let dagster_adapter = DagsterReportAdapter::new(dagster);
         let report_repo = ReportRepo::new(pool);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
         let sync_reports_spawner = jobs.add_initializer(SyncReportsJobInit::<E>::new(
-            dagster.clone(),
+            dagster_adapter.clone(),
             report_run_repo.clone(),
             report_repo.clone(),
         ));
-        let trigger_report_run_spawner = jobs.add_initializer(TriggerReportRunJobInit::<E>::new(
-            dagster.clone(),
-            sync_reports_spawner.clone(),
-            report_run_repo.clone(),
-        ));
+        let trigger_report_run_spawner =
+            jobs.add_initializer(TriggerReportRunJobInit::<E>::new(
+                dagster_adapter,
+                sync_reports_spawner.clone(),
+                report_run_repo.clone(),
+            ));
 
         Ok(Self {
             authz: authz.clone(),
             storage: storage.clone(),
-            dagster,
             reports: report_repo,
             report_runs: report_run_repo,
             config: config.clone(),

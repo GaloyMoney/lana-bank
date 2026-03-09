@@ -53,7 +53,7 @@ pub struct SyncReportsJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    dagster: dagster::Dagster,
+    dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
     report_runs: ReportRunRepo<E>,
     reports: ReportRepo,
 }
@@ -63,12 +63,12 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     pub fn new(
-        dagster: dagster::Dagster,
+        dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
         report_runs: ReportRunRepo<E>,
         reports: ReportRepo,
     ) -> Self {
         Self {
-            dagster,
+            dagster_adapter,
             report_runs,
             reports,
         }
@@ -94,7 +94,7 @@ where
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         let config: SyncReportsJobConfig<E> = job.config()?;
         Ok(Box::new(SyncReportsJobRunner::new_with_config(
-            self.dagster.clone(),
+            self.dagster_adapter.clone(),
             self.report_runs.clone(),
             self.reports.clone(),
             config,
@@ -110,7 +110,7 @@ pub struct SyncReportsJobRunner<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    dagster: dagster::Dagster,
+    dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
     report_runs: ReportRunRepo<E>,
     reports: ReportRepo,
     config: SyncReportsJobConfig<E>,
@@ -129,9 +129,8 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         if let Some(target_run_id) = self.config.target_run_id.as_deref() {
             let maybe_run = self
-                .dagster
-                .graphql()
-                .file_report_run(target_run_id)
+                .dagster_adapter
+                .fetch_run(target_run_id)
                 .await?;
             let Some(run_result) = maybe_run else {
                 tracing::warn!(
@@ -159,7 +158,7 @@ where
             )));
         }
 
-        let response = self.dagster.graphql().file_reports_runs(1, None).await?;
+        let response = self.dagster_adapter.fetch_recent_runs(1).await?;
 
         let runs = match response.data.runs_or_error {
             dagster::graphql_client::RunsOrError::Runs(runs) => runs,
@@ -182,12 +181,12 @@ where
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
     pub fn new(
-        dagster: dagster::Dagster,
+        dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
         report_runs: ReportRunRepo<E>,
         reports: ReportRepo,
     ) -> Self {
         Self::new_with_config(
-            dagster,
+            dagster_adapter,
             report_runs,
             reports,
             SyncReportsJobConfig::<E>::new(None),
@@ -195,13 +194,13 @@ where
     }
 
     pub fn new_with_config(
-        dagster: dagster::Dagster,
+        dagster_adapter: crate::dagster_adapter::DagsterReportAdapter,
         report_runs: ReportRunRepo<E>,
         reports: ReportRepo,
         config: SyncReportsJobConfig<E>,
     ) -> Self {
         Self {
-            dagster,
+            dagster_adapter,
             report_runs,
             reports,
             config,
@@ -274,7 +273,7 @@ where
         external_id: &str,
         run_id: crate::ReportRunId,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let dagster_reports = self.dagster.graphql().get_logs_for_run(external_id).await?;
+        let dagster_reports = self.dagster_adapter.fetch_reports_for_run(external_id).await?;
 
         let mut aggregated: std::collections::HashMap<
             (String, String),
