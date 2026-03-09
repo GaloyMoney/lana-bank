@@ -24,6 +24,8 @@ checksums:
     Common/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
     Common/set: 72fc8d871f1d34fd81f0cae5c4505591
     Common/copiedToClipboard: 6a3c394a9a51646bad2f72d7311b242d
+    Common/showIds: 5045a50490a16d635ee9ddc9ed487973
+    Common/hideIds: 294d6648b615496a70e2bf3c589f5402
     Common/copyId: b05ed1f0745e7f8ce758658681f61707
     Common/formatRule/noRulesDefined: c2fa3d9395c5cc7c85dde610f5b5b0aa
     Common/formatRule/allMembersMustApprove: c828e90335daa1fb324ee374d0b3936b
@@ -569,6 +571,12 @@ checksums:
     CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/success/approved: 89c93cbd48969b58dcc9f3394749d1b8
     CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/success/denied: b1f0c37150ab481b80e4e7d85624e5b4
     CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/errors/unknown: 78f7a44c71ebfde7c70e68ba68573709
+    CreditFacilityProposals/ProposalDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    CreditFacilityProposals/ProposalDetails/eventHistory/description: 31e9877703138cbaaa331069bb2684a3
+    CreditFacilityProposals/ProposalDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    CreditFacilityProposals/ProposalDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     CreditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     CreditFacilities/description: 18da4507529b9ddbd3762bce95c86b8f
     CreditFacilities/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -1251,6 +1259,12 @@ checksums:
     Users/userDetails/fields/role: 53743bbb6ca938f5b893552e839d067f
     Users/userDetails/noRolesAssigned: ad1111553e91d0fbd238772ba57e56ab
     Users/userDetails/updateRole: 365448e14f736c954e16abea616d4284
+    Users/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Users/eventHistory/description: 2410f58655cb814a4446555b48e36834
+    Users/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Users/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Users/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Users/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Users/updateRole/title: 365448e14f736c954e16abea616d4284
     Users/updateRole/description: c506d28cd2a9aa4d3fe3e17f9df0e2ca
     Users/updateRole/roleLabel: 53743bbb6ca938f5b893552e839d067f
@@ -1733,6 +1747,12 @@ checksums:
     RolesAndPermissions/roleDetails/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     RolesAndPermissions/roleDetails/permissionSets: 2160be68b1d6b6577e64634e9feba2ed
     RolesAndPermissions/roleDetails/editRole: b5c3ab76d07ed0d4603b2025efffc025
+    RolesAndPermissions/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    RolesAndPermissions/eventHistory/description: aa7ffa10306436638400d7e0525c4061
+    RolesAndPermissions/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    RolesAndPermissions/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    RolesAndPermissions/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    RolesAndPermissions/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Auth/IdleSessionDialog/title: 79bc2519d69e54e889036ac6b7d5700c
     Auth/IdleSessionDialog/description: 187addc99d1c3cec67cab0b7c32415df
     Auth/IdleSessionDialog/buttons/logout: 9a236bb8f8bec867ec0d0950d38bcc71
