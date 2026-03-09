@@ -104,7 +104,6 @@ impl DomainConfig {
         // No encrypted values stored at all (no Updated events, or only
         // a plaintext default in Initialized).
         Ok(())
-
     }
 
     pub(super) fn current_value_plain<C>(&self) -> Option<<C::Kind as ValueKind>::Value>
