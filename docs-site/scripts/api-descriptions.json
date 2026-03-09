@@ -125,7 +125,7 @@
       "collateralRecordProceedsFromLiquidation": "Records proceeds received from a liquidation",
       "liquidationRecordCollateralSent": "Records collateral sent out during a liquidation",
       "liquidationRecordProceedsReceived": "Records proceeds received from a liquidation",
-      "custodianCreate": "Creates a new custodian integration (Komainu or BitGo)",
+      "custodianCreate": "Creates a new custodian integration (Komainu, BitGo, or Bitfinex)",
       "custodianConfigUpdate": "Updates the configuration for an existing custodian",
       "committeeCreate": "Creates a new approval committee",
       "committeeAddUser": "Adds a user to an approval committee",

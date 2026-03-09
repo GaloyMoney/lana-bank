@@ -214,6 +214,13 @@ type BalanceSheetAccount {
 	children: [BalanceSheetAccount!]!
 }
 
+input BitfinexConfig {
+	name: String!
+	apiKey: String!
+	apiSecret: String!
+	walletType: String!
+}
+
 input BitgoConfig {
 	name: String!
 	longLivedToken: String!
@@ -967,6 +974,7 @@ type Custodian {
 input CustodianConfigInput @oneOf {
 	komainu: KomainuConfig
 	bitgo: BitgoConfig
+	bitfinex: BitfinexConfig
 }
 
 input CustodianConfigUpdateInput {
@@ -996,6 +1004,7 @@ type CustodianConnection {
 input CustodianCreateInput @oneOf {
 	komainu: KomainuConfig
 	bitgo: BitgoConfig
+	bitfinex: BitfinexConfig
 }
 
 type CustodianCreatePayload {

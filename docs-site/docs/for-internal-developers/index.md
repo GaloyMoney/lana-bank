@@ -35,7 +35,7 @@ Understand the internal design of each module:
 - [Event System](event-system) — Event sourcing, outbox pattern, public vs private events
 - [Background Jobs](background-jobs) — Job processing, scheduling, and specific jobs
 - [Cala Ledger Integration](cala-ledger-integration) — Double-entry accounting engine
-- [Custody & Portfolio](custody-portfolio) — BitGo/Komainu integration, collateral management
+- [Custody & Portfolio](custody-portfolio) — BitGo/Komainu/Bitfinex integration, collateral management
 
 ## Infrastructure & Operations
 
@@ -43,4 +43,3 @@ Understand the internal design of each module:
 - [Observability](observability) — OpenTelemetry, tracing, Honeycomb
 - [Audit System](audit-system) — Authorization logging and compliance
 - [Configuration](configuration) — Domain config system and macros
-

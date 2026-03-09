@@ -82,7 +82,7 @@ For compliance with inactive account regulations, the system tracks the last act
 
 #### 2.1.4 Custody
 
-The custody module provides an abstraction over multiple Bitcoin custody providers, allowing the bank to work with different custodians according to their operational and regulatory needs. The system is designed with a plugin pattern where each **Custodian** implements a common interface. Currently **BitGo** and **Komainu** are implemented, but the architecture allows adding new custodians without modifying the rest of the system.
+The custody module provides an abstraction over multiple Bitcoin custody providers, allowing the bank to work with different custodians according to their operational and regulatory needs. The system is designed with a plugin pattern where each **Custodian** implements a common interface. **BitGo**, **Komainu**, and **Bitfinex** are currently implemented, and the architecture allows adding new custodians without modifying the rest of the system.
 
 In each deployment, multiple custodians can be configured and activated simultaneously. When a credit facility is created, you can specify which custodian will manage that particular facility's collateral. This allows, for example, using different custodians for different customer segments or jurisdictions.
 
@@ -214,7 +214,9 @@ Other jobs process outbox event streams continuously, maintaining their executio
 
 External services notify the system through webhooks. **SumSub** sends notifications about the KYC verification lifecycle to `/webhook/sumsub`. When a customer completes their verification, SumSub notifies the result (approved or rejected). The system processes this notification and updates the customer's KYC state, which can unlock the creation of deposit accounts or credit facilities according to configuration.
 
-**Bitcoin custodians** (BitGo, Komainu) notify wallet events to `/webhook/custodian/[provider]`. Each provider has its own webhook format that the system normalizes. Typical events include Bitcoin deposits to collateral wallets. When a notification arrives, the system verifies its authenticity (typically via HMAC), identifies the affected wallet, updates the corresponding collateral balance, and recalculates the CVL of the associated credit facility. If the new CVL crosses any configured threshold, the collateralization state is updated and corresponding events are published.
+**Bitcoin custodians** with webhook support (BitGo, Komainu) notify wallet events to `/webhook/custodian/[provider]`. Each provider has its own webhook format that the system normalizes. Typical events include Bitcoin deposits to collateral wallets. When a notification arrives, the system verifies its authenticity (typically via HMAC), identifies the affected wallet, updates the corresponding collateral balance, and recalculates the CVL of the associated credit facility. If the new CVL crosses any configured threshold, the collateralization state is updated and corresponding events are published.
+
+**Bitfinex** is integrated differently. Lana uses Bitfinex's authenticated deposit-address endpoint to create a fresh Bitcoin deposit address for a facility from a configured Bitfinex wallet type (`exchange`, `margin`, or `funding`). This gives the bank another custody option for address generation, but it does not currently provide webhook-driven collateral synchronization, so balance updates must come from manual operations or a future polling workflow.
 
 This webhook flow is critical for real-time risk management. Without it, the system would depend on periodic polling and could have delayed visibility of collateral changes, increasing risk during Bitcoin price drops.
 

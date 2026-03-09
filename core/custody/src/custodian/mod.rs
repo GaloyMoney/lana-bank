@@ -6,8 +6,8 @@ mod notification;
 mod repo;
 
 pub use config::{
-    BitgoConfig, CustodianConfig, CustodianConfigDiscriminants, CustodyProviderConfig,
-    KomainuConfig,
+    BitfinexConfig, BitgoConfig, CustodianConfig, CustodianConfigDiscriminants,
+    CustodyProviderConfig, KomainuConfig,
 };
 #[cfg(feature = "json-schema")]
 pub use entity::CustodianEvent;

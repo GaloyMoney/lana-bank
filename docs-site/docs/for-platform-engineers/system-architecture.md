@@ -38,7 +38,7 @@ graph TD
     subgraph Infra["Infrastructure Layer"]
         PG["PostgreSQL"]
         CALA["cala-ledger"]
-        EXT["External APIs<br/>(BitGo, Sumsub)"]
+        EXT["External APIs<br/>(BitGo, Bitfinex, Sumsub)"]
     end
 
     CP --> OAT
@@ -99,7 +99,7 @@ graph TD
     subgraph InfraLayer["Infrastructure Layer"]
         PG["PostgreSQL"]
         CALA["Cala Ledger"]
-        EXT["External APIs<br/>(BitGo, Sumsub)"]
+        EXT["External APIs<br/>(BitGo, Bitfinex, Sumsub)"]
     end
 
     ClientLayer --> GatewayLayer
@@ -238,7 +238,7 @@ Double-entry accounting system:
 
 ### External Integrations
 
-- **BitGo/Komainu**: Cryptocurrency custody
+- **BitGo/Komainu/Bitfinex**: Cryptocurrency custody
 - **Sumsub**: KYC verification
 - **SMTP**: Email notifications
 
@@ -280,4 +280,3 @@ Command Query Responsibility Segregation:
 - Optimized read paths
 - Separate write operations
 - Eventual consistency where appropriate
-

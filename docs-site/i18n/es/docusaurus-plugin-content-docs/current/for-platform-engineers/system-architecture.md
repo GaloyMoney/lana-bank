@@ -6,24 +6,24 @@ sidebar_position: 2
 
 # Arquitectura del Sistema
 
-Este documento proporciona una visión arquitectónica de alto nivel del sistema de Lana Bank, describiendo la arquitectura de tres capas (cliente, gateway de API, backend), los componentes principales en cada capa y cómo interactúan.
+Este documento describe la arquitectura del sistema de Lana, incluyendo las capas, componentes y el flujo de datos.
 
 ```mermaid
 graph TD
     subgraph Client["Capa de Cliente"]
-        CP["Portal de Cliente<br/>(Next.js)"]
-        AP["Panel de Admin<br/>(Next.js)"]
+        CP["Portal del Cliente<br/>(Next.js)"]
+        AP["Panel de Administración<br/>(Next.js)"]
     end
 
-    subgraph Gateway["Capa de API Gateway"]
+    subgraph Gateway["Capa de Gateway de API"]
         OAT["Oathkeeper<br/>(Puerto 4455)"]
         KC["Keycloak<br/>(Puerto 8081)"]
     end
 
     subgraph App["Capa de Aplicación (Rust)"]
-        CS["customer-server<br/>(GraphQL API)<br/>Puerto 5254"]
-        AS["admin-server<br/>(GraphQL API)<br/>Puerto 5253"]
-        LA["lana-app<br/>(Lógica de Negocio)"]
+        CS["customer-server<br/>(API GraphQL)<br/>Puerto 5254"]
+        AS["admin-server<br/>(API GraphQL)<br/>Puerto 5253"]
+        LA["lana-app<br/>(Capa de Lógica de Negocio)"]
     end
 
     subgraph Domain["Capa de Dominio"]
@@ -38,7 +38,7 @@ graph TD
     subgraph Infra["Capa de Infraestructura"]
         PG["PostgreSQL"]
         CALA["cala-ledger"]
-        EXT["APIs Externas<br/>(BitGo, Sumsub)"]
+        EXT["APIs externas<br/>(BitGo, Bitfinex, Sumsub)"]
     end
 
     CP --> OAT
@@ -63,48 +63,49 @@ graph TD
 
 ## Visión General de las Capas del Sistema
 
-Lana Bank sigue una arquitectura en capas que separa responsabilidades entre presentación del cliente, seguridad del gateway de API, orquestación de la aplicación, lógica de dominio, servicios de infraestructura y persistencia de datos.
+Lana sigue una arquitectura por capas que separa responsabilidades y facilita el mantenimiento:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Capa de Cliente                          │
-│  ┌─────────────────────┐    ┌─────────────────────┐            │
-│  │   admin-panel       │    │   customer-portal   │            │
-│  │   (Next.js)         │    │   (Next.js)         │            │
-│  │   Puerto 3001       │    │   Puerto 3002       │            │
-│  └─────────────────────┘    └─────────────────────┘            │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Capa de Gateway de API                       │
-│  ┌─────────────────────┐    ┌─────────────────────┐            │
-│  │   Oathkeeper        │    │   Keycloak          │            │
-│  │   Puerto 4455       │    │   Puerto 8081       │            │
-│  └─────────────────────┘    └─────────────────────┘            │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Capa de Aplicación (Rust)                    │
-│  ┌─────────────────────┐    ┌─────────────────────┐            │
-│  │   admin-server      │    │   customer-server   │            │
-│  │   Puerto 5253       │    │   Puerto 5254       │            │
-│  └─────────────────────┘    └─────────────────────┘            │
-│                    ┌─────────────────────┐                     │
-│                    │      lana-app       │                     │
-│                    │  (Orquestador)      │                     │
-│                    └─────────────────────┘                     │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      Capa de Datos                              │
-│  ┌─────────────────────┐    ┌─────────────────────┐            │
-│  │   PostgreSQL        │    │   cala-ledger       │            │
-│  │   (Base de datos)   │    │   (Libro mayor)     │            │
-│  └─────────────────────┘    └─────────────────────┘            │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph ClientLayer["Capa de Cliente"]
+        AP["Panel de Administración<br/>(Next.js)"]
+        CPO["Portal del Cliente<br/>(Next.js)"]
+        EAPI["APIs externas"]
+    end
+
+    subgraph GatewayLayer["Capa de Gateway de API"]
+        OAT["Oathkeeper<br/>(Puerto 4455)"]
+        KC["Keycloak<br/>(Puerto 8081)"]
+    end
+
+    subgraph AppLayer["Capa de Aplicación"]
+        ASRV["admin-server<br/>(GraphQL)"]
+        CSRV["customer-server<br/>(GraphQL)"]
+        LCLI["lana-cli"]
+        LAPP["lana-app<br/>(Orquestador de Lógica de Negocio)"]
+        ASRV --> LAPP
+        CSRV --> LAPP
+        LCLI --> LAPP
+    end
+
+    subgraph DomainLayer["Capa de Dominio"]
+        CUST["Cliente"]
+        CRED["Crédito"]
+        DEP["Depósito"]
+        GOV["Gobernanza"]
+        ACCT["Contabilidad"]
+    end
+
+    subgraph InfraLayer["Capa de Infraestructura"]
+        PG["PostgreSQL"]
+        CALA["Cala Ledger"]
+        EXT["APIs externas<br/>(BitGo, Bitfinex, Sumsub)"]
+    end
+
+    ClientLayer --> GatewayLayer
+    GatewayLayer --> AppLayer
+    LAPP --> DomainLayer
+    DomainLayer --> InfraLayer
 ```
 
 ## Capa de Cliente
@@ -225,10 +226,9 @@ Libro mayor de contabilidad de partida doble:
 
 ### BigQuery (Analítica)
 
-Almacén de datos para análisis:
-- Datos extraídos mediante Meltano
-- Modelos transformados con dbt
-- Reportes e inteligencia de negocio
+- **BitGo/Komainu/Bitfinex**: Custodia de criptomonedas
+- **Sumsub**: Verificación KYC
+- **SMTP**: Notificaciones por correo electrónico
 
 ## Modelo de Despliegue
 

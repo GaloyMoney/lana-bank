@@ -48,6 +48,8 @@ app:
       bitgo_directory:
         testing_url: https://app.bitgo-test.com/
         production_url: https://app.bitgo.com/
+      bitfinex_directory:
+        api_url: https://api.bitfinex.com/v2
   notification:
     email:
       relay: ''

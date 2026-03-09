@@ -8,8 +8,9 @@ use crate::{graphql::primitives::SortDirection, primitives::*};
 pub use lana_app::custody::{
     CustodiansSortBy as DomainCustodiansSortBy,
     custodian::{
-        BitgoConfig as DomainBitgoConfig, Custodian as DomainCustodian,
-        CustodianConfig as DomainCustodianConfig, KomainuConfig as DomainKomainuConfig,
+        BitfinexConfig as DomainBitfinexConfig, BitgoConfig as DomainBitgoConfig,
+        Custodian as DomainCustodian, CustodianConfig as DomainCustodianConfig,
+        KomainuConfig as DomainKomainuConfig,
     },
 };
 
@@ -68,6 +69,15 @@ pub struct BitgoConfig {
     webhook_secret: String,
 }
 
+#[derive(InputObject)]
+pub struct BitfinexConfig {
+    name: String,
+    api_key: String,
+    #[graphql(secret)]
+    api_secret: String,
+    wallet_type: String,
+}
+
 impl From<KomainuConfig> for DomainKomainuConfig {
     fn from(config: KomainuConfig) -> Self {
         Self {
@@ -93,10 +103,21 @@ impl From<BitgoConfig> for DomainBitgoConfig {
     }
 }
 
+impl From<BitfinexConfig> for DomainBitfinexConfig {
+    fn from(config: BitfinexConfig) -> Self {
+        Self {
+            api_key: config.api_key,
+            api_secret: config.api_secret,
+            wallet_type: config.wallet_type,
+        }
+    }
+}
+
 #[derive(OneofObject)]
 pub enum CustodianCreateInput {
     Komainu(KomainuConfig),
     Bitgo(BitgoConfig),
+    Bitfinex(BitfinexConfig),
 }
 
 impl CustodianCreateInput {
@@ -104,6 +125,7 @@ impl CustodianCreateInput {
         match self {
             CustodianCreateInput::Komainu(conf) => &conf.name,
             CustodianCreateInput::Bitgo(conf) => &conf.name,
+            CustodianCreateInput::Bitfinex(conf) => &conf.name,
         }
     }
 }
@@ -113,6 +135,9 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
         match input {
             CustodianCreateInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
             CustodianCreateInput::Bitgo(config) => DomainCustodianConfig::Bitgo(config.into()),
+            CustodianCreateInput::Bitfinex(config) => {
+                DomainCustodianConfig::Bitfinex(config.into())
+            }
         }
     }
 }
@@ -121,6 +146,7 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
 pub enum CustodianConfigInput {
     Komainu(KomainuConfig),
     Bitgo(BitgoConfig),
+    Bitfinex(BitfinexConfig),
 }
 
 impl From<CustodianConfigInput> for DomainCustodianConfig {
@@ -128,6 +154,9 @@ impl From<CustodianConfigInput> for DomainCustodianConfig {
         match input {
             CustodianConfigInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
             CustodianConfigInput::Bitgo(config) => DomainCustodianConfig::Bitgo(config.into()),
+            CustodianConfigInput::Bitfinex(config) => {
+                DomainCustodianConfig::Bitfinex(config.into())
+            }
         }
     }
 }

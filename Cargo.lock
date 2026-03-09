@@ -472,6 +472,8 @@ checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 name = "bfx-client"
 version = "0.0.0"
 dependencies = [
+ "hex",
+ "hmac",
  "money",
  "reqwest 0.13.2",
  "rust_decimal",
@@ -479,10 +481,12 @@ dependencies = [
  "rustls",
  "serde",
  "serde_json",
+ "sha2",
  "thiserror 2.0.18",
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "url",
 ]
 
 [[package]]
@@ -1404,6 +1408,7 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
+ "bfx-client",
  "bitgo",
  "bytes",
  "chrono",

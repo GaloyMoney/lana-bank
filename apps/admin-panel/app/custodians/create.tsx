@@ -29,6 +29,7 @@ import { gql } from "@apollo/client"
 
 import {
   useCustodianCreateMutation,
+  type BitfinexConfig,
   type KomainuConfig,
   type BitgoConfig,
   type CustodianCreateInput,
@@ -48,7 +49,7 @@ gql`
   }
 `
 
-type CustodianType = "komainu" | "bitgo"
+type CustodianType = "komainu" | "bitgo" | "bitfinex"
 
 interface CreateCustodianDialogProps {
   openCreateCustodianDialog: boolean
@@ -80,6 +81,12 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     webhookSecret: "",
     webhookUrl: "",
   })
+  const [bitfinexConfig, setBitfinexConfig] = useState<BitfinexConfig>({
+    name: "",
+    apiKey: "",
+    apiSecret: "",
+    walletType: "",
+  })
   const [error, setError] = useState<string | null>(null)
 
   const resetForm = () => {
@@ -100,6 +107,12 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
       enterpriseId: "",
       webhookSecret: "",
       webhookUrl: "",
+    })
+    setBitfinexConfig({
+      name: "",
+      apiKey: "",
+      apiSecret: "",
+      walletType: "",
     })
     setError(null)
   }
@@ -123,6 +136,11 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     setBitgoConfig((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleBitfinexInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setBitfinexConfig((prev) => ({ ...prev, [name]: value }))
+  }
+
   const handleKomainuCheckboxChange = (checked: boolean) => {
     setKomainuConfig((prev) => ({ ...prev, testingInstance: checked }))
   }
@@ -137,6 +155,8 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
         return { komainu: komainuConfig }
       case "bitgo":
         return { bitgo: bitgoConfig }
+      case "bitfinex":
+        return { bitfinex: bitfinexConfig }
       default:
         throw new Error(`Unsupported custodian type: ${selectedType}`)
     }
@@ -197,6 +217,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
               <SelectContent>
                 <SelectItem value="komainu">Komainu</SelectItem>
                 <SelectItem value="bitgo">BitGo</SelectItem>
+                <SelectItem value="bitfinex">Bitfinex</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -399,6 +420,72 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   data-testid="custodian-testing-instance-checkbox"
                 />
                 <Label htmlFor="testingInstance">{t("fields.testingInstance")}</Label>
+              </div>
+            </>
+          )}
+
+          {selectedType === "bitfinex" && (
+            <>
+              <div>
+                <Label htmlFor="name" required>
+                  {t("fields.name")}
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={bitfinexConfig.name}
+                  onChange={handleBitfinexInputChange}
+                  placeholder={t("placeholders.name")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-name-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="apiKey" required>
+                  {t("fields.apiKey")}
+                </Label>
+                <Input
+                  id="apiKey"
+                  name="apiKey"
+                  value={bitfinexConfig.apiKey}
+                  onChange={handleBitfinexInputChange}
+                  placeholder={t("placeholders.apiKey")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-api-key-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="apiSecret" required>
+                  {t("fields.apiSecret")}
+                </Label>
+                <Input
+                  id="apiSecret"
+                  name="apiSecret"
+                  type="password"
+                  value={bitfinexConfig.apiSecret}
+                  onChange={handleBitfinexInputChange}
+                  placeholder={t("placeholders.apiSecret")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-api-secret-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="walletType" required>
+                  {t("fields.wallet")}
+                </Label>
+                <Input
+                  id="walletType"
+                  name="walletType"
+                  value={bitfinexConfig.walletType}
+                  onChange={handleBitfinexInputChange}
+                  placeholder={t("placeholders.wallet")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-wallet-type-input"
+                />
               </div>
             </>
           )}

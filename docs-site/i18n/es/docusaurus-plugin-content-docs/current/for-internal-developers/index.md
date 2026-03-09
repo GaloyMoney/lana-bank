@@ -31,11 +31,11 @@ Construye y amplía el panel de administración y el portal del cliente:
 
 Comprende el diseño interno de cada módulo:
 
-- [Servicios de dominio](domain-services): estructura de módulos DDD e interacciones
-- [Sistema de eventos](event-system): event sourcing, patrón outbox, eventos públicos vs privados
-- [Trabajos en segundo plano](background-jobs): procesamiento de trabajos, programación y trabajos específicos
-- [Integración con Cala Ledger](cala-ledger-integration): motor de contabilidad de doble entrada
-- [Custodia y cartera](custody-portfolio): integración con BitGo/Komainu, gestión de garantías
+- [Servicios de Dominio](domain-services) — Estructura del módulo DDD e interacciones
+- [Sistema de Eventos](event-system) — Event sourcing, patrón outbox, eventos públicos vs privados
+- [Trabajos en Segundo Plano](background-jobs) — Procesamiento de trabajos, programación y trabajos específicos
+- [Integración con Cala Ledger](cala-ledger-integration) — Motor de contabilidad de partida doble
+- [Custodia y Portafolio](custody-portfolio) — Integración con BitGo/Komainu/Bitfinex, gestión de colaterales
 
 ## Infraestructura y operaciones
 
