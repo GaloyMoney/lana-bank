@@ -8,7 +8,10 @@ import { toast } from "sonner"
 import { Dialog, DialogContent, DialogFooter } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
-import { FiscalYear, useFiscalYearCloseMutation } from "@/lib/graphql/generated"
+import {
+  GetFiscalYearDetailsQuery,
+  useFiscalYearCloseMutation,
+} from "@/lib/graphql/generated"
 import { useDialogSnapshot } from "@/hooks/use-dialog-snapshot"
 import { useFiscalYearCloseConfirmation } from "@/hooks/use-fiscal-year-close-confirmation"
 import { FiscalYearCloseDialogContent } from "@/components/fiscal-year-close-dialog-content"
@@ -24,7 +27,7 @@ gql`
 `
 
 type CloseYearDialogProps = {
-  fiscalYear: FiscalYear
+  fiscalYear: NonNullable<GetFiscalYearDetailsQuery["fiscalYearByYear"]>
   open: boolean
   onOpenChange: (open: boolean) => void
 }

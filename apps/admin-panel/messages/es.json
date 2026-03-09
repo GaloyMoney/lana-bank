@@ -1222,6 +1222,10 @@
       "not_yet_collateralized": "Aún no colateralizado"
     },
     "PendingDetails": {
+      "tabs": {
+        "repaymentPlan": "Plan de Pago",
+        "events": "Eventos"
+      },
       "CollateralCard": {
         "title": "Garantía",
         "details": {
@@ -2484,6 +2488,22 @@
           "closedAsOf": "Fin de Mes",
           "closedAt": "Procesado en (UTC)"
         }
+      }
+    },
+    "tabs": {
+      "monthClosures": "Cierres Mensuales",
+      "events": "Eventos"
+    },
+    "eventHistory": {
+      "title": "Eventos",
+      "description": "Línea de tiempo de cambios realizados en este año fiscal",
+      "emptyMessage": "No se registraron eventos",
+      "columns": {
+        "event": "Evento",
+        "details": "Detalles",
+        "subject": "Realizado Por",
+        "auditEntryId": "Entrada de Auditoría",
+        "recordedAt": "Registrado En"
       }
     }
   },

@@ -776,6 +776,8 @@ checksums:
     PendingCreditFacilities/collateralizationState/fully_collateralized: ac0dd4d27277fd887b8a195d815af373
     PendingCreditFacilities/collateralizationState/under_collateralized: 08bc680351a0f5bb35acf0cc4f7859f8
     PendingCreditFacilities/collateralizationState/not_yet_collateralized: a4a3eab71ea3eb3f17dfa5f5e1709c35
+    PendingCreditFacilities/PendingDetails/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
+    PendingCreditFacilities/PendingDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
     PendingCreditFacilities/PendingDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     PendingCreditFacilities/PendingDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     PendingCreditFacilities/PendingDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
@@ -1487,6 +1489,16 @@ checksums:
     FiscalYears/monthClosures/noClosures: 59b07a7da12eaa145278ecc55d3977b3
     FiscalYears/monthClosures/table/headers/closedAsOf: 7f0f74f255686704369ca1155682455e
     FiscalYears/monthClosures/table/headers/closedAt: ed4ea281800cacd4a9e76d79dce89428
+    FiscalYears/tabs/monthClosures: 18e222b95afa669096e64cc0498c7c34
+    FiscalYears/tabs/events: d17179a947e9687dd2338ca524b26b63
+    FiscalYears/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    FiscalYears/eventHistory/description: 32fd034abe9a8eedf2b6385045791e66
+    FiscalYears/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    FiscalYears/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    FiscalYears/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    FiscalYears/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    FiscalYears/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    FiscalYears/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     BalanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
     BalanceSheet/description: 3025ff334feb2d3790244d58a9a40eb3
     BalanceSheet/date: 56f41c5d30a76295bb087b20b7bee4c3

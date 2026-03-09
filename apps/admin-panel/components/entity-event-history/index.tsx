@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 
@@ -12,17 +13,44 @@ import PaginatedTable, {
   PaginatedData,
   DEFAULT_PAGESIZE,
 } from "@/components/paginated-table"
-import { EventPayload } from "@/components/event-payload"
-import { CustomerEventHistoryQuery } from "@/lib/graphql/generated"
+import { renderEventPayload } from "@/components/event-payload"
+import { EventHistoryConnectionFieldsFragment } from "@/lib/graphql/generated"
 
-type EventNode = NonNullable<
-  CustomerEventHistoryQuery["customerByPublicId"]
->["eventHistory"]["edges"][number]["node"]
+gql`
+  fragment EventHistoryConnectionFields on EventTimelineEntryConnection {
+    edges {
+      cursor
+      node {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        subject {
+          ... on User {
+            userId
+            email
+          }
+          ... on System {
+            actor
+          }
+        }
+        payload
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+`
+
+type EventNode = EventHistoryConnectionFieldsFragment["edges"][number]["node"]
 
 type EntityEventHistoryProps = {
   translationNamespace: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data?: any
+  data?: EventHistoryConnectionFieldsFragment
   loading: boolean
   fetchMore: (cursor: string) => Promise<unknown>
 }
@@ -46,11 +74,6 @@ export const EntityEventHistory: React.FC<EntityEventHistoryProps> = ({
       key: "eventType",
       label: t("columns.event"),
       render: (eventType: string) => snakeToSentenceCase(eventType),
-    },
-    {
-      key: "payload",
-      label: t("columns.details"),
-      render: (payload: Record<string, unknown>) => <EventPayload payload={payload} />,
     },
     {
       key: "subject",
@@ -96,7 +119,9 @@ export const EntityEventHistory: React.FC<EntityEventHistoryProps> = ({
         pageSize={DEFAULT_PAGESIZE}
         fetchMore={fetchMore}
         noDataText={t("emptyMessage")}
-        cellClassName="align-top"
+        renderExpandedRow={(node) =>
+          renderEventPayload(node.payload as Record<string, unknown>)
+        }
       />
     </CardWrapper>
   )

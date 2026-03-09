@@ -38,3 +38,10 @@ export const EventPayload: React.FC<{ payload: Record<string, unknown> }> = ({
     </div>
   )
 }
+
+export const renderEventPayload = (
+  payload: Record<string, unknown>,
+): React.ReactNode | null => {
+  if (flattenPayload(payload).length === 0) return null
+  return <EventPayload payload={payload} />
+}

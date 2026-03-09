@@ -4,8 +4,11 @@ import { gql } from "@apollo/client"
 import { use } from "react"
 import { useTranslations } from "next-intl"
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
+
 import FiscalYearDetailsCard from "./details"
 import MonthClosuresList from "./month-closures-list"
+import { FiscalYearEventHistory } from "./event-history"
 
 import { useGetFiscalYearDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -44,6 +47,7 @@ function FiscalYearPage({
 }) {
   const { year } = use(params)
   const tCommon = useTranslations("Common")
+  const tTabs = useTranslations("FiscalYears.tabs")
 
   const { data, loading, error } = useGetFiscalYearDetailsQuery({
     variables: { year },
@@ -58,7 +62,18 @@ function FiscalYearPage({
   return (
     <main className="max-w-7xl m-auto space-y-2">
       <FiscalYearDetailsCard fiscalYear={data.fiscalYearByYear} />
-      <MonthClosuresList monthClosures={data.fiscalYearByYear.monthClosures} />
+      <Tabs defaultValue="monthClosures">
+        <TabsList>
+          <TabsTrigger value="monthClosures">{tTabs("monthClosures")}</TabsTrigger>
+          <TabsTrigger value="events">{tTabs("events")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="monthClosures">
+          <MonthClosuresList monthClosures={data.fiscalYearByYear.monthClosures} />
+        </TabsContent>
+        <TabsContent value="events">
+          <FiscalYearEventHistory year={year} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

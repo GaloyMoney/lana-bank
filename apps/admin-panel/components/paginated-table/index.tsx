@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ChevronDown, ChevronRight } from "lucide-react"
 import {
   HiChevronUp,
   HiChevronDown,
@@ -78,6 +78,7 @@ interface PaginatedTableProps<T> {
   noDataText?: string
   subRows?: (record: T) => T[]
   cellClassName?: string
+  renderExpandedRow?: (record: T) => React.ReactNode
 }
 
 const PaginatedTable = <T,>({
@@ -96,6 +97,7 @@ const PaginatedTable = <T,>({
   noDataText,
   subRows,
   cellClassName,
+  renderExpandedRow,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
   const t = useTranslations("PaginatedTable")
@@ -117,6 +119,16 @@ const PaginatedTable = <T,>({
   const [filterState, setFilterState] = useState<Partial<Record<keyof T, T[keyof T]>>>({})
   const [currentPage, setCurrentPage] = useState(1)
   const [displayData, setDisplayData] = useState<{ node: T }[]>([])
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
+
+  const toggleRow = useCallback((idx: number) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev)
+      if (next.has(idx)) next.delete(idx)
+      else next.add(idx)
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     const startIdx = (currentPage - 1) * pageSize
@@ -184,6 +196,7 @@ const PaginatedTable = <T,>({
 
   useEffect(() => {
     setFocusedRowIndex(-1)
+    setExpandedRows(new Set())
   }, [currentPage])
 
   const handleSort = (columnKey: keyof T) => {
@@ -314,6 +327,7 @@ const PaginatedTable = <T,>({
                   {col.label}
                 </TableHead>
               ))}
+              {renderExpandedRow && <TableHead className="w-10" />}
               {navigateTo && <TableHead className="w-24" />}
             </TableRow>
           </TableHeader>
@@ -325,6 +339,7 @@ const PaginatedTable = <T,>({
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 ))}
+                {renderExpandedRow && <TableCell />}
                 {navigateTo && (
                   <TableCell>
                     <Skeleton className="h-9 w-full" />
@@ -616,6 +631,7 @@ const PaginatedTable = <T,>({
                     </div>
                   </TableHead>
                 ))}
+                {renderExpandedRow && <TableHead className="w-10" />}
                 {navigateTo && <TableHead className="w-24"></TableHead>}
               </TableRow>
             </TableHeader>
@@ -623,6 +639,8 @@ const PaginatedTable = <T,>({
           <TableBody>
             {displayData.map(({ node }, idx) => {
               const safeUrl = getSafeNavigationUrl(node)
+              const isExpanded = expandedRows.has(idx)
+              const expandedContent = renderExpandedRow?.(node) ?? null
               return (
                 <React.Fragment key={idx}>
                   <TableRow
@@ -650,6 +668,27 @@ const PaginatedTable = <T,>({
                           : String(node[col.key])}
                       </TableCell>
                     ))}
+                    {renderExpandedRow && (
+                      <TableCell className="p-0 text-center">
+                        {expandedContent !== null && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleRow(idx)
+                            }}
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
                     {navigateTo && (
                       <TableCell>
                         {safeUrl && (
@@ -668,6 +707,18 @@ const PaginatedTable = <T,>({
                       </TableCell>
                     )}
                   </TableRow>
+                  {isExpanded && expandedContent && (
+                    <TableRow className="bg-muted/30 hover:bg-muted/30">
+                      <TableCell
+                        colSpan={
+                          columns.length + (navigateTo ? 1 : 0) + 1
+                        }
+                        className="p-4"
+                      >
+                        {expandedContent}
+                      </TableCell>
+                    </TableRow>
+                  )}
                   {subRows &&
                     subRows(node).length > 0 &&
                     subRows(node).map((subRow, subIdx) => {
