@@ -1107,6 +1107,14 @@ checksums:
     DepositAccounts/DepositAccountDetails/transactions/table/types/freeze: e0c13eaed8d178ceb6d63a8fa7b50f5c
     DepositAccounts/DepositAccountDetails/transactions/table/types/unfreeze: ffa29e47d68fa27901dcf63ef7299eb2
     DepositAccounts/DepositAccountDetails/transactions/table/empty: 15f5fee32cbd24775ccda66e8ca83132
+    DepositAccounts/DepositAccountDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    DepositAccounts/DepositAccountDetails/eventHistory/description: 12dbb4dd8218302ece2e8643f3818044
+    DepositAccounts/DepositAccountDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    DepositAccounts/DepositAccountDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Deposits/title: 9518ad41e01682ba217001a93932bc1c
     Deposits/description: 40e7da49ff100d0519765fbbb93a5d32
     Deposits/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -1148,6 +1156,14 @@ checksums:
     Deposits/DepositDetails/DepositDetailsCard/buttons/viewDepositAccount: ec760c8120ec2d099ad62eecadb15fa7
     Deposits/DepositDetails/DepositDetailsCard/buttons/revert: 9666b5975a819f9047570234a7c409f8
     Deposits/DepositDetails/DepositDetailsCard/buttons/viewOnSumsub: 6303e12bdc05ab7fc71048f6dedbd318
+    Deposits/DepositDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Deposits/DepositDetails/eventHistory/description: 65c45e8727d2f5b24fc09cd585bff702
+    Deposits/DepositDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Deposits/DepositDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Deposits/DepositDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Deposits/DepositDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Deposits/DepositDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Deposits/DepositDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Withdrawals/title: 4f557c00affbc9ba31b380c6c9b39156
     Withdrawals/description: 4f7906ac0f68f580ad77ce69816d9b22
     Withdrawals/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -1207,6 +1223,14 @@ checksums:
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/revert: 9666b5975a819f9047570234a7c409f8
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/viewOnSumsub: 6303e12bdc05ab7fc71048f6dedbd318
+    Withdrawals/WithdrawDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Withdrawals/WithdrawDetails/eventHistory/description: e82fd6436bc0c18660ccca1aa55ee6b1
+    Withdrawals/WithdrawDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Withdrawals/WithdrawDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Withdrawals/WithdrawDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Withdrawals/WithdrawDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    Withdrawals/WithdrawDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Withdrawals/WithdrawDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Withdrawals/WithdrawalInitiateDialog/title: 0c0c54cd536cb862be7e3c3bdb64745e
     Withdrawals/WithdrawalInitiateDialog/description: 6a9a298fc0df7f3eff2d0fd83742e86d
     Withdrawals/WithdrawalInitiateDialog/creatingFor: 84d0d42f142bf61d2b619d6dad3151ef
@@ -1803,6 +1827,19 @@ checksums:
     EntityEvents/prospect/manually_converted: 30dfcafd5fe2b00c92c9d0144e7f1cab
     EntityEvents/prospect/verification_link_created: 80ae70574df5ec6cd90284b74f5a1f84
     EntityEvents/prospect/closed: d6b9a0aa440fded4cad23f5a66d78fda
+    EntityEvents/depositAccount/initialized: e7191f051ea0c65b5c180363b2b666d2
+    EntityEvents/depositAccount/activity_updated: e75db3d480c67d40cf29bf56858d677e
+    EntityEvents/depositAccount/frozen: 4114a8a3fa4b71eb1330894990e8d697
+    EntityEvents/depositAccount/unfrozen: 45d817ef99f28eb0958fca05e1b62deb
+    EntityEvents/depositAccount/closed: e27cd1ead5e98213c548f67766d1543f
+    EntityEvents/deposit/initialized: a3ede8a405b3cfadc62aa16d39f53ba1
+    EntityEvents/deposit/reverted: 15746d18a35de9a9a5e2dccf7728b85f
+    EntityEvents/withdrawal/initialized: 83284a7b13e424b89386898f72f60afe
+    EntityEvents/withdrawal/approval_process_concluded: 1d0fc0bdd25fd6feaee76cbf7be347fb
+    EntityEvents/withdrawal/denied: ae6a59ff31acb8b1187e65fcf61d6869
+    EntityEvents/withdrawal/confirmed: 9feaac668c6b5bfcc903b59166e30fc5
+    EntityEvents/withdrawal/cancelled: c5155f3a2991b3f4937228c9e2b9ed1b
+    EntityEvents/withdrawal/reverted: 1254abf21e20877b7ab5d26779e48f79
   aafe99efd8562d4095906d30010fcd19:
     Permissions/access_viewer/description: e47f0f1513dd3c253c5d1f0ed10c2e58
     Permissions/access_viewer/label: 9cf21f792a7ba07d3a092d992600388c
