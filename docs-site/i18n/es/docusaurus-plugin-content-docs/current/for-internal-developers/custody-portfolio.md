@@ -73,13 +73,13 @@ Lana se integra con proveedores de custodia de criptomonedas:
 
 ```mermaid
 graph TD
-    CORE["Lana Core<br/>(Módulo de Garantía de Crédito)"] --> ADAPTER["Adaptador de Custodia<br/>(Interfaz independiente del proveedor)"]
+    CORE["Lana Core<br/>(Módulo de Colateral de Crédito)"] --> ADAPTER["Adaptador de Custodia<br/>(Interfaz independiente del proveedor)"]
     ADAPTER --> BITGO["BitGo<br/>(Proveedor)"]
     ADAPTER --> KOMAINU["Komainu<br/>(Proveedor)"]
     ADAPTER --> SELF["Autocustodia<br/>(xpub + esplora)"]
 ```
 
-La autocustodia se diferencia de los custodios alojados en un aspecto clave: el backend solo almacena una cuenta `xpub` y un endpoint de esplora. Los operadores generan la cuenta correspondiente `xpriv` localmente con `lana-cli genxpriv` y la mantienen fuera del backend. Este flujo es compatible con claves de cuenta para mainnet, testnet3, testnet4 y signet. Para cada nuevo préstamo, Lana deriva una nueva dirección de recepción a partir del `xpub` almacenado y luego consulta esplora para cambios confirmados de saldo en lugar de depender de webhooks.
+La autocustodia se diferencia de los custodios alojados en un aspecto clave: el backend almacena únicamente una `xpub` de cuenta. Los operadores generan la `xpriv` correspondiente localmente con `lana-cli genxpriv` y la mantienen fuera del backend. El endpoint de esplora se carga al inicio desde `app.custody.custody_providers.self_custody_directory` en `lana.yml`, con una URL distinta para cada red soportada. Este flujo es compatible con claves de cuenta para mainnet, testnet3, testnet4 y signet. Para cada nuevo préstamo, Lana deriva una nueva dirección de recepción a partir de la `xpub` almacenada y consulta esplora para detectar cambios confirmados de saldo, en lugar de depender de webhooks.
 
 ## Tipos de Datos Principales
 
