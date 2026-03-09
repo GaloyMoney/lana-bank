@@ -68,9 +68,7 @@ where
     price: Arc<Price>,
     governance: Arc<Governance<Perms, E>>,
     public_ids: Arc<PublicIds>,
-    clock: es_entity::clock::ClockHandle,
-    credit_facility_maturity_job_spawner:
-        jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -96,7 +94,6 @@ where
             governance: self.governance.clone(),
             public_ids: self.public_ids.clone(),
             clock: self.clock.clone(),
-            credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
         }
     }
 }
@@ -166,7 +163,7 @@ where
             )
             .await?;
 
-        let credit_facility_maturity_job_spawner = jobs.add_initializer(
+        let maturity_spawner = jobs.add_initializer(
             jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo.clone()),
         );
 
@@ -189,12 +186,20 @@ where
             ),
         );
 
+        let process_facility_maturities_spawner = jobs.add_initializer(
+            jobs::process_facility_maturities::ProcessFacilityMaturitiesJobInit::new(
+                repo.clone(),
+                maturity_spawner.clone(),
+            ),
+        );
+
         outbox
             .register_event_handler(
                 jobs,
-                OutboxEventJobConfig::new(jobs::end_of_day::ACCRUAL_END_OF_DAY),
+                OutboxEventJobConfig::new(jobs::end_of_day::FACILITY_END_OF_DAY),
                 jobs::end_of_day::FacilityEndOfDayHandler::new(
                     collect_facilities_for_accrual_spawner,
+                    process_facility_maturities_spawner,
                 ),
             )
             .await?;
@@ -233,7 +238,6 @@ where
             governance,
             public_ids,
             clock,
-            credit_facility_maturity_job_spawner,
         })
     }
 
@@ -290,20 +294,6 @@ where
             .expect("first accrual");
 
         self.repo.update_in_op(db, &mut credit_facility).await?;
-
-        self.credit_facility_maturity_job_spawner
-            .spawn_at_in_op(
-                db,
-                JobId::new(),
-                // FIXME: I don't think this is updated if/when the facility is updated
-                // if the credit product is closed earlier than expected or if is liquidated
-                jobs::credit_facility_maturity::CreditFacilityMaturityJobConfig::<E> {
-                    credit_facility_id: credit_facility.id,
-                    _phantom: std::marker::PhantomData,
-                },
-                credit_facility.matures_at(),
-            )
-            .await?;
 
         let activation_data = if let Some(mut new_disbursal_builder) = initial_disbursal {
             let public_id = self

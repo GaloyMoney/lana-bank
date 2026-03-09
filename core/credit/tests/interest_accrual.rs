@@ -17,6 +17,17 @@ use std::time::Duration;
 const ONE_DAY: Duration = Duration::from_secs(86400);
 const POLL_INTERVAL: Duration = Duration::from_millis(100);
 
+async fn cleanup_stale_accrual_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
+    sqlx::query(
+        "DELETE FROM job_executions
+         WHERE state = 'pending'
+           AND job_type IN ('task.process-accrual-cycle', 'task.collect-facilities-for-accrual')",
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 async fn setup_with_clock_control() -> anyhow::Result<(
     helpers::TestContext,
     ClockController,
@@ -24,7 +35,7 @@ async fn setup_with_clock_control() -> anyhow::Result<(
     sqlx::PgPool,
 )> {
     let pool = helpers::init_pool().await?;
-    helpers::cleanup_stale_jobs(&pool).await?;
+    cleanup_stale_accrual_jobs(&pool).await?;
     let (clock, clock_ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
     let outbox = obix::Outbox::<helpers::event::DummyEvent>::init(
@@ -138,6 +149,8 @@ async fn setup_with_clock_control() -> anyhow::Result<(
             customers,
             outbox,
             jobs,
+            pool: pool.clone(),
+            clock: clock.clone(),
         },
         clock_ctrl,
         clock,
@@ -346,6 +359,6 @@ async fn accrual_posted_event_on_cycle_completion() -> anyhow::Result<()> {
     // eligible in subsequent realtime tests.
     clock_ctrl.transition_to_realtime();
     ctx.jobs.shutdown().await?;
-    helpers::cleanup_stale_jobs(&pool).await?;
+    cleanup_stale_accrual_jobs(&pool).await?;
     Ok(())
 }

@@ -42,7 +42,7 @@ pub async fn cleanup_stale_jobs(pool: &sqlx::PgPool) -> anyhow::Result<()> {
     sqlx::query(
         "DELETE FROM job_executions
          WHERE state = 'pending'
-           AND job_type IN ('task.process-accrual-cycle', 'task.collect-facilities-for-accrual', 'task.credit-facility-maturity')",
+           AND job_type IN ('task.process-accrual-cycle', 'task.collect-facilities-for-accrual', 'task.credit-facility-maturity', 'task.process-facility-maturities')",
     )
     .execute(pool)
     .await?;
@@ -522,6 +522,8 @@ pub struct TestContext {
     pub customers: core_customer::Customers<TestPerms, TestEvent>,
     pub outbox: obix::Outbox<TestEvent>,
     pub jobs: job::Jobs,
+    pub pool: sqlx::PgPool,
+    pub clock: ClockHandle,
 }
 
 pub fn test_terms() -> TermValues {
@@ -647,6 +649,8 @@ pub async fn setup() -> anyhow::Result<TestContext> {
         customers,
         outbox,
         jobs,
+        pool,
+        clock,
     })
 }
 

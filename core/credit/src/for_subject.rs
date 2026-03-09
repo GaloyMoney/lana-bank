@@ -8,10 +8,9 @@ use crate::history::CreditFacilityHistoryEntry;
 use core_credit_collateral::{
     Collaterals, CoreCreditCollateralAction, CoreCreditCollateralEvent, CoreCreditCollateralObject,
 };
+use core_credit_collection::{CoreCreditCollection, PaymentAllocation};
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
-
-use core_credit_collection::{CoreCreditCollection, PaymentAllocation};
 
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where

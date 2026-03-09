@@ -42,6 +42,9 @@ pub enum CoreCreditEvent {
     AccrualPosted {
         entity: PublicInterestAccrualCycle,
     },
+    FacilityMatured {
+        entity: PublicCreditFacility,
+    },
     PartialLiquidationInitiated {
         entity: PublicCreditFacility,
     },
