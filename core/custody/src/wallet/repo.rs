@@ -55,10 +55,11 @@ where
     ) -> Result<Vec<Wallet>, WalletError> {
         let wallet_ids = sqlx::query_scalar::<_, uuid::Uuid>(
             r#"
-            SELECT DISTINCT ON (id) id
-            FROM core_wallet_events_rollup
-            WHERE custodian_id = $1
-            ORDER BY id, version DESC
+            SELECT id
+            FROM core_wallet_events
+            WHERE event_type = 'initialized'
+              AND (event->>'custodian_id')::uuid = $1
+            ORDER BY recorded_at ASC
             "#,
         )
         .bind(custodian_id)

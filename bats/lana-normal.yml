@@ -22,3 +22,10 @@ app:
     credit_config_path: "./bats/accounting-init/credit-module-config.json"
     deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
     chart_of_accounts_integration_config_path: "./bats/accounting-init/accounting-base-config.json"
+  custody:
+    custody_providers:
+      self_custody_directory:
+        mainnet_url: https://blockstream.info/api/
+        testnet3_url: https://blockstream.info/testnet/api/
+        testnet4_url: https://mempool.space/testnet4/api/
+        signet_url: https://blockstream.info/signet/api/

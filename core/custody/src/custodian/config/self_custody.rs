@@ -4,7 +4,7 @@ use url::Url;
 
 pub use self_custody::{SelfCustodyClientConfig, SelfCustodyConfig, SelfCustodyNetwork};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SelfCustodyDirectoryConfig {
     #[serde(default)]
@@ -15,6 +15,33 @@ pub struct SelfCustodyDirectoryConfig {
     pub testnet4_url: Option<Url>,
     #[serde(default)]
     pub signet_url: Option<Url>,
+}
+
+impl Default for SelfCustodyDirectoryConfig {
+    fn default() -> Self {
+        Self {
+            mainnet_url: Some(
+                "https://blockstream.info/api/"
+                    .parse()
+                    .expect("mainnet esplora url must be valid"),
+            ),
+            testnet3_url: Some(
+                "https://blockstream.info/testnet/api/"
+                    .parse()
+                    .expect("testnet3 esplora url must be valid"),
+            ),
+            testnet4_url: Some(
+                "https://mempool.space/testnet4/api/"
+                    .parse()
+                    .expect("testnet4 esplora url must be valid"),
+            ),
+            signet_url: Some(
+                "https://blockstream.info/signet/api/"
+                    .parse()
+                    .expect("signet esplora url must be valid"),
+            ),
+        }
+    }
 }
 
 #[derive(Debug, Error)]
@@ -77,7 +104,10 @@ mod tests {
 
     #[test]
     fn missing_network_url_returns_error() {
-        let error = SelfCustodyDirectoryConfig::default()
+        let error = SelfCustodyDirectoryConfig {
+            testnet4_url: None,
+            ..Default::default()
+        }
             .client_config(SelfCustodyConfig {
                 account_xpub: "xpub".to_string(),
                 network: SelfCustodyNetwork::Testnet4,

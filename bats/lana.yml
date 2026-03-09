@@ -28,10 +28,10 @@ app:
   custody:
     custody_providers:
       self_custody_directory:
-        mainnet_url: null
-        testnet3_url: null
-        testnet4_url: null
-        signet_url: null
+        mainnet_url: https://blockstream.info/api/
+        testnet3_url: https://blockstream.info/testnet/api/
+        testnet4_url: https://mempool.space/testnet4/api/
+        signet_url: https://blockstream.info/signet/api/
 time:
   type: artificial
   start_at: 2024-01-01T00:00:00Z
