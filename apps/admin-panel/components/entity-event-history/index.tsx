@@ -7,35 +7,29 @@ import Link from "next/link"
 import { formatDate } from "@lana/web/utils"
 
 import CardWrapper from "@/components/card-wrapper"
-import PaginatedTable, {
-  Column,
-  DEFAULT_PAGESIZE,
-  PaginatedData,
-} from "@/components/paginated-table"
+import DataTable, { Column } from "@/components/data-table"
 import { EventPayload } from "@/components/event-payload"
-import { EventTimelineEntry } from "@/lib/graphql/generated"
+import { CustomerEventHistoryQuery } from "@/lib/graphql/generated"
+
+type EventNode = NonNullable<
+  CustomerEventHistoryQuery["customerByPublicId"]
+>["eventHistory"]["nodes"][number]
 
 type EntityEventHistoryProps = {
-  title: string
-  description: string
-  emptyMessage: string
   translationNamespace: string
-  data?: PaginatedData<EventTimelineEntry>
+  eventTranslationNamespace: string
+  events: EventNode[]
   loading: boolean
-  fetchMore: (cursor: string) => Promise<unknown>
 }
 
 export const EntityEventHistory: React.FC<EntityEventHistoryProps> = ({
-  title,
-  description,
-  emptyMessage,
   translationNamespace,
-  data,
+  eventTranslationNamespace,
+  events,
   loading,
-  fetchMore,
 }) => {
-  const te = useTranslations(translationNamespace)
-  const t = useTranslations("EntityEvents")
+  const t = useTranslations(translationNamespace)
+  const te = useTranslations(eventTranslationNamespace)
 
   const translateEventType = (eventType: string): string => {
     const key = eventType.toLowerCase()
@@ -45,20 +39,20 @@ export const EntityEventHistory: React.FC<EntityEventHistoryProps> = ({
     return eventType
   }
 
-  const columns: Column<EventTimelineEntry>[] = [
+  const columns: Column<EventNode>[] = [
     {
       key: "eventType",
-      label: t("columns.event"),
+      header: t("columns.event"),
       render: (eventType: string) => translateEventType(eventType),
     },
     {
       key: "payload",
-      label: t("columns.details"),
+      header: t("columns.details"),
       render: (payload: Record<string, unknown>) => <EventPayload payload={payload} />,
     },
     {
       key: "subject",
-      label: t("columns.subject"),
+      header: t("columns.subject"),
       render: (subject) => {
         if (!subject) return <span className="text-muted-foreground text-xs">-</span>
         if (subject.__typename === "User") {
@@ -79,27 +73,25 @@ export const EntityEventHistory: React.FC<EntityEventHistoryProps> = ({
     },
     {
       key: "auditEntryId",
-      label: t("columns.auditEntryId"),
+      header: t("columns.auditEntryId"),
       render: (auditEntryId) => (
         <span className="text-muted-foreground text-xs">{auditEntryId ?? "-"}</span>
       ),
     },
     {
       key: "recordedAt",
-      label: t("columns.recordedAt"),
+      header: t("columns.recordedAt"),
       render: (recordedAt: string) => formatDate(recordedAt),
     },
   ]
 
   return (
-    <CardWrapper title={title} description={description}>
-      <PaginatedTable<EventTimelineEntry>
+    <CardWrapper title={t("title")} description={t("description")}>
+      <DataTable
+        data={events}
         columns={columns}
-        data={data}
         loading={loading}
-        pageSize={DEFAULT_PAGESIZE}
-        fetchMore={fetchMore}
-        noDataText={emptyMessage}
+        emptyMessage={t("emptyMessage")}
       />
     </CardWrapper>
   )
