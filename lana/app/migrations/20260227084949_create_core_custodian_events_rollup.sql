@@ -8,7 +8,8 @@ CREATE TABLE core_custodian_events_rollup (
   -- Flattened fields from the event JSON
   encrypted_custodian_config JSONB,
   name VARCHAR,
-  provider VARCHAR
+  provider VARCHAR,
+  receive_index INTEGER
 ,
   PRIMARY KEY (id, version)
 );
@@ -32,7 +33,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'config_updated') THEN
+  IF event_type NOT IN ('initialized', 'config_updated', 'receive_index_allocated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -48,11 +49,13 @@ BEGIN
     new_row.encrypted_custodian_config := (NEW.event -> 'encrypted_custodian_config');
     new_row.name := (NEW.event ->> 'name');
     new_row.provider := (NEW.event ->> 'provider');
+    new_row.receive_index := (NEW.event ->> 'receive_index')::INTEGER;
   ELSE
     -- Default all fields to current values
     new_row.encrypted_custodian_config := current_row.encrypted_custodian_config;
     new_row.name := current_row.name;
     new_row.provider := current_row.provider;
+    new_row.receive_index := current_row.receive_index;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -62,6 +65,8 @@ BEGIN
       new_row.provider := (NEW.event ->> 'provider');
     WHEN 'config_updated' THEN
       new_row.encrypted_custodian_config := (NEW.event -> 'encrypted_custodian_config');
+    WHEN 'receive_index_allocated' THEN
+      new_row.receive_index := (NEW.event ->> 'receive_index')::INTEGER;
   END CASE;
 
   INSERT INTO core_custodian_events_rollup (
@@ -72,7 +77,8 @@ BEGIN
     event_type,
     encrypted_custodian_config,
     name,
-    provider
+    provider,
+    receive_index
   )
   VALUES (
     new_row.id,
@@ -82,7 +88,8 @@ BEGIN
     new_row.event_type,
     new_row.encrypted_custodian_config,
     new_row.name,
-    new_row.provider
+    new_row.provider,
+    new_row.receive_index
   );
 
   RETURN NEW;
