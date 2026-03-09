@@ -10,7 +10,6 @@ mod proposal;
 mod repayment;
 
 use async_graphql::{connection::*, *};
-use es_entity::EsEntity as _;
 
 use crate::primitives::*;
 
@@ -259,6 +258,7 @@ impl CreditFacility {
     ) -> async_graphql::Result<
         Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
     > {
+        use es_entity::EsEntity as _;
         event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 

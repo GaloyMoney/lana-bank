@@ -1,10 +1,8 @@
+use crate::primitives::*;
 use async_graphql::{
     connection::{Connection, EmptyFields},
     *,
 };
-use es_entity::EsEntity as _;
-
-use crate::primitives::*;
 use lana_app::public_id::PublicId;
 
 use super::{
@@ -227,6 +225,7 @@ impl Customer {
     ) -> async_graphql::Result<
         Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
     > {
+        use es_entity::EsEntity as _;
         event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 }

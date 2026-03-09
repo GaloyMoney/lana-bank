@@ -1,5 +1,5 @@
 use async_graphql::{connection::*, *};
-use es_entity::{EsEntity as _, Sort};
+use es_entity::Sort;
 
 use crate::{graphql::accounting::LedgerTransaction, primitives::*};
 
@@ -78,6 +78,7 @@ impl Deposit {
     ) -> async_graphql::Result<
         Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
     > {
+        use es_entity::EsEntity as _;
         event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
