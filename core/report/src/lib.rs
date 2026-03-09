@@ -21,6 +21,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::*;
 
 pub use config::*;
+pub use dagster_adapter::DagsterReportAdapter;
 pub use error::ReportError;
 pub use jobs::SyncReportsJobRunner;
 pub use primitives::*;
@@ -30,7 +31,6 @@ pub use report_definition::*;
 
 use cloud_storage::Storage;
 
-use dagster_adapter::DagsterReportAdapter;
 use jobs::{
     SyncReportsJobConfig, SyncReportsJobInit, SyncReportsJobSpawner, TriggerReportRunJobConfig,
     TriggerReportRunJobInit, TriggerReportRunJobSpawner,
@@ -107,12 +107,11 @@ where
             report_run_repo.clone(),
             report_repo.clone(),
         ));
-        let trigger_report_run_spawner =
-            jobs.add_initializer(TriggerReportRunJobInit::<E>::new(
-                dagster_adapter,
-                sync_reports_spawner.clone(),
-                report_run_repo.clone(),
-            ));
+        let trigger_report_run_spawner = jobs.add_initializer(TriggerReportRunJobInit::<E>::new(
+            dagster_adapter,
+            sync_reports_spawner.clone(),
+            report_run_repo.clone(),
+        ));
 
         Ok(Self {
             authz: authz.clone(),

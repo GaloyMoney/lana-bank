@@ -4,8 +4,8 @@ use chrono::Utc;
 use dagster::graphql_client::{RunResult, RunStatus};
 
 use core_report::{
-    CoreReportEvent, ReportConfig, ReportPublisher, ReportRepo, ReportRunRepo, ReportRunState,
-    ReportRunType, SyncReportsJobRunner,
+    CoreReportEvent, DagsterReportAdapter, ReportConfig, ReportPublisher, ReportRepo,
+    ReportRunRepo, ReportRunState, ReportRunType, SyncReportsJobRunner,
 };
 use helpers::event;
 
@@ -22,8 +22,9 @@ async fn setup() -> anyhow::Result<(
     let report_runs = ReportRunRepo::new(&pool, &publisher);
     let reports = ReportRepo::new(&pool);
     let dagster = dagster::Dagster::new(ReportConfig::default().dagster);
+    let dagster_adapter = DagsterReportAdapter::new(dagster);
 
-    let runner = SyncReportsJobRunner::new(dagster, report_runs, reports);
+    let runner = SyncReportsJobRunner::new(dagster_adapter, report_runs, reports);
 
     Ok((runner, outbox))
 }

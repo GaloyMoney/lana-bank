@@ -128,10 +128,7 @@ where
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         if let Some(target_run_id) = self.config.target_run_id.as_deref() {
-            let maybe_run = self
-                .dagster_adapter
-                .fetch_run(target_run_id)
-                .await?;
+            let maybe_run = self.dagster_adapter.fetch_run(target_run_id).await?;
             let Some(run_result) = maybe_run else {
                 tracing::warn!(
                     target_run_id,
@@ -273,7 +270,10 @@ where
         external_id: &str,
         run_id: crate::ReportRunId,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let dagster_reports = self.dagster_adapter.fetch_reports_for_run(external_id).await?;
+        let dagster_reports = self
+            .dagster_adapter
+            .fetch_reports_for_run(external_id)
+            .await?;
 
         let mut aggregated: std::collections::HashMap<
             (String, String),
@@ -336,13 +336,7 @@ fn requested_report_from_run(
     let name = tag_value(run_result, REPORT_NAME_TAG_KEY)
         .map(str::to_owned)
         .or_else(|| report_definition.map(|definition| definition.friendly_name.clone()))
-        .unwrap_or_else(|| {
-            raw_id
-                .rsplit('/')
-                .next()
-                .unwrap_or(raw_id)
-                .to_string()
-        });
+        .unwrap_or_else(|| raw_id.rsplit('/').next().unwrap_or(raw_id).to_string());
 
     Some(RequestedReport {
         report_definition_id: definition_id,

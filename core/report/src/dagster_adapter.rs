@@ -47,9 +47,7 @@ impl DagsterReportAdapter {
             graphql_client::LaunchRunResult::LaunchRunSuccess { run: None } => {
                 Err(dagster::error::DagsterError::ApiError)
             }
-            graphql_client::LaunchRunResult::Error => {
-                Err(dagster::error::DagsterError::ApiError)
-            }
+            graphql_client::LaunchRunResult::Error => Err(dagster::error::DagsterError::ApiError),
         }
     }
 

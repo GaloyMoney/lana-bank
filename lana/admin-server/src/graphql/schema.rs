@@ -2667,11 +2667,7 @@ impl Mutation {
             lana_app::report::ReportDefinitionId::try_new(input.report_definition_id)?;
         let _job_id = app
             .reports()
-            .trigger_report_run_job(
-                sub,
-                report_definition_id,
-                input.as_of_date.map(Into::into),
-            )
+            .trigger_report_run_job(sub, report_definition_id, input.as_of_date.map(Into::into))
             .await?;
         Ok(ReportRunCreatePayload { run_id: None })
     }

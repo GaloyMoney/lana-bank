@@ -60,6 +60,7 @@ app:
       pipeline_name_for_report_generation: file_reports_generation
       repository_location_name: Lana DW
       repository_name: __repository__
+    reports_bucket_name: null
   gotenberg:
     url: http://localhost:3030/
   encryption: {}

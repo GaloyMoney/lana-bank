@@ -90,10 +90,7 @@ impl ReportDefinition {
         ReportDefinitionId::from_parts(&self.norm, &self.id)
     }
 
-    pub fn validate_as_of_date(
-        &self,
-        as_of_date: Option<NaiveDate>,
-    ) -> Result<(), ReportError> {
+    pub fn validate_as_of_date(&self, as_of_date: Option<NaiveDate>) -> Result<(), ReportError> {
         if self.supports_as_of && as_of_date.is_none() {
             return Err(ReportError::InvalidReportRunRequest(format!(
                 "report definition '{}' requires an as_of_date",
@@ -186,10 +183,8 @@ mod tests {
 
     #[test]
     fn finds_as_of_report_and_builds_asset_selection_paths() {
-        let id = ReportDefinitionId::try_new("nrp_51/01_saldo_cuenta")
-            .expect("valid id format");
-        let definition = find_report_definition(&id)
-            .expect("nrp_51/01_saldo_cuenta must exist");
+        let id = ReportDefinitionId::try_new("nrp_51/01_saldo_cuenta").expect("valid id format");
+        let definition = find_report_definition(&id).expect("nrp_51/01_saldo_cuenta must exist");
 
         assert!(definition.supports_as_of);
         assert_eq!(
