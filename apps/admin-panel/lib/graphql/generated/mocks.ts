@@ -2918,6 +2918,7 @@ export const mockProspect = (overrides?: Partial<Prospect>, _relationshipsToOmit
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         customerType: overrides && overrides.hasOwnProperty('customerType') ? overrides.customerType! : CustomerType.Bank,
         email: overrides && overrides.hasOwnProperty('email') ? overrides.email! : generateMockValue.email(),
+        eventHistory: overrides && overrides.hasOwnProperty('eventHistory') ? overrides.eventHistory! : relationshipsToOmit.has('EventTimelineEntryConnection') ? {} as EventTimelineEntryConnection : mockEventTimelineEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         kycStatus: overrides && overrides.hasOwnProperty('kycStatus') ? overrides.kycStatus! : KycStatus.Approved,
         level: overrides && overrides.hasOwnProperty('level') ? overrides.level! : KycLevel.Advanced,

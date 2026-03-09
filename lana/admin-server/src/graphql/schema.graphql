@@ -2361,6 +2361,7 @@ type Prospect {
 	verificationLink: String
 	verificationLinkCreatedAt: Timestamp
 	personalInfo: PersonalInfo
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	customer: Customer
 }
 

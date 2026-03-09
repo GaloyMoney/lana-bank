@@ -2642,6 +2642,7 @@ export type Prospect = {
   customer?: Maybe<Customer>;
   customerType: CustomerType;
   email: Scalars['String']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   kycStatus: KycStatus;
   level: KycLevel;
@@ -2652,6 +2653,12 @@ export type Prospect = {
   telegramHandle: Scalars['String']['output'];
   verificationLink?: Maybe<Scalars['String']['output']>;
   verificationLinkCreatedAt?: Maybe<Scalars['Timestamp']['output']>;
+};
+
+
+export type ProspectEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type ProspectCloseInput = {
@@ -5024,6 +5031,15 @@ export type ProspectConvertMutationVariables = Exact<{
 
 
 export type ProspectConvertMutation = { __typename?: 'Mutation', prospectConvert: { __typename?: 'ProspectConvertPayload', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any } } };
+
+export type ProspectEventHistoryQueryVariables = Exact<{
+  id: Scalars['PublicId']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ProspectEventHistoryQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
@@ -11807,6 +11823,76 @@ export function useProspectConvertMutation(baseOptions?: Apollo.MutationHookOpti
 export type ProspectConvertMutationHookResult = ReturnType<typeof useProspectConvertMutation>;
 export type ProspectConvertMutationResult = Apollo.MutationResult<ProspectConvertMutation>;
 export type ProspectConvertMutationOptions = Apollo.BaseMutationOptions<ProspectConvertMutation, ProspectConvertMutationVariables>;
+export const ProspectEventHistoryDocument = gql`
+    query ProspectEventHistory($id: PublicId!, $first: Int!, $after: String) {
+  prospectByPublicId(id: $id) {
+    id
+    eventHistory(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          eventType
+          recordedAt
+          sequence
+          auditEntryId
+          userId
+          payload
+        }
+      }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        userId
+        payload
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useProspectEventHistoryQuery__
+ *
+ * To run a query within a React component, call `useProspectEventHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProspectEventHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProspectEventHistoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useProspectEventHistoryQuery(baseOptions: Apollo.QueryHookOptions<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables> & ({ variables: ProspectEventHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>(ProspectEventHistoryDocument, options);
+      }
+export function useProspectEventHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>(ProspectEventHistoryDocument, options);
+        }
+// @ts-ignore
+export function useProspectEventHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>;
+export function useProspectEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<ProspectEventHistoryQuery | undefined, ProspectEventHistoryQueryVariables>;
+export function useProspectEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>(ProspectEventHistoryDocument, options);
+        }
+export type ProspectEventHistoryQueryHookResult = ReturnType<typeof useProspectEventHistoryQuery>;
+export type ProspectEventHistoryLazyQueryHookResult = ReturnType<typeof useProspectEventHistoryLazyQuery>;
+export type ProspectEventHistorySuspenseQueryHookResult = ReturnType<typeof useProspectEventHistorySuspenseQuery>;
+export type ProspectEventHistoryQueryResult = Apollo.QueryResult<ProspectEventHistoryQuery, ProspectEventHistoryQueryVariables>;
 export const SumsubPermalinkCreateDocument = gql`
     mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
   sumsubPermalinkCreate(input: $input) {

@@ -424,6 +424,18 @@
           "copied": "Copied to clipboard",
           "linkExpired": "Link may have expired — consider refreshing"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this prospect",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "userId": "User",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -2877,6 +2889,17 @@
       "initialized": "Role created",
       "permission_set_added": "Permission set added",
       "permission_set_removed": "Permission set removed"
+    },
+    "prospect": {
+      "initialized": "Prospect created",
+      "kyc_started": "KYC started",
+      "kyc_approved": "KYC approved",
+      "kyc_pending": "KYC pending",
+      "kyc_on_hold": "KYC on hold",
+      "kyc_declined": "KYC declined",
+      "manually_converted": "Manually converted",
+      "verification_link_created": "Verification link created",
+      "closed": "Prospect closed"
     }
   }
 }
