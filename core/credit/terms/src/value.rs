@@ -370,10 +370,8 @@ impl TermValues {
 
     pub fn effective_annual_rate(&self) -> AnnualRatePct {
         let annualization_factor = match self.duration {
-            FacilityDuration::Months(months) if months > 0 => {
-                Decimal::from(12) / Decimal::from(months)
-            }
-            _ => Decimal::ZERO,
+            FacilityDuration::Months(0) => Decimal::ZERO,
+            FacilityDuration::Months(months) => Decimal::from(12) / Decimal::from(months),
         };
         AnnualRatePct(self.annual_rate.0 + self.one_time_fee_rate.0 * annualization_factor)
     }
@@ -713,6 +711,69 @@ mod test {
         fn allowed_when_above_margin_call() {
             let terms = default_terms();
             assert!(terms.is_disbursal_allowed(CVLPct::Finite(dec!(140))));
+        }
+    }
+
+    mod effective_annual_rate {
+        use super::*;
+
+        fn terms_with(annual_rate: Decimal, one_time_fee_rate: Decimal, months: u32) -> TermValues {
+            TermValues::builder()
+                .annual_rate(AnnualRatePct(annual_rate))
+                .duration(FacilityDuration::Months(months))
+                .interest_due_duration_from_accrual(ObligationDuration::Days(0))
+                .obligation_overdue_duration_from_due(None)
+                .obligation_liquidation_duration_from_due(None)
+                .accrual_cycle_interval(InterestInterval::EndOfMonth)
+                .accrual_interval(InterestInterval::EndOfDay)
+                .one_time_fee_rate(OneTimeFeeRatePct(one_time_fee_rate))
+                .disbursal_policy(DisbursalPolicy::SingleDisbursal)
+                .liquidation_cvl(dec!(105))
+                .margin_call_cvl(dec!(125))
+                .initial_cvl(dec!(140))
+                .build()
+                .expect("should build a valid term")
+        }
+
+        #[test]
+        fn annualizes_one_time_fee_for_short_duration() {
+            // 12 + 1 * (12/3) = 16
+            let terms = terms_with(dec!(12), dec!(1), 3);
+            assert_eq!(terms.effective_annual_rate(), AnnualRatePct(dec!(16)));
+        }
+
+        #[test]
+        fn equals_annual_rate_when_duration_is_12_months() {
+            // 10 + 2 * (12/12) = 12
+            let terms = terms_with(dec!(10), dec!(2), 12);
+            assert_eq!(terms.effective_annual_rate(), AnnualRatePct(dec!(12)));
+        }
+
+        #[test]
+        fn equals_annual_rate_when_no_one_time_fee() {
+            let terms = terms_with(dec!(15), dec!(0), 6);
+            assert_eq!(terms.effective_annual_rate(), AnnualRatePct(dec!(15)));
+        }
+
+        #[test]
+        fn handles_long_duration() {
+            // 10 + 3 * (12/36) = 11
+            let terms = terms_with(dec!(10), dec!(3), 36);
+            assert_eq!(terms.effective_annual_rate(), AnnualRatePct(dec!(11)));
+        }
+
+        #[test]
+        fn returns_annual_rate_when_zero_months() {
+            let terms = terms_with(dec!(10), dec!(5), 0);
+            assert_eq!(terms.effective_annual_rate(), AnnualRatePct(dec!(10)));
+        }
+
+        #[test]
+        fn handles_fractional_annualization() {
+            // 10 + 1 * (12/7) = 10 + 12/7
+            let terms = terms_with(dec!(10), dec!(1), 7);
+            let expected = AnnualRatePct(dec!(10) + dec!(12) / dec!(7));
+            assert_eq!(terms.effective_annual_rate(), expected);
         }
     }
 
