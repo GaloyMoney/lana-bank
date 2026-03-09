@@ -29,7 +29,7 @@ pub enum ReportRunType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct RequestedReport {
-    pub report_definition_id: String,
+    pub report_definition_id: crate::ReportDefinitionId,
     pub norm: String,
     pub name: String,
 }
@@ -125,6 +125,8 @@ impl ReportRun {
             .expect("No events for report run")
     }
 
+    /// Note: `idempotency_guard!` is not suitable here because idempotency depends on
+    /// field-level equality of the incoming data, not on the presence/absence of an event type.
     pub fn update_state(
         &mut self,
         state: ReportRunState,

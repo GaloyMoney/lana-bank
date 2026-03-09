@@ -88,7 +88,7 @@ impl DagsterReportAdapter {
             },
             graphql_client::ExecutionTag {
                 key: REPORT_DEFINITION_ID_TAG_KEY.to_string(),
-                value: report_definition.report_definition_id(),
+                value: report_definition.report_definition_id().to_string(),
             },
             graphql_client::ExecutionTag {
                 key: REPORT_NORM_TAG_KEY.to_string(),

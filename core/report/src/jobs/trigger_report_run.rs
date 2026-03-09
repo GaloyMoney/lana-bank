@@ -8,7 +8,7 @@ use tracing_macros::record_error_severity;
 
 use crate::dagster_adapter::DagsterReportAdapter;
 use crate::report_run::ReportRunRepo;
-use crate::{CoreReportEvent, find_report_definition};
+use crate::{CoreReportEvent, ReportDefinitionId, find_report_definition};
 
 use super::{SyncReportsJobConfig, SyncReportsJobSpawner};
 
@@ -19,7 +19,7 @@ pub struct TriggerReportRunJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    report_definition_id: String,
+    report_definition_id: ReportDefinitionId,
     #[serde(default)]
     as_of_date: Option<NaiveDate>,
     _phantom: std::marker::PhantomData<E>,
@@ -42,7 +42,7 @@ impl<E> TriggerReportRunJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new(report_definition_id: String, as_of_date: Option<NaiveDate>) -> Self {
+    pub fn new(report_definition_id: ReportDefinitionId, as_of_date: Option<NaiveDate>) -> Self {
         Self {
             report_definition_id,
             as_of_date,

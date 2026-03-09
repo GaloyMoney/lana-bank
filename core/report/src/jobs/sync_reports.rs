@@ -319,14 +319,15 @@ where
 fn requested_report_from_run(
     run_result: &dagster::graphql_client::RunResult,
 ) -> Option<RequestedReport> {
-    let report_definition_id = tag_value(run_result, REPORT_DEFINITION_ID_TAG_KEY)?;
-    let report_definition = crate::find_report_definition(report_definition_id);
+    let raw_id = tag_value(run_result, REPORT_DEFINITION_ID_TAG_KEY)?;
+    let definition_id = crate::ReportDefinitionId::try_new(raw_id).ok()?;
+    let report_definition = crate::find_report_definition(&definition_id);
 
     let norm = tag_value(run_result, REPORT_NORM_TAG_KEY)
         .map(str::to_owned)
         .or_else(|| report_definition.map(|definition| definition.norm.clone()))
         .unwrap_or_else(|| {
-            report_definition_id
+            raw_id
                 .split_once('/')
                 .map(|(norm, _)| norm.to_string())
                 .unwrap_or_default()
@@ -336,15 +337,15 @@ fn requested_report_from_run(
         .map(str::to_owned)
         .or_else(|| report_definition.map(|definition| definition.friendly_name.clone()))
         .unwrap_or_else(|| {
-            report_definition_id
+            raw_id
                 .rsplit('/')
                 .next()
-                .unwrap_or(report_definition_id)
+                .unwrap_or(raw_id)
                 .to_string()
         });
 
     Some(RequestedReport {
-        report_definition_id: report_definition_id.to_string(),
+        report_definition_id: definition_id,
         norm,
         name,
     })

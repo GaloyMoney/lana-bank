@@ -339,7 +339,7 @@ where
     pub async fn trigger_report_run_job(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        report_definition_id: String,
+        report_definition_id: ReportDefinitionId,
         as_of_date: Option<chrono::NaiveDate>,
     ) -> Result<job::JobId, ReportError> {
         self.authz
@@ -353,19 +353,7 @@ where
         let report_definition =
             find_report_definition(&report_definition_id).ok_or(ReportError::NotFound)?;
 
-        if report_definition.supports_as_of && as_of_date.is_none() {
-            return Err(ReportError::InvalidReportRunRequest(format!(
-                "report definition '{}' requires an as_of_date",
-                report_definition_id
-            )));
-        }
-
-        if !report_definition.supports_as_of && as_of_date.is_some() {
-            return Err(ReportError::InvalidReportRunRequest(format!(
-                "report definition '{}' does not support as_of_date",
-                report_definition_id
-            )));
-        }
+        report_definition.validate_as_of_date(as_of_date)?;
 
         let mut db = self.report_runs.begin_op().await?;
         let job_id = job::JobId::new();
