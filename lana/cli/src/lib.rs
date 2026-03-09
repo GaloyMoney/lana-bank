@@ -317,7 +317,8 @@ fn generate_xpub(network: &str) -> anyhow::Result<()> {
     let (network_kind, derivation_path, network_label) = match network {
         "mainnet" => (NetworkKind::Main, [84, 0, 0], "mainnet"),
         "testnet" => (NetworkKind::Test, [84, 1, 0], "testnet"),
-        other => anyhow::bail!("Unknown network: {other}. Use 'mainnet' or 'testnet'."),
+        "signet" => (NetworkKind::Test, [84, 1, 0], "signet"),
+        other => anyhow::bail!("Unknown network: {other}. Use 'mainnet', 'testnet', or 'signet'."),
     };
 
     let mut entropy = [0u8; 32];
