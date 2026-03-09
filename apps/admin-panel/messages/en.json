@@ -239,7 +239,7 @@
     "placeholders": {
       "searchNavigation": "Search navigation...",
       "searchActions": "Search actions...",
-      "whatDoYouNeed": "Search anything or enter ID...",
+      "whatDoYouNeed": "Navigate or enter ID...",
       "searchPublicId": "Search by Public ID..."
     },
     "noResults": "No results found.",
