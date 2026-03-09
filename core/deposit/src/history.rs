@@ -14,6 +14,23 @@ pub enum DepositAccountHistoryEntry {
     Unknown(UnknownEntry),
     Ignored,
 }
+
+impl DepositAccountHistoryEntry {
+    pub(crate) fn activity_recorded_at(&self) -> Option<DateTime<Utc>> {
+        match self {
+            DepositAccountHistoryEntry::Deposit(entry) => Some(entry.recorded_at),
+            DepositAccountHistoryEntry::Withdrawal(entry) => Some(entry.recorded_at),
+            DepositAccountHistoryEntry::CancelledWithdrawal(entry) => Some(entry.recorded_at),
+            DepositAccountHistoryEntry::Disbursal(entry) => Some(entry.recorded_at),
+            DepositAccountHistoryEntry::Payment(entry) => Some(entry.recorded_at),
+            DepositAccountHistoryEntry::Unknown(entry) => Some(entry.recorded_at),
+            DepositAccountHistoryEntry::Freeze(_)
+            | DepositAccountHistoryEntry::Unfreeze(_)
+            | DepositAccountHistoryEntry::Ignored => None,
+        }
+    }
+}
+
 pub struct DepositEntry {
     pub tx_id: CalaTxId,
     pub entry_id: CalaEntryId,

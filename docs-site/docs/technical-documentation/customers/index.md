@@ -46,7 +46,7 @@ graph LR
 
 ## Deposit Account Activity
 
-Deposit account activity is managed automatically by a periodic background job. The system derives each deposit account's last activity date from the latest transaction recorded on the account, or falls back to the deposit account creation date when no transactions exist yet. It then applies configurable thresholds to determine whether that account should be considered active, inactive, or escheatable. By default, those thresholds are 365 days for `Inactive` and 3650 days for `Escheatable`, and operators can change them in the admin app through the exposed domain configs `deposit-activity-inactive-threshold-days` and `deposit-activity-escheatable-threshold-days`.
+Deposit account activity is managed automatically by a periodic background job. The system derives each deposit account's last activity date from the latest customer-driven transaction recorded on the account, or falls back to the deposit account creation date when no qualifying transactions exist yet. Internal freeze and unfreeze balance transfers are ignored, so status-management postings do not make a dormant account active again. It then applies configurable thresholds to determine whether that account should be considered active, inactive, or escheatable. By default, those thresholds are 365 days for `Inactive` and 3650 days for `Escheatable`, and operators can change them in the admin app through the exposed domain configs `deposit-activity-inactive-threshold-days` and `deposit-activity-escheatable-threshold-days`.
 
 | Status | Condition | Effect |
 |--------|-----------|--------|

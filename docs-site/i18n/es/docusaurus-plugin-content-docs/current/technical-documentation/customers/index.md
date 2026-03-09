@@ -38,15 +38,15 @@ graph LR
 
 ## Actividad de la cuenta de depósito
 
-La actividad de las cuentas de depósito se gestiona automáticamente mediante un proceso periódico en segundo plano. El sistema determina la última fecha de actividad de cada cuenta de depósito a partir de la transacción más reciente registrada o, si no existen transacciones, utiliza la fecha de creación de la cuenta. Después, aplica umbrales configurables para determinar si esa cuenta debe considerarse activa, inactiva o sujeta a abandono. Por defecto, esos umbrales son de 365 días para `Inactiva` y 3650 días para `Abandonada`, y los operadores pueden modificarlos en la aplicación de administración mediante las configuraciones de dominio `deposit-activity-inactive-threshold-days` y `deposit-activity-escheatable-threshold-days`.
+La actividad de las cuentas de depósito se gestiona automáticamente mediante un trabajo en segundo plano que se ejecuta periódicamente. El sistema determina la fecha de la última actividad de cada cuenta de depósito a partir de la transacción más reciente realizada por el cliente registrada en la cuenta, o, si no existen transacciones calificadas, utiliza la fecha de creación de la cuenta de depósito. Las transferencias internas de saldo de congelamiento y descongelamiento se ignoran, por lo que los movimientos de gestión de estado no reactivan una cuenta dormida. Luego, se aplican umbrales configurables para determinar si esa cuenta debe considerarse activa, inactiva o susceptible de ser escheada. Por defecto, esos umbrales son 365 días para `Inactiva` y 3650 días para `Susceptible de Escheat`, y los operadores pueden cambiarlos en la aplicación de administración a través de las configuraciones de dominio `deposit-activity-inactive-threshold-days` y `deposit-activity-escheatable-threshold-days`.
 
 | Estado | Condición | Efecto |
 |--------|-----------|--------|
 | **Activa** | Actividad dentro del umbral configurado para inactividad (por defecto: 365 días) | La cuenta se muestra como recientemente activa |
-| **Inactiva** | Sin actividad después del umbral de inactividad y antes del de abandono (por defecto: 365-3650 días) | La cuenta se muestra como inactiva para seguimiento del operador |
-| **Abandonada** | Sin actividad luego del umbral configurado para abandono (por defecto: 3650 días) | La cuenta se muestra como inactiva durante mucho tiempo y pasada el umbral de abandono |
+| **Inactiva** | Sin actividad más allá del umbral de inactividad y por debajo del umbral de escheat (por defecto: 365-3650 días) | La cuenta se muestra como inactiva para seguimiento por parte del operador |
+| **Susceptible de Escheat** | Sin actividad más allá del umbral configurado de escheat (por defecto: 3650 días) | La cuenta se muestra como largamente inactiva y ha superado el umbral de escheat |
 
-Este estado pertenece a la cuenta de depósito, no al cliente. La actividad es independiente del `status` operativo de la cuenta de depósito, por lo que un estado de actividad inactivo o abandonado no bloquea por sí solo los depósitos o retiros.
+Este estado pertenece a la cuenta de depósito, no al cliente. La actividad es independiente del `status` operativo de la cuenta de depósito, por lo que un estado de actividad inactiva o susceptible de escheat, por sí solo, no bloquea depósitos ni retiros.
 
 ## Estados del Cliente
 
