@@ -56,6 +56,7 @@ Events related to credit facility lifecycle and operations.
 | `DisbursalSettled` | A disbursal was settled | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
 | `DisbursalApprovalConcluded` | A disbursal approval process was concluded | `entity.amount`, `entity.credit_facility_id`, `entity.id`, `entity.settlement`, `entity.status` |
 | `AccrualPosted` | Interest accrual was posted | `entity.credit_facility_id`, `entity.due_at`, `entity.id`, `entity.period`, `entity.posting` |
+| `FacilityMatured` | No description available | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 | `PartialLiquidationInitiated` | A partial liquidation was initiated | `entity.activated_at`, `entity.activation_tx_id`, `entity.amount`, `entity.collateral_id`, `entity.collateralization`, `entity.completed_at`, `entity.customer_id`, `entity.id`, `entity.liquidation_trigger` |
 
 ---
@@ -105,16 +106,18 @@ Events related to customer lifecycle and KYC.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `CustomerCreated` | A new customer was created | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
-| `CustomerKycUpdated` | No description available | `entity.id`, `entity.kyc_verification`, `entity.party_id` |
+| `CustomerCreated` | A new customer was created | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerFrozen` | A customer account was frozen, blocking financial operations | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerUnfrozen` | A previously frozen customer account was unfrozen, restoring normal operations | `entity.id`, `entity.party_id`, `entity.status` |
+| `CustomerClosed` | Customer account was closed | `entity.id`, `entity.party_id`, `entity.status` |
 | `PartyCreated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
 | `PartyEmailUpdated` | No description available | `entity.customer_type`, `entity.email`, `entity.id` |
-| `ProspectCreated` | A new prospect was created for onboarding | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycStarted` | A prospect started KYC verification | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycPending` | A prospect's KYC verification is pending review | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectKycDeclined` | A prospect's KYC verification was declined | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectConverted` | A prospect was converted to a customer | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
-| `ProspectClosed` | A prospect was closed without converting | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage`, `entity.status` |
+| `ProspectCreated` | A new prospect was created for onboarding | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycStarted` | A prospect started KYC verification | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycPending` | A prospect's KYC verification is pending review | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectKycDeclined` | A prospect's KYC verification was declined | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectConverted` | A prospect was converted to a customer | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
+| `ProspectClosed` | A prospect was closed without converting | `entity.id`, `entity.kyc_status`, `entity.party_id`, `entity.stage` |
 
 ---
 
