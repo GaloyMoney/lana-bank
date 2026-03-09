@@ -47,8 +47,15 @@ pub struct DomainConfig {
 }
 
 impl DomainConfig {
-    /// Asserts that the entity's current encrypted value (if any) can be
-    /// decrypted with the given encryption key.
+    /// Asserts that the entity's current business value (if any) is readable
+    /// with the given encryption key.
+    ///
+    /// The check is tolerant of key rotations that haven't yet propagated to
+    /// this runtime instance: a `KeyRotated` event written with a *different*
+    /// key is fine as long as no *new* `Updated` event was written with that
+    /// key afterwards.  Once a real business update happens with a key we
+    /// cannot read, this instance's view of the value is stale and hydration
+    /// must fail.
     pub(crate) fn assert_decryptable(
         &self,
         key: &EncryptionKey,
@@ -57,22 +64,62 @@ impl DomainConfig {
             return Ok(());
         }
 
-        let Some(stored_value) = self.current_stored_value() else {
-            return Ok(());
-        };
+        // Walk the event stream backwards.  Track whether we encounter an
+        // `Updated` event encrypted with a key we *cannot* read before we
+        // find one we *can* read.
+        let mut saw_unreadable_update = false;
 
-        if !stored_value.is_encrypted() {
-            return Ok(());
+        for event in self.events.iter_all().rev() {
+            match event {
+                DomainConfigEvent::Updated { value } => {
+                    if !value.is_encrypted() || value.matches_key(key) {
+                        // Found a value we can read.  If no unreadable
+                        // `Updated` events came after it in the stream, we
+                        // are fine.
+                        return if saw_unreadable_update {
+                            Err(DomainConfigHydrateError::new(
+                                self.key.clone(),
+                                "current value was updated with a newer encryption key",
+                            ))
+                        } else {
+                            Ok(())
+                        };
+                    }
+                    // An `Updated` event we cannot read — a real business
+                    // value was written with a different key.
+                    saw_unreadable_update = true;
+                }
+                DomainConfigEvent::KeyRotated { value } => {
+                    if value.matches_key(key) {
+                        // A re-encryption we can read.  `KeyRotated` events
+                        // carry the same business value, so they don't
+                        // invalidate our view — only `Updated` events do.
+                        return if saw_unreadable_update {
+                            Err(DomainConfigHydrateError::new(
+                                self.key.clone(),
+                                "current value was updated with a newer encryption key",
+                            ))
+                        } else {
+                            Ok(())
+                        };
+                    }
+                    // KeyRotated with a different key — skip.
+                }
+                DomainConfigEvent::Initialized { .. } => {}
+            }
         }
 
-        if stored_value.matches_key(key) {
-            return Ok(());
+        // No readable event found.
+        if saw_unreadable_update {
+            Err(DomainConfigHydrateError::new(
+                self.key.clone(),
+                "encrypted value cannot be decrypted with the current runtime key",
+            ))
+        } else {
+            // No encrypted values stored at all (no Updated events, or only
+            // a plaintext default in Initialized).
+            Ok(())
         }
-
-        Err(DomainConfigHydrateError::new(
-            self.key.clone(),
-            "encrypted value cannot be decrypted with the current runtime key",
-        ))
     }
 
     pub(super) fn current_value_plain<C>(&self) -> Option<<C::Kind as ValueKind>::Value>
@@ -863,6 +910,107 @@ mod tests {
                 .unwrap(),
             value
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // assert_decryptable (post-hydrate hook validation)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn assert_decryptable_passes_for_non_encrypted_config() {
+        let config = seed_config::<SampleComplexConfig>(DomainConfigId::new());
+        assert!(!config.encrypted);
+        assert!(config.assert_decryptable(&EncryptionKey::default()).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_passes_when_no_value_stored() {
+        let config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        assert!(config.encrypted);
+        // No Updated events yet — only Initialized with no default.
+        assert!(config.assert_decryptable(&EncryptionKey::default()).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_passes_when_value_matches_key() {
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let key = EncryptionKey::default();
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+
+        assert!(config.assert_decryptable(&key).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_passes_after_key_rotation_with_old_key() {
+        // Updated(old) → KeyRotated(new)
+        // Old-key instance can still read from the Updated event.
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let old_key = EncryptionKey::default();
+        let new_key = EncryptionKey::new([1; 32]);
+
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &old_key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+        let _ = config.rotate_encryption_key(&new_key, &old_key).unwrap();
+
+        // Old key should still pass — no new business update after rotation.
+        assert!(config.assert_decryptable(&old_key).is_ok());
+        // New key should also pass.
+        assert!(config.assert_decryptable(&new_key).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_fails_after_update_with_new_key() {
+        // Updated(old) → KeyRotated(new) → Updated(new)
+        // Old-key instance cannot read the latest business value.
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let old_key = EncryptionKey::default();
+        let new_key = EncryptionKey::new([1; 32]);
+
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &old_key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+        let _ = config.rotate_encryption_key(&new_key, &old_key).unwrap();
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &new_key,
+                SampleEncryptedConfig {
+                    secret: "new-secret".into(),
+                },
+            )
+            .unwrap();
+
+        // Old key should fail — there's a newer Updated event it can't read.
+        assert!(config.assert_decryptable(&old_key).is_err());
+        // New key should pass.
+        assert!(config.assert_decryptable(&new_key).is_ok());
+    }
+
+    #[test]
+    fn assert_decryptable_fails_with_completely_unknown_key() {
+        let mut config = seed_config::<SampleEncryptedConfig>(DomainConfigId::new());
+        let key = EncryptionKey::default();
+        let unknown_key = EncryptionKey::new([99; 32]);
+
+        let _ = config
+            .update_value_encrypted::<SampleEncryptedConfig>(
+                &key,
+                SampleEncryptedConfig { secret: "s".into() },
+            )
+            .unwrap();
+
+        assert!(config.assert_decryptable(&unknown_key).is_err());
     }
 
     #[test]
