@@ -900,7 +900,7 @@
       },
       "eventHistory": {
         "title": "Eventos",
-        "description": "Cronología de cambios realizados en este cliente",
+        "description": "Cronología de los cambios realizados en esta propuesta",
         "emptyMessage": "No se registraron eventos",
         "columns": {
           "event": "Evento",
@@ -1269,6 +1269,18 @@
         "messages": {
           "success": "Garantía de línea de crédito pendiente actualizada exitosamente"
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta línea de crédito",
+        "emptyMessage": "No hay eventos registrados",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Entrada de auditoría",
+          "recordedAt": "Fecha de registro"
+        }
       }
     }
   },
@@ -1337,6 +1349,18 @@
         "messages": {
           "success": "Desembolso iniciado exitosamente",
           "unknownError": "Ocurrió un error desconocido"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en este desembolso",
+        "emptyMessage": "No hay eventos registrados",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Entrada de auditoría",
+          "recordedAt": "Fecha de registro"
         }
       }
     }
@@ -1429,6 +1453,18 @@
           "invalidAmount": "Por favor ingrese una cantidad válida mayor que 0"
         },
         "success": "Pago recibido registrado exitosamente"
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta liquidación",
+        "emptyMessage": "No hay eventos registrados",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Entrada de auditoría",
+          "recordedAt": "Fecha de registro"
+        }
       }
     }
   },
@@ -1542,6 +1578,18 @@
         "success": {
           "created": "Plantilla de Términos creada exitosamente"
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta plantilla de términos",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Registro de auditoría",
+          "recordedAt": "Fecha de registro"
+        }
       }
     }
   },
@@ -1593,6 +1641,18 @@
         },
         "buttons": {
           "assign": "Asignar Comité"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta política",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Registro de auditoría",
+          "recordedAt": "Fecha de registro"
         }
       }
     }
@@ -1694,6 +1754,18 @@
           "selectUser": "Por favor seleccione un usuario",
           "failed": "Error al añadir usuario al comité. Por favor intente de nuevo.",
           "general": "Ocurrió un error inesperado. Por favor intente de nuevo."
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en este comité",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Registro de auditoría",
+          "recordedAt": "Fecha de registro"
         }
       }
     }
@@ -2974,6 +3046,27 @@
       "confirmed": "Retiro confirmado",
       "cancelled": "Retiro cancelado",
       "reverted": "Retiro revertido"
+    },
+    "creditFacility": {
+      "initialized": "Línea de crédito creada"
+    },
+    "disbursal": {
+      "initialized": "Desembolso creado"
+    },
+    "creditFacilityProposal": {
+      "initialized": "Propuesta creada"
+    },
+    "committee": {
+      "initialized": "Comité creado"
+    },
+    "policy": {
+      "initialized": "Póliza creada"
+    },
+    "termsTemplate": {
+      "initialized": "Plantilla de condiciones creada"
+    },
+    "liquidation": {
+      "initialized": "Liquidación creada"
     }
   }
 }
