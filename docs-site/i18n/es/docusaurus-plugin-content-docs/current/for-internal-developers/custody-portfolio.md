@@ -79,7 +79,9 @@ graph TD
     ADAPTER --> SELF["Autocustodia<br/>(xpub + esplora)"]
 ```
 
-La autocustodia se diferencia de los custodios alojados en un aspecto clave: el backend almacena únicamente una `xpub` de cuenta. Los operadores generan la `xpriv` correspondiente localmente con `lana-cli genxpriv` y la mantienen fuera del backend. El endpoint de esplora se carga al inicio desde `app.custody.custody_providers.self_custody_directory` en `lana.yml`, con una URL distinta para cada red soportada. Este flujo es compatible con claves de cuenta para mainnet, testnet3, testnet4 y signet. Para cada nuevo préstamo, Lana deriva una nueva dirección de recepción a partir de la `xpub` almacenada y consulta esplora para detectar cambios confirmados de saldo, en lugar de depender de webhooks.
+La autocustodia se diferencia de los custodios alojados en un aspecto clave: el backend solo almacena una cuenta `xpub`. Los operadores generan localmente la `xpriv` correspondiente con `lana-cli genxpriv` y la mantienen fuera del backend. El endpoint de esplora se carga al inicio desde `app.custody.custody_providers.self_custody_directory` en `lana.yml`, con una URL separada para cada red compatible. Este flujo soporta claves de cuenta para mainnet, testnet3, testnet4 y signet. Para cada nuevo préstamo, Lana deriva una dirección de recepción nueva a partir del `xpub` almacenado y luego consulta esplora para detectar cambios confirmados en el saldo, en lugar de depender de webhooks.
+
+Para una guía práctica local sobre Signet, incluyendo la configuración de la cartera, la inspección de descriptores y la financiación de una facilidad pendiente desde `bitcoin-cli`, consulta [Pruebas de Autocustodia en Signet](self-custody-signet).
 
 ## Tipos de Datos Principales
 
