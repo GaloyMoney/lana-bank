@@ -31,7 +31,9 @@ import {
   useCustodianCreateMutation,
   type KomainuConfig,
   type BitgoConfig,
+  type SelfCustodyConfig,
   type CustodianCreateInput,
+  SelfCustodyNetwork,
   CustodiansDocument,
 } from "@/lib/graphql/generated"
 
@@ -48,7 +50,7 @@ gql`
   }
 `
 
-type CustodianType = "komainu" | "bitgo"
+type CustodianType = "komainu" | "bitgo" | "selfCustody"
 
 interface CreateCustodianDialogProps {
   openCreateCustodianDialog: boolean
@@ -80,6 +82,12 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     webhookSecret: "",
     webhookUrl: "",
   })
+  const [selfCustodyConfig, setSelfCustodyConfig] = useState<SelfCustodyConfig>({
+    name: "",
+    accountXpub: "",
+    network: SelfCustodyNetwork.Mainnet,
+    esploraUrl: "",
+  })
   const [error, setError] = useState<string | null>(null)
 
   const resetForm = () => {
@@ -100,6 +108,12 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
       enterpriseId: "",
       webhookSecret: "",
       webhookUrl: "",
+    })
+    setSelfCustodyConfig({
+      name: "",
+      accountXpub: "",
+      network: SelfCustodyNetwork.Mainnet,
+      esploraUrl: "",
     })
     setError(null)
   }
@@ -123,6 +137,11 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     setBitgoConfig((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleSelfCustodyInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setSelfCustodyConfig((prev) => ({ ...prev, [name]: value }))
+  }
+
   const handleKomainuCheckboxChange = (checked: boolean) => {
     setKomainuConfig((prev) => ({ ...prev, testingInstance: checked }))
   }
@@ -137,6 +156,8 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
         return { komainu: komainuConfig }
       case "bitgo":
         return { bitgo: bitgoConfig }
+      case "selfCustody":
+        return { selfCustody: selfCustodyConfig }
       default:
         throw new Error(`Unsupported custodian type: ${selectedType}`)
     }
@@ -197,6 +218,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
               <SelectContent>
                 <SelectItem value="komainu">Komainu</SelectItem>
                 <SelectItem value="bitgo">BitGo</SelectItem>
+                <SelectItem value="selfCustody">{t("fields.selfCustodyLabel")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -399,6 +421,78 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   data-testid="custodian-testing-instance-checkbox"
                 />
                 <Label htmlFor="testingInstance">{t("fields.testingInstance")}</Label>
+              </div>
+            </>
+          )}
+
+          {selectedType === "selfCustody" && (
+            <>
+              <div>
+                <Label htmlFor="name" required>
+                  {t("fields.name")}
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={selfCustodyConfig.name}
+                  onChange={handleSelfCustodyInputChange}
+                  placeholder={t("placeholders.name")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-name-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="accountXpub" required>
+                  {t("fields.accountXpub")}
+                </Label>
+                <Input
+                  id="accountXpub"
+                  name="accountXpub"
+                  type="password"
+                  value={selfCustodyConfig.accountXpub}
+                  onChange={handleSelfCustodyInputChange}
+                  placeholder={t("placeholders.accountXpub")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-account-xpub-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="esploraUrl" required>
+                  {t("fields.esploraUrl")}
+                </Label>
+                <Input
+                  id="esploraUrl"
+                  name="esploraUrl"
+                  type="url"
+                  value={selfCustodyConfig.esploraUrl}
+                  onChange={handleSelfCustodyInputChange}
+                  placeholder={t("placeholders.esploraUrl")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-esplora-url-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="network">{t("fields.network")}</Label>
+                <Select
+                  value={selfCustodyConfig.network}
+                  onValueChange={(value: SelfCustodyNetwork) =>
+                    setSelfCustodyConfig((prev) => ({ ...prev, network: value }))
+                  }
+                  disabled={loading}
+                >
+                  <SelectTrigger data-testid="custodian-network-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={SelfCustodyNetwork.Mainnet}>Mainnet</SelectItem>
+                    <SelectItem value={SelfCustodyNetwork.Testnet3}>Testnet3</SelectItem>
+                    <SelectItem value={SelfCustodyNetwork.Testnet4}>Testnet4</SelectItem>
+                    <SelectItem value={SelfCustodyNetwork.Signet}>Signet</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </>
           )}
