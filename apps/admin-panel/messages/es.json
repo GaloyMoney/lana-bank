@@ -23,6 +23,8 @@
     "submit": "Enviar",
     "set": "Establecer",
     "copiedToClipboard": "Copiado al portapapeles",
+    "showIds": "Mostrar IDs",
+    "hideIds": "Ocultar IDs",
     "copyId": "Copiar ID",
     "formatRule": {
       "noRulesDefined": "No hay reglas definidas",
@@ -869,6 +871,16 @@
         },
         "errors": {
           "unknown": "Ocurrió un error al procesar la aprobación del cliente"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este cliente",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "recordedAt": "Registrado el"
         }
       }
     }
@@ -2130,6 +2142,16 @@
       "noRolesAssigned": "Sin roles asignados",
       "updateRole": "Actualizar rol"
     },
+    "eventHistory": {
+      "title": "Eventos",
+      "description": "Cronología de cambios realizados en este usuario",
+      "emptyMessage": "No se registraron eventos",
+      "columns": {
+        "event": "Evento",
+        "details": "Detalles",
+        "recordedAt": "Registrado el"
+      }
+    },
     "updateRole": {
       "title": "Actualizar rol",
       "description": "Actualiza el rol asignado a este usuario.",
@@ -2811,6 +2833,16 @@
       "createdAt": "Fecha de registro",
       "permissionSets": "Permisos",
       "editRole": "Editar rol"
+    },
+    "eventHistory": {
+      "title": "Eventos",
+      "description": "Cronología de cambios realizados en este rol",
+      "emptyMessage": "No se registraron eventos",
+      "columns": {
+        "event": "Evento",
+        "details": "Detalles",
+        "recordedAt": "Registrado el"
+      }
     }
   },
   "Auth": {
@@ -2821,6 +2853,23 @@
         "logout": "Cerrar sesión",
         "staySignedIn": "Mantener sesión iniciada"
       }
+    }
+  },
+  "EntityEvents": {
+    "user": {
+      "initialized": "Usuario creado",
+      "role_updated": "Rol cambiado"
+    },
+    "customer": {
+      "initialized": "Cliente creado",
+      "frozen": "Cliente congelado",
+      "unfrozen": "Cliente descongelado",
+      "closed": "Cliente cerrado"
+    },
+    "role": {
+      "initialized": "Rol creado",
+      "permission_set_added": "Conjunto de permisos agregado",
+      "permission_set_removed": "Conjunto de permisos eliminado"
     }
   }
 }

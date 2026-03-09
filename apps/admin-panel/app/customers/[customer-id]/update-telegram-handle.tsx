@@ -17,7 +17,10 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { useCustomerTelegramHandleUpdateMutation } from "@/lib/graphql/generated"
+import {
+  useCustomerTelegramHandleUpdateMutation,
+  CustomerEventHistoryDocument,
+} from "@/lib/graphql/generated"
 
 gql`
   mutation CustomerTelegramHandleUpdate($input: CustomerTelegramHandleUpdateInput!) {
@@ -44,7 +47,9 @@ export const UpdateTelegramHandleDialog: React.FC<UpdateTelegramHandleDialogProp
   const t = useTranslations("Customers.CustomerDetails.updateTelegram")
 
   const [updateTelegramHandle, { loading, error: mutationError, reset }] =
-    useCustomerTelegramHandleUpdateMutation()
+    useCustomerTelegramHandleUpdateMutation({
+      refetchQueries: [CustomerEventHistoryDocument],
+    })
   const [newTelegramHandle, setNewTelegramHandle] = useState<string>("")
   const [validationError, setValidationError] = useState<string | null>(null)
 

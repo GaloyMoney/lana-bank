@@ -17,7 +17,10 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { useCustomerEmailUpdateMutation } from "@/lib/graphql/generated"
+import {
+  useCustomerEmailUpdateMutation,
+  CustomerEventHistoryDocument,
+} from "@/lib/graphql/generated"
 
 gql`
   mutation CustomerEmailUpdate($input: CustomerEmailUpdateInput!) {
@@ -44,7 +47,9 @@ export const UpdateEmailDialog: React.FC<UpdateEmailDialogProps> = ({
   const t = useTranslations("Customers.CustomerDetails.updateEmail")
 
   const [updateEmail, { loading, error: mutationError, reset }] =
-    useCustomerEmailUpdateMutation()
+    useCustomerEmailUpdateMutation({
+      refetchQueries: [CustomerEventHistoryDocument],
+    })
   const [newEmail, setNewEmail] = useState<string>("")
   const [validationError, setValidationError] = useState<string | null>(null)
 

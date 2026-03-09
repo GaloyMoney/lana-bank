@@ -23,6 +23,8 @@
     "submit": "Submit",
     "set": "Set",
     "copiedToClipboard": "Copied to clipboard",
+    "showIds": "Show IDs",
+    "hideIds": "Hide IDs",
     "copyId": "Copy ID",
     "formatRule": {
       "noRulesDefined": "No rules defined",
@@ -869,6 +871,16 @@
         },
         "errors": {
           "unknown": "An error occurred while processing the customer approval"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this customer",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "recordedAt": "Recorded At"
         }
       }
     }
@@ -2130,6 +2142,16 @@
       "noRolesAssigned": "No roles assigned",
       "updateRole": "Update Role"
     },
+    "eventHistory": {
+      "title": "Events",
+      "description": "Timeline of changes made to this user",
+      "emptyMessage": "No events recorded",
+      "columns": {
+        "event": "Event",
+        "details": "Details",
+        "recordedAt": "Recorded At"
+      }
+    },
     "updateRole": {
       "title": "Update Role",
       "description": "Update the role assigned to this user.",
@@ -2811,6 +2833,16 @@
       "createdAt": "Created At",
       "permissionSets": "Permissions",
       "editRole": "Edit Role"
+    },
+    "eventHistory": {
+      "title": "Events",
+      "description": "Timeline of changes made to this role",
+      "emptyMessage": "No events recorded",
+      "columns": {
+        "event": "Event",
+        "details": "Details",
+        "recordedAt": "Recorded At"
+      }
     }
   },
   "Auth": {

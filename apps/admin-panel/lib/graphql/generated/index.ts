@@ -4363,6 +4363,15 @@ export type GetCustomerDocumentsQueryVariables = Exact<{
 
 export type GetCustomerDocumentsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'CustomerDocument', id: string, filename: string, customerDocumentId: string }> } | null };
 
+export type CustomerEventHistoryQueryVariables = Exact<{
+  id: Scalars['PublicId']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CustomerEventHistoryQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+
 export type CustomerFreezeMutationVariables = Exact<{
   input: CustomerFreezeInput;
 }>;
@@ -5110,6 +5119,15 @@ export type RoleQueryVariables = Exact<{
 
 export type RoleQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } | null };
 
+export type RoleEventHistoryQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type RoleEventHistoryQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+
 export type RoleCreateMutationVariables = Exact<{
   input: RoleCreateInput;
 }>;
@@ -5243,6 +5261,15 @@ export type TrialBalanceAccountBaseFragment = { __typename?: 'LedgerAccount', id
     | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
    };
+
+export type UserEventHistoryQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UserEventHistoryQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type GetUserDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -8588,6 +8615,76 @@ export type GetCustomerDocumentsQueryHookResult = ReturnType<typeof useGetCustom
 export type GetCustomerDocumentsLazyQueryHookResult = ReturnType<typeof useGetCustomerDocumentsLazyQuery>;
 export type GetCustomerDocumentsSuspenseQueryHookResult = ReturnType<typeof useGetCustomerDocumentsSuspenseQuery>;
 export type GetCustomerDocumentsQueryResult = Apollo.QueryResult<GetCustomerDocumentsQuery, GetCustomerDocumentsQueryVariables>;
+export const CustomerEventHistoryDocument = gql`
+    query CustomerEventHistory($id: PublicId!, $first: Int!, $after: String) {
+  customerByPublicId(id: $id) {
+    id
+    eventHistory(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          eventType
+          recordedAt
+          sequence
+          auditEntryId
+          userId
+          payload
+        }
+      }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        userId
+        payload
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useCustomerEventHistoryQuery__
+ *
+ * To run a query within a React component, call `useCustomerEventHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCustomerEventHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCustomerEventHistoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useCustomerEventHistoryQuery(baseOptions: Apollo.QueryHookOptions<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables> & ({ variables: CustomerEventHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables>(CustomerEventHistoryDocument, options);
+      }
+export function useCustomerEventHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables>(CustomerEventHistoryDocument, options);
+        }
+// @ts-ignore
+export function useCustomerEventHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables>;
+export function useCustomerEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<CustomerEventHistoryQuery | undefined, CustomerEventHistoryQueryVariables>;
+export function useCustomerEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables>(CustomerEventHistoryDocument, options);
+        }
+export type CustomerEventHistoryQueryHookResult = ReturnType<typeof useCustomerEventHistoryQuery>;
+export type CustomerEventHistoryLazyQueryHookResult = ReturnType<typeof useCustomerEventHistoryLazyQuery>;
+export type CustomerEventHistorySuspenseQueryHookResult = ReturnType<typeof useCustomerEventHistorySuspenseQuery>;
+export type CustomerEventHistoryQueryResult = Apollo.QueryResult<CustomerEventHistoryQuery, CustomerEventHistoryQueryVariables>;
 export const CustomerFreezeDocument = gql`
     mutation CustomerFreeze($input: CustomerFreezeInput!) {
   customerFreeze(input: $input) {
@@ -12249,6 +12346,76 @@ export type RoleQueryHookResult = ReturnType<typeof useRoleQuery>;
 export type RoleLazyQueryHookResult = ReturnType<typeof useRoleLazyQuery>;
 export type RoleSuspenseQueryHookResult = ReturnType<typeof useRoleSuspenseQuery>;
 export type RoleQueryResult = Apollo.QueryResult<RoleQuery, RoleQueryVariables>;
+export const RoleEventHistoryDocument = gql`
+    query RoleEventHistory($id: UUID!, $first: Int!, $after: String) {
+  role(id: $id) {
+    id
+    eventHistory(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          eventType
+          recordedAt
+          sequence
+          auditEntryId
+          userId
+          payload
+        }
+      }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        userId
+        payload
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useRoleEventHistoryQuery__
+ *
+ * To run a query within a React component, call `useRoleEventHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRoleEventHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRoleEventHistoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useRoleEventHistoryQuery(baseOptions: Apollo.QueryHookOptions<RoleEventHistoryQuery, RoleEventHistoryQueryVariables> & ({ variables: RoleEventHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RoleEventHistoryQuery, RoleEventHistoryQueryVariables>(RoleEventHistoryDocument, options);
+      }
+export function useRoleEventHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RoleEventHistoryQuery, RoleEventHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RoleEventHistoryQuery, RoleEventHistoryQueryVariables>(RoleEventHistoryDocument, options);
+        }
+// @ts-ignore
+export function useRoleEventHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<RoleEventHistoryQuery, RoleEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<RoleEventHistoryQuery, RoleEventHistoryQueryVariables>;
+export function useRoleEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RoleEventHistoryQuery, RoleEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<RoleEventHistoryQuery | undefined, RoleEventHistoryQueryVariables>;
+export function useRoleEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RoleEventHistoryQuery, RoleEventHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RoleEventHistoryQuery, RoleEventHistoryQueryVariables>(RoleEventHistoryDocument, options);
+        }
+export type RoleEventHistoryQueryHookResult = ReturnType<typeof useRoleEventHistoryQuery>;
+export type RoleEventHistoryLazyQueryHookResult = ReturnType<typeof useRoleEventHistoryLazyQuery>;
+export type RoleEventHistorySuspenseQueryHookResult = ReturnType<typeof useRoleEventHistorySuspenseQuery>;
+export type RoleEventHistoryQueryResult = Apollo.QueryResult<RoleEventHistoryQuery, RoleEventHistoryQueryVariables>;
 export const RoleCreateDocument = gql`
     mutation RoleCreate($input: RoleCreateInput!) {
   roleCreate(input: $input) {
@@ -12710,6 +12877,76 @@ export type GetTrialBalanceQueryHookResult = ReturnType<typeof useGetTrialBalanc
 export type GetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetTrialBalanceLazyQuery>;
 export type GetTrialBalanceSuspenseQueryHookResult = ReturnType<typeof useGetTrialBalanceSuspenseQuery>;
 export type GetTrialBalanceQueryResult = Apollo.QueryResult<GetTrialBalanceQuery, GetTrialBalanceQueryVariables>;
+export const UserEventHistoryDocument = gql`
+    query UserEventHistory($id: UUID!, $first: Int!, $after: String) {
+  user(id: $id) {
+    id
+    eventHistory(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          eventType
+          recordedAt
+          sequence
+          auditEntryId
+          userId
+          payload
+        }
+      }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        userId
+        payload
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useUserEventHistoryQuery__
+ *
+ * To run a query within a React component, call `useUserEventHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserEventHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserEventHistoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useUserEventHistoryQuery(baseOptions: Apollo.QueryHookOptions<UserEventHistoryQuery, UserEventHistoryQueryVariables> & ({ variables: UserEventHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UserEventHistoryQuery, UserEventHistoryQueryVariables>(UserEventHistoryDocument, options);
+      }
+export function useUserEventHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserEventHistoryQuery, UserEventHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UserEventHistoryQuery, UserEventHistoryQueryVariables>(UserEventHistoryDocument, options);
+        }
+// @ts-ignore
+export function useUserEventHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<UserEventHistoryQuery, UserEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<UserEventHistoryQuery, UserEventHistoryQueryVariables>;
+export function useUserEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserEventHistoryQuery, UserEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<UserEventHistoryQuery | undefined, UserEventHistoryQueryVariables>;
+export function useUserEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UserEventHistoryQuery, UserEventHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UserEventHistoryQuery, UserEventHistoryQueryVariables>(UserEventHistoryDocument, options);
+        }
+export type UserEventHistoryQueryHookResult = ReturnType<typeof useUserEventHistoryQuery>;
+export type UserEventHistoryLazyQueryHookResult = ReturnType<typeof useUserEventHistoryLazyQuery>;
+export type UserEventHistorySuspenseQueryHookResult = ReturnType<typeof useUserEventHistorySuspenseQuery>;
+export type UserEventHistoryQueryResult = Apollo.QueryResult<UserEventHistoryQuery, UserEventHistoryQueryVariables>;
 export const GetUserDetailsDocument = gql`
     query GetUserDetails($id: UUID!) {
   user(id: $id) {
