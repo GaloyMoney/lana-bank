@@ -12,26 +12,7 @@ gql`
     liquidation(id: $liquidationId) {
       id
       eventHistory(first: $first, after: $after) {
-        edges {
-          cursor
-          node {
-            eventType
-            recordedAt
-            sequence
-            auditEntryId
-            subject {
-              ... on User { userId, email }
-              ... on System { actor }
-            }
-            payload
-          }
-        }
-        pageInfo {
-          hasNextPage
-          hasPreviousPage
-          startCursor
-          endCursor
-        }
+        ...EventHistoryConnectionFields
       }
     }
   }

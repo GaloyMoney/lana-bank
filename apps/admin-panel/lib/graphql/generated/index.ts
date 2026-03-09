@@ -1715,6 +1715,7 @@ export type FiscalYear = {
   chartId: Scalars['UUID']['output'];
   closedAsOf?: Maybe<Scalars['Date']['output']>;
   createdAt: Scalars['Timestamp']['output'];
+  eventHistory: EventTimelineEntryConnection;
   fiscalYearId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   isLastMonthOfYearClosed: Scalars['Boolean']['output'];
@@ -1724,6 +1725,12 @@ export type FiscalYear = {
   openedAsOf: Scalars['Date']['output'];
   reference: Scalars['String']['output'];
   year: Scalars['String']['output'];
+};
+
+
+export type FiscalYearEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type FiscalYearCloseInput = {
@@ -2552,12 +2559,19 @@ export type PendingCreditFacility = {
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
   customer: Customer;
+  eventHistory: EventTimelineEntryConnection;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   pendingCreditFacilityId: Scalars['UUID']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: PendingCreditFacilityStatus;
   wallet?: Maybe<Wallet>;
+};
+
+
+export type PendingCreditFacilityEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type PendingCreditFacilityCollateralizationPayload = {
@@ -4784,6 +4798,18 @@ export type DisbursalsQueryVariables = Exact<{
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, creditFacilityDisbursalId: string, publicId: any, amount: UsdCents, createdAt: string, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', customer: { __typename?: 'Customer', email: string } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type FiscalYearEventHistoryQueryVariables = Exact<{
+  year: Scalars['String']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type FiscalYearEventHistoryQuery = { __typename?: 'Query', fiscalYearByYear?: { __typename?: 'FiscalYear', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+            | { __typename?: 'System', actor: string }
+            | { __typename?: 'User', userId: string, email: string }
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
+
 export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: string, createdAt: string, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, year: string, nextMonthToClose?: string | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: string, closedAt: string }> };
 
 export type GetFiscalYearDetailsQueryVariables = Exact<{
@@ -5061,6 +5087,18 @@ export type CreditAccountSetOptionsQueryVariables = Exact<{ [key: string]: never
 
 
 export type CreditAccountSetOptionsQuery = { __typename?: 'Query', offBalanceSheet: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, asset: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, liability: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, equity: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, revenue: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, costOfRevenue: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }>, expenses: Array<{ __typename?: 'AccountInfo', accountSetId: string, code: string, name: string }> };
+
+export type PendingCreditFacilityEventHistoryQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PendingCreditFacilityEventHistoryQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+            | { __typename?: 'System', actor: string }
+            | { __typename?: 'User', userId: string, email: string }
+           | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } } | null };
 
 export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, creditFacilityId: string, collateralId: string, approvalProcessId: string, createdAt: string, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCvlPct', value: any }
@@ -5636,6 +5674,11 @@ export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Me', user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string } } } };
+
+export type EventHistoryConnectionFieldsFragment = { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+        | { __typename?: 'System', actor: string }
+        | { __typename?: 'User', userId: string, email: string }
+       | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -6817,6 +6860,35 @@ export const WithdrawalFieldsFragmentDoc = gql`
   }
 }
     `;
+export const EventHistoryConnectionFieldsFragmentDoc = gql`
+    fragment EventHistoryConnectionFields on EventTimelineEntryConnection {
+  edges {
+    cursor
+    node {
+      eventType
+      recordedAt
+      sequence
+      auditEntryId
+      subject {
+        ... on User {
+          userId
+          email
+        }
+        ... on System {
+          actor
+        }
+      }
+      payload
+    }
+  }
+  pageInfo {
+    hasNextPage
+    hasPreviousPage
+    startCursor
+    endCursor
+  }
+}
+    `;
 export const ApprovalProcessApproveDocument = gql`
     mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
   approvalProcessApprove(input: $input) {
@@ -7402,35 +7474,11 @@ export const CommitteeEventHistoryDocument = gql`
   committee(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useCommitteeEventHistoryQuery__
@@ -7822,35 +7870,11 @@ export const CreditFacilityEventHistoryDocument = gql`
   creditFacilityByPublicId(id: $publicId) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useCreditFacilityEventHistoryQuery__
@@ -8444,35 +8468,11 @@ export const CreditFacilityProposalEventHistoryDocument = gql`
   creditFacilityProposal(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useCreditFacilityProposalEventHistoryQuery__
@@ -9089,35 +9089,11 @@ export const CustomerEventHistoryDocument = gql`
   customerByPublicId(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useCustomerEventHistoryQuery__
@@ -9616,35 +9592,11 @@ export const DepositAccountEventHistoryDocument = gql`
   depositAccountByPublicId(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useDepositAccountEventHistoryQuery__
@@ -9987,35 +9939,11 @@ export const DepositEventHistoryDocument = gql`
   depositByPublicId(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useDepositEventHistoryQuery__
@@ -10248,35 +10176,11 @@ export const DisbursalEventHistoryDocument = gql`
   disbursalByPublicId(id: $publicId) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useDisbursalEventHistoryQuery__
@@ -10508,6 +10412,54 @@ export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
 export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
 export type DisbursalsSuspenseQueryHookResult = ReturnType<typeof useDisbursalsSuspenseQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
+export const FiscalYearEventHistoryDocument = gql`
+    query FiscalYearEventHistory($year: String!, $first: Int!, $after: String) {
+  fiscalYearByYear(year: $year) {
+    id
+    eventHistory(first: $first, after: $after) {
+      ...EventHistoryConnectionFields
+    }
+  }
+}
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
+
+/**
+ * __useFiscalYearEventHistoryQuery__
+ *
+ * To run a query within a React component, call `useFiscalYearEventHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFiscalYearEventHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFiscalYearEventHistoryQuery({
+ *   variables: {
+ *      year: // value for 'year'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useFiscalYearEventHistoryQuery(baseOptions: Apollo.QueryHookOptions<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables> & ({ variables: FiscalYearEventHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables>(FiscalYearEventHistoryDocument, options);
+      }
+export function useFiscalYearEventHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables>(FiscalYearEventHistoryDocument, options);
+        }
+// @ts-ignore
+export function useFiscalYearEventHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables>;
+export function useFiscalYearEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<FiscalYearEventHistoryQuery | undefined, FiscalYearEventHistoryQueryVariables>;
+export function useFiscalYearEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables>(FiscalYearEventHistoryDocument, options);
+        }
+export type FiscalYearEventHistoryQueryHookResult = ReturnType<typeof useFiscalYearEventHistoryQuery>;
+export type FiscalYearEventHistoryLazyQueryHookResult = ReturnType<typeof useFiscalYearEventHistoryLazyQuery>;
+export type FiscalYearEventHistorySuspenseQueryHookResult = ReturnType<typeof useFiscalYearEventHistorySuspenseQuery>;
+export type FiscalYearEventHistoryQueryResult = Apollo.QueryResult<FiscalYearEventHistoryQuery, FiscalYearEventHistoryQueryVariables>;
 export const GetFiscalYearDetailsDocument = gql`
     query GetFiscalYearDetails($year: String!) {
   fiscalYearByYear(year: $year) {
@@ -11337,35 +11289,11 @@ export const LiquidationEventHistoryDocument = gql`
   liquidation(id: $liquidationId) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useLiquidationEventHistoryQuery__
@@ -11982,6 +11910,54 @@ export type CreditAccountSetOptionsQueryHookResult = ReturnType<typeof useCredit
 export type CreditAccountSetOptionsLazyQueryHookResult = ReturnType<typeof useCreditAccountSetOptionsLazyQuery>;
 export type CreditAccountSetOptionsSuspenseQueryHookResult = ReturnType<typeof useCreditAccountSetOptionsSuspenseQuery>;
 export type CreditAccountSetOptionsQueryResult = Apollo.QueryResult<CreditAccountSetOptionsQuery, CreditAccountSetOptionsQueryVariables>;
+export const PendingCreditFacilityEventHistoryDocument = gql`
+    query PendingCreditFacilityEventHistory($id: UUID!, $first: Int!, $after: String) {
+  pendingCreditFacility(id: $id) {
+    id
+    eventHistory(first: $first, after: $after) {
+      ...EventHistoryConnectionFields
+    }
+  }
+}
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
+
+/**
+ * __usePendingCreditFacilityEventHistoryQuery__
+ *
+ * To run a query within a React component, call `usePendingCreditFacilityEventHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePendingCreditFacilityEventHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePendingCreditFacilityEventHistoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function usePendingCreditFacilityEventHistoryQuery(baseOptions: Apollo.QueryHookOptions<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables> & ({ variables: PendingCreditFacilityEventHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>(PendingCreditFacilityEventHistoryDocument, options);
+      }
+export function usePendingCreditFacilityEventHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>(PendingCreditFacilityEventHistoryDocument, options);
+        }
+// @ts-ignore
+export function usePendingCreditFacilityEventHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>;
+export function usePendingCreditFacilityEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<PendingCreditFacilityEventHistoryQuery | undefined, PendingCreditFacilityEventHistoryQueryVariables>;
+export function usePendingCreditFacilityEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>(PendingCreditFacilityEventHistoryDocument, options);
+        }
+export type PendingCreditFacilityEventHistoryQueryHookResult = ReturnType<typeof usePendingCreditFacilityEventHistoryQuery>;
+export type PendingCreditFacilityEventHistoryLazyQueryHookResult = ReturnType<typeof usePendingCreditFacilityEventHistoryLazyQuery>;
+export type PendingCreditFacilityEventHistorySuspenseQueryHookResult = ReturnType<typeof usePendingCreditFacilityEventHistorySuspenseQuery>;
+export type PendingCreditFacilityEventHistoryQueryResult = Apollo.QueryResult<PendingCreditFacilityEventHistoryQuery, PendingCreditFacilityEventHistoryQueryVariables>;
 export const GetPendingCreditFacilityLayoutDetailsDocument = gql`
     query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: UUID!) {
   pendingCreditFacility(id: $pendingCreditFacilityId) {
@@ -12299,35 +12275,11 @@ export const PolicyEventHistoryDocument = gql`
   policy(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __usePolicyEventHistoryQuery__
@@ -12643,35 +12595,11 @@ export const ProspectEventHistoryDocument = gql`
   prospectByPublicId(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useProspectEventHistoryQuery__
@@ -13254,35 +13182,11 @@ export const RoleEventHistoryDocument = gql`
   role(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useRoleEventHistoryQuery__
@@ -13465,35 +13369,11 @@ export const TermsTemplateEventHistoryDocument = gql`
   termsTemplate(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useTermsTemplateEventHistoryQuery__
@@ -13859,35 +13739,11 @@ export const UserEventHistoryDocument = gql`
   user(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useUserEventHistoryQuery__
@@ -14170,35 +14026,11 @@ export const WithdrawalEventHistoryDocument = gql`
   withdrawalByPublicId(id: $id) {
     id
     eventHistory(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          eventType
-          recordedAt
-          sequence
-          auditEntryId
-          subject {
-            ... on User {
-              userId
-              email
-            }
-            ... on System {
-              actor
-            }
-          }
-          payload
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
+      ...EventHistoryConnectionFields
     }
   }
 }
-    `;
+    ${EventHistoryConnectionFieldsFragmentDoc}`;
 
 /**
  * __useWithdrawalEventHistoryQuery__
