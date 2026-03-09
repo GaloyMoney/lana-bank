@@ -65,7 +65,7 @@ export const PendingCreditFacilityTermsCard: React.FC<
       label: t("details.structuringFeeRate"),
       value: `${pendingCreditFacility.creditFacilityTerms.oneTimeFeeRate}%`,
     },
-    { label: t("details.effectiveRate"), value: `${effectiveRate.toFixed(2)}%` },
+    { label: t("details.effectiveRate"), value: effectiveRate !== null ? `${effectiveRate.toFixed(2)}%` : "N/A" },
     {
       label: t("details.disbursalPolicy"),
       value: disbursalPolicyLabel,

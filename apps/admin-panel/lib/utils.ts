@@ -122,9 +122,19 @@ export const calculateEffectiveRate = ({
   oneTimeFeeRate: number
   durationUnits: number
   durationPeriod: Period
-}): number => {
-  const annualFactor =
-    durationPeriod === Period.Months ? 12 / durationUnits : 365 / durationUnits
+}): number | null => {
+  if (durationUnits <= 0) return null
+  let annualFactor: number
+  switch (durationPeriod) {
+    case Period.Months:
+      annualFactor = 12 / durationUnits
+      break
+    case Period.Days:
+      annualFactor = 365 / durationUnits
+      break
+    default:
+      return null
+  }
   return annualRate + oneTimeFeeRate * annualFactor
 }
 
