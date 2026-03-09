@@ -6,8 +6,22 @@ on:
 name: Nix flake check
 
 jobs:
-  nix-flake-check:
-    name: Nix flake check
+  fast-checks:
+    name: Nix fast checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: cachix/cachix-action@v15
+        with:
+          name: galoymoney
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+
+      - run: nix build .#checks.x86_64-linux.fast --no-link
+
+  rust-checks:
+    name: Nix Rust checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +39,5 @@ jobs:
         with:
           name: galoymoney
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          skipPush: true
 
-      - run: nix flake check
-        shell: bash
+      - run: nix build .#checks.x86_64-linux.rust --no-link
