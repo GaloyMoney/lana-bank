@@ -4,6 +4,7 @@ import { gql } from "@apollo/client"
 import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 
 import DepositAccountDetailsCard from "./details"
 import { DepositAccountTransactionsTable } from "./transactions-table"
@@ -149,6 +150,8 @@ function DepositAccountPage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
   const { setDepositAccount } = useCreateContext()
+  const tTransactions = useTranslations("DepositAccounts.DepositAccountDetails.transactions")
+  const tEventHistory = useTranslations("DepositAccounts.DepositAccountDetails.eventHistory")
 
   const { data, loading, error, fetchMore } = useGetDepositAccountDetailsQuery({
     variables: {
@@ -183,12 +186,22 @@ function DepositAccountPage({
   return (
     <main className="max-w-7xl m-auto space-y-2">
       <DepositAccountDetailsCard depositAccount={data.depositAccountByPublicId} />
-      <DepositAccountTransactionsTable
-        history={data.depositAccountByPublicId.history}
-        loading={loading}
-        fetchMore={fetchMore}
-      />
-      <DepositAccountEventHistory depositAccountPublicId={publicId} />
+      <Tabs defaultValue="transactions">
+        <TabsList>
+          <TabsTrigger value="transactions">{tTransactions("title")}</TabsTrigger>
+          <TabsTrigger value="events">{tEventHistory("title")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="transactions">
+          <DepositAccountTransactionsTable
+            history={data.depositAccountByPublicId.history}
+            loading={loading}
+            fetchMore={fetchMore}
+          />
+        </TabsContent>
+        <TabsContent value="events">
+          <DepositAccountEventHistory depositAccountPublicId={publicId} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

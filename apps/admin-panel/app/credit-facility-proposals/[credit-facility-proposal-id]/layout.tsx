@@ -2,6 +2,9 @@
 
 import { gql } from "@apollo/client"
 import { use } from "react"
+import { useTranslations } from "next-intl"
+
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 
 import CreditFacilityProposalDetailsCard from "./details"
 import { CreditFacilityProposalEventHistory } from "./event-history"
@@ -102,7 +105,7 @@ export default function CreditFacilityProposalLayout({
   params: Promise<{ "credit-facility-proposal-id": string }>
 }) {
   const { "credit-facility-proposal-id": proposalId } = use(params)
-
+  const tTabs = useTranslations("CreditFacilityProposals.ProposalDetails.tabs")
 
   const { data, loading, error } = useGetCreditFacilityProposalLayoutDetailsQuery({
     variables: { creditFacilityProposalId: proposalId },
@@ -126,10 +129,18 @@ export default function CreditFacilityProposalLayout({
       <div className="flex md:flex-row gap-2 my-2 w-full">
         <CreditFacilityTermsCard creditFacilityProposal={data.creditFacilityProposal} />
       </div>
-      {children}
-      <div className="mt-2">
-        <CreditFacilityProposalEventHistory proposalId={proposalId} />
-      </div>
+      <Tabs defaultValue="repaymentPlan">
+        <TabsList>
+          <TabsTrigger value="repaymentPlan">{tTabs("repaymentPlan")}</TabsTrigger>
+          <TabsTrigger value="events">{tTabs("events")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="repaymentPlan">
+          {children}
+        </TabsContent>
+        <TabsContent value="events">
+          <CreditFacilityProposalEventHistory proposalId={proposalId} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

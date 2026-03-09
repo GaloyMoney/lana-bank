@@ -499,7 +499,8 @@
           "creditFacilities": "Credit Facilities",
           "pendingCreditFacilities": "Pending Credit Facilities",
           "creditFacilityProposals": "Credit Facility Proposals",
-          "documents": "Documents"
+          "documents": "Documents",
+          "events": "Events"
         },
         "errors": {
           "loading": "Loading...",
@@ -830,6 +831,10 @@
       }
     },
     "ProposalDetails": {
+      "tabs": {
+        "repaymentPlan": "Repayment Plan",
+        "events": "Events"
+      },
       "CollateralCard": {
         "title": "Collateral",
         "details": {
@@ -1104,7 +1109,8 @@
           "disbursals": "Disbursals",
           "liquidations": "Liquidations",
           "repaymentPlan": "Repayment Plan",
-          "ledgerAccounts": "Ledger Accounts"
+          "ledgerAccounts": "Ledger Accounts",
+          "events": "Events"
         },
         "errors": {
           "notFound": "Not found",
@@ -1398,6 +1404,10 @@
       "general": "An error occurred"
     },
     "LiquidationDetails": {
+      "tabs": {
+        "details": "Details",
+        "events": "Events"
+      },
       "DetailsCard": {
         "title": "Liquidation",
         "details": {
@@ -1622,6 +1632,10 @@
       }
     },
     "PolicyDetails": {
+      "tabs": {
+        "members": "Members",
+        "events": "Events"
+      },
       "DetailsCard": {
         "title": "Policy",
         "fields": {
@@ -1680,6 +1694,10 @@
       }
     },
     "CommitteeDetails": {
+      "tabs": {
+        "members": "Members",
+        "events": "Events"
+      },
       "CommitteeUsers": {
         "title": "Members",
         "description": "Members in this committee",

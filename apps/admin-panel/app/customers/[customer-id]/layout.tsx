@@ -12,7 +12,6 @@ import { CustomerPersonalInfoCard } from "./personal-info-card"
 import { CustomerCompanyInfoCard } from "./company-info-card"
 import { KycStatus } from "./kyc-status"
 import { DepositAccount } from "./deposit-account"
-import { CustomerEventHistory } from "./event-history"
 
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 import {
@@ -93,6 +92,7 @@ export default function CustomerLayout({
       tabLabel: t("tabs.creditFacilityProposals"),
     },
     { id: "4", url: "/documents", tabLabel: t("tabs.documents") },
+    { id: "5", url: "/events", tabLabel: t("tabs.events") },
   ]
 
   const { "customer-id": customerId } = use(params)
@@ -184,9 +184,6 @@ export default function CustomerLayout({
           </TabsContent>
         ))}
       </Tabs>
-      <div className="mt-2">
-        <CustomerEventHistory customerId={customerId} />
-      </div>
     </main>
   )
 }

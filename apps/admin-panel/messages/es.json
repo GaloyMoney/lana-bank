@@ -499,7 +499,8 @@
           "creditFacilities": "Líneas de Crédito",
           "pendingCreditFacilities": "Líneas de Crédito Pendientes",
           "creditFacilityProposals": "Propuestas de Línea de Crédito",
-          "documents": "Documentos"
+          "documents": "Documentos",
+          "events": "Eventos"
         },
         "errors": {
           "loading": "Cargando...",
@@ -830,6 +831,10 @@
       }
     },
     "ProposalDetails": {
+      "tabs": {
+        "repaymentPlan": "Plan de reembolso",
+        "events": "Eventos"
+      },
       "CollateralCard": {
         "title": "Garantía",
         "details": {
@@ -1104,7 +1109,8 @@
           "disbursals": "Desembolsos",
           "liquidations": "Liquidaciones",
           "repaymentPlan": "Plan de Pago",
-          "ledgerAccounts": "Cuentas de Libro Mayor"
+          "ledgerAccounts": "Cuentas de Libro Mayor",
+          "events": "Eventos"
         },
         "errors": {
           "notFound": "No encontrado",
@@ -1398,6 +1404,10 @@
       "general": "Ocurrió un error"
     },
     "LiquidationDetails": {
+      "tabs": {
+        "details": "Detalles",
+        "events": "Eventos"
+      },
       "DetailsCard": {
         "title": "Liquidación",
         "details": {
@@ -1622,6 +1632,10 @@
       }
     },
     "PolicyDetails": {
+      "tabs": {
+        "members": "Miembros",
+        "events": "Eventos"
+      },
       "DetailsCard": {
         "title": "Política",
         "fields": {
@@ -1680,6 +1694,10 @@
       }
     },
     "CommitteeDetails": {
+      "tabs": {
+        "members": "Miembros",
+        "events": "Eventos"
+      },
       "CommitteeUsers": {
         "title": "Miembros",
         "description": "Miembros en este comité",

@@ -11,7 +11,7 @@ interface Translator {
 
 const translations: Record<string, TranslationsType> = {
   en: enTranslations,
-  es: esTranslations as unknown as TranslationsType,
+  es: esTranslations,
 }
 
 function createTranslator(): Translator {

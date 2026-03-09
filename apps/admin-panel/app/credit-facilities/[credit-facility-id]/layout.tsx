@@ -8,7 +8,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 
 import CreditFacilityDetailsCard from "./details"
 import { CreditFacilityCollateral } from "./collateral-card"
-import { CreditFacilityEventHistory } from "./event-history"
 import FacilityCard from "./facility-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -178,6 +177,7 @@ export default function CreditFacilityLayout({
     { id: "7", url: "/liquidations", tabLabel: t("tabs.liquidations") },
     { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan") },
     { id: "6", url: "/ledger-accounts", tabLabel: t("tabs.ledgerAccounts") },
+    { id: "7", url: "/events", tabLabel: t("tabs.events") },
   ]
 
   const { currentTab, handleTabChange } = useTabNavigation(TABS, publicId)
@@ -250,9 +250,6 @@ export default function CreditFacilityLayout({
           </TabsContent>
         ))}
       </Tabs>
-      <div className="mt-2">
-        <CreditFacilityEventHistory publicId={publicId} />
-      </div>
     </main>
   )
 }

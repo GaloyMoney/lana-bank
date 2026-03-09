@@ -362,6 +362,7 @@ checksums:
     Customers/CustomerDetails/layout/tabs/pendingCreditFacilities: fadf95c8c9c8014ed31214fd803be427
     Customers/CustomerDetails/layout/tabs/creditFacilityProposals: 11a59748c3c3c261a3b99fd7afb4a023
     Customers/CustomerDetails/layout/tabs/documents: c3882fc98216636873ab9091f3453f0c
+    Customers/CustomerDetails/layout/tabs/events: d17179a947e9687dd2338ca524b26b63
     Customers/CustomerDetails/layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     Customers/CustomerDetails/layout/errors/error: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     Customers/CustomerDetails/details/title: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -548,6 +549,8 @@ checksums:
     CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/buttons/confirm: 90930b51154032f119fa75c1bd422d8b
     CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/messages/success: 7b6da80b56fe7a049432cf9507bc6dc0
     CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/units/btc: af1432546a2c9130c9163b2269d5b60d
+    CreditFacilityProposals/ProposalDetails/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
+    CreditFacilityProposals/ProposalDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
     CreditFacilityProposals/ProposalDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilityProposals/ProposalDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     CreditFacilityProposals/ProposalDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
@@ -719,6 +722,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/Layout/tabs/liquidations: d5e225f5b3204b60ff0dea79c7cc89f3
     CreditFacilities/CreditFacilityDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
     CreditFacilities/CreditFacilityDetails/Layout/tabs/ledgerAccounts: da987c523a54fbda73beda300c3afc33
+    CreditFacilities/CreditFacilityDetails/Layout/tabs/events: d17179a947e9687dd2338ca524b26b63
     CreditFacilities/CreditFacilityDetails/Layout/errors/notFound: 58efcf2ecdcf18f0cd0253acc60eb812
     CreditFacilities/CreditFacilityDetails/Layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     CreditFacilities/CreditFacilityDetails/Liquidations/title: d5e225f5b3204b60ff0dea79c7cc89f3
@@ -870,6 +874,8 @@ checksums:
     Liquidations/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
     Liquidations/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
     Liquidations/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
+    Liquidations/LiquidationDetails/tabs/details: 2a8bbb1bc386c059783f925aca2cc522
+    Liquidations/LiquidationDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
     Liquidations/LiquidationDetails/DetailsCard/title: 0c38d7f6db5a24f62b1ec41f068446e2
     Liquidations/LiquidationDetails/DetailsCard/details/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
     Liquidations/LiquidationDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
@@ -1000,6 +1006,8 @@ checksums:
     Policies/table/errors/general: b1cb4325de8e5a212d2b810b8ab5af27
     Policies/table/rules/committeeThreshold: 5dad8e40aa692364747105ccddd5098f
     Policies/table/rules/autoApprove: 124de4b4f5d2ab6e48dc2f3770f3ed99
+    Policies/PolicyDetails/tabs/members: 0932e80cba1e3e0a7f52bb67ff31da32
+    Policies/PolicyDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
     Policies/PolicyDetails/DetailsCard/title: bcc1b7f6b941378e63b0107ecd5844ae
     Policies/PolicyDetails/DetailsCard/fields/processType: 010f7d654190a93f0f175a9ec31fc4ad
     Policies/PolicyDetails/DetailsCard/fields/rule: 5b3477fee7a10f7883c68819c4e24fc4
@@ -1028,6 +1036,8 @@ checksums:
     Committees/table/headers/name: 9368b5a047572b6051f334af5aa76819
     Committees/table/headers/created: 6045b4ff97fb7dca19ebadfa2e34a700
     Committees/table/headers/members: 0932e80cba1e3e0a7f52bb67ff31da32
+    Committees/CommitteeDetails/tabs/members: 0932e80cba1e3e0a7f52bb67ff31da32
+    Committees/CommitteeDetails/tabs/events: d17179a947e9687dd2338ca524b26b63
     Committees/CommitteeDetails/CommitteeUsers/title: 0932e80cba1e3e0a7f52bb67ff31da32
     Committees/CommitteeDetails/CommitteeUsers/description: f87dbed6776b95098e46c29032b5abeb
     Committees/CommitteeDetails/CommitteeUsers/table/headers/email: e7f34943a0c2fb849db1839ff6ef5cb5

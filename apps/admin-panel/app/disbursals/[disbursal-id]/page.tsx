@@ -3,6 +3,7 @@ import React, { useEffect, use } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 
 import LedgerTransactions from "../../../components/ledger-transactions"
 
@@ -98,7 +99,8 @@ function DisbursalPage({
   const { setDisbursal } = useCreateContext()
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
-
+  const tLedger = useTranslations("LedgerTransactions")
+  const tEventHistory = useTranslations("Disbursals.DisbursalDetails.eventHistory")
 
   useEffect(() => {
     data?.disbursalByPublicId && setDisbursal(data.disbursalByPublicId)
@@ -133,10 +135,20 @@ function DisbursalPage({
       {data.disbursalByPublicId.approvalProcess && (
         <VotersCard approvalProcess={data.disbursalByPublicId.approvalProcess} />
       )}
-      <LedgerTransactions
-        ledgerTransactions={data.disbursalByPublicId.ledgerTransactions}
-      />
-      <DisbursalEventHistory publicId={publicId} />
+      <Tabs defaultValue="ledger">
+        <TabsList>
+          <TabsTrigger value="ledger">{tLedger("title")}</TabsTrigger>
+          <TabsTrigger value="events">{tEventHistory("title")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="ledger">
+          <LedgerTransactions
+            ledgerTransactions={data.disbursalByPublicId.ledgerTransactions}
+          />
+        </TabsContent>
+        <TabsContent value="events">
+          <DisbursalEventHistory publicId={publicId} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }
