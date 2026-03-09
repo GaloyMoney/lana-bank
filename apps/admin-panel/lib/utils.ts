@@ -122,8 +122,8 @@ export const calculateEffectiveRate = ({
   oneTimeFeeRate: number
   durationUnits: number
   durationPeriod: Period
-}): number | null => {
-  if (durationUnits <= 0) return null
+}): number => {
+  if (durationUnits <= 0) throw new Error("durationUnits must be positive")
   let annualFactor: number
   switch (durationPeriod) {
     case Period.Months:
@@ -133,7 +133,7 @@ export const calculateEffectiveRate = ({
       annualFactor = 365 / durationUnits
       break
     default:
-      return null
+      throw new Error(`Unsupported duration period: ${durationPeriod}`)
   }
   return annualRate + oneTimeFeeRate * annualFactor
 }

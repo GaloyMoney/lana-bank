@@ -21,12 +21,18 @@ export const PendingCreditFacilityTermsCard: React.FC<
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.TermsDialog")
   const tCard = useTranslations("PendingCreditFacilities.PendingDetails.TermsCard")
 
-  const effectiveRate = calculateEffectiveRate({
-    annualRate: Number(pendingCreditFacility.creditFacilityTerms.annualRate),
-    oneTimeFeeRate: Number(pendingCreditFacility.creditFacilityTerms.oneTimeFeeRate),
-    durationUnits: pendingCreditFacility.creditFacilityTerms.duration.units,
-    durationPeriod: pendingCreditFacility.creditFacilityTerms.duration.period,
-  })
+  let effectiveRateDisplay: string
+  try {
+    const effectiveRate = calculateEffectiveRate({
+      annualRate: Number(pendingCreditFacility.creditFacilityTerms.annualRate),
+      oneTimeFeeRate: Number(pendingCreditFacility.creditFacilityTerms.oneTimeFeeRate),
+      durationUnits: pendingCreditFacility.creditFacilityTerms.duration.units,
+      durationPeriod: pendingCreditFacility.creditFacilityTerms.duration.period,
+    })
+    effectiveRateDisplay = `${effectiveRate.toFixed(2)}%`
+  } catch {
+    effectiveRateDisplay = "ERROR"
+  }
 
   const disbursalPolicyLabel =
     pendingCreditFacility.creditFacilityTerms.disbursalPolicy === "SINGLE_DISBURSAL"
@@ -65,7 +71,7 @@ export const PendingCreditFacilityTermsCard: React.FC<
       label: t("details.structuringFeeRate"),
       value: `${pendingCreditFacility.creditFacilityTerms.oneTimeFeeRate}%`,
     },
-    { label: t("details.effectiveRate"), value: effectiveRate !== null ? `${effectiveRate.toFixed(2)}%` : "ERROR" },
+    { label: t("details.effectiveRate"), value: effectiveRateDisplay },
     {
       label: t("details.disbursalPolicy"),
       value: disbursalPolicyLabel,
