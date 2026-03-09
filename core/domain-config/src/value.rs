@@ -53,6 +53,21 @@ impl DomainConfigValue {
         }
     }
 
+    /// Returns true if this value was encrypted with `key` or the optional
+    /// `deprecated_key`.  Plain values always return false.
+    pub(crate) fn matches_any_key(
+        &self,
+        key: &EncryptionKey,
+        deprecated_key: Option<&EncryptionKey>,
+    ) -> bool {
+        match self {
+            Self::Encrypted(e) => {
+                e.matches_key(key) || deprecated_key.is_some_and(|dk| e.matches_key(dk))
+            }
+            Self::Plain { .. } => false,
+        }
+    }
+
     /// Decrypt and return the plaintext JSON value.
     /// Returns an error for Plain variants (use as_plain instead).
     pub(crate) fn decrypt(

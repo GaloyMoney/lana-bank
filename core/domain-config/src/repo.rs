@@ -36,7 +36,10 @@ impl DomainConfigRepo {
     }
 
     fn validate_decryptable(&self, entity: &DomainConfig) -> Result<(), DomainConfigHydrateError> {
-        entity.assert_decryptable(&self.encryption_config.encryption_key)
+        entity.assert_decryptable(
+            &self.encryption_config.encryption_key,
+            self.encryption_config.deprecated_encryption_key.as_ref(),
+        )
     }
 
     pub async fn find_all_exposed<Out: From<DomainConfig>>(
