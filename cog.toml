@@ -1,4 +1,5 @@
 skip_ci = "[ci skip]"
+ignore_merge_commits = true
 
 [commit_types]
 build = { bump_patch = true }
