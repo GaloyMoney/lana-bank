@@ -575,15 +575,27 @@ where
             self.custodians.update_in_op(db, &mut custodian).await?;
         }
 
-        let new_wallet = NewWallet::builder()
-            .id(WalletId::new())
-            .custodian_id(custodian_id)
-            .external_wallet_id(external_wallet.external_id)
-            .custodian_response(external_wallet.full_response)
-            .address(external_wallet.address)
-            .network(external_wallet.network)
-            .build()
-            .expect("all fields for new wallet provided");
+        let new_wallet = if let Some(external_wallet) = external_wallet {
+            NewWallet::builder()
+                .id(WalletId::new())
+                .custodian_id(custodian_id)
+                .external_wallet_id(external_wallet.external_id)
+                .custodian_response(external_wallet.full_response)
+                .address(external_wallet.address)
+                .network(external_wallet.network)
+                .build()
+                .expect("all fields for new wallet provided")
+        } else {
+            NewWallet::builder()
+                .id(WalletId::new())
+                .custodian_id(custodian_id)
+                .external_wallet_id("manual".to_string())
+                .custodian_response(serde_json::Value::Null)
+                .address("manual_manual_manual_manual_manual_manual_1".to_string())
+                .network(WalletNetwork::Testnet4)
+                .build()
+                .expect("placeholder wallet fields provided")
+        };
 
         let wallet = self.wallets.create_in_op(db, new_wallet).await?;
 

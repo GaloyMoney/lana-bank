@@ -42,7 +42,7 @@ pub async fn principal_under_payment_scenario(
     let cf_terms = helpers::std_terms_with_liquidation();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf_proposal = app
-        .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, None::<CustodianId>)
+        .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, CustodianId::new())
         .await?;
     let proposal_id = cf_proposal.id;
     let cf_id: CreditFacilityId = proposal_id.into();

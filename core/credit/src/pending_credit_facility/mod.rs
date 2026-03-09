@@ -188,25 +188,21 @@ where
                 custodian_id,
                 proposal,
             } => {
-                let wallet_id = if let Some(custodian_id) = custodian_id {
-                    #[cfg(feature = "mock-custodian")]
-                    if custodian_id.is_mock_custodian() {
-                        self.custody.ensure_mock_custodian_in_op(db).await?;
-                    }
+                #[cfg(feature = "mock-custodian")]
+                if custodian_id.is_mock_custodian() {
+                    self.custody.ensure_mock_custodian_in_op(db).await?;
+                }
 
-                    let wallet = self
-                        .custody
-                        .create_wallet_in_op(
-                            db,
-                            custodian_id,
-                            &format!("CF {}", new_pending_facility.id),
-                        )
-                        .await?;
+                let wallet = self
+                    .custody
+                    .create_wallet_in_op(
+                        db,
+                        custodian_id,
+                        &format!("CF {}", new_pending_facility.id),
+                    )
+                    .await?;
 
-                    Some(wallet.id)
-                } else {
-                    None
-                };
+                let wallet_id = Some(wallet.id);
 
                 self.collaterals
                     .create_in_op(
