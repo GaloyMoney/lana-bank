@@ -64,7 +64,7 @@ export const CreditFacilityTermsCard: React.FC<CreditFacilityTermsCardProps> = (
       label: t("details.structuringFeeRate"),
       value: `${creditFacilityProposal.creditFacilityTerms.oneTimeFeeRate}%`,
     },
-    { label: t("details.effectiveRate"), value: effectiveRate !== null ? `${effectiveRate.toFixed(2)}%` : "N/A" },
+    { label: t("details.effectiveRate"), value: effectiveRate !== null ? `${effectiveRate.toFixed(2)}%` : "ERROR" },
     {
       label: t("details.disbursalPolicy"),
       value: disbursalPolicyLabel,
