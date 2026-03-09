@@ -9,6 +9,7 @@ import { formatDate } from "@lana/web/utils"
 import CardWrapper from "@/components/card-wrapper"
 import DataTable, { Column } from "@/components/data-table"
 import { EventPayload } from "@/components/event-payload"
+import { AuditUser } from "@/components/audit-user"
 import { useUserEventHistoryQuery, EventTimelineEntry } from "@/lib/graphql/generated"
 
 gql`
@@ -76,6 +77,19 @@ export const UserEventHistory: React.FC<UserEventHistoryProps> = ({ userId }) =>
       key: "payload",
       header: t("columns.details"),
       render: (payload: Record<string, unknown>) => <EventPayload payload={payload} />,
+    },
+    {
+      key: "userId",
+      header: t("columns.userId"),
+      render: (userId) =>
+        userId ? <AuditUser subjectId={userId} /> : <span className="text-muted-foreground text-xs">-</span>,
+    },
+    {
+      key: "auditEntryId",
+      header: t("columns.auditEntryId"),
+      render: (auditEntryId) => (
+        <span className="text-muted-foreground text-xs">{auditEntryId ?? "-"}</span>
+      ),
     },
     {
       key: "recordedAt",

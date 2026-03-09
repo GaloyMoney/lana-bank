@@ -25,6 +25,7 @@
     "copiedToClipboard": "Copiado al portapapeles",
     "showIds": "Mostrar IDs",
     "hideIds": "Ocultar IDs",
+    "showUser": "Mostrar usuario",
     "copyId": "Copiar ID",
     "formatRule": {
       "noRulesDefined": "No hay reglas definidas",
@@ -880,6 +881,8 @@
         "columns": {
           "event": "Evento",
           "details": "Detalles",
+          "userId": "Usuario",
+          "auditEntryId": "Auditoría",
           "recordedAt": "Registrado el"
         }
       }
@@ -2149,6 +2152,8 @@
       "columns": {
         "event": "Evento",
         "details": "Detalles",
+        "userId": "Usuario",
+        "auditEntryId": "Auditoría",
         "recordedAt": "Registrado el"
       }
     },
@@ -2841,6 +2846,8 @@
       "columns": {
         "event": "Evento",
         "details": "Detalles",
+        "userId": "Usuario",
+        "auditEntryId": "Auditoría",
         "recordedAt": "Registrado el"
       }
     }

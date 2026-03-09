@@ -25,6 +25,7 @@
     "copiedToClipboard": "Copied to clipboard",
     "showIds": "Show IDs",
     "hideIds": "Hide IDs",
+    "showUser": "Show user",
     "copyId": "Copy ID",
     "formatRule": {
       "noRulesDefined": "No rules defined",
@@ -880,6 +881,8 @@
         "columns": {
           "event": "Event",
           "details": "Details",
+          "userId": "User",
+          "auditEntryId": "Audit Entry",
           "recordedAt": "Recorded At"
         }
       }
@@ -2149,6 +2152,8 @@
       "columns": {
         "event": "Event",
         "details": "Details",
+        "userId": "User",
+        "auditEntryId": "Audit Entry",
         "recordedAt": "Recorded At"
       }
     },
@@ -2841,6 +2846,8 @@
       "columns": {
         "event": "Event",
         "details": "Details",
+        "userId": "User",
+        "auditEntryId": "Audit Entry",
         "recordedAt": "Recorded At"
       }
     }
