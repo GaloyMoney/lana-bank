@@ -1602,7 +1602,7 @@ export type EventTimelineEntry = {
   payload: Scalars['Json']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   sequence: Scalars['Int']['output'];
-  userId?: Maybe<Scalars['AuditSubjectId']['output']>;
+  subject?: Maybe<AuditSubject>;
 };
 
 export type EventTimelineEntryConnection = {
@@ -4377,7 +4377,13 @@ export type CustomerEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type CustomerEventHistoryQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+export type CustomerEventHistoryQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+            | { __typename?: 'System', actor: string }
+            | { __typename?: 'User', userId: string, email: string }
+           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+          | { __typename?: 'System', actor: string }
+          | { __typename?: 'User', userId: string, email: string }
+         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type CustomerFreezeMutationVariables = Exact<{
   input: CustomerFreezeInput;
@@ -5039,7 +5045,13 @@ export type ProspectEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type ProspectEventHistoryQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+export type ProspectEventHistoryQuery = { __typename?: 'Query', prospectByPublicId?: { __typename?: 'Prospect', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+            | { __typename?: 'System', actor: string }
+            | { __typename?: 'User', userId: string, email: string }
+           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+          | { __typename?: 'System', actor: string }
+          | { __typename?: 'User', userId: string, email: string }
+         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
@@ -5142,7 +5154,13 @@ export type RoleEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type RoleEventHistoryQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+export type RoleEventHistoryQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+            | { __typename?: 'System', actor: string }
+            | { __typename?: 'User', userId: string, email: string }
+           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+          | { __typename?: 'System', actor: string }
+          | { __typename?: 'User', userId: string, email: string }
+         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type RoleCreateMutationVariables = Exact<{
   input: RoleCreateInput;
@@ -5285,7 +5303,13 @@ export type UserEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type UserEventHistoryQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+export type UserEventHistoryQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+            | { __typename?: 'System', actor: string }
+            | { __typename?: 'User', userId: string, email: string }
+           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+          | { __typename?: 'System', actor: string }
+          | { __typename?: 'User', userId: string, email: string }
+         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type GetUserDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -8643,15 +8667,37 @@ export const CustomerEventHistoryDocument = gql`
           recordedAt
           sequence
           auditEntryId
-          userId
+          subject {
+            ... on User {
+              userId
+              email
+            }
+            ... on System {
+              actor
+            }
+          }
           payload
         }
       }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        subject {
+          ... on User {
+            userId
+            email
+          }
+          ... on System {
+            actor
+          }
+        }
+        payload
+      }
       pageInfo {
-        endCursor
-        startCursor
         hasNextPage
-        hasPreviousPage
+        endCursor
       }
     }
   }
@@ -11829,7 +11875,15 @@ export const ProspectEventHistoryDocument = gql`
           recordedAt
           sequence
           auditEntryId
-          userId
+          subject {
+            ... on User {
+              userId
+              email
+            }
+            ... on System {
+              actor
+            }
+          }
           payload
         }
       }
@@ -11838,7 +11892,15 @@ export const ProspectEventHistoryDocument = gql`
         recordedAt
         sequence
         auditEntryId
-        userId
+        subject {
+          ... on User {
+            userId
+            email
+          }
+          ... on System {
+            actor
+          }
+        }
         payload
       }
       pageInfo {
@@ -12438,15 +12500,37 @@ export const RoleEventHistoryDocument = gql`
           recordedAt
           sequence
           auditEntryId
-          userId
+          subject {
+            ... on User {
+              userId
+              email
+            }
+            ... on System {
+              actor
+            }
+          }
           payload
         }
       }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        subject {
+          ... on User {
+            userId
+            email
+          }
+          ... on System {
+            actor
+          }
+        }
+        payload
+      }
       pageInfo {
-        endCursor
-        startCursor
         hasNextPage
-        hasPreviousPage
+        endCursor
       }
     }
   }
@@ -12963,15 +13047,37 @@ export const UserEventHistoryDocument = gql`
           recordedAt
           sequence
           auditEntryId
-          userId
+          subject {
+            ... on User {
+              userId
+              email
+            }
+            ... on System {
+              actor
+            }
+          }
           payload
         }
       }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        subject {
+          ... on User {
+            userId
+            email
+          }
+          ... on System {
+            actor
+          }
+        }
+        payload
+      }
       pageInfo {
-        endCursor
-        startCursor
         hasNextPage
-        hasPreviousPage
+        endCursor
       }
     }
   }

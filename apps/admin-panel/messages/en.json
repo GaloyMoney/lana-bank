@@ -26,7 +26,6 @@
     "showIds": "Show IDs",
     "hideIds": "Hide IDs",
     "showUser": "Show user",
-    "system": "System",
     "copyId": "Copy ID",
     "formatRule": {
       "noRulesDefined": "No rules defined",
@@ -433,7 +432,7 @@
         "columns": {
           "event": "Event",
           "details": "Details",
-          "userId": "User",
+          "subject": "Performed By",
           "auditEntryId": "Audit Entry",
           "recordedAt": "Recorded At"
         }
@@ -715,11 +714,6 @@
             "createdAt": "Created At"
           }
         }
-      },
-      "eventHistory": {
-        "title": "Events",
-        "description": "Timeline of changes made to this customer",
-        "emptyMessage": "No events recorded"
       }
     }
   },
@@ -890,6 +884,18 @@
         },
         "errors": {
           "unknown": "An error occurred while processing the customer approval"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this customer",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     }
@@ -2154,7 +2160,14 @@
     "eventHistory": {
       "title": "Events",
       "description": "Timeline of changes made to this user",
-      "emptyMessage": "No events recorded"
+      "emptyMessage": "No events recorded",
+      "columns": {
+        "event": "Event",
+        "details": "Details",
+        "subject": "Performed By",
+        "auditEntryId": "Audit Entry",
+        "recordedAt": "Recorded At"
+      }
     },
     "updateRole": {
       "title": "Update Role",
@@ -2841,7 +2854,14 @@
     "eventHistory": {
       "title": "Events",
       "description": "Timeline of changes made to this role",
-      "emptyMessage": "No events recorded"
+      "emptyMessage": "No events recorded",
+      "columns": {
+        "event": "Event",
+        "details": "Details",
+        "subject": "Performed By",
+        "auditEntryId": "Audit Entry",
+        "recordedAt": "Recorded At"
+      }
     }
   },
   "Auth": {
@@ -2858,7 +2878,7 @@
     "columns": {
       "event": "Event",
       "details": "Details",
-      "userId": "User",
+      "subject": "Performed By",
       "auditEntryId": "Audit Entry",
       "recordedAt": "Recorded At"
     },

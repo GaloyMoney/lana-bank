@@ -2033,7 +2033,7 @@ export const mockEventTimelineEntry = (overrides?: Partial<EventTimelineEntry>, 
         payload: overrides && overrides.hasOwnProperty('payload') ? overrides.payload! : faker.lorem.word(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
         sequence: overrides && overrides.hasOwnProperty('sequence') ? overrides.sequence! : faker.number.int({ min: 0, max: 9999 }),
-        userId: overrides && overrides.hasOwnProperty('userId') ? overrides.userId! : generateMockValue.uuid(),
+        subject: overrides && overrides.hasOwnProperty('subject') ? overrides.subject! : relationshipsToOmit.has('System') ? {} as System : mockSystem({}, relationshipsToOmit),
     };
 };
 

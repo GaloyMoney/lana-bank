@@ -1588,8 +1588,8 @@ type EventTimelineEntry {
 	eventType: String!
 	recordedAt: Timestamp!
 	payload: Json!
-	userId: AuditSubjectId
 	auditEntryId: AuditEntryId
+	subject: AuditSubject
 }
 
 type EventTimelineEntryConnection {

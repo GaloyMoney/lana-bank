@@ -2,6 +2,7 @@
 
 import React from "react"
 import { useTranslations } from "next-intl"
+import Link from "next/link"
 
 import { formatDate } from "@lana/web/utils"
 
@@ -12,7 +13,6 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import { EventPayload } from "@/components/event-payload"
-import { AuditUser } from "@/components/audit-user"
 import { EventTimelineEntry } from "@/lib/graphql/generated"
 
 type EntityEventHistoryProps = {
@@ -35,7 +35,6 @@ export const EntityEventHistory: React.FC<EntityEventHistoryProps> = ({
   fetchMore,
 }) => {
   const te = useTranslations(translationNamespace)
-  const tc = useTranslations("Common")
   const t = useTranslations("EntityEvents")
 
   const translateEventType = (eventType: string): string => {
@@ -58,14 +57,25 @@ export const EntityEventHistory: React.FC<EntityEventHistoryProps> = ({
       render: (payload: Record<string, unknown>) => <EventPayload payload={payload} />,
     },
     {
-      key: "userId",
-      label: t("columns.userId"),
-      render: (userId) =>
-        userId ? (
-          <AuditUser subjectId={userId} />
-        ) : (
-          <span className="text-muted-foreground text-xs">{tc("system")}</span>
-        ),
+      key: "subject",
+      label: t("columns.subject"),
+      render: (subject) => {
+        if (!subject) return <span className="text-muted-foreground text-xs">-</span>
+        if (subject.__typename === "User") {
+          return (
+            <Link
+              href={`/users/${subject.userId}`}
+              className="text-primary underline underline-offset-4 hover:text-primary/80 text-xs"
+            >
+              {subject.email}
+            </Link>
+          )
+        }
+        if (subject.__typename === "System") {
+          return <span className="text-xs">system ({subject.actor})</span>
+        }
+        return <span className="text-muted-foreground text-xs">-</span>
+      },
     },
     {
       key: "auditEntryId",

@@ -1,21 +1,58 @@
 use async_graphql::{
-    SimpleObject,
+    ComplexObject, Context, SimpleObject,
     connection::{Connection, CursorType, Edge, EmptyFields},
 };
 use serde::{Deserialize, Serialize};
 
+use lana_app::primitives::Subject as DomainSubject;
+
 use crate::primitives::*;
 
-use super::primitives::Json;
+use super::{
+    audit::{AuditSubject, System},
+    loader::*,
+    primitives::Json,
+};
 
 #[derive(SimpleObject, Clone)]
+#[graphql(complex)]
 pub struct EventTimelineEntry {
     pub sequence: i32,
     pub event_type: String,
     pub recorded_at: Timestamp,
     pub payload: Json,
-    pub user_id: Option<AuditSubjectId>,
     pub audit_entry_id: Option<AuditEntryId>,
+
+    #[graphql(skip)]
+    pub subject: Option<DomainSubject>,
+}
+
+#[ComplexObject]
+impl EventTimelineEntry {
+    async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<AuditSubject>> {
+        let subject = match &self.subject {
+            Some(s) => s,
+            None => return Ok(None),
+        };
+
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+
+        match subject {
+            DomainSubject::User(id) => {
+                let user = loader.load_one(*id).await?;
+                match user {
+                    None => Err("User not found".into()),
+                    Some(user) => Ok(Some(AuditSubject::User(user))),
+                }
+            }
+            DomainSubject::System(actor) => {
+                Ok(Some(AuditSubject::System(System::from_actor(actor))))
+            }
+            DomainSubject::Customer(_) => {
+                panic!("Whoops - have we gone live yet?");
+            }
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -89,15 +126,17 @@ where
         // Extract audit info from event context
         let audit_info = audit::AuditInfo::from_context(&pe.context);
 
+        let subject = audit_info
+            .as_ref()
+            .and_then(|a| a.sub.parse::<DomainSubject>().ok());
+
         let entry = EventTimelineEntry {
             sequence,
             event_type,
             recorded_at: pe.recorded_at.into(),
             payload: Json::from(payload),
-            user_id: audit_info
-                .as_ref()
-                .map(|a| AuditSubjectId::from(a.sub.clone())),
             audit_entry_id: audit_info.map(|a| AuditEntryId::from(a.audit_entry_id)),
+            subject,
         };
 
         connection

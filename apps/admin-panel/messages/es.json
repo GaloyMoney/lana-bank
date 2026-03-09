@@ -26,7 +26,6 @@
     "showIds": "Mostrar IDs",
     "hideIds": "Ocultar IDs",
     "showUser": "Mostrar usuario",
-    "system": "Sistema",
     "copyId": "Copiar ID",
     "formatRule": {
       "noRulesDefined": "No hay reglas definidas",
@@ -433,7 +432,7 @@
         "columns": {
           "event": "Event",
           "details": "Details",
-          "userId": "User",
+          "subject": "Performed By",
           "auditEntryId": "Audit Entry",
           "recordedAt": "Recorded At"
         }
@@ -715,11 +714,6 @@
             "createdAt": "Fecha de registro"
           }
         }
-      },
-      "eventHistory": {
-        "title": "Eventos",
-        "description": "Cronología de cambios realizados en este cliente",
-        "emptyMessage": "No se registraron eventos"
       }
     }
   },
@@ -890,6 +884,18 @@
         },
         "errors": {
           "unknown": "Ocurrió un error al procesar la aprobación del cliente"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este cliente",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
         }
       }
     }
@@ -2154,7 +2160,14 @@
     "eventHistory": {
       "title": "Eventos",
       "description": "Cronología de cambios realizados en este usuario",
-      "emptyMessage": "No se registraron eventos"
+      "emptyMessage": "No se registraron eventos",
+      "columns": {
+        "event": "Evento",
+        "details": "Detalles",
+        "subject": "Realizado por",
+        "auditEntryId": "Auditoría",
+        "recordedAt": "Registrado el"
+      }
     },
     "updateRole": {
       "title": "Actualizar rol",
@@ -2841,7 +2854,14 @@
     "eventHistory": {
       "title": "Eventos",
       "description": "Cronología de cambios realizados en este rol",
-      "emptyMessage": "No se registraron eventos"
+      "emptyMessage": "No se registraron eventos",
+      "columns": {
+        "event": "Evento",
+        "details": "Detalles",
+        "subject": "Realizado por",
+        "auditEntryId": "Auditoría",
+        "recordedAt": "Registrado el"
+      }
     }
   },
   "Auth": {
@@ -2858,7 +2878,7 @@
     "columns": {
       "event": "Evento",
       "details": "Detalles",
-      "userId": "Usuario",
+      "subject": "Realizado por",
       "auditEntryId": "Auditoría",
       "recordedAt": "Registrado el"
     },

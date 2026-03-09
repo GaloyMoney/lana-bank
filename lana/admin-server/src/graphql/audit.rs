@@ -20,7 +20,7 @@ impl System {
 }
 
 #[derive(Union)]
-enum AuditSubject {
+pub(crate) enum AuditSubject {
     User(User),
     System(System),
 }
