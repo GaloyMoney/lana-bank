@@ -100,6 +100,29 @@
           || pkgs.lib.hasInfix "/apps/admin-panel/messages/generated/en.json" path;
       };
 
+      frontendSrc = pkgs.lib.cleanSourceWith {
+        src = ./.;
+        filter = path: type:
+          type
+          == "directory"
+          || pkgs.lib.hasInfix "/apps/" path
+          || pkgs.lib.hasInfix "/docs-site/package.json" path
+          || pkgs.lib.hasSuffix "/package.json" path
+          || pkgs.lib.hasSuffix "/pnpm-lock.yaml" path
+          || pkgs.lib.hasSuffix "/pnpm-workspace.yaml" path
+          || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
+          || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path;
+      };
+
+      pnpmDeps = pkgs.fetchPnpmDeps {
+        pname = "lana-bank-frontend-deps";
+        version = "0.0.0";
+        src = frontendSrc;
+        pnpm = pkgs.pnpm;
+        fetcherVersion = 3;
+        hash = "sha256-uuNPJjbcL4Vzu6CNGA2OgrQIAWwJCRrH45aW3iXHXLI=";
+      };
+
       commonArgs = {
         src = rustSource;
         strictDeps = true;
@@ -926,6 +949,72 @@
             installPhase = ''
               mkdir -p $out
               echo "Default config check passed" > $out/result.txt
+            '';
+          };
+
+          check-code-apps = pkgs.stdenv.mkDerivation {
+            name = "check-code-apps";
+            src = frontendSrc;
+
+            nativeBuildInputs = [
+              pkgs.nodejs
+              pkgs.pnpm
+              pkgs.pnpmConfigHook
+              pkgs.diffutils
+            ];
+
+            inherit pnpmDeps;
+
+            buildPhase = ''
+              # Save committed codegen output for staleness check
+              mkdir -p /tmp/codegen-committed
+              cp -r apps/admin-panel/lib/graphql/generated /tmp/codegen-committed/admin-panel
+              cp -r apps/customer-portal/lib/graphql/generated /tmp/codegen-committed/customer-portal
+
+              # Run codegen for both apps
+              echo "Running codegen for admin-panel..."
+              pnpm --filter admin-panel codegen
+
+              echo "Running codegen for customer-portal..."
+              pnpm --filter customer-portal codegen
+
+              # Check codegen staleness
+              echo "Checking codegen staleness for admin-panel..."
+              if ! diff -ru /tmp/codegen-committed/admin-panel apps/admin-panel/lib/graphql/generated/; then
+                echo "ERROR: admin-panel codegen output is stale!"
+                echo "Run 'make sdl-js' to regenerate"
+                exit 1
+              fi
+
+              echo "Checking codegen staleness for customer-portal..."
+              if ! diff -ru /tmp/codegen-committed/customer-portal apps/customer-portal/lib/graphql/generated/; then
+                echo "ERROR: customer-portal codegen output is stale!"
+                echo "Run 'make sdl-js' to regenerate"
+                exit 1
+              fi
+
+              echo "Codegen output is up to date ✓"
+
+              # Run lint for both apps
+              echo "Running lint for admin-panel..."
+              pnpm --filter admin-panel lint
+
+              echo "Running lint for customer-portal..."
+              pnpm --filter customer-portal lint
+
+              # Run typecheck for both apps
+              echo "Running typecheck for admin-panel..."
+              pnpm --filter admin-panel tsc-check
+
+              echo "Running typecheck for customer-portal..."
+              pnpm --filter customer-portal tsc-check
+
+              echo "All frontend checks passed ✓"
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "Frontend checks passed" > $out/result.txt
             '';
           };
 
