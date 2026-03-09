@@ -1,11 +1,15 @@
-use async_graphql::*;
-use es_entity::Sort;
+use async_graphql::{connection::*, *};
+use es_entity::{EsEntity as _, Sort};
 
 use crate::primitives::*;
 
 use super::{
-    accounting::LedgerTransaction, approval_process::ApprovalProcess,
-    deposit_account::DepositAccount, loader::LanaDataLoader, primitives::SortDirection,
+    accounting::LedgerTransaction,
+    approval_process::ApprovalProcess,
+    deposit_account::DepositAccount,
+    event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+    loader::LanaDataLoader,
+    primitives::SortDirection,
 };
 
 pub use lana_app::{
@@ -73,6 +77,16 @@ impl Withdrawal {
             .await?
             .expect("account not found");
         Ok(account)
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn ledger_transactions(

@@ -1,9 +1,13 @@
-use async_graphql::*;
-use es_entity::Sort;
+use async_graphql::{connection::*, *};
+use es_entity::{EsEntity as _, Sort};
 
 use crate::{graphql::accounting::LedgerTransaction, primitives::*};
 
-use super::{loader::LanaDataLoader, primitives::SortDirection};
+use super::{
+    event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+    loader::LanaDataLoader,
+    primitives::SortDirection,
+};
 
 pub use super::deposit_account::{DepositAccount, DepositAccountsFilter, DepositAccountsSort};
 
@@ -65,6 +69,16 @@ impl Deposit {
             .await?
             .expect("process not found");
         Ok(account)
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn ledger_transactions(&self, ctx: &Context<'_>) -> Result<Vec<LedgerTransaction>> {

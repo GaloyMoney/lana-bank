@@ -1832,6 +1832,18 @@
           },
           "empty": "No se encontraron transacciones"
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en esta cuenta de depósito",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
+        }
       }
     }
   },
@@ -1912,6 +1924,18 @@
           "viewDepositAccount": "Ver Cuenta de Depósito",
           "revert": "Revertir",
           "viewOnSumsub": "Ver en Sumsub"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este depósito",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
         }
       }
     }
@@ -2021,6 +2045,18 @@
           "deny": "Rechazar",
           "revert": "Revertir",
           "viewOnSumsub": "Ver en Sumsub"
+        }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este retiro",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Auditoría",
+          "recordedAt": "Registrado el"
         }
       }
     },
@@ -2919,6 +2955,25 @@
       "manually_converted": "Manually converted",
       "verification_link_created": "Verification link created",
       "closed": "Prospect closed"
+    },
+    "depositAccount": {
+      "initialized": "Cuenta creada",
+      "activity_updated": "Actividad actualizada",
+      "frozen": "Cuenta congelada",
+      "unfrozen": "Cuenta descongelada",
+      "closed": "Cuenta cerrada"
+    },
+    "deposit": {
+      "initialized": "Depósito creado",
+      "reverted": "Depósito revertido"
+    },
+    "withdrawal": {
+      "initialized": "Retiro creado",
+      "approval_process_concluded": "Proceso de aprobación concluido",
+      "denied": "Retiro rechazado",
+      "confirmed": "Retiro confirmado",
+      "cancelled": "Retiro cancelado",
+      "reverted": "Retiro revertido"
     }
   }
 }

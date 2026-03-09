@@ -1832,6 +1832,18 @@
           },
           "empty": "No transactions found"
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this deposit account",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
+        }
       }
     }
   },
@@ -1912,6 +1924,18 @@
           "viewDepositAccount": "View Deposit Account",
           "revert": "Revert",
           "viewOnSumsub": "View on Sumsub"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this deposit",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     }
@@ -2021,6 +2045,18 @@
           "deny": "Deny",
           "revert": "Revert",
           "viewOnSumsub": "View on Sumsub"
+        }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this withdrawal",
+        "emptyMessage": "No events recorded",
+        "columns": {
+          "event": "Event",
+          "details": "Details",
+          "subject": "Performed By",
+          "auditEntryId": "Audit Entry",
+          "recordedAt": "Recorded At"
         }
       }
     },
@@ -2919,6 +2955,25 @@
       "manually_converted": "Manually converted",
       "verification_link_created": "Verification link created",
       "closed": "Prospect closed"
+    },
+    "depositAccount": {
+      "initialized": "Account created",
+      "activity_updated": "Activity updated",
+      "frozen": "Account frozen",
+      "unfrozen": "Account unfrozen",
+      "closed": "Account closed"
+    },
+    "deposit": {
+      "initialized": "Deposit created",
+      "reverted": "Deposit reverted"
+    },
+    "withdrawal": {
+      "initialized": "Withdrawal created",
+      "approval_process_concluded": "Approval process concluded",
+      "denied": "Withdrawal denied",
+      "confirmed": "Withdrawal confirmed",
+      "cancelled": "Withdrawal cancelled",
+      "reverted": "Withdrawal reverted"
     }
   }
 }

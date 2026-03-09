@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl"
 import LedgerTransactions from "../../../components/ledger-transactions"
 
 import WithdrawalDetailsCard from "./details"
+import { WithdrawalEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -139,6 +140,7 @@ function WithdrawalPage({
       <LedgerTransactions
         ledgerTransactions={data.withdrawalByPublicId.ledgerTransactions}
       />
+      <WithdrawalEventHistory withdrawalPublicId={publicId} />
     </main>
   )
 }

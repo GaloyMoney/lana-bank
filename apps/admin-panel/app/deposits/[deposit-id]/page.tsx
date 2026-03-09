@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl"
 import LedgerTransactions from "../../../components/ledger-transactions"
 
 import DepositDetailsCard from "./details"
+import { DepositEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -98,6 +99,7 @@ function DepositPage({
       <LedgerTransactions
         ledgerTransactions={data.depositByPublicId.ledgerTransactions}
       />
+      <DepositEventHistory depositPublicId={publicId} />
     </main>
   )
 }

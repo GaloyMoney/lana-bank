@@ -1246,11 +1246,18 @@ export type Deposit = {
   amount: Scalars['UsdCents']['output'];
   createdAt: Scalars['Timestamp']['output'];
   depositId: Scalars['UUID']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: DepositStatus;
+};
+
+
+export type DepositEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type DepositAccount = {
@@ -1262,12 +1269,19 @@ export type DepositAccount = {
   customerId: Scalars['UUID']['output'];
   depositAccountId: Scalars['UUID']['output'];
   deposits: Array<Deposit>;
+  eventHistory: EventTimelineEntryConnection;
   history: DepositAccountHistoryEntryConnection;
   id: Scalars['ID']['output'];
   ledgerAccounts: DepositAccountLedgerAccounts;
   publicId: Scalars['PublicId']['output'];
   status: DepositAccountStatus;
   withdrawals: Array<Withdrawal>;
+};
+
+
+export type DepositAccountEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 
@@ -3689,12 +3703,19 @@ export type Withdrawal = {
   approvalProcess: ApprovalProcess;
   approvalProcessId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
+  eventHistory: EventTimelineEntryConnection;
   id: Scalars['ID']['output'];
   ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: WithdrawalStatus;
   withdrawalId: Scalars['UUID']['output'];
+};
+
+
+export type WithdrawalEventHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type WithdrawalApprovalConcludedPayload = {
@@ -4458,6 +4479,21 @@ export type DepositAccountCloseMutationVariables = Exact<{
 
 export type DepositAccountCloseMutation = { __typename?: 'Mutation', depositAccountClose: { __typename?: 'DepositAccountClosePayload', account: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string } } } };
 
+export type DepositAccountEventHistoryQueryVariables = Exact<{
+  id: Scalars['PublicId']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type DepositAccountEventHistoryQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+            | { __typename?: 'System', actor: string }
+            | { __typename?: 'User', userId: string, email: string }
+           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+          | { __typename?: 'System', actor: string }
+          | { __typename?: 'User', userId: string, email: string }
+         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+
 export type DepositAccountFreezeMutationVariables = Exact<{
   input: DepositAccountFreezeInput;
 }>;
@@ -4510,6 +4546,21 @@ export type DepositAccountsQueryVariables = Exact<{
 
 
 export type DepositAccountsQuery = { __typename?: 'Query', depositAccounts: { __typename?: 'DepositAccountConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountEdge', cursor: string, node: { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: string, status: DepositAccountStatus, activity: Activity, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } } }> } };
+
+export type DepositEventHistoryQueryVariables = Exact<{
+  id: Scalars['PublicId']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type DepositEventHistoryQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+            | { __typename?: 'System', actor: string }
+            | { __typename?: 'User', userId: string, email: string }
+           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+          | { __typename?: 'System', actor: string }
+          | { __typename?: 'User', userId: string, email: string }
+         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: string, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
 
@@ -5362,6 +5413,21 @@ export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalCon
           | { __typename?: 'CommitteeApproval', committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } }> } }
           | { __typename?: 'SystemApproval', autoApprove: boolean }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: string, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string, description: string }> } } }> } } } };
+
+export type WithdrawalEventHistoryQueryVariables = Exact<{
+  id: Scalars['PublicId']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type WithdrawalEventHistoryQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+            | { __typename?: 'System', actor: string }
+            | { __typename?: 'User', userId: string, email: string }
+           | null } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, payload: any, subject?:
+          | { __typename?: 'System', actor: string }
+          | { __typename?: 'User', userId: string, email: string }
+         | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
 
 export type LedgerTransactionFieldsFragment = { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: string, effective: string, description?: string | null };
 
@@ -9196,6 +9262,92 @@ export function useDepositAccountCloseMutation(baseOptions?: Apollo.MutationHook
 export type DepositAccountCloseMutationHookResult = ReturnType<typeof useDepositAccountCloseMutation>;
 export type DepositAccountCloseMutationResult = Apollo.MutationResult<DepositAccountCloseMutation>;
 export type DepositAccountCloseMutationOptions = Apollo.BaseMutationOptions<DepositAccountCloseMutation, DepositAccountCloseMutationVariables>;
+export const DepositAccountEventHistoryDocument = gql`
+    query DepositAccountEventHistory($id: PublicId!, $first: Int!, $after: String) {
+  depositAccountByPublicId(id: $id) {
+    id
+    eventHistory(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          eventType
+          recordedAt
+          sequence
+          auditEntryId
+          subject {
+            ... on User {
+              userId
+              email
+            }
+            ... on System {
+              actor
+            }
+          }
+          payload
+        }
+      }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        subject {
+          ... on User {
+            userId
+            email
+          }
+          ... on System {
+            actor
+          }
+        }
+        payload
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useDepositAccountEventHistoryQuery__
+ *
+ * To run a query within a React component, call `useDepositAccountEventHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDepositAccountEventHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDepositAccountEventHistoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useDepositAccountEventHistoryQuery(baseOptions: Apollo.QueryHookOptions<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables> & ({ variables: DepositAccountEventHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables>(DepositAccountEventHistoryDocument, options);
+      }
+export function useDepositAccountEventHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables>(DepositAccountEventHistoryDocument, options);
+        }
+// @ts-ignore
+export function useDepositAccountEventHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables>;
+export function useDepositAccountEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<DepositAccountEventHistoryQuery | undefined, DepositAccountEventHistoryQueryVariables>;
+export function useDepositAccountEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables>(DepositAccountEventHistoryDocument, options);
+        }
+export type DepositAccountEventHistoryQueryHookResult = ReturnType<typeof useDepositAccountEventHistoryQuery>;
+export type DepositAccountEventHistoryLazyQueryHookResult = ReturnType<typeof useDepositAccountEventHistoryLazyQuery>;
+export type DepositAccountEventHistorySuspenseQueryHookResult = ReturnType<typeof useDepositAccountEventHistorySuspenseQuery>;
+export type DepositAccountEventHistoryQueryResult = Apollo.QueryResult<DepositAccountEventHistoryQuery, DepositAccountEventHistoryQueryVariables>;
 export const DepositAccountFreezeDocument = gql`
     mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
   depositAccountFreeze(input: $input) {
@@ -9495,6 +9647,92 @@ export type DepositAccountsQueryHookResult = ReturnType<typeof useDepositAccount
 export type DepositAccountsLazyQueryHookResult = ReturnType<typeof useDepositAccountsLazyQuery>;
 export type DepositAccountsSuspenseQueryHookResult = ReturnType<typeof useDepositAccountsSuspenseQuery>;
 export type DepositAccountsQueryResult = Apollo.QueryResult<DepositAccountsQuery, DepositAccountsQueryVariables>;
+export const DepositEventHistoryDocument = gql`
+    query DepositEventHistory($id: PublicId!, $first: Int!, $after: String) {
+  depositByPublicId(id: $id) {
+    id
+    eventHistory(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          eventType
+          recordedAt
+          sequence
+          auditEntryId
+          subject {
+            ... on User {
+              userId
+              email
+            }
+            ... on System {
+              actor
+            }
+          }
+          payload
+        }
+      }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        subject {
+          ... on User {
+            userId
+            email
+          }
+          ... on System {
+            actor
+          }
+        }
+        payload
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useDepositEventHistoryQuery__
+ *
+ * To run a query within a React component, call `useDepositEventHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDepositEventHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDepositEventHistoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useDepositEventHistoryQuery(baseOptions: Apollo.QueryHookOptions<DepositEventHistoryQuery, DepositEventHistoryQueryVariables> & ({ variables: DepositEventHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DepositEventHistoryQuery, DepositEventHistoryQueryVariables>(DepositEventHistoryDocument, options);
+      }
+export function useDepositEventHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DepositEventHistoryQuery, DepositEventHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DepositEventHistoryQuery, DepositEventHistoryQueryVariables>(DepositEventHistoryDocument, options);
+        }
+// @ts-ignore
+export function useDepositEventHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DepositEventHistoryQuery, DepositEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<DepositEventHistoryQuery, DepositEventHistoryQueryVariables>;
+export function useDepositEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DepositEventHistoryQuery, DepositEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<DepositEventHistoryQuery | undefined, DepositEventHistoryQueryVariables>;
+export function useDepositEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DepositEventHistoryQuery, DepositEventHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DepositEventHistoryQuery, DepositEventHistoryQueryVariables>(DepositEventHistoryDocument, options);
+        }
+export type DepositEventHistoryQueryHookResult = ReturnType<typeof useDepositEventHistoryQuery>;
+export type DepositEventHistoryLazyQueryHookResult = ReturnType<typeof useDepositEventHistoryLazyQuery>;
+export type DepositEventHistorySuspenseQueryHookResult = ReturnType<typeof useDepositEventHistorySuspenseQuery>;
+export type DepositEventHistoryQueryResult = Apollo.QueryResult<DepositEventHistoryQuery, DepositEventHistoryQueryVariables>;
 export const GetDepositDetailsDocument = gql`
     query GetDepositDetails($publicId: PublicId!) {
   depositByPublicId(id: $publicId) {
@@ -13360,6 +13598,92 @@ export function useWithdrawalConfirmMutation(baseOptions?: Apollo.MutationHookOp
 export type WithdrawalConfirmMutationHookResult = ReturnType<typeof useWithdrawalConfirmMutation>;
 export type WithdrawalConfirmMutationResult = Apollo.MutationResult<WithdrawalConfirmMutation>;
 export type WithdrawalConfirmMutationOptions = Apollo.BaseMutationOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
+export const WithdrawalEventHistoryDocument = gql`
+    query WithdrawalEventHistory($id: PublicId!, $first: Int!, $after: String) {
+  withdrawalByPublicId(id: $id) {
+    id
+    eventHistory(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          eventType
+          recordedAt
+          sequence
+          auditEntryId
+          subject {
+            ... on User {
+              userId
+              email
+            }
+            ... on System {
+              actor
+            }
+          }
+          payload
+        }
+      }
+      nodes {
+        eventType
+        recordedAt
+        sequence
+        auditEntryId
+        subject {
+          ... on User {
+            userId
+            email
+          }
+          ... on System {
+            actor
+          }
+        }
+        payload
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useWithdrawalEventHistoryQuery__
+ *
+ * To run a query within a React component, call `useWithdrawalEventHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalEventHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWithdrawalEventHistoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useWithdrawalEventHistoryQuery(baseOptions: Apollo.QueryHookOptions<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables> & ({ variables: WithdrawalEventHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables>(WithdrawalEventHistoryDocument, options);
+      }
+export function useWithdrawalEventHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables>(WithdrawalEventHistoryDocument, options);
+        }
+// @ts-ignore
+export function useWithdrawalEventHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables>;
+export function useWithdrawalEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<WithdrawalEventHistoryQuery | undefined, WithdrawalEventHistoryQueryVariables>;
+export function useWithdrawalEventHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables>(WithdrawalEventHistoryDocument, options);
+        }
+export type WithdrawalEventHistoryQueryHookResult = ReturnType<typeof useWithdrawalEventHistoryQuery>;
+export type WithdrawalEventHistoryLazyQueryHookResult = ReturnType<typeof useWithdrawalEventHistoryLazyQuery>;
+export type WithdrawalEventHistorySuspenseQueryHookResult = ReturnType<typeof useWithdrawalEventHistorySuspenseQuery>;
+export type WithdrawalEventHistoryQueryResult = Apollo.QueryResult<WithdrawalEventHistoryQuery, WithdrawalEventHistoryQueryVariables>;
 export const GetWithdrawalDetailsDocument = gql`
     query GetWithdrawalDetails($publicId: PublicId!) {
   withdrawalByPublicId(id: $publicId) {

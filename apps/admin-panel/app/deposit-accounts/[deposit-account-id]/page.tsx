@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 
 import DepositAccountDetailsCard from "./details"
 import { DepositAccountTransactionsTable } from "./transactions-table"
+import { DepositAccountEventHistory } from "./event-history"
 
 import { NotFound } from "@/components/not-found"
 
@@ -187,6 +188,7 @@ function DepositAccountPage({
         loading={loading}
         fetchMore={fetchMore}
       />
+      <DepositAccountEventHistory depositAccountPublicId={publicId} />
     </main>
   )
 }

@@ -1,5 +1,5 @@
 use async_graphql::{connection::*, *};
-use es_entity::Sort;
+use es_entity::{EsEntity as _, Sort};
 
 use crate::primitives::*;
 
@@ -10,8 +10,14 @@ pub use lana_app::deposit::{
 };
 
 use super::{
-    accounting::LedgerAccount, customer::Customer, deposit::*, deposit_account_history::*,
-    loader::LanaDataLoader, primitives::SortDirection, withdrawal::*,
+    accounting::LedgerAccount,
+    customer::Customer,
+    deposit::*,
+    deposit_account_history::*,
+    event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+    loader::LanaDataLoader,
+    primitives::SortDirection,
+    withdrawal::*,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -169,6 +175,16 @@ impl DepositAccount {
             .expect("customer not found");
 
         Ok(Customer::from(customer))
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 
     async fn ledger_accounts(&self) -> DepositAccountLedgerAccounts {

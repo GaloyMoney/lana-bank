@@ -1222,6 +1222,7 @@ type Deposit {
 	reference: String!
 	status: DepositStatus!
 	account: DepositAccount!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	ledgerTransactions: [LedgerTransaction!]!
 }
 
@@ -1238,6 +1239,7 @@ type DepositAccount {
 	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
 	balance: DepositAccountBalance!
 	customer: Customer!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	ledgerAccounts: DepositAccountLedgerAccounts!
 }
 
@@ -3011,6 +3013,7 @@ type Withdrawal {
 	reference: String!
 	approvalProcess: ApprovalProcess!
 	account: DepositAccount!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	ledgerTransactions: [LedgerTransaction!]!
 }
 
