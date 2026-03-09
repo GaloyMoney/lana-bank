@@ -741,6 +741,14 @@ checksums:
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/form/buttons/cancel: 2e2a849c2223911717de8caa2c71bade
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/form/buttons/processPayment: abca531a8db82a8f8fc7bbab1d98c29e
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/messages/success: 004f59aa191f2a9f7b70af04ae0383e8
+    CreditFacilities/CreditFacilityDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    CreditFacilities/CreditFacilityDetails/eventHistory/description: f7985df41f69590cbe331401ab17ee81
+    CreditFacilities/CreditFacilityDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    CreditFacilities/CreditFacilityDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     CreditFacilities/CreditFacilityDetails/CreditFacilityCollateralUpdate/dialog/title: 06f19aba66edfb6c92496cdab0726c26
     CreditFacilities/CreditFacilityDetails/CreditFacilityCollateralUpdate/dialog/description: 8da6b83f4be4f9e402df08affbad2882
     CreditFacilities/CreditFacilityDetails/CreditFacilityCollateralUpdate/dialog/confirmTitle: 3f43219bb3d114f51d1c11de8e5b363e
@@ -1852,49 +1860,6 @@ checksums:
     Auth/IdleSessionDialog/description: 187addc99d1c3cec67cab0b7c32415df
     Auth/IdleSessionDialog/buttons/logout: 9a236bb8f8bec867ec0d0950d38bcc71
     Auth/IdleSessionDialog/buttons/staySignedIn: dced170d3bb1bf1d4c7c0b8db2f597e2
-    EntityEvents/columns/event: 4a04a93ec14995d089bd95d271e288a0
-    EntityEvents/columns/details: 2a8bbb1bc386c059783f925aca2cc522
-    EntityEvents/columns/subject: e7f75207055f9c7ef52d6c4c9decba7c
-    EntityEvents/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
-    EntityEvents/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
-    EntityEvents/user/initialized: c0201a921e6aab7e30cb20b36d95974e
-    EntityEvents/user/role_updated: ceddf8ebf52707814318f50f299fbda3
-    EntityEvents/customer/initialized: 7ab1610e784ed474c0261061a37ed784
-    EntityEvents/customer/frozen: 2d5beadb8def55dd1ec5fdf7defb1690
-    EntityEvents/customer/unfrozen: 8584d4d6248fdc760a6bb3232026b116
-    EntityEvents/customer/closed: d0306e3b07e8e74e8b9decd6928fc927
-    EntityEvents/role/initialized: 29b5fc125fe819dec23f877ef543681e
-    EntityEvents/role/permission_set_added: 0fcd474bea09f58c1e86756589c06739
-    EntityEvents/role/permission_set_removed: 46738fdd6c9c6ea45fc46023cd9953eb
-    EntityEvents/prospect/initialized: bca9559b38e3320eb4b5f8350f391134
-    EntityEvents/prospect/kyc_started: b3dbff1cbf3be1c1ddc3116ff19e71c7
-    EntityEvents/prospect/kyc_approved: 9dc96b20fee5203c5b8798e36632cdc0
-    EntityEvents/prospect/kyc_pending: 4f701cea298b6f65571c6b4994619992
-    EntityEvents/prospect/kyc_on_hold: 871f13f6875f0f7c94ecdd57f30fe2d5
-    EntityEvents/prospect/kyc_declined: d84584668578c05d3a93948a91a68220
-    EntityEvents/prospect/manually_converted: 30dfcafd5fe2b00c92c9d0144e7f1cab
-    EntityEvents/prospect/verification_link_created: 80ae70574df5ec6cd90284b74f5a1f84
-    EntityEvents/prospect/closed: d6b9a0aa440fded4cad23f5a66d78fda
-    EntityEvents/depositAccount/initialized: e7191f051ea0c65b5c180363b2b666d2
-    EntityEvents/depositAccount/activity_updated: e75db3d480c67d40cf29bf56858d677e
-    EntityEvents/depositAccount/frozen: 4114a8a3fa4b71eb1330894990e8d697
-    EntityEvents/depositAccount/unfrozen: 45d817ef99f28eb0958fca05e1b62deb
-    EntityEvents/depositAccount/closed: e27cd1ead5e98213c548f67766d1543f
-    EntityEvents/deposit/initialized: a3ede8a405b3cfadc62aa16d39f53ba1
-    EntityEvents/deposit/reverted: 15746d18a35de9a9a5e2dccf7728b85f
-    EntityEvents/withdrawal/initialized: 83284a7b13e424b89386898f72f60afe
-    EntityEvents/withdrawal/approval_process_concluded: 1d0fc0bdd25fd6feaee76cbf7be347fb
-    EntityEvents/withdrawal/denied: ae6a59ff31acb8b1187e65fcf61d6869
-    EntityEvents/withdrawal/confirmed: 9feaac668c6b5bfcc903b59166e30fc5
-    EntityEvents/withdrawal/cancelled: c5155f3a2991b3f4937228c9e2b9ed1b
-    EntityEvents/withdrawal/reverted: 1254abf21e20877b7ab5d26779e48f79
-    EntityEvents/creditFacility/initialized: e661165300c0bc31bf4a2c30313fa74d
-    EntityEvents/disbursal/initialized: 97ba1ccfb0f33743dfc0306aeb98e891
-    EntityEvents/creditFacilityProposal/initialized: 618681a6d063e18da5ce4a0fa0e31d39
-    EntityEvents/committee/initialized: 4972de82d6a83fce912394ac5f392e31
-    EntityEvents/policy/initialized: d5261bd8da97a4920ffabec64bd6bda9
-    EntityEvents/termsTemplate/initialized: 9c2f05e171b346249ed65dd10615301b
-    EntityEvents/liquidation/initialized: efc0d2661122d8680186912c3423adfb
   aafe99efd8562d4095906d30010fcd19:
     Permissions/access_viewer/description: e47f0f1513dd3c253c5d1f0ed10c2e58
     Permissions/access_viewer/label: 9cf21f792a7ba07d3a092d992600388c

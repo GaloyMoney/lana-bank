@@ -1155,6 +1155,18 @@
           "success": "Pago parcial procesado exitosamente"
         }
       },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de los cambios realizados en esta línea de crédito",
+        "emptyMessage": "No se registraron eventos",
+        "columns": {
+          "event": "Evento",
+          "details": "Detalles",
+          "subject": "Realizado por",
+          "auditEntryId": "Entrada de auditoría",
+          "recordedAt": "Registrado en"
+        }
+      },
       "CreditFacilityCollateralUpdate": {
         "dialog": {
           "title": "Actualizar Garantía de Línea de Crédito",
@@ -2992,81 +3004,6 @@
         "logout": "Cerrar sesión",
         "staySignedIn": "Mantener sesión iniciada"
       }
-    }
-  },
-  "EntityEvents": {
-    "columns": {
-      "event": "Evento",
-      "details": "Detalles",
-      "subject": "Realizado por",
-      "auditEntryId": "Auditoría",
-      "recordedAt": "Registrado el"
-    },
-    "user": {
-      "initialized": "Usuario creado",
-      "role_updated": "Rol cambiado"
-    },
-    "customer": {
-      "initialized": "Cliente creado",
-      "frozen": "Cliente congelado",
-      "unfrozen": "Cliente descongelado",
-      "closed": "Cliente cerrado"
-    },
-    "role": {
-      "initialized": "Rol creado",
-      "permission_set_added": "Conjunto de permisos agregado",
-      "permission_set_removed": "Conjunto de permisos eliminado"
-    },
-    "prospect": {
-      "initialized": "Prospect created",
-      "kyc_started": "KYC started",
-      "kyc_approved": "KYC approved",
-      "kyc_pending": "KYC pending",
-      "kyc_on_hold": "KYC on hold",
-      "kyc_declined": "KYC declined",
-      "manually_converted": "Manually converted",
-      "verification_link_created": "Verification link created",
-      "closed": "Prospect closed"
-    },
-    "depositAccount": {
-      "initialized": "Cuenta creada",
-      "activity_updated": "Actividad actualizada",
-      "frozen": "Cuenta congelada",
-      "unfrozen": "Cuenta descongelada",
-      "closed": "Cuenta cerrada"
-    },
-    "deposit": {
-      "initialized": "Depósito creado",
-      "reverted": "Depósito revertido"
-    },
-    "withdrawal": {
-      "initialized": "Retiro creado",
-      "approval_process_concluded": "Proceso de aprobación concluido",
-      "denied": "Retiro rechazado",
-      "confirmed": "Retiro confirmado",
-      "cancelled": "Retiro cancelado",
-      "reverted": "Retiro revertido"
-    },
-    "creditFacility": {
-      "initialized": "Línea de crédito creada"
-    },
-    "disbursal": {
-      "initialized": "Desembolso creado"
-    },
-    "creditFacilityProposal": {
-      "initialized": "Propuesta creada"
-    },
-    "committee": {
-      "initialized": "Comité creado"
-    },
-    "policy": {
-      "initialized": "Póliza creada"
-    },
-    "termsTemplate": {
-      "initialized": "Plantilla de condiciones creada"
-    },
-    "liquidation": {
-      "initialized": "Liquidación creada"
     }
   }
 }
