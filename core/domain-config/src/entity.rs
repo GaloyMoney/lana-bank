@@ -69,64 +69,42 @@ impl DomainConfig {
             return Ok(());
         }
 
-        // Walk the event stream backwards.  Track whether we encounter an
-        // `Updated` event encrypted with a key we *cannot* read before we
-        // find one we *can* read.
-        let mut saw_unreadable_update = false;
-
+        // Walk the event stream backwards to find the most recent
+        // value-carrying event and verify we can read it.
         for event in self.events.iter_all().rev() {
             match event {
                 DomainConfigEvent::Updated { value } => {
                     if !value.is_encrypted() || value.matches_any_key(key, deprecated_key) {
-                        // Found a value we can read.  If no unreadable
-                        // `Updated` events came after it in the stream, we
-                        // are fine.
-                        return if saw_unreadable_update {
-                            Err(DomainConfigHydrateError::new(
-                                self.key.clone(),
-                                "current value was updated with a newer encryption key",
-                            ))
-                        } else {
-                            Ok(())
-                        };
+                        return Ok(());
                     }
                     // An `Updated` event we cannot read — a real business
-                    // value was written with a different key.
-                    saw_unreadable_update = true;
+                    // value was written with a key we don't have.  No older
+                    // event can change this.
+                    return Err(DomainConfigHydrateError::new(
+                        self.key.clone(),
+                        "encrypted value cannot be decrypted with the current runtime key",
+                    ));
                 }
                 DomainConfigEvent::KeyRotated { value } => {
                     if value.matches_key(key)
                         || deprecated_key.is_some_and(|dk| value.matches_key(dk))
                     {
                         // A re-encryption we can read.  `KeyRotated` events
-                        // carry the same business value, so they don't
-                        // invalidate our view — only `Updated` events do.
-                        return if saw_unreadable_update {
-                            Err(DomainConfigHydrateError::new(
-                                self.key.clone(),
-                                "current value was updated with a newer encryption key",
-                            ))
-                        } else {
-                            Ok(())
-                        };
+                        // carry the same business value, so this confirms
+                        // readability.
+                        return Ok(());
                     }
-                    // KeyRotated with a different key — skip.
+                    // KeyRotated with a different key — skip and look for
+                    // an older event we can read.
                 }
                 DomainConfigEvent::Initialized { .. } => {}
             }
         }
 
-        // No readable event found.
-        if saw_unreadable_update {
-            Err(DomainConfigHydrateError::new(
-                self.key.clone(),
-                "encrypted value cannot be decrypted with the current runtime key",
-            ))
-        } else {
-            // No encrypted values stored at all (no Updated events, or only
-            // a plaintext default in Initialized).
-            Ok(())
-        }
+        // No encrypted values stored at all (no Updated events, or only
+        // a plaintext default in Initialized).
+        Ok(())
+
     }
 
     pub(super) fn current_value_plain<C>(&self) -> Option<<C::Kind as ValueKind>::Value>
