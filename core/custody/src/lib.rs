@@ -4,6 +4,7 @@
 mod config;
 pub mod custodian;
 pub mod error;
+mod jobs;
 mod primitives;
 pub mod public;
 mod publisher;
@@ -255,6 +256,20 @@ where
 
         let inbox_config = InboxConfig::new(CUSTODY_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);
+
+        let sync_bitfinex_spawner = jobs.add_initializer(
+            jobs::sync_bitfinex_wallets::SyncBitfinexWalletsJobInit::new(
+                CustodianRepo::new(pool, clock.clone()),
+                encryption_config.clone(),
+                config.custody_providers.clone(),
+            ),
+        );
+        sync_bitfinex_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                jobs::sync_bitfinex_wallets::SyncBitfinexWalletsJobConfig,
+            )
+            .await?;
 
         let custody = Self {
             authz: authz.clone(),

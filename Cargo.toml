@@ -28,6 +28,7 @@ audit = { path = "lib/audit" }
 dagster = { path = "lib/dagster" }
 authz = { path = "lib/authz" }
 bfx-client = { path = "lib/bfx-client" }
+bitfinex = { path = "lib/bitfinex" }
 bitgo = { path = "lib/bitgo" }
 cloud-storage = { path = "lib/cloud-storage" }
 jwks-utils = { path = "lib/jwks-utils" }

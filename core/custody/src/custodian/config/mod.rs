@@ -1,3 +1,4 @@
+mod bitfinex;
 mod bitgo;
 mod komainu;
 
@@ -5,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+pub use bitfinex::{BitfinexConfig, BitfinexDirectoryConfig};
 pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
 use encryption::{Encrypted, EncryptionKey};
 pub use komainu::{KomainuConfig, KomainuDirectoryConfig};
@@ -21,6 +23,8 @@ pub struct CustodyProviderConfig {
     pub komainu_directory: KomainuDirectoryConfig,
     #[serde(default)]
     pub bitgo_directory: BitgoDirectoryConfig,
+    #[serde(default)]
+    pub bitfinex_directory: BitfinexDirectoryConfig,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, strum::EnumDiscriminants)]
@@ -30,6 +34,7 @@ pub struct CustodyProviderConfig {
 pub enum CustodianConfig {
     Komainu(KomainuConfig),
     Bitgo(BitgoConfig),
+    Bitfinex(BitfinexConfig),
 
     #[cfg(feature = "mock-custodian")]
     Mock,
@@ -54,6 +59,13 @@ impl CustodianConfig {
                 ::bitgo::BitgoClient::try_new(
                     config.into(),
                     provider_config.bitgo_directory.clone(),
+                )
+                .map_err(CustodianClientError::client)?,
+            )),
+            CustodianConfig::Bitfinex(config) => Ok(Box::new(
+                ::bitfinex::BitfinexClient::try_new(
+                    config.into(),
+                    provider_config.bitfinex_directory.clone(),
                 )
                 .map_err(CustodianClientError::client)?,
             )),

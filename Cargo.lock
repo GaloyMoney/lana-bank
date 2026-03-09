@@ -505,6 +505,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitfinex"
+version = "0.0.0"
+dependencies = [
+ "chrono",
+ "hex",
+ "hmac",
+ "reqwest 0.13.2",
+ "rustls",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
+ "url",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1404,6 +1423,7 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
+ "bitfinex",
  "bitgo",
  "bytes",
  "chrono",

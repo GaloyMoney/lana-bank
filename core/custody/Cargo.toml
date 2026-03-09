@@ -15,6 +15,7 @@ audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
+bitfinex = { workspace = true }
 bitgo = { workspace = true }
 komainu = { workspace = true }
 money = { workspace = true }
@@ -40,9 +41,10 @@ http = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
 
+tokio = { workspace = true }
+
 async-graphql = { workspace = true, optional = true }
 
 [dev-dependencies]
 obix = { workspace = true, features = ["test-utils"] }
-tokio = { workspace = true }
 anyhow = { workspace = true }

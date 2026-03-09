@@ -92,6 +92,41 @@ impl CustodianClient for bitgo::BitgoClient {
 }
 
 #[async_trait]
+impl CustodianClient for bitfinex::BitfinexClient {
+    async fn verify_client(&self) -> Result<(), CustodianClientError> {
+        let _ = self.list_wallets().await?;
+        Ok(())
+    }
+
+    async fn initialize_wallet(
+        &self,
+        _label: &str,
+    ) -> Result<ExternalWallet, CustodianClientError> {
+        let address = self.get_deposit_address(true).await?;
+        let network = if self.is_testnet() {
+            WalletNetwork::Testnet4
+        } else {
+            WalletNetwork::Mainnet
+        };
+
+        Ok(ExternalWallet {
+            external_id: format!("bitfinex-{address}"),
+            address,
+            network,
+            full_response: serde_json::Value::Null,
+        })
+    }
+
+    async fn process_webhook(
+        &self,
+        _headers: &http::HeaderMap,
+        _payload: Bytes,
+    ) -> Result<Option<CustodianNotification>, CustodianClientError> {
+        Ok(None)
+    }
+}
+
+#[async_trait]
 impl CustodianClient for komainu::KomainuClient {
     async fn verify_client(&self) -> Result<(), CustodianClientError> {
         let _ = self.list_wallets().await?;
