@@ -127,8 +127,15 @@ impl Custodian {
         Idempotent::Executed(receive_index)
     }
 
-    pub(crate) fn provider_name(&self) -> &str {
-        &self.provider
+    pub(crate) fn prepare_wallet_creation(&mut self) -> Idempotent<Option<u32>> {
+        if self.provider == CustodianConfigDiscriminants::SelfCustody.to_string() {
+            match self.allocate_receive_index() {
+                Idempotent::Executed(receive_index) => Idempotent::Executed(Some(receive_index)),
+                Idempotent::AlreadyApplied => Idempotent::AlreadyApplied,
+            }
+        } else {
+            Idempotent::Executed(None)
+        }
     }
 
     #[record_error_severity]

@@ -539,26 +539,16 @@ where
         custodian_id: CustodianId,
         wallet_label: &str,
     ) -> Result<Wallet, CoreCustodyError> {
+        self.lock_custodian_in_op(db, custodian_id).await?;
+
         let mut custodian = self
             .custodians
             .find_by_id_in_op(&mut *db, &custodian_id)
             .await?;
 
-        let receive_index =
-            if custodian.provider_name() == CustodianConfigDiscriminants::SelfCustody.to_string() {
-                self.lock_custodian_in_op(db, custodian_id).await?;
-                custodian = self
-                    .custodians
-                    .find_by_id_in_op(&mut *db, &custodian_id)
-                    .await?;
-                Some(
-                    custodian
-                        .allocate_receive_index()
-                        .expect("receive index allocation always executes"),
-                )
-            } else {
-                None
-            };
+        let receive_index = custodian
+            .prepare_wallet_creation()
+            .expect("wallet creation preparation always executes");
 
         let client = custodian.clone().custodian_client(
             &self.encryption_config.encryption_key,
