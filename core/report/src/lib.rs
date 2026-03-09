@@ -28,7 +28,7 @@ pub use public::*;
 pub use publisher::ReportPublisher;
 pub use report_definition::*;
 
-use cloud_storage::{Storage, config::StorageConfig};
+use cloud_storage::Storage;
 
 use dagster_adapter::DagsterReportAdapter;
 use jobs::{
@@ -55,8 +55,7 @@ where
     authz: Perms,
     reports: ReportRepo,
     report_runs: ReportRunRepo<E>,
-    storage: Storage,
-    config: ReportConfig,
+    report_file_storage: Storage,
     sync_reports_spawner: SyncReportsJobSpawner<E>,
     trigger_report_run_spawner: TriggerReportRunJobSpawner<E>,
 }
@@ -71,8 +70,7 @@ where
             authz: self.authz.clone(),
             reports: self.reports.clone(),
             report_runs: self.report_runs.clone(),
-            storage: self.storage.clone(),
-            config: self.config.clone(),
+            report_file_storage: self.report_file_storage.clone(),
             sync_reports_spawner: self.sync_reports_spawner.clone(),
             trigger_report_run_spawner: self.trigger_report_run_spawner.clone(),
         }
@@ -86,15 +84,6 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    fn report_file_storage(&self) -> Storage {
-        let reports_bucket_name = std::env::var("REPORTS_BUCKET_NAME").ok();
-        let Some(config) = reports_bucket_storage_config(reports_bucket_name.as_deref()) else {
-            return self.storage.clone();
-        };
-
-        Storage::new(&config)
-    }
-
     #[record_error_severity]
     #[tracing::instrument(name = "report.init", skip_all)]
     pub async fn init(
@@ -111,6 +100,18 @@ where
         let report_repo = ReportRepo::new(pool);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
+        let report_file_storage = config
+            .reports_bucket_name
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(|bucket_name| {
+                Storage::new(&cloud_storage::config::StorageConfig::new_gcp(
+                    bucket_name.to_owned(),
+                ))
+            })
+            .unwrap_or_else(|| storage.clone());
+
         let sync_reports_spawner = jobs.add_initializer(SyncReportsJobInit::<E>::new(
             dagster_adapter.clone(),
             report_run_repo.clone(),
@@ -125,10 +126,9 @@ where
 
         Ok(Self {
             authz: authz.clone(),
-            storage: storage.clone(),
+            report_file_storage,
             reports: report_repo,
             report_runs: report_run_repo,
-            config: config.clone(),
             sync_reports_spawner,
             trigger_report_run_spawner,
         })
@@ -305,8 +305,10 @@ where
             path: &file.path_in_bucket,
         };
 
-        let storage = self.report_file_storage();
-        let download_link = storage.generate_download_link(location).await?;
+        let download_link = self
+            .report_file_storage
+            .generate_download_link(location)
+            .await?;
         Ok(download_link)
     }
 
@@ -378,34 +380,5 @@ where
         db.commit().await?;
 
         Ok(job_id)
-    }
-}
-
-fn reports_bucket_storage_config(bucket_name: Option<&str>) -> Option<StorageConfig> {
-    let bucket_name = bucket_name
-        .map(str::trim)
-        .filter(|bucket_name| !bucket_name.is_empty())?;
-
-    Some(StorageConfig::new_gcp(bucket_name.to_owned()))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn reports_bucket_storage_config_prefers_gcp_when_bucket_present() {
-        let config = reports_bucket_storage_config(Some("test-bucket"));
-
-        match config {
-            Some(StorageConfig::Gcp(gcp)) => assert_eq!(gcp.bucket_name, "test-bucket"),
-            _ => panic!("expected GCP storage config"),
-        }
-    }
-
-    #[test]
-    fn reports_bucket_storage_config_ignores_missing_bucket() {
-        assert!(reports_bucket_storage_config(None).is_none());
-        assert!(reports_bucket_storage_config(Some("   ")).is_none());
     }
 }

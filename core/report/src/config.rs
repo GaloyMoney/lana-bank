@@ -6,4 +6,6 @@ use serde::{Deserialize, Serialize};
 pub struct ReportConfig {
     #[serde(default)]
     pub dagster: DagsterConfig,
+    #[serde(default)]
+    pub reports_bucket_name: Option<String>,
 }
