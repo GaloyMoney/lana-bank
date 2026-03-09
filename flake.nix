@@ -123,6 +123,26 @@
         hash = "sha256-uuNPJjbcL4Vzu6CNGA2OgrQIAWwJCRrH45aW3iXHXLI=";
       };
 
+      mkFrontendCheck = name: buildPhase:
+        pkgs.stdenv.mkDerivation {
+          inherit name pnpmDeps;
+          src = frontendSrc;
+
+          nativeBuildInputs = [
+            pkgs.nodejs
+            pkgs.pnpm
+            pkgs.pnpmConfigHook
+            pkgs.diffutils
+          ];
+
+          inherit buildPhase;
+
+          installPhase = ''
+            mkdir -p $out
+            echo "${name} passed" > $out/result.txt
+          '';
+        };
+
       commonArgs = {
         src = rustSource;
         strictDeps = true;
@@ -952,71 +972,53 @@
             '';
           };
 
-          check-code-apps = pkgs.stdenv.mkDerivation {
-            name = "check-code-apps";
-            src = frontendSrc;
+          admin-panel-lint = mkFrontendCheck "admin-panel-lint" ''
+            echo "Running lint for admin-panel..."
+            pnpm --filter admin-panel lint
+            echo "admin-panel lint passed ✓"
+          '';
 
-            nativeBuildInputs = [
-              pkgs.nodejs
-              pkgs.pnpm
-              pkgs.pnpmConfigHook
-              pkgs.diffutils
-            ];
+          admin-panel-tsc = mkFrontendCheck "admin-panel-tsc" ''
+            echo "Running typecheck for admin-panel..."
+            pnpm --filter admin-panel tsc-check
+            echo "admin-panel typecheck passed ✓"
+          '';
 
-            inherit pnpmDeps;
+          admin-panel-codegen = mkFrontendCheck "admin-panel-codegen" ''
+            cp -r apps/admin-panel/lib/graphql/generated "$TMPDIR/codegen-committed"
+            echo "Running codegen for admin-panel..."
+            pnpm --filter admin-panel codegen
+            if ! diff -ru "$TMPDIR/codegen-committed" apps/admin-panel/lib/graphql/generated/; then
+              echo "ERROR: admin-panel codegen output is stale!"
+              echo "Run 'make sdl-js' to regenerate"
+              exit 1
+            fi
+            echo "admin-panel codegen is up to date ✓"
+          '';
 
-            buildPhase = ''
-              # Save committed codegen output for staleness check
-              mkdir -p /tmp/codegen-committed
-              cp -r apps/admin-panel/lib/graphql/generated /tmp/codegen-committed/admin-panel
-              cp -r apps/customer-portal/lib/graphql/generated /tmp/codegen-committed/customer-portal
+          customer-portal-lint = mkFrontendCheck "customer-portal-lint" ''
+            echo "Running lint for customer-portal..."
+            pnpm --filter customer-portal lint
+            echo "customer-portal lint passed ✓"
+          '';
 
-              # Run codegen for both apps
-              echo "Running codegen for admin-panel..."
-              pnpm --filter admin-panel codegen
+          customer-portal-tsc = mkFrontendCheck "customer-portal-tsc" ''
+            echo "Running typecheck for customer-portal..."
+            pnpm --filter customer-portal tsc-check
+            echo "customer-portal typecheck passed ✓"
+          '';
 
-              echo "Running codegen for customer-portal..."
-              pnpm --filter customer-portal codegen
-
-              # Check codegen staleness
-              echo "Checking codegen staleness for admin-panel..."
-              if ! diff -ru /tmp/codegen-committed/admin-panel apps/admin-panel/lib/graphql/generated/; then
-                echo "ERROR: admin-panel codegen output is stale!"
-                echo "Run 'make sdl-js' to regenerate"
-                exit 1
-              fi
-
-              echo "Checking codegen staleness for customer-portal..."
-              if ! diff -ru /tmp/codegen-committed/customer-portal apps/customer-portal/lib/graphql/generated/; then
-                echo "ERROR: customer-portal codegen output is stale!"
-                echo "Run 'make sdl-js' to regenerate"
-                exit 1
-              fi
-
-              echo "Codegen output is up to date ✓"
-
-              # Run lint for both apps
-              echo "Running lint for admin-panel..."
-              pnpm --filter admin-panel lint
-
-              echo "Running lint for customer-portal..."
-              pnpm --filter customer-portal lint
-
-              # Run typecheck for both apps
-              echo "Running typecheck for admin-panel..."
-              pnpm --filter admin-panel tsc-check
-
-              echo "Running typecheck for customer-portal..."
-              pnpm --filter customer-portal tsc-check
-
-              echo "All frontend checks passed ✓"
-            '';
-
-            installPhase = ''
-              mkdir -p $out
-              echo "Frontend checks passed" > $out/result.txt
-            '';
-          };
+          customer-portal-codegen = mkFrontendCheck "customer-portal-codegen" ''
+            cp -r apps/customer-portal/lib/graphql/generated "$TMPDIR/codegen-committed"
+            echo "Running codegen for customer-portal..."
+            pnpm --filter customer-portal codegen
+            if ! diff -ru "$TMPDIR/codegen-committed" apps/customer-portal/lib/graphql/generated/; then
+              echo "ERROR: customer-portal codegen output is stale!"
+              echo "Run 'make sdl-js' to regenerate"
+              exit 1
+            fi
+            echo "customer-portal codegen is up to date ✓"
+          '';
 
           check-fmt = pkgs.stdenv.mkDerivation {
             name = "check-fmt";
