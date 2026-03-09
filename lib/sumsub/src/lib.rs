@@ -201,6 +201,78 @@ impl SumsubClient {
         }
     }
 
+    /// Reject an applicant's verification via SumSub's external decision API.
+    ///
+    /// This is used when a customer is frozen to ensure the SumSub applicant
+    /// is also marked as rejected with a FINAL rejection.
+    pub async fn reject_applicant<T>(
+        &self,
+        external_user_id: T,
+        reason: &str,
+    ) -> Result<(), SumsubError>
+    where
+        T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
+    {
+        let applicant_details = self.get_applicant_details(external_user_id).await?;
+        let applicant_id = &applicant_details.id;
+
+        let method = "POST";
+        let url_path = Self::reject_applicant_path(applicant_id);
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
+
+        // TODO: Replace these hard-coded SumSub rejection fields once compliance
+        // confirms the canonical reject label and note for Lana customer freezes.
+        let body = json!({
+            "note": reason,
+            "reasons": {
+                "manual": ["riskTeamDecision"]
+            }
+        });
+
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .post(full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        self.handle_simple_response(response, "Failed to reject applicant")
+            .await
+    }
+
+    /// Approve an applicant's verification via SumSub's external decision API.
+    ///
+    /// This is used when a customer is unfrozen to restore the SumSub applicant
+    /// to an approved state after a prior compliance-driven rejection.
+    pub async fn approve_applicant<T>(&self, external_user_id: T) -> Result<(), SumsubError>
+    where
+        T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
+    {
+        let applicant_details = self.get_applicant_details(external_user_id).await?;
+        let applicant_id = &applicant_details.id;
+
+        let method = "POST";
+        let url_path = Self::approve_applicant_path(applicant_id);
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
+
+        let body = "{}";
+        let headers = self.get_headers(method, &url_path, Some(body))?;
+        let response = self
+            .client
+            .post(full_url)
+            .headers(headers)
+            .body(body.to_string())
+            .send()
+            .await?;
+
+        self.handle_simple_response(response, "Failed to approve applicant")
+            .await
+    }
+
     /// Deactivate an applicant's profile by external user ID.
     ///
     /// This marks the applicant as deactivated in SumSub so they are treated
@@ -627,6 +699,14 @@ impl SumsubClient {
         Ok(hex::encode(mac.finalize().into_bytes()))
     }
 
+    fn reject_applicant_path(applicant_id: &str) -> String {
+        format!("/resources/applicants/{applicant_id}/-/reject")
+    }
+
+    fn approve_applicant_path(applicant_id: &str) -> String {
+        format!("/resources/applicants/{applicant_id}/-/approve")
+    }
+
     async fn handle_api_response<T>(
         &self,
         response: reqwest::Response,
@@ -676,5 +756,22 @@ impl SumsubClient {
                 code: 500,
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SumsubClient;
+
+    #[test]
+    fn applicant_decision_paths_match_sumsub_api() {
+        assert_eq!(
+            SumsubClient::reject_applicant_path("applicant-123"),
+            "/resources/applicants/applicant-123/-/reject"
+        );
+        assert_eq!(
+            SumsubClient::approve_applicant_path("applicant-123"),
+            "/resources/applicants/applicant-123/-/approve"
+        );
     }
 }
