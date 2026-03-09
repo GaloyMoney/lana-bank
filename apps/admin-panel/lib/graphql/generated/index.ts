@@ -4377,7 +4377,7 @@ export type CustomerEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type CustomerEventHistoryQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+export type CustomerEventHistoryQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type CustomerFreezeMutationVariables = Exact<{
   input: CustomerFreezeInput;
@@ -5142,7 +5142,7 @@ export type RoleEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type RoleEventHistoryQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+export type RoleEventHistoryQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type RoleCreateMutationVariables = Exact<{
   input: RoleCreateInput;
@@ -5285,7 +5285,7 @@ export type UserEventHistoryQueryVariables = Exact<{
 }>;
 
 
-export type UserEventHistoryQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, nodes: Array<{ __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } } | null };
+export type UserEventHistoryQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, eventHistory: { __typename?: 'EventTimelineEntryConnection', edges: Array<{ __typename?: 'EventTimelineEntryEdge', cursor: string, node: { __typename?: 'EventTimelineEntry', eventType: string, recordedAt: string, sequence: number, auditEntryId?: any | null, userId?: string | null, payload: any } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type GetUserDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -8647,17 +8647,11 @@ export const CustomerEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        userId
-        payload
-      }
       pageInfo {
-        hasNextPage
         endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
       }
     }
   }
@@ -12448,17 +12442,11 @@ export const RoleEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        userId
-        payload
-      }
       pageInfo {
-        hasNextPage
         endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
       }
     }
   }
@@ -12979,17 +12967,11 @@ export const UserEventHistoryDocument = gql`
           payload
         }
       }
-      nodes {
-        eventType
-        recordedAt
-        sequence
-        auditEntryId
-        userId
-        payload
-      }
       pageInfo {
-        hasNextPage
         endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
       }
     }
   }

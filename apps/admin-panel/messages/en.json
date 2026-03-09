@@ -26,6 +26,7 @@
     "showIds": "Show IDs",
     "hideIds": "Hide IDs",
     "showUser": "Show user",
+    "system": "System",
     "copyId": "Copy ID",
     "formatRule": {
       "noRulesDefined": "No rules defined",
@@ -714,6 +715,11 @@
             "createdAt": "Created At"
           }
         }
+      },
+      "eventHistory": {
+        "title": "Events",
+        "description": "Timeline of changes made to this customer",
+        "emptyMessage": "No events recorded"
       }
     }
   },
@@ -884,18 +890,6 @@
         },
         "errors": {
           "unknown": "An error occurred while processing the customer approval"
-        }
-      },
-      "eventHistory": {
-        "title": "Events",
-        "description": "Timeline of changes made to this customer",
-        "emptyMessage": "No events recorded",
-        "columns": {
-          "event": "Event",
-          "details": "Details",
-          "userId": "User",
-          "auditEntryId": "Audit Entry",
-          "recordedAt": "Recorded At"
         }
       }
     }
@@ -2160,14 +2154,7 @@
     "eventHistory": {
       "title": "Events",
       "description": "Timeline of changes made to this user",
-      "emptyMessage": "No events recorded",
-      "columns": {
-        "event": "Event",
-        "details": "Details",
-        "userId": "User",
-        "auditEntryId": "Audit Entry",
-        "recordedAt": "Recorded At"
-      }
+      "emptyMessage": "No events recorded"
     },
     "updateRole": {
       "title": "Update Role",
@@ -2854,14 +2841,7 @@
     "eventHistory": {
       "title": "Events",
       "description": "Timeline of changes made to this role",
-      "emptyMessage": "No events recorded",
-      "columns": {
-        "event": "Event",
-        "details": "Details",
-        "userId": "User",
-        "auditEntryId": "Audit Entry",
-        "recordedAt": "Recorded At"
-      }
+      "emptyMessage": "No events recorded"
     }
   },
   "Auth": {
@@ -2875,6 +2855,13 @@
     }
   },
   "EntityEvents": {
+    "columns": {
+      "event": "Event",
+      "details": "Details",
+      "userId": "User",
+      "auditEntryId": "Audit Entry",
+      "recordedAt": "Recorded At"
+    },
     "user": {
       "initialized": "User created",
       "role_updated": "Role changed"

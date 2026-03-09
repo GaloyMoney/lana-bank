@@ -26,6 +26,7 @@
     "showIds": "Mostrar IDs",
     "hideIds": "Ocultar IDs",
     "showUser": "Mostrar usuario",
+    "system": "Sistema",
     "copyId": "Copiar ID",
     "formatRule": {
       "noRulesDefined": "No hay reglas definidas",
@@ -714,6 +715,11 @@
             "createdAt": "Fecha de registro"
           }
         }
+      },
+      "eventHistory": {
+        "title": "Eventos",
+        "description": "Cronología de cambios realizados en este cliente",
+        "emptyMessage": "No se registraron eventos"
       }
     }
   },
@@ -884,18 +890,6 @@
         },
         "errors": {
           "unknown": "Ocurrió un error al procesar la aprobación del cliente"
-        }
-      },
-      "eventHistory": {
-        "title": "Eventos",
-        "description": "Cronología de cambios realizados en este cliente",
-        "emptyMessage": "No se registraron eventos",
-        "columns": {
-          "event": "Evento",
-          "details": "Detalles",
-          "userId": "Usuario",
-          "auditEntryId": "Auditoría",
-          "recordedAt": "Registrado el"
         }
       }
     }
@@ -2160,14 +2154,7 @@
     "eventHistory": {
       "title": "Eventos",
       "description": "Cronología de cambios realizados en este usuario",
-      "emptyMessage": "No se registraron eventos",
-      "columns": {
-        "event": "Evento",
-        "details": "Detalles",
-        "userId": "Usuario",
-        "auditEntryId": "Auditoría",
-        "recordedAt": "Registrado el"
-      }
+      "emptyMessage": "No se registraron eventos"
     },
     "updateRole": {
       "title": "Actualizar rol",
@@ -2854,14 +2841,7 @@
     "eventHistory": {
       "title": "Eventos",
       "description": "Cronología de cambios realizados en este rol",
-      "emptyMessage": "No se registraron eventos",
-      "columns": {
-        "event": "Evento",
-        "details": "Detalles",
-        "userId": "Usuario",
-        "auditEntryId": "Auditoría",
-        "recordedAt": "Registrado el"
-      }
+      "emptyMessage": "No se registraron eventos"
     }
   },
   "Auth": {
@@ -2875,6 +2855,13 @@
     }
   },
   "EntityEvents": {
+    "columns": {
+      "event": "Evento",
+      "details": "Detalles",
+      "userId": "Usuario",
+      "auditEntryId": "Auditoría",
+      "recordedAt": "Registrado el"
+    },
     "user": {
       "initialized": "Usuario creado",
       "role_updated": "Rol cambiado"
