@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "1.0",
-    "defaultDescription": "TODO: Agregar descripcion"
+    "defaultDescription": "TODO: Add description"
   },
   "admin": {
     "queries": {
@@ -73,9 +73,9 @@
       "publicIdTarget": "Resuelve un ID publico a su entidad destino (cliente, deposito, retiro, etc.)",
       "loanAgreement": "Obtiene un contrato de prestamo especifico por su identificador unico",
       "accountEntryCsv": "Obtiene el documento CSV de exportacion para una cuenta contable especifica",
-      "availableReportDefinitions": "Devuelve las definiciones de reportes que pueden generarse manualmente, incluyendo los formatos de salida y si se requiere una fecha de corte",
       "reportRuns": "Devuelve una lista paginada de todas las ejecuciones de reportes",
       "reportRun": "Obtiene una ejecucion de reporte especifica por su identificador unico",
+      "availableReportDefinitions": "Devuelve las definiciones de reportes que pueden generarse manualmente, incluyendo los formatos de salida y si se requiere una fecha de corte",
       "prospect": "Obtiene un prospecto especifico por su identificador unico",
       "prospectByPublicId": "Obtiene un prospecto por su identificador publico",
       "prospects": "Devuelve una lista paginada de todos los prospectos, opcionalmente filtrada por etapa"
