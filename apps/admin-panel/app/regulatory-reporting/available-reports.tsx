@@ -35,7 +35,7 @@ import {
 } from "@lana/web/ui/table"
 import { formatSpacedSentenceCaseFromSnakeCase } from "@lana/web/utils"
 
-import { AsOfDateSelector, getInitialAsOfDate } from "../balance-sheet/as-of-date-selector"
+import { AsOfDateSelector, getInitialAsOfDate } from "@/components/as-of-date-selector"
 
 import {
   ReportRunsDocument,
