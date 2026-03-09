@@ -8,7 +8,7 @@ mod startup_domain_config;
 
 use anyhow::Context;
 use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::OsRng};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::{fs, path::PathBuf, time::Duration};
 use tracing_utils::{error, info, warn};
 
@@ -57,10 +57,32 @@ enum Commands {
     BuildInfo,
     /// Generate encryption key
     Genencryptionkey,
+    /// Generate an account xpriv/xpub pair for self-custody wallets
+    Genxpriv {
+        #[clap(long, value_enum, default_value_t = CliSelfCustodyNetwork::Testnet4)]
+        network: CliSelfCustodyNetwork,
+    },
     /// Generate default configuration file (lana.yml) with all default values
     DumpDefaultConfig,
     /// Run the main server (default when no subcommand is specified)
     Run,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum CliSelfCustodyNetwork {
+    Testnet3,
+    Testnet4,
+    Mainnet,
+}
+
+impl From<CliSelfCustodyNetwork> for self_custody::SelfCustodyNetwork {
+    fn from(network: CliSelfCustodyNetwork) -> Self {
+        match network {
+            CliSelfCustodyNetwork::Testnet3 => self_custody::SelfCustodyNetwork::Testnet3,
+            CliSelfCustodyNetwork::Testnet4 => self_custody::SelfCustodyNetwork::Testnet4,
+            CliSelfCustodyNetwork::Mainnet => self_custody::SelfCustodyNetwork::Mainnet,
+        }
+    }
 }
 
 pub async fn run() -> anyhow::Result<()> {
@@ -75,6 +97,18 @@ pub async fn run() -> anyhow::Result<()> {
         Commands::Genencryptionkey => {
             let key = ChaCha20Poly1305::generate_key(&mut OsRng);
             println!("{}", hex::encode(key));
+            return Ok(());
+        }
+        Commands::Genxpriv { network } => {
+            let keys = self_custody::generate_account_keys(network.into())?;
+            println!("network: {:?}", keys.network);
+            println!("account_path: {}", keys.account_derivation_path);
+            println!("account_xpriv: {}", keys.account_xpriv);
+            println!("account_xpub: {}", keys.account_xpub);
+            println!(
+                "receive_path_template: {}/0/<loan_index>",
+                keys.account_derivation_path
+            );
             return Ok(());
         }
         Commands::DumpDefaultConfig => {

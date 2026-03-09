@@ -4,10 +4,10 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use crate::primitives::WalletId;
+use crate::primitives::{CustodianId, WalletId};
 use crate::{CoreCustodyEvent, publisher::CustodyPublisher};
 
-use super::entity::*;
+use super::{entity::*, error::*};
 
 #[derive(EsRepo)]
 #[es_repo(
@@ -46,6 +46,34 @@ where
         self.publisher
             .publish_wallet_in_op(op, entity, new_events)
             .await
+    }
+
+    pub async fn list_all_by_custodian_id_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        custodian_id: CustodianId,
+    ) -> Result<Vec<Wallet>, WalletError> {
+        let wallet_ids = sqlx::query_scalar::<_, uuid::Uuid>(
+            r#"
+            SELECT DISTINCT ON (id) id
+            FROM core_wallet_events_rollup
+            WHERE custodian_id = $1
+            ORDER BY id, version DESC
+            "#,
+        )
+        .bind(custodian_id)
+        .fetch_all(op.as_executor())
+        .await?;
+
+        let mut wallets = Vec::with_capacity(wallet_ids.len());
+        for wallet_id in wallet_ids {
+            wallets.push(
+                self.find_by_id_in_op(&mut *op, WalletId::from(wallet_id))
+                    .await?,
+            );
+        }
+
+        Ok(wallets)
     }
 }
 

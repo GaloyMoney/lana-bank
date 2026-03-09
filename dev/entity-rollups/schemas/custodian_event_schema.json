@@ -77,6 +77,24 @@
         "encrypted_custodian_config"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "receive_index": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "type": {
+          "const": "receive_index_allocated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "receive_index"
+      ],
+      "type": "object"
     }
   ],
   "title": "CustodianEvent"

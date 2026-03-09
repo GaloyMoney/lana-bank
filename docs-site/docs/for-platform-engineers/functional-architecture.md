@@ -82,13 +82,13 @@ For compliance with inactive account regulations, the system tracks the last act
 
 #### 2.1.4 Custody
 
-The custody module provides an abstraction over multiple Bitcoin custody providers, allowing the bank to work with different custodians according to their operational and regulatory needs. The system is designed with a plugin pattern where each **Custodian** implements a common interface. Currently **BitGo** and **Komainu** are implemented, but the architecture allows adding new custodians without modifying the rest of the system.
+The custody module provides an abstraction over multiple Bitcoin custody providers, allowing the bank to work with different custodians according to their operational and regulatory needs. The system is designed with a plugin pattern where each **Custodian** implements a common interface. **BitGo**, **Komainu**, and an xpub-based **Self-Custody** option are implemented, and the architecture allows adding new custodians without modifying the rest of the system.
 
 In each deployment, multiple custodians can be configured and activated simultaneously. When a credit facility is created, you can specify which custodian will manage that particular facility's collateral. This allows, for example, using different custodians for different customer segments or jurisdictions.
 
-Each custodian manages **Wallets** that are assigned to credit facilities to receive Bitcoin collateral. Custodians notify the system about changes in wallet balances through webhooks. When a notification arrives, the system updates the **Collateral** associated with the corresponding facility and recalculates the CVL. This automatic synchronization is critical for maintaining an accurate view of risk in real time.
+Each custodian manages **Wallets** that are assigned to credit facilities to receive Bitcoin collateral. Hosted custodians notify the system about changes in wallet balances through webhooks. The self-custody option stores only an account `xpub` on the backend, derives a new receive address for each newly created loan, and polls an esplora backend for confirmed balance changes. In both cases, Lana updates the **Collateral** associated with the corresponding facility and recalculates the CVL automatically.
 
-Custodian webhooks are received at provider-specific endpoints and are cryptographically validated before processing. The configuration for each custodian includes the necessary API credentials and keys to verify webhook authenticity. Sensitive keys are stored encrypted.
+Custodian webhooks are received at provider-specific endpoints and are cryptographically validated before processing. The configuration for hosted custodians includes the necessary API credentials and keys to verify webhook authenticity, and those sensitive values are stored encrypted. For self-custody, the backend keeps only the `xpub`; the matching `xpriv` is generated and retained outside the backend.
 
 #### 2.1.5 Accounting
 

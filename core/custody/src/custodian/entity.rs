@@ -26,6 +26,9 @@ pub enum CustodianEvent {
     ConfigUpdated {
         encrypted_custodian_config: Encrypted,
     },
+    ReceiveIndexAllocated {
+        receive_index: u32,
+    },
 }
 
 #[derive(EsEntity, Builder, Clone)]
@@ -35,6 +38,8 @@ pub struct Custodian {
     encrypted_custodian_config: Encrypted,
     pub name: String,
     pub(super) provider: String,
+    #[builder(default)]
+    next_receive_index: u32,
     events: EntityEvents<CustodianEvent>,
 }
 
@@ -111,6 +116,21 @@ impl Custodian {
         Ok(Idempotent::Executed(()))
     }
 
+    pub fn allocate_receive_index(&mut self) -> Idempotent<u32> {
+        let receive_index = self.next_receive_index;
+        self.next_receive_index = self
+            .next_receive_index
+            .checked_add(1)
+            .expect("receive index overflowed");
+        self.events
+            .push(CustodianEvent::ReceiveIndexAllocated { receive_index });
+        Idempotent::Executed(receive_index)
+    }
+
+    pub(crate) fn provider_name(&self) -> &str {
+        &self.provider
+    }
+
     #[record_error_severity]
     #[instrument(name = "custody.custodian_client", skip(self, key), fields(custodian_id = %self.id))]
     pub fn custodian_client(
@@ -143,6 +163,9 @@ impl TryFromEvents<CustodianEvent> for Custodian {
                     ..
                 } => {
                     builder = builder.encrypted_custodian_config(encrypted_custodian_config.clone())
+                }
+                CustodianEvent::ReceiveIndexAllocated { receive_index } => {
+                    builder = builder.next_receive_index(receive_index + 1)
                 }
             }
         }
@@ -193,5 +216,40 @@ impl IntoEvents<CustodianEvent> for NewCustodian {
                 },
             ],
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn allocate_receive_index_advances_sequentially() {
+        let key = EncryptionKey::new([7u8; 32]);
+        let generated =
+            self_custody::generate_account_keys(SelfCustodyNetwork::Testnet4).expect("keys");
+        let config = CustodianConfig::SelfCustody(SelfCustodyConfig {
+            account_xpub: generated.account_xpub,
+            network: SelfCustodyNetwork::Testnet4,
+            esplora_url: "https://example.com".parse().expect("valid url"),
+        });
+        let new_custodian = NewCustodian::builder()
+            .id(CustodianId::new())
+            .name("Self Custody".to_string())
+            .provider("self-custody".to_string())
+            .encrypted_custodian_config(config, &key)
+            .build()
+            .expect("new custodian builds");
+
+        let mut custodian =
+            Custodian::try_from_events(new_custodian.into_events()).expect("custodian hydrates");
+
+        assert_eq!(custodian.allocate_receive_index().expect("first"), 0);
+        assert_eq!(custodian.allocate_receive_index().expect("second"), 1);
+
+        let events = custodian.events.clone();
+        let rehydrated = Custodian::try_from_events(events).expect("rehydration succeeds");
+
+        assert_eq!(rehydrated.next_receive_index, 2);
     }
 }

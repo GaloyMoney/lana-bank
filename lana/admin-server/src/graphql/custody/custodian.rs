@@ -10,6 +10,8 @@ pub use lana_app::custody::{
     custodian::{
         BitgoConfig as DomainBitgoConfig, Custodian as DomainCustodian,
         CustodianConfig as DomainCustodianConfig, KomainuConfig as DomainKomainuConfig,
+        SelfCustodyConfig as DomainSelfCustodyConfig,
+        SelfCustodyNetwork as DomainSelfCustodyNetwork,
     },
 };
 
@@ -68,6 +70,21 @@ pub struct BitgoConfig {
     webhook_secret: String,
 }
 
+#[derive(InputObject)]
+pub struct SelfCustodyConfig {
+    name: String,
+    account_xpub: String,
+    network: SelfCustodyNetwork,
+    esplora_url: String,
+}
+
+#[derive(async_graphql::Enum, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SelfCustodyNetwork {
+    Testnet3,
+    Testnet4,
+    Mainnet,
+}
+
 impl From<KomainuConfig> for DomainKomainuConfig {
     fn from(config: KomainuConfig) -> Self {
         Self {
@@ -93,10 +110,31 @@ impl From<BitgoConfig> for DomainBitgoConfig {
     }
 }
 
+impl From<SelfCustodyNetwork> for DomainSelfCustodyNetwork {
+    fn from(network: SelfCustodyNetwork) -> Self {
+        match network {
+            SelfCustodyNetwork::Testnet3 => DomainSelfCustodyNetwork::Testnet3,
+            SelfCustodyNetwork::Testnet4 => DomainSelfCustodyNetwork::Testnet4,
+            SelfCustodyNetwork::Mainnet => DomainSelfCustodyNetwork::Mainnet,
+        }
+    }
+}
+
+impl From<SelfCustodyConfig> for DomainSelfCustodyConfig {
+    fn from(config: SelfCustodyConfig) -> Self {
+        Self {
+            account_xpub: config.account_xpub,
+            network: config.network.into(),
+            esplora_url: Url::parse(&config.esplora_url).expect("esplora_url must be a valid URL"),
+        }
+    }
+}
+
 #[derive(OneofObject)]
 pub enum CustodianCreateInput {
     Komainu(KomainuConfig),
     Bitgo(BitgoConfig),
+    SelfCustody(SelfCustodyConfig),
 }
 
 impl CustodianCreateInput {
@@ -104,6 +142,7 @@ impl CustodianCreateInput {
         match self {
             CustodianCreateInput::Komainu(conf) => &conf.name,
             CustodianCreateInput::Bitgo(conf) => &conf.name,
+            CustodianCreateInput::SelfCustody(conf) => &conf.name,
         }
     }
 }
@@ -113,6 +152,9 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
         match input {
             CustodianCreateInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
             CustodianCreateInput::Bitgo(config) => DomainCustodianConfig::Bitgo(config.into()),
+            CustodianCreateInput::SelfCustody(config) => {
+                DomainCustodianConfig::SelfCustody(config.into())
+            }
         }
     }
 }
@@ -121,6 +163,7 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
 pub enum CustodianConfigInput {
     Komainu(KomainuConfig),
     Bitgo(BitgoConfig),
+    SelfCustody(SelfCustodyConfig),
 }
 
 impl From<CustodianConfigInput> for DomainCustodianConfig {
@@ -128,6 +171,9 @@ impl From<CustodianConfigInput> for DomainCustodianConfig {
         match input {
             CustodianConfigInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
             CustodianConfigInput::Bitgo(config) => DomainCustodianConfig::Bitgo(config.into()),
+            CustodianConfigInput::SelfCustody(config) => {
+                DomainCustodianConfig::SelfCustody(config.into())
+            }
         }
     }
 }

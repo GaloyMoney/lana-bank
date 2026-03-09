@@ -1,5 +1,6 @@
 mod bitgo;
 mod komainu;
+mod self_custody;
 
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -8,6 +9,7 @@ use tracing_macros::record_error_severity;
 pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
 use encryption::{Encrypted, EncryptionKey};
 pub use komainu::{KomainuConfig, KomainuDirectoryConfig};
+pub use self_custody::{SelfCustodyConfig, SelfCustodyNetwork};
 
 use super::{
     client::{CustodianClient, error::CustodianClientError},
@@ -30,6 +32,7 @@ pub struct CustodyProviderConfig {
 pub enum CustodianConfig {
     Komainu(KomainuConfig),
     Bitgo(BitgoConfig),
+    SelfCustody(SelfCustodyConfig),
 
     #[cfg(feature = "mock-custodian")]
     Mock,
@@ -56,6 +59,10 @@ impl CustodianConfig {
                     provider_config.bitgo_directory.clone(),
                 )
                 .map_err(CustodianClientError::client)?,
+            )),
+            CustodianConfig::SelfCustody(config) => Ok(Box::new(
+                ::self_custody::SelfCustodyClient::try_new(config)
+                    .map_err(CustodianClientError::client)?,
             )),
 
             #[cfg(feature = "mock-custodian")]
