@@ -1,7 +1,10 @@
-use async_graphql::*;
-use es_entity::Sort;
+use async_graphql::{connection::*, *};
+use es_entity::{EsEntity as _, Sort};
 
-use crate::primitives::*;
+use crate::{
+    graphql::event_timeline::{self, EventTimelineCursor, EventTimelineEntry},
+    primitives::*,
+};
 pub use lana_app::fiscal_year::{
     FiscalMonthClosure as DomainFiscalMonthClosure, FiscalYear as DomainFiscalYear,
     FiscalYearsCursor as DomainFiscalYearsCursor, FiscalYearsSortBy as DomainFiscalYearsSortBy,
@@ -61,6 +64,16 @@ impl FiscalYear {
 
     pub async fn next_month_to_close(&self) -> Option<Date> {
         self.entity.next_month_to_close().map(|date| date.into())
+    }
+
+    async fn event_history(
+        &self,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<EventTimelineCursor, EventTimelineEntry, EmptyFields, EmptyFields>,
+    > {
+        event_timeline::events_to_connection(self.entity.events(), first, after)
     }
 }
 

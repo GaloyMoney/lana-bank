@@ -1657,6 +1657,7 @@ type FiscalYear {
 	monthClosures: [FiscalMonthClosure!]!
 	isLastMonthOfYearClosed: Boolean!
 	nextMonthToClose: Date
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 }
 
 input FiscalYearCloseInput {
@@ -2181,6 +2182,7 @@ type PendingCreditFacility {
 	customer: Customer!
 	creditFacilityTerms: TermValues!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	eventHistory(first: Int!, after: String): EventTimelineEntryConnection!
 	approvalProcess: ApprovalProcess!
 }
 
