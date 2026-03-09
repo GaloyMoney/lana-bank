@@ -2,8 +2,10 @@ use async_graphql::*;
 
 use lana_app::primitives::UsdCents;
 
+/// The latest BTC price used by Lana.
 #[derive(SimpleObject)]
 pub struct RealtimePrice {
+    /// Price of one BTC in USD cents.
     usd_cents_per_btc: UsdCents,
 }
 

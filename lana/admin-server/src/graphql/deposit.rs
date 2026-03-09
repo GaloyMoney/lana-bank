@@ -87,8 +87,10 @@ pub struct DepositRecordInput {
 }
 crate::mutation_payload! { DepositRecordPayload, deposit: Deposit }
 
+/// Input for creating a deposit account.
 #[derive(InputObject)]
 pub struct DepositAccountCreateInput {
+    /// Internal UUID of the customer that will own the new account.
     pub customer_id: UUID,
 }
 crate::mutation_payload! { DepositAccountCreatePayload, account: DepositAccount }
@@ -99,20 +101,26 @@ pub struct DepositRevertInput {
 }
 crate::mutation_payload! { DepositRevertPayload, deposit: Deposit }
 
+/// Input for freezing a deposit account.
 #[derive(InputObject)]
 pub struct DepositAccountFreezeInput {
+    /// Internal UUID of the deposit account to freeze.
     pub deposit_account_id: UUID,
 }
 crate::mutation_payload! { DepositAccountFreezePayload, account: DepositAccount }
 
+/// Input for unfreezing a deposit account.
 #[derive(InputObject)]
 pub struct DepositAccountUnfreezeInput {
+    /// Internal UUID of the deposit account to unfreeze.
     pub deposit_account_id: UUID,
 }
 crate::mutation_payload! { DepositAccountUnfreezePayload, account: DepositAccount }
 
+/// Input for closing a deposit account.
 #[derive(InputObject)]
 pub struct DepositAccountCloseInput {
+    /// Internal UUID of the deposit account to close.
     pub deposit_account_id: UUID,
 }
 crate::mutation_payload! { DepositAccountClosePayload, account: DepositAccount }

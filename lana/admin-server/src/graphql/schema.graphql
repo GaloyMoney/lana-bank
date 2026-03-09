@@ -246,10 +246,25 @@ type BtcLedgerAccountBalanceRange {
 	close: BtcLedgerAccountBalance!
 }
 
+"""
+Build metadata for the running admin API service.
+"""
 type BuildInfo {
+	"""
+	Application version reported by the build.
+	"""
 	version: String!
+	"""
+	Cargo build profile used for this binary.
+	"""
 	buildProfile: String!
+	"""
+	Target triple the binary was built for.
+	"""
 	buildTarget: String!
+	"""
+	Cargo features compiled into the binary.
+	"""
 	enabledFeatures: [String!]!
 }
 
@@ -444,8 +459,17 @@ enum ConfigType {
 	COMPLEX
 }
 
+"""
+Describes how a prospect became a customer.
+"""
 enum ConversionReason {
+	"""
+	Converted automatically after Sumsub approved the applicant.
+	"""
 	SUMSUB_APPROVED
+	"""
+	Converted manually by an admin action.
+	"""
 	MANUALLY_CONVERTED
 }
 
@@ -1026,28 +1050,91 @@ enum CustodiansSortBy {
 	CREATED_AT
 }
 
+"""
+A customer record exposed in the admin API.
+"""
 type Customer {
+	"""
+	Relay global identifier for this customer.
+	"""
 	id: ID!
+	"""
+	Internal UUID for this customer.
+	"""
 	customerId: UUID!
+	"""
+	Current lifecycle status of the customer.
+	"""
 	status: CustomerStatus!
+	"""
+	Current KYC level for the customer.
+	"""
 	level: KycLevel!
+	"""
+	When the customer record was created.
+	"""
 	createdAt: Timestamp!
+	"""
+	Email address associated with the customer.
+	"""
 	email: String!
+	"""
+	Telegram handle associated with the customer.
+	"""
 	telegramHandle: String!
+	"""
+	Public identifier assigned to the customer.
+	"""
 	publicId: PublicId!
+	"""
+	Sumsub applicant identifier, if the customer has entered KYC.
+	"""
 	applicantId: String
+	"""
+	How this customer was converted from a prospect.
+	"""
 	conversionReason: ConversionReason!
+	"""
+	Operational customer type for this customer.
+	"""
 	customerType: CustomerType!
+	"""
+	Personal information collected for this customer, if available.
+	"""
 	personalInfo: PersonalInfo
+	"""
+	The most recently created deposit account for this customer, if any.
+	"""
 	depositAccount: DepositAccount
+	"""
+	Credit facilities for this customer, newest first.
+	"""
 	creditFacilities: [CreditFacility!]!
+	"""
+	Pending credit facilities for this customer, newest first.
+	"""
 	pendingCreditFacilities: [PendingCreditFacility!]!
+	"""
+	Credit facility proposals for this customer, newest first.
+	"""
 	creditFacilityProposals: [CreditFacilityProposal!]!
+	"""
+	Documents attached to this customer.
+	"""
 	documents: [CustomerDocument!]!
+	"""
+	Whether the current admin can create a new credit facility for this customer.
+	"""
 	userCanCreateCreditFacility: Boolean!
 }
 
+"""
+Input for closing a customer.
+"""
 input CustomerCloseInput {
+	"""
+	Internal UUID of the customer to close.
+	"""
 	customerId: UUID!
 }
 
@@ -1126,8 +1213,17 @@ type CustomerEdge {
 	cursor: String!
 }
 
+"""
+Input for updating a customer's email address.
+"""
 input CustomerEmailUpdateInput {
+	"""
+	Internal UUID of the customer to update.
+	"""
 	customerId: UUID!
+	"""
+	New email address to store for the customer.
+	"""
 	email: String!
 }
 
@@ -1135,7 +1231,13 @@ type CustomerEmailUpdatePayload {
 	customer: Customer!
 }
 
+"""
+Input for freezing a customer.
+"""
 input CustomerFreezeInput {
+	"""
+	Internal UUID of the customer to freeze.
+	"""
 	customerId: UUID!
 }
 
@@ -1149,8 +1251,17 @@ enum CustomerStatus {
 	CLOSED
 }
 
+"""
+Input for updating a customer's Telegram handle.
+"""
 input CustomerTelegramHandleUpdateInput {
+	"""
+	Internal UUID of the customer to update.
+	"""
 	customerId: UUID!
+	"""
+	New Telegram handle to store for the customer.
+	"""
 	telegramHandle: String!
 }
 
@@ -1168,7 +1279,13 @@ enum CustomerType {
 	NON_DOMICILED_COMPANY
 }
 
+"""
+Input for unfreezing a customer.
+"""
 input CustomerUnfreezeInput {
+	"""
+	Internal UUID of the customer to unfreeze.
+	"""
 	customerId: UUID!
 }
 
@@ -1176,17 +1293,41 @@ type CustomerUnfreezePayload {
 	customer: Customer!
 }
 
+"""
+Filters that can be applied when listing customers.
+"""
 input CustomersFilter {
+	"""
+	Limit results to a specific customer type.
+	"""
 	customerType: CustomerType
+	"""
+	Limit results to a specific customer status.
+	"""
 	status: CustomerStatus
 }
 
+"""
+Sort options for customer lists.
+"""
 input CustomersSort {
+	"""
+	Field to sort customers by.
+	"""
 	by: CustomersSortBy! = CREATED_AT
+	"""
+	Direction to apply to the selected sort field.
+	"""
 	direction: SortDirection! = DESC
 }
 
+"""
+Fields available when sorting customer lists.
+"""
 enum CustomersSortBy {
+	"""
+	Sort by when the customer was created.
+	"""
 	CREATED_AT
 }
 
@@ -1224,28 +1365,85 @@ type Deposit {
 	ledgerTransactions: [LedgerTransaction!]!
 }
 
+"""
+A deposit account exposed in the admin API.
+"""
 type DepositAccount {
+	"""
+	Relay global identifier for this deposit account.
+	"""
 	id: ID!
+	"""
+	Internal UUID for this deposit account.
+	"""
 	depositAccountId: UUID!
+	"""
+	Internal UUID of the customer that owns this account.
+	"""
 	customerId: UUID!
+	"""
+	When the deposit account was created.
+	"""
 	createdAt: Timestamp!
+	"""
+	Current lifecycle status of the account.
+	"""
 	status: DepositAccountStatus!
+	"""
+	Operational activity state of the account.
+	"""
 	activity: Activity!
+	"""
+	Public identifier assigned to the deposit account.
+	"""
 	publicId: PublicId!
+	"""
+	Deposits recorded against this account.
+	"""
 	deposits: [Deposit!]!
+	"""
+	Withdrawals recorded against this account.
+	"""
 	withdrawals: [Withdrawal!]!
+	"""
+	Paginated account history, including deposits, withdrawals, and freeze events.
+	"""
 	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
+	"""
+	Current USD balance for this account.
+	"""
 	balance: DepositAccountBalance!
+	"""
+	Customer that owns this deposit account.
+	"""
 	customer: Customer!
+	"""
+	Underlying ledger accounts used to track this deposit account.
+	"""
 	ledgerAccounts: DepositAccountLedgerAccounts!
 }
 
+"""
+Current USD balances for a deposit account.
+"""
 type DepositAccountBalance {
+	"""
+	Funds that are fully settled and available on the account.
+	"""
 	settled: UsdCents!
+	"""
+	Funds that are pending settlement on the account.
+	"""
 	pending: UsdCents!
 }
 
+"""
+Input for closing a deposit account.
+"""
 input DepositAccountCloseInput {
+	"""
+	Internal UUID of the deposit account to close.
+	"""
 	depositAccountId: UUID!
 }
 
@@ -1268,7 +1466,13 @@ type DepositAccountConnection {
 	nodes: [DepositAccount!]!
 }
 
+"""
+Input for creating a deposit account.
+"""
 input DepositAccountCreateInput {
+	"""
+	Internal UUID of the customer that will own the new account.
+	"""
 	customerId: UUID!
 }
 
@@ -1290,7 +1494,13 @@ type DepositAccountEdge {
 	cursor: String!
 }
 
+"""
+Input for freezing a deposit account.
+"""
 input DepositAccountFreezeInput {
+	"""
+	Internal UUID of the deposit account to freeze.
+	"""
 	depositAccountId: UUID!
 }
 
@@ -1329,10 +1539,25 @@ type DepositAccountHistoryEntryEdge {
 	cursor: String!
 }
 
+"""
+The ledger accounts that back a deposit account.
+"""
 type DepositAccountLedgerAccounts {
+	"""
+	Internal UUID of the active deposit account ledger account.
+	"""
 	depositAccountId: UUID!
+	"""
+	Internal UUID of the frozen deposit account ledger account.
+	"""
 	frozenDepositAccountId: UUID!
+	"""
+	The active ledger account used for this deposit account.
+	"""
 	depositAccount: LedgerAccount!
+	"""
+	The ledger account used while this deposit account is frozen.
+	"""
 	frozenDepositAccount: LedgerAccount!
 }
 
@@ -1342,7 +1567,13 @@ enum DepositAccountStatus {
 	CLOSED
 }
 
+"""
+Input for unfreezing a deposit account.
+"""
 input DepositAccountUnfreezeInput {
+	"""
+	Internal UUID of the deposit account to unfreeze.
+	"""
 	depositAccountId: UUID!
 }
 
@@ -1350,18 +1581,45 @@ type DepositAccountUnfreezePayload {
 	account: DepositAccount!
 }
 
+"""
+Filters that can be applied when listing deposit accounts.
+"""
 input DepositAccountsFilter {
+	"""
+	Limit results to a specific account status.
+	"""
 	status: DepositAccountStatus
+	"""
+	Limit results to a specific account activity state.
+	"""
 	activity: Activity
 }
 
+"""
+Sort options for deposit account lists.
+"""
 input DepositAccountsSort {
+	"""
+	Field to sort deposit accounts by.
+	"""
 	by: DepositAccountsSortBy! = CREATED_AT
+	"""
+	Direction to apply to the selected sort field.
+	"""
 	direction: SortDirection! = DESC
 }
 
+"""
+Fields available when sorting deposit account lists.
+"""
 enum DepositAccountsSortBy {
+	"""
+	Sort by when the deposit account was created.
+	"""
 	CREATED_AT
+	"""
+	Sort by the public identifier assigned to the account.
+	"""
 	PUBLIC_ID
 }
 
@@ -1993,6 +2251,9 @@ type Me {
 }
 
 type Mutation {
+	"""
+	Attaches a document to a customer.
+	"""
 	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
@@ -2003,23 +2264,62 @@ type Mutation {
 	prospectCreate(input: ProspectCreateInput!): ProspectCreatePayload!
 	prospectClose(input: ProspectCloseInput!): ProspectClosePayload!
 	prospectConvert(input: ProspectConvertInput!): ProspectConvertPayload!
+	"""
+	Updates the Telegram handle stored for a customer.
+	"""
 	customerTelegramHandleUpdate(input: CustomerTelegramHandleUpdateInput!): CustomerTelegramHandleUpdatePayload!
+	"""
+	Updates the email address stored for a customer.
+	"""
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
+	"""
+	Freezes a customer and prevents further activity.
+	"""
 	customerFreeze(input: CustomerFreezeInput!): CustomerFreezePayload!
+	"""
+	Unfreezes a previously frozen customer.
+	"""
 	customerUnfreeze(input: CustomerUnfreezeInput!): CustomerUnfreezePayload!
+	"""
+	Closes a customer record.
+	"""
 	customerClose(input: CustomerCloseInput!): CustomerClosePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
+	"""
+	Initiates a withdrawal from a deposit account.
+	"""
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
+	"""
+	Confirms a previously initiated withdrawal.
+	"""
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
+	"""
+	Cancels a withdrawal that should no longer proceed.
+	"""
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
+	"""
+	Reverts a withdrawal and its ledger effects.
+	"""
 	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
 	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
+	"""
+	Creates a deposit account for a customer.
+	"""
 	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload!
+	"""
+	Freezes a deposit account.
+	"""
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
+	"""
+	Unfreezes a deposit account.
+	"""
 	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
+	"""
+	Closes a deposit account.
+	"""
 	depositAccountClose(input: DepositAccountCloseInput!): DepositAccountClosePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
@@ -2414,29 +2714,154 @@ scalar PublicId
 union PublicIdTarget = Customer | Prospect | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
+	"""
+	Returns build metadata for the running admin API.
+	"""
 	buildInfo: BuildInfo!
+	"""
+	Returns the currently authenticated admin user.
+	"""
 	me: Me!
+	"""
+	Returns the dashboard summary visible to the current admin.
+	"""
 	dashboard: Dashboard!
 	user(id: UUID!): User
 	users(first: Int!, after: String, sort: UsersSort = {by: CREATED_AT, direction: DESC}): UserConnection!
 	role(id: UUID!): Role
 	roles(first: Int!, after: String, sort: RolesSort = {by: CREATED_AT, direction: DESC}): RoleConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
-	customer(id: UUID!): Customer
-	customerByEmail(email: String!): Customer
-	customerByPublicId(id: PublicId!): Customer
-	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT, direction: DESC}, filter: CustomersFilter): CustomerConnection!
+	"""
+	Returns a customer by its internal UUID.
+	"""
+	customer(
+		"""
+		Internal customer UUID.
+		"""
+		id: UUID!
+	): Customer
+	"""
+	Returns a customer by its email address.
+	"""
+	customerByEmail(
+		"""
+		Email address associated with the customer.
+		"""
+		email: String!
+	): Customer
+	"""
+	Returns a customer by its public identifier.
+	"""
+	customerByPublicId(
+		"""
+		Public identifier assigned to the customer.
+		"""
+		id: PublicId!
+	): Customer
+	"""
+	Lists customers visible to the current admin.
+	"""
+	customers(
+		"""
+		Maximum number of customers to return.
+		"""
+		first: Int!,
+		"""
+		Opaque cursor from the previous page.
+		"""
+		after: String,
+		"""
+		Sort order for the returned customers.
+		"""
+		sort: CustomersSort = {by: CREATED_AT, direction: DESC},
+		"""
+		Optional filters to apply to the customer list.
+		"""
+		filter: CustomersFilter
+	): CustomerConnection!
 	prospect(id: UUID!): Prospect
 	prospectByPublicId(id: PublicId!): Prospect
 	prospects(first: Int!, after: String, sort: ProspectsSort = {by: CREATED_AT, direction: DESC}, filter: ProspectsFilter): ProspectConnection!
-	withdrawal(id: UUID!): Withdrawal
-	withdrawalByPublicId(id: PublicId!): Withdrawal
-	withdrawals(first: Int!, after: String, sort: WithdrawalsSort = {by: CREATED_AT, direction: DESC}, filter: WithdrawalsFilter): WithdrawalConnection!
+	"""
+	Returns a withdrawal by its internal UUID.
+	"""
+	withdrawal(
+		"""
+		Internal withdrawal UUID.
+		"""
+		id: UUID!
+	): Withdrawal
+	"""
+	Returns a withdrawal by its public identifier.
+	"""
+	withdrawalByPublicId(
+		"""
+		Public identifier assigned to the withdrawal.
+		"""
+		id: PublicId!
+	): Withdrawal
+	"""
+	Lists withdrawals visible to the current admin.
+	"""
+	withdrawals(
+		"""
+		Maximum number of withdrawals to return.
+		"""
+		first: Int!,
+		"""
+		Opaque cursor from the previous page.
+		"""
+		after: String,
+		"""
+		Sort order for the returned withdrawals.
+		"""
+		sort: WithdrawalsSort = {by: CREATED_AT, direction: DESC},
+		"""
+		Optional filters to apply to the withdrawal list.
+		"""
+		filter: WithdrawalsFilter
+	): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
 	depositByPublicId(id: PublicId!): Deposit
-	depositAccount(id: UUID!): DepositAccount
-	depositAccountByPublicId(id: PublicId!): DepositAccount
-	depositAccounts(first: Int!, after: String, sort: DepositAccountsSort = {by: CREATED_AT, direction: DESC}, filter: DepositAccountsFilter): DepositAccountConnection!
+	"""
+	Returns a deposit account by its internal UUID.
+	"""
+	depositAccount(
+		"""
+		Internal deposit account UUID.
+		"""
+		id: UUID!
+	): DepositAccount
+	"""
+	Returns a deposit account by its public identifier.
+	"""
+	depositAccountByPublicId(
+		"""
+		Public identifier assigned to the deposit account.
+		"""
+		id: PublicId!
+	): DepositAccount
+	"""
+	Lists deposit accounts visible to the current admin.
+	"""
+	depositAccounts(
+		"""
+		Maximum number of deposit accounts to return.
+		"""
+		first: Int!,
+		"""
+		Opaque cursor from the previous page.
+		"""
+		after: String,
+		"""
+		Sort order for the returned deposit accounts.
+		"""
+		sort: DepositAccountsSort = {by: CREATED_AT, direction: DESC},
+		"""
+		Optional filters to apply to the deposit account list.
+		"""
+		filter: DepositAccountsFilter
+	): DepositAccountConnection!
 	deposits(first: Int!, after: String, sort: DepositsSort = {by: CREATED_AT, direction: DESC}, filter: DepositsFilter): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
@@ -2474,6 +2899,9 @@ type Query {
 	fiscalYears(first: Int!, after: String, sort: FiscalYearsSort = {by: CREATED_AT, direction: DESC}): FiscalYearConnection!
 	balanceSheet(asOf: Date!): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
+	"""
+	Returns the latest BTC price used by the platform.
+	"""
 	realtimePrice: RealtimePrice!
 	audit(first: Int!, after: String, subject: AuditSubjectId, authorized: Boolean, object: String, action: String): AuditEntryConnection!
 	auditSubjects: [AuditSubjectId!]!
@@ -2487,7 +2915,13 @@ type Query {
 	reportRun(id: UUID!): ReportRun
 }
 
+"""
+The latest BTC price used by Lana.
+"""
 type RealtimePrice {
+	"""
+	Price of one BTC in USD cents.
+	"""
 	usdCentsPerBtc: UsdCents!
 }
 
@@ -2663,8 +3097,17 @@ scalar SignedSatoshis
 
 scalar SignedUsdCents
 
+"""
+Sort direction for list queries.
+"""
 enum SortDirection {
+	"""
+	Return results in ascending order.
+	"""
 	ASC
+	"""
+	Return results in descending order.
+	"""
 	DESC
 }
 
@@ -2957,27 +3400,81 @@ enum WalletNetwork {
 	MAINNET
 }
 
+"""
+A requested movement of funds out of a deposit account.
+"""
 type Withdrawal {
+	"""
+	Relay global identifier for this withdrawal.
+	"""
 	id: ID!
+	"""
+	Internal UUID for this withdrawal.
+	"""
 	withdrawalId: UUID!
+	"""
+	Internal UUID of the deposit account the funds are drawn from.
+	"""
 	accountId: UUID!
+	"""
+	Internal UUID of the approval process governing this withdrawal.
+	"""
 	approvalProcessId: UUID!
+	"""
+	Amount requested for withdrawal, in USD cents.
+	"""
 	amount: UsdCents!
+	"""
+	Current status of the withdrawal.
+	"""
 	status: WithdrawalStatus!
+	"""
+	When the withdrawal was created.
+	"""
 	createdAt: Timestamp!
+	"""
+	Public identifier assigned to the withdrawal.
+	"""
 	publicId: PublicId!
+	"""
+	Reference recorded with the withdrawal.
+	"""
 	reference: String!
+	"""
+	Approval process associated with this withdrawal.
+	"""
 	approvalProcess: ApprovalProcess!
+	"""
+	Deposit account the withdrawal is drawn from.
+	"""
 	account: DepositAccount!
+	"""
+	Ledger transactions produced by this withdrawal.
+	"""
 	ledgerTransactions: [LedgerTransaction!]!
 }
 
+"""
+Payload published when a withdrawal approval flow finishes.
+"""
 type WithdrawalApprovalConcludedPayload {
+	"""
+	Final status of the withdrawal after the approval flow finishes.
+	"""
 	status: WithdrawalStatus!
+	"""
+	Withdrawal affected by the completed approval flow.
+	"""
 	withdrawal: Withdrawal!
 }
 
+"""
+Input for cancelling a withdrawal.
+"""
 input WithdrawalCancelInput {
+	"""
+	Internal UUID of the withdrawal to cancel.
+	"""
 	withdrawalId: UUID!
 }
 
@@ -2985,7 +3482,13 @@ type WithdrawalCancelPayload {
 	withdrawal: Withdrawal!
 }
 
+"""
+Input for confirming a withdrawal.
+"""
 input WithdrawalConfirmInput {
+	"""
+	Internal UUID of the withdrawal to confirm.
+	"""
 	withdrawalId: UUID!
 }
 
@@ -3027,9 +3530,21 @@ type WithdrawalEntry {
 	withdrawal: Withdrawal!
 }
 
+"""
+Input for initiating a withdrawal.
+"""
 input WithdrawalInitiateInput {
+	"""
+	Internal UUID of the deposit account to withdraw from.
+	"""
 	depositAccountId: UUID!
+	"""
+	Amount to withdraw, in USD cents.
+	"""
 	amount: UsdCents!
+	"""
+	Optional reference to record with the withdrawal.
+	"""
 	reference: String
 }
 
@@ -3037,7 +3552,13 @@ type WithdrawalInitiatePayload {
 	withdrawal: Withdrawal!
 }
 
+"""
+Input for reverting a withdrawal.
+"""
 input WithdrawalRevertInput {
+	"""
+	Internal UUID of the withdrawal to revert.
+	"""
 	withdrawalId: UUID!
 }
 
@@ -3054,18 +3575,45 @@ enum WithdrawalStatus {
 	REVERTED
 }
 
+"""
+Filters that can be applied when listing withdrawals.
+"""
 input WithdrawalsFilter {
+	"""
+	Limit results to a specific withdrawal status.
+	"""
 	status: WithdrawalStatus
 }
 
+"""
+Sort options for withdrawal lists.
+"""
 input WithdrawalsSort {
+	"""
+	Field to sort withdrawals by.
+	"""
 	by: WithdrawalsSortBy! = CREATED_AT
+	"""
+	Direction to apply to the selected sort field.
+	"""
 	direction: SortDirection! = DESC
 }
 
+"""
+Fields available when sorting withdrawal lists.
+"""
 enum WithdrawalsSortBy {
+	"""
+	Sort by when the withdrawal was created.
+	"""
 	CREATED_AT
+	"""
+	Sort by withdrawal amount.
+	"""
 	AMOUNT
+	"""
+	Sort by the public identifier assigned to the withdrawal.
+	"""
 	PUBLIC_ID
 }
 

@@ -17,13 +17,19 @@ pub enum CustomerError {
     DepositAccountNotFound,
 }
 
+/// The authenticated customer record.
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Customer {
+    /// Relay global identifier for this customer.
     id: ID,
+    /// Internal UUID for this customer.
     customer_id: UUID,
+    /// Current lifecycle status of the customer.
     status: CustomerStatus,
+    /// Current KYC level for the customer.
     level: KycLevel,
+    /// When the customer record was created.
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -45,6 +51,7 @@ impl From<DomainCustomer> for Customer {
 
 #[ComplexObject]
 impl Customer {
+    /// Email address associated with the customer.
     async fn email(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
         let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
         let party = app
@@ -54,6 +61,7 @@ impl Customer {
         Ok(party.email)
     }
 
+    /// Telegram handle associated with the customer.
     async fn telegram_handle(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
         let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
         let party = app
@@ -63,6 +71,7 @@ impl Customer {
         Ok(party.telegram_handle)
     }
 
+    /// Operational customer type for this customer.
     async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {
         let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
         let party = app
@@ -72,6 +81,7 @@ impl Customer {
         Ok(party.customer_type)
     }
 
+    /// Personal information collected for this customer, if available.
     async fn personal_info(
         &self,
         ctx: &Context<'_>,
@@ -84,6 +94,7 @@ impl Customer {
         Ok(party.personal_info)
     }
 
+    /// The most recently created deposit account available to this customer.
     async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
@@ -99,6 +110,7 @@ impl Customer {
             .ok_or(CustomerError::DepositAccountNotFound)?)
     }
 
+    /// Credit facilities visible to this customer, newest first.
     async fn credit_facilities(
         &self,
         ctx: &Context<'_>,

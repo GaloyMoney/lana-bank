@@ -157,17 +157,53 @@ enum CreditFacilityStatus {
 	CLOSED
 }
 
+"""
+The authenticated customer record.
+"""
 type Customer {
+	"""
+	Relay global identifier for this customer.
+	"""
 	id: ID!
+	"""
+	Internal UUID for this customer.
+	"""
 	customerId: UUID!
+	"""
+	Current lifecycle status of the customer.
+	"""
 	status: CustomerStatus!
+	"""
+	Current KYC level for the customer.
+	"""
 	level: KycLevel!
+	"""
+	When the customer record was created.
+	"""
 	createdAt: Timestamp!
+	"""
+	Email address associated with the customer.
+	"""
 	email: String!
+	"""
+	Telegram handle associated with the customer.
+	"""
 	telegramHandle: String!
+	"""
+	Operational customer type for this customer.
+	"""
 	customerType: CustomerType!
+	"""
+	Personal information collected for this customer, if available.
+	"""
 	personalInfo: PersonalInfo
+	"""
+	The most recently created deposit account available to this customer.
+	"""
 	depositAccount: DepositAccount!
+	"""
+	Credit facilities visible to this customer, newest first.
+	"""
 	creditFacilities: [CreditFacility!]!
 }
 
@@ -202,19 +238,55 @@ type Deposit {
 	status: DepositStatus!
 }
 
+"""
+A deposit account visible to the authenticated customer.
+"""
 type DepositAccount {
+	"""
+	Relay global identifier for this deposit account.
+	"""
 	id: ID!
+	"""
+	Internal UUID for this deposit account.
+	"""
 	depositAccountId: UUID!
+	"""
+	Internal UUID of the customer that owns this account.
+	"""
 	customerId: UUID!
+	"""
+	When the deposit account was created.
+	"""
 	createdAt: Timestamp!
+	"""
+	Current USD balance for this account.
+	"""
 	balance: DepositAccountBalance!
+	"""
+	Deposits recorded against this account.
+	"""
 	deposits: [Deposit!]!
+	"""
+	Withdrawals recorded against this account.
+	"""
 	withdrawals: [Withdrawal!]!
+	"""
+	Paginated account history, including deposits, withdrawals, and freeze events.
+	"""
 	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
 }
 
+"""
+Current USD balances for a deposit account.
+"""
 type DepositAccountBalance {
+	"""
+	Funds that are fully settled and available on the account.
+	"""
 	settled: UsdCents!
+	"""
+	Funds that are pending settlement on the account.
+	"""
 	pending: UsdCents!
 }
 
@@ -374,12 +446,32 @@ type PersonalInfo {
 }
 
 type Query {
+	"""
+	Returns the currently authenticated customer.
+	"""
 	me: Me!
-	creditFacility(id: UUID!): CreditFacility
+	"""
+	Returns a credit facility by its internal UUID.
+	"""
+	creditFacility(
+		"""
+		Internal credit facility UUID.
+		"""
+		id: UUID!
+	): CreditFacility
+	"""
+	Returns the latest BTC price visible to customer clients.
+	"""
 	realtimePrice: RealtimePrice!
 }
 
+"""
+The latest BTC price visible to customer clients.
+"""
 type RealtimePrice {
+	"""
+	Price of one BTC in USD cents.
+	"""
 	usdCentsPerBtc: UsdCents!
 }
 

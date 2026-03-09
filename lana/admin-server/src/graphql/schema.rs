@@ -40,10 +40,12 @@ pub struct Query;
 
 #[Object]
 impl Query {
+    /// Returns build metadata for the running admin API.
     async fn build_info(&self, ctx: &Context<'_>) -> BuildInfo {
         ctx.data_unchecked::<BuildInfo>().clone()
     }
 
+    /// Returns the currently authenticated admin user.
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<MeUser> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let user = Arc::new(app.access().users().find_for_subject(sub).await?);
@@ -52,6 +54,7 @@ impl Query {
         Ok(MeUser::from(user))
     }
 
+    /// Returns the dashboard summary visible to the current admin.
     async fn dashboard(&self, ctx: &Context<'_>) -> async_graphql::Result<Dashboard> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let dashboard = app.dashboard().load(sub).await?;
@@ -127,40 +130,50 @@ impl Query {
         )
     }
 
+    /// Returns a customer by its internal UUID.
     async fn customer(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        #[graphql(desc = "Internal customer UUID.")] id: UUID,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Customer, ctx, app.customers().find_by_id(sub, id))
     }
 
+    /// Returns a customer by its email address.
     async fn customer_by_email(
         &self,
         ctx: &Context<'_>,
-        email: String,
+        #[graphql(desc = "Email address associated with the customer.")] email: String,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Customer, ctx, app.customers().find_by_email(sub, email))
     }
 
+    /// Returns a customer by its public identifier.
     async fn customer_by_public_id(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        #[graphql(desc = "Public identifier assigned to the customer.")] id: PublicId,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Customer, ctx, app.customers().find_by_public_id(sub, id))
     }
 
+    /// Lists customers visible to the current admin.
     async fn customers(
         &self,
         ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-        #[graphql(default_with = "Some(CustomersSort::default())")] sort: Option<CustomersSort>,
-        filter: Option<CustomersFilter>,
+        #[graphql(desc = "Maximum number of customers to return.")] first: i32,
+        #[graphql(desc = "Opaque cursor from the previous page.")] after: Option<String>,
+        #[graphql(
+            desc = "Sort order for the returned customers.",
+            default_with = "Some(CustomersSort::default())"
+        )]
+        sort: Option<CustomersSort>,
+        #[graphql(desc = "Optional filters to apply to the customer list.")] filter: Option<
+            CustomersFilter,
+        >,
     ) -> async_graphql::Result<Connection<CustomersCursor, Customer, EmptyFields, EmptyFields>>
     {
         let filter = DomainCustomersFilters {
@@ -240,10 +253,11 @@ impl Query {
         )
     }
 
+    /// Returns a withdrawal by its internal UUID.
     async fn withdrawal(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        #[graphql(desc = "Internal withdrawal UUID.")] id: UUID,
     ) -> async_graphql::Result<Option<Withdrawal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -253,10 +267,11 @@ impl Query {
         )
     }
 
+    /// Returns a withdrawal by its public identifier.
     async fn withdrawal_by_public_id(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        #[graphql(desc = "Public identifier assigned to the withdrawal.")] id: PublicId,
     ) -> async_graphql::Result<Option<Withdrawal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -266,13 +281,20 @@ impl Query {
         )
     }
 
+    /// Lists withdrawals visible to the current admin.
     async fn withdrawals(
         &self,
         ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-        #[graphql(default_with = "Some(WithdrawalsSort::default())")] sort: Option<WithdrawalsSort>,
-        filter: Option<WithdrawalsFilter>,
+        #[graphql(desc = "Maximum number of withdrawals to return.")] first: i32,
+        #[graphql(desc = "Opaque cursor from the previous page.")] after: Option<String>,
+        #[graphql(
+            desc = "Sort order for the returned withdrawals.",
+            default_with = "Some(WithdrawalsSort::default())"
+        )]
+        sort: Option<WithdrawalsSort>,
+        #[graphql(desc = "Optional filters to apply to the withdrawal list.")] filter: Option<
+            WithdrawalsFilter,
+        >,
     ) -> async_graphql::Result<Connection<WithdrawalsCursor, Withdrawal, EmptyFields, EmptyFields>>
     {
         let filter = DomainWithdrawalsFilters {
@@ -312,10 +334,11 @@ impl Query {
         )
     }
 
+    /// Returns a deposit account by its internal UUID.
     async fn deposit_account(
         &self,
         ctx: &Context<'_>,
-        id: UUID,
+        #[graphql(desc = "Internal deposit account UUID.")] id: UUID,
     ) -> async_graphql::Result<Option<DepositAccount>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -325,10 +348,11 @@ impl Query {
         )
     }
 
+    /// Returns a deposit account by its public identifier.
     async fn deposit_account_by_public_id(
         &self,
         ctx: &Context<'_>,
-        id: PublicId,
+        #[graphql(desc = "Public identifier assigned to the deposit account.")] id: PublicId,
     ) -> async_graphql::Result<Option<DepositAccount>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(
@@ -338,15 +362,20 @@ impl Query {
         )
     }
 
+    /// Lists deposit accounts visible to the current admin.
     async fn deposit_accounts(
         &self,
         ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-        #[graphql(default_with = "Some(DepositAccountsSort::default())")] sort: Option<
-            DepositAccountsSort,
+        #[graphql(desc = "Maximum number of deposit accounts to return.")] first: i32,
+        #[graphql(desc = "Opaque cursor from the previous page.")] after: Option<String>,
+        #[graphql(
+            desc = "Sort order for the returned deposit accounts.",
+            default_with = "Some(DepositAccountsSort::default())"
+        )]
+        sort: Option<DepositAccountsSort>,
+        #[graphql(desc = "Optional filters to apply to the deposit account list.")] filter: Option<
+            DepositAccountsFilter,
         >,
-        filter: Option<DepositAccountsFilter>,
     ) -> async_graphql::Result<
         Connection<DepositAccountsCursor, DepositAccount, EmptyFields, EmptyFields>,
     > {
@@ -1042,6 +1071,7 @@ impl Query {
         Ok(ProfitAndLossStatement::new(profit_and_loss, from, until))
     }
 
+    /// Returns the latest BTC price used by the platform.
     async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
         let app = ctx.data_unchecked::<LanaApp>();
         let usd_cents_per_btc = app.price().usd_cents_per_btc().await;
@@ -1263,6 +1293,7 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    /// Attaches a document to a customer.
     pub async fn customer_document_attach(
         &self,
         ctx: &Context<'_>,
@@ -1454,6 +1485,7 @@ impl Mutation {
         )
     }
 
+    /// Updates the Telegram handle stored for a customer.
     async fn customer_telegram_handle_update(
         &self,
         ctx: &Context<'_>,
@@ -1469,6 +1501,7 @@ impl Mutation {
         )
     }
 
+    /// Updates the email address stored for a customer.
     async fn customer_email_update(
         &self,
         ctx: &Context<'_>,
@@ -1484,6 +1517,7 @@ impl Mutation {
         )
     }
 
+    /// Freezes a customer and prevents further activity.
     async fn customer_freeze(
         &self,
         ctx: &Context<'_>,
@@ -1498,6 +1532,7 @@ impl Mutation {
         )
     }
 
+    /// Unfreezes a previously frozen customer.
     async fn customer_unfreeze(
         &self,
         ctx: &Context<'_>,
@@ -1512,6 +1547,7 @@ impl Mutation {
         )
     }
 
+    /// Closes a customer record.
     async fn customer_close(
         &self,
         ctx: &Context<'_>,
@@ -1661,6 +1697,7 @@ impl Mutation {
         )
     }
 
+    /// Initiates a withdrawal from a deposit account.
     pub async fn withdrawal_initiate(
         &self,
         ctx: &Context<'_>,
@@ -1680,6 +1717,7 @@ impl Mutation {
         )
     }
 
+    /// Confirms a previously initiated withdrawal.
     pub async fn withdrawal_confirm(
         &self,
         ctx: &Context<'_>,
@@ -1695,6 +1733,7 @@ impl Mutation {
         )
     }
 
+    /// Cancels a withdrawal that should no longer proceed.
     pub async fn withdrawal_cancel(
         &self,
         ctx: &Context<'_>,
@@ -1709,6 +1748,7 @@ impl Mutation {
         )
     }
 
+    /// Reverts a withdrawal and its ledger effects.
     pub async fn withdrawal_revert(
         &self,
         ctx: &Context<'_>,
@@ -1737,6 +1777,7 @@ impl Mutation {
         )
     }
 
+    /// Creates a deposit account for a customer.
     pub async fn deposit_account_create(
         &self,
         ctx: &Context<'_>,
@@ -1752,6 +1793,7 @@ impl Mutation {
         )
     }
 
+    /// Freezes a deposit account.
     pub async fn deposit_account_freeze(
         &self,
         ctx: &Context<'_>,
@@ -1766,6 +1808,7 @@ impl Mutation {
         )
     }
 
+    /// Unfreezes a deposit account.
     pub async fn deposit_account_unfreeze(
         &self,
         ctx: &Context<'_>,
@@ -1781,6 +1824,7 @@ impl Mutation {
         )
     }
 
+    /// Closes a deposit account.
     pub async fn deposit_account_close(
         &self,
         ctx: &Context<'_>,

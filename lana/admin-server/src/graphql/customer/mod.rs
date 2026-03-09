@@ -14,9 +14,12 @@ pub use lana_app::customer::{
     PersonalInfo, Sort,
 };
 
+/// Describes how a prospect became a customer.
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConversionReason {
+    /// Converted automatically after Sumsub approved the applicant.
     SumsubApproved,
+    /// Converted manually by an admin action.
     ManuallyConverted,
 }
 
@@ -29,13 +32,19 @@ impl From<&CustomerConversion> for ConversionReason {
     }
 }
 
+/// A customer record exposed in the admin API.
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Customer {
+    /// Relay global identifier for this customer.
     id: ID,
+    /// Internal UUID for this customer.
     customer_id: UUID,
+    /// Current lifecycle status of the customer.
     status: CustomerStatus,
+    /// Current KYC level for the customer.
     level: KycLevel,
+    /// When the customer record was created.
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -57,6 +66,7 @@ impl From<DomainCustomer> for Customer {
 
 #[ComplexObject]
 impl Customer {
+    /// Email address associated with the customer.
     async fn email(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let party = loader
@@ -66,6 +76,7 @@ impl Customer {
         Ok(party.email.clone())
     }
 
+    /// Telegram handle associated with the customer.
     async fn telegram_handle(&self, ctx: &Context<'_>) -> async_graphql::Result<String> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let party = loader
@@ -75,18 +86,22 @@ impl Customer {
         Ok(party.telegram_handle.clone())
     }
 
+    /// Public identifier assigned to the customer.
     async fn public_id(&self) -> &PublicId {
         &self.entity.public_id
     }
 
+    /// Sumsub applicant identifier, if the customer has entered KYC.
     async fn applicant_id(&self) -> Option<&str> {
         self.entity.applicant_id()
     }
 
+    /// How this customer was converted from a prospect.
     async fn conversion_reason(&self) -> ConversionReason {
         ConversionReason::from(&self.entity.conversion)
     }
 
+    /// Operational customer type for this customer.
     async fn customer_type(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerType> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let party = loader
@@ -96,6 +111,7 @@ impl Customer {
         Ok(party.customer_type)
     }
 
+    /// Personal information collected for this customer, if available.
     async fn personal_info(
         &self,
         ctx: &Context<'_>,
@@ -108,6 +124,7 @@ impl Customer {
         Ok(party.personal_info.clone())
     }
 
+    /// The most recently created deposit account for this customer, if any.
     async fn deposit_account(
         &self,
         ctx: &Context<'_>,
@@ -129,6 +146,7 @@ impl Customer {
             .next())
     }
 
+    /// Credit facilities for this customer, newest first.
     async fn credit_facilities(
         &self,
         ctx: &Context<'_>,
@@ -159,6 +177,7 @@ impl Customer {
         Ok(credit_facilities)
     }
 
+    /// Pending credit facilities for this customer, newest first.
     async fn pending_credit_facilities(
         &self,
         ctx: &Context<'_>,
@@ -177,6 +196,7 @@ impl Customer {
         Ok(proposals)
     }
 
+    /// Credit facility proposals for this customer, newest first.
     async fn credit_facility_proposals(
         &self,
         ctx: &Context<'_>,
@@ -195,6 +215,7 @@ impl Customer {
         Ok(proposals)
     }
 
+    /// Documents attached to this customer.
     async fn documents(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<CustomerDocument>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let documents = app
@@ -204,6 +225,7 @@ impl Customer {
         Ok(documents.into_iter().map(CustomerDocument::from).collect())
     }
 
+    /// Whether the current admin can create a new credit facility for this customer.
     async fn user_can_create_credit_facility(
         &self,
         ctx: &Context<'_>,
@@ -213,40 +235,54 @@ impl Customer {
     }
 }
 
+/// Input for updating a customer's Telegram handle.
 #[derive(InputObject)]
 pub struct CustomerTelegramHandleUpdateInput {
+    /// Internal UUID of the customer to update.
     pub customer_id: UUID,
+    /// New Telegram handle to store for the customer.
     pub telegram_handle: String,
 }
 crate::mutation_payload! { CustomerTelegramHandleUpdatePayload, customer: Customer }
 
+/// Input for updating a customer's email address.
 #[derive(InputObject)]
 pub struct CustomerEmailUpdateInput {
+    /// Internal UUID of the customer to update.
     pub customer_id: UUID,
+    /// New email address to store for the customer.
     pub email: String,
 }
 crate::mutation_payload! { CustomerEmailUpdatePayload, customer: Customer }
 
+/// Input for freezing a customer.
 #[derive(InputObject)]
 pub struct CustomerFreezeInput {
+    /// Internal UUID of the customer to freeze.
     pub customer_id: UUID,
 }
 crate::mutation_payload! { CustomerFreezePayload, customer: Customer }
 
+/// Input for unfreezing a customer.
 #[derive(InputObject)]
 pub struct CustomerUnfreezeInput {
+    /// Internal UUID of the customer to unfreeze.
     pub customer_id: UUID,
 }
 crate::mutation_payload! { CustomerUnfreezePayload, customer: Customer }
 
+/// Input for closing a customer.
 #[derive(InputObject)]
 pub struct CustomerCloseInput {
+    /// Internal UUID of the customer to close.
     pub customer_id: UUID,
 }
 crate::mutation_payload! { CustomerClosePayload, customer: Customer }
 
+/// Fields available when sorting customer lists.
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CustomersSortBy {
+    /// Sort by when the customer was created.
     #[default]
     CreatedAt,
 }
@@ -259,10 +295,13 @@ impl From<CustomersSortBy> for DomainCustomersSortBy {
     }
 }
 
+/// Sort options for customer lists.
 #[derive(InputObject, Default, Clone, Copy)]
 pub struct CustomersSort {
+    /// Field to sort customers by.
     #[graphql(default)]
     pub by: CustomersSortBy,
+    /// Direction to apply to the selected sort field.
     #[graphql(default)]
     pub direction: SortDirection,
 }
@@ -282,8 +321,11 @@ impl From<CustomersSort> for Sort<DomainCustomersSortBy> {
     }
 }
 
+/// Filters that can be applied when listing customers.
 #[derive(InputObject)]
 pub struct CustomersFilter {
+    /// Limit results to a specific customer type.
     pub customer_type: Option<CustomerType>,
+    /// Limit results to a specific customer status.
     pub status: Option<CustomerStatus>,
 }

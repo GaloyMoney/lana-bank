@@ -9,12 +9,17 @@ pub use lana_app::deposit::{
 
 use super::{deposit::*, deposit_account_history::*, withdrawal::*};
 
+/// A deposit account visible to the authenticated customer.
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct DepositAccount {
+    /// Relay global identifier for this deposit account.
     id: ID,
+    /// Internal UUID for this deposit account.
     deposit_account_id: UUID,
+    /// Internal UUID of the customer that owns this account.
     customer_id: UUID,
+    /// When the deposit account was created.
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -34,9 +39,12 @@ impl From<DomainDepositAccount> for DepositAccount {
     }
 }
 
+/// Current USD balances for a deposit account.
 #[derive(SimpleObject)]
 pub struct DepositAccountBalance {
+    /// Funds that are fully settled and available on the account.
     settled: UsdCents,
+    /// Funds that are pending settlement on the account.
     pending: UsdCents,
 }
 
@@ -51,6 +59,7 @@ impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
 
 #[ComplexObject]
 impl DepositAccount {
+    /// Current USD balance for this account.
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccountBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let balance = app
@@ -61,6 +70,7 @@ impl DepositAccount {
         Ok(DepositAccountBalance::from(balance))
     }
 
+    /// Deposits recorded against this account.
     async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let deposits = app
@@ -71,6 +81,7 @@ impl DepositAccount {
         Ok(deposits.into_iter().map(Deposit::from).collect())
     }
 
+    /// Withdrawals recorded against this account.
     async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let withdrawals = app
@@ -81,6 +92,7 @@ impl DepositAccount {
         Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
     }
 
+    /// Paginated account history, including deposits, withdrawals, and freeze events.
     async fn history(
         &self,
         ctx: &Context<'_>,
