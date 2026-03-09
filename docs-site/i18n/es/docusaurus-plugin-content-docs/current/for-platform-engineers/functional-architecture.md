@@ -74,13 +74,13 @@ El historial de la cuenta puede consultarse a través del libro mayor, mostrando
 
 #### 2.1.3 Cliente
 
-Este módulo gestiona la información de los clientes del banco y es fundamental para el cumplimiento regulatorio. Cada cliente se crea con un tipo específico que determina su tratamiento contable y regulatorio: **Individual** para personas naturales, **GovernmentEntity** para entidades gubernamentales, **PrivateCompany** para empresas privadas, **Bank** para bancos, **FinancialInstitution** para otras instituciones financieras, **ForeignAgencyOrSubsidiary** para agencias extranjeras, y **NonDomiciledCompany** para empresas no domiciliadas.
+Este módulo gestiona la información sobre los clientes del banco y es fundamental para el cumplimiento normativo. Cada cliente se crea con un tipo específico que determina su tratamiento contable y regulatorio: **Individual** para personas físicas, **GovernmentEntity** para entidades gubernamentales, **PrivateCompany** para empresas privadas, **Bank** para bancos, **FinancialInstitution** para otras instituciones financieras, **ForeignAgencyOrSubsidiary** para agencias o subsidiarias extranjeras, y **NonDomiciledCompany** para empresas no domiciliadas.
 
-El proceso de verificación KYC se integra con SumSub. Un cliente comienza en estado **PendingVerification**. Cuando SumSub notifica vía webhook que la verificación fue exitosa, el cliente pasa a **Verified** con un nivel KYC (Básico o Avanzado). Si la verificación falla, permanece en estado **Rejected**. El sistema puede configurarse para requerir verificación antes de permitir la creación de cuentas de depósito o facilidades de crédito.
+El proceso de verificación KYC se integra con SumSub. Un cliente comienza en estado **PendingVerification**. Cuando SumSub notifica mediante webhook que la verificación fue exitosa, el cliente pasa a **Verified** con un nivel KYC (Básico o Avanzado). Si la verificación falla, permanece en el estado **Rejected**. El sistema se puede configurar para requerir la verificación antes de permitir la creación de cuentas de depósito o líneas de crédito.
 
-El módulo gestiona documentos asociados al cliente, almacenándolos en la nube y permitiendo la generación de enlaces de descarga temporales. Los documentos pueden archivarse o eliminarse según sea necesario.
+El módulo gestiona los documentos asociados al cliente, almacenándolos en la nube y permitiendo la generación de enlaces temporales de descarga. Los documentos pueden archivarse o eliminarse según sea necesario.
 
-Para el cumplimiento de regulaciones sobre cuentas inactivas, el sistema rastrea la última actividad de cada cuenta de depósito. Un job periódico clasifica automáticamente las cuentas de depósito según su actividad: **Active** si han tenido actividad reciente (menos de un año), **Inactive** si han estado entre uno y diez años sin actividad, y **Suspended** si exceden diez años. Esta clasificación es independiente del estado operativo de la cuenta y por sí sola no congela ni cierra la cuenta.
+Para cumplir con las normativas sobre cuentas inactivas, el sistema rastrea la última actividad de cada cuenta de depósito. Una tarea periódica clasifica automáticamente las cuentas de depósito según su actividad: **Active** si han tenido actividad reciente (menos de un año), **Inactive** si han estado entre uno y diez años sin actividad, y **Escheatable** si superan los diez años. Esta clasificación es independiente del estado operativo de la cuenta y no congela ni cierra la cuenta por sí misma.
 
 #### 2.1.4 Custodia
 
