@@ -301,7 +301,7 @@ export const mockBitfinexConfig = (overrides?: Partial<BitfinexConfig>, _relatio
         apiKey: overrides && overrides.hasOwnProperty('apiKey') ? overrides.apiKey! : faker.lorem.word(),
         apiSecret: overrides && overrides.hasOwnProperty('apiSecret') ? overrides.apiSecret! : faker.lorem.word(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
-        wallet: overrides && overrides.hasOwnProperty('wallet') ? overrides.wallet! : faker.lorem.word(),
+        walletType: overrides && overrides.hasOwnProperty('walletType') ? overrides.walletType! : faker.lorem.word(),
     };
 };
 

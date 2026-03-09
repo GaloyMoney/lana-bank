@@ -247,7 +247,7 @@ export type BitfinexConfig = {
   apiKey: Scalars['String']['input'];
   apiSecret: Scalars['String']['input'];
   name: Scalars['String']['input'];
-  wallet: Scalars['String']['input'];
+  walletType: Scalars['String']['input'];
 };
 
 export type BitgoConfig = {

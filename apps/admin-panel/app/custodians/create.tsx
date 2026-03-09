@@ -85,7 +85,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     name: "",
     apiKey: "",
     apiSecret: "",
-    wallet: "",
+    walletType: "",
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -112,7 +112,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
       name: "",
       apiKey: "",
       apiSecret: "",
-      wallet: "",
+      walletType: "",
     })
     setError(null)
   }
@@ -473,18 +473,18 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                 />
               </div>
               <div>
-                <Label htmlFor="wallet" required>
+                <Label htmlFor="walletType" required>
                   {t("fields.wallet")}
                 </Label>
                 <Input
-                  id="wallet"
-                  name="wallet"
-                  value={bitfinexConfig.wallet}
+                  id="walletType"
+                  name="walletType"
+                  value={bitfinexConfig.walletType}
                   onChange={handleBitfinexInputChange}
                   placeholder={t("placeholders.wallet")}
                   required
                   disabled={loading}
-                  data-testid="custodian-wallet-input"
+                  data-testid="custodian-wallet-type-input"
                 />
               </div>
             </>

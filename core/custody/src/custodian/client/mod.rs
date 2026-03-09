@@ -34,7 +34,7 @@ pub trait CustodianClient: Send {
 
 pub struct BitfinexCustodianClient {
     client: bfx_client::BfxAuthClient,
-    wallet: String,
+    wallet_type: String,
 }
 
 impl BitfinexCustodianClient {
@@ -42,10 +42,13 @@ impl BitfinexCustodianClient {
         config: BitfinexConfig,
         directory: BitfinexDirectoryConfig,
     ) -> Result<Self, bfx_client::BfxClientError> {
-        let wallet = config.wallet.clone();
+        let wallet_type = config.wallet_type.clone();
         let client = bfx_client::BfxAuthClient::try_new(config.into(), directory)?;
 
-        Ok(Self { client, wallet })
+        Ok(Self {
+            client,
+            wallet_type,
+        })
     }
 }
 
@@ -122,7 +125,7 @@ impl CustodianClient for BitfinexCustodianClient {
     ) -> Result<ExternalWallet, CustodianClientError> {
         let notification = self
             .client
-            .get_deposit_address(&self.wallet, "bitcoin", true)
+            .get_deposit_address(&self.wallet_type, "bitcoin", true)
             .await?;
 
         if notification.status != "SUCCESS" {

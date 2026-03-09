@@ -6,7 +6,7 @@ pub use bfx_client::BfxDirectoryConfig as BitfinexDirectoryConfig;
 pub struct BitfinexConfig {
     pub api_key: String,
     pub api_secret: String,
-    pub wallet: String,
+    pub wallet_type: String,
 }
 
 impl From<BitfinexConfig> for bfx_client::BfxAuthConfig {
@@ -23,7 +23,7 @@ impl core::fmt::Debug for BitfinexConfig {
         f.debug_struct("BitfinexConfig")
             .field("api_key", &self.api_key)
             .field("api_secret", &"<redacted>")
-            .field("wallet", &self.wallet)
+            .field("wallet_type", &self.wallet_type)
             .finish()
     }
 }

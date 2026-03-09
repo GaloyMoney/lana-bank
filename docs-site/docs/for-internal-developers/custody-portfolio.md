@@ -85,9 +85,9 @@ graph TD
 |----------|-----------------|--------------|
 | BitGo | Creates a dedicated wallet and receive address | Webhook-driven |
 | Komainu | Uses a pre-provisioned wallet configuration | Webhook-driven |
-| Bitfinex | Requests a fresh Bitcoin deposit address from the configured Bitfinex wallet | Manual or future polling integration |
+| Bitfinex | Requests a fresh Bitcoin deposit address from the configured Bitfinex wallet type | Manual or future polling integration |
 
-Bitfinex support is optimized for Bitcoin collateral address generation. Each Lana wallet creation requests a renewed Bitcoin deposit address from the configured Bitfinex wallet so facilities do not share addresses. Because Bitfinex rate-limits deposit-address renewal, operators should avoid repeated non-essential wallet creation during testing.
+Bitfinex support is optimized for Bitcoin collateral address generation. Each Lana wallet creation requests a renewed Bitcoin deposit address from the configured Bitfinex wallet type (`exchange`, `margin`, or `funding`) so facilities do not share addresses. Because Bitfinex rate-limits deposit-address renewal, operators should avoid repeated non-essential wallet creation during testing.
 
 ## Custody Provider Interface
 

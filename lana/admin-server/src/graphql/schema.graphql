@@ -218,7 +218,7 @@ input BitfinexConfig {
 	name: String!
 	apiKey: String!
 	apiSecret: String!
-	wallet: String!
+	walletType: String!
 }
 
 input BitgoConfig {

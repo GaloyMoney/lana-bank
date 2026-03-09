@@ -75,7 +75,7 @@ pub struct BitfinexConfig {
     api_key: String,
     #[graphql(secret)]
     api_secret: String,
-    wallet: String,
+    wallet_type: String,
 }
 
 impl From<KomainuConfig> for DomainKomainuConfig {
@@ -108,7 +108,7 @@ impl From<BitfinexConfig> for DomainBitfinexConfig {
         Self {
             api_key: config.api_key,
             api_secret: config.api_secret,
-            wallet: config.wallet,
+            wallet_type: config.wallet_type,
         }
     }
 }
