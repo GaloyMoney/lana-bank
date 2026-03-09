@@ -106,10 +106,10 @@ fn sanitize_payload(value: &mut Value) {
                 if lower == "id" || lower.ends_with("_id") {
                     return true;
                 }
-                if let Some(s) = v.as_str() {
-                    if is_uuid(s) {
-                        return true;
-                    }
+                if let Some(s) = v.as_str()
+                    && is_uuid(s)
+                {
+                    return true;
                 }
                 false
             })
