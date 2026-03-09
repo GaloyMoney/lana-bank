@@ -570,7 +570,12 @@ export const CreateCreditFacilityProposalDialog: React.FC<
             {!useTemplateTerms && (
               <Button
                 type="button"
-                onClick={() => setUseTemplateTerms(true)}
+                onClick={() => {
+                  setUseTemplateTerms(true)
+                  if (selectedTemplateId) {
+                    handleTemplateChange(selectedTemplateId)
+                  }
+                }}
                 variant="ghost"
               >
                 {commonT("back")}
