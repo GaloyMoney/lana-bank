@@ -103,6 +103,7 @@ allow = [
     "CDLA-Permissive-2.0",
     "0BSD",
     "OpenSSL",
+    "MITNFA",
 ]
 # The confidence threshold for detecting a license from license text.
 # The higher the value, the more closely the license text must be to the
@@ -418,6 +419,11 @@ license-files = []
 
 [[licenses.clarify]]
 crate = "codegen"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
+crate = "self-custody"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
