@@ -305,6 +305,14 @@ checksums:
     Prospects/ProspectDetails/kycStatus/actions/copyLink: 8d515c2c48d1060d9c87c8930ff5aa54
     Prospects/ProspectDetails/kycStatus/messages/copied: 6a3c394a9a51646bad2f72d7311b242d
     Prospects/ProspectDetails/kycStatus/messages/linkExpired: aa769fab936035ee0f36e9a7af2e24df
+    Prospects/ProspectDetails/eventHistory/title: d17179a947e9687dd2338ca524b26b63
+    Prospects/ProspectDetails/eventHistory/description: 4fd50c52c11d9b9ee0ccd646629550a2
+    Prospects/ProspectDetails/eventHistory/emptyMessage: 77950fa729d311cfd81f03632100c575
+    Prospects/ProspectDetails/eventHistory/columns/event: 4a04a93ec14995d089bd95d271e288a0
+    Prospects/ProspectDetails/eventHistory/columns/details: 2a8bbb1bc386c059783f925aca2cc522
+    Prospects/ProspectDetails/eventHistory/columns/userId: 61073457a5c3901084b557d065f876be
+    Prospects/ProspectDetails/eventHistory/columns/auditEntryId: 0462fe67f119e257c4023fb5607b9988
+    Prospects/ProspectDetails/eventHistory/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     Customers/title: c31a0dfd0d92496ba6f5673781db24ef
     Customers/description: 38b688862c41b7af092a0dc32856806f
     Customers/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5
@@ -1773,6 +1781,15 @@ checksums:
     EntityEvents/role/initialized: 29b5fc125fe819dec23f877ef543681e
     EntityEvents/role/permission_set_added: 0fcd474bea09f58c1e86756589c06739
     EntityEvents/role/permission_set_removed: 46738fdd6c9c6ea45fc46023cd9953eb
+    EntityEvents/prospect/initialized: bca9559b38e3320eb4b5f8350f391134
+    EntityEvents/prospect/kyc_started: b3dbff1cbf3be1c1ddc3116ff19e71c7
+    EntityEvents/prospect/kyc_approved: 9dc96b20fee5203c5b8798e36632cdc0
+    EntityEvents/prospect/kyc_pending: 4f701cea298b6f65571c6b4994619992
+    EntityEvents/prospect/kyc_on_hold: 871f13f6875f0f7c94ecdd57f30fe2d5
+    EntityEvents/prospect/kyc_declined: d84584668578c05d3a93948a91a68220
+    EntityEvents/prospect/manually_converted: 30dfcafd5fe2b00c92c9d0144e7f1cab
+    EntityEvents/prospect/verification_link_created: 80ae70574df5ec6cd90284b74f5a1f84
+    EntityEvents/prospect/closed: d6b9a0aa440fded4cad23f5a66d78fda
   aafe99efd8562d4095906d30010fcd19:
     Permissions/access_viewer/description: e47f0f1513dd3c253c5d1f0ed10c2e58
     Permissions/access_viewer/label: 9cf21f792a7ba07d3a092d992600388c
