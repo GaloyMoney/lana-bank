@@ -849,7 +849,7 @@ export type CreditFacilityRepaymentAmountReceived = {
 export type CreditFacilityRepaymentPlanEntry = {
   __typename?: 'CreditFacilityRepaymentPlanEntry';
   accrualAt: Scalars['Timestamp']['output'];
-  dueAt: Scalars['Timestamp']['output'];
+  dueAt: Scalars['Date']['output'];
   initial: Scalars['UsdCents']['output'];
   outstanding: Scalars['UsdCents']['output'];
   repaymentType: CreditFacilityRepaymentType;

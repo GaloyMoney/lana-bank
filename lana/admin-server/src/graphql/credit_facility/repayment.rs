@@ -51,7 +51,7 @@ pub struct CreditFacilityRepaymentPlanEntry {
     pub initial: UsdCents,
     pub outstanding: UsdCents,
     pub accrual_at: Timestamp,
-    pub due_at: Timestamp,
+    pub due_at: Date,
 }
 
 impl From<lana_app::credit::CreditFacilityRepaymentPlanEntry> for CreditFacilityRepaymentPlanEntry {
@@ -62,7 +62,7 @@ impl From<lana_app::credit::CreditFacilityRepaymentPlanEntry> for CreditFacility
             initial: repayment.initial,
             outstanding: repayment.outstanding,
             accrual_at: repayment.recorded_at.into(),
-            due_at: repayment.due_at.end_of_day().into(),
+            due_at: Date::from(chrono::NaiveDate::from(repayment.due_at)),
         }
     }
 }

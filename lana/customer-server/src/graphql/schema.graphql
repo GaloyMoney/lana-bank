@@ -134,7 +134,7 @@ type CreditFacilityRepaymentPlanEntry {
 	initial: UsdCents!
 	outstanding: UsdCents!
 	accrualAt: Timestamp!
-	dueAt: Timestamp!
+	dueAt: Date!
 }
 
 enum CreditFacilityRepaymentStatus {
