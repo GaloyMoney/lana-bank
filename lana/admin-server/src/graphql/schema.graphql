@@ -2041,6 +2041,7 @@ type Me {
 	userCanCreateProspect: Boolean!
 	userCanCreateUser: Boolean!
 	userCanCreateTermsTemplate: Boolean!
+	userCanCreateCustodian: Boolean!
 }
 
 type Mutation {

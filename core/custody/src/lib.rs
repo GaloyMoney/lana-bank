@@ -322,6 +322,22 @@ where
         Ok(custodian)
     }
 
+    pub async fn subject_can_create_custodian(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<audit::AuditInfo>, CoreCustodyError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CoreCustodyObject::all_custodians(),
+                CoreCustodyAction::CUSTODIAN_CREATE,
+                enforce,
+            )
+            .await?)
+    }
+
     #[record_error_severity]
     #[instrument(name = "core_custody.create_custodian_in_op", skip(self, db))]
     pub async fn create_custodian_in_op(

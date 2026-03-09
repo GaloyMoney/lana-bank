@@ -2577,6 +2577,7 @@ export const mockMe = (overrides?: Partial<Me>, _relationshipsToOmit: Set<string
     return {
         __typename: 'Me',
         user: overrides && overrides.hasOwnProperty('user') ? overrides.user! : relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit),
+        userCanCreateCustodian: overrides && overrides.hasOwnProperty('userCanCreateCustodian') ? overrides.userCanCreateCustodian! : faker.datatype.boolean(),
         userCanCreateProspect: overrides && overrides.hasOwnProperty('userCanCreateProspect') ? overrides.userCanCreateProspect! : faker.datatype.boolean(),
         userCanCreateTermsTemplate: overrides && overrides.hasOwnProperty('userCanCreateTermsTemplate') ? overrides.userCanCreateTermsTemplate! : faker.datatype.boolean(),
         userCanCreateUser: overrides && overrides.hasOwnProperty('userCanCreateUser') ? overrides.userCanCreateUser! : faker.datatype.boolean(),
