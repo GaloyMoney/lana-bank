@@ -50,7 +50,7 @@ pub struct ReportDefinition {
 impl From<DomainReportDefinition> for ReportDefinition {
     fn from(report_definition: DomainReportDefinition) -> Self {
         Self {
-            report_definition_id: report_definition.report_definition_id(),
+            report_definition_id: report_definition.report_definition_id().to_string(),
             norm: report_definition.norm,
             id: report_definition.id,
             friendly_name: report_definition.friendly_name,

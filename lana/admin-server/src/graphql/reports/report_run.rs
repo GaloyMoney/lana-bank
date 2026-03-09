@@ -68,7 +68,7 @@ pub struct RequestedReport {
 impl From<DomainRequestedReport> for RequestedReport {
     fn from(requested_report: DomainRequestedReport) -> Self {
         Self {
-            report_definition_id: requested_report.report_definition_id,
+            report_definition_id: requested_report.report_definition_id.to_string(),
             norm: requested_report.norm,
             name: requested_report.name,
         }
