@@ -972,6 +972,31 @@
             '';
           };
 
+          check-pnpm-version = pkgs.stdenv.mkDerivation {
+            name = "check-pnpm-version";
+            src = frontendSrc;
+
+            nativeBuildInputs = [pkgs.pnpm pkgs.jq];
+
+            buildPhase = ''
+              NIX_PNPM="$(pnpm --version)"
+              PKG_PNPM="$(jq -r '.packageManager' package.json | sed 's/pnpm@//')"
+              if [ "$NIX_PNPM" != "$PKG_PNPM" ]; then
+                echo "ERROR: pnpm version mismatch!"
+                echo "  nixpkgs provides: $NIX_PNPM"
+                echo "  package.json wants: $PKG_PNPM"
+                echo "Update packageManager in package.json to pnpm@$NIX_PNPM"
+                exit 1
+              fi
+              echo "pnpm version consistent: $NIX_PNPM ✓"
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "pnpm version check passed" > $out/result.txt
+            '';
+          };
+
           admin-panel-lint = mkFrontendCheck "admin-panel-lint" ''
             echo "Running lint for admin-panel..."
             pnpm --filter admin-panel lint
