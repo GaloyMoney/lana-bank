@@ -795,6 +795,12 @@
           "noTemplates": "No hay plantillas de términos disponibles, por favor cree una o especifique manualmente los términos a continuación.",
           "fillAllFields": "Por favor complete todos los campos.",
           "cvlOrderError": "El CVL inicial debe ser mayor que el CVL de llamada de margen, que debe ser mayor que el CVL de liquidación.",
+          "annualRateRange": "La tasa anual debe estar entre 0% y 50%.",
+          "durationRange": "La duración debe estar entre 1 y 120 meses.",
+          "oneTimeFeeRateRange": "La tasa de comisión de estructuración debe estar entre 0% y 10%.",
+          "initialCvlRange": "El CVL inicial debe estar entre 100% y 500%.",
+          "marginCallCvlRange": "El CVL de llamada de margen debe estar entre 100% y 500%.",
+          "liquidationCvlRange": "El CVL de liquidación debe estar entre 100% y 500%.",
           "success": "Propuesta de Línea de Crédito creada con éxito"
         }
       }
@@ -1556,7 +1562,13 @@
         "errors": {
           "general": "Ocurrió un error inesperado. Por favor intente de nuevo.",
           "updateFailed": "Error al actualizar la Plantilla de Términos",
-          "cvlOrderError": "El CVL inicial debe ser mayor que el CVL de llamada de margen, que debe ser mayor que el CVL de liquidación."
+          "cvlOrderError": "El CVL inicial debe ser mayor que el CVL de llamada de margen, que debe ser mayor que el CVL de liquidación.",
+          "annualRateRange": "La tasa anual debe estar entre 0% y 50%.",
+          "durationRange": "La duración debe estar entre 1 y 120 meses.",
+          "oneTimeFeeRateRange": "La tasa de comisión de estructuración debe estar entre 0% y 10%.",
+          "initialCvlRange": "El CVL inicial debe estar entre 100% y 500%.",
+          "marginCallCvlRange": "El CVL de llamada de margen debe estar entre 100% y 500%.",
+          "liquidationCvlRange": "El CVL de liquidación debe estar entre 100% y 500%."
         },
         "success": {
           "updated": "Plantilla de Términos actualizada exitosamente"
@@ -1596,7 +1608,13 @@
         "errors": {
           "general": "Ocurrió un error inesperado. Por favor intente de nuevo.",
           "creationFailed": "Error al crear la Plantilla de Términos",
-          "cvlOrderError": "El CVL inicial debe ser mayor que el CVL de llamada de margen, que debe ser mayor que el CVL de liquidación."
+          "cvlOrderError": "El CVL inicial debe ser mayor que el CVL de llamada de margen, que debe ser mayor que el CVL de liquidación.",
+          "annualRateRange": "La tasa anual debe estar entre 0% y 50%.",
+          "durationRange": "La duración debe estar entre 1 y 120 meses.",
+          "oneTimeFeeRateRange": "La tasa de comisión de estructuración debe estar entre 0% y 10%.",
+          "initialCvlRange": "El CVL inicial debe estar entre 100% y 500%.",
+          "marginCallCvlRange": "El CVL de llamada de margen debe estar entre 100% y 500%.",
+          "liquidationCvlRange": "El CVL de liquidación debe estar entre 100% y 500%."
         },
         "success": {
           "created": "Plantilla de Términos creada exitosamente"

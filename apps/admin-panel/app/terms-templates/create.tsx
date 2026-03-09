@@ -30,7 +30,7 @@ import {
   TermsTemplateFieldsFragment,
   DisbursalPolicy,
 } from "@/lib/graphql/generated"
-import { DEFAULT_TERMS } from "@/lib/constants/terms"
+import { DEFAULT_TERMS, TERMS_FIELD_LIMITS, validateTermsFields } from "@/lib/constants/terms"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 import { getCvlValue } from "@/lib/utils"
 
@@ -116,14 +116,9 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     e.preventDefault()
     setError(null)
 
-    const initialCvlNum = parseFloat(formValues.initialCvl)
-    const marginCallCvlNum = parseFloat(formValues.marginCallCvl)
-    const liquidationCvlNum = parseFloat(formValues.liquidationCvl)
-    if (
-      initialCvlNum <= marginCallCvlNum ||
-      marginCallCvlNum <= liquidationCvlNum
-    ) {
-      const errorMsg = t("errors.cvlOrderError")
+    const validationError = validateTermsFields(formValues)
+    if (validationError) {
+      const errorMsg = t(`errors.${validationError}`)
       setError(errorMsg)
       toast.error(errorMsg)
       return
@@ -241,8 +236,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.annualRate}
                   onChange={handleChange}
                   disabled={isLoading}
-                  min={0}
-                  max={50}
+                  min={TERMS_FIELD_LIMITS.annualRate.min}
+                  max={TERMS_FIELD_LIMITS.annualRate.max}
                   step="any"
                   endAdornment="%"
                   data-testid="terms-template-annual-rate-input"
@@ -257,8 +252,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     value={formValues.durationUnits}
                     onChange={handleChange}
                     placeholder={t("placeholders.durationUnits")}
-                    min={1}
-                    max={120}
+                    min={TERMS_FIELD_LIMITS.durationUnits.min}
+                    max={TERMS_FIELD_LIMITS.durationUnits.max}
                     required
                     disabled={isLoading}
                     data-testid="terms-template-duration-units-input"
@@ -277,8 +272,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
                   disabled={isLoading}
-                  min={0}
-                  max={10}
+                  min={TERMS_FIELD_LIMITS.oneTimeFeeRate.min}
+                  max={TERMS_FIELD_LIMITS.oneTimeFeeRate.max}
                   step="any"
                   endAdornment="%"
                   data-testid="terms-template-one-time-fee-rate-input"
@@ -322,8 +317,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.initialCvl}
                   onChange={handleChange}
                   disabled={isLoading}
-                  min={100}
-                  max={500}
+                  min={TERMS_FIELD_LIMITS.initialCvl.min}
+                  max={TERMS_FIELD_LIMITS.initialCvl.max}
                   step="any"
                   data-testid="terms-template-initial-cvl-input"
                 />
@@ -339,8 +334,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.marginCallCvl}
                   onChange={handleChange}
                   disabled={isLoading}
-                  min={100}
-                  max={500}
+                  min={TERMS_FIELD_LIMITS.marginCallCvl.min}
+                  max={TERMS_FIELD_LIMITS.marginCallCvl.max}
                   step="any"
                   data-testid="terms-template-margin-call-cvl-input"
                 />
@@ -356,8 +351,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.liquidationCvl}
                   onChange={handleChange}
                   disabled={isLoading}
-                  min={100}
-                  max={500}
+                  min={TERMS_FIELD_LIMITS.liquidationCvl.min}
+                  max={TERMS_FIELD_LIMITS.liquidationCvl.max}
                   step="any"
                   data-testid="terms-template-liquidation-cvl-input"
                 />

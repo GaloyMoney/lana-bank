@@ -31,7 +31,7 @@ import {
   TermsTemplateEventHistoryDocument,
   DisbursalPolicy,
 } from "@/lib/graphql/generated"
-import { DEFAULT_TERMS } from "@/lib/constants/terms"
+import { DEFAULT_TERMS, TERMS_FIELD_LIMITS, validateTermsFields } from "@/lib/constants/terms"
 import { getCvlValue } from "@/lib/utils"
 
 gql`
@@ -102,14 +102,9 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     e.preventDefault()
     setError(null)
 
-    const initialCvlNum = parseFloat(formValues.initialCvl)
-    const marginCallCvlNum = parseFloat(formValues.marginCallCvl)
-    const liquidationCvlNum = parseFloat(formValues.liquidationCvl)
-    if (
-      initialCvlNum <= marginCallCvlNum ||
-      marginCallCvlNum <= liquidationCvlNum
-    ) {
-      const errorMsg = t("errors.cvlOrderError")
+    const validationError = validateTermsFields(formValues)
+    if (validationError) {
+      const errorMsg = t(`errors.${validationError}`)
       setError(errorMsg)
       toast.error(errorMsg)
       return
@@ -209,8 +204,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.annualRate")}
                   value={formValues.annualRate}
                   onChange={handleChange}
-                  min={0}
-                  max={50}
+                  min={TERMS_FIELD_LIMITS.annualRate.min}
+                  max={TERMS_FIELD_LIMITS.annualRate.max}
                   step="any"
                   endAdornment="%"
                 />
@@ -224,8 +219,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                     value={formValues.durationUnits}
                     onChange={handleChange}
                     placeholder={t("placeholders.durationUnits")}
-                    min={1}
-                    max={120}
+                    min={TERMS_FIELD_LIMITS.durationUnits.min}
+                    max={TERMS_FIELD_LIMITS.durationUnits.max}
                     required
                     endAdornment={`${t("fields.months")}`}
                   />
@@ -241,8 +236,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.oneTimeFeeRate")}
                   value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
-                  min={0}
-                  max={10}
+                  min={TERMS_FIELD_LIMITS.oneTimeFeeRate.min}
+                  max={TERMS_FIELD_LIMITS.oneTimeFeeRate.max}
                   step="any"
                   endAdornment="%"
                 />
@@ -283,8 +278,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.initialCvl")}
                   value={formValues.initialCvl}
                   onChange={handleChange}
-                  min={100}
-                  max={500}
+                  min={TERMS_FIELD_LIMITS.initialCvl.min}
+                  max={TERMS_FIELD_LIMITS.initialCvl.max}
                   step="any"
                 />
               </div>
@@ -298,8 +293,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.marginCallCvl")}
                   value={formValues.marginCallCvl}
                   onChange={handleChange}
-                  min={100}
-                  max={500}
+                  min={TERMS_FIELD_LIMITS.marginCallCvl.min}
+                  max={TERMS_FIELD_LIMITS.marginCallCvl.max}
                   step="any"
                 />
               </div>
@@ -313,8 +308,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   placeholder={t("placeholders.liquidationCvl")}
                   value={formValues.liquidationCvl}
                   onChange={handleChange}
-                  min={100}
-                  max={500}
+                  min={TERMS_FIELD_LIMITS.liquidationCvl.min}
+                  max={TERMS_FIELD_LIMITS.liquidationCvl.max}
                   step="any"
                 />
               </div>
